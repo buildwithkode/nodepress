@@ -7,6 +7,9 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateContentTypeDto } from './dto/create-content-type.dto';
 import { UpdateContentTypeDto } from './dto/update-content-type.dto';
+import { SchemaValidator } from '../fields/schema.validator';
+import { FormGenerator } from '../fields/form.generator';
+import { FieldDef } from '../fields/field.types';
 
 // These route names are already taken by static controllers
 const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads'];
@@ -16,7 +19,11 @@ const normalizeName = (name: string): string =>
 
 @Injectable()
 export class ContentTypeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private schemaValidator: SchemaValidator,
+    private formGenerator: FormGenerator,
+  ) {}
 
   async create(dto: CreateContentTypeDto) {
     const name = normalizeName(dto.name);
@@ -35,8 +42,11 @@ export class ContentTypeService {
       throw new ConflictException(`Content type "${name}" already exists`);
     }
 
+    // Deep-validate the schema field definitions
+    const validatedSchema = this.schemaValidator.validate(dto.schema);
+
     return this.prisma.contentType.create({
-      data: { name, schema: dto.schema as any },
+      data: { name, schema: validatedSchema as any },
     });
   }
 
@@ -85,13 +95,22 @@ export class ContentTypeService {
     }
 
     if (dto.schema !== undefined) {
-      updateData.schema = dto.schema as any;
+      const validatedSchema = this.schemaValidator.validate(dto.schema);
+      updateData.schema = validatedSchema as any;
     }
 
     return this.prisma.contentType.update({
       where: { id },
       data: updateData,
     });
+  }
+
+  async getForm(id: number) {
+    const contentType = await this.findOne(id);
+    return this.formGenerator.generate(
+      contentType.name,
+      contentType.schema as unknown as FieldDef[],
+    );
   }
 
   async remove(id: number) {

@@ -7,10 +7,15 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
+import { DataValidator } from '../fields/data.validator';
+import { FieldDef } from '../fields/field.types';
 
 @Injectable()
 export class EntriesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private dataValidator: DataValidator,
+  ) {}
 
   async create(dto: CreateEntryDto) {
     const contentType = await this.prisma.contentType.findUnique({
@@ -22,6 +27,12 @@ export class EntriesService {
         `Content type #${dto.contentTypeId} not found`,
       );
     }
+
+    // Validate data against the content type schema (full validation — all required fields checked)
+    this.dataValidator.validate(
+      dto.data as Record<string, unknown>,
+      contentType.schema as unknown as FieldDef[],
+    );
 
     const existing = await this.prisma.entry.findUnique({
       where: {
@@ -97,6 +108,12 @@ export class EntriesService {
 
     // Only update data if explicitly provided — never wipe it with undefined
     if (dto.data !== undefined) {
+      // Partial validation — only validate fields that are present in the update
+      this.dataValidator.validate(
+        dto.data as Record<string, unknown>,
+        entry.contentType.schema as unknown as FieldDef[],
+        { partial: true },
+      );
       updateData.data = dto.data as any;
     }
 

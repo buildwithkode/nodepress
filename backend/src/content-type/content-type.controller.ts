@@ -42,6 +42,15 @@ export class ContentTypeController {
     return this.contentTypeService.findOne(id);
   }
 
+  @Get(':id/form')
+  @ApiOperation({ summary: 'Get the generated form structure for a content type' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Form structure with fields, widgets, and constraints' })
+  @ApiResponse({ status: 404, description: 'Not found' })
+  getForm(@Param('id', ParseIntPipe) id: number) {
+    return this.contentTypeService.getForm(id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   @ApiBearerAuth('JWT')

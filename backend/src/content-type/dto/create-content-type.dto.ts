@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsArray, ValidateNested, IsIn, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, ValidateNested, IsIn, IsOptional, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -16,9 +16,24 @@ export class FieldDto {
   @IsIn(['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'repeater', 'flexible'])
   type: string;
 
+  @ApiPropertyOptional({ example: 'Article Title' })
+  @IsOptional()
+  @IsString()
+  label?: string;
+
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+
+  @ApiPropertyOptional({ example: 'Short description shown below the field' })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
   @ApiPropertyOptional({
-    description: 'Extra config — subFields for repeater, layouts for flexible, options for select',
-    example: { subFields: [{ name: 'label', type: 'text' }] },
+    description: 'Type-specific config — subFields for repeater, layouts for flexible, choices for select, min/max for number/text',
+    example: { subFields: [{ name: 'image', type: 'image' }] },
   })
   @IsOptional()
   options?: any;
