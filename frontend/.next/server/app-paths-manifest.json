@@ -1,7 +1,0 @@
-{
-  "/(admin)/api-keys/page": "app/(admin)/api-keys/page.js",
-  "/(admin)/media/page": "app/(admin)/media/page.js",
-  "/(admin)/content-types/page": "app/(admin)/content-types/page.js",
-  "/(admin)/page": "app/(admin)/page.js",
-  "/(admin)/entries/page": "app/(admin)/entries/page.js"
-}
