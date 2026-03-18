@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const siteName = typeof window !== 'undefined' ? localStorage.getItem('np_site_name') || 'NodePress' : 'NodePress';
+  const siteName = (typeof window !== 'undefined' ? localStorage.getItem('np_site_name') : null) ?? 'NodePress';
 
   const handleLogout = () => {
     logout();
@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Menu
           theme="dark"
           mode="inline"
-          selectedKeys={[pathname]}
+          selectedKeys={[pathname ?? '']}
           items={menuItems}
           onClick={({ key }) => router.push(key)}
         />

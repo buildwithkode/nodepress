@@ -39,7 +39,7 @@ const { Title, Text } = Typography;
 interface Field {
   name: string;
   type: string;
-  options?: string[];
+  options?: any;
 }
 
 interface ContentType {

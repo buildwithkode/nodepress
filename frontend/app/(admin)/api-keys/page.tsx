@@ -244,7 +244,7 @@ export default function ApiKeysPage() {
             label="Key Name"
             name="name"
             rules={[{ required: true, message: 'Name is required' }]}
-            extra="A label to identify this key, e.g. "Mobile App" or "Next.js Frontend""
+            extra='A label to identify this key, e.g. "Mobile App" or "Next.js Frontend"'
           >
             <Input placeholder="My App" />
           </Form.Item>
