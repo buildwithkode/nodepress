@@ -5,18 +5,18 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Button, Space, Divider } from 'antd';
 import {
-  BoldOutlined,
-  ItalicOutlined,
-  UnderlineOutlined,
-  OrderedListOutlined,
-  UnorderedListOutlined,
-  LinkOutlined,
-  StrikethroughOutlined,
-  UndoOutlined,
-  RedoOutlined,
-} from '@ant-design/icons';
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  Strikethrough,
+  List,
+  ListOrdered,
+  Link2,
+  Undo,
+  Redo,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
 
 interface Props {
@@ -38,16 +38,21 @@ const ToolbarButton = ({
   icon: React.ReactNode;
   title: string;
 }) => (
-  <Button
-    size="small"
-    type={active ? 'primary' : 'text'}
-    icon={icon}
+  <button
+    type="button"
     onClick={onClick}
     disabled={disabled}
     title={title}
-    style={{ minWidth: 28 }}
-  />
+    className={cn(
+      'p-1.5 rounded text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
+      active ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100',
+    )}
+  >
+    {icon}
+  </button>
 );
+
+const ToolbarDivider = () => <div className="w-px h-5 bg-gray-200 mx-1" />;
 
 export default function RichTextEditor({ value, onChange, placeholder }: Props) {
   const editor = useEditor({
@@ -65,6 +70,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
     },
     editorProps: {
       attributes: {
+        class: 'tiptap-content',
         style:
           'min-height: 200px; padding: 12px; outline: none; font-size: 14px; line-height: 1.8;',
       },
@@ -91,113 +97,94 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
   };
 
   return (
-    <div
-      style={{
-        border: '1px solid #d9d9d9',
-        borderRadius: 6,
-        overflow: 'hidden',
-        transition: 'border-color 0.2s',
-      }}
-      onFocus={(e) => (e.currentTarget.style.borderColor = '#1677ff')}
-      onBlur={(e) => (e.currentTarget.style.borderColor = '#d9d9d9')}
-    >
+    <div className="border border-input rounded-md overflow-hidden focus-within:ring-1 focus-within:ring-ring">
       {/* Toolbar */}
-      <div
-        style={{
-          padding: '6px 10px',
-          background: '#fafafa',
-          borderBottom: '1px solid #f0f0f0',
-          display: 'flex',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Space size={2}>
-          <ToolbarButton
-            title="Bold (Ctrl+B)"
-            icon={<BoldOutlined />}
-            active={editor.isActive('bold')}
-            onClick={() => editor.chain().focus().toggleBold().run()}
-          />
-          <ToolbarButton
-            title="Italic (Ctrl+I)"
-            icon={<ItalicOutlined />}
-            active={editor.isActive('italic')}
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-          />
-          <ToolbarButton
-            title="Underline (Ctrl+U)"
-            icon={<UnderlineOutlined />}
-            active={editor.isActive('underline')}
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-          />
-          <ToolbarButton
-            title="Strikethrough"
-            icon={<StrikethroughOutlined />}
-            active={editor.isActive('strike')}
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-          />
-        </Space>
+      <div className="flex items-center flex-wrap gap-0.5 p-1.5 bg-gray-50 border-b border-gray-200">
+        {/* Formatting */}
+        <ToolbarButton
+          title="Bold (Ctrl+B)"
+          icon={<Bold className="h-4 w-4" />}
+          active={editor.isActive('bold')}
+          onClick={() => editor.chain().focus().toggleBold().run()}
+        />
+        <ToolbarButton
+          title="Italic (Ctrl+I)"
+          icon={<Italic className="h-4 w-4" />}
+          active={editor.isActive('italic')}
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+        />
+        <ToolbarButton
+          title="Underline (Ctrl+U)"
+          icon={<UnderlineIcon className="h-4 w-4" />}
+          active={editor.isActive('underline')}
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+        />
+        <ToolbarButton
+          title="Strikethrough"
+          icon={<Strikethrough className="h-4 w-4" />}
+          active={editor.isActive('strike')}
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+        />
 
-        <Divider type="vertical" style={{ margin: '0 4px' }} />
+        <ToolbarDivider />
 
-        <Space size={2}>
-          {[1, 2, 3].map((level) => (
-            <Button
-              key={level}
-              size="small"
-              type={editor.isActive('heading', { level }) ? 'primary' : 'text'}
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: level as 1 | 2 | 3 }).run()
-              }
-              title={`Heading ${level}`}
-              style={{ minWidth: 28, fontWeight: 700, fontSize: 11 }}
-            >
-              H{level}
-            </Button>
-          ))}
-        </Space>
+        {/* Headings */}
+        {([1, 2, 3] as const).map((level) => (
+          <button
+            key={level}
+            type="button"
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level }).run()
+            }
+            title={`Heading ${level}`}
+            className={cn(
+              'p-1.5 rounded text-sm transition-colors min-w-[28px]',
+              editor.isActive('heading', { level })
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-600 hover:bg-gray-100',
+            )}
+          >
+            <span className="text-xs font-bold">H{level}</span>
+          </button>
+        ))}
 
-        <Divider type="vertical" style={{ margin: '0 4px' }} />
+        <ToolbarDivider />
 
-        <Space size={2}>
-          <ToolbarButton
-            title="Bullet list"
-            icon={<UnorderedListOutlined />}
-            active={editor.isActive('bulletList')}
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-          />
-          <ToolbarButton
-            title="Numbered list"
-            icon={<OrderedListOutlined />}
-            active={editor.isActive('orderedList')}
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          />
-          <ToolbarButton
-            title="Insert link"
-            icon={<LinkOutlined />}
-            active={editor.isActive('link')}
-            onClick={setLink}
-          />
-        </Space>
+        {/* Lists & Link */}
+        <ToolbarButton
+          title="Bullet list"
+          icon={<List className="h-4 w-4" />}
+          active={editor.isActive('bulletList')}
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+        />
+        <ToolbarButton
+          title="Numbered list"
+          icon={<ListOrdered className="h-4 w-4" />}
+          active={editor.isActive('orderedList')}
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        />
+        <ToolbarButton
+          title="Insert link"
+          icon={<Link2 className="h-4 w-4" />}
+          active={editor.isActive('link')}
+          onClick={setLink}
+        />
 
-        <Divider type="vertical" style={{ margin: '0 4px' }} />
+        <ToolbarDivider />
 
-        <Space size={2}>
-          <ToolbarButton
-            title="Undo (Ctrl+Z)"
-            icon={<UndoOutlined />}
-            disabled={!editor.can().undo()}
-            onClick={() => editor.chain().focus().undo().run()}
-          />
-          <ToolbarButton
-            title="Redo (Ctrl+Y)"
-            icon={<RedoOutlined />}
-            disabled={!editor.can().redo()}
-            onClick={() => editor.chain().focus().redo().run()}
-          />
-        </Space>
+        {/* Undo / Redo */}
+        <ToolbarButton
+          title="Undo (Ctrl+Z)"
+          icon={<Undo className="h-4 w-4" />}
+          disabled={!editor.can().undo()}
+          onClick={() => editor.chain().focus().undo().run()}
+        />
+        <ToolbarButton
+          title="Redo (Ctrl+Y)"
+          icon={<Redo className="h-4 w-4" />}
+          disabled={!editor.can().redo()}
+          onClick={() => editor.chain().focus().redo().run()}
+        />
       </div>
 
       {/* Editor area */}

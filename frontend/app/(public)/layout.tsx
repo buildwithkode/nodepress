@@ -2,52 +2,23 @@ import Link from 'next/link';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#fff' }}>
-      {/* Minimal top bar */}
-      <header
-        style={{
-          borderBottom: '1px solid #f0f0f0',
-          padding: '12px 32px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: '#fff',
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-        }}
-      >
-        <span style={{ fontWeight: 700, fontSize: 18, color: '#1677ff' }}>
-          NodePress
-        </span>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-8 py-3 flex items-center justify-between">
+        <span className="font-bold text-lg text-blue-600">NodePress</span>
         <Link
           href="/"
-          style={{
-            fontSize: 13,
-            color: '#666',
-            textDecoration: 'none',
-            border: '1px solid #d9d9d9',
-            padding: '4px 12px',
-            borderRadius: 4,
-          }}
+          className="text-xs text-gray-500 border border-gray-200 rounded px-3 py-1 hover:bg-gray-50 hover:text-gray-700 transition-colors no-underline"
         >
           Admin Panel →
         </Link>
       </header>
 
-      <main style={{ maxWidth: 860, margin: '0 auto', padding: '40px 24px' }}>
-        {children}
-      </main>
+      {/* Content */}
+      <main className="max-w-3xl mx-auto px-6 py-10">{children}</main>
 
-      <footer
-        style={{
-          borderTop: '1px solid #f0f0f0',
-          textAlign: 'center',
-          padding: '24px',
-          color: '#999',
-          fontSize: 13,
-        }}
-      >
+      {/* Footer */}
+      <footer className="border-t border-gray-100 text-center py-6 text-xs text-gray-400">
         Powered by NodePress CMS
       </footer>
     </div>

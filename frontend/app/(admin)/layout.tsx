@@ -1,34 +1,38 @@
 'use client';
 
-import { Layout, Menu, Button, Typography, Avatar } from 'antd';
-import {
-  DashboardOutlined,
-  AppstoreOutlined,
-  FileOutlined,
-  PictureOutlined,
-  LogoutOutlined,
-  UserOutlined,
-  KeyOutlined,
-} from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  LayoutDashboard,
+  Layers,
+  FileText,
+  Image,
+  Key,
+  LogOut,
+} from 'lucide-react';
 
-const { Header, Sider, Content } = Layout;
-const { Text } = Typography;
-
-const menuItems = [
-  { key: '/', icon: <DashboardOutlined />, label: 'Dashboard' },
-  { key: '/content-types', icon: <AppstoreOutlined />, label: 'Content Types' },
-  { key: '/entries', icon: <FileOutlined />, label: 'Entries' },
-  { key: '/media', icon: <PictureOutlined />, label: 'Media' },
-  { key: '/api-keys', icon: <KeyOutlined />, label: 'API Keys' },
+const navItems = [
+  { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/content-types', label: 'Content Types', icon: Layers },
+  { href: '/entries',       label: 'Entries',       icon: FileText },
+  { href: '/media',         label: 'Media',         icon: Image },
+  { href: '/api-keys',      label: 'API Keys',      icon: Key },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const siteName = (typeof window !== 'undefined' ? localStorage.getItem('np_site_name') : null) ?? 'NodePress';
+
+  const [siteName, setSiteName] = useState('NodePress');
+  useEffect(() => {
+    const stored = localStorage.getItem('np_site_name');
+    if (stored) setSiteName(stored);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -36,62 +40,80 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider breakpoint="lg" collapsedWidth="0" style={{ background: '#001529' }}>
-        <div
-          style={{
-            padding: '16px 20px',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 18,
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-            marginBottom: 8,
-          }}
-        >
-          {siteName}
+    <div className="flex min-h-screen">
+      {/* ── Sidebar ── */}
+      <aside className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col bg-[#0f172a]">
+
+        {/* Logo / site name */}
+        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-white/10">
+          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+            <span className="text-white text-sm font-extrabold leading-none">N</span>
+          </div>
+          <span className="text-white font-semibold text-[15px] truncate">{siteName}</span>
         </div>
 
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[pathname ?? '']}
-          items={menuItems}
-          onClick={({ key }) => router.push(key)}
-        />
-      </Sider>
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname === href;
+            return (
+              <button
+                key={href}
+                onClick={() => router.push(href)}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors text-left',
+                  isActive
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/60 hover:text-white hover:bg-white/5',
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+              </button>
+            );
+          })}
+        </nav>
 
-      <Layout>
-        <Header
-          style={{
-            background: '#fff',
-            padding: '0 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: 12,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-          }}
-        >
-          <Avatar icon={<UserOutlined />} size="small" />
-          <Text>{user?.email}</Text>
-          <Button icon={<LogoutOutlined />} type="text" onClick={handleLogout}>
+        {/* Bottom user info */}
+        <div className="px-3 py-3 border-t border-white/10">
+          <p className="text-[11px] text-white/40 truncate px-1 mb-1">{user?.email}</p>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Right side ── */}
+      <div className="flex flex-col flex-1 ml-60 min-h-screen">
+
+        {/* Top header */}
+        <header className="sticky top-0 z-10 flex items-center justify-end gap-3 h-14 px-6 bg-white border-b border-gray-200 shadow-sm">
+          <Avatar className="h-7 w-7">
+            <AvatarFallback className="text-xs bg-blue-100 text-blue-700 font-semibold">
+              {user?.email?.[0]?.toUpperCase() ?? 'U'}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm text-gray-700 hidden sm:block">{user?.email}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="text-gray-500 hover:text-gray-900 gap-1.5"
+          >
+            <LogOut className="h-4 w-4" />
             Logout
           </Button>
-        </Header>
+        </header>
 
-        <Content style={{ margin: 24 }}>
-          <div
-            style={{
-              background: '#fff',
-              padding: 24,
-              borderRadius: 8,
-              minHeight: 'calc(100vh - 112px)',
-            }}
-          >
-            {children}
-          </div>
-        </Content>
-      </Layout>
-    </Layout>
+        {/* Page content */}
+        <main className="flex-1 bg-gray-50 p-6">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

@@ -1,72 +1,155 @@
 'use client';
 
-import { Form, Input, InputNumber, Switch, Button, Card, Space } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useFieldArray } from 'react-hook-form';
+import { Trash2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
-interface SubField { name: string; type: string }
+interface SubField {
+  name: string;
+  type: string;
+}
 
 interface Props {
   fieldName: string;
   subFields: SubField[];
+  control: any;
+  register: any;
+  errors: any;
 }
 
-const renderSubInput = (type: string) => {
+function renderSubInput(
+  type: string,
+  path: string,
+  register: any,
+  control: any,
+  index: number,
+  sf: SubField,
+) {
+  const fieldPath = `${path}.${sf.name}`;
+
   switch (type) {
-    case 'number': return <InputNumber style={{ width: '100%' }} />;
-    case 'boolean': return <Switch />;
-    case 'textarea': return <Input.TextArea rows={2} />;
-    case 'image': return <Input placeholder="Image URL" />;
-    default: return <Input />;
+    case 'textarea':
+      return (
+        <Textarea
+          rows={2}
+          placeholder={sf.name.replace(/_/g, ' ')}
+          {...register(fieldPath)}
+        />
+      );
+    case 'number':
+      return (
+        <Input
+          type="number"
+          placeholder={sf.name.replace(/_/g, ' ')}
+          {...register(fieldPath, { valueAsNumber: true })}
+        />
+      );
+    case 'image':
+      return (
+        <Input
+          type="text"
+          placeholder="Image URL"
+          {...register(fieldPath)}
+        />
+      );
+    case 'boolean':
+      // Boolean in repeater items is handled inline via register as a checkbox
+      return (
+        <input
+          type="checkbox"
+          className="h-4 w-4 rounded border-gray-300"
+          {...register(fieldPath)}
+        />
+      );
+    default:
+      return (
+        <Input
+          type="text"
+          placeholder={sf.name.replace(/_/g, ' ')}
+          {...register(fieldPath)}
+        />
+      );
   }
-};
+}
 
-export default function RepeaterField({ fieldName, subFields }: Props) {
+export default function RepeaterField({
+  fieldName,
+  subFields,
+  control,
+  register,
+  errors,
+}: Props) {
+  const { fields, append, remove } = useFieldArray({ control, name: fieldName });
+
+  const toLabel = (name: string) =>
+    name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
   return (
-    <Form.List name={fieldName}>
-      {(listFields, { add, remove }) => (
-        <div>
-          <Space direction="vertical" style={{ width: '100%' }} size={8}>
-            {listFields.map((listField, index) => (
-              <Card
-                key={listField.key}
-                size="small"
-                style={{ background: '#fafafa', borderLeft: '3px solid #ff6b35' }}
-                title={<span style={{ fontSize: 12, color: '#888' }}>Item {index + 1}</span>}
-                extra={
-                  <Button
-                    icon={<DeleteOutlined />}
-                    size="small"
-                    type="text"
-                    danger
-                    onClick={() => remove(listField.name)}
-                  />
-                }
-              >
-                {subFields.map((sf) => (
-                  <Form.Item
-                    key={sf.name}
-                    label={sf.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
-                    name={[listField.name, sf.name]}
-                    valuePropName={sf.type === 'boolean' ? 'checked' : 'value'}
-                    style={{ marginBottom: 8 }}
-                  >
-                    {renderSubInput(sf.type)}
-                  </Form.Item>
-                ))}
-              </Card>
-            ))}
-          </Space>
+    <div className="space-y-2">
+      {fields.map((item, index) => (
+        <div
+          key={item.id}
+          className={cn(
+            'rounded-md border bg-muted/30 p-3',
+            'border-l-4 border-l-orange-400',
+          )}
+        >
+          {/* Card header */}
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">
+              Item {index + 1}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+              onClick={() => remove(index)}
+              title="Remove item"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
 
-          <Button
-            type="dashed"
-            icon={<PlusOutlined />}
-            onClick={() => add()}
-            style={{ marginTop: listFields.length > 0 ? 8 : 0, width: '100%' }}
-          >
-            Add Item
-          </Button>
+          {/* Sub-fields */}
+          <div className="space-y-3">
+            {subFields.map((sf) => {
+              const itemPath = `${fieldName}.${index}`;
+              const sfLabel = toLabel(sf.name);
+              return (
+                <div key={sf.name}>
+                  {sf.type === 'boolean' ? (
+                    <div className="flex items-center gap-2">
+                      {renderSubInput(sf.type, itemPath, register, control, index, sf)}
+                      <Label className="text-sm">{sfLabel}</Label>
+                    </div>
+                  ) : (
+                    <>
+                      <Label className="mb-1 block text-sm">{sfLabel}</Label>
+                      {renderSubInput(sf.type, itemPath, register, control, index, sf)}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      )}
-    </Form.List>
+      ))}
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-1 w-full border-dashed"
+        onClick={() => append({})}
+      >
+        <Plus className="mr-1.5 h-3.5 w-3.5" />
+        Add Item
+      </Button>
+    </div>
   );
 }

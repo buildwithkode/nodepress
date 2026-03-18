@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import Cookies from 'js-cookie';
 
 interface User {
@@ -19,11 +19,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>(null!);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
     const stored = localStorage.getItem('np_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+    if (stored) setUser(JSON.parse(stored));
+  }, []);
 
   const login = (token: string, newUser: User) => {
     // Store token in cookie (readable by middleware)

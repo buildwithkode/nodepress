@@ -38,19 +38,19 @@ function EntryPreview({ data }: { data: Record<string, any> }) {
   );
 
   if (entries.length === 0) {
-    return <span style={{ color: '#999', fontSize: 13 }}>No preview available</span>;
+    return <span className="text-gray-400 text-xs">No preview available</span>;
   }
 
   const preview = entries.slice(0, 2);
 
   return (
-    <div>
+    <div className="space-y-1">
       {preview.map(([key, val]) => (
-        <div key={key} style={{ marginBottom: 4 }}>
-          <span style={{ color: '#999', fontSize: 12, textTransform: 'capitalize' }}>
+        <div key={key}>
+          <span className="text-gray-400 text-xs capitalize">
             {key.replace(/_/g, ' ')}:{' '}
           </span>
-          <span style={{ fontSize: 14, color: '#333' }}>
+          <span className="text-sm text-gray-600">
             {String(val).length > 120 ? String(val).slice(0, 120) + '…' : String(val)}
           </span>
         </div>
@@ -73,73 +73,32 @@ export default async function EntryListPage({
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: 40 }}>
-        <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0, color: '#111' }}>
-          {title}
-        </h1>
-        <p style={{ color: '#888', marginTop: 8 }}>
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+        <p className="text-gray-400 mt-2 text-sm">
           {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
         </p>
       </div>
 
       {/* Entry list */}
       {entries.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: 64,
-            color: '#bbb',
-            border: '2px dashed #f0f0f0',
-            borderRadius: 8,
-          }}
-        >
+        <div className="text-center py-16 border-2 border-dashed border-gray-100 rounded-lg text-gray-300 text-sm">
           No entries published yet.
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="grid grid-cols-1 gap-4">
           {entries.map((entry: any) => (
             <Link
               key={entry.id}
               href={`/${params.type}/${entry.slug}`}
-              style={{ textDecoration: 'none' }}
+              className="block no-underline group"
             >
-              <div
-                style={{
-                  border: '1px solid #f0f0f0',
-                  borderRadius: 8,
-                  padding: '20px 24px',
-                  transition: 'all 0.15s',
-                  cursor: 'pointer',
-                  background: '#fff',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = '#1677ff';
-                  (e.currentTarget as HTMLElement).style.boxShadow =
-                    '0 2px 12px rgba(22,119,255,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = '#f0f0f0';
-                  (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    marginBottom: 8,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight: 600,
-                      fontSize: 16,
-                      color: '#1677ff',
-                    }}
-                  >
+              <div className="bg-white border border-gray-200 rounded-lg px-6 py-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all">
+                <div className="flex items-start justify-between mb-2">
+                  <span className="font-semibold text-base text-blue-600 group-hover:text-blue-700">
                     {entry.slug}
                   </span>
-                  <span style={{ fontSize: 12, color: '#bbb' }}>
+                  <span className="text-xs text-gray-300 shrink-0 ml-4">
                     {new Date(entry.createdAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -151,22 +110,14 @@ export default async function EntryListPage({
       )}
 
       {/* API info box */}
-      <div
-        style={{
-          marginTop: 48,
-          background: '#f6f8ff',
-          border: '1px solid #d6e4ff',
-          borderRadius: 8,
-          padding: '16px 20px',
-        }}
-      >
-        <p style={{ fontSize: 12, color: '#666', margin: 0 }}>
+      <div className="mt-12 bg-blue-50 border border-blue-100 rounded-lg px-5 py-4">
+        <p className="text-xs text-gray-500 m-0">
           <strong>API endpoint:</strong>{' '}
-          <code style={{ background: '#e8f0fe', padding: '2px 6px', borderRadius: 3 }}>
+          <code className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs">
             GET {BACKEND}/api/{params.type}
           </code>
           {' · '}
-          <Link href={`/api/${params.type}`} style={{ color: '#1677ff', fontSize: 12 }}>
+          <Link href={`/api/${params.type}`} className="text-blue-500 text-xs hover:underline">
             View JSON ↗
           </Link>
         </p>

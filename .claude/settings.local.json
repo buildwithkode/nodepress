@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(node -e \"const p=require\\(''./package.json''\\); const deps={...p.dependencies,...p.devDependencies}; const antd=Object.keys\\(deps\\).filter\\(k=>k.includes\\(''antd''\\)||k.includes\\(''@ant-design''\\)\\); console.log\\(''Ant Design packages:'', antd.length ? antd : ''none''\\); console.log\\(''Tailwind:'', deps[''tailwindcss''] || ''missing''\\); console.log\\(''shadcn radix count:'', Object.keys\\(deps\\).filter\\(k=>k.startsWith\\(''@radix-ui''\\)\\).length\\);\")"
     ]
   }
 }

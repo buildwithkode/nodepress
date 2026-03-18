@@ -36,7 +36,7 @@ function FieldValue({ name, value }: { name: string; value: any }) {
 
   const renderValue = () => {
     if (value === null || value === undefined) {
-      return <span style={{ color: '#ccc' }}>—</span>;
+      return <span className="text-gray-200">—</span>;
     }
 
     // Image field
@@ -49,13 +49,7 @@ function FieldValue({ name, value }: { name: string; value: any }) {
         <img
           src={value}
           alt={name}
-          style={{
-            maxWidth: '100%',
-            maxHeight: 400,
-            borderRadius: 6,
-            border: '1px solid #f0f0f0',
-            display: 'block',
-          }}
+          className="max-w-full max-h-96 rounded-md border border-gray-100 block"
         />
       );
     }
@@ -64,14 +58,11 @@ function FieldValue({ name, value }: { name: string; value: any }) {
     if (typeof value === 'boolean') {
       return (
         <span
-          style={{
-            background: value ? '#f6ffed' : '#fff1f0',
-            color: value ? '#52c41a' : '#ff4d4f',
-            border: `1px solid ${value ? '#b7eb8f' : '#ffa39e'}`,
-            borderRadius: 4,
-            padding: '2px 10px',
-            fontSize: 13,
-          }}
+          className={
+            value
+              ? 'inline-block bg-green-50 text-green-600 border border-green-200 rounded px-2.5 py-0.5 text-sm'
+              : 'inline-block bg-red-50 text-red-500 border border-red-200 rounded px-2.5 py-0.5 text-sm'
+          }
         >
           {value ? 'Yes' : 'No'}
         </span>
@@ -80,35 +71,30 @@ function FieldValue({ name, value }: { name: string; value: any }) {
 
     // Number
     if (typeof value === 'number') {
-      return <span style={{ fontWeight: 500 }}>{value.toLocaleString()}</span>;
+      return <span className="font-medium text-gray-800">{value.toLocaleString()}</span>;
     }
 
     // Repeater — array of objects
     if (Array.isArray(value)) {
       if (value.length === 0) {
-        return <span style={{ color: '#ccc' }}>Empty</span>;
+        return <span className="text-gray-300">Empty</span>;
       }
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="flex flex-col gap-3">
           {value.map((item: any, i: number) => (
             <div
               key={i}
-              style={{
-                border: '1px solid #f0f0f0',
-                borderRadius: 6,
-                padding: '12px 16px',
-                background: '#fafafa',
-              }}
+              className="border border-gray-100 rounded-md px-4 py-3 bg-gray-50"
             >
               {typeof item === 'object' && !Array.isArray(item)
                 ? Object.entries(item)
                     .filter(([k]) => k !== '_layout')
                     .map(([k, v]) => (
-                      <div key={k} style={{ marginBottom: 4 }}>
-                        <span style={{ color: '#888', fontSize: 12 }}>
+                      <div key={k} className="mb-1">
+                        <span className="text-gray-400 text-xs">
                           {k.replace(/_/g, ' ')}:{' '}
                         </span>
-                        <span style={{ fontSize: 14 }}>{String(v)}</span>
+                        <span className="text-sm text-gray-700">{String(v)}</span>
                       </div>
                     ))
                 : String(item)}
@@ -122,7 +108,7 @@ function FieldValue({ name, value }: { name: string; value: any }) {
     if (typeof value === 'string' && /<[a-z][\s\S]*>/i.test(value)) {
       return (
         <div
-          style={{ lineHeight: 1.8, color: '#333' }}
+          className="leading-relaxed text-gray-700 prose prose-sm max-w-none"
           dangerouslySetInnerHTML={{ __html: value }}
         />
       );
@@ -131,30 +117,19 @@ function FieldValue({ name, value }: { name: string; value: any }) {
     // Long text
     if (typeof value === 'string' && value.length > 100) {
       return (
-        <p style={{ lineHeight: 1.8, color: '#333', whiteSpace: 'pre-wrap', margin: 0 }}>
-          {value}
-        </p>
+        <p className="leading-relaxed text-gray-700 whitespace-pre-wrap m-0">{value}</p>
       );
     }
 
     // Default — short string
-    return <span style={{ color: '#333' }}>{String(value)}</span>;
+    return <span className="text-gray-700">{String(value)}</span>;
   };
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '160px 1fr',
-        gap: '12px 24px',
-        paddingBottom: 20,
-        borderBottom: '1px solid #f5f5f5',
-        marginBottom: 20,
-      }}
+    <div className="grid gap-x-6 gap-y-3 pb-5 mb-5 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0"
+      style={{ gridTemplateColumns: '160px 1fr' }}
     >
-      <div style={{ color: '#888', fontSize: 13, paddingTop: 2, fontWeight: 500 }}>
-        {label}
-      </div>
+      <div className="text-gray-400 text-sm pt-0.5 font-medium">{label}</div>
       <div>{renderValue()}</div>
     </div>
   );
@@ -179,33 +154,24 @@ export default async function EntryDetailPage({
   return (
     <div>
       {/* Breadcrumb */}
-      <div style={{ marginBottom: 24, fontSize: 14, color: '#888' }}>
-        <Link href={`/${params.type}`} style={{ color: '#1677ff', textDecoration: 'none' }}>
+      <div className="mb-6 text-sm text-gray-400">
+        <Link href={`/${params.type}`} className="text-blue-500 hover:underline no-underline">
           {typeLabel}
         </Link>
         {' / '}
-        <span>{entry.slug}</span>
+        <span className="text-gray-500">{entry.slug}</span>
       </div>
 
       {/* Title */}
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111', marginBottom: 8 }}>
-        {title}
-      </h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
 
       {/* Meta */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 40, color: '#bbb', fontSize: 13 }}>
+      <div className="flex flex-wrap gap-4 mb-10 text-xs text-gray-400">
         <span>Published {new Date(entry.createdAt).toLocaleDateString()}</span>
         {entry.updatedAt !== entry.createdAt && (
           <span>Updated {new Date(entry.updatedAt).toLocaleDateString()}</span>
         )}
-        <span
-          style={{
-            background: '#f0f5ff',
-            color: '#1677ff',
-            padding: '1px 8px',
-            borderRadius: 4,
-          }}
-        >
+        <span className="bg-blue-50 text-blue-500 px-2 py-0.5 rounded">
           {params.type}
         </span>
       </div>
@@ -218,24 +184,16 @@ export default async function EntryDetailPage({
       </div>
 
       {/* API info */}
-      <div
-        style={{
-          marginTop: 48,
-          background: '#f6f8ff',
-          border: '1px solid #d6e4ff',
-          borderRadius: 8,
-          padding: '16px 20px',
-        }}
-      >
-        <p style={{ fontSize: 12, color: '#666', margin: 0 }}>
+      <div className="mt-12 bg-blue-50 border border-blue-100 rounded-lg px-5 py-4">
+        <p className="text-xs text-gray-500 m-0">
           <strong>API endpoint:</strong>{' '}
-          <code style={{ background: '#e8f0fe', padding: '2px 6px', borderRadius: 3 }}>
+          <code className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs">
             GET {BACKEND}/api/{params.type}/{params.slug}
           </code>
           {' · '}
           <Link
             href={`/api/${params.type}/${params.slug}`}
-            style={{ color: '#1677ff', fontSize: 12 }}
+            className="text-blue-500 text-xs hover:underline"
           >
             View JSON ↗
           </Link>

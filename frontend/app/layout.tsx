@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { AuthProvider } from '../context/AuthContext';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -8,17 +8,12 @@ export const metadata: Metadata = {
   description: 'Headless CMS Admin Panel',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <AntdRegistry>
-          <AuthProvider>{children}</AuthProvider>
-        </AntdRegistry>
+        <AuthProvider>{children}</AuthProvider>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );

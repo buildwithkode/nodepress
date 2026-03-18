@@ -4,194 +4,57 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/axios';
+import { cn } from '@/lib/utils';
 
 /* ─── Password strength helper ─────────────────────────────── */
-function getStrength(pw: string): { label: string; color: string; width: string } {
-  if (!pw) return { label: '', color: 'transparent', width: '0%' };
+type Strength = { label: string; color: string; widthClass: string };
+
+function getStrength(pw: string): Strength {
+  if (!pw) return { label: '', color: '', widthClass: 'w-0' };
   let score = 0;
   if (pw.length >= 8) score++;
   if (pw.length >= 12) score++;
   if (/[A-Z]/.test(pw)) score++;
   if (/[0-9]/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
-  if (score <= 1) return { label: 'Very Weak', color: '#d63638', width: '20%' };
-  if (score === 2) return { label: 'Weak', color: '#dba617', width: '40%' };
-  if (score === 3) return { label: 'Medium', color: '#dba617', width: '60%' };
-  if (score === 4) return { label: 'Strong', color: '#00a32a', width: '80%' };
-  return { label: 'Very Strong', color: '#00a32a', width: '100%' };
+  if (score <= 1) return { label: 'Very Weak', color: 'bg-red-500 text-red-600', widthClass: 'w-1/5' };
+  if (score === 2) return { label: 'Weak', color: 'bg-yellow-500 text-yellow-600', widthClass: 'w-2/5' };
+  if (score === 3) return { label: 'Medium', color: 'bg-yellow-400 text-yellow-600', widthClass: 'w-3/5' };
+  if (score === 4) return { label: 'Strong', color: 'bg-green-500 text-green-600', widthClass: 'w-4/5' };
+  return { label: 'Very Strong', color: 'bg-green-600 text-green-700', widthClass: 'w-full' };
 }
 
-/* ─── Styles (WordPress-inspired) ──────────────────────────── */
-const s = {
-  page: {
-    minHeight: '100vh',
-    background: '#f0f0f1',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontSize: 14,
-    color: '#1d2327',
-  } as React.CSSProperties,
+/* ─── Reusable row for the WordPress-style table layout ────── */
+function FormRow({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 py-2">
+      <label
+        htmlFor={htmlFor}
+        className="sm:w-40 sm:text-right sm:pr-4 pt-1.5 text-sm font-semibold text-gray-800 shrink-0"
+      >
+        {label}
+      </label>
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
+  );
+}
 
-  logo: {
-    textAlign: 'center' as const,
-    padding: '36px 0 20px',
-  },
-
-  logoBox: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 72,
-    height: 72,
-    borderRadius: '50%',
-    background: '#2271b1',
-    color: '#fff',
-    fontSize: 36,
-    fontWeight: 800,
-    boxShadow: '0 4px 16px rgba(34,113,177,0.35)',
-    letterSpacing: -1,
-  } as React.CSSProperties,
-
-  logoText: {
-    display: 'block',
-    marginTop: 12,
-    fontSize: 13,
-    color: '#50575e',
-    letterSpacing: 2,
-    textTransform: 'uppercase' as const,
-    fontWeight: 600,
-  },
-
-  container: {
-    background: '#fff',
-    border: '1px solid #c3c4c7',
-    borderRadius: 4,
-    maxWidth: 530,
-    margin: '0 auto 40px',
-    padding: '26px 36px 36px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-  } as React.CSSProperties,
-
-  h1: {
-    fontSize: 23,
-    fontWeight: 400,
-    color: '#1d2327',
-    margin: '0 0 20px',
-    borderBottom: '1px solid #e6e6e6',
-    paddingBottom: 14,
-  } as React.CSSProperties,
-
-  infoText: {
-    color: '#50575e',
-    lineHeight: 1.7,
-    marginBottom: 24,
-    fontSize: 14,
-  } as React.CSSProperties,
-
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse' as const,
-    marginBottom: 8,
-  },
-
-  th: {
-    textAlign: 'right' as const,
-    padding: '10px 16px 10px 0',
-    verticalAlign: 'top' as const,
-    fontWeight: 600,
-    fontSize: 14,
-    color: '#1d2327',
-    width: 160,
-    lineHeight: 1.4,
-  } as React.CSSProperties,
-
-  td: {
-    padding: '8px 0',
-    verticalAlign: 'top' as const,
-  } as React.CSSProperties,
-
-  input: {
-    width: '100%',
-    padding: '6px 10px',
-    fontSize: 14,
-    border: '1px solid #8c8f94',
-    borderRadius: 4,
-    boxSizing: 'border-box' as const,
-    color: '#1d2327',
-    background: '#fff',
-    outline: 'none',
-    height: 36,
-    transition: 'border-color 0.15s',
-  } as React.CSSProperties,
-
-  hint: {
-    fontSize: 12,
-    color: '#646970',
-    marginTop: 5,
-    lineHeight: 1.5,
-  } as React.CSSProperties,
-
-  error: {
-    fontSize: 12,
-    color: '#d63638',
-    marginTop: 4,
-  } as React.CSSProperties,
-
-  btn: {
-    display: 'inline-block',
-    padding: '6px 22px',
-    fontSize: 14,
-    fontWeight: 600,
-    background: '#2271b1',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 3,
-    cursor: 'pointer',
-    lineHeight: '2.15384615',
-    textDecoration: 'none',
-    whiteSpace: 'nowrap' as const,
-    transition: 'background 0.15s',
-  } as React.CSSProperties,
-
-  btnHover: { background: '#135e96' } as React.CSSProperties,
-
-  successTable: {
-    borderCollapse: 'collapse' as const,
-    width: '100%',
-    marginBottom: 20,
-  },
-
-  successTh: {
-    textAlign: 'right' as const,
-    padding: '8px 16px 8px 0',
-    fontWeight: 600,
-    width: 140,
-    verticalAlign: 'top' as const,
-  } as React.CSSProperties,
-
-  successTd: {
-    padding: '8px 0',
-    verticalAlign: 'top' as const,
-    color: '#1d2327',
-  } as React.CSSProperties,
-
-  noticeBox: {
-    background: '#fcf9e8',
-    border: '1px solid #dba617',
-    borderLeft: '4px solid #dba617',
-    padding: '12px 16px',
-    marginBottom: 20,
-    borderRadius: 2,
-    fontSize: 13,
-    color: '#50575e',
-  } as React.CSSProperties,
-
-  footer: {
-    textAlign: 'center' as const,
-    color: '#646970',
-    fontSize: 13,
-    paddingBottom: 24,
-  },
-};
+/* ─── Shared input className ────────────────────────────────── */
+function fieldCls(hasError: boolean) {
+  return cn(
+    'w-full h-9 px-2.5 text-sm border rounded text-gray-800 bg-white outline-none transition-colors',
+    'focus:border-blue-500 focus:ring-1 focus:ring-blue-400',
+    hasError ? 'border-red-500' : 'border-gray-400',
+  );
+}
 
 /* ─── Component ─────────────────────────────────────────────── */
 export default function SetupPage() {
@@ -201,7 +64,6 @@ export default function SetupPage() {
   const [checking, setChecking] = useState(true);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [btnHover, setBtnHover] = useState(false);
 
   const [siteName, setSiteName] = useState('');
   const [email, setEmail] = useState('');
@@ -250,134 +112,142 @@ export default function SetupPage() {
     }
   };
 
-  if (checking) return (
-    <div style={{ ...s.page, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#50575e' }}>Loading…</div>
-    </div>
-  );
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-[#f0f0f1] flex items-center justify-center">
+        <p className="text-sm text-gray-500">Loading…</p>
+      </div>
+    );
+  }
 
   return (
-    <div style={s.page}>
-      {/* Logo */}
-      <div style={s.logo}>
-        <div style={s.logoBox}>N</div>
-        <span style={s.logoText}>NodePress</span>
+    <div className="min-h-screen bg-[#f0f0f1] font-sans text-sm text-gray-800">
+
+      {/* Logo header */}
+      <div className="flex flex-col items-center pt-9 pb-5">
+        <div className="w-[72px] h-[72px] rounded-full bg-[#2271b1] flex items-center justify-center shadow-[0_4px_16px_rgba(34,113,177,0.35)]">
+          <span className="text-white text-4xl font-extrabold tracking-tight leading-none">N</span>
+        </div>
+        <span className="block mt-3 text-[13px] text-gray-500 tracking-[2px] uppercase font-semibold">
+          NodePress
+        </span>
       </div>
 
-      <div style={s.container}>
+      {/* Main card */}
+      <div className="bg-white border border-gray-300 rounded mx-auto max-w-[530px] mb-10 px-9 pt-6 pb-9 shadow-sm">
+
         {!done ? (
           <>
-            <h1 style={s.h1}>Information needed</h1>
-            <p style={s.infoText}>
+            <h1 className="text-[23px] font-normal text-gray-800 mt-0 mb-5 pb-3.5 border-b border-gray-200">
+              Information needed
+            </h1>
+            <p className="text-gray-500 leading-relaxed mb-6">
               Please provide the following information. Don't worry, you can always change these settings later.
             </p>
 
+            {/* Server error */}
             {serverError && (
-              <div style={{ ...s.noticeBox, background: '#fce9e9', border: '1px solid #d63638', borderLeft: '4px solid #d63638', color: '#d63638' }}>
+              <div className="bg-red-50 border border-red-400 border-l-4 border-l-red-500 px-4 py-3 mb-5 rounded-sm text-red-600 text-[13px]">
                 <strong>Error:</strong> {serverError}
               </div>
             )}
 
             <form onSubmit={handleSubmit} noValidate>
-              <table style={s.table}>
-                <tbody>
+              <div className="divide-y divide-transparent">
 
-                  {/* Site Name */}
-                  <tr>
-                    <th style={s.th}>
-                      <label htmlFor="siteName">Site Title</label>
-                    </th>
-                    <td style={s.td}>
-                      <input
-                        id="siteName"
-                        style={{ ...s.input, ...(errors.siteName ? { borderColor: '#d63638' } : {}) }}
-                        value={siteName}
-                        onChange={(e) => setSiteName(e.target.value)}
-                        placeholder="My Awesome Site"
-                        autoFocus
-                      />
-                      {errors.siteName && <div style={s.error}>{errors.siteName}</div>}
-                    </td>
-                  </tr>
+                {/* Site Name */}
+                <FormRow label="Site Title" htmlFor="siteName">
+                  <input
+                    id="siteName"
+                    className={fieldCls(!!errors.siteName)}
+                    value={siteName}
+                    onChange={(e) => setSiteName(e.target.value)}
+                    placeholder="My Awesome Site"
+                    autoFocus
+                  />
+                  {errors.siteName && (
+                    <p className="text-[12px] text-red-600 mt-1">{errors.siteName}</p>
+                  )}
+                </FormRow>
 
-                  {/* Email */}
-                  <tr>
-                    <th style={s.th}>
-                      <label htmlFor="email">Admin Email</label>
-                    </th>
-                    <td style={s.td}>
-                      <input
-                        id="email"
-                        type="email"
-                        style={{ ...s.input, ...(errors.email ? { borderColor: '#d63638' } : {}) }}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@example.com"
-                      />
-                      {errors.email
-                        ? <div style={s.error}>{errors.email}</div>
-                        : <div style={s.hint}>Double-check your email address before continuing.</div>
-                      }
-                    </td>
-                  </tr>
+                {/* Email */}
+                <FormRow label="Admin Email" htmlFor="email">
+                  <input
+                    id="email"
+                    type="email"
+                    className={fieldCls(!!errors.email)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                  />
+                  {errors.email ? (
+                    <p className="text-[12px] text-red-600 mt-1">{errors.email}</p>
+                  ) : (
+                    <p className="text-[12px] text-gray-500 mt-1 leading-snug">
+                      Double-check your email address before continuing.
+                    </p>
+                  )}
+                </FormRow>
 
-                  {/* Password */}
-                  <tr>
-                    <th style={s.th}>
-                      <label htmlFor="password">Password</label>
-                    </th>
-                    <td style={s.td}>
-                      <input
-                        id="password"
-                        type="password"
-                        style={{ ...s.input, ...(errors.password ? { borderColor: '#d63638' } : {}) }}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="At least 8 characters"
-                      />
-                      {/* Strength bar */}
-                      {password && (
-                        <div style={{ marginTop: 6 }}>
-                          <div style={{ height: 4, background: '#e0e0e0', borderRadius: 2, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: strength.width, background: strength.color, transition: 'width 0.3s, background 0.3s', borderRadius: 2 }} />
-                          </div>
-                          <div style={{ fontSize: 12, color: strength.color, marginTop: 3, fontWeight: 600 }}>
-                            Strength: {strength.label}
-                          </div>
-                        </div>
-                      )}
-                      {errors.password && <div style={s.error}>{errors.password}</div>}
-                    </td>
-                  </tr>
+                {/* Password */}
+                <FormRow label="Password" htmlFor="password">
+                  <input
+                    id="password"
+                    type="password"
+                    className={fieldCls(!!errors.password)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                  />
+                  {/* Strength bar */}
+                  {password && (
+                    <div className="mt-1.5">
+                      <div className="h-1 w-full bg-gray-200 rounded overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded transition-all duration-300',
+                            strength.widthClass,
+                            strength.color.split(' ')[0], // bg-* part
+                          )}
+                        />
+                      </div>
+                      <p className={cn('text-[12px] font-semibold mt-0.5', strength.color.split(' ')[1])}>
+                        Strength: {strength.label}
+                      </p>
+                    </div>
+                  )}
+                  {errors.password && (
+                    <p className="text-[12px] text-red-600 mt-1">{errors.password}</p>
+                  )}
+                </FormRow>
 
-                  {/* Confirm Password */}
-                  <tr>
-                    <th style={s.th}>
-                      <label htmlFor="confirm">Confirm Password</label>
-                    </th>
-                    <td style={s.td}>
-                      <input
-                        id="confirm"
-                        type="password"
-                        style={{ ...s.input, ...(errors.confirm ? { borderColor: '#d63638' } : {}) }}
-                        value={confirm}
-                        onChange={(e) => setConfirm(e.target.value)}
-                        placeholder="Repeat password"
-                      />
-                      {errors.confirm && <div style={s.error}>{errors.confirm}</div>}
-                    </td>
-                  </tr>
+                {/* Confirm Password */}
+                <FormRow label="Confirm Password" htmlFor="confirm">
+                  <input
+                    id="confirm"
+                    type="password"
+                    className={fieldCls(!!errors.confirm)}
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    placeholder="Repeat password"
+                  />
+                  {errors.confirm && (
+                    <p className="text-[12px] text-red-600 mt-1">{errors.confirm}</p>
+                  )}
+                </FormRow>
 
-                </tbody>
-              </table>
+              </div>
 
-              <div style={{ marginTop: 24 }}>
+              {/* Submit */}
+              <div className="mt-6">
                 <button
                   type="submit"
-                  style={{ ...s.btn, ...(btnHover ? s.btnHover : {}), opacity: loading ? 0.7 : 1 }}
-                  onMouseEnter={() => setBtnHover(true)}
-                  onMouseLeave={() => setBtnHover(false)}
                   disabled={loading}
+                  className={cn(
+                    'inline-block px-[22px] py-1.5 text-sm font-semibold text-white rounded-[3px]',
+                    'bg-[#2271b1] hover:bg-[#135e96] transition-colors',
+                    'disabled:opacity-70 disabled:cursor-not-allowed',
+                  )}
                 >
                   {loading ? 'Installing…' : 'Install NodePress'}
                 </button>
@@ -386,41 +256,41 @@ export default function SetupPage() {
           </>
         ) : (
           <>
-            <h1 style={{ ...s.h1, color: '#00a32a' }}>Success!</h1>
-            <p style={s.infoText}>
+            {/* Success screen */}
+            <h1 className="text-[23px] font-normal text-green-600 mt-0 mb-5 pb-3.5 border-b border-gray-200">
+              Success!
+            </h1>
+            <p className="text-gray-500 leading-relaxed mb-6">
               NodePress has been installed. Thank you, and enjoy!
             </p>
 
-            <div style={s.noticeBox}>
+            <div className="bg-[#fcf9e8] border border-[#dba617] border-l-4 border-l-[#dba617] px-4 py-3 mb-5 rounded-sm text-[13px] text-gray-600">
               <strong>Note:</strong> Save your login details in a safe place. If you lose your password, you will need to reset it manually.
             </div>
 
-            <table style={s.successTable}>
-              <tbody>
-                <tr>
-                  <th style={s.successTh}>Site Title</th>
-                  <td style={s.successTd}>{siteName}</td>
-                </tr>
-                <tr>
-                  <th style={s.successTh}>Email</th>
-                  <td style={s.successTd}>{createdEmail}</td>
-                </tr>
-                <tr>
-                  <th style={s.successTh}>Password</th>
-                  <td style={s.successTd}>
-                    <span style={{ background: '#f0f0f1', padding: '2px 8px', borderRadius: 3, fontFamily: 'monospace', fontSize: 13 }}>
-                      Your chosen password
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            {/* Summary table */}
+            <div className="w-full mb-5 divide-y divide-gray-100">
+              <div className="flex py-2">
+                <span className="w-36 text-right pr-4 text-sm font-semibold text-gray-700 shrink-0">Site Title</span>
+                <span className="text-sm text-gray-800">{siteName}</span>
+              </div>
+              <div className="flex py-2">
+                <span className="w-36 text-right pr-4 text-sm font-semibold text-gray-700 shrink-0">Email</span>
+                <span className="text-sm text-gray-800">{createdEmail}</span>
+              </div>
+              <div className="flex py-2">
+                <span className="w-36 text-right pr-4 text-sm font-semibold text-gray-700 shrink-0">Password</span>
+                <span className="text-sm text-gray-800">
+                  <code className="bg-gray-100 px-2 py-0.5 rounded text-[13px] font-mono">
+                    Your chosen password
+                  </code>
+                </span>
+              </div>
+            </div>
 
             <button
-              style={{ ...s.btn, ...(btnHover ? s.btnHover : {}) }}
-              onMouseEnter={() => setBtnHover(true)}
-              onMouseLeave={() => setBtnHover(false)}
               onClick={() => router.push('/')}
+              className="inline-block px-[22px] py-1.5 text-sm font-semibold text-white rounded-[3px] bg-[#2271b1] hover:bg-[#135e96] transition-colors"
             >
               Log In to Dashboard
             </button>
@@ -428,7 +298,8 @@ export default function SetupPage() {
         )}
       </div>
 
-      <div style={s.footer}>
+      {/* Footer */}
+      <div className="text-center text-[13px] text-gray-500 pb-6">
         NodePress &mdash; Headless CMS &mdash; v1.0
       </div>
     </div>
