@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ContentType {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  schema    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  entries   Entry[]
+
+  @@map("content_types")
+}
+
+model Entry {
+  id            Int         @id @default(autoincrement())
+  slug          String
+  data          Json
+  contentType   ContentType @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+  contentTypeId Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([contentTypeId, slug])
+  @@map("entries")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model ApiKey {
+  id          Int       @id @default(autoincrement())
+  name        String
+  key         String    @unique
+  permissions Json      // { access: "read"|"write"|"all", contentTypes: string[]|"*" }
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+
+  @@map("api_keys")
+}
