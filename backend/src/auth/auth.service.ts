@@ -16,13 +16,17 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(dto: RegisterDto) {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+  /** Returns true if no admin account exists yet */
+  async isSetupRequired(): Promise<boolean> {
+    const count = await this.prisma.user.count();
+    return count === 0;
+  }
 
-    if (existing) {
-      throw new ConflictException('Email already registered');
+  async register(dto: RegisterDto) {
+    // Registration is only allowed during initial setup (no users exist)
+    const setupRequired = await this.isSetupRequired();
+    if (!setupRequired) {
+      throw new ConflictException('Setup already completed. Use the admin panel to manage users.');
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);

@@ -15,10 +15,18 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Get('setup-status')
+  @ApiOperation({ summary: 'Check if initial setup is required (no admin exists yet)' })
+  @ApiResponse({ status: 200, description: '{ required: boolean }' })
+  async setupStatus() {
+    const required = await this.authService.isSetupRequired();
+    return { required };
+  }
+
   @Post('register')
-  @ApiOperation({ summary: 'Register a new admin user' })
-  @ApiResponse({ status: 201, description: 'User registered, returns JWT token' })
-  @ApiResponse({ status: 409, description: 'Email already registered' })
+  @ApiOperation({ summary: 'Create the first admin account (only works during initial setup)' })
+  @ApiResponse({ status: 201, description: 'Admin created, returns JWT token' })
+  @ApiResponse({ status: 409, description: 'Setup already completed' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }

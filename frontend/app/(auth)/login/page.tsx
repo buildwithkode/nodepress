@@ -2,6 +2,7 @@
 
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/axios';
 
@@ -11,6 +12,13 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [messageApi, contextHolder] = message.useMessage();
+
+  // Redirect to setup if no admin exists yet
+  useEffect(() => {
+    api.get('/auth/setup-status').then((res) => {
+      if (res.data.required) router.replace('/setup');
+    }).catch(() => {});
+  }, []);
 
   const onFinish = async (values: { email: string; password: string }) => {
     try {

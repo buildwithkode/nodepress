@@ -28,6 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const siteName = typeof window !== 'undefined' ? localStorage.getItem('np_site_name') || 'NodePress' : 'NodePress';
 
   const handleLogout = () => {
     logout();
@@ -47,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             marginBottom: 8,
           }}
         >
-          NodePress
+          {siteName}
         </div>
 
         <Menu

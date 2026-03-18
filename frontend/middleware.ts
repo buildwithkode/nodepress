@@ -15,14 +15,15 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isLoginPage = pathname === '/login';
+  const isSetupPage = pathname === '/setup';
 
   // Protect admin paths — redirect to login if no token
   if (!token && isAdminPath(pathname)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Already logged in — redirect away from login page
-  if (token && isLoginPage) {
+  // Already logged in — redirect away from login/setup pages
+  if (token && (isLoginPage || isSetupPage)) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
