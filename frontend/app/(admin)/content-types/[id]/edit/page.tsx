@@ -311,7 +311,7 @@ export default function EditContentTypePage() {
                 <SortableFieldCard key={field._id} id={field._id} disabled={!reorderMode}>
                   {(dragHandle) => (
                   <div className="rounded-md border bg-muted/30 p-4 space-y-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-2">
                     {reorderMode && dragHandle}
                     {/* Field number */}
                     <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
@@ -323,9 +323,9 @@ export default function EditContentTypePage() {
                         value={field.name}
                         onChange={(e) => updateField(fi, 'name', e.target.value)}
                       />
-                      {field.name.trim() && field.name.trim() !== field.name.trim().toLowerCase().replace(/[\s-]+/g, '_') && (
+                      {field.name.trim() && (
                         <p className="text-xs text-muted-foreground px-0.5">
-                          API key: <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
+                          Field key: <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
                         </p>
                       )}
                     </div>

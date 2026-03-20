@@ -179,7 +179,7 @@ export default function NewContentTypePage() {
               <div className="space-y-3">
                 {fields.map((field, fi) => (
                   <div key={fi} className="rounded-md border bg-muted/30 p-4 space-y-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-start gap-2">
                       <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
                         {fi + 1}
                       </span>
@@ -189,9 +189,9 @@ export default function NewContentTypePage() {
                           value={field.name}
                           onChange={(e) => updateField(fi, 'name', e.target.value)}
                         />
-                        {field.name.trim() && field.name.trim() !== field.name.trim().toLowerCase().replace(/[\s-]+/g, '_') && (
+                        {field.name.trim() && (
                           <p className="text-xs text-muted-foreground px-0.5">
-                            API key: <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
+                            Field key: <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
                           </p>
                         )}
                       </div>
