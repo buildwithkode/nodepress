@@ -262,10 +262,10 @@ export default function ContentTypesPage() {
   // Render
   // ---------------------------------------------------------------------------
   return (
-    <div>
+    <div className="p-6">
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold">Content Types</h1>
+        <h1 className="text-xl font-bold text-foreground">Content Types</h1>
         <Button onClick={openCreateModal}>
           <Plus className="h-4 w-4 mr-2" />
           New Content Type
@@ -347,15 +347,8 @@ export default function ContentTypesPage() {
                     </Button>
 
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                      <AlertDialogTrigger render={<Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete" />}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

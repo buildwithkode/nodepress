@@ -4,8 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   LayoutDashboard,
   Layers,
@@ -15,12 +14,27 @@ import {
   LogOut,
 } from 'lucide-react';
 
-const navItems = [
-  { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/content-types', label: 'Content Types', icon: Layers },
-  { href: '/entries',       label: 'Entries',       icon: FileText },
-  { href: '/media',         label: 'Media',         icon: Image },
-  { href: '/api-keys',      label: 'API Keys',      icon: Key },
+const navGroups = [
+  {
+    label: 'Content',
+    items: [
+      { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
+      { href: '/content-types', label: 'Content Types', icon: Layers },
+      { href: '/entries',       label: 'Entries',       icon: FileText },
+    ],
+  },
+  {
+    label: 'Assets',
+    items: [
+      { href: '/media', label: 'Media', icon: Image },
+    ],
+  },
+  {
+    label: 'Developer',
+    items: [
+      { href: '/api-keys', label: 'API Keys', icon: Key },
+    ],
+  },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -40,46 +54,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* ── Sidebar ── */}
-      <aside className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col bg-[#0f172a]">
+    <div className="flex min-h-screen bg-background">
 
-        {/* Logo / site name */}
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-white/10">
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
-            <span className="text-white text-sm font-extrabold leading-none">N</span>
-          </div>
-          <span className="text-white font-semibold text-[15px] truncate">{siteName}</span>
+      {/* ── Sidebar ── */}
+      <aside className="fixed inset-y-0 left-0 z-20 flex w-56 flex-col bg-sidebar border-r border-sidebar-border">
+
+        {/* App name + theme toggle */}
+        <div className="flex items-center justify-between px-4 h-14 border-b border-sidebar-border shrink-0">
+          <span className="font-semibold text-sm text-sidebar-foreground">{siteName}</span>
+          <ThemeToggle />
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href;
-            return (
-              <button
-                key={href}
-                onClick={() => router.push(href)}
-                className={cn(
-                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors text-left',
-                  isActive
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/60 hover:text-white hover:bg-white/5',
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {label}
-              </button>
-            );
-          })}
+        {/* Nav groups */}
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                {group.label}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map(({ href, label, icon: Icon }) => {
+                  const isActive = pathname === href;
+                  return (
+                    <button
+                      key={href}
+                      onClick={() => router.push(href)}
+                      className={cn(
+                        'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors text-left',
+                        isActive
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                          : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-border/50',
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* Bottom user info */}
-        <div className="px-3 py-3 border-t border-white/10">
-          <p className="text-[11px] text-white/40 truncate px-1 mb-1">{user?.email}</p>
+        {/* User info + sign out */}
+        <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
+          <div className="mb-3 px-1">
+            <p className="text-sm font-medium text-sidebar-foreground truncate">
+              {user?.email ?? '—'}
+            </p>
+            <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded border border-yellow-500/50 text-yellow-400 font-medium">
+              Admin
+            </span>
+          </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+            className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-border/50 transition-colors"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             Sign out
@@ -87,33 +116,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* ── Right side ── */}
-      <div className="flex flex-col flex-1 ml-60 min-h-screen">
-
-        {/* Top header */}
-        <header className="sticky top-0 z-10 flex items-center justify-end gap-3 h-14 px-6 bg-white border-b border-gray-200 shadow-sm">
-          <Avatar className="h-7 w-7">
-            <AvatarFallback className="text-xs bg-blue-100 text-blue-700 font-semibold">
-              {user?.email?.[0]?.toUpperCase() ?? 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm text-gray-700 hidden sm:block">{user?.email}</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="text-gray-500 hover:text-gray-900 gap-1.5"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
-        </header>
-
-        {/* Page content */}
-        <main className="flex-1 bg-gray-50 p-6">
-          {children}
-        </main>
-      </div>
+      {/* ── Main content ── */}
+      <main className="flex-1 ml-56 min-h-screen">
+        {children}
+      </main>
     </div>
   );
 }

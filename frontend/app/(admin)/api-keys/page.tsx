@@ -162,10 +162,10 @@ export default function ApiKeysPage() {
   // ---------------------------------------------------------------------------
   return (
     <TooltipProvider>
-      <div>
+      <div className="p-6">
         {/* Page header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold">API Keys</h1>
+          <h1 className="text-xl font-bold text-foreground">API Keys</h1>
           <Button onClick={openModal}>
             <Plus className="h-4 w-4 mr-2" />
             New API Key
@@ -265,15 +265,8 @@ export default function ApiKeysPage() {
                         {k.key.slice(0, 14)}…{k.key.slice(-6)}
                       </code>
                       <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => copyToClipboard(k.key)}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
+                        <TooltipTrigger render={<Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(k.key)} />}>
+                          <Copy className="h-3 w-3" />
                         </TooltipTrigger>
                         <TooltipContent>Copy full key</TooltipContent>
                       </Tooltip>
@@ -315,15 +308,8 @@ export default function ApiKeysPage() {
                   {/* Revoke */}
                   <td className="px-4 py-3">
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          title="Revoke"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                      <AlertDialogTrigger render={<Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" title="Revoke" />}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

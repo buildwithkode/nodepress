@@ -119,10 +119,10 @@ export default function MediaPage() {
   };
 
   return (
-    <div>
+    <div className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Media Library</h1>
+        <h1 className="text-xl font-bold text-foreground">Media Library</h1>
         <Button variant="outline" size="sm" onClick={fetchFiles}>
           <RefreshCw className="h-4 w-4 mr-1.5" />
           Refresh
@@ -236,14 +236,11 @@ export default function MediaPage() {
                     </button>
 
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <button
-                          type="button"
-                          title="Delete"
-                          className="flex items-center justify-center px-2 py-1 rounded border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                      <AlertDialogTrigger
+                        title="Delete"
+                        className="flex items-center justify-center px-2 py-1 rounded border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
