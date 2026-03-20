@@ -4,14 +4,15 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { normalizeDataKeys } from '../common/normalize';
 
 @Injectable()
 export class DynamicApiService {
   constructor(private prisma: PrismaService) {}
 
   private async resolveContentType(typeName: string) {
-    // Normalize to lowercase so /api/Blog and /api/blog both work
-    const name = typeName.toLowerCase();
+    // Normalize to snake_case so /api/Title_Name and /api/title_name both work
+    const name = typeName.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     const contentType = await this.prisma.contentType.findUnique({
       where: { name },
@@ -27,45 +28,28 @@ export class DynamicApiService {
   async findAll(typeName: string) {
     const contentType = await this.resolveContentType(typeName);
 
-    return this.prisma.entry.findMany({
+    const entries = await this.prisma.entry.findMany({
       where: { contentTypeId: contentType.id },
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        slug: true,
-        data: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: { id: true, slug: true, data: true, createdAt: true, updatedAt: true },
     });
+
+    return entries.map((e) => ({ ...e, data: normalizeDataKeys(e.data as Record<string, any>) }));
   }
 
   async findOne(typeName: string, slug: string) {
     const contentType = await this.resolveContentType(typeName);
 
     const entry = await this.prisma.entry.findUnique({
-      where: {
-        contentTypeId_slug: {
-          contentTypeId: contentType.id,
-          slug,
-        },
-      },
-      select: {
-        id: true,
-        slug: true,
-        data: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      where: { contentTypeId_slug: { contentTypeId: contentType.id, slug } },
+      select: { id: true, slug: true, data: true, createdAt: true, updatedAt: true },
     });
 
     if (!entry) {
-      throw new NotFoundException(
-        `Entry with slug "${slug}" not found in "${typeName}"`,
-      );
+      throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}"`);
     }
 
-    return entry;
+    return { ...entry, data: normalizeDataKeys(entry.data as Record<string, any>) };
   }
 
   async create(typeName: string, slug: string, data: Record<string, any>) {
@@ -84,7 +68,7 @@ export class DynamicApiService {
     }
 
     return this.prisma.entry.create({
-      data: { slug, data: data as any, contentTypeId: contentType.id },
+      data: { slug, data: normalizeDataKeys(data) as any, contentTypeId: contentType.id },
       select: {
         id: true,
         slug: true,
@@ -112,7 +96,7 @@ export class DynamicApiService {
 
     return this.prisma.entry.update({
       where: { id: entry.id },
-      data: { data: data as any },
+      data: { data: normalizeDataKeys(data) as any },
       select: {
         id: true,
         slug: true,

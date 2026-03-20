@@ -9,6 +9,7 @@ import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
 import { DataValidator } from '../fields/data.validator';
 import { FieldDef } from '../fields/field.types';
+import { normalizeDataKeys } from '../common/normalize';
 
 @Injectable()
 export class EntriesService {
@@ -52,7 +53,7 @@ export class EntriesService {
     return this.prisma.entry.create({
       data: {
         slug: dto.slug,
-        data: dto.data as any,
+        data: normalizeDataKeys(dto.data as Record<string, any>),
         contentTypeId: dto.contentTypeId,
       },
       include: { contentType: true },
@@ -114,7 +115,7 @@ export class EntriesService {
         entry.contentType.schema as unknown as FieldDef[],
         { partial: true },
       );
-      updateData.data = dto.data as any;
+      updateData.data = normalizeDataKeys(dto.data as Record<string, any>);
     }
 
     return this.prisma.entry.update({

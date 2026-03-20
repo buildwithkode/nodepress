@@ -1,513 +1,340 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, FileText } from 'lucide-react';
+import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Pagination } from '@/components/ui/data-table';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { SearchInput } from '@/components/ui/search-input';
 import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
+  Card, CardHeader, CardTitle, CardDescription, CardFooter,
+} from '@/components/ui/card';
+import {
+  AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
+  AlertDialogFooter, AlertDialogTitle, AlertDialogDescription,
+  AlertDialogAction, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
-import { cn } from '@/lib/utils';
-
 import api from '@/lib/axios';
-import DynamicFormField from './DynamicFormField';
 
-/* ─── helpers ────────────────────────────────────────────────────────────── */
-
-function toSlug(str: string): string {
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function formatDate(iso: string): string {
+function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
 function truncate(val: any, max = 60): string {
+  if (val === null || val === undefined) return '—';
+  if (Array.isArray(val)) return `${val.length} item${val.length !== 1 ? 's' : ''}`;
+  if (typeof val === 'object') {
+    const str = Object.entries(val)
+      .filter(([k]) => k !== '_layout')
+      .map(([, v]) => String(v))
+      .join(', ');
+    return str.length > max ? str.slice(0, max) + '…' : str;
+  }
   const str = String(val);
   return str.length > max ? str.slice(0, max) + '…' : str;
 }
 
-/* ─── types ─────────────────────────────────────────────────────────────── */
-
-interface Field {
-  name: string;
-  type: string;
-  options?: any;
-}
-
-interface ContentType {
-  id: number;
-  name: string;
-  schema: Field[];
-}
-
+interface Field { name: string; type: string; options?: any }
+interface ContentType { id: number; name: string; schema: Field[] }
 interface Entry {
-  id: number;
-  slug: string;
-  data: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
+  id: number; slug: string; contentTypeId: number;
+  data: Record<string, any>; createdAt: string; updatedAt: string;
 }
-
-/* ─── component ─────────────────────────────────────────────────────────── */
 
 export default function EntriesPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const ctParam = searchParams?.get('ct') ?? '';
+
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
-  const [selectedCT, setSelectedCT] = useState<ContentType | null>(null);
+  const [entryCounts, setEntryCounts] = useState<Record<number, number>>({});
+  const [loadingCTs, setLoadingCTs] = useState(true);
+
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [loadingCT, setLoadingCT] = useState(false);
   const [loadingEntries, setLoadingEntries] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
-  const slugManualRef = useRef(false);
+  const selectedCT = contentTypes.find((ct) => ct.name === ctParam) ?? null;
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<Record<string, any>>();
-
-  /* ── Load content types ─────────────────────────────────────────────── */
+  /* ── Load content types + counts ───────────────────────────────────────── */
   useEffect(() => {
-    const fetchContentTypes = async () => {
-      setLoadingCT(true);
-      try {
-        const res = await api.get('/content-types');
-        setContentTypes(res.data);
-      } catch {
-        toast.error('Failed to load content types');
-      } finally {
-        setLoadingCT(false);
-      }
-    };
-    fetchContentTypes();
+    setLoadingCTs(true);
+    api.get('/content-types')
+      .then(async (res) => {
+        const cts: ContentType[] = res.data;
+        setContentTypes(cts);
+        const counts = await Promise.all(
+          cts.map((ct) =>
+            api.get('/entries', { params: { contentTypeId: ct.id } })
+              .then((r) => ({ id: ct.id, count: r.data.length }))
+              .catch(() => ({ id: ct.id, count: 0 })),
+          ),
+        );
+        setEntryCounts(Object.fromEntries(counts.map((c) => [c.id, c.count])));
+      })
+      .catch(() => toast.error('Failed to load content types'))
+      .finally(() => setLoadingCTs(false));
   }, []);
 
-  /* ── Slug auto-generation ───────────────────────────────────────────── */
-  const firstTextField = selectedCT?.schema.find(
-    (f) => f.type === 'text' || f.type === 'textarea',
-  );
-
+  /* ── Load entries when CT is selected ──────────────────────────────────── */
   useEffect(() => {
-    if (!firstTextField || editingEntry) return;
-    const sub = watch((values, { name }) => {
-      if (!name) return;
-      if (name === 'slug') {
-        slugManualRef.current = true;
-        return;
-      }
-      if (slugManualRef.current) return;
-      if (name === firstTextField.name) {
-        const generated = toSlug(values[firstTextField.name] || '');
-        setValue('slug', generated, { shouldValidate: false });
-      }
-    });
-    return () => sub.unsubscribe();
-  }, [firstTextField, editingEntry, watch, setValue]);
-
-  /* ── Load entries ───────────────────────────────────────────────────── */
-  const loadEntries = async (ct: ContentType) => {
+    if (!selectedCT) { setEntries([]); return; }
     setLoadingEntries(true);
-    try {
-      const res = await api.get('/entries', { params: { contentTypeId: ct.id } });
-      setEntries(res.data);
-    } catch {
-      toast.error('Failed to load entries');
-    } finally {
-      setLoadingEntries(false);
-    }
-  };
+    api.get('/entries', { params: { contentTypeId: selectedCT.id } })
+      .then((res) => setEntries(res.data))
+      .catch(() => toast.error('Failed to load entries'))
+      .finally(() => setLoadingEntries(false));
+  }, [selectedCT?.id]);
 
-  const handleSelectCT = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = Number(e.target.value);
-    if (!id) {
-      setSelectedCT(null);
-      setEntries([]);
-      return;
-    }
-    const ct = contentTypes.find((c) => c.id === id) || null;
-    setSelectedCT(ct);
-    setEntries([]);
-    if (ct) await loadEntries(ct);
-  };
+  useEffect(() => { setPage(1); }, [search, ctParam]);
 
-  /* ── Modal helpers ─────────────────────────────────────────────────── */
-  const openCreateModal = () => {
-    setEditingEntry(null);
-    slugManualRef.current = false;
-    reset({});
-    setModalOpen(true);
-  };
-
-  const openEditModal = (entry: Entry) => {
-    setEditingEntry(entry);
-    slugManualRef.current = true;
-    reset({ slug: entry.slug, ...entry.data });
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditingEntry(null);
-  };
-
-  /* ── Submit ────────────────────────────────────────────────────────── */
-  const onSubmit = async (values: Record<string, any>) => {
-    if (!selectedCT) return;
-    setSubmitting(true);
-    try {
-      const { slug, ...rest } = values;
-      if (editingEntry) {
-        await api.put(`/entries/${editingEntry.id}`, { slug, data: rest });
-        toast.success('Entry updated');
-      } else {
-        await api.post('/entries', {
-          contentTypeId: selectedCT.id,
-          slug,
-          data: rest,
-        });
-        toast.success('Entry created');
-      }
-      closeModal();
-      await loadEntries(selectedCT);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Something went wrong');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  /* ── Delete ────────────────────────────────────────────────────────── */
+  /* ── Delete ────────────────────────────────────────────────────────────── */
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/entries/${id}`);
       toast.success('Entry deleted');
-      if (selectedCT) await loadEntries(selectedCT);
+      if (selectedCT) {
+        const res = await api.get('/entries', { params: { contentTypeId: selectedCT.id } });
+        setEntries(res.data);
+        setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: res.data.length }));
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Delete failed');
     }
   };
 
-  /* ── Table column headers from schema ──────────────────────────────── */
-  const schemaColumns = selectedCT?.schema.slice(0, 3) || [];
-
-  /* ─── render ──────────────────────────────────────────────────────── */
-  return (
-    <div className="p-6 space-y-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Entries</h1>
-        <Button
-          size="sm"
-          disabled={!selectedCT}
-          onClick={openCreateModal}
-        >
-          <Plus className="mr-1.5 h-4 w-4" />
-          Create Entry
-        </Button>
-      </div>
-
-      {/* Content type selector */}
-      <div className="flex items-center gap-3">
-        <Label htmlFor="ct-select" className="shrink-0 text-sm font-medium">
-          Content Type:
-        </Label>
-        <select
-          id="ct-select"
-          disabled={loadingCT}
-          onChange={handleSelectCT}
-          defaultValue=""
-          className={cn(
-            'w-64 rounded-md border border-input bg-background px-3 py-2 text-sm',
-            'ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring',
-            'disabled:cursor-not-allowed disabled:opacity-50',
-          )}
-        >
-          <option value="">
-            {loadingCT ? 'Loading…' : 'Select a content type'}
-          </option>
-          {contentTypes.map((ct) => (
-            <option key={ct.id} value={ct.id}>
-              {ct.name}
-            </option>
+  /* ── Cards view ─────────────────────────────────────────────────────────── */
+  if (!ctParam) {
+    if (loadingCTs) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-28" />
+                <Skeleton className="h-4 w-48 mt-1" />
+              </CardHeader>
+              <CardFooter className="gap-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-28" />
+              </CardFooter>
+            </Card>
           ))}
-        </select>
+        </div>
+      );
+    }
+
+    if (contentTypes.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <Layers className="h-10 w-10 text-muted-foreground/40 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground">No content types yet</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">
+            Create a content type first to start adding entries.
+          </p>
+          <Button className="mt-4" size="sm" onClick={() => router.push('/content-types/new')}>
+            <Plus className="h-4 w-4 mr-1.5" /> New Content Type
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {contentTypes.map((ct) => {
+          const count = entryCounts[ct.id];
+          const fields = ct.schema.slice(0, 3).map((f) => f.name);
+          return (
+            <Card key={ct.id} className="flex flex-col">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-base capitalize">
+                    {ct.name.replace(/_/g, ' ')}
+                  </CardTitle>
+                  <Badge variant="secondary" className="shrink-0 tabular-nums">
+                    {count === undefined ? '…' : `${count} ${count === 1 ? 'entry' : 'entries'}`}
+                  </Badge>
+                </div>
+                <CardDescription className="text-xs truncate">
+                  {fields.length > 0
+                    ? fields.join(', ') + (ct.schema.length > 3 ? ` +${ct.schema.length - 3} more` : '')
+                    : 'No fields defined'}
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto gap-2">
+                <Button onClick={() => router.push(`/entries/new?ct=${ct.id}`)}>
+                  <Plus className="h-4 w-4 mr-1.5" /> New Entry
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push(`/entries?ct=${ct.name}`)}
+                >
+                  View Entries <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  }
+
+  /* ── Entries table view ─────────────────────────────────────────────────── */
+  const schemaColumns = selectedCT?.schema.slice(0, 3) ?? [];
+  const filteredEntries = entries.filter((e) =>
+    e.slug.toLowerCase().includes(search.toLowerCase()),
+  );
+  const paginatedEntries = filteredEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  return (
+    <div className="space-y-4">
+      {/* Breadcrumb + toolbar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-muted-foreground"
+          onClick={() => router.push('/entries')}
+        >
+          <ArrowLeft className="h-4 w-4" /> All Types
+        </Button>
+        <span className="text-muted-foreground/40 text-sm">/</span>
+        <span className="text-sm font-medium capitalize">{ctParam.replace(/_/g, ' ')}</span>
+        <div className="ml-auto flex items-center gap-2">
+          <SearchInput
+            placeholder="Search entries…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
+            <Plus className="h-4 w-4 mr-1.5" /> New Entry
+          </Button>
+        </div>
       </div>
 
-      {/* Entries table / empty state */}
-      {!selectedCT ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-          <FileText className="mb-3 h-12 w-12 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
-            Select a content type to view its entries
-          </p>
-        </div>
-      ) : loadingEntries ? (
-        <div className="flex items-center justify-center py-16">
-          <span className="text-sm text-muted-foreground">Loading entries…</span>
-        </div>
-      ) : entries.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-          <FileText className="mb-3 h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
-            No entries yet. Click &ldquo;Create Entry&rdquo; to add one.
-          </p>
-        </div>
-      ) : (
-        <div className="rounded-md border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/40">
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                  Slug
-                </th>
-                {schemaColumns.map((col) => (
-                  <th
-                    key={col.name}
-                    className="px-4 py-3 text-left font-medium text-muted-foreground"
+      {/* Table */}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Slug</TableHead>
+            {schemaColumns.map((col) => (
+              <TableHead key={col.name}>
+                {col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+              </TableHead>
+            ))}
+            <TableHead>Updated</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loadingEntries && Array.from({ length: 4 }).map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+              {schemaColumns.map((col) => (
+                <TableCell key={col.name}><Skeleton className="h-4 w-24" /></TableCell>
+              ))}
+              <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+            </TableRow>
+          ))}
+          {!loadingEntries && paginatedEntries.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={schemaColumns.length + 3}
+                className="py-12 text-center text-muted-foreground"
+              >
+                {search ? 'No entries match your search.' : 'No entries yet. Create the first one.'}
+              </TableCell>
+            </TableRow>
+          )}
+          {paginatedEntries.map((entry) => (
+            <TableRow key={entry.id}>
+              <TableCell>
+                <p className="font-medium text-foreground">{entry.slug}</p>
+              </TableCell>
+              {schemaColumns.map((col) => {
+                const val = entry.data[col.name];
+                return (
+                  <TableCell key={col.name} className="text-muted-foreground">
+                    {val === undefined || val === null ? (
+                      <span className="text-muted-foreground/40">—</span>
+                    ) : col.type === 'boolean' ? (
+                      <Badge variant={val ? 'default' : 'outline'} className="text-xs">
+                        {val ? 'Yes' : 'No'}
+                      </Badge>
+                    ) : col.type === 'image' && val ? (
+                      <img src={val} alt="" className="h-9 w-12 rounded object-cover" />
+                    ) : col.type === 'repeater' || col.type === 'flexible' ? (
+                      <Badge variant="secondary" className="text-xs">
+                        {Array.isArray(val) ? `${val.length} item${val.length !== 1 ? 's' : ''}` : '—'}
+                      </Badge>
+                    ) : col.type === 'richtext' ? (
+                      <span className="text-muted-foreground/60 text-xs italic">Rich text</span>
+                    ) : (
+                      truncate(val)
+                    )}
+                  </TableCell>
+                );
+              })}
+              <TableCell className="text-muted-foreground">{formatDate(entry.updatedAt)}</TableCell>
+              <TableCell>
+                <div className="flex items-center justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Edit"
+                    onClick={() => router.push(`/entries/${entry.id}/edit`)}
                   >
-                    {col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
-                  </th>
-                ))}
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                  Updated
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((entry, i) => (
-                <tr
-                  key={entry.id}
-                  className={cn(
-                    'border-b last:border-0',
-                    i % 2 === 0 ? 'bg-background' : 'bg-muted/20',
-                    'hover:bg-muted/40 transition-colors',
-                  )}
-                >
-                  {/* Slug */}
-                  <td className="px-4 py-3">
-                    <Badge variant="secondary" className="font-mono text-xs">
-                      {entry.slug}
-                    </Badge>
-                  </td>
-
-                  {/* Schema columns */}
-                  {schemaColumns.map((col) => {
-                    const val = entry.data[col.name];
-                    return (
-                      <td key={col.name} className="px-4 py-3 text-muted-foreground">
-                        {val === undefined || val === null ? (
-                          <span className="text-muted-foreground/40">—</span>
-                        ) : col.type === 'boolean' ? (
-                          <Badge
-                            variant={val ? 'default' : 'outline'}
-                            className="text-xs"
-                          >
-                            {val ? 'Yes' : 'No'}
-                          </Badge>
-                        ) : col.type === 'image' && val ? (
-                          <img
-                            src={val}
-                            alt=""
-                            className="h-9 w-12 rounded object-cover"
-                          />
-                        ) : (
-                          truncate(val)
-                        )}
-                      </td>
-                    );
-                  })}
-
-                  {/* Updated date */}
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {formatDate(entry.updatedAt)}
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger render={
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => openEditModal(entry)}
-                        title="Edit"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger render={<Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive" title="Delete" />}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently delete the entry{' '}
-                              <strong>{entry.slug}</strong>. This action cannot be
-                              undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => handleDelete(entry.id)}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Create / Edit dialog */}
-      <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) closeModal(); }}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingEntry
-                ? `Edit Entry — ${selectedCT?.name}`
-                : `New Entry — ${selectedCT?.name}`}
-            </DialogTitle>
-          </DialogHeader>
-
-          <form
-            id="entry-form"
-            onSubmit={handleSubmit(onSubmit)}
-            className="mt-2 space-y-1"
-          >
-            {/* Slug field */}
-            <div className="mb-4">
-              <Label htmlFor="slug" className="mb-1.5 block text-sm font-medium">
-                Slug
-              </Label>
-              {(() => {
-                const slugReg = register('slug', {
-                  required: 'Slug is required',
-                  pattern: {
-                    value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-                    message: 'Use lowercase letters, numbers and hyphens only',
-                  },
-                });
-                return (
-                  <Input
-                    id="slug"
-                    placeholder="my-entry-slug"
-                    disabled={!!editingEntry}
-                    {...slugReg}
-                    onChange={(e) => {
-                      slugManualRef.current = true;
-                      slugReg.onChange(e);
-                    }}
-                    className={cn(
-                      errors.slug && 'border-destructive focus-visible:ring-destructive',
-                      editingEntry && 'cursor-not-allowed opacity-60',
-                    )}
-                  />
-                );
-              })()}
-              {errors.slug ? (
-                <p className="mt-1 text-xs text-destructive">
-                  {errors.slug.message as string}
-                </p>
-              ) : (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {editingEntry
-                    ? 'Slug cannot be changed after creation'
-                    : 'Auto-generated from the first text field — you can override it'}
-                </p>
-              )}
-            </div>
-
-            {/* Divider + dynamic schema fields */}
-            {selectedCT && selectedCT.schema.length > 0 && (
-              <>
-                <div className="flex items-center gap-3 py-1">
-                  <Separator className="flex-1" />
-                  <span className="text-xs text-muted-foreground">Fields</span>
-                  <Separator className="flex-1" />
+                        size="icon-sm"
+                        title="Delete"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      />
+                    }>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete <strong>{entry.slug}</strong>. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction variant="destructive" onClick={() => handleDelete(entry.id)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
-                <div className="pt-1">
-                  {selectedCT.schema.map((field) => (
-                    <DynamicFormField
-                      key={field.name}
-                      field={field}
-                      control={control}
-                      register={register}
-                      errors={errors}
-                      watch={watch}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </form>
-
-          <DialogFooter className="pt-2">
-            <Button variant="outline" type="button" onClick={closeModal}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              form="entry-form"
-              disabled={submitting}
-            >
-              {submitting
-                ? editingEntry
-                  ? 'Updating…'
-                  : 'Creating…'
-                : editingEntry
-                ? 'Update'
-                : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Pagination
+        total={filteredEntries.length}
+        page={page}
+        pageSize={PAGE_SIZE}
+        onPage={setPage}
+      />
     </div>
   );
 }

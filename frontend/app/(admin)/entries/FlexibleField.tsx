@@ -1,6 +1,6 @@
 'use client';
 
-import { useFieldArray } from 'react-hook-form';
+import { useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface SubField {
   name: string;
@@ -91,7 +98,6 @@ function FlexibleItem({
   layouts,
   control,
   register,
-  watch,
   onRemove,
 }: {
   index: number;
@@ -99,11 +105,10 @@ function FlexibleItem({
   layouts: Layout[];
   control: any;
   register: any;
-  watch: any;
   onRemove: () => void;
 }) {
   const layoutKey = `${fieldName}.${index}._layout`;
-  const selectedLayoutName: string = watch(layoutKey) || '';
+  const selectedLayoutName: string = useWatch({ control, name: layoutKey }) || '';
   const layout = layouts.find((l) => l.name === selectedLayoutName);
 
   return (
@@ -126,8 +131,8 @@ function FlexibleItem({
         <Button
           type="button"
           variant="ghost"
-          size="sm"
-          className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+          size="icon-xs"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={onRemove}
           title="Remove block"
         >
@@ -138,20 +143,25 @@ function FlexibleItem({
       {/* Layout selector */}
       <div className="mb-3">
         <Label className="mb-1 block text-xs text-muted-foreground">Section Type</Label>
-        <select
-          className={cn(
-            'w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
-            'ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring',
+        <Controller
+          control={control}
+          name={layoutKey}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <Select value={field.value || ''} onValueChange={field.onChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose section layout…" />
+              </SelectTrigger>
+              <SelectContent>
+                {layouts.map((l) => (
+                  <SelectItem key={l.name} value={l.name}>
+                    {l.label || l.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
-          {...register(layoutKey, { required: true })}
-        >
-          <option value="">Choose section layout…</option>
-          {layouts.map((l) => (
-            <option key={l.name} value={l.name}>
-              {l.label || l.name}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       {/* Render selected layout's fields */}
@@ -204,34 +214,29 @@ export default function FlexibleField({
           layouts={layouts}
           control={control}
           register={register}
-          watch={watch}
           onRemove={() => remove(index)}
         />
       ))}
 
       {/* Add block selector */}
       <div className="mt-1">
-        <select
-          className={cn(
-            'w-full rounded-md border border-dashed border-input bg-background px-3 py-2 text-sm text-muted-foreground',
-            'ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring',
-            'cursor-pointer hover:bg-accent hover:text-accent-foreground',
-          )}
+        <Select
           value=""
-          onChange={(e) => {
-            if (e.target.value) {
-              append({ _layout: e.target.value });
-              e.target.value = '';
-            }
+          onValueChange={(val) => {
+            if (val) append({ _layout: val });
           }}
         >
-          <option value="">+ Add Block…</option>
-          {layouts.map((l) => (
-            <option key={l.name} value={l.name}>
-              + {l.label || l.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full border-dashed text-muted-foreground">
+            <SelectValue placeholder="+ Add Block…" />
+          </SelectTrigger>
+          <SelectContent>
+            {layouts.map((l) => (
+              <SelectItem key={l.name} value={l.name}>
+                + {l.label || l.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

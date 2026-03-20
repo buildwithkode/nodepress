@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Layers, FileText, Image, Key } from 'lucide-react';
 import api from '../../lib/axios';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface Stats {
   contentTypes: number;
@@ -23,16 +24,18 @@ function StatCard({
   icon: React.ElementType;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-start justify-between mb-3">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <div className="w-8 h-8 rounded-md bg-secondary flex items-center justify-center shrink-0">
-          <Icon className="h-4 w-4 text-muted-foreground" />
+    <Card>
+      <CardContent className="flex flex-col gap-3">
+        <div className="flex items-start justify-between">
+          <p className="text-sm text-muted-foreground font-medium">{label}</p>
+          <div className="size-9 rounded-md bg-secondary flex items-center justify-center shrink-0">
+            <Icon className="h-4 w-4 text-muted-foreground" />
+          </div>
         </div>
-      </div>
-      <p className="text-3xl font-bold text-foreground leading-none">{value}</p>
-      <p className="text-xs text-muted-foreground mt-1.5">{sub}</p>
-    </div>
+        <p className="text-3xl font-bold text-foreground leading-none">{value}</p>
+        <p className="text-xs text-muted-foreground">{sub}</p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -56,17 +59,40 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="p-6">
-      {/* Page title */}
-      <h1 className="text-xl font-bold text-foreground mb-6">Dashboard</h1>
+    <div className="space-y-6">
+      {/* OVERVIEW */}
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Overview</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
+        <StatCard label="Content Types" sub="total schemas"    value={stats.contentTypes} icon={Layers} />
+        <StatCard label="Total Entries"  sub="across all types" value={stats.entries}      icon={FileText} />
+        <StatCard label="Media Files"    sub="uploaded files"   value={stats.media}        icon={Image} />
+        <StatCard label="API Keys"       sub="active keys"      value={stats.apiKeys}      icon={Key} />
+      </div>
 
-      {/* Overview section */}
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Overview</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Content Types" sub="total schemas" value={stats.contentTypes} icon={Layers} />
-        <StatCard label="Total Entries"  sub="across all types"  value={stats.entries}      icon={FileText} />
-        <StatCard label="Media Files"    sub="uploaded files"    value={stats.media}        icon={Image} />
-        <StatCard label="API Keys"       sub="active keys"       value={stats.apiKeys}      icon={Key} />
+      {/* CONFIGURATION */}
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Configuration</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="flex flex-col gap-2">
+            <p className="text-xs text-muted-foreground font-medium">API Endpoint</p>
+            <code className="text-xs text-foreground font-mono">GET /api/:type</code>
+            <p className="text-xs text-muted-foreground">Public REST API for all content types</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-col gap-2">
+            <p className="text-xs text-muted-foreground font-medium">Authentication</p>
+            <code className="text-xs text-foreground font-mono">X-API-Key: np_…</code>
+            <p className="text-xs text-muted-foreground">Use API keys for external write access</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex flex-col gap-2">
+            <p className="text-xs text-muted-foreground font-medium">Media uploads</p>
+            <code className="text-xs text-foreground font-mono">POST /api/media</code>
+            <p className="text-xs text-muted-foreground">Images, PDFs, videos up to 10MB</p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

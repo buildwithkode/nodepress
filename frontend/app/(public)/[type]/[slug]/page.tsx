@@ -121,6 +121,22 @@ function FieldValue({ name, value }: { name: string; value: any }) {
       );
     }
 
+    // Plain object (catch-all for nested structures)
+    if (typeof value === 'object') {
+      return (
+        <div className="flex flex-col gap-1">
+          {Object.entries(value)
+            .filter(([k]) => k !== '_layout')
+            .map(([k, v]) => (
+              <div key={k}>
+                <span className="text-gray-400 text-xs">{k.replace(/_/g, ' ')}: </span>
+                <span className="text-sm text-gray-700">{String(v)}</span>
+              </div>
+            ))}
+        </div>
+      );
+    }
+
     // Default — short string
     return <span className="text-gray-700">{String(value)}</span>;
   };

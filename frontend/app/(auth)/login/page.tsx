@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/axios';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -90,13 +91,9 @@ export default function LoginPage() {
               <p className="text-sm text-red-400 text-center">{error}</p>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-white text-black text-sm font-medium py-2.5 hover:bg-white/90 disabled:opacity-60 transition-colors"
-            >
+            <Button type="submit" disabled={loading} className="w-full">
               {loading ? 'Signing in…' : 'Sign in'}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

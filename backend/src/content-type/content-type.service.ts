@@ -10,12 +10,40 @@ import { UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { SchemaValidator } from '../fields/schema.validator';
 import { FormGenerator } from '../fields/form.generator';
 import { FieldDef } from '../fields/field.types';
+import { normalizeKey } from '../common/normalize';
 
 // These route names are already taken by static controllers
 const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads'];
 
 const normalizeName = (name: string): string =>
-  name.trim().toLowerCase().replace(/\s+/g, '_');
+  name.trim().toLowerCase().replace(/[\s-]+/g, '_');
+
+/** Normalize all field/sub-field/layout names in a raw schema to snake_case (runs before validation) */
+const normalizeSchema = (schema: any[]): any[] =>
+  schema.map((f) => {
+    const field: any = { ...f, name: f.name ? normalizeKey(f.name) : f.name };
+    if (field.options?.subFields) {
+      field.options = {
+        ...field.options,
+        subFields: field.options.subFields.map((sf: any) => ({
+          ...sf, name: sf.name ? normalizeKey(sf.name) : sf.name,
+        })),
+      };
+    }
+    if (field.options?.layouts) {
+      field.options = {
+        ...field.options,
+        layouts: field.options.layouts.map((l: any) => ({
+          ...l,
+          name: l.name ? normalizeKey(l.name) : l.name,
+          fields: l.fields?.map((lf: any) => ({
+            ...lf, name: lf.name ? normalizeKey(lf.name) : lf.name,
+          })),
+        })),
+      };
+    }
+    return field;
+  });
 
 @Injectable()
 export class ContentTypeService {
@@ -42,8 +70,8 @@ export class ContentTypeService {
       throw new ConflictException(`Content type "${name}" already exists`);
     }
 
-    // Deep-validate the schema field definitions
-    const validatedSchema = this.schemaValidator.validate(dto.schema);
+    // Normalize field names first, then validate
+    const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
 
     return this.prisma.contentType.create({
       data: { name, schema: validatedSchema as any },
@@ -95,7 +123,7 @@ export class ContentTypeService {
     }
 
     if (dto.schema !== undefined) {
-      const validatedSchema = this.schemaValidator.validate(dto.schema);
+      const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
       updateData.schema = validatedSchema as any;
     }
 

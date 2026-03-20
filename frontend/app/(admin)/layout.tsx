@@ -1,17 +1,20 @@
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   LayoutDashboard,
   Layers,
   FileText,
   Image,
   Key,
-  LogOut,
+  ArrowRight,
 } from 'lucide-react';
 
 const navGroups = [
@@ -53,16 +56,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/login');
   };
 
+  const allNavItems = navGroups.flatMap((g) => g.items);
+  const pageTitle = allNavItems
+    .slice()
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((item) => pathname === item.href || (pathname?.startsWith(item.href + '/') ?? false))
+    ?.label ?? 'Dashboard';
+
   return (
     <div className="flex min-h-screen bg-background">
 
       {/* ── Sidebar ── */}
-      <aside className="fixed inset-y-0 left-0 z-20 flex w-56 flex-col bg-sidebar border-r border-sidebar-border">
+      <aside className="fixed inset-y-0 left-0 z-20 flex w-64 flex-col bg-sidebar border-r border-sidebar-border">
 
-        {/* App name + theme toggle */}
-        <div className="flex items-center justify-between px-4 h-14 border-b border-sidebar-border shrink-0">
+        {/* App name */}
+        <div className="flex items-center px-4 h-14 border-b border-sidebar-border shrink-0">
           <span className="font-semibold text-sm text-sidebar-foreground">{siteName}</span>
-          <ThemeToggle />
         </div>
 
         {/* Nav groups */}
@@ -76,19 +85,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {group.items.map(({ href, label, icon: Icon }) => {
                   const isActive = pathname === href;
                   return (
-                    <button
+                    <Link
                       key={href}
-                      onClick={() => router.push(href)}
+                      href={href}
                       className={cn(
-                        'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors text-left',
                         isActive
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                          : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-border/50',
+                          ? buttonVariants({ variant: 'default', size: 'sm' }) +
+                            ' w-full justify-start bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90'
+                          : 'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors',
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
                       {label}
-                    </button>
+                    </Link>
                   );
                 })}
               </div>
@@ -98,27 +107,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* User info + sign out */}
         <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
-          <div className="mb-3 px-1">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">
+          <div className="mb-4 px-1">
+            <p className="text-sm font-bold text-sidebar-foreground truncate">
+              Super Admin
+            </p>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">
               {user?.email ?? '—'}
             </p>
-            <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded border border-yellow-500/50 text-yellow-400 font-medium">
+            <span className="inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded border border-yellow-500/60 text-yellow-400 font-semibold">
               Admin
             </span>
           </div>
-          <button
+          <Button
+            variant="ghost"
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-border/50 transition-colors"
+            className="w-full justify-start gap-1.5 px-2 text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-border/50"
           >
-            <LogOut className="h-4 w-4 shrink-0" />
+            <ArrowRight className="h-4 w-4 shrink-0" />
             Sign out
-          </button>
+          </Button>
         </div>
       </aside>
 
       {/* ── Main content ── */}
-      <main className="flex-1 ml-56 min-h-screen">
-        {children}
+      <main className="flex-1 ml-64 flex flex-col min-h-screen">
+        {/* Top bar */}
+        <div className="sticky top-0 z-10 h-14 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-6">
+          <h1 className="text-base font-semibold text-foreground">{pageTitle}</h1>
+          <ThemeToggle />
+        </div>
+        <div className="flex-1 bg-muted/20 p-4 md:p-6">
+          {children}
+        </div>
       </main>
     </div>
   );

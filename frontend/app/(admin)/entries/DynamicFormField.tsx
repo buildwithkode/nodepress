@@ -36,7 +36,7 @@ interface Layout {
 interface Field {
   name: string;
   type: string;
-  options?: { subFields?: SubField[]; layouts?: Layout[] } | string[];
+  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string };
 }
 
 interface Props {
@@ -179,10 +179,16 @@ export default function DynamicFormField({
         );
 
       case 'select': {
-        const rawOptions = field.options as string[] | undefined;
-        const selectOptions = Array.isArray(rawOptions)
-          ? rawOptions.map((o) => ({ label: o, value: o }))
-          : [];
+        const opts = field.options as { choices?: string | string[] } | undefined;
+        const choices = opts?.choices ?? '';
+        const selectOptions = (
+          Array.isArray(choices)
+            ? choices
+            : String(choices).split(',')
+        )
+          .map((o) => o.trim())
+          .filter(Boolean)
+          .map((o) => ({ label: o, value: o }));
         return (
           <Controller
             control={control}

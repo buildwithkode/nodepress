@@ -106,8 +106,8 @@ export default function RepeaterField({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+              size="icon-xs"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => remove(index)}
               title="Remove item"
             >
