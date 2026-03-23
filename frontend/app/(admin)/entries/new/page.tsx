@@ -85,7 +85,7 @@ export default function NewEntryPage() {
 
   if (loadingCT) {
     return (
-      <div className="max-w-2xl space-y-4">
+      <div className="space-y-4">
         <Skeleton className="h-8 w-32" />
         <Card><CardContent className="space-y-4 pt-4">
           <Skeleton className="h-9 w-full" />
@@ -96,7 +96,7 @@ export default function NewEntryPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="space-y-4">
       <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/entries')}>
         <ArrowLeft className="h-4 w-4" /> Back to Entries
       </Button>

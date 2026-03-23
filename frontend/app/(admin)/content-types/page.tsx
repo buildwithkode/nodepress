@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Trash2, LayoutGrid, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, Download, Copy, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { cn } from '@/lib/utils';
@@ -81,6 +81,7 @@ export default function ContentTypesPage() {
   const router = useRouter();
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
   const [loading, setLoading]           = useState(false);
+  const [duplicating, setDuplicating]   = useState<number | null>(null);
   const [search, setSearch]             = useState('');
   const [page, setPage]                 = useState(1);
   const PAGE_SIZE = 10;
@@ -101,6 +102,30 @@ export default function ContentTypesPage() {
   useEffect(() => { fetchContentTypes(); }, []);
 
   useEffect(() => { setPage(1); }, [search]);
+
+  const handleDuplicate = async (ct: ContentType) => {
+    setDuplicating(ct.id);
+    const candidates = [
+      `${ct.name}_copy`,
+      ...Array.from({ length: 9 }, (_, i) => `${ct.name}_copy_${i + 2}`),
+    ];
+    for (const name of candidates) {
+      try {
+        const res = await api.post('/content-types', { name, schema: ct.schema });
+        toast.success(`Duplicated as "${name}"`);
+        router.push(`/content-types/${res.data.id}/edit`);
+        return;
+      } catch (err: any) {
+        if (err.response?.status !== 409) {
+          toast.error(err.response?.data?.message || 'Duplicate failed');
+          setDuplicating(null);
+          return;
+        }
+      }
+    }
+    toast.error('Could not find a unique name for the duplicate');
+    setDuplicating(null);
+  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -203,6 +228,17 @@ export default function ContentTypesPage() {
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/content-types/${ct.id}/edit`)} title="Edit">
                     <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Duplicate"
+                    disabled={duplicating === ct.id}
+                    onClick={() => handleDuplicate(ct)}
+                  >
+                    {duplicating === ct.id
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <Copy className="h-3.5 w-3.5" />}
                   </Button>
                   <Button variant="ghost" size="icon-sm" onClick={() => exportContentType(ct)} title="Export JSON">
                     <Download className="h-3.5 w-3.5" />

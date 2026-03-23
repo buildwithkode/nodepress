@@ -30,11 +30,9 @@ export class EntriesController {
   @ApiOperation({ summary: 'List entries (optionally filter by content type)' })
   @ApiQuery({ name: 'contentTypeId', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Array of entries' })
-  findAll(
-    @Query('contentTypeId', new ParseIntPipe({ optional: true }))
-    contentTypeId?: number,
-  ) {
-    return this.entriesService.findAll(contentTypeId);
+  findAll(@Query('contentTypeId') contentTypeId?: string) {
+    const id = contentTypeId ? parseInt(contentTypeId, 10) : undefined;
+    return this.entriesService.findAll(isNaN(id) ? undefined : id);
   }
 
   @Get(':id')

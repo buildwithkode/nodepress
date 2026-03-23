@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers } from 'lucide-react';
+import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers, Copy, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,6 +59,7 @@ export default function EntriesPage() {
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
+  const [duplicating, setDuplicating] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
@@ -110,6 +111,35 @@ export default function EntriesPage() {
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Delete failed');
     }
+  };
+
+  /* ── Duplicate ──────────────────────────────────────────────────────────── */
+  const handleDuplicate = async (entry: Entry) => {
+    setDuplicating(entry.id);
+    const candidates = [
+      `${entry.slug}-copy`,
+      ...Array.from({ length: 9 }, (_, i) => `${entry.slug}-copy-${i + 2}`),
+    ];
+    for (const slug of candidates) {
+      try {
+        const res = await api.post('/entries', {
+          slug,
+          data: entry.data,
+          contentTypeId: entry.contentTypeId,
+        });
+        toast.success(`Duplicated as "${slug}"`);
+        router.push(`/entries/${res.data.id}/edit`);
+        return;
+      } catch (err: any) {
+        if (err.response?.status !== 409) {
+          toast.error(err.response?.data?.message || 'Duplicate failed');
+          setDuplicating(null);
+          return;
+        }
+      }
+    }
+    toast.error('Could not find a unique slug for the duplicate');
+    setDuplicating(null);
   };
 
   /* ── Cards view ─────────────────────────────────────────────────────────── */
@@ -295,6 +325,17 @@ export default function EntriesPage() {
                     onClick={() => router.push(`/entries/${entry.id}/edit`)}
                   >
                     <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Duplicate"
+                    disabled={duplicating === entry.id}
+                    onClick={() => handleDuplicate(entry)}
+                  >
+                    {duplicating === entry.id
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <Copy className="h-3.5 w-3.5" />}
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger render={
