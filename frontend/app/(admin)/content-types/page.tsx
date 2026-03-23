@@ -199,7 +199,7 @@ export default function ContentTypesPage() {
               <TableCell>
                 <span className="flex items-center gap-2 font-medium">
                   <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                  {ct.name}
+                  {ct.name.replace(/_/g, ' ')}
                 </span>
               </TableCell>
               <TableCell>
@@ -251,7 +251,7 @@ export default function ContentTypesPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete content type?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          All entries under <strong>{ct.name}</strong> will also be deleted. This action cannot be undone.
+                          All entries under <strong>{ct.name.replace(/_/g, ' ')}</strong> will also be deleted. This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

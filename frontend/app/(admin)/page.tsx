@@ -134,7 +134,7 @@ export default function DashboardPage() {
                   >
                     <div className="flex items-center gap-2.5">
                       <div className="size-2 rounded-full bg-primary/60" />
-                      <span className="text-sm font-medium">{ct.name}</span>
+                      <span className="text-sm font-medium">{ct.name.replace(/_/g, ' ')}</span>
                       <span className="text-xs text-muted-foreground">{ct.schema.length} field{ct.schema.length !== 1 ? 's' : ''}</span>
                     </div>
                     <Badge variant="secondary">{ctEntryCounts[ct.id] ?? 0} entries</Badge>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                           : 'border-border text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      {ct.name}
+                      {ct.name.replace(/_/g, ' ')}
                     </button>
                   ))}
                 </div>
@@ -238,11 +238,11 @@ export default function DashboardPage() {
                 {selectedCT && (
                   <div className="rounded-lg border border-border overflow-hidden">
                     {[
-                      { method: 'GET',    path: `/api/${selectedCT.name}`,          desc: `List all ${selectedCT.name} entries`, auth: false },
-                      { method: 'GET',    path: `/api/${selectedCT.name}/{slug}`,   desc: 'Get single entry by slug',            auth: false },
-                      { method: 'POST',   path: `/api/${selectedCT.name}`,          desc: 'Create a new entry',                  auth: true  },
-                      { method: 'PUT',    path: `/api/${selectedCT.name}/{slug}`,   desc: 'Update an entry',                     auth: true  },
-                      { method: 'DELETE', path: `/api/${selectedCT.name}/{slug}`,   desc: 'Delete an entry',                     auth: true  },
+                      { method: 'GET',    path: `/api/${selectedCT.name.replace(/_/g, '-')}`,          desc: `List all ${selectedCT.name} entries`, auth: false },
+                      { method: 'GET',    path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`,   desc: 'Get single entry by slug',            auth: false },
+                      { method: 'POST',   path: `/api/${selectedCT.name.replace(/_/g, '-')}`,          desc: 'Create a new entry',                  auth: true  },
+                      { method: 'PUT',    path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`,   desc: 'Update an entry',                     auth: true  },
+                      { method: 'DELETE', path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`,   desc: 'Delete an entry',                     auth: true  },
                     ].map(({ method, path, desc, auth }) => {
                       const fullUrl = `${origin}${path}`;
                       const copied = copiedUrl === fullUrl;

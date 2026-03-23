@@ -137,7 +137,7 @@ export default function EditContentTypePage() {
     api.get(`/content-types/${id}`)
       .then((res) => {
         const ct = res.data;
-        setName(ct.name);
+        setName(ct.name.replace(/_/g, ' '));
         setFields(
           ct.schema.length > 0
             ? ct.schema.map((f: any) => ({ _id: uid(), ...f, required: f.required ?? false }))
@@ -305,7 +305,7 @@ export default function EditContentTypePage() {
                   <p className="text-xs text-muted-foreground">
                     API endpoint:{' '}
                     <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-                      GET /api/<strong>{computedName}</strong>
+                      GET /api/<strong>{computedName.replace(/_/g, '-')}</strong>
                     </code>
                   </p>
                 )}

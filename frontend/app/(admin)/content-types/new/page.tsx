@@ -197,7 +197,7 @@ export default function NewContentTypePage() {
                   <p className="text-xs text-muted-foreground">
                     API endpoint:{' '}
                     <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-                      GET /api/<strong>{computedName}</strong>
+                      GET /api/<strong>{computedName.replace(/_/g, '-')}</strong>
                     </code>
                   </p>
                 )}

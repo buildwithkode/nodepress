@@ -317,9 +317,9 @@ export default function DocsPage() {
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-6 text-sm">
               <strong className="text-amber-400">Name normalization</strong>
               <p className="text-muted-foreground mt-1">
-                Content type names are automatically converted to <IC>snake_case</IC>.
-                "My Blog Posts" → <IC>my_blog_posts</IC>. This becomes part of the API URL:{' '}
-                <IC>GET /api/my_blog_posts</IC>. The API endpoint is shown as you type on the Create page.
+                Content type names are stored as <IC>snake_case</IC> internally.
+                "My Blog Posts" → stored as <IC>my_blog_posts</IC>, but the API URL uses hyphens:{' '}
+                <IC>GET /api/my-blog-posts</IC>. The API endpoint is shown as you type on the Create page.
               </p>
             </div>
 
