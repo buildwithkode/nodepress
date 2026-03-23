@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown, Download } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -247,14 +247,39 @@ export default function EditContentTypePage() {
   /* ── Page ────────────────────────────────────────────────────────────────── */
   return (
     <div className="space-y-4">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="gap-1.5 text-muted-foreground"
-        onClick={() => router.push('/content-types')}
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to Content Types
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-muted-foreground"
+          onClick={() => router.push('/content-types')}
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to Content Types
+        </Button>
+        {!loading && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              const payload = {
+                nodepress: '1.0',
+                exportedAt: new Date().toISOString(),
+                contentType: { name, schema: fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => rest) },
+              };
+              const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${name}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            <Download className="h-4 w-4" /> Export JSON
+          </Button>
+        )}
+      </div>
 
       <Card>
         <CardHeader>

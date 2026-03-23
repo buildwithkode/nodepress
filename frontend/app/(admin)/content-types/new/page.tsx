@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -70,8 +70,38 @@ export default function NewContentTypePage() {
   const [nameError, setNameError] = useState('');
   const [fields, setFields] = useState<Field[]>([{ name: '', type: 'text', required: false }]);
   const [openLayouts, setOpenLayouts] = useState<Record<string, boolean>>({});
+  const importRef = useRef<HTMLInputElement>(null);
 
   const computedName = toSnakeCase(name);
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const json = JSON.parse(ev.target?.result as string);
+        const ct = json.contentType;
+        if (!ct || typeof ct.name !== 'string' || !Array.isArray(ct.schema)) {
+          toast.error('Invalid file: missing contentType.name or contentType.schema');
+          return;
+        }
+        setName(ct.name);
+        setFields(
+          ct.schema.length > 0
+            ? ct.schema.map((f: any) => ({ name: f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, options: f.options }))
+            : [{ name: '', type: 'text', required: false }],
+        );
+        setOpenLayouts({});
+        toast.success(`Imported "${ct.name}" — review and save`);
+      } catch {
+        toast.error('Failed to parse JSON file');
+      } finally {
+        e.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const addField = () => setFields([...fields, { name: '', type: 'text', required: false }]);
   const removeField = (i: number) => setFields(fields.filter((_, idx) => idx !== i));
@@ -135,9 +165,15 @@ export default function NewContentTypePage() {
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/content-types')}>
-        <ArrowLeft className="h-4 w-4" /> Back to Content Types
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/content-types')}>
+          <ArrowLeft className="h-4 w-4" /> Back to Content Types
+        </Button>
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => importRef.current?.click()}>
+          <Upload className="h-4 w-4" /> Import JSON
+        </Button>
+        <input ref={importRef} type="file" accept=".json,application/json" className="hidden" onChange={handleImport} />
+      </div>
 
       <Card>
         <CardHeader>

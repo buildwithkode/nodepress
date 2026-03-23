@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Trash2, LayoutGrid } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { cn } from '@/lib/utils';
@@ -55,6 +55,24 @@ interface Field {
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string };
 }
 interface ContentType { id: number; name: string; schema: Field[]; createdAt: string }
+
+// ---------------------------------------------------------------------------
+// Export helper
+// ---------------------------------------------------------------------------
+function exportContentType(ct: ContentType) {
+  const payload = {
+    nodepress: '1.0',
+    exportedAt: new Date().toISOString(),
+    contentType: { name: ct.name, schema: ct.schema },
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${ct.name}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // ---------------------------------------------------------------------------
 // Page
@@ -185,6 +203,9 @@ export default function ContentTypesPage() {
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/content-types/${ct.id}/edit`)} title="Edit">
                     <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon-sm" onClick={() => exportContentType(ct)} title="Export JSON">
+                    <Download className="h-3.5 w-3.5" />
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete" />}>
