@@ -2,15 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, Globe, ChevronRight, ExternalLink, Box, Layers } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface ContentType {
-  id: number;
-  name: string;
-  schema: { name: string; type: string; required?: boolean }[];
-}
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
 function useCopy(text: string) {
@@ -163,33 +156,17 @@ const TOC_ITEMS = [
   { id: 'media',          label: 'Media Library' },
   { id: 'api-keys',       label: 'API Keys' },
   { id: 'api-reference',  label: 'API Reference' },
-  { id: 'live-endpoints', label: 'Your Endpoints' },
   { id: 'code-examples',  label: 'Code Examples' },
 ];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DocsPage() {
   const [activeId, setActiveId] = useState('introduction');
-  const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
-  const [selectedCT, setSelectedCT] = useState<ContentType | null>(null);
   const [baseUrl, setBaseUrl] = useState('https://your-domain.com');
 
   // Detect base URL client-side
   useEffect(() => {
     setBaseUrl(window.location.origin);
-  }, []);
-
-  // Fetch content types (public endpoint — no auth needed)
-  useEffect(() => {
-    fetch('/api/content-types')
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setContentTypes(data);
-          if (data.length > 0) setSelectedCT(data[0]);
-        }
-      })
-      .catch(() => {});
   }, []);
 
   // Active section tracking via IntersectionObserver
@@ -206,84 +183,6 @@ export default function DocsPage() {
     });
     return () => observer.disconnect();
   }, []);
-
-  // ── Live endpoint example code ──────────────────────────────────────────────
-  const ct = selectedCT;
-  const listUrl = ct ? `${baseUrl}/api/${ct.name}` : `${baseUrl}/api/{type}`;
-  const singleUrl = ct ? `${baseUrl}/api/${ct.name}/my-slug` : `${baseUrl}/api/{type}/{slug}`;
-
-  const sampleData = ct
-    ? ct.schema.slice(0, 3).reduce<Record<string, unknown>>((acc, f) => {
-        if (f.type === 'text' || f.type === 'textarea') acc[f.name] = 'Example text';
-        else if (f.type === 'number') acc[f.name] = 1;
-        else if (f.type === 'boolean') acc[f.name] = true;
-        else if (f.type === 'select') acc[f.name] = 'option_1';
-        else if (f.type === 'richtext') acc[f.name] = '<p>Content here</p>';
-        else if (f.type === 'image') acc[f.name] = '/uploads/photo.jpg';
-        return acc;
-      }, {})
-    : { title: 'Example', content: 'Hello world' };
-
-  const liveGetCurl = `curl ${listUrl}`;
-  const liveSingleCurl = `curl ${singleUrl}`;
-  const liveGetJs = `const res = await fetch('${listUrl}');\nconst entries = await res.json();\nconsole.log(entries);`;
-  const liveGetReact = `import { useEffect, useState } from 'react';
-
-export default function ${ct ? ct.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/ /g, '') : 'ContentList'}() {
-  const [items, setItems] = useState([]);
-
-  useEffect(() => {
-    fetch('${listUrl}')
-      .then(r => r.json())
-      .then(setItems);
-  }, []);
-
-  return (
-    <ul>
-      {items.map(item => (
-        <li key={item.slug}>{item.slug}</li>
-      ))}
-    </ul>
-  );
-}`;
-
-  const liveGetPython = `import requests
-
-response = requests.get('${listUrl}')
-entries = response.json()
-
-for entry in entries:
-    print(entry['slug'], entry['data'])`;
-
-  const liveGetPhp = `<?php
-$response = file_get_contents('${listUrl}');
-$entries = json_decode($response, true);
-
-foreach ($entries as $entry) {
-    echo $entry['slug'] . PHP_EOL;
-}`;
-
-  const liveWriteCurl = ct
-    ? `curl -X POST ${baseUrl}/api/${ct.name} \\
-  -H "Content-Type: application/json" \\
-  -H "X-API-Key: np_your_api_key_here" \\
-  -d '${JSON.stringify({ slug: 'my-new-entry', data: sampleData }, null, 2)}'`
-    : '';
-
-  const liveWriteJs = ct
-    ? `const res = await fetch('${baseUrl}/api/${ct.name}', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-API-Key': 'np_your_api_key_here',
-  },
-  body: JSON.stringify({
-    slug: 'my-new-entry',
-    data: ${JSON.stringify(sampleData, null, 4)},
-  }),
-});
-const created = await res.json();`
-    : '';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -721,95 +620,6 @@ X-API-Key: np_abc123...`} />
                 </tbody>
               </table>
             </div>
-          </Section>
-
-          {/* ── Live Endpoints ────────────────────────────────────────────── */}
-          <Section id="live-endpoints" title="Your Endpoints" icon={Globe}>
-            {contentTypes.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border p-10 text-center">
-                <p className="text-muted-foreground text-sm">No content types found.</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">
-                  <Link href="/content-types/new" className="text-primary hover:underline">Create a content type</Link> to see your live endpoints here.
-                </p>
-              </div>
-            ) : (
-              <>
-                <p className="text-muted-foreground text-sm mb-5">
-                  Based on your content types, these are your live API endpoints right now.
-                  Select a content type to see code examples.
-                </p>
-
-                {/* Content type selector */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {contentTypes.map((ct) => (
-                    <button
-                      key={ct.id}
-                      onClick={() => setSelectedCT(ct)}
-                      className={cn(
-                        'px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors',
-                        selectedCT?.id === ct.id
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30',
-                      )}
-                    >
-                      {ct.name}
-                    </button>
-                  ))}
-                </div>
-
-                {ct && (
-                  <>
-                    {/* Endpoint table for this CT */}
-                    <div className="rounded-xl border border-border overflow-hidden mb-6">
-                      {[
-                        { m: 'GET',    path: `/api/${ct.name}`,           desc: `List all ${ct.name} entries` },
-                        { m: 'GET',    path: `/api/${ct.name}/{slug}`,    desc: `Get one ${ct.name} entry by slug` },
-                        { m: 'POST',   path: `/api/${ct.name}`,           desc: `Create a ${ct.name} entry (auth required)` },
-                        { m: 'PUT',    path: `/api/${ct.name}/{slug}`,    desc: `Update a ${ct.name} entry (auth required)` },
-                        { m: 'DELETE', path: `/api/${ct.name}/{slug}`,    desc: `Delete a ${ct.name} entry (auth required)` },
-                      ].map(({ m, path, desc }) => (
-                        <Endpoint key={m + path} method={m} path={path} desc={desc} auth={m !== 'GET'} />
-                      ))}
-                    </div>
-
-                    {/* Field reference */}
-                    {ct.schema.length > 0 && (
-                      <div className="rounded-xl border border-border p-4 mb-6 bg-muted/20">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                          Fields in <IC>{ct.name}</IC>
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {ct.schema.map((f) => (
-                            <span key={f.name} className="text-xs font-mono bg-muted rounded px-2 py-1">
-                              {f.name}
-                              <span className="text-muted-foreground ml-1.5">({f.type})</span>
-                              {f.required && <span className="text-red-400 ml-1">*</span>}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Read examples */}
-                    <h3 className="font-semibold mb-2">Read all {ct.name} entries</h3>
-                    <CodeTabs codes={{
-                      cURL: liveGetCurl,
-                      JavaScript: liveGetJs,
-                      React: liveGetReact,
-                      Python: liveGetPython,
-                      PHP: liveGetPhp,
-                    }} />
-
-                    {/* Write example */}
-                    <h3 className="font-semibold mb-2 mt-6">Create a {ct.name} entry (requires API key)</h3>
-                    <CodeTabs codes={{
-                      cURL: liveWriteCurl,
-                      JavaScript: liveWriteJs,
-                    }} />
-                  </>
-                )}
-              </>
-            )}
           </Section>
 
           {/* ── Code Examples ─────────────────────────────────────────────── */}

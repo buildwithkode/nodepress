@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Layers, FileText, Image, Key, ArrowRight, LayoutGrid, Clock } from 'lucide-react';
+import { Layers, FileText, Image, Key, ArrowRight, LayoutGrid, Clock, Globe, Copy, Check } from 'lucide-react';
 import api from '../../lib/axios';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,8 @@ export default function DashboardPage() {
   const [media, setMedia] = useState<MediaFile[]>([]);
   const [apiKeyCount, setApiKeyCount] = useState(0);
   const [ctEntryCounts, setCtEntryCounts] = useState<Record<number, number>>({});
+  const [selectedCT, setSelectedCT] = useState<ContentType | null>(null);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.allSettled([
@@ -56,6 +58,7 @@ export default function DashboardPage() {
       const meds: MediaFile[] = med.status === 'fulfilled' && Array.isArray(med.value.data) ? med.value.data : [];
 
       setContentTypes(cts);
+      if (cts.length > 0) setSelectedCT(cts[0]);
       setEntries(ens);
       setMedia(meds);
       setApiKeyCount(keys.status === 'fulfilled' && Array.isArray(keys.value.data) ? keys.value.data.length : 0);
@@ -76,6 +79,14 @@ export default function DashboardPage() {
     .slice(0, 6);
 
   const ctById = Object.fromEntries(contentTypes.map((ct) => [ct.id, ct]));
+
+  const copyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedUrl(url);
+    setTimeout(() => setCopiedUrl(null), 2000);
+  };
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
   return (
     <div className="space-y-8">
@@ -182,6 +193,87 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* API Endpoints */}
+      {(loading || contentTypes.length > 0) && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" /> API Endpoints
+            </CardTitle>
+            <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/docs')}>
+              Full docs <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}
+              </div>
+            ) : contentTypes.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                No content types yet.{' '}
+                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/content-types/new')}>Create one</button>
+              </div>
+            ) : (
+              <>
+                {/* Content type tabs */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {contentTypes.map((ct) => (
+                    <button
+                      key={ct.id}
+                      onClick={() => setSelectedCT(ct)}
+                      className={`px-3 py-1 rounded-md text-xs font-medium border transition-colors ${
+                        selectedCT?.id === ct.id
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'border-border text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {ct.name}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Endpoint rows */}
+                {selectedCT && (
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    {[
+                      { method: 'GET',    path: `/api/${selectedCT.name}`,          desc: `List all ${selectedCT.name} entries`, auth: false },
+                      { method: 'GET',    path: `/api/${selectedCT.name}/{slug}`,   desc: 'Get single entry by slug',            auth: false },
+                      { method: 'POST',   path: `/api/${selectedCT.name}`,          desc: 'Create a new entry',                  auth: true  },
+                      { method: 'PUT',    path: `/api/${selectedCT.name}/{slug}`,   desc: 'Update an entry',                     auth: true  },
+                      { method: 'DELETE', path: `/api/${selectedCT.name}/{slug}`,   desc: 'Delete an entry',                     auth: true  },
+                    ].map(({ method, path, desc, auth }) => {
+                      const fullUrl = `${origin}${path}`;
+                      const copied = copiedUrl === fullUrl;
+                      const methodColors: Record<string, string> = {
+                        GET: 'text-emerald-400', POST: 'text-blue-400',
+                        PUT: 'text-amber-400', DELETE: 'text-red-400',
+                      };
+                      return (
+                        <div key={method + path} className="flex items-center gap-3 px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted/30 transition-colors group">
+                          <span className={`text-xs font-bold font-mono w-14 shrink-0 ${methodColors[method]}`}>{method}</span>
+                          <code className="text-xs font-mono text-foreground flex-1 truncate">{path}</code>
+                          {auth && <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">Auth</span>}
+                          <button
+                            onClick={() => copyUrl(fullUrl)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted shrink-0"
+                            title="Copy URL"
+                          >
+                            {copied
+                              ? <Check className="h-3.5 w-3.5 text-green-400" />
+                              : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Media */}
       {(loading || recentMedia.length > 0) && (
