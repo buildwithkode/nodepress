@@ -54,7 +54,15 @@ interface Field {
   required: boolean;
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string };
 }
-interface ContentType { id: number; name: string; schema: Field[]; createdAt: string }
+interface ContentType { id: number; name: string; schema: Field[]; allowedMethods: string[] | null; createdAt: string }
+
+const METHOD_BADGES = [
+  { key: 'list',   short: 'LIST',   cls: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  { key: 'read',   short: 'READ',   cls: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
+  { key: 'create', short: 'POST',   cls: 'bg-green-500/10 text-green-400 border-green-500/20' },
+  { key: 'update', short: 'PUT',    cls: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
+  { key: 'delete', short: 'DELETE', cls: 'bg-red-500/10 text-red-400 border-red-500/20' },
+];
 
 // ---------------------------------------------------------------------------
 // Export helper
@@ -170,6 +178,7 @@ export default function ContentTypesPage() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Fields</TableHead>
+            <TableHead className="w-40">Endpoints</TableHead>
             <TableHead className="w-24">Count</TableHead>
             <TableHead className="w-28">Created</TableHead>
             <TableHead className="w-24">Actions</TableHead>
@@ -181,6 +190,7 @@ export default function ContentTypesPage() {
               <TableRow key={i}>
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-36" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
@@ -189,7 +199,7 @@ export default function ContentTypesPage() {
           )}
           {filtered.length === 0 && !loading && (
             <TableRow>
-              <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+              <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
                 {search ? 'No content types match your search.' : 'No content types yet. Create your first one.'}
               </TableCell>
             </TableRow>
@@ -216,6 +226,24 @@ export default function ContentTypesPage() {
                       <span className="ml-1 opacity-60">({f.type})</span>
                     </span>
                   ))}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {METHOD_BADGES.map(({ key, short, cls }) => {
+                    const enabled = ct.allowedMethods === null || ct.allowedMethods.includes(key);
+                    return (
+                      <span
+                        key={key}
+                        className={cn(
+                          'inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-mono font-semibold border',
+                          enabled ? cls : 'bg-muted/20 text-muted-foreground/40 border-border/30',
+                        )}
+                      >
+                        {short}
+                      </span>
+                    );
+                  })}
                 </div>
               </TableCell>
               <TableCell>

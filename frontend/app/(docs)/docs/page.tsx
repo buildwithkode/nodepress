@@ -557,7 +557,7 @@ curl -X POST ${baseUrl}/api/blog \\
                 {[
                   ['1. Create a form', 'Go to Forms → New Form. Give it a name, a URL-safe slug, and add your fields.'],
                   ['2. Configure actions', 'Optionally add an Email action (sends a notification on each submission) or a Webhook action (POSTs data to any URL).'],
-                  ['3. Embed or call the API', 'Drop <FormEmbed slug="your-slug" /> anywhere in your React app, or call the public submit API from any platform.'],
+                  ['3. Call the submit API', 'Call POST /api/submit/:slug from any platform — React, React Native, curl, or any HTTP client.'],
                   ['4. View submissions', 'Every submission is stored. Open Forms → click the submission count → expand any row to see full details.'],
                 ].map(([step, desc]) => (
                   <div key={step} className="flex gap-3">
@@ -643,30 +643,6 @@ Content-Type: application/json
   "errors": ["Email Address is required", "Message is required"]
 }`} />
 
-            {/* Embed component */}
-            <h3 className="font-semibold mb-3 mt-6">React embed component</h3>
-            <p className="text-muted-foreground text-sm mb-3">
-              Drop <IC>{'<FormEmbed>'}</IC> anywhere in your Next.js app. It fetches the form schema,
-              renders all fields dynamically, validates, and submits — zero configuration needed.
-            </p>
-            <CodeBlock code={`import { FormEmbed } from '@/components/FormEmbed';
-
-// Basic usage
-<FormEmbed slug="contact-us" />
-
-// With options
-<FormEmbed
-  slug="contact-us"
-  submitLabel="Send Message"
-  successMessage="Thanks! We'll get back to you within 24 hours."
-  onSuccess={(submissionId) => console.log('Saved as #' + submissionId)}
-/>
-
-// Multiple forms on one page — each is fully independent
-<FormEmbed slug="contact-us"  className="mb-12" />
-<FormEmbed slug="newsletter"  submitLabel="Subscribe" />
-<FormEmbed slug="test-form"   />`} />
-
             {/* Multi-platform */}
             <h3 className="font-semibold mb-3 mt-6">Submit from any platform</h3>
             <CodeTabs codes={{
@@ -702,7 +678,6 @@ if (!res.ok) {
   console.log('Submitted! ID:', result.submissionId);
 }`,
               React: `import { useState } from 'react';
-// Or just use: import { FormEmbed } from '@/components/FormEmbed';
 
 export default function ContactForm() {
   const [status, setStatus] = useState('idle');
@@ -782,7 +757,6 @@ echo $result['submissionId'];`,
               <p className="text-muted-foreground mt-1">
                 Form slugs are lowercased and hyphen-separated — "Contact Us" becomes <IC>contact-us</IC>.
                 The submit endpoint is always <IC>POST /api/submit/{'{slug}'}</IC>.
-                The public schema endpoint is <IC>GET /api/forms/schema/{'{slug}'}</IC> — returns name and fields only (never actions).
               </p>
             </div>
           </Section>
@@ -831,7 +805,6 @@ X-API-Key: np_abc123...`} />
 
             <h3 className="font-semibold mb-3">Forms API</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/forms/schema/:slug"         desc="Get form fields by slug (public — no auth)" />
               <Endpoint method="POST"   path="/api/submit/:slug"               desc="Submit a form (public — no auth)" />
               <Endpoint method="GET"    path="/api/forms"                      desc="List all forms with submission counts" auth />
               <Endpoint method="POST"   path="/api/forms"                      desc="Create a form" auth />

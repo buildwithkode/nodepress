@@ -15,18 +15,6 @@ import { UpdateFormDto } from './dto/update-form.dto';
 export class FormsController {
   constructor(private readonly forms: FormsService) {}
 
-  // ── Public schema endpoint (no auth — used by frontend embed) ────────────
-
-  @Get('schema/:slug')
-  @ApiOperation({
-    summary: 'Get form schema by slug (public)',
-    description: 'Returns name and fields only. Actions are never exposed.',
-  })
-  async publicSchema(@Param('slug') slug: string) {
-    const form = await this.forms.findBySlug(slug);
-    return { id: form.id, name: form.name, slug: form.slug, fields: form.fields };
-  }
-
   // ── Recent submissions across all forms (dashboard) ─────────────────────
 
   @Get('submissions/recent')

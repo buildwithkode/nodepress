@@ -105,6 +105,21 @@ function SortableFieldCard({ id, disabled, children }: { id: string; disabled?: 
   );
 }
 
+const ALL_METHODS = [
+  { key: 'list',   label: 'List',   verb: 'GET',    path: '' },
+  { key: 'read',   label: 'Read',   verb: 'GET',    path: '/:slug' },
+  { key: 'create', label: 'Create', verb: 'POST',   path: '' },
+  { key: 'update', label: 'Update', verb: 'PUT',    path: '/:slug' },
+  { key: 'delete', label: 'Delete', verb: 'DELETE', path: '/:slug' },
+];
+
+const VERB_COLOR: Record<string, string> = {
+  GET:    'text-blue-400',
+  POST:   'text-green-400',
+  PUT:    'text-orange-400',
+  DELETE: 'text-red-400',
+};
+
 export default function EditContentTypePage() {
   const router = useRouter();
   const params = useParams() ?? {};
@@ -115,8 +130,12 @@ export default function EditContentTypePage() {
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState('');
   const [fields, setFields] = useState<Field[]>([]);
+  const [allowedMethods, setAllowedMethods] = useState<string[]>(['list', 'read', 'create', 'update', 'delete']);
   const [openLayouts, setOpenLayouts] = useState<Record<string, boolean>>({});
   const [reorderMode, setReorderMode] = useState(false);
+
+  const toggleMethod = (key: string) =>
+    setAllowedMethods((prev) => prev.includes(key) ? prev.filter((m) => m !== key) : [...prev, key]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -138,6 +157,7 @@ export default function EditContentTypePage() {
       .then((res) => {
         const ct = res.data;
         setName(ct.name.replace(/_/g, ' '));
+        setAllowedMethods(ct.allowedMethods ?? ['list', 'read', 'create', 'update', 'delete']);
         setFields(
           ct.schema.length > 0
             ? ct.schema.map((f: any) => ({ _id: uid(), ...f, required: f.required ?? false }))
@@ -200,7 +220,7 @@ export default function EditContentTypePage() {
     if (validFields.length === 0) { toast.error('Add at least one field'); return; }
     setSubmitting(true);
     try {
-      await api.put(`/content-types/${id}`, { name: computedName, schema: validFields });
+      await api.put(`/content-types/${id}`, { name: computedName, schema: validFields, allowedMethods });
       toast.success('Content type updated');
       router.push('/content-types');
     } catch (err: any) {
@@ -309,6 +329,27 @@ export default function EditContentTypePage() {
                     </code>
                   </p>
                 )}
+            </div>
+
+            {/* API Endpoints */}
+            <div className="space-y-2">
+              <Label>API Endpoints</Label>
+              <p className="text-xs text-muted-foreground">Choose which endpoints are publicly accessible for this content type.</p>
+              <div className="rounded-md border bg-muted/20 divide-y divide-border">
+                {ALL_METHODS.map(({ key, label, verb, path }) => (
+                  <label key={key} className="flex items-center gap-3 px-3 py-2 cursor-pointer select-none hover:bg-muted/40">
+                    <Checkbox
+                      checked={allowedMethods.includes(key)}
+                      onCheckedChange={() => toggleMethod(key)}
+                    />
+                    <span className={`text-xs font-mono font-semibold w-14 shrink-0 ${VERB_COLOR[verb]}`}>{verb}</span>
+                    <code className="text-xs font-mono text-muted-foreground flex-1">
+                      /api/{computedName || ':type'}{path}
+                    </code>
+                    <span className="text-xs text-foreground shrink-0">{label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Fields */}

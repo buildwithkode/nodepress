@@ -74,7 +74,11 @@ export class ContentTypeService {
     const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
 
     return this.prisma.contentType.create({
-      data: { name, schema: validatedSchema as any },
+      data: {
+        name,
+        schema: validatedSchema as any,
+        allowedMethods: dto.allowedMethods ?? null,
+      },
     });
   }
 
@@ -125,6 +129,10 @@ export class ContentTypeService {
     if (dto.schema !== undefined) {
       const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
       updateData.schema = validatedSchema as any;
+    }
+
+    if ('allowedMethods' in dto) {
+      updateData.allowedMethods = dto.allowedMethods ?? null;
     }
 
     return this.prisma.contentType.update({

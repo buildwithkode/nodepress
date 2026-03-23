@@ -8,12 +8,13 @@ datasource db {
 }
 
 model ContentType {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  schema    Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  entries   Entry[]
+  id             Int      @id @default(autoincrement())
+  name           String   @unique
+  schema         Json
+  allowedMethods Json?    // null = all enabled. e.g. ["list","read","create","update","delete"]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  entries        Entry[]
 
   @@map("content_types")
 }

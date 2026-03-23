@@ -67,6 +67,9 @@ const FIELD_TYPES: { value: FieldType; label: string }[] = [
 const toSlug = (v: string) =>
   v.trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '');
 
+const toFieldKey = (v: string) =>
+  v.trim().toLowerCase().replace(/[\s-]+/g, '_').replace(/[^a-z0-9_]/g, '');
+
 // ── Builder ──────────────────────────────────────────────────────────────────
 
 export default function FormBuilder({
@@ -84,7 +87,11 @@ export default function FormBuilder({
   const [slug,     setSlug]     = useState(initialSlug);
   const [slugDirty,setSlugDirty]= useState(mode === 'edit');
   const [isActive, setIsActive] = useState(initialActive);
-  const [fields,   setFields]   = useState<FormField[]>(initialFields);
+  const [fields,    setFields]    = useState<FormField[]>(initialFields);
+  // Parallel array: true = user manually typed the key, stop auto-deriving from label
+  const [keyDirty,  setKeyDirty]  = useState<boolean[]>(
+    () => initialFields.map((f) => !!f.name.trim()),
+  );
   const [actions,  setActions]  = useState<ActionDef[]>(initialActions);
   const [submitting, setSubmitting] = useState(false);
 
@@ -95,17 +102,39 @@ export default function FormBuilder({
   };
 
   // ── Field helpers ─────────────────────────────────────────────────────────
-  const addField = () =>
+  const addField = () => {
     setFields([...fields, { name: '', type: 'text', label: '', required: false }]);
+    setKeyDirty([...keyDirty, false]); // new field: auto-derive enabled
+  };
 
-  const removeField = (i: number) =>
+  const removeField = (i: number) => {
     setFields(fields.filter((_, idx) => idx !== i));
+    setKeyDirty(keyDirty.filter((_, idx) => idx !== i));
+  };
 
   const updateField = <K extends keyof FormField>(i: number, key: K, val: FormField[K]) => {
     const next = [...fields];
     next[i] = { ...next[i], [key]: val };
+
+    if (key === 'label' && !keyDirty[i]) {
+      // Auto-derive field key from label as long as user hasn't manually edited it
+      next[i].name = toFieldKey(val as string);
+    }
+
     if (key === 'type' && val !== 'select' && val !== 'radio') delete next[i].options;
     setFields(next);
+  };
+
+  const updateFieldKey = (i: number, val: string) => {
+    // User is manually editing the key — lock it and stop auto-deriving
+    const next = [...fields];
+    next[i] = { ...next[i], name: toFieldKey(val) };
+    setFields(next);
+    if (!keyDirty[i]) {
+      const nextDirty = [...keyDirty];
+      nextDirty[i] = true;
+      setKeyDirty(nextDirty);
+    }
   };
 
   // ── Action helpers ────────────────────────────────────────────────────────
@@ -139,7 +168,7 @@ export default function FormBuilder({
     // Normalise field names
     const normalizedFields = validFields.map((f) => ({
       ...f,
-      name:    f.name.trim().toLowerCase().replace(/[\s-]+/g, '_'),
+      name:    toFieldKey(f.name),
       options: (f.type === 'select' || f.type === 'radio') && f.options
         ? f.options.split(',').map((o) => o.trim()).filter(Boolean)
         : undefined,
@@ -226,15 +255,24 @@ export default function FormBuilder({
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Switch
-                checked={isActive}
-                onCheckedChange={setIsActive}
-                id="is-active"
-              />
-              <Label htmlFor="is-active" className="cursor-pointer">
-                {isActive ? 'Active — accepting submissions' : 'Inactive — submissions blocked'}
-              </Label>
+            <div className="flex items-center justify-between rounded-md border px-4 py-3">
+              <div>
+                <p className="text-sm font-medium">Form Status</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {isActive ? 'Accepting submissions' : 'Submissions are blocked'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className={`text-xs font-medium ${isActive ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                  {isActive ? 'Active' : 'Inactive'}
+                </span>
+                <Switch
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
+                  id="is-active"
+                  className="data-checked:bg-emerald-500"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -260,25 +298,33 @@ export default function FormBuilder({
                     {fi + 1}
                   </span>
 
-                  {/* Label */}
-                  <div className="flex-1 space-y-1">
+                  {/* Label + Field Key */}
+                  <div className="flex-1 space-y-2">
+                    {/* Label */}
                     <Input
-                      placeholder="Label (shown to user)"
+                      placeholder="Label shown to user"
                       value={field.label}
-                      onChange={(e) => {
-                        updateField(fi, 'label', e.target.value);
-                        // Auto-fill name from label if name is empty
-                        if (!field.name.trim()) {
-                          updateField(fi, 'name', e.target.value.trim().toLowerCase().replace(/[\s-]+/g, '_'));
-                        }
-                      }}
+                      onChange={(e) => updateField(fi, 'label', e.target.value)}
                     />
-                    <Input
-                      placeholder="Field key (snake_case)"
-                      value={field.name}
-                      onChange={(e) => updateField(fi, 'name', e.target.value)}
-                      className="font-mono text-xs"
-                    />
+
+                    {/* Field Key */}
+                    <div className="relative">
+                      <Input
+                        placeholder="field_key"
+                        value={field.name}
+                        onChange={(e) => updateFieldKey(fi, e.target.value)}
+                        className="font-mono text-xs pr-14"
+                      />
+                      {field.name && (
+                        <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium border rounded px-1.5 py-0.5 pointer-events-none ${
+                          keyDirty[fi]
+                            ? 'bg-muted text-muted-foreground border-border'
+                            : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                        }`}>
+                          {keyDirty[fi] ? 'custom' : 'auto'}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Type */}

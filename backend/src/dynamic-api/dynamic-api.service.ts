@@ -6,11 +6,13 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { normalizeDataKeys } from '../common/normalize';
 
+type MethodKey = 'list' | 'read' | 'create' | 'update' | 'delete';
+
 @Injectable()
 export class DynamicApiService {
   constructor(private prisma: PrismaService) {}
 
-  private async resolveContentType(typeName: string) {
+  private async resolveContentType(typeName: string, method: MethodKey) {
     // Normalize to snake_case so /api/Title_Name and /api/title_name both work
     const name = typeName.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
@@ -22,11 +24,17 @@ export class DynamicApiService {
       throw new NotFoundException(`Content type "${name}" does not exist`);
     }
 
+    // null = all methods enabled (backward compat); otherwise check the list
+    const allowed = contentType.allowedMethods as string[] | null;
+    if (allowed !== null && !allowed.includes(method)) {
+      throw new NotFoundException(`Content type "${name}" does not exist`);
+    }
+
     return contentType;
   }
 
   async findAll(typeName: string) {
-    const contentType = await this.resolveContentType(typeName);
+    const contentType = await this.resolveContentType(typeName, 'list');
 
     const entries = await this.prisma.entry.findMany({
       where: { contentTypeId: contentType.id },
@@ -38,7 +46,7 @@ export class DynamicApiService {
   }
 
   async findOne(typeName: string, slug: string) {
-    const contentType = await this.resolveContentType(typeName);
+    const contentType = await this.resolveContentType(typeName, 'read');
 
     const entry = await this.prisma.entry.findUnique({
       where: { contentTypeId_slug: { contentTypeId: contentType.id, slug } },
@@ -53,7 +61,7 @@ export class DynamicApiService {
   }
 
   async create(typeName: string, slug: string, data: Record<string, any>) {
-    const contentType = await this.resolveContentType(typeName);
+    const contentType = await this.resolveContentType(typeName, 'create');
 
     const existing = await this.prisma.entry.findUnique({
       where: {
@@ -80,7 +88,7 @@ export class DynamicApiService {
   }
 
   async update(typeName: string, slug: string, data: Record<string, any>) {
-    const contentType = await this.resolveContentType(typeName);
+    const contentType = await this.resolveContentType(typeName, 'update');
 
     const entry = await this.prisma.entry.findUnique({
       where: {
@@ -108,7 +116,7 @@ export class DynamicApiService {
   }
 
   async remove(typeName: string, slug: string) {
-    const contentType = await this.resolveContentType(typeName);
+    const contentType = await this.resolveContentType(typeName, 'delete');
 
     const entry = await this.prisma.entry.findUnique({
       where: {

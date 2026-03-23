@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Trash2, Inbox, ToggleLeft, ToggleRight, Copy, Check, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Inbox, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,6 @@ export default function FormsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch]   = useState('');
   const [page, setPage]       = useState(1);
-  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -71,14 +70,6 @@ export default function FormsPage() {
     } catch {
       toast.error('Failed to update form status');
     }
-  };
-
-  const copySnippet = (slug: string) => {
-    const snippet = `<FormEmbed slug="${slug}" />`;
-    navigator.clipboard.writeText(snippet);
-    setCopiedSlug(slug);
-    toast.success('Embed snippet copied!');
-    setTimeout(() => setCopiedSlug(null), 2000);
   };
 
   const filtered  = forms.filter((f) =>
@@ -164,28 +155,6 @@ export default function FormsPage() {
               </TableCell>
               <TableCell>
                 <div className="flex items-center justify-end gap-1">
-                  {/* Preview / test form */}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title="Preview form"
-                    onClick={() => router.push(`/forms/test?slug=${form.slug}`)}
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                  </Button>
-
-                  {/* Copy embed snippet */}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title="Copy embed snippet"
-                    onClick={() => copySnippet(form.slug)}
-                  >
-                    {copiedSlug === form.slug
-                      ? <Check className="h-3.5 w-3.5 text-green-400" />
-                      : <Copy  className="h-3.5 w-3.5" />}
-                  </Button>
-
                   {/* Submissions */}
                   <Button
                     variant="ghost"

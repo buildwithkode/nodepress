@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface ContentType { id: number; name: string; schema: any[] }
+interface ContentType { id: number; name: string; schema: any[]; allowedMethods: string[] | null }
 interface Entry       { id: number; slug: string; contentTypeId: number; createdAt: string }
 interface MediaFile   { id: number; filename: string; url: string; mimetype: string; createdAt: string }
 interface FormRow     { id: number; name: string; slug: string; isActive: boolean; fields: any[]; _count: { submissions: number } }
@@ -331,12 +331,13 @@ export default function DashboardPage() {
                 {selectedCT && (
                   <div className="rounded-lg border border-border overflow-hidden">
                     {[
-                      { method: 'GET',    path: `/api/${selectedCT.name.replace(/_/g, '-')}`,        auth: false },
-                      { method: 'GET',    path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`, auth: false },
-                      { method: 'POST',   path: `/api/${selectedCT.name.replace(/_/g, '-')}`,        auth: true  },
-                      { method: 'PUT',    path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`, auth: true  },
-                      { method: 'DELETE', path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`, auth: true  },
-                    ].map(({ method, path, auth }) => {
+                      { methodKey: 'list',   method: 'GET',    path: `/api/${selectedCT.name.replace(/_/g, '-')}`,        auth: false },
+                      { methodKey: 'read',   method: 'GET',    path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`, auth: false },
+                      { methodKey: 'create', method: 'POST',   path: `/api/${selectedCT.name.replace(/_/g, '-')}`,        auth: true  },
+                      { methodKey: 'update', method: 'PUT',    path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`, auth: true  },
+                      { methodKey: 'delete', method: 'DELETE', path: `/api/${selectedCT.name.replace(/_/g, '-')}/{slug}`, auth: true  },
+                    ].map(({ methodKey, method, path, auth }) => {
+                      const allowed = selectedCT.allowedMethods === null || selectedCT.allowedMethods.includes(methodKey);
                       const fullUrl = `${origin}${path}`;
                       const copied  = copiedUrl === fullUrl;
                       const colors: Record<string, string> = {
@@ -344,19 +345,25 @@ export default function DashboardPage() {
                         PUT: 'text-amber-400',   DELETE: 'text-red-400',
                       };
                       return (
-                        <div key={method + path} className="flex items-center gap-3 px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted/30 transition-colors group">
-                          <span className={`text-xs font-bold font-mono w-14 shrink-0 ${colors[method]}`}>{method}</span>
+                        <div
+                          key={methodKey}
+                          className={`flex items-center gap-3 px-3 py-2.5 border-b border-border last:border-0 transition-colors group ${allowed ? 'hover:bg-muted/30' : 'opacity-35'}`}
+                        >
+                          <span className={`text-xs font-bold font-mono w-14 shrink-0 ${allowed ? colors[method] : 'text-muted-foreground'}`}>{method}</span>
                           <code className="text-xs font-mono text-foreground flex-1 truncate">{path}</code>
-                          {auth && <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">Auth</span>}
-                          <button
-                            onClick={() => copyUrl(fullUrl)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted shrink-0"
-                            title="Copy URL"
-                          >
-                            {copied
-                              ? <Check className="h-3.5 w-3.5 text-green-400" />
-                              : <Copy  className="h-3.5 w-3.5 text-muted-foreground" />}
-                          </button>
+                          {!allowed && <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">Disabled</span>}
+                          {allowed && auth && <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">Auth</span>}
+                          {allowed && (
+                            <button
+                              onClick={() => copyUrl(fullUrl)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted shrink-0"
+                              title="Copy URL"
+                            >
+                              {copied
+                                ? <Check className="h-3.5 w-3.5 text-green-400" />
+                                : <Copy  className="h-3.5 w-3.5 text-muted-foreground" />}
+                            </button>
+                          )}
                         </div>
                       );
                     })}
