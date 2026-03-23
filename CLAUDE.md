@@ -130,6 +130,24 @@ Multer `diskStorage` saves files to `backend/uploads/`. Allowed types: `image/jp
 
 ---
 
+## Documentation maintenance
+
+The documentation page lives at `frontend/app/(docs)/docs/page.tsx` and is accessible at `/docs`.
+
+**Whenever a product change is made, update the docs page to reflect it.** This includes:
+
+- Adding a new field type → update the Field Types table
+- Adding/changing/removing an API endpoint → update the API Reference section
+- Adding a new feature (duplicate, export/import, drag-and-drop, etc.) → update the relevant section
+- Changing how slugs, names, or keys are normalized → update the relevant explanation
+- Adding a new admin page or nav item → update the Quick Start or relevant section
+- Changing media upload limits or allowed file types → update the Media section
+- Any change to API key permissions or behaviour → update the API Keys section
+
+The docs page also has a **"Your Endpoints"** live section that fetches real content types — no update needed there, it's dynamic.
+
+---
+
 ## Key conventions
 
 - **Content type names** are always stored lowercased and snake_cased. The dynamic API normalizes `typeName.toLowerCase()` so `/api/Blog` resolves to content type `blog`.

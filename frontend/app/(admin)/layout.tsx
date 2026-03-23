@@ -15,6 +15,7 @@ import {
   Image,
   Key,
   ArrowRight,
+  BookOpen,
 } from 'lucide-react';
 
 const navGroups = [
@@ -36,6 +37,12 @@ const navGroups = [
     label: 'Developer',
     items: [
       { href: '/api-keys', label: 'API Keys', icon: Key },
+    ],
+  },
+  {
+    label: 'Help',
+    items: [
+      { href: '/docs', label: 'Documentation', icon: BookOpen },
     ],
   },
 ];
