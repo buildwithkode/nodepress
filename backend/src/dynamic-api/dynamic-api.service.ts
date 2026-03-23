@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { normalizeDataKeys } from '../common/normalize';
+import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 
 type MethodKey = 'list' | 'read' | 'create' | 'update' | 'delete';
 
@@ -39,10 +39,23 @@ export class DynamicApiService {
     const entries = await this.prisma.entry.findMany({
       where: { contentTypeId: contentType.id },
       orderBy: { createdAt: 'desc' },
-      select: { id: true, slug: true, data: true, createdAt: true, updatedAt: true },
+      select: { id: true, publicId: true, slug: true, data: true, createdAt: true, updatedAt: true },
     });
 
-    return entries.map((e) => ({ ...e, data: normalizeDataKeys(e.data as Record<string, any>) }));
+    // Lazy migration: persist random IDs for any entry that still lacks them
+    const results = await Promise.all(
+      entries.map(async (e) => {
+        let data = normalizeDataKeys(e.data as Record<string, any>);
+        if (needsRepeaterIds(data)) {
+          data = injectRepeaterIds(data);
+          await this.prisma.entry.update({ where: { id: e.id }, data: { data: data as any } });
+        }
+        // Expose publicId as "id" — hide internal numeric id
+        const { id: _internal, publicId, ...rest } = e;
+        return { id: publicId, ...rest, data };
+      }),
+    );
+    return results;
   }
 
   async findOne(typeName: string, slug: string) {
@@ -50,14 +63,20 @@ export class DynamicApiService {
 
     const entry = await this.prisma.entry.findUnique({
       where: { contentTypeId_slug: { contentTypeId: contentType.id, slug } },
-      select: { id: true, slug: true, data: true, createdAt: true, updatedAt: true },
+      select: { id: true, publicId: true, slug: true, data: true, createdAt: true, updatedAt: true },
     });
 
     if (!entry) {
       throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}"`);
     }
 
-    return { ...entry, data: normalizeDataKeys(entry.data as Record<string, any>) };
+    let data = normalizeDataKeys(entry.data as Record<string, any>);
+    if (needsRepeaterIds(data)) {
+      data = injectRepeaterIds(data);
+      await this.prisma.entry.update({ where: { id: entry.id }, data: { data: data as any } });
+    }
+    const { id: _internal, publicId, ...rest } = entry;
+    return { id: publicId, ...rest, data };
   }
 
   async create(typeName: string, slug: string, data: Record<string, any>) {
@@ -75,16 +94,12 @@ export class DynamicApiService {
       );
     }
 
-    return this.prisma.entry.create({
-      data: { slug, data: normalizeDataKeys(data) as any, contentTypeId: contentType.id },
-      select: {
-        id: true,
-        slug: true,
-        data: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const created = await this.prisma.entry.create({
+      data: { slug, data: normalizeDataKeys(injectRepeaterIds(data)) as any, contentTypeId: contentType.id },
+      select: { id: true, publicId: true, slug: true, data: true, createdAt: true, updatedAt: true },
     });
+    const { id: _internal, publicId, ...rest } = created;
+    return { id: publicId, ...rest };
   }
 
   async update(typeName: string, slug: string, data: Record<string, any>) {
@@ -102,17 +117,13 @@ export class DynamicApiService {
       );
     }
 
-    return this.prisma.entry.update({
+    const updated = await this.prisma.entry.update({
       where: { id: entry.id },
-      data: { data: normalizeDataKeys(data) as any },
-      select: {
-        id: true,
-        slug: true,
-        data: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      data: { data: normalizeDataKeys(injectRepeaterIds(data)) as any },
+      select: { id: true, publicId: true, slug: true, data: true, createdAt: true, updatedAt: true },
     });
+    const { id: _internal, publicId, ...rest } = updated;
+    return { id: publicId, ...rest };
   }
 
   async remove(typeName: string, slug: string) {

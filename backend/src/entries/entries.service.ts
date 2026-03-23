@@ -9,7 +9,7 @@ import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
 import { DataValidator } from '../fields/data.validator';
 import { FieldDef } from '../fields/field.types';
-import { normalizeDataKeys } from '../common/normalize';
+import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 
 @Injectable()
 export class EntriesService {
@@ -53,7 +53,7 @@ export class EntriesService {
     return this.prisma.entry.create({
       data: {
         slug: dto.slug,
-        data: normalizeDataKeys(dto.data as Record<string, any>),
+        data: normalizeDataKeys(injectRepeaterIds(dto.data as Record<string, any>)),
         contentTypeId: dto.contentTypeId,
       },
       include: { contentType: true },
@@ -61,11 +61,21 @@ export class EntriesService {
   }
 
   async findAll(contentTypeId?: number) {
-    return this.prisma.entry.findMany({
+    const entries = await this.prisma.entry.findMany({
       where: contentTypeId ? { contentTypeId } : undefined,
       orderBy: { createdAt: 'desc' },
       include: { contentType: true },
     });
+    return Promise.all(
+      entries.map(async (e) => {
+        let data = e.data as Record<string, any>;
+        if (needsRepeaterIds(data)) {
+          data = injectRepeaterIds(data);
+          await this.prisma.entry.update({ where: { id: e.id }, data: { data: data as any } });
+        }
+        return { ...e, data };
+      }),
+    );
   }
 
   async findOne(id: number) {
@@ -78,7 +88,12 @@ export class EntriesService {
       throw new NotFoundException(`Entry #${id} not found`);
     }
 
-    return entry;
+    let data = entry.data as Record<string, any>;
+    if (needsRepeaterIds(data)) {
+      data = injectRepeaterIds(data);
+      await this.prisma.entry.update({ where: { id: entry.id }, data: { data: data as any } });
+    }
+    return { ...entry, data };
   }
 
   async update(id: number, dto: UpdateEntryDto) {
@@ -115,7 +130,7 @@ export class EntriesService {
         entry.contentType.schema as unknown as FieldDef[],
         { partial: true },
       );
-      updateData.data = normalizeDataKeys(dto.data as Record<string, any>);
+      updateData.data = normalizeDataKeys(injectRepeaterIds(dto.data as Record<string, any>));
     }
 
     return this.prisma.entry.update({

@@ -21,6 +21,7 @@ model ContentType {
 
 model Entry {
   id            Int         @id @default(autoincrement())
+  publicId      String      @unique @default(uuid())   // public-facing UUID v4 — exposed as "id" in API
   slug          String
   data          Json
   contentType   ContentType @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
