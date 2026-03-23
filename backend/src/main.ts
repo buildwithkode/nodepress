@@ -52,6 +52,7 @@ async function bootstrap() {
     .addTag('Entries', 'Manage content entries')
     .addTag('Dynamic API', 'Auto-generated public API per content type')
     .addTag('Media', 'File upload and management')
+    .addTag('Forms', 'Dynamic form builder — create forms, collect submissions, trigger actions')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

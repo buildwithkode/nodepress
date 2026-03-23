@@ -5,10 +5,11 @@ import { ContentTypeModule } from './content-type/content-type.module';
 import { EntriesModule } from './entries/entries.module';
 import { MediaModule } from './media/media.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
+import { FormsModule } from './forms/forms.module';
 import { DynamicApiModule } from './dynamic-api/dynamic-api.module';
 
 @Module({
   // DynamicApiModule must be last — its wildcard /:type routes must not shadow static routes
-  imports: [PrismaModule, AuthModule, ContentTypeModule, EntriesModule, MediaModule, ApiKeysModule, DynamicApiModule],
+  imports: [PrismaModule, AuthModule, ContentTypeModule, EntriesModule, MediaModule, ApiKeysModule, FormsModule, DynamicApiModule],
 })
 export class AppModule {}

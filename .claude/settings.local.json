@@ -12,7 +12,9 @@
       "Bash(find:*)",
       "Bash(node:*)",
       "Bash(npm list:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(python -m json.tool)"
     ]
   }
 }

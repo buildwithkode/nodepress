@@ -16,6 +16,7 @@ import {
   Key,
   ArrowRight,
   BookOpen,
+  ClipboardList,
 } from 'lucide-react';
 
 const navGroups = [
@@ -25,6 +26,7 @@ const navGroups = [
       { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
       { href: '/content-types', label: 'Content Types', icon: Layers },
       { href: '/entries',       label: 'Entries',       icon: FileText },
+      { href: '/forms',         label: 'Forms',         icon: ClipboardList },
     ],
   },
   {

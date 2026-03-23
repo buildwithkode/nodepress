@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -146,6 +146,17 @@ const FIELD_TYPES = [
   { type: 'flexible', label: 'Flexible',       color: 'bg-indigo-500/10 text-indigo-400',desc: 'A list of blocks where each block can be a different layout.',    example: '[{"_layout":"hero","heading":"Welcome"}]' },
 ];
 
+// ─── Form field types ─────────────────────────────────────────────────────────
+const FORM_FIELD_TYPES = [
+  { type: 'text',     label: 'Text',     color: 'bg-blue-500/10 text-blue-400',     desc: 'Single-line text input. Good for names, subjects, short answers.' },
+  { type: 'email',    label: 'Email',    color: 'bg-cyan-500/10 text-cyan-400',     desc: 'Email address input. Validated server-side — must be a valid address.' },
+  { type: 'textarea', label: 'Textarea', color: 'bg-purple-500/10 text-purple-400', desc: 'Multi-line text. Good for messages, comments, longer answers.' },
+  { type: 'number',   label: 'Number',   color: 'bg-orange-500/10 text-orange-400', desc: 'Numeric value — integer or decimal. Validated to be a number.' },
+  { type: 'select',   label: 'Select',   color: 'bg-yellow-500/10 text-yellow-400', desc: 'Dropdown — pick one from a predefined list. Options set in admin.' },
+  { type: 'radio',    label: 'Radio',    color: 'bg-pink-500/10 text-pink-400',     desc: 'Radio buttons — pick one option. Displayed inline. Options set in admin.' },
+  { type: 'checkbox', label: 'Checkbox', color: 'bg-green-500/10 text-green-400',   desc: 'Yes/No toggle. Good for newsletter consent, terms agreement.' },
+];
+
 // ─── TOC ─────────────────────────────────────────────────────────────────────
 const TOC_ITEMS = [
   { id: 'introduction',   label: 'Introduction' },
@@ -155,6 +166,7 @@ const TOC_ITEMS = [
   { id: 'entries',        label: 'Entries & Slugs' },
   { id: 'media',          label: 'Media Library' },
   { id: 'api-keys',       label: 'API Keys' },
+  { id: 'forms',          label: 'Forms' },
   { id: 'api-reference',  label: 'API Reference' },
   { id: 'code-examples',  label: 'Code Examples' },
 ];
@@ -255,12 +267,13 @@ export default function DocsPage() {
               panel, and then your website or app <strong className="text-foreground">reads</strong> it through
               the API. No coding required for steps 1 and 2.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { icon: Layers, title: 'Content Types', desc: 'Define the structure — like a "Blog Post" with title, content, and thumbnail fields.' },
-                { icon: Database, title: 'Entries', desc: 'Fill in the actual content. Each entry has a unique slug and validates against your schema.' },
-                { icon: ImageIcon, title: 'Media', desc: 'Upload images, PDFs, and videos. Use their URLs inside your entries.' },
-                { icon: Key, title: 'API Keys', desc: 'Generate read or write keys for external apps to access your content securely.' },
+                { icon: Layers,        title: 'Content Types', desc: 'Define the structure — like a "Blog Post" with title, content, and thumbnail fields.' },
+                { icon: Database,      title: 'Entries',       desc: 'Fill in the actual content. Each entry has a unique slug and validates against your schema.' },
+                { icon: ImageIcon,     title: 'Media',         desc: 'Upload images, PDFs, and videos. Use their URLs inside your entries.' },
+                { icon: Key,           title: 'API Keys',      desc: 'Generate read or write keys for external apps to access your content securely.' },
+                { icon: ClipboardList, title: 'Forms',         desc: 'Build contact forms with custom fields. Submissions are stored and can trigger email or webhook actions.' },
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="rounded-xl border border-border p-4">
                   <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center mb-3">
@@ -528,6 +541,252 @@ curl -X POST ${baseUrl}/api/blog \\
   -d '{"slug":"new-post","data":{"title":"Hello"}}'`} />
           </Section>
 
+          {/* ── Forms ─────────────────────────────────────────────────────── */}
+          <Section id="forms" title="Forms" icon={ClipboardList}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              The Forms module lets you build dynamic contact forms from the admin panel and collect
+              submissions from any website, app, or platform — no backend code required.
+              Submissions are stored in the database and can trigger <strong className="text-foreground">email notifications</strong> or{' '}
+              <strong className="text-foreground">webhook calls</strong> automatically.
+            </p>
+
+            {/* How it works */}
+            <div className="rounded-xl border border-border p-5 mb-6 bg-muted/20 space-y-3">
+              <h4 className="font-semibold text-sm">How it works</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {[
+                  ['1. Create a form', 'Go to Forms → New Form. Give it a name, a URL-safe slug, and add your fields.'],
+                  ['2. Configure actions', 'Optionally add an Email action (sends a notification on each submission) or a Webhook action (POSTs data to any URL).'],
+                  ['3. Embed or call the API', 'Drop <FormEmbed slug="your-slug" /> anywhere in your React app, or call the public submit API from any platform.'],
+                  ['4. View submissions', 'Every submission is stored. Open Forms → click the submission count → expand any row to see full details.'],
+                ].map(([step, desc]) => (
+                  <div key={step} className="flex gap-3">
+                    <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
+                    <span>{desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Form field types */}
+            <h3 className="font-semibold mb-3">Form Field Types</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              All fields are validated server-side on submission. Required fields return a clear error message if missing.
+            </p>
+            <div className="rounded-xl border border-border overflow-hidden mb-8">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Type</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {FORM_FIELD_TYPES.map(({ type, label, color, desc }) => (
+                    <tr key={type}>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={cn('inline-flex px-2 py-0.5 rounded text-xs font-medium', color)}>{label}</span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs leading-relaxed">{desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Actions */}
+            <h3 className="font-semibold mb-3">Actions</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-sm font-semibold mb-1 text-blue-400">Email Action</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Sends an email on every submission. Set the recipient address and subject.
+                  Use <IC>{'{{field_name}}'}</IC> in the subject to insert submitted values.
+                  Optionally set a Reply-To field (e.g. the user's email field) so you can reply directly.
+                </p>
+              </div>
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-sm font-semibold mb-1 text-purple-400">Webhook Action</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  POSTs the submission data as JSON to any URL — Slack, Zapier, Make, your own server.
+                  Body format: <IC>{'{ "data": { ...fields } }'}</IC>. Supports POST or PUT method.
+                </p>
+              </div>
+            </div>
+
+            {/* Submit API */}
+            <h3 className="font-semibold mb-3">Submit a form (public API)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              No authentication required. The slug is the one you set when creating the form.
+            </p>
+            <CodeBlock code={`POST /api/submit/{slug}
+Content-Type: application/json
+
+{
+  "data": {
+    "full_name": "Jane Doe",
+    "email": "jane@example.com",
+    "message": "Hello!"
+  }
+}
+
+// Success response
+{
+  "success": true,
+  "submissionId": 42,
+  "message": "Your submission has been received."
+}
+
+// Validation error response (400)
+{
+  "message": "Validation failed",
+  "errors": ["Email Address is required", "Message is required"]
+}`} />
+
+            {/* Embed component */}
+            <h3 className="font-semibold mb-3 mt-6">React embed component</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Drop <IC>{'<FormEmbed>'}</IC> anywhere in your Next.js app. It fetches the form schema,
+              renders all fields dynamically, validates, and submits — zero configuration needed.
+            </p>
+            <CodeBlock code={`import { FormEmbed } from '@/components/FormEmbed';
+
+// Basic usage
+<FormEmbed slug="contact-us" />
+
+// With options
+<FormEmbed
+  slug="contact-us"
+  submitLabel="Send Message"
+  successMessage="Thanks! We'll get back to you within 24 hours."
+  onSuccess={(submissionId) => console.log('Saved as #' + submissionId)}
+/>
+
+// Multiple forms on one page — each is fully independent
+<FormEmbed slug="contact-us"  className="mb-12" />
+<FormEmbed slug="newsletter"  submitLabel="Subscribe" />
+<FormEmbed slug="test-form"   />`} />
+
+            {/* Multi-platform */}
+            <h3 className="font-semibold mb-3 mt-6">Submit from any platform</h3>
+            <CodeTabs codes={{
+              cURL: `curl -X POST ${baseUrl}/api/submit/contact-us \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "data": {
+      "full_name": "Jane Doe",
+      "email": "jane@example.com",
+      "subject": "Support",
+      "message": "Hello, I need help."
+    }
+  }'`,
+              JavaScript: `const res = await fetch('${baseUrl}/api/submit/contact-us', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    data: {
+      full_name: 'Jane Doe',
+      email: 'jane@example.com',
+      subject: 'Support',
+      message: 'Hello, I need help.',
+    },
+  }),
+});
+
+const result = await res.json();
+
+if (!res.ok) {
+  // result.errors = ['Field is required', ...]
+  console.error(result.errors);
+} else {
+  console.log('Submitted! ID:', result.submissionId);
+}`,
+              React: `import { useState } from 'react';
+// Or just use: import { FormEmbed } from '@/components/FormEmbed';
+
+export default function ContactForm() {
+  const [status, setStatus] = useState('idle');
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setStatus('loading');
+    const form = new FormData(e.target);
+
+    const res = await fetch('${baseUrl}/api/submit/contact-us', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: Object.fromEntries(form) }),
+    });
+
+    setStatus(res.ok ? 'done' : 'error');
+  }
+
+  if (status === 'done') return <p>Thank you!</p>;
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="full_name" placeholder="Name"    required />
+      <input name="email"     type="email"           required />
+      <textarea name="message"                       required />
+      <button type="submit" disabled={status === 'loading'}>
+        {status === 'loading' ? 'Sending…' : 'Send'}
+      </button>
+    </form>
+  );
+}`,
+              Python: `import requests
+
+response = requests.post(
+    '${baseUrl}/api/submit/contact-us',
+    json={
+        'data': {
+            'full_name': 'Jane Doe',
+            'email': 'jane@example.com',
+            'message': 'Hello from Python!',
+        }
+    }
+)
+
+result = response.json()
+if response.ok:
+    print('Submitted! ID:', result['submissionId'])
+else:
+    print('Errors:', result.get('errors'))`,
+              PHP: `<?php
+$payload = json_encode([
+    'data' => [
+        'full_name' => 'Jane Doe',
+        'email'     => 'jane@example.com',
+        'message'   => 'Hello from PHP!',
+    ]
+]);
+
+$ctx = stream_context_create([
+    'http' => [
+        'method'  => 'POST',
+        'header'  => 'Content-Type: application/json',
+        'content' => $payload,
+    ]
+]);
+
+$result = json_decode(
+    file_get_contents('${baseUrl}/api/submit/contact-us', false, $ctx),
+    true
+);
+echo $result['submissionId'];`,
+            }} />
+
+            {/* Slug tip */}
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mt-6 text-sm">
+              <strong className="text-amber-400">Slug normalization</strong>
+              <p className="text-muted-foreground mt-1">
+                Form slugs are lowercased and hyphen-separated — "Contact Us" becomes <IC>contact-us</IC>.
+                The submit endpoint is always <IC>POST /api/submit/{'{slug}'}</IC>.
+                The public schema endpoint is <IC>GET /api/forms/schema/{'{slug}'}</IC> — returns name and fields only (never actions).
+              </p>
+            </div>
+          </Section>
+
           {/* ── API Reference ─────────────────────────────────────────────── */}
           <Section id="api-reference" title="API Reference" icon={Code2}>
 
@@ -560,14 +819,27 @@ X-API-Key: np_abc123...`} />
 
             <h3 className="font-semibold mb-3">Admin API (require JWT)</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/content-types"     desc="List all content types" />
-              <Endpoint method="POST"   path="/api/content-types"     desc="Create a content type" auth />
-              <Endpoint method="PUT"    path="/api/content-types/:id" desc="Update a content type" auth />
-              <Endpoint method="DELETE" path="/api/content-types/:id" desc="Delete a content type + all its entries" auth />
-              <Endpoint method="GET"    path="/api/entries"           desc="List all entries (filter by ?contentTypeId=)" />
-              <Endpoint method="POST"   path="/api/media/upload"      desc="Upload a file" auth />
-              <Endpoint method="GET"    path="/api/media"             desc="List all media files" />
-              <Endpoint method="POST"   path="/api/auth/login"        desc="Login and get a JWT token" />
+              <Endpoint method="GET"    path="/api/content-types"              desc="List all content types" />
+              <Endpoint method="POST"   path="/api/content-types"              desc="Create a content type" auth />
+              <Endpoint method="PUT"    path="/api/content-types/:id"          desc="Update a content type" auth />
+              <Endpoint method="DELETE" path="/api/content-types/:id"          desc="Delete a content type + all its entries" auth />
+              <Endpoint method="GET"    path="/api/entries"                    desc="List all entries (filter by ?contentTypeId=)" />
+              <Endpoint method="POST"   path="/api/media/upload"               desc="Upload a file" auth />
+              <Endpoint method="GET"    path="/api/media"                      desc="List all media files" />
+              <Endpoint method="POST"   path="/api/auth/login"                 desc="Login and get a JWT token" />
+            </div>
+
+            <h3 className="font-semibold mb-3">Forms API</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/forms/schema/:slug"         desc="Get form fields by slug (public — no auth)" />
+              <Endpoint method="POST"   path="/api/submit/:slug"               desc="Submit a form (public — no auth)" />
+              <Endpoint method="GET"    path="/api/forms"                      desc="List all forms with submission counts" auth />
+              <Endpoint method="POST"   path="/api/forms"                      desc="Create a form" auth />
+              <Endpoint method="GET"    path="/api/forms/:id"                  desc="Get a single form" auth />
+              <Endpoint method="PUT"    path="/api/forms/:id"                  desc="Update a form" auth />
+              <Endpoint method="DELETE" path="/api/forms/:id"                  desc="Delete a form and all its submissions" auth />
+              <Endpoint method="GET"    path="/api/forms/:id/submissions"      desc="List all submissions for a form" auth />
+              <Endpoint method="GET"    path="/api/forms/submissions/recent"   desc="Last 6 submissions across all forms (dashboard)" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Response format</h3>

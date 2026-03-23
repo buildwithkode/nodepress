@@ -52,3 +52,30 @@ model ApiKey {
 
   @@map("api_keys")
 }
+
+// ─── Forms Module ────────────────────────────────────────────────────────────
+
+model Form {
+  id          Int              @id @default(autoincrement())
+  name        String
+  slug        String           @unique  // used in public submit endpoint: POST /api/submit/:slug
+  fields      Json             // FieldDef[]  — see forms/types/form-field.types.ts
+  actions     Json             @default("[]") // ActionDef[] — email | webhook
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  submissions FormSubmission[]
+
+  @@map("forms")
+}
+
+model FormSubmission {
+  id        Int      @id @default(autoincrement())
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId    Int
+  data      Json     // validated key→value pairs
+  ip        String?  // submitter IP (optional, for spam detection)
+  createdAt DateTime @default(now())
+
+  @@map("form_submissions")
+}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Only these paths require authentication
-const ADMIN_PATHS = ['/', '/content-types', '/entries', '/media', '/api-keys'];
+const ADMIN_PATHS = ['/', '/content-types', '/entries', '/media', '/api-keys', '/forms'];
 
 function isAdminPath(pathname: string): boolean {
   return ADMIN_PATHS.some(
