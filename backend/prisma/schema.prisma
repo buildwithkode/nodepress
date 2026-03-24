@@ -41,6 +41,7 @@ model Entry {
   @@index([deletedAt])
   @@index([publishAt])
   @@index([createdAt])
+  @@index([contentTypeId, status, deletedAt])   // public API: WHERE contentTypeId=? AND status='published' AND deletedAt IS NULL
   @@map("entries")
 }
 

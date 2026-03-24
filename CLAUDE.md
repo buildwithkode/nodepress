@@ -38,8 +38,9 @@ npx tsc --noEmit       # Type-check without building
 
 ### Environment files
 
-- `backend/.env` — `DATABASE_URL`, `PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `APP_URL`
-- `frontend/.env.local` — `BACKEND_URL=http://localhost:3000` (used only in server components)
+- `backend/.env` — `DATABASE_URL`, `DIRECT_URL`, `PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `APP_URL`, `SITE_URL`, `LOG_LEVEL`, `STORAGE_DRIVER`, `REDIS_URL` (optional), `METRICS_TOKEN` (optional), `SENTRY_DSN` (optional), `SMTP_*` (optional)
+- `frontend/.env.local` — `BACKEND_URL=http://localhost:3000` (used only in server components), `NEXT_PUBLIC_SENTRY_DSN` (optional)
+- See `backend/.env.example` and `frontend/.env.local.example` for full documentation of all variables.
 
 ---
 
@@ -49,15 +50,26 @@ npx tsc --noEmit       # Type-check without building
 
 ```
 src/
-  main.ts                  # Entry point — dotenv loaded HERE before any imports
+  main.ts                  # Entry point — dotenv loaded HERE, then instrument.ts (Sentry), then bootstrap
+  instrument.ts            # Sentry init — imported first in main.ts before all other imports
   app.module.ts            # Root module — DynamicApiModule imported LAST (wildcard routing)
   prisma/                  # PrismaService (OnModuleInit/OnModuleDestroy)
-  auth/                    # JWT auth: register, login, /me, setup-status
+  auth/                    # JWT auth: register, login, /me, setup-status, password reset
   content-type/            # CRUD for content type schemas
-  entries/                 # CRUD for content entries (by contentTypeId)
-  media/                   # File upload (Multer/diskStorage) + list + delete
-  dynamic-api/             # Wildcard /:type and /:type/:slug routes (public GET, guarded write)
-  api-keys/                # API key CRUD + ApiKeyGuard + JwtOrApiKeyGuard
+  entries/                 # CRUD for content entries (by contentTypeId) + versions + soft delete
+  media/                   # File upload (Multer/diskStorage or S3) + Sharp optimization + list + delete
+  dynamic-api/             # Wildcard /:type and /:type/:slug routes (public GET, guarded write) + cache
+  api-keys/                # API key CRUD + ApiKeyGuard + JwtOrApiKeyGuard + ApiKeyRateLimitInterceptor
+  cache/                   # AppCacheService — TTL cache (in-memory Map + optional Redis via ioredis)
+  metrics/                 # Prometheus metrics — MetricsService (prom-client) + GET /api/metrics
+  common/                  # SentryExceptionFilter, normalize, sanitize helpers
+  forms/                   # Form builder + submissions + email/webhook actions
+  webhooks/                # Webhook CRUD + delivery queue + retry with exponential backoff
+  audit/                   # AuditLog write + list (resource, action, userId, ip)
+  users/                   # User CRUD (admin only)
+  health/                  # GET /api/health — DB connectivity check
+  seo/                     # GET /api/sitemap.xml + GET /api/robots.txt
+  scheduler/               # Cron job — auto-publishes entries when publishAt passes
 ```
 
 **Critical ordering**: `DynamicApiModule` must be the **last import** in `app.module.ts`. Its `@Controller()` with no prefix uses wildcard params (`/:type`, `/:type/:slug`) that would shadow all static routes (`/entries`, `/media`, etc.) if registered first.
@@ -80,6 +92,7 @@ Content type names are normalized via `normalizeName()` (lowercase + underscores
 - **API Keys** via `X-API-Key` header. Two guards:
   - `ApiKeyGuard` — API key only (used on `api-keys` management routes? No — those use JWT)
   - `JwtOrApiKeyGuard` — accepts either JWT or a write/all API key. Used on dynamic-api write routes.
+- **Per-key rate limiting** via `ApiKeyRateLimitInterceptor` (global): read=120 req/min, write=60 req/min, all=120 req/min. Returns `X-RateLimit-Limit/Remaining/Reset` headers. JWT requests are exempt.
 - **Setup flow**: `POST /api/auth/register` only works when zero users exist. After setup, it returns 409. Frontend `/setup` page checks `GET /api/auth/setup-status` on load.
 - Login page redirects to `/setup` if `{ required: true }`.
 

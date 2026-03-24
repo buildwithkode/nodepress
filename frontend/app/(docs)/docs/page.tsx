@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -172,6 +172,7 @@ const TOC_ITEMS = [
   { id: 'webhooks',       label: 'Webhooks' },
   { id: 'seo',            label: 'SEO & Sitemap' },
   { id: 'self-hosting',   label: 'Self-Hosting' },
+  { id: 'observability',  label: 'Observability' },
   { id: 'api-reference',  label: 'API Reference' },
   { id: 'code-examples',  label: 'Code Examples' },
 ];
@@ -594,7 +595,7 @@ npm run dev               # Admin panel on http://localhost:5173`} />
             </div>
 
             <h3 className="font-semibold mb-3">Other actions</h3>
-            <div className="space-y-2">
+            <div className="space-y-2 mb-6">
               {[
                 ['Edit',       'Update any field value. The slug is locked after creation.'],
                 ['Duplicate',  'Creates a copy with slug "-copy" appended.'],
@@ -605,6 +606,13 @@ npm run dev               # Admin panel on http://localhost:5173`} />
                 </div>
               ))}
             </div>
+
+            <h3 className="font-semibold mb-3">Autosave</h3>
+            <p className="text-muted-foreground text-sm">
+              The entry editor automatically saves your changes 3 seconds after you stop typing.
+              A <strong className="text-foreground">Saving…</strong> / <strong className="text-foreground">Saved</strong> indicator
+              appears in the card header. Autosave performs a silent PUT in the background — no page navigation or notification.
+            </p>
           </Section>
 
           {/* ── Media ─────────────────────────────────────────────────────── */}
@@ -675,6 +683,36 @@ curl -X POST ${baseUrl}/api/blog \\
   -H "X-API-Key: np_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"slug":"new-post","data":{"title":"Hello"}}'`} />
+
+            <h3 className="font-semibold mb-3 mt-6">Per-key rate limiting</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Every API key request is tracked with a fixed 60-second window. Limits by access level:
+            </p>
+            <div className="space-y-2 mb-4">
+              {[
+                ['read', '120 req / min'],
+                ['write', '60 req / min'],
+                ['all', '120 req / min'],
+              ].map(([access, limit]) => (
+                <div key={access} className="flex gap-3 text-sm">
+                  <IC>{access}</IC>
+                  <span className="text-muted-foreground">{limit}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-muted-foreground text-sm mb-2">
+              Every API-key response includes these headers:
+            </p>
+            <CodeBlock code={`X-RateLimit-Limit: 120       # max requests in this window
+X-RateLimit-Remaining: 119  # requests left
+X-RateLimit-Reset: 60       # seconds until window resets
+
+# When exceeded — HTTP 429:
+{ "statusCode": 429, "message": "API key rate limit exceeded. Try again in 60 seconds." }`} />
+            <p className="text-muted-foreground text-sm mt-3">
+              JWT-authenticated admin requests are <strong className="text-foreground">not</strong> subject to per-key limits —
+              only <IC>X-API-Key</IC> requests count. The global IP-based throttle (120 req/min) still applies to all traffic.
+            </p>
           </Section>
 
           {/* ── Forms ─────────────────────────────────────────────────────── */}
@@ -1089,6 +1127,32 @@ Sitemap: https://your-site.com/api/sitemap.xml`} />
                     ['SMTP_USER',            'SMTP username'],
                     ['SMTP_PASS',            'SMTP password'],
                     ['SMTP_FROM',            'From address for outgoing emails'],
+                    ['REDIS_URL',            'Redis connection URL (optional). Enables shared cache across instances.'],
+                    ['METRICS_TOKEN',        'Bearer token to protect GET /api/metrics (optional but recommended in production)'],
+                    ['SENTRY_DSN',           'Sentry DSN for backend error tracking (optional)'],
+                  ].map(([key, desc]) => (
+                    <tr key={key}>
+                      <td className="px-4 py-2.5"><IC>{key}</IC></td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-3 mt-6">Environment variables (frontend/.env.local)</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Variable</th>
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border text-xs">
+                  {[
+                    ['BACKEND_URL',              'Backend URL used by Next.js server components (e.g. http://backend:3000 in Docker, http://localhost:3000 locally)'],
+                    ['NEXT_PUBLIC_SENTRY_DSN',   'Sentry DSN for frontend error tracking — enables Session Replay and client-side error capture (optional)'],
                   ].map(([key, desc]) => (
                     <tr key={key}>
                       <td className="px-4 py-2.5"><IC>{key}</IC></td>
@@ -1119,6 +1183,93 @@ STORAGE_S3_PUBLIC_URL=https://assets.yourdomain.com`} />
               and saved at JPEG quality 85. A <IC>.webp</IC> sibling is generated at quality 82 and
               stored alongside the original. Both URLs are returned in the media API response.
             </p>
+          </Section>
+
+          {/* ── Observability ─────────────────────────────────────────────── */}
+          <Section id="observability" title="Observability" icon={Activity}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              NodePress exposes a Prometheus-compatible metrics endpoint and ships with a
+              pre-configured Grafana dashboard in the production Docker Compose stack.
+            </p>
+
+            <h3 className="font-semibold mb-3">Metrics endpoint</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              <IC>GET /api/metrics</IC> returns all metrics in Prometheus text format.
+              No auth required by default; set <IC>METRICS_TOKEN</IC> in your env to protect it.
+              In production the endpoint is only reachable from the internal Docker network
+              (Prometheus scrapes it directly — nginx blocks external access).
+            </p>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Metric</th>
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Type</th>
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border text-xs">
+                  {[
+                    ['http_requests_total',               'Counter',   'Total HTTP requests, labelled by method, path, status'],
+                    ['http_request_duration_seconds',      'Histogram', 'Request duration (p50/p95/p99 derivable), labelled by method, path, status'],
+                    ['nodepress_nodejs_heap_size_used_bytes', 'Gauge',  'Node.js heap memory in use'],
+                    ['nodepress_nodejs_eventloop_lag_seconds', 'Gauge', 'Event loop lag — high values indicate CPU saturation'],
+                    ['nodepress_nodejs_gc_duration_seconds', 'Histogram', 'Garbage collector pause durations by kind'],
+                    ['nodepress_process_cpu_seconds_total', 'Counter',  'CPU time consumed by the Node.js process'],
+                  ].map(([name, type, desc]) => (
+                    <tr key={name}>
+                      <td className="px-4 py-2.5"><IC>{name}</IC></td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{type}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-3">Starting the monitoring stack</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Prometheus and Grafana are included in <IC>docker-compose.prod.yml</IC>.
+              They start automatically with the rest of the stack.
+            </p>
+            <CodeBlock code={`# Start everything (including Prometheus + Grafana)
+docker-compose -f docker-compose.prod.yml up -d
+
+# Grafana UI  → http://localhost/grafana  (default: admin / changeme)
+# Prometheus  → internal only (port 9090 not exposed externally)
+
+# Set credentials via env:
+# GRAFANA_USER=admin
+# GRAFANA_PASSWORD=your_secure_password`} />
+
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mt-4 text-sm">
+              <strong className="text-blue-400">Pre-built dashboard</strong>
+              <p className="text-muted-foreground mt-1">
+                The <strong className="text-foreground">NodePress Overview</strong> dashboard is auto-provisioned in Grafana.
+                It shows request rate, error rate, P99 latency, heap usage, and event-loop lag — all updating every 30 s.
+              </p>
+            </div>
+
+            <h3 className="font-semibold mb-3 mt-6">Structured logging</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Every HTTP request is logged as structured JSON (via <IC>nestjs-pino</IC>).
+              Logs include <IC>method</IC>, <IC>url</IC>, <IC>statusCode</IC>, <IC>responseTime</IC>,
+              and a unique <IC>x-request-id</IC> header for request correlation.
+              In development, logs are pretty-printed with colours. In production they are
+              pure JSON — pipe to Loki, Datadog, CloudWatch, or any log aggregator.
+            </p>
+            <CodeBlock code={`# Production log line (JSON)
+{
+  "level": 30,
+  "time": 1711280000000,
+  "req": { "id": "mn4mq447-5y1q2l", "method": "GET", "url": "/api/blog" },
+  "res": { "statusCode": 200 },
+  "responseTime": 12,
+  "msg": "request completed"
+}
+
+# Set log level via env:
+LOG_LEVEL=info   # trace | debug | info | warn | error | fatal`} />
           </Section>
 
           {/* ── API Reference ─────────────────────────────────────────────── */}
@@ -1161,11 +1312,11 @@ X-API-Key: np_abc123...`} />
               Replace <IC>{'{type}'}</IC> with your content type name (e.g. <IC>blog</IC>, <IC>product</IC>).
             </p>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/{type}"        desc="List all entries for this content type" />
-              <Endpoint method="GET"    path="/api/{type}/{slug}" desc="Get a single entry by its slug" />
+              <Endpoint method="GET"    path="/api/{type}"        desc="List entries — ?page, ?limit (default 20, max 100), ?sort=createdAt:desc, ?search=term, ?filter[field]=value. Cached 30 s." />
+              <Endpoint method="GET"    path="/api/{type}/{slug}" desc="Get a single entry by its slug. Cached 60 s." />
               <Endpoint method="POST"   path="/api/{type}"        desc="Create a new entry" auth />
               <Endpoint method="PUT"    path="/api/{type}/{slug}" desc="Update an existing entry" auth />
-              <Endpoint method="DELETE" path="/api/{type}/{slug}" desc="Delete an entry" auth />
+              <Endpoint method="DELETE" path="/api/{type}/{slug}" desc="Delete an entry (soft delete)" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Auth</h3>
@@ -1225,54 +1376,77 @@ X-API-Key: np_abc123...`} />
               <Endpoint method="DELETE" path="/api/api-keys/:id"               desc="Delete an API key" auth />
             </div>
 
+            <h3 className="font-semibold mb-3">Users</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/users"                      desc="List all users — admin only" auth />
+              <Endpoint method="POST"   path="/api/users"                      desc="Create a new user — admin only" auth />
+              <Endpoint method="PUT"    path="/api/users/:id/role"             desc="Change a user's role — admin only" auth />
+              <Endpoint method="DELETE" path="/api/users/:id"                  desc="Delete a user — cannot delete self or last admin" auth />
+              <Endpoint method="PUT"    path="/api/users/me/password"          desc="Change your own password (requires current password)" auth />
+            </div>
+
             <h3 className="font-semibold mb-3">Audit Log</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/audit-log"                  desc="List audit events — ?resource, ?page, ?limit (admin only)" auth />
             </div>
 
-            <h3 className="font-semibold mb-3">SEO & Health</h3>
+            <h3 className="font-semibold mb-3">SEO, Health & Observability</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/health"                     desc="Database health check — no auth required" />
               <Endpoint method="GET"    path="/api/sitemap.xml"                desc="Auto-generated sitemap of all published entries" />
               <Endpoint method="GET"    path="/api/robots.txt"                 desc="robots.txt with configurable disallow rules" />
+              <Endpoint method="GET"    path="/api/metrics"                    desc="Prometheus metrics (text/plain). Protected by METRICS_TOKEN if set." />
             </div>
 
             <h3 className="font-semibold mb-3">Forms API</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="POST"   path="/api/submit/:slug"               desc="Submit a form (public — no auth)" />
-              <Endpoint method="GET"    path="/api/forms"                      desc="List all forms with submission counts" auth />
+              <Endpoint method="GET"    path="/api/forms"                      desc="List all forms with submission counts — ?page, ?limit" auth />
               <Endpoint method="POST"   path="/api/forms"                      desc="Create a form" auth />
               <Endpoint method="GET"    path="/api/forms/:id"                  desc="Get a single form" auth />
               <Endpoint method="PUT"    path="/api/forms/:id"                  desc="Update a form" auth />
               <Endpoint method="DELETE" path="/api/forms/:id"                  desc="Delete a form and all its submissions" auth />
-              <Endpoint method="GET"    path="/api/forms/:id/submissions"      desc="List all submissions for a form" auth />
+              <Endpoint method="GET"    path="/api/forms/:id/submissions"      desc="List all submissions for a form — ?page, ?limit" auth />
               <Endpoint method="GET"    path="/api/forms/submissions/recent"   desc="Last 6 submissions across all forms (dashboard)" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Response format</h3>
-            <CodeBlock code={`// GET /api/blog — returns an array
-[
-  {
-    "id": 1,
-    "slug": "my-first-post",
-    "data": {
-      "title": "My First Post",
-      "content": "<p>Hello world</p>",
-      "thumbnail": "/uploads/photo.jpg"
-    },
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "updatedAt": "2024-01-15T10:30:00.000Z"
-  }
-]
-
-// GET /api/blog/my-first-post — returns a single object
+            <CodeBlock code={`// GET /api/blog — paginated list
 {
-  "id": 1,
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "slug": "my-first-post",
+      "data": {
+        "title": "My First Post",
+        "content": "<p>Hello world</p>",
+        "thumbnail": "/uploads/photo.jpg"
+      },
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "updatedAt": "2024-01-15T10:30:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 42,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 3
+  }
+}
+
+// GET /api/blog/my-first-post — single entry
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
   "slug": "my-first-post",
   "data": { ... },
   "createdAt": "...",
   "updatedAt": "..."
-}`} />
+}
+
+// Query params for list endpoint:
+// ?page=2&limit=10&sort=createdAt:desc
+// ?search=hello           (full-text search on slug + all fields)
+// ?filter[category]=tech  (exact field match)`} />
 
             <h3 className="font-semibold mb-3 mt-6">Error responses</h3>
             <div className="rounded-xl border border-border overflow-hidden">

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './prisma/prisma.module';
@@ -16,6 +16,10 @@ import { AuditModule } from './audit/audit.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { SeoModule } from './seo/seo.module';
+import { AppCacheModule } from './cache/cache.module';
+import { MetricsModule } from './metrics/metrics.module';
+import { HttpMetricsInterceptor } from './metrics/http-metrics.interceptor';
+import { ApiKeyRateLimitInterceptor } from './api-keys/api-key-rate-limit.interceptor';
 
 @Module({
   imports: [
@@ -59,6 +63,8 @@ import { SeoModule } from './seo/seo.module';
       },
     ]),
 
+    AppCacheModule,     // Global — AppCacheService available everywhere without re-importing
+    MetricsModule,      // Global — Prometheus metrics + GET /api/metrics endpoint
     PrismaModule,
     AuthModule,
     AuditModule,        // Global — AuditService available everywhere without re-importing
@@ -80,6 +86,14 @@ import { SeoModule } from './seo/seo.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpMetricsInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiKeyRateLimitInterceptor,
     },
   ],
 })

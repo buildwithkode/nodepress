@@ -1,0 +1,64 @@
+{
+  "title": "NodePress Overview",
+  "uid": "nodepress-overview",
+  "schemaVersion": 38,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Request Rate (req/s)",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "sum(rate(http_requests_total[1m]))", "legendFormat": "req/s", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "unit": "reqps", "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":50},{"color":"red","value":200}] } } }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Error Rate (5xx %)",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "100 * sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))", "legendFormat": "%", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":1},{"color":"red","value":5}] } } }
+    },
+    {
+      "id": 3, "type": "stat", "title": "P99 Latency",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p99", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":1},{"color":"red","value":3}] } } }
+    },
+    {
+      "id": 4, "type": "stat", "title": "Memory Used",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "nodepress_nodejs_heap_size_used_bytes", "legendFormat": "heap", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "unit": "bytes", "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":300000000},{"color":"red","value":450000000}] } } }
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "HTTP Request Rate by Path",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [{ "expr": "sum by(path) (rate(http_requests_total[1m]))", "legendFormat": "{{path}}", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "unit": "reqps" } }
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Response Time Percentiles",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p50", "datasource": "Prometheus" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95", "datasource": "Prometheus" },
+        { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p99", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Node.js Heap Usage",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "nodepress_nodejs_heap_size_used_bytes", "legendFormat": "used", "datasource": "Prometheus" },
+        { "expr": "nodepress_nodejs_heap_size_total_bytes", "legendFormat": "total", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Event Loop Lag",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "targets": [{ "expr": "nodepress_nodejs_eventloop_lag_seconds", "legendFormat": "lag", "datasource": "Prometheus" }],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    }
+  ]
+}

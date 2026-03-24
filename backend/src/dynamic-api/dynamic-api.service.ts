@@ -4,6 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AppCacheService } from '../cache/app-cache.service';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 import { sanitizeEntryData } from '../common/sanitize';
 import { FieldDef } from '../fields/field.types';
@@ -38,6 +39,13 @@ const SORTABLE: Record<string, SortableField> = {
   slug: 'slug',
 };
 
+/** Cache TTL: 30 s for lists, 60 s for single entries */
+const LIST_TTL  = 30_000;
+const ENTRY_TTL = 60_000;
+
+/** Prefix used for cache invalidation — flushes ALL variants for a content type */
+const cachePrefix = (typeName: string) => `dyn:${typeName}:`;
+
 /** Parse "field:direction" → Prisma orderBy object */
 function parseSortParam(sort?: string): Record<string, SortDirection> {
   if (!sort) return { createdAt: 'desc' };
@@ -49,8 +57,6 @@ function parseSortParam(sort?: string): Record<string, SortDirection> {
 
 /** Build Prisma JSON-path where clauses from filter object */
 function buildDataFilters(filter: Record<string, string>) {
-  // Each filter becomes a path match on the JSON data column.
-  // Uses Prisma's AND array so all filters must match (AND semantics).
   return Object.entries(filter).map(([key, value]) => ({
     data: {
       path: [key],
@@ -61,7 +67,10 @@ function buildDataFilters(filter: Record<string, string>) {
 
 @Injectable()
 export class DynamicApiService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cache: AppCacheService,
+  ) {}
 
   private async resolveContentType(typeName: string, method: MethodKey) {
     const name = typeName.trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -85,13 +94,23 @@ export class DynamicApiService {
     return { id: publicId, ...rest, data };
   }
 
+  /** Flush all cached results for a content type (called on any mutation) */
+  private async invalidate(typeName: string) {
+    await this.cache.invalidatePrefix(cachePrefix(typeName));
+  }
+
   async findAll(typeName: string, query: PublicListQuery = {}): Promise<PaginatedResult<any>> {
     const contentType = await this.resolveContentType(typeName, 'list');
 
-    const page = Math.max(1, query.page ?? 1);
+    const page  = Math.max(1, query.page ?? 1);
     const limit = Math.min(100, Math.max(1, query.limit ?? 20));
-    const skip = (page - 1) * limit;
+    const skip  = (page - 1) * limit;
     const orderBy = parseSortParam(query.sort);
+
+    // ── Cache lookup ───────────────────────────────────────────────────────────
+    const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter })}`;
+    const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
+    if (cached) return cached;
 
     // Build where: only published + non-deleted entries visible publicly
     const dataFilters = query.filter ? buildDataFilters(query.filter) : [];
@@ -102,17 +121,32 @@ export class DynamicApiService {
       ...(dataFilters.length > 0 ? { AND: dataFilters } : {}),
     };
 
-    // Full-text search across slug + JSON data
+    // Full-text search — uses the entries_fts_idx GIN index (added in Phase 1 migration).
+    // websearch_to_tsquery understands quoted phrases and AND/OR operators.
+    // Falls back to LIKE for single characters that tsquery rejects.
     if (query.search && query.search.trim()) {
-      const term = `%${query.search.trim()}%`;
-      const matches = await this.prisma.$queryRaw<{ id: number }[]>`
-        SELECT id FROM entries
-        WHERE "contentTypeId" = ${contentType.id}
-          AND status = 'published'
-          AND "deletedAt" IS NULL
-          AND (LOWER(slug) LIKE LOWER(${term}) OR LOWER(data::text) LIKE LOWER(${term}))
-      `;
-      where.id = { in: matches.map((m) => m.id) };
+      const term = query.search.trim();
+      try {
+        const matches = await this.prisma.$queryRaw<{ id: number }[]>`
+          SELECT id FROM entries
+          WHERE "contentTypeId" = ${contentType.id}
+            AND status = 'published'
+            AND "deletedAt" IS NULL
+            AND to_tsvector('english', slug || ' ' || data::text) @@ websearch_to_tsquery('english', ${term})
+        `;
+        where.id = { in: matches.map((m) => m.id) };
+      } catch {
+        // Fallback: plain LIKE for short/special-char queries that tsquery can't parse
+        const like = `%${term}%`;
+        const matches = await this.prisma.$queryRaw<{ id: number }[]>`
+          SELECT id FROM entries
+          WHERE "contentTypeId" = ${contentType.id}
+            AND status = 'published'
+            AND "deletedAt" IS NULL
+            AND (LOWER(slug) LIKE LOWER(${like}) OR LOWER(data::text) LIKE LOWER(${like}))
+        `;
+        where.id = { in: matches.map((m) => m.id) };
+      }
     }
 
     const [total, entries] = await Promise.all([
@@ -137,11 +171,18 @@ export class DynamicApiService {
       }),
     );
 
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    const result: PaginatedResult<any> = { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    await this.cache.set(cacheKey, result, LIST_TTL);
+    return result;
   }
 
   async findOne(typeName: string, slug: string) {
     const contentType = await this.resolveContentType(typeName, 'read');
+
+    // ── Cache lookup ───────────────────────────────────────────────────────────
+    const cacheKey = `${cachePrefix(typeName)}slug:${slug}`;
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) return cached;
 
     const entry = await this.prisma.entry.findUnique({
       where: { contentTypeId_slug: { contentTypeId: contentType.id, slug } },
@@ -158,7 +199,9 @@ export class DynamicApiService {
       await this.prisma.entry.update({ where: { id: entry.id }, data: { data: data as any } });
     }
 
-    return this.toPublicEntry(entry, data);
+    const result = await this.toPublicEntry(entry, data);
+    await this.cache.set(cacheKey, result, ENTRY_TTL);
+    return result;
   }
 
   async create(typeName: string, slug: string, data: Record<string, any>) {
@@ -181,6 +224,7 @@ export class DynamicApiService {
       select: { id: true, publicId: true, slug: true, status: true, deletedAt: true, data: true, createdAt: true, updatedAt: true },
     });
 
+    await this.invalidate(typeName);
     return this.toPublicEntry(created, created.data as Record<string, any>);
   }
 
@@ -204,6 +248,7 @@ export class DynamicApiService {
       select: { id: true, publicId: true, slug: true, status: true, deletedAt: true, data: true, createdAt: true, updatedAt: true },
     });
 
+    await this.invalidate(typeName);
     return this.toPublicEntry(updated, updated.data as Record<string, any>);
   }
 
@@ -217,8 +262,8 @@ export class DynamicApiService {
       throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}"`);
     }
 
-    // Soft delete via public API too — protect data integrity
     await this.prisma.entry.update({ where: { id: entry.id }, data: { deletedAt: new Date() } });
+    await this.invalidate(typeName);
     return { message: `Entry "${slug}" deleted from "${typeName}"` };
   }
 }

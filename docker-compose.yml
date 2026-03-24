@@ -5,6 +5,21 @@
 version: '3.9'
 
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: nodepress_redis
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   db:
     image: postgres:16-alpine
     container_name: nodepress_db
@@ -25,3 +40,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
