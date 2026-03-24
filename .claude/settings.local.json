@@ -15,7 +15,10 @@
       "Bash(npm install:*)",
       "Bash(npx ts-node:*)",
       "Bash(python -m json.tool)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(grep -n 'prisma as any' /d/xampp/htdocs/nodepress/backend/src/**/*.ts)",
+      "Bash(node_modules/.bin/jest --passWithNoTests)",
+      "Bash(npx jest:*)"
     ]
   }
 }

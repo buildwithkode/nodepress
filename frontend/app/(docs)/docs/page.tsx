@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -51,6 +51,7 @@ const METHOD: Record<string, string> = {
   GET:    'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
   POST:   'bg-blue-500/10 text-blue-400 border-blue-500/30',
   PUT:    'bg-amber-500/10 text-amber-400 border-amber-500/30',
+  PATCH:  'bg-violet-500/10 text-violet-400 border-violet-500/30',
   DELETE: 'bg-red-500/10 text-red-400 border-red-500/30',
 };
 function MethodBadge({ m }: { m: string }) {
@@ -159,6 +160,7 @@ const FORM_FIELD_TYPES = [
 
 // ─── TOC ─────────────────────────────────────────────────────────────────────
 const TOC_ITEMS = [
+  { id: 'installation',   label: 'Installation (CLI)' },
   { id: 'introduction',   label: 'Introduction' },
   { id: 'quick-start',    label: 'Quick Start' },
   { id: 'content-types',  label: 'Content Types' },
@@ -167,6 +169,9 @@ const TOC_ITEMS = [
   { id: 'media',          label: 'Media Library' },
   { id: 'api-keys',       label: 'API Keys' },
   { id: 'forms',          label: 'Forms' },
+  { id: 'webhooks',       label: 'Webhooks' },
+  { id: 'seo',            label: 'SEO & Sitemap' },
+  { id: 'self-hosting',   label: 'Self-Hosting' },
   { id: 'api-reference',  label: 'API Reference' },
   { id: 'code-examples',  label: 'Code Examples' },
 ];
@@ -259,6 +264,69 @@ export default function DocsPage() {
             </p>
           </div>
 
+          {/* ── Installation ──────────────────────────────────────────────── */}
+          <Section id="installation" title="Installation (CLI)" icon={Terminal}>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              The fastest way to get NodePress running is the official CLI. One command scaffolds a
+              full project with randomised secrets, environment files, and dependency installation
+              already done.
+            </p>
+
+            <h3 className="font-semibold mb-2">Requirements</h3>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {['Node.js 18+', 'npm 9+', 'Git', 'PostgreSQL 14+ (or Docker)'].map((r) => (
+                <span key={r} className="text-xs border border-border rounded-full px-3 py-1 text-muted-foreground">{r}</span>
+              ))}
+            </div>
+
+            <h3 className="font-semibold mb-3">Create a new project</h3>
+            <CodeBlock code={`npx nodepress new my-cms`} />
+            <p className="text-sm text-muted-foreground mb-6">
+              Replace <IC>my-cms</IC> with your project name. The CLI will:
+            </p>
+            <div className="space-y-2 mb-6">
+              {[
+                ['Clone', 'Downloads NodePress from the official repository into a new folder.'],
+                ['Secrets', 'Generates a cryptographically random JWT secret and DB password (via crypto.randomBytes).'],
+                ['Env files', 'Writes backend/.env, frontend/.env.local, and .env (for Docker) with all values filled in.'],
+                ['Install', 'Runs npm install in both backend/ and frontend/ automatically.'],
+              ].map(([step, desc]) => (
+                <div key={step} className="flex gap-3 text-sm">
+                  <span className="font-medium text-foreground w-16 shrink-0">{step}</span>
+                  <span className="text-muted-foreground">{desc}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold mb-3">Option A — Docker (recommended)</h3>
+            <p className="text-sm text-muted-foreground mb-2">
+              Starts PostgreSQL, the backend API, the frontend admin panel, and nginx in one command.
+            </p>
+            <CodeBlock code={`cd my-cms
+docker-compose -f docker-compose.prod.yml up -d`} />
+            <p className="text-sm text-muted-foreground mb-6">
+              Admin panel → <IC>http://localhost</IC> · API → <IC>http://localhost/api</IC> · API docs → <IC>http://localhost/api/docs</IC>
+            </p>
+
+            <h3 className="font-semibold mb-3">Option B — Local development</h3>
+            <CodeBlock code={`cd my-cms/backend
+npx prisma migrate dev    # create database tables
+npm run start:dev         # API on http://localhost:3000
+
+# In a second terminal:
+cd my-cms/frontend
+npm run dev               # Admin panel on http://localhost:5173`} />
+
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mt-4 text-sm">
+              <strong className="text-blue-400">First-time setup</strong>
+              <p className="text-muted-foreground mt-1">
+                On first load the admin panel redirects to <IC>/setup</IC> where you create the first
+                admin account. After that, <IC>POST /api/auth/register</IC> is permanently disabled
+                — additional users must be created via the Users page.
+              </p>
+            </div>
+          </Section>
+
           {/* ── Introduction ──────────────────────────────────────────────── */}
           <Section id="introduction" title="Introduction" icon={BookOpen}>
             <p className="text-muted-foreground leading-relaxed mb-6">
@@ -269,11 +337,14 @@ export default function DocsPage() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { icon: Layers,        title: 'Content Types', desc: 'Define the structure — like a "Blog Post" with title, content, and thumbnail fields.' },
-                { icon: Database,      title: 'Entries',       desc: 'Fill in the actual content. Each entry has a unique slug and validates against your schema.' },
-                { icon: ImageIcon,     title: 'Media',         desc: 'Upload images, PDFs, and videos. Use their URLs inside your entries.' },
-                { icon: Key,           title: 'API Keys',      desc: 'Generate read or write keys for external apps to access your content securely.' },
-                { icon: ClipboardList, title: 'Forms',         desc: 'Build contact forms with custom fields. Submissions are stored and can trigger email or webhook actions.' },
+                { icon: Layers,        title: 'Content Types',      desc: 'Define the structure — like a "Blog Post" with title, content, and thumbnail fields.' },
+                { icon: Database,      title: 'Entries',            desc: 'Fill in content. Each entry has a slug, status (draft/published), SEO fields, and scheduled publish date.' },
+                { icon: History,       title: 'Versioning',         desc: 'Every update snapshots the previous version. Restore any past version with one click.' },
+                { icon: ImageIcon,     title: 'Media',              desc: 'Upload images, PDFs, and videos. Images are auto-optimized and a WebP sibling is generated.' },
+                { icon: Key,           title: 'API Keys',           desc: 'Generate read or write keys for external apps to access your content securely.' },
+                { icon: ClipboardList, title: 'Forms',              desc: 'Build contact forms with custom fields. Submissions trigger email or webhook actions.' },
+                { icon: Webhook,       title: 'Webhooks',           desc: 'Get notified on entry.created, entry.updated, and more. Signed with HMAC-SHA256.' },
+                { icon: Globe,         title: 'SEO & Sitemap',      desc: 'Per-entry SEO title, description, OG image, noIndex. Auto-generated sitemap.xml and robots.txt.' },
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="rounded-xl border border-border p-4">
                   <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center mb-3">
@@ -451,20 +522,85 @@ export default function DocsPage() {
                 <li>Auto-generated from the first <IC>text</IC> or <IC>textarea</IC> field as you type</li>
                 <li>Converted to lowercase kebab-case — "My Blog Post" → <IC>my-blog-post</IC></li>
                 <li>You can override the slug manually before saving</li>
-                <li>Once an entry is created, the slug is <strong className="text-foreground">locked</strong> and cannot be changed (to keep URLs stable)</li>
+                <li>Once an entry is created, the slug is <strong className="text-foreground">locked</strong> (to keep URLs stable)</li>
                 <li>The slug becomes the second URL segment: <IC>/api/blog/my-blog-post</IC></li>
               </ul>
             </div>
 
-            <h3 className="font-semibold mb-3">Actions available</h3>
+            <h3 className="font-semibold mb-3">Status</h3>
             <div className="space-y-2 mb-6">
               {[
-                ['Edit', 'Update any field value. The slug is locked after creation.'],
-                ['Duplicate', 'Creates a copy with slug "-copy" appended. Opens the edit page so you can adjust content.'],
-                ['Delete', 'Permanently removes the entry.'],
+                ['draft',     'Not visible on the public API. Editable in the admin panel.'],
+                ['published', 'Visible on the public API. Default for new entries.'],
+                ['archived',  'Hidden from both the public API and the default admin list.'],
+              ].map(([status, desc]) => (
+                <div key={status} className="flex gap-3 text-sm">
+                  <IC>{status}</IC>
+                  <span className="text-muted-foreground">{desc}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold mb-3">Scheduled publishing</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Set a <IC>publishAt</IC> date and time on any draft entry. A background job runs every
+              minute and automatically promotes it to <IC>published</IC> when the time arrives.
+              The field is shown on the entry edit page when status is <IC>draft</IC>.
+            </p>
+
+            <h3 className="font-semibold mb-3">SEO fields</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Every entry has an optional SEO accordion on the edit page. These fields power the
+              public page's <IC>{`<head>`}</IC> meta tags via <IC>generateMetadata()</IC> in Next.js.
+            </p>
+            <div className="space-y-2 mb-6">
+              {[
+                ['seo.title',       'Override the browser tab title and OG title.'],
+                ['seo.description', 'Meta description and OG description (recommended 120–160 chars).'],
+                ['seo.image',       'Open Graph image URL shown in link previews.'],
+                ['seo.noIndex',     'Add <meta name="robots" content="noindex"> to hide from search engines.'],
+              ].map(([field, desc]) => (
+                <div key={field} className="flex gap-3 text-sm">
+                  <IC>{field}</IC>
+                  <span className="text-muted-foreground">{desc}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold mb-3">Version history</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Every time you save an entry, the previous state is snapshotted automatically.
+              Open an entry and click <strong className="text-foreground">Version History</strong> to
+              see all past versions and restore any of them with one click.
+            </p>
+
+            <h3 className="font-semibold mb-3">Trash (soft delete)</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Deleting an entry moves it to the Trash — it disappears from the public API and the
+              normal admin list, but is not permanently removed. Use the{' '}
+              <strong className="text-foreground">Trash</strong> filter to see deleted entries.
+            </p>
+            <div className="space-y-2 mb-6">
+              {[
+                ['Delete',   'Moves to Trash. Disappears from public API immediately.'],
+                ['Restore',  'Moves the entry back out of Trash to its previous status.'],
+                ['Purge',    'Permanently and irreversibly deletes the entry and all its versions.'],
               ].map(([action, desc]) => (
                 <div key={action} className="flex gap-3 text-sm">
-                  <span className="font-medium text-foreground w-24 shrink-0">{action}</span>
+                  <span className="font-medium text-foreground w-20 shrink-0">{action}</span>
+                  <span className="text-muted-foreground">{desc}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold mb-3">Other actions</h3>
+            <div className="space-y-2">
+              {[
+                ['Edit',       'Update any field value. The slug is locked after creation.'],
+                ['Duplicate',  'Creates a copy with slug "-copy" appended.'],
+              ].map(([action, desc]) => (
+                <div key={action} className="flex gap-3 text-sm">
+                  <span className="font-medium text-foreground w-20 shrink-0">{action}</span>
                   <span className="text-muted-foreground">{desc}</span>
                 </div>
               ))}
@@ -761,6 +897,208 @@ echo $result['submissionId'];`,
             </div>
           </Section>
 
+          {/* ── Webhooks ──────────────────────────────────────────────────── */}
+          <Section id="webhooks" title="Webhooks" icon={Webhook}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Webhooks let external systems react in real time when content changes in NodePress.
+              Register a URL and NodePress will POST a JSON payload to it on every matching event.
+            </p>
+
+            <h3 className="font-semibold mb-3">Events</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Event</th>
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">When</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {[
+                    ['entry.created',  'A new entry is created'],
+                    ['entry.updated',  'An entry is updated or a version is restored'],
+                    ['entry.deleted',  'An entry is soft-deleted (moved to trash)'],
+                    ['entry.restored', 'A trashed entry is restored'],
+                    ['entry.purged',   'An entry is permanently deleted'],
+                    ['media.uploaded', 'A file is uploaded to the media library'],
+                    ['media.deleted',  'A file is deleted from the media library'],
+                    ['*',              'Wildcard — fires for every event'],
+                  ].map(([event, when]) => (
+                    <tr key={event}>
+                      <td className="px-4 py-2.5"><IC>{event}</IC></td>
+                      <td className="px-4 py-2.5 text-muted-foreground text-xs">{when}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-3">Payload shape</h3>
+            <CodeBlock code={`// Example: entry.created
+{
+  "event": "entry.created",
+  "timestamp": "2026-03-24T10:00:00.000Z",
+  "data": {
+    "id": 42,
+    "slug": "my-first-post",
+    "status": "published",
+    "contentType": "blog"
+  }
+}`} />
+
+            <h3 className="font-semibold mb-3 mt-2">HMAC-SHA256 signing</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Set a <strong className="text-foreground">secret</strong> on your webhook and NodePress will
+              sign every delivery. Verify it on your server to ensure the request is genuine:
+            </p>
+            <CodeBlock code={`// Verify in Node.js
+const crypto = require('crypto');
+
+function verifySignature(body, secret, signatureHeader) {
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(body)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(expected),
+    Buffer.from(signatureHeader),
+  );
+}`} />
+
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mt-4 text-sm">
+              <strong className="text-amber-400">Delivery notes</strong>
+              <ul className="text-muted-foreground mt-1 space-y-1 list-disc pl-4">
+                <li>Deliveries are fire-and-forget — failed requests are not retried (Phase 2 will add retry queues).</li>
+                <li>Timeout per delivery: 10 seconds.</li>
+                <li>Use the <strong className="text-foreground">Test Ping</strong> button in the admin panel to verify your endpoint is reachable.</li>
+              </ul>
+            </div>
+          </Section>
+
+          {/* ── SEO & Sitemap ─────────────────────────────────────────────── */}
+          <Section id="seo" title="SEO & Sitemap" icon={Globe}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              NodePress generates a <IC>sitemap.xml</IC> and <IC>robots.txt</IC> automatically.
+              Both are served at <IC>/api/sitemap.xml</IC> and <IC>/api/robots.txt</IC>.
+            </p>
+
+            <h3 className="font-semibold mb-3">Sitemap</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              The sitemap includes all <IC>published</IC> entries across all content types, plus
+              one list-page URL per content type. Set <IC>SITE_URL</IC> in <IC>backend/.env</IC> to
+              control the domain used in the URLs.
+            </p>
+            <CodeBlock code={`# Fetch the sitemap
+GET /api/sitemap.xml
+
+# Response (XML)
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://your-site.com/blog</loc>
+    <lastmod>2026-03-24</lastmod>
+  </url>
+  <url>
+    <loc>https://your-site.com/blog/my-first-post</loc>
+    <lastmod>2026-03-24</lastmod>
+  </url>
+</urlset>`} />
+
+            <h3 className="font-semibold mb-3 mt-4">robots.txt</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Default output allows all crawlers and links to the sitemap. Set{' '}
+              <IC>ROBOTS_DISALLOW</IC> in <IC>backend/.env</IC> to block specific paths:
+            </p>
+            <CodeBlock code={`# backend/.env
+ROBOTS_DISALLOW=/admin,/api/private
+
+# Output at /api/robots.txt
+User-agent: *
+Disallow: /admin
+Disallow: /api/private
+Sitemap: https://your-site.com/api/sitemap.xml`} />
+
+            <h3 className="font-semibold mb-3 mt-4">Per-entry SEO meta tags</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              The built-in public pages (at <IC>/[type]/[slug]</IC>) use Next.js{' '}
+              <IC>generateMetadata()</IC> to output full OG + Twitter card tags from the entry's
+              SEO fields. No extra configuration needed.
+            </p>
+
+            <h3 className="font-semibold mb-3 mt-4">Health check</h3>
+            <p className="text-muted-foreground text-sm">
+              <IC>GET /api/health</IC> returns database connectivity status. Useful for uptime
+              monitors and Docker health checks. No auth required.
+            </p>
+          </Section>
+
+          {/* ── Self-hosting ───────────────────────────────────────────────── */}
+          <Section id="self-hosting" title="Self-Hosting" icon={Server}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              NodePress ships with a production-ready <IC>docker-compose.prod.yml</IC> that runs
+              the full stack behind nginx.
+            </p>
+
+            <h3 className="font-semibold mb-3">Environment variables (backend/.env)</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Variable</th>
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border text-xs">
+                  {[
+                    ['DATABASE_URL',         'PostgreSQL connection string'],
+                    ['JWT_SECRET',           '64+ char random secret for signing tokens (auto-generated by CLI)'],
+                    ['JWT_EXPIRES_IN',       'Token lifetime, e.g. 7d (default)'],
+                    ['PORT',                 'API port (default 3000)'],
+                    ['CORS_ORIGIN',          'Frontend origin allowed in CORS headers'],
+                    ['APP_URL',              'Backend URL — used in API responses'],
+                    ['SITE_URL',             'Public-facing website URL — used in sitemap.xml'],
+                    ['ROBOTS_DISALLOW',      'Comma-separated paths to block in robots.txt (optional)'],
+                    ['STORAGE_DRIVER',       'local (default) or s3'],
+                    ['STORAGE_S3_BUCKET',    'S3/R2/MinIO bucket name (if STORAGE_DRIVER=s3)'],
+                    ['STORAGE_S3_REGION',    'AWS region or "auto" for Cloudflare R2'],
+                    ['STORAGE_S3_ENDPOINT',  'Custom endpoint URL for R2/MinIO/Backblaze'],
+                    ['SMTP_HOST',            'SMTP server hostname for password reset emails'],
+                    ['SMTP_PORT',            'SMTP port (default 587)'],
+                    ['SMTP_USER',            'SMTP username'],
+                    ['SMTP_PASS',            'SMTP password'],
+                    ['SMTP_FROM',            'From address for outgoing emails'],
+                  ].map(([key, desc]) => (
+                    <tr key={key}>
+                      <td className="px-4 py-2.5"><IC>{key}</IC></td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-3">Cloud media storage (S3-compatible)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Set <IC>STORAGE_DRIVER=s3</IC> to store uploads in AWS S3, Cloudflare R2, MinIO, or
+              Backblaze B2. Files are served from the bucket's public URL or a CDN domain.
+            </p>
+            <CodeBlock code={`# Cloudflare R2 example
+STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-bucket
+STORAGE_S3_REGION=auto
+STORAGE_S3_ACCESS_KEY=xxx
+STORAGE_S3_SECRET_KEY=xxx
+STORAGE_S3_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+STORAGE_S3_PUBLIC_URL=https://assets.yourdomain.com`} />
+
+            <h3 className="font-semibold mb-3 mt-4">Image optimization</h3>
+            <p className="text-muted-foreground text-sm">
+              Uploaded images are automatically resized to a max dimension of 2400 px, EXIF-rotated,
+              and saved at JPEG quality 85. A <IC>.webp</IC> sibling is generated at quality 82 and
+              stored alongside the original. Both URLs are returned in the media API response.
+            </p>
+          </Section>
+
           {/* ── API Reference ─────────────────────────────────────────────── */}
           <Section id="api-reference" title="API Reference" icon={Code2}>
 
@@ -778,6 +1116,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 # API key (for external apps)
 X-API-Key: np_abc123...`} />
 
+            <h3 className="font-semibold mb-3 mt-6">Password reset</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              If SMTP is configured, <IC>POST /api/auth/forgot-password</IC> emails a 15-minute reset link.
+              Without SMTP, the link is logged to the server console (useful in development).
+              The reset link points to <IC>/reset-password?token=…</IC> in the admin panel.
+              Always returns <IC>200</IC> — never reveals whether an email exists.
+            </p>
+
             <h3 className="font-semibold mb-3 mt-6">Dynamic content API</h3>
             <p className="text-muted-foreground text-sm mb-3">
               Every content type you create automatically gets these 5 endpoints.
@@ -791,16 +1137,70 @@ X-API-Key: np_abc123...`} />
               <Endpoint method="DELETE" path="/api/{type}/{slug}" desc="Delete an entry" auth />
             </div>
 
-            <h3 className="font-semibold mb-3">Admin API (require JWT)</h3>
+            <h3 className="font-semibold mb-3">Auth</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/content-types"              desc="List all content types" />
+              <Endpoint method="GET"    path="/api/auth/setup-status"          desc="Check if initial setup is required" />
+              <Endpoint method="POST"   path="/api/auth/register"              desc="Create first admin account (setup only)" />
+              <Endpoint method="POST"   path="/api/auth/login"                 desc="Login and get a JWT token" />
+              <Endpoint method="GET"    path="/api/auth/me"                    desc="Get current user" auth />
+              <Endpoint method="POST"   path="/api/auth/forgot-password"       desc="Request a password reset email (always 200)" />
+              <Endpoint method="POST"   path="/api/auth/reset-password"        desc="Set a new password using the reset token" />
+            </div>
+
+            <h3 className="font-semibold mb-3">Content Types</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/content-types"              desc="List all content types" auth />
               <Endpoint method="POST"   path="/api/content-types"              desc="Create a content type" auth />
               <Endpoint method="PUT"    path="/api/content-types/:id"          desc="Update a content type" auth />
-              <Endpoint method="DELETE" path="/api/content-types/:id"          desc="Delete a content type + all its entries" auth />
-              <Endpoint method="GET"    path="/api/entries"                    desc="List all entries (filter by ?contentTypeId=)" />
-              <Endpoint method="POST"   path="/api/media/upload"               desc="Upload a file" auth />
-              <Endpoint method="GET"    path="/api/media"                      desc="List all media files" />
-              <Endpoint method="POST"   path="/api/auth/login"                 desc="Login and get a JWT token" />
+              <Endpoint method="DELETE" path="/api/content-types/:id"          desc="Delete a content type and all its entries" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Entries (Admin)</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/entries"                    desc="List entries — ?contentTypeId, ?status, ?deleted, ?search, ?page, ?limit" auth />
+              <Endpoint method="POST"   path="/api/entries"                    desc="Create an entry" auth />
+              <Endpoint method="GET"    path="/api/entries/:id"                desc="Get a single entry by id" auth />
+              <Endpoint method="PUT"    path="/api/entries/:id"                desc="Update an entry (snapshots a version)" auth />
+              <Endpoint method="DELETE" path="/api/entries/:id"                desc="Soft-delete — moves to trash" auth />
+              <Endpoint method="POST"   path="/api/entries/:id/restore"        desc="Restore a trashed entry" auth />
+              <Endpoint method="DELETE" path="/api/entries/:id/purge"          desc="Permanently delete a trashed entry" auth />
+              <Endpoint method="GET"    path="/api/entries/:id/versions"       desc="List all version snapshots for an entry" auth />
+              <Endpoint method="POST"   path="/api/entries/:id/versions/:vid/restore" desc="Restore entry to a specific version" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Media</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/media"                      desc="List media files — ?page, ?limit" auth />
+              <Endpoint method="POST"   path="/api/media/upload"               desc="Upload a file (multipart/form-data)" auth />
+              <Endpoint method="DELETE" path="/api/media/:filename"            desc="Delete a file" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Webhooks</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/webhooks"                   desc="List webhooks" auth />
+              <Endpoint method="POST"   path="/api/webhooks"                   desc="Create a webhook" auth />
+              <Endpoint method="DELETE" path="/api/webhooks/:id"               desc="Delete a webhook" auth />
+              <Endpoint method="PATCH"  path="/api/webhooks/:id/toggle"        desc="Enable or disable a webhook" auth />
+              <Endpoint method="POST"   path="/api/webhooks/:id/ping"          desc="Send a test ping to the webhook URL" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">API Keys</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/api-keys"                   desc="List API keys" auth />
+              <Endpoint method="POST"   path="/api/api-keys"                   desc="Create an API key" auth />
+              <Endpoint method="DELETE" path="/api/api-keys/:id"               desc="Delete an API key" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Audit Log</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/audit-log"                  desc="List audit events — ?resource, ?page, ?limit (admin only)" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">SEO & Health</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/health"                     desc="Database health check — no auth required" />
+              <Endpoint method="GET"    path="/api/sitemap.xml"                desc="Auto-generated sitemap of all published entries" />
+              <Endpoint method="GET"    path="/api/robots.txt"                 desc="robots.txt with configurable disallow rules" />
             </div>
 
             <h3 className="font-semibold mb-3">Forms API</h3>

@@ -5,7 +5,7 @@ const { randomBytes } = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const REPO_URL = 'https://github.com/your-org/nodepress.git'; // ← update before publishing
+const REPO_URL = 'https://gitlab.com/leo9karthik/nodepress.git';
 
 // ANSI colours (degrade gracefully if not supported)
 const c = {
@@ -92,6 +92,13 @@ module.exports = async function createProject(name) {
     CORS_ORIGIN:   'http://localhost:5173',
     APP_URL:       'http://localhost:3000',
     SITE_URL:      'http://localhost:5173',
+    // Email — configure to enable password reset emails
+    SMTP_HOST:     '',
+    SMTP_PORT:     '587',
+    SMTP_SECURE:   'false',
+    SMTP_USER:     '',
+    SMTP_PASS:     '',
+    SMTP_FROM:     '',
   };
   writeEnvFile(path.join(projectDir, 'backend', '.env'), backendEnv);
   ok('backend/.env generated with random secrets');
@@ -149,9 +156,9 @@ module.exports = async function createProject(name) {
   log(`    npm run dev              ${c.dim}# admin panel on :5173${c.reset}`);
   log('');
   log(`  ${c.cyan}Admin panel:${c.reset}  http://localhost:5173`);
-  log(`  ${c.cyan}API docs:${c.reset}     http://localhost:3000/api-docs`);
+  log(`  ${c.cyan}API docs:${c.reset}     http://localhost:3000/api/docs`);
   log(`  ${c.cyan}Health check:${c.reset} http://localhost:3000/api/health`);
   log('');
-  log(`  ${c.dim}Docs: https://github.com/your-org/nodepress${c.reset}`);
+  log(`  ${c.dim}Docs: https://gitlab.com/leo9karthik/nodepress${c.reset}`);
   log('');
 };

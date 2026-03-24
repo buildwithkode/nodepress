@@ -31,8 +31,8 @@ export class AuditController {
     const where = resource ? { resource } : {};
 
     const [total, data] = await Promise.all([
-      (this.prisma as any).auditLog.count({ where }),
-      (this.prisma as any).auditLog.findMany({
+      this.prisma.auditLog.count({ where }),
+      this.prisma.auditLog.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         skip,

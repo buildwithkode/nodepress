@@ -62,7 +62,7 @@ export class EntriesService {
       throw new ConflictException(`Slug "${dto.slug}" already exists in this content type`);
     }
 
-    const entry = await (this.prisma as any).entry.create({
+    const entry = await this.prisma.entry.create({
       data: {
         slug: dto.slug,
         status: dto.status ?? 'published',
@@ -73,7 +73,7 @@ export class EntriesService {
           ),
         ),
         contentTypeId: dto.contentTypeId,
-        seo: dto.seo ?? null,
+        seo: dto.seo ? { ...dto.seo } : null,
         publishAt: dto.publishAt ? new Date(dto.publishAt) : null,
       },
       include: { contentType: true },
@@ -166,7 +166,7 @@ export class EntriesService {
     const entry = await this.findOne(id);
 
     // Snapshot current state as a version before applying changes
-    await (this.prisma as any).entryVersion.create({
+    await this.prisma.entryVersion.create({
       data: {
         entryId: entry.id,
         slug: entry.slug,
@@ -216,7 +216,7 @@ export class EntriesService {
       updateData.publishAt = dto.publishAt ? new Date(dto.publishAt) : null;
     }
 
-    const updated = await (this.prisma as any).entry.update({
+    const updated = await this.prisma.entry.update({
       where: { id },
       data: updateData,
       include: { contentType: true },
@@ -280,7 +280,7 @@ export class EntriesService {
 
   async listVersions(entryId: number) {
     await this.findOne(entryId); // ensures entry exists + not deleted
-    const versions = await (this.prisma as any).entryVersion.findMany({
+    const versions = await this.prisma.entryVersion.findMany({
       where: { entryId },
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -290,7 +290,7 @@ export class EntriesService {
 
   async restoreVersion(entryId: number, versionId: number, actorId?: number) {
     const entry = await this.findOne(entryId);
-    const version = await (this.prisma as any).entryVersion.findUnique({
+    const version = await this.prisma.entryVersion.findUnique({
       where: { id: versionId },
     });
 
@@ -299,7 +299,7 @@ export class EntriesService {
     }
 
     // Snapshot current state before overwriting
-    await (this.prisma as any).entryVersion.create({
+    await this.prisma.entryVersion.create({
       data: {
         entryId: entry.id,
         slug: entry.slug,

@@ -126,6 +126,20 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+// ─── Password Reset ───────────────────────────────────────────────────────────
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique               // 64 hex chars (32 random bytes)
+  expiresAt DateTime                       // 15 minutes from creation
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
 // ─── Forms Module ────────────────────────────────────────────────────────────
 
 model Form {

@@ -68,7 +68,7 @@ export class MediaService {
     const url = await this.storage.save(file.path, file.filename, file.mimetype);
 
     // ── Persist metadata to DB ────────────────────────────────────────────
-    const record = await (this.prisma as any).media.create({
+    const record = await this.prisma.media.create({
       data: {
         filename: file.filename,
         webpFilename: webpFilename ?? null,
@@ -107,8 +107,8 @@ export class MediaService {
   async findAll(page = 1, limit = 50) {
     const skip = (page - 1) * limit;
     const [total, data] = await Promise.all([
-      (this.prisma as any).media.count(),
-      (this.prisma as any).media.findMany({
+      this.prisma.media.count(),
+      this.prisma.media.findMany({
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -125,7 +125,7 @@ export class MediaService {
     const safe = basename(filename);
 
     // Find record in DB
-    const record = await (this.prisma as any).media.findUnique({ where: { filename: safe } });
+    const record = await this.prisma.media.findUnique({ where: { filename: safe } });
 
     // Also check filesystem for local uploads that predate Phase 4 (no DB record)
     const localPath = join(this.uploadsDir, safe);
@@ -145,7 +145,7 @@ export class MediaService {
 
     // Remove DB record
     if (record) {
-      await (this.prisma as any).media.delete({ where: { filename: safe } });
+      await this.prisma.media.delete({ where: { filename: safe } });
     }
 
     if (actor) {

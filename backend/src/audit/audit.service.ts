@@ -28,7 +28,7 @@ export class AuditService {
     metadata?: Record<string, any>,
   ): Promise<void> {
     try {
-      await (this.prisma as any).auditLog.create({
+      await this.prisma.auditLog.create({
         data: {
           userId: actor.id ?? null,
           userEmail: actor.email,

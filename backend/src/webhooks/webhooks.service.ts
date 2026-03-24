@@ -20,14 +20,14 @@ export class WebhooksService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateWebhookDto) {
-    return (this.prisma as any).webhook.create({ data: dto });
+    return this.prisma.webhook.create({ data: dto });
   }
 
   async findAll(page = 1, limit = 50) {
     const skip = (page - 1) * limit;
     const [total, data] = await Promise.all([
-      (this.prisma as any).webhook.count(),
-      (this.prisma as any).webhook.findMany({
+      this.prisma.webhook.count(),
+      this.prisma.webhook.findMany({
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -37,20 +37,20 @@ export class WebhooksService {
   }
 
   async findOne(id: number) {
-    const hook = await (this.prisma as any).webhook.findUnique({ where: { id } });
+    const hook = await this.prisma.webhook.findUnique({ where: { id } });
     if (!hook) throw new NotFoundException(`Webhook #${id} not found`);
     return hook;
   }
 
   async remove(id: number) {
     await this.findOne(id);
-    await (this.prisma as any).webhook.delete({ where: { id } });
+    await this.prisma.webhook.delete({ where: { id } });
     return { message: `Webhook #${id} deleted` };
   }
 
   async toggle(id: number, enabled: boolean) {
     await this.findOne(id);
-    return (this.prisma as any).webhook.update({ where: { id }, data: { enabled } });
+    return this.prisma.webhook.update({ where: { id }, data: { enabled } });
   }
 
   async ping(id: number) {
@@ -74,7 +74,7 @@ export class WebhooksService {
   // ── private ────────────────────────────────────────────────────────────────
 
   private async deliverAll(event: string, payload: Record<string, any>) {
-    const hooks: any[] = await (this.prisma as any).webhook.findMany({ where: { enabled: true } });
+    const hooks: any[] = await this.prisma.webhook.findMany({ where: { enabled: true } });
     const matching = hooks.filter((h) => {
       const events = h.events as string[];
       return events.includes('*') || events.includes(event);

@@ -9,6 +9,8 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Auth')
@@ -54,5 +56,24 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   me(@Request() req) {
     return req.user;
+  }
+
+  // 5 attempts per minute — prevents email enumeration fishing
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request a password reset email (always returns 200)' })
+  @ApiResponse({ status: 200, description: 'Reset link sent if email exists' })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  // 5 attempts per minute — prevents token brute-force
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using a token from the reset email' })
+  @ApiResponse({ status: 200, description: 'Password updated' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.password);
   }
 }
