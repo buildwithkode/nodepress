@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ScrollText } from 'lucide-react';
+import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
@@ -56,6 +57,7 @@ export default function AuditLogPage() {
   const totalPages = Math.ceil(total / LIMIT);
 
   return (
+    <AdminGuard>
     <div className="space-y-4 max-w-5xl">
       <Card>
         <CardHeader>
@@ -156,5 +158,6 @@ export default function AuditLogPage() {
         </CardContent>
       </Card>
     </div>
+    </AdminGuard>
   );
 }

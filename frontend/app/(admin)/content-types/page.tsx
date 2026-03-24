@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Plus, Pencil, Trash2, LayoutGrid, Download, Copy, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
+import { useAuth } from '@/context/AuthContext';
+import { canManageSettings } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +89,8 @@ function exportContentType(ct: ContentType) {
 // ---------------------------------------------------------------------------
 export default function ContentTypesPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = canManageSettings(user?.role);
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
   const [loading, setLoading]           = useState(false);
   const [duplicating, setDuplicating]   = useState<number | null>(null);
@@ -164,12 +168,14 @@ export default function ContentTypesPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="ml-auto">
-          <Button onClick={() => router.push('/content-types/new')}>
-            <Plus className="h-4 w-4 mr-1.5" />
-            New Content Type
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="ml-auto">
+            <Button onClick={() => router.push('/content-types/new')}>
+              <Plus className="h-4 w-4 mr-1.5" />
+              New Content Type
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -254,42 +260,48 @@ export default function ContentTypesPage() {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/content-types/${ct.id}/edit`)} title="Edit">
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title="Duplicate"
-                    disabled={duplicating === ct.id}
-                    onClick={() => handleDuplicate(ct)}
-                  >
-                    {duplicating === ct.id
-                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      : <Copy className="h-3.5 w-3.5" />}
-                  </Button>
+                  {isAdmin && (
+                    <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/content-types/${ct.id}/edit`)} title="Edit">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      title="Duplicate"
+                      disabled={duplicating === ct.id}
+                      onClick={() => handleDuplicate(ct)}
+                    >
+                      {duplicating === ct.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Copy className="h-3.5 w-3.5" />}
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon-sm" onClick={() => exportContentType(ct)} title="Export JSON">
                     <Download className="h-3.5 w-3.5" />
                   </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete" />}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete content type?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          All entries under <strong>{ct.name.replace(/_/g, ' ')}</strong> will also be deleted. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction variant="destructive" onClick={() => handleDelete(ct.id)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  {isAdmin && (
+                    <AlertDialog>
+                      <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete" />}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete content type?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            All entries under <strong>{ct.name.replace(/_/g, ' ')}</strong> will also be deleted. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction variant="destructive" onClick={() => handleDelete(ct.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

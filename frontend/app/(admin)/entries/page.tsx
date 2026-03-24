@@ -22,6 +22,8 @@ import {
   AlertDialogAction, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import api from '@/lib/axios';
+import { useAuth } from '@/context/AuthContext';
+import { canManageContent } from '@/lib/roles';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString();
@@ -57,6 +59,8 @@ interface Entry {
 export default function EntriesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const canEdit = canManageContent(user?.role);
   const ctParam = searchParams?.get('ct') ?? '';
 
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
@@ -208,9 +212,11 @@ export default function EntriesPage() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto gap-2">
-                <Button onClick={() => router.push(`/entries/new?ct=${ct.id}`)}>
-                  <Plus className="h-4 w-4 mr-1.5" /> New Entry
-                </Button>
+                {canEdit && (
+                  <Button onClick={() => router.push(`/entries/new?ct=${ct.id}`)}>
+                    <Plus className="h-4 w-4 mr-1.5" /> New Entry
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   onClick={() => router.push(`/entries?ct=${ct.name}`)}
@@ -252,9 +258,11 @@ export default function EntriesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
-            <Plus className="h-4 w-4 mr-1.5" /> New Entry
-          </Button>
+          {canEdit && (
+            <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
+              <Plus className="h-4 w-4 mr-1.5" /> New Entry
+            </Button>
+          )}
         </div>
       </div>
 
@@ -336,51 +344,57 @@ export default function EntriesPage() {
               <TableCell className="text-muted-foreground">{formatDate(entry.updatedAt)}</TableCell>
               <TableCell>
                 <div className="flex items-center justify-end gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title="Edit"
-                    onClick={() => router.push(`/entries/${entry.id}/edit`)}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title="Duplicate"
-                    disabled={duplicating === entry.id}
-                    onClick={() => handleDuplicate(entry)}
-                  >
-                    {duplicating === entry.id
-                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      : <Copy className="h-3.5 w-3.5" />}
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger render={
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        title="Delete"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      />
-                    }>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          <strong>{entry.slug}</strong> will be moved to trash. You can restore it from the API or permanently delete it later.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction variant="destructive" onClick={() => handleDelete(entry.id)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      title="Edit"
+                      onClick={() => router.push(`/entries/${entry.id}/edit`)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      title="Duplicate"
+                      disabled={duplicating === entry.id}
+                      onClick={() => handleDuplicate(entry)}
+                    >
+                      {duplicating === entry.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Copy className="h-3.5 w-3.5" />}
+                    </Button>
+                  )}
+                  {canEdit && (
+                    <AlertDialog>
+                      <AlertDialogTrigger render={
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title="Delete"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        />
+                      }>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            <strong>{entry.slug}</strong> will be moved to trash. You can restore it from the API or permanently delete it later.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction variant="destructive" onClick={() => handleDelete(entry.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Plus, Pencil, Trash2, Inbox, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
+import { useAuth } from '@/context/AuthContext';
+import { canManageContent } from '@/lib/roles';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,6 +35,8 @@ const PAGE_SIZE = 10;
 
 export default function FormsPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const canEdit = canManageContent(user?.role);
   const [forms, setForms]   = useState<FormRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch]   = useState('');
@@ -89,11 +93,13 @@ export default function FormsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="ml-auto">
-          <Button onClick={() => router.push('/forms/new')}>
-            <Plus className="h-4 w-4 mr-1.5" /> New Form
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="ml-auto">
+            <Button onClick={() => router.push('/forms/new')}>
+              <Plus className="h-4 w-4 mr-1.5" /> New Form
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -147,11 +153,17 @@ export default function FormsPage() {
                 </button>
               </TableCell>
               <TableCell className="text-center">
-                <button onClick={() => toggleActive(form)} title="Toggle active">
-                  {form.isActive
-                    ? <ToggleRight className="h-5 w-5 text-emerald-400 mx-auto" />
-                    : <ToggleLeft  className="h-5 w-5 text-muted-foreground mx-auto" />}
-                </button>
+                {canEdit ? (
+                  <button onClick={() => toggleActive(form)} title="Toggle active">
+                    {form.isActive
+                      ? <ToggleRight className="h-5 w-5 text-emerald-400 mx-auto" />
+                      : <ToggleLeft  className="h-5 w-5 text-muted-foreground mx-auto" />}
+                  </button>
+                ) : (
+                  form.isActive
+                    ? <ToggleRight className="h-5 w-5 text-emerald-400 mx-auto opacity-50" />
+                    : <ToggleLeft  className="h-5 w-5 text-muted-foreground mx-auto opacity-50" />
+                )}
               </TableCell>
               <TableCell>
                 <div className="flex items-center justify-end gap-1">
@@ -166,42 +178,46 @@ export default function FormsPage() {
                   </Button>
 
                   {/* Edit */}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title="Edit"
-                    onClick={() => router.push(`/forms/${form.id}/edit`)}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      title="Edit"
+                      onClick={() => router.push(`/forms/${form.id}/edit`)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
 
                   {/* Delete */}
-                  <AlertDialog>
-                    <AlertDialogTrigger render={
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        title="Delete"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      />
-                    }>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete "{form.name}"?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          All <strong>{form._count.submissions}</strong> submissions will also be deleted permanently.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction variant="destructive" onClick={() => handleDelete(form.id)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  {canEdit && (
+                    <AlertDialog>
+                      <AlertDialogTrigger render={
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title="Delete"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        />
+                      }>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete "{form.name}"?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            All <strong>{form._count.submissions}</strong> submissions will also be deleted permanently.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction variant="destructive" onClick={() => handleDelete(form.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

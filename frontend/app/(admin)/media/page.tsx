@@ -19,6 +19,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import api from '../../../lib/axios';
+import { useAuth } from '@/context/AuthContext';
+import { canManageContent } from '@/lib/roles';
 
 interface MediaFile {
   filename: string;
@@ -46,6 +48,8 @@ const formatSize = (bytes: number) => {
 };
 
 export default function MediaPage() {
+  const { user } = useAuth();
+  const canEdit = canManageContent(user?.role);
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -136,41 +140,43 @@ export default function MediaPage() {
       </div>
 
       {/* Upload Zone */}
-      <div
-        onClick={() => !uploading && fileInputRef.current?.click()}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={cn(
-          'mb-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center py-12 px-6 cursor-pointer transition-colors select-none',
-          dragOver
-            ? 'border-blue-500 bg-blue-500/10'
-            : uploading
-            ? 'border-border bg-muted/30 cursor-not-allowed opacity-60'
-            : 'border-border bg-card hover:border-blue-500/50 hover:bg-blue-500/5',
-        )}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,.pdf,.mp4"
-          className="hidden"
-          onChange={handleFileChange}
-          disabled={uploading}
-        />
-        {uploading ? (
-          <Loader2 className="h-10 w-10 text-blue-400 animate-spin mb-3" />
-        ) : (
-          <Upload className="h-10 w-10 text-muted-foreground mb-3" />
-        )}
-        <p className="text-sm font-medium text-foreground">
-          {uploading ? 'Uploading…' : 'Click or drag files here to upload'}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Supports images (JPG, PNG, GIF, WebP), PDF, MP4 — Max 10MB
-        </p>
-      </div>
+      {canEdit && (
+        <div
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={cn(
+            'mb-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center py-12 px-6 cursor-pointer transition-colors select-none',
+            dragOver
+              ? 'border-blue-500 bg-blue-500/10'
+              : uploading
+              ? 'border-border bg-muted/30 cursor-not-allowed opacity-60'
+              : 'border-border bg-card hover:border-blue-500/50 hover:bg-blue-500/5',
+          )}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,.pdf,.mp4"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={uploading}
+          />
+          {uploading ? (
+            <Loader2 className="h-10 w-10 text-blue-400 animate-spin mb-3" />
+          ) : (
+            <Upload className="h-10 w-10 text-muted-foreground mb-3" />
+          )}
+          <p className="text-sm font-medium text-foreground">
+            {uploading ? 'Uploading…' : 'Click or drag files here to upload'}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Supports images (JPG, PNG, GIF, WebP), PDF, MP4 — Max 10MB
+          </p>
+        </div>
+      )}
 
       {/* Media Grid */}
       {loading ? (
@@ -268,39 +274,41 @@ export default function MediaPage() {
                       </Button>
                     )}
 
-                    <AlertDialog>
-                      <AlertDialogTrigger
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            title="Delete"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          />
-                        }
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete file?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            <span className="font-medium">{file.originalName || file.filename}</span> will be permanently
-                            deleted and cannot be recovered.
-                            {file.webpUrl && ' The WebP version will also be deleted.'}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            variant="destructive"
-                            onClick={() => handleDelete(file.filename)}
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {canEdit && (
+                      <AlertDialog>
+                        <AlertDialogTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              title="Delete"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            />
+                          }
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete file?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              <span className="font-medium">{file.originalName || file.filename}</span> will be permanently
+                              deleted and cannot be recovered.
+                              {file.webpUrl && ' The WebP version will also be deleted.'}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              variant="destructive"
+                              onClick={() => handleDelete(file.filename)}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 </div>
               </div>

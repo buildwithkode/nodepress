@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
+import { canManageSettings } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -22,38 +23,43 @@ import {
   Zap,
 } from 'lucide-react';
 
-const navGroups = [
+const ALL_NAV_GROUPS = [
   {
     label: 'Content',
+    adminOnly: false,
     items: [
-      { href: '/',              label: 'Dashboard',    icon: LayoutDashboard },
+      { href: '/',              label: 'Dashboard',     icon: LayoutDashboard },
       { href: '/content-types', label: 'Content Types', icon: Layers },
-      { href: '/entries',       label: 'Entries',       icon: FileText },
-      { href: '/forms',         label: 'Forms',         icon: ClipboardList },
+      { href: '/entries',       label: 'Entries',        icon: FileText },
+      { href: '/forms',         label: 'Forms',          icon: ClipboardList },
     ],
   },
   {
     label: 'Assets',
+    adminOnly: false,
     items: [
       { href: '/media', label: 'Media', icon: Image },
     ],
   },
   {
     label: 'Developer',
+    adminOnly: true,
     items: [
-      { href: '/api-keys',   label: 'API Keys',   icon: Key },
-      { href: '/webhooks',   label: 'Webhooks',   icon: Zap },
-      { href: '/audit-log',  label: 'Audit Log',  icon: ScrollText },
+      { href: '/api-keys',  label: 'API Keys',  icon: Key },
+      { href: '/webhooks',  label: 'Webhooks',  icon: Zap },
+      { href: '/audit-log', label: 'Audit Log', icon: ScrollText },
     ],
   },
   {
     label: 'Team',
+    adminOnly: true,
     items: [
       { href: '/users', label: 'Users', icon: Users },
     ],
   },
   {
     label: 'Help',
+    adminOnly: false,
     items: [
       { href: '/docs', label: 'Documentation', icon: BookOpen },
     ],
@@ -64,6 +70,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const admin = canManageSettings(user?.role);
+  const navGroups = ALL_NAV_GROUPS.filter((g) => !g.adminOnly || admin);
 
   const [siteName, setSiteName] = useState('NodePress');
   useEffect(() => {

@@ -21,7 +21,12 @@
       "Bash(npx jest:*)",
       "Bash(2)",
       "Bash(npm run:*)",
-      "Bash(cat /d/xampp/htdocs/nodepress/backend/src/content-type/dto/*.ts)"
+      "Bash(cat /d/xampp/htdocs/nodepress/backend/src/content-type/dto/*.ts)",
+      "Bash(ls /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/api-keys/)",
+      "Bash(ls /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/audit-log/)",
+      "Bash(head -5 /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/api-keys/page.tsx)",
+      "Bash(head -5 /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/audit-log/page.tsx)",
+      "Bash(head -5 /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/webhooks/page.tsx)"
     ]
   }
 }

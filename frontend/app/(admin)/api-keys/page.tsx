@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2, Copy, Key } from 'lucide-react';
+import AdminGuard from '@/components/AdminGuard';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -109,6 +110,7 @@ export default function ApiKeysPage() {
   // Render
   // ---------------------------------------------------------------------------
   return (
+    <AdminGuard>
     <TooltipProvider>
       <div>
         {/* Description */}
@@ -256,5 +258,6 @@ export default function ApiKeysPage() {
         <Pagination total={filteredKeys.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
       </div>
     </TooltipProvider>
+    </AdminGuard>
   );
 }

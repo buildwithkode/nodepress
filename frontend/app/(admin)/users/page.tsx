@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Plus, Trash2, ShieldCheck } from 'lucide-react';
+import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -111,6 +112,7 @@ export default function UsersPage() {
   };
 
   return (
+    <AdminGuard>
     <div className="space-y-6 max-w-4xl">
 
       {/* ── User list ─────────────────────────────────────────────────────── */}
@@ -278,5 +280,6 @@ export default function UsersPage() {
         </CardContent>
       </Card>
     </div>
+    </AdminGuard>
   );
 }

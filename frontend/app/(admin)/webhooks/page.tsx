@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, Zap, RefreshCw, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'sonner';
+import AdminGuard from '@/components/AdminGuard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -135,6 +136,7 @@ export default function WebhooksPage() {
   };
 
   return (
+    <AdminGuard>
     <div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
@@ -378,5 +380,6 @@ export default function WebhooksPage() {
         </div>
       )}
     </div>
+    </AdminGuard>
   );
 }
