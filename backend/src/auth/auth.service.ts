@@ -9,9 +9,13 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import * as nodemailer from 'nodemailer';
+import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+
+const REFRESH_TOKEN_TTL_DAYS = 30;
+const REFRESH_COOKIE = 'np_refresh';
 
 @Injectable()
 export class AuthService {
@@ -29,32 +33,23 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto) {
-    // Registration is only allowed during initial setup (no users exist)
     const setupRequired = await this.isSetupRequired();
     if (!setupRequired) {
       throw new ConflictException('Setup already completed. Use the admin panel to manage users.');
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-
     const user = await this.prisma.user.create({
       data: { email: dto.email, password: hashedPassword },
       select: { id: true, email: true, role: true, createdAt: true },
     });
 
-    // Return token immediately — same shape as login()
-    const token = this.jwtService.sign({ sub: user.id, email: user.email });
-
-    return {
-      access_token: token,
-      user: { id: user.id, email: user.email, role: user.role },
-    };
+    const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+    return { access_token, user: { id: user.id, email: user.email, role: user.role } };
   }
 
-  async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+  async login(dto: LoginDto, res: Response) {
+    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
 
     // Always run bcrypt to prevent timing-based email enumeration
     const dummyHash = '$2b$10$invalidhashfortimingprotectiononly000000000000000000000';
@@ -66,30 +61,62 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const token = this.jwtService.sign({ sub: user.id, email: user.email });
+    const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+    await this.issueRefreshCookie(user.id, res);
 
-    return {
-      access_token: token,
-      user: { id: user.id, email: user.email, role: user.role },
-    };
+    return { access_token, user: { id: user.id, email: user.email, role: user.role } };
   }
 
   /**
-   * Generates a 15-minute password reset token and emails it to the user.
-   * Always returns 200 — never reveals whether the email exists (prevents enumeration).
+   * Validates the HttpOnly refresh token cookie, rotates it, and returns a
+   * fresh short-lived access token. Uses token rotation — each refresh issues
+   * a new refresh token and invalidates the old one.
    */
+  async refresh(refreshToken: string, res: Response): Promise<{ access_token: string }> {
+    const record = await (this.prisma as any).refreshToken.findUnique({
+      where: { token: refreshToken },
+    });
+
+    if (!record || new Date(record.expiresAt) < new Date()) {
+      this.clearRefreshCookie(res);
+      throw new UnauthorizedException('Refresh token expired or invalid — please log in again');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: record.userId } });
+    if (!user) {
+      this.clearRefreshCookie(res);
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Rotate: delete old token, issue new one
+    await (this.prisma as any).refreshToken.delete({ where: { id: record.id } });
+    await this.issueRefreshCookie(user.id, res);
+
+    const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+    return { access_token };
+  }
+
+  async logout(refreshToken: string | undefined, res: Response): Promise<{ message: string }> {
+    if (refreshToken) {
+      await (this.prisma as any).refreshToken.deleteMany({ where: { token: refreshToken } });
+    }
+    this.clearRefreshCookie(res);
+    return { message: 'Logged out' };
+  }
+
+  // ── Password reset ──────────────────────────────────────────────────────────
+
   async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (user) {
-      // Invalidate any existing unused tokens for this user
       await (this.prisma as any).passwordResetToken.updateMany({
         where: { userId: user.id, used: false },
         data: { used: true },
       });
 
       const token = randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
       await (this.prisma as any).passwordResetToken.create({
         data: { userId: user.id, token, expiresAt },
@@ -102,9 +129,6 @@ export class AuthService {
     return { message: 'If that email exists, a reset link has been sent.' };
   }
 
-  /**
-   * Validates the reset token and updates the user's password.
-   */
   async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
     const record = await (this.prisma as any).passwordResetToken.findUnique({ where: { token } });
 
@@ -113,25 +137,36 @@ export class AuthService {
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
-
-    await this.prisma.user.update({
-      where: { id: record.userId },
-      data: { password: hashed },
-    });
-
-    await (this.prisma as any).passwordResetToken.update({
-      where: { id: record.id },
-      data: { used: true },
-    });
+    await this.prisma.user.update({ where: { id: record.userId }, data: { password: hashed } });
+    await (this.prisma as any).passwordResetToken.update({ where: { id: record.id }, data: { used: true } });
 
     return { message: 'Password updated successfully' };
   }
 
+  // ── Private helpers ─────────────────────────────────────────────────────────
+
+  private async issueRefreshCookie(userId: number, res: Response): Promise<void> {
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
+
+    await (this.prisma as any).refreshToken.create({ data: { userId, token, expiresAt } });
+
+    res.cookie(REFRESH_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: expiresAt,
+      path: '/api/auth',  // scoped — only sent to auth endpoints
+    });
+  }
+
+  private clearRefreshCookie(res: Response): void {
+    res.clearCookie(REFRESH_COOKIE, { path: '/api/auth' });
+  }
+
   private async sendResetEmail(to: string, resetUrl: string): Promise<void> {
     const smtpHost = process.env.SMTP_HOST;
-
     if (!smtpHost) {
-      // SMTP not configured — log for development convenience
       this.logger.warn(`[Password Reset] No SMTP configured. Reset URL for ${to}: ${resetUrl}`);
       return;
     }
@@ -149,8 +184,8 @@ export class AuthService {
       from: process.env.SMTP_FROM ?? `NodePress <noreply@${smtpHost}>`,
       to,
       subject: 'Reset your NodePress password',
-      text: `Click the link below to reset your password (expires in 15 minutes):\n\n${resetUrl}\n\nIf you did not request this, ignore this email.`,
-      html: `<p>Click the link below to reset your password (expires in 15 minutes):</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you did not request this, ignore this email.</p>`,
+      text: `Reset link (expires in 15 minutes):\n\n${resetUrl}\n\nIf you did not request this, ignore this email.`,
+      html: `<p>Click to reset your password (expires in 15 minutes):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
     });
   }
 }

@@ -18,7 +18,8 @@
       "Bash(npx prisma:*)",
       "Bash(grep -n 'prisma as any' /d/xampp/htdocs/nodepress/backend/src/**/*.ts)",
       "Bash(node_modules/.bin/jest --passWithNoTests)",
-      "Bash(npx jest:*)"
+      "Bash(npx jest:*)",
+      "Bash(2)"
     ]
   }
 }

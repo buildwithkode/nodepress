@@ -6,6 +6,14 @@ const logger = new Logger('ImageOptimizer');
 
 const MAX_PX = parseInt(process.env.MEDIA_MAX_DIMENSION ?? '2400', 10);
 
+/**
+ * Concurrency gate: max 3 simultaneous sharp operations.
+ * Beyond this we skip optimization and return null so the upload still succeeds.
+ * The libuv thread pool is set to 16 (in main.ts) to prevent pool starvation.
+ */
+let activeOptimizations = 0;
+const MAX_CONCURRENT_OPTIMIZATIONS = 3;
+
 export interface OptimizedImage {
   /** Path to the optimized original file (replaces the Multer temp file in-place) */
   path: string;
@@ -42,6 +50,14 @@ export async function optimizeImage(
   localPath: string,
   mimetype: string,
 ): Promise<OptimizedImage | null> {
+  if (activeOptimizations >= MAX_CONCURRENT_OPTIMIZATIONS) {
+    logger.warn(
+      `Image optimization skipped for ${basename(localPath)}: too many concurrent operations (${activeOptimizations}/${MAX_CONCURRENT_OPTIMIZATIONS})`,
+    );
+    return null;
+  }
+
+  activeOptimizations++;
   try {
     // Dynamic import — works in both CJS (sharp@0.32) and ESM (sharp@0.33)
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -120,5 +136,7 @@ export async function optimizeImage(
     }
 
     return null;
+  } finally {
+    activeOptimizations--;
   }
 }

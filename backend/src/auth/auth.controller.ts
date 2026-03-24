@@ -1,11 +1,9 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Response, Res } from '@nestjs/common';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
+  ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiCookieAuth,
 } from '@nestjs/swagger';
+import { Response as ExpressResponse } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -18,34 +16,50 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // setup-status is called on every page load — skip throttle to avoid false 429s
   @SkipThrottle()
   @Get('setup-status')
   @ApiOperation({ summary: 'Check if initial setup is required (no admin exists yet)' })
   @ApiResponse({ status: 200, description: '{ required: boolean }' })
   async setupStatus() {
-    const required = await this.authService.isSetupRequired();
-    return { required };
+    return { required: await this.authService.isSetupRequired() };
   }
 
-  // 5 attempts per minute — prevents automated account creation
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('register')
   @ApiOperation({ summary: 'Create the first admin account (only works during initial setup)' })
-  @ApiResponse({ status: 201, description: 'Admin created, returns JWT token' })
+  @ApiResponse({ status: 201, description: 'Admin created, returns JWT access token' })
   @ApiResponse({ status: 409, description: 'Setup already completed' })
-  register(@Body() dto: RegisterDto) {
+  register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: ExpressResponse) {
     return this.authService.register(dto);
   }
 
-  // 10 attempts per minute — brute force protection on login
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Post('login')
-  @ApiOperation({ summary: 'Login and receive a JWT token' })
-  @ApiResponse({ status: 200, description: 'Returns access_token and user info' })
+  @ApiOperation({ summary: 'Login — returns a short-lived access token and sets an HttpOnly refresh cookie' })
+  @ApiResponse({ status: 200, description: 'Returns access_token (15 min) + sets np_refresh cookie (30 days)' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: ExpressResponse) {
+    return this.authService.login(dto, res);
+  }
+
+  @SkipThrottle()
+  @Post('refresh')
+  @ApiCookieAuth('np_refresh')
+  @ApiOperation({ summary: 'Exchange the HttpOnly refresh cookie for a new access token (rotates the refresh token)' })
+  @ApiResponse({ status: 200, description: 'Returns new access_token' })
+  @ApiResponse({ status: 401, description: 'Refresh token missing, expired, or invalid' })
+  refresh(@Request() req, @Res({ passthrough: true }) res: ExpressResponse) {
+    const token = req.cookies?.['np_refresh'];
+    if (!token) throw new (require('@nestjs/common').UnauthorizedException)('No refresh token');
+    return this.authService.refresh(token, res);
+  }
+
+  @SkipThrottle()
+  @Post('logout')
+  @ApiOperation({ summary: 'Invalidate the refresh token and clear the cookie' })
+  @ApiResponse({ status: 200, description: 'Logged out' })
+  logout(@Request() req, @Res({ passthrough: true }) res: ExpressResponse) {
+    return this.authService.logout(req.cookies?.['np_refresh'], res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -58,16 +72,13 @@ export class AuthController {
     return req.user;
   }
 
-  // 5 attempts per minute — prevents email enumeration fishing
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request a password reset email (always returns 200)' })
-  @ApiResponse({ status: 200, description: 'Reset link sent if email exists' })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto.email);
   }
 
-  // 5 attempts per minute — prevents token brute-force
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('reset-password')
   @ApiOperation({ summary: 'Reset password using a token from the reset email' })

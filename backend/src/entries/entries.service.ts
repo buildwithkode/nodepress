@@ -105,15 +105,21 @@ export class EntriesService {
       where.deletedAt = null;
     }
 
-    // Full-text search: match on slug or data text representation
+    // Full-text search using PostgreSQL GIN index (tsvector + websearch_to_tsquery).
+    // Replaces the previous LIKE table-scan — uses the entries_fts_idx GIN index.
     if (query.search && query.search.trim()) {
-      const term = `%${query.search.trim()}%`;
-      const matches = await this.prisma.$queryRaw<{ id: number }[]>`
-        SELECT id FROM entries
-        WHERE LOWER(slug) LIKE LOWER(${term})
-           OR LOWER(data::text) LIKE LOWER(${term})
-      `;
-      where.id = { in: matches.map((m) => m.id) };
+      const term = query.search.trim();
+      try {
+        const matches = await this.prisma.$queryRaw<{ id: number }[]>`
+          SELECT id FROM entries
+          WHERE to_tsvector('simple', slug || ' ' || COALESCE(data::text, ''))
+                @@ websearch_to_tsquery('simple', ${term})
+        `;
+        where.id = { in: matches.length > 0 ? matches.map((m) => m.id) : [-1] };
+      } catch {
+        // Invalid query syntax — return empty result rather than crashing
+        where.id = { in: [-1] };
+      }
     }
 
     const [total, entries] = await Promise.all([

@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model ContentType {
@@ -95,6 +96,24 @@ model Media {
 
 // ─── Webhooks ────────────────────────────────────────────────────────────────
 
+model WebhookDelivery {
+  id             Int       @id @default(autoincrement())
+  webhookId      Int
+  event          String
+  payload        Json
+  status         String    @default("pending")  // pending | delivered | failed
+  attempts       Int       @default(0)
+  nextRetryAt    DateTime?                       // null = done (delivered or max retries hit)
+  responseStatus Int?                           // HTTP status from recipient
+  errorMessage   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@index([webhookId])
+  @@map("webhook_deliveries")
+}
+
 model Webhook {
   id        Int      @id @default(autoincrement())
   name      String
@@ -124,6 +143,19 @@ model AuditLog {
   @@index([resource, resourceId])
   @@index([userId])
   @@map("audit_logs")
+}
+
+// ─── Refresh Tokens ───────────────────────────────────────────────────────────
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique              // 64 hex chars (32 random bytes)
+  expiresAt DateTime                      // 30 days from creation
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 // ─── Password Reset ───────────────────────────────────────────────────────────

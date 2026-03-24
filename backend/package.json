@@ -20,7 +20,14 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": { "esModuleInterop": true } }]
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "esModuleInterop": true
+          }
+        }
+      ]
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s",
@@ -46,11 +53,13 @@
     "@nestjs/terminus": "^11.1.1",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "^5.22.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/nodemailer": "^7.0.11",
     "@types/sanitize-html": "^2.16.1",
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.0.0",
     "helmet": "^8.1.0",
     "nodemailer": "^8.0.3",
