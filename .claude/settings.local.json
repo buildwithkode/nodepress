@@ -20,7 +20,8 @@
       "Bash(node_modules/.bin/jest --passWithNoTests)",
       "Bash(npx jest:*)",
       "Bash(2)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(cat /d/xampp/htdocs/nodepress/backend/src/content-type/dto/*.ts)"
     ]
   }
 }

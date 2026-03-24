@@ -38,6 +38,19 @@ export class WebhooksController {
     );
   }
 
+  @SkipThrottle()
+  @Get('deliveries')
+  @ApiOperation({ summary: 'List webhook delivery log (admin)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findDeliveries(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.webhooksService.findDeliveries(
+      undefined,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 25,
+    );
+  }
+
   @Patch(':id/toggle')
   @ApiOperation({ summary: 'Enable or disable a webhook (admin)' })
   @ApiParam({ name: 'id', type: Number })

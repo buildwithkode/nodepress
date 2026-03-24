@@ -83,10 +83,10 @@ describe('Content Types (e2e)', () => {
     expect(res.body.some((ct: any) => ct.name === 'blog')).toBe(true);
   });
 
-  it('GET /api/content-types → 401 without auth', async () => {
+  it('GET /api/content-types → public — no auth required', async () => {
     await request(app.getHttpServer())
       .get('/api/content-types')
-      .expect(401);
+      .expect(200);
   });
 
   // ── Update ────────────────────────────────────────────────────────────────────
@@ -97,9 +97,9 @@ describe('Content Types (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         schema: [
-          { name: 'title',    type: 'text', required: true },
-          { name: 'body',     type: 'richtext', required: false },
-          { name: 'category', type: 'select', required: false, options: ['tech', 'news'] },
+          { name: 'title',    type: 'text',     required: true },
+          { name: 'body',     type: 'richtext',  required: false },
+          { name: 'featured', type: 'boolean',   required: false },
         ],
       })
       .expect(200);
