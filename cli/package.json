@@ -1,15 +1,22 @@
 {
   "name": "nodepress",
-  "version": "1.0.0",
-  "description": "NodePress CLI — scaffold and manage your self-hosted headless CMS",
-  "keywords": ["cms", "headless", "nestjs", "nextjs", "nodepress"],
+  "version": "1.0.1",
+  "description": "NodePress CLI — scaffold a self-hosted headless CMS in one command",
+  "keywords": ["cms", "headless", "nestjs", "nextjs", "nodepress", "self-hosted"],
   "license": "MIT",
+  "author": "leo9karthik",
+  "homepage": "https://gitlab.com/leo9karthik/nodepress",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/leo9karthik/nodepress.git"
+  },
   "bin": {
     "nodepress": "./bin/nodepress.js"
   },
   "files": [
     "bin/",
-    "src/"
+    "src/",
+    "README.md"
   ],
   "engines": {
     "node": ">=18.0.0"

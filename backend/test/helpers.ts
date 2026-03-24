@@ -1,6 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
@@ -27,8 +27,11 @@ export async function cleanDatabase(app: INestApplication) {
   await prisma.$executeRawUnsafe(`DELETE FROM "entries"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "content_types"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "audit_logs"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "webhook_deliveries"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "webhooks"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "api_keys"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "password_reset_tokens"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "refresh_tokens"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "users"`);
 }
 

@@ -75,7 +75,8 @@ module.exports = async function createProject(name) {
   ok('Repository cloned');
 
   // Remove git history (this is a fresh project, not a fork)
-  run(`rm -rf .git`, projectDir);
+  // Use fs.rmSync for cross-platform support (rm -rf fails on Windows)
+  fs.rmSync(path.join(projectDir, '.git'), { recursive: true, force: true });
   run(`git init`, projectDir);
   ok('Fresh git repository initialized');
 
@@ -84,11 +85,13 @@ module.exports = async function createProject(name) {
   const jwtSecret  = secret(48);
 
   // ── Write backend .env ─────────────────────────────────────────────────────
+  const dbUrl = `postgresql://postgres:${dbPassword}@localhost:5432/nodepress`;
   const backendEnv = {
-    DATABASE_URL:  `postgresql://postgres:${dbPassword}@localhost:5432/nodepress`,
+    // Database — DIRECT_URL bypasses PgBouncer for migrations (same as DATABASE_URL in local dev)
+    DATABASE_URL:  dbUrl,
+    DIRECT_URL:    dbUrl,
     PORT:          '3000',
     JWT_SECRET:    jwtSecret,
-    JWT_EXPIRES_IN:'7d',
     CORS_ORIGIN:   'http://localhost:5173',
     APP_URL:       'http://localhost:3000',
     SITE_URL:      'http://localhost:5173',
