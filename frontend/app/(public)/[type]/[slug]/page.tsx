@@ -23,10 +23,29 @@ export async function generateMetadata({
   params: { type: string; slug: string };
 }): Promise<Metadata> {
   const entry = await getEntry(params.type, params.slug);
-  const title =
-    entry?.data?.title || entry?.data?.name || params.slug;
+  if (!entry) return { title: 'Not Found' };
+
+  const fallbackTitle = entry.data?.title || entry.data?.name || params.slug;
+  const title = entry.seo?.title || fallbackTitle;
+  const description = entry.seo?.description || entry.data?.description || entry.data?.excerpt || undefined;
+  const image = entry.seo?.image || entry.data?.image || undefined;
+
   return {
     title: `${title} | NodePress`,
+    description,
+    robots: entry.seo?.noIndex ? 'noindex, nofollow' : 'index, follow',
+    openGraph: {
+      title,
+      description,
+      ...(image ? { images: [{ url: image, width: 1200, height: 630 }] } : {}),
+      type: 'article',
+    },
+    twitter: {
+      card: image ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
   };
 }
 

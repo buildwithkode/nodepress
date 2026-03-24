@@ -1,99 +1,162 @@
 import {
   Injectable,
+  Inject,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
-import { existsSync, readdirSync, unlinkSync, statSync } from 'fs';
-import { join, resolve, basename } from 'path';
+import { existsSync, statSync } from 'fs';
+import { basename, resolve, join } from 'path';
+import { PrismaService } from '../prisma/prisma.service';
+import { STORAGE_ADAPTER, StorageAdapter } from './adapters/storage.adapter';
+import { optimizeImage, isOptimizableImage } from './image-optimizer';
+import { AuditService } from '../audit/audit.service';
+import { WebhooksService } from '../webhooks/webhooks.service';
 
 @Injectable()
 export class MediaService {
+  private readonly logger = new Logger(MediaService.name);
   private readonly uploadsDir = resolve(join(process.cwd(), 'uploads'));
 
-  getFileUrl(filename: string): string {
-    return `${process.env.APP_URL || 'http://localhost:3000'}/uploads/${filename}`;
-  }
+  constructor(
+    private prisma: PrismaService,
+    @Inject(STORAGE_ADAPTER) private storage: StorageAdapter,
+    private auditService: AuditService,
+    private webhooks: WebhooksService,
+  ) {}
 
   /**
-   * Validate that a filename is safe — no path traversal, no subdirectories.
-   * Returns the resolved absolute path only if it's inside uploadsDir.
+   * Process an upload from Multer:
+   * 1. Optimize image if applicable (resize + WebP generation)
+   * 2. Save to storage backend (local or S3)
+   * 3. Persist metadata to DB
    */
-  private safeResolvePath(filename: string): string {
-    // Reject if filename contains path separators or dots that look like traversal
-    if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      throw new BadRequestException('Invalid filename');
-    }
+  async processUpload(
+    file: Express.Multer.File,
+    actor?: { id: number; email: string; ip?: string },
+  ) {
+    if (!file) throw new BadRequestException('No file uploaded');
 
-    // Only allow the base name — strip any directory components
-    const safe = basename(filename);
-    const resolved = resolve(join(this.uploadsDir, safe));
+    let width: number | undefined;
+    let height: number | undefined;
+    let finalSize = file.size;
+    let webpFilename: string | undefined;
+    let webpUrl: string | undefined;
 
-    // Final guard: resolved path must start with uploadsDir
-    if (!resolved.startsWith(this.uploadsDir + require('path').sep) &&
-        resolved !== this.uploadsDir) {
-      throw new BadRequestException('Invalid filename');
-    }
+    // ── Image optimization ────────────────────────────────────────────────
+    if (isOptimizableImage(file.mimetype)) {
+      const optimized = await optimizeImage(file.path, file.mimetype);
+      if (optimized) {
+        width = optimized.width;
+        height = optimized.height;
+        finalSize = optimized.size;
 
-    return resolved;
-  }
-
-  processUpload(file: any) {
-    if (!file) {
-      throw new BadRequestException('No file uploaded');
-    }
-
-    return {
-      url: this.getFileUrl(file.filename),
-      filename: file.filename,
-      originalName: file.originalname,
-      size: file.size,
-      mimetype: file.mimetype,
-    };
-  }
-
-  findAll() {
-    if (!existsSync(this.uploadsDir)) return [];
-
-    const files = readdirSync(this.uploadsDir).filter(
-      (f) => f !== '.gitkeep',
-    );
-
-    const result = [];
-
-    for (const filename of files) {
-      const filePath = join(this.uploadsDir, filename);
-
-      try {
-        const stats = statSync(filePath);
-
-        // Skip directories
-        if (stats.isDirectory()) continue;
-
-        result.push({
-          filename,
-          url: this.getFileUrl(filename),
-          size: stats.size,
-          createdAt: stats.birthtime,
-        });
-      } catch {
-        // File was deleted between readdir and statSync — skip it
-        continue;
+        // Upload WebP sibling if it was generated and has non-zero size
+        if (optimized.webpSize > 0 && existsSync(optimized.webpPath)) {
+          const webpName = basename(optimized.webpPath);
+          webpUrl = await this.storage.save(
+            optimized.webpPath,
+            webpName,
+            'image/webp',
+          );
+          webpFilename = webpName;
+        }
       }
     }
 
-    return result;
+    // ── Save original to storage ──────────────────────────────────────────
+    const url = await this.storage.save(file.path, file.filename, file.mimetype);
+
+    // ── Persist metadata to DB ────────────────────────────────────────────
+    const record = await (this.prisma as any).media.create({
+      data: {
+        filename: file.filename,
+        webpFilename: webpFilename ?? null,
+        url,
+        webpUrl: webpUrl ?? null,
+        originalName: file.originalname,
+        mimetype: file.mimetype,
+        size: finalSize,
+        width: width ?? null,
+        height: height ?? null,
+        uploadedBy: actor?.id ?? null,
+      },
+    });
+
+    if (actor) {
+      await this.auditService.log(
+        { id: actor.id, email: actor.email, ip: actor.ip },
+        'created', 'media', file.filename,
+        { size: finalSize, width, height },
+      );
+    }
+
+    this.webhooks.fire('media.uploaded', {
+      filename: file.filename,
+      originalName: file.originalname,
+      url,
+      webpUrl: webpUrl ?? null,
+      size: finalSize,
+      width: width ?? null,
+      height: height ?? null,
+    });
+
+    return record;
   }
 
-  remove(filename: string) {
-    // Validate and resolve safe path — throws BadRequestException on traversal
-    const filePath = this.safeResolvePath(filename);
+  async findAll(page = 1, limit = 50) {
+    const skip = (page - 1) * limit;
+    const [total, data] = await Promise.all([
+      (this.prisma as any).media.count(),
+      (this.prisma as any).media.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
 
-    if (!existsSync(filePath)) {
+  async remove(filename: string, actor?: { id: number; email: string; ip?: string }) {
+    // Validate — no path traversal
+    if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      throw new BadRequestException('Invalid filename');
+    }
+    const safe = basename(filename);
+
+    // Find record in DB
+    const record = await (this.prisma as any).media.findUnique({ where: { filename: safe } });
+
+    // Also check filesystem for local uploads that predate Phase 4 (no DB record)
+    const localPath = join(this.uploadsDir, safe);
+    const existsLocally = existsSync(localPath);
+
+    if (!record && !existsLocally) {
       throw new NotFoundException(`File "${filename}" not found`);
     }
 
-    unlinkSync(filePath);
+    // Delete from storage
+    await this.storage.delete(safe);
 
-    return { message: `File "${filename}" deleted successfully` };
+    // Delete WebP sibling if it exists
+    if (record?.webpFilename) {
+      await this.storage.delete(record.webpFilename);
+    }
+
+    // Remove DB record
+    if (record) {
+      await (this.prisma as any).media.delete({ where: { filename: safe } });
+    }
+
+    if (actor) {
+      await this.auditService.log(
+        { id: actor.id, email: actor.email, ip: actor.ip },
+        'deleted', 'media', safe,
+      );
+    }
+
+    this.webhooks.fire('media.deleted', { filename: safe });
+
+    return { message: `File "${filename}" deleted` };
   }
 }

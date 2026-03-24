@@ -20,17 +20,36 @@ model ContentType {
 }
 
 model Entry {
-  id            Int         @id @default(autoincrement())
-  publicId      String      @unique @default(uuid())   // public-facing UUID v4 — exposed as "id" in API
+  id            Int            @id @default(autoincrement())
+  publicId      String         @unique @default(uuid())   // public-facing UUID v4 — exposed as "id" in API
   slug          String
+  status        String         @default("published")       // draft | published | archived
   data          Json
-  contentType   ContentType @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+  contentType   ContentType    @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
   contentTypeId Int
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  seo           Json?                                      // { title?, description?, image?, noIndex? }
+  publishAt     DateTime?                                  // if set and in the past → auto-published by cron
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?                                  // null = active; set on soft delete
+  versions      EntryVersion[]
 
   @@unique([contentTypeId, slug])
   @@map("entries")
+}
+
+model EntryVersion {
+  id        Int      @id @default(autoincrement())
+  entryId   Int
+  slug      String
+  data      Json
+  status    String
+  createdBy Int?     // userId who triggered the update
+  createdAt DateTime @default(now())
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId, createdAt])
+  @@map("entry_versions")
 }
 
 model User {
@@ -53,6 +72,58 @@ model ApiKey {
   lastUsedAt  DateTime?
 
   @@map("api_keys")
+}
+
+// ─── Media Library ───────────────────────────────────────────────────────────
+
+model Media {
+  id           Int      @id @default(autoincrement())
+  filename     String   @unique              // stored filename / S3 key
+  webpFilename String?                       // WebP version key (images only)
+  url          String                        // public URL
+  webpUrl      String?                       // WebP version URL
+  originalName String                        // original upload filename
+  mimetype     String
+  size         Int                           // bytes (after optimization)
+  width        Int?                          // pixels (images only)
+  height       Int?                          // pixels (images only)
+  uploadedBy   Int?                          // userId
+  createdAt    DateTime @default(now())
+
+  @@map("media")
+}
+
+// ─── Webhooks ────────────────────────────────────────────────────────────────
+
+model Webhook {
+  id        Int      @id @default(autoincrement())
+  name      String
+  url       String
+  secret    String?  // HMAC-SHA256 signing key — sent as X-NodePress-Signature header
+  events    Json     // string[] e.g. ["entry.created","entry.updated","*"]
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("webhooks")
+}
+
+// ─── Audit Log ───────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?                         // null if action done via API key
+  userEmail  String
+  action     String                       // created | updated | deleted | restored | login
+  resource   String                       // entry | content_type | user | api_key | form | media
+  resourceId String                       // slug, id, or name identifying the record
+  metadata   Json?                        // optional context (e.g. changed fields)
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([resource, resourceId])
+  @@index([userId])
+  @@map("audit_logs")
 }
 
 // ─── Forms Module ────────────────────────────────────────────────────────────

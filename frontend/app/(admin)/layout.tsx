@@ -17,6 +17,9 @@ import {
   ArrowRight,
   BookOpen,
   ClipboardList,
+  Users,
+  ScrollText,
+  Zap,
 } from 'lucide-react';
 
 const navGroups = [
@@ -38,7 +41,15 @@ const navGroups = [
   {
     label: 'Developer',
     items: [
-      { href: '/api-keys', label: 'API Keys', icon: Key },
+      { href: '/api-keys',   label: 'API Keys',   icon: Key },
+      { href: '/webhooks',   label: 'Webhooks',   icon: Zap },
+      { href: '/audit-log',  label: 'Audit Log',  icon: ScrollText },
+    ],
+  },
+  {
+    label: 'Team',
+    items: [
+      { href: '/users', label: 'Users', icon: Users },
     ],
   },
   {
@@ -118,13 +129,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
           <div className="mb-4 px-1">
             <p className="text-sm font-bold text-sidebar-foreground truncate">
-              Super Admin
+              {user?.email?.split('@')[0] ?? 'User'}
             </p>
             <p className="text-xs text-muted-foreground truncate mt-0.5">
               {user?.email ?? '—'}
             </p>
-            <span className="inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded border border-yellow-500/60 text-yellow-400 font-semibold">
-              Admin
+            <span className={`inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
+              user?.role === 'admin'
+                ? 'border-yellow-500/60 text-yellow-400'
+                : user?.role === 'editor'
+                ? 'border-blue-500/60 text-blue-400'
+                : 'border-muted-foreground/40 text-muted-foreground'
+            }`}>
+              {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Viewer'}
             </span>
           </div>
           <Button

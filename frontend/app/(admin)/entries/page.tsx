@@ -41,10 +41,16 @@ function truncate(val: any, max = 60): string {
   return str.length > max ? str.slice(0, max) + '…' : str;
 }
 
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  published: { label: 'Published', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' },
+  draft:     { label: 'Draft',     className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' },
+  archived:  { label: 'Archived',  className: 'bg-muted text-muted-foreground' },
+};
+
 interface Field { name: string; type: string; options?: any }
 interface ContentType { id: number; name: string; schema: Field[] }
 interface Entry {
-  id: number; slug: string; contentTypeId: number;
+  id: number; slug: string; status: string; contentTypeId: number;
   data: Record<string, any>; createdAt: string; updatedAt: string;
 }
 
@@ -75,8 +81,8 @@ export default function EntriesPage() {
         setContentTypes(cts);
         const counts = await Promise.all(
           cts.map((ct) =>
-            api.get('/entries', { params: { contentTypeId: ct.id } })
-              .then((r) => ({ id: ct.id, count: r.data.length }))
+            api.get('/entries', { params: { contentTypeId: ct.id, limit: 1 } })
+              .then((r) => ({ id: ct.id, count: r.data.meta?.total ?? 0 }))
               .catch(() => ({ id: ct.id, count: 0 })),
           ),
         );
@@ -90,8 +96,8 @@ export default function EntriesPage() {
   useEffect(() => {
     if (!selectedCT) { setEntries([]); return; }
     setLoadingEntries(true);
-    api.get('/entries', { params: { contentTypeId: selectedCT.id } })
-      .then((res) => setEntries(res.data))
+    api.get('/entries', { params: { contentTypeId: selectedCT.id, limit: 100 } })
+      .then((res) => setEntries(res.data.data ?? res.data))
       .catch(() => toast.error('Failed to load entries'))
       .finally(() => setLoadingEntries(false));
   }, [selectedCT?.id]);
@@ -104,9 +110,10 @@ export default function EntriesPage() {
       await api.delete(`/entries/${id}`);
       toast.success('Entry deleted');
       if (selectedCT) {
-        const res = await api.get('/entries', { params: { contentTypeId: selectedCT.id } });
-        setEntries(res.data);
-        setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: res.data.length }));
+        const res = await api.get('/entries', { params: { contentTypeId: selectedCT.id, limit: 100 } });
+        const list = res.data.data ?? res.data;
+        setEntries(list);
+        setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: res.data.meta?.total ?? list.length }));
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Delete failed');
@@ -256,6 +263,7 @@ export default function EntriesPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Slug</TableHead>
+            <TableHead>Status</TableHead>
             {schemaColumns.map((col) => (
               <TableHead key={col.name}>
                 {col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
@@ -290,6 +298,16 @@ export default function EntriesPage() {
             <TableRow key={entry.id}>
               <TableCell>
                 <p className="font-medium text-foreground">{entry.slug}</p>
+              </TableCell>
+              <TableCell>
+                {(() => {
+                  const s = STATUS_LABELS[entry.status] ?? STATUS_LABELS.published;
+                  return (
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.className}`}>
+                      {s.label}
+                    </span>
+                  );
+                })()}
               </TableCell>
               {schemaColumns.map((col) => {
                 const val = entry.data[col.name];
@@ -352,7 +370,7 @@ export default function EntriesPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will permanently delete <strong>{entry.slug}</strong>. This action cannot be undone.
+                          <strong>{entry.slug}</strong> will be moved to trash. You can restore it from the API or permanently delete it later.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

@@ -1,4 +1,5 @@
 import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import {
   ApiTags,
   ApiOperation,
@@ -15,6 +16,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // setup-status is called on every page load — skip throttle to avoid false 429s
+  @SkipThrottle()
   @Get('setup-status')
   @ApiOperation({ summary: 'Check if initial setup is required (no admin exists yet)' })
   @ApiResponse({ status: 200, description: '{ required: boolean }' })
@@ -23,6 +26,8 @@ export class AuthController {
     return { required };
   }
 
+  // 5 attempts per minute — prevents automated account creation
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('register')
   @ApiOperation({ summary: 'Create the first admin account (only works during initial setup)' })
   @ApiResponse({ status: 201, description: 'Admin created, returns JWT token' })
@@ -31,6 +36,8 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  // 10 attempts per minute — brute force protection on login
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Post('login')
   @ApiOperation({ summary: 'Login and receive a JWT token' })
   @ApiResponse({ status: 200, description: 'Returns access_token and user info' })

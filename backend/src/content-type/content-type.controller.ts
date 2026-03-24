@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Body, Param, ParseIntPipe, UseGuards,
+  Body, Param, ParseIntPipe, UseGuards, Request,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -10,21 +10,37 @@ import { ContentTypeService } from './content-type.service';
 import { CreateContentTypeDto } from './dto/create-content-type.dto';
 import { UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AuditService } from '../audit/audit.service';
 
 @ApiTags('Content Types')
 @Controller('content-types')
 export class ContentTypeController {
-  constructor(private readonly contentTypeService: ContentTypeService) {}
+  constructor(
+    private readonly contentTypeService: ContentTypeService,
+    private readonly auditService: AuditService,
+  ) {}
 
-  @UseGuards(JwtAuthGuard)
+  // ─── Write routes — admin only ─────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post()
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Create a new content type' })
+  @ApiOperation({ summary: 'Create a new content type (admin only)' })
   @ApiResponse({ status: 201, description: 'Content type created' })
   @ApiResponse({ status: 409, description: 'Name already exists' })
-  create(@Body() dto: CreateContentTypeDto) {
-    return this.contentTypeService.create(dto);
+  async create(@Body() dto: CreateContentTypeDto, @Request() req: any) {
+    const ct = await this.contentTypeService.create(dto);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'created', 'content_type', ct.name,
+    );
+    return ct;
   }
+
+  // ─── Read routes — any authenticated or public ─────────────────────────────
 
   @Get()
   @ApiOperation({ summary: 'List all content types' })
@@ -36,8 +52,6 @@ export class ContentTypeController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a single content type by ID' })
   @ApiParam({ name: 'id', type: Number })
-  @ApiResponse({ status: 200, description: 'Content type found' })
-  @ApiResponse({ status: 404, description: 'Not found' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.contentTypeService.findOne(id);
   }
@@ -45,30 +59,42 @@ export class ContentTypeController {
   @Get(':id/form')
   @ApiOperation({ summary: 'Get the generated form structure for a content type' })
   @ApiParam({ name: 'id', type: Number })
-  @ApiResponse({ status: 200, description: 'Form structure with fields, widgets, and constraints' })
-  @ApiResponse({ status: 404, description: 'Not found' })
   getForm(@Param('id', ParseIntPipe) id: number) {
     return this.contentTypeService.getForm(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Put(':id')
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Update a content type' })
+  @ApiOperation({ summary: 'Update a content type (admin only)' })
   @ApiParam({ name: 'id', type: Number })
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateContentTypeDto,
+    @Request() req: any,
   ) {
-    return this.contentTypeService.update(id, dto);
+    const ct = await this.contentTypeService.update(id, dto);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'updated', 'content_type', ct.name,
+    );
+    return ct;
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Delete a content type and all its entries' })
+  @ApiOperation({ summary: 'Delete a content type and all its entries (admin only)' })
   @ApiParam({ name: 'id', type: Number })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.contentTypeService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const ct = await this.contentTypeService.findOne(id);
+    const result = await this.contentTypeService.remove(id);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'deleted', 'content_type', ct.name,
+    );
+    return result;
   }
 }

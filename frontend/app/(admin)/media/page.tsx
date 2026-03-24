@@ -23,7 +23,12 @@ import api from '../../../lib/axios';
 interface MediaFile {
   filename: string;
   url: string;
+  webpUrl?: string | null;
+  originalName: string;
+  mimetype: string;
   size: number;
+  width?: number | null;
+  height?: number | null;
   createdAt: string;
 }
 
@@ -51,7 +56,8 @@ export default function MediaPage() {
     setLoading(true);
     try {
       const res = await api.get('/media');
-      setFiles(res.data);
+      // Handle both legacy array and new paginated { data: [], meta: {} } format
+      setFiles(Array.isArray(res.data) ? res.data : (res.data.data ?? []));
     } catch {
       toast.error('Failed to load media files');
     } finally {
@@ -198,12 +204,17 @@ export default function MediaPage() {
               >
                 {/* Thumbnail */}
                 {isImage(file.filename) ? (
-                  <a href={file.url} target="_blank" rel="noopener noreferrer">
+                  <a href={file.url} target="_blank" rel="noopener noreferrer" className="relative block">
                     <img
                       src={file.url}
-                      alt={file.filename}
+                      alt={file.originalName || file.filename}
                       className="w-full h-36 object-cover block"
                     />
+                    {file.webpUrl && (
+                      <span className="absolute top-1.5 right-1.5 text-[9px] font-semibold bg-blue-600 text-white rounded px-1 py-0.5 leading-none">
+                        WebP
+                      </span>
+                    )}
                   </a>
                 ) : (
                   <div className="h-36 flex items-center justify-center bg-muted/50">
@@ -214,14 +225,21 @@ export default function MediaPage() {
                 {/* Info */}
                 <div className="p-2.5">
                   <p
-                    className="text-xs text-foreground truncate mb-1.5"
-                    title={file.filename}
+                    className="text-xs text-foreground truncate mb-1"
+                    title={file.originalName || file.filename}
                   >
-                    {file.filename}
+                    {file.originalName || file.filename}
                   </p>
-                  <span className="inline-block text-[10px] bg-secondary text-muted-foreground rounded px-1.5 py-0.5 mb-2">
-                    {formatSize(file.size)}
-                  </span>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    <span className="inline-block text-[10px] bg-secondary text-muted-foreground rounded px-1.5 py-0.5">
+                      {formatSize(file.size)}
+                    </span>
+                    {file.width && file.height && (
+                      <span className="inline-block text-[10px] bg-secondary text-muted-foreground rounded px-1.5 py-0.5">
+                        {file.width}×{file.height}
+                      </span>
+                    )}
+                  </div>
 
                   {/* Actions */}
                   <div className="flex gap-1.5">
@@ -229,13 +247,26 @@ export default function MediaPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => handleCopyUrl(file.url)}
-                      title="Copy URL"
+                      onClick={() => handleCopyUrl(file.webpUrl || file.url)}
+                      title={file.webpUrl ? 'Copy WebP URL' : 'Copy URL'}
                       className="flex-1 h-7 text-xs gap-1"
                     >
                       <Copy className="h-3 w-3" />
-                      Copy
+                      {file.webpUrl ? 'WebP' : 'Copy'}
                     </Button>
+
+                    {file.webpUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCopyUrl(file.url)}
+                        title="Copy original URL"
+                        className="h-7 text-xs px-2"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    )}
 
                     <AlertDialog>
                       <AlertDialogTrigger
@@ -254,8 +285,9 @@ export default function MediaPage() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete file?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            <span className="font-medium">{file.filename}</span> will be permanently
+                            <span className="font-medium">{file.originalName || file.filename}</span> will be permanently
                             deleted and cannot be recovered.
+                            {file.webpUrl && ' The WebP version will also be deleted.'}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
