@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ContentTypeModule } from './content-type/content-type.module';
@@ -18,6 +19,38 @@ import { SeoModule } from './seo/seo.module';
 
 @Module({
   imports: [
+    // ── Structured JSON logging (pino) ─────────────────────────────────────
+    // Logs every HTTP request with method, url, status, responseTime, requestId.
+    // In production (NODE_ENV=production): pure JSON → pipe to Datadog/Loki/CloudWatch.
+    // In development: pretty-printed via pino-pretty.
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+        // Generate a unique request ID for every request — returned in X-Request-Id response header.
+        genReqId: (req, res) => {
+          const existing = req.headers['x-request-id'];
+          const id = existing
+            ? String(existing)
+            : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+          res.setHeader('X-Request-Id', id);
+          return id;
+        },
+        // Strip verbose/noisy fields from logs
+        redact: {
+          paths: ['req.headers.authorization', 'req.headers["x-api-key"]'],
+          remove: true,
+        },
+        // In development: pretty-print with colours. In production: raw JSON.
+        transport: process.env.NODE_ENV !== 'production'
+          ? { target: 'pino-pretty', options: { colorize: true, singleLine: true, ignore: 'pid,hostname' } }
+          : undefined,
+        // Don't log health check polls — they're noisy
+        autoLogging: {
+          ignore: (req) => req.url === '/api/health',
+        },
+      },
+    }),
+
     ThrottlerModule.forRoot([
       {
         name: 'default',

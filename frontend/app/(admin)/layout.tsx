@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { canManageSettings } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -171,7 +172,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <ThemeToggle />
         </div>
         <div className="flex-1 bg-muted/20 p-4 md:p-6">
-          {children}
+          <ErrorBoundary label={pageTitle}>
+            {children}
+          </ErrorBoundary>
         </div>
       </main>
     </div>

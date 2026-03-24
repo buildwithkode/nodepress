@@ -36,6 +36,11 @@ model Entry {
   versions      EntryVersion[]
 
   @@unique([contentTypeId, slug])
+  @@index([contentTypeId])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([publishAt])
+  @@index([createdAt])
   @@map("entries")
 }
 
@@ -141,7 +146,9 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   @@index([resource, resourceId])
+  @@index([resource, createdAt(sort: Desc)])
   @@index([userId])
+  @@index([createdAt(sort: Desc)])
   @@map("audit_logs")
 }
 
@@ -196,5 +203,7 @@ model FormSubmission {
   ip        String?  // submitter IP (optional, for spam detection)
   createdAt DateTime @default(now())
 
+  @@index([formId])
+  @@index([formId, createdAt(sort: Desc)])
   @@map("form_submissions")
 }

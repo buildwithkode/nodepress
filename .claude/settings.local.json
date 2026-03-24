@@ -26,7 +26,16 @@
       "Bash(ls /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/audit-log/)",
       "Bash(head -5 /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/api-keys/page.tsx)",
       "Bash(head -5 /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/audit-log/page.tsx)",
-      "Bash(head -5 /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/webhooks/page.tsx)"
+      "Bash(head -5 /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/webhooks/page.tsx)",
+      "Bash(cat /d/xampp/htdocs/nodepress/.github/workflows/*.yml)",
+      "Bash(cat /d/xampp/htdocs/nodepress/backend/src/health/*.ts)",
+      "Bash(python -c \"import sys,json; p=json.load\\(sys.stdin\\); print\\(json.dumps\\({k: p[k] for k in [''''dependencies'''',''''devDependencies'''',''''scripts''''] if k in p}, indent=2\\)\\)\")",
+      "Bash(cat /d/xampp/htdocs/nodepress/backend/src/media/adapters/*.ts)",
+      "Bash(npm test:*)",
+      "Bash(ls /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/entries/)",
+      "Bash(wc -l /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/entries/new/page.tsx)",
+      "Bash(wc -l /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/entries/[id]/page.tsx)",
+      "Bash(xargs grep:*)"
     ]
   }
 }

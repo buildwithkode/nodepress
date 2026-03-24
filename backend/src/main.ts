@@ -2,22 +2,38 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+// Sentry MUST be initialised before any other import (instruments require() calls)
+import './instrument';
+
 // Increase libuv thread pool from the default 4 → 16.
 // Sharp (libvips) uses libuv threads for image encoding. Without this,
 // 4+ concurrent image uploads saturate the pool and stall all async I/O.
 process.env.UV_THREADPOOL_SIZE = '16';
 
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import helmet from 'helmet';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { SentryExceptionFilter } from './common/sentry-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    // Suppress NestJS's default logger — pino takes over after bootstrap
+    bufferLogs: true,
+  });
+
+  // Use pino as the application logger (replaces NestJS's default console logger)
+  app.useLogger(app.get(Logger));
+
+  // ─── Sentry global exception filter ───────────────────────────────────────
+  // Captures all 5xx errors and sends them to Sentry. No-op when SENTRY_DSN is unset.
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new SentryExceptionFilter(httpAdapter));
 
   // ─── Security headers (Helmet) ─────────────────────────────────────────────
   // Sets: X-Frame-Options, X-Content-Type-Options, HSTS, Referrer-Policy,

@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon } from 'lucide-react';
+import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,7 @@ export default function EditEntryPage() {
   const id = (params.id ?? '') as string;
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [entry, setEntry] = useState<Entry | null>(null);
   const [contentType, setContentType] = useState<ContentType | null>(null);
   const [status, setStatus] = useState<string>('published');
@@ -52,7 +54,44 @@ export default function EditEntryPage() {
   const [seoNoIndex, setSeoNoIndex] = useState(false);
   const [publishAt, setPublishAt] = useState('');
 
-  const { register, control, handleSubmit, reset, watch, formState: { errors } } = useForm<Record<string, any>>();
+  const { register, control, handleSubmit, reset, watch, getValues, formState: { errors } } = useForm<Record<string, any>>();
+
+  // ── Autosave ──────────────────────────────────────────────────────────────
+  const watchedValues = watch();
+
+  const autosaveFn = useCallback(async () => {
+    if (!entry) return;
+    setAutosaveStatus('saving');
+    try {
+      const values = getValues();
+      const { slug, ...rest } = values;
+      const seo = {
+        title: seoTitle.trim() || undefined,
+        description: seoDescription.trim() || undefined,
+        image: seoImage.trim() || undefined,
+        noIndex: seoNoIndex || undefined,
+      };
+      const hasSeo = Object.values(seo).some((v) => v !== undefined);
+      await api.put(`/entries/${entry.id}`, {
+        slug,
+        status,
+        data: rest,
+        seo: hasSeo ? seo : null,
+        publishAt: publishAt ? new Date(publishAt).toISOString() : null,
+      });
+      setAutosaveStatus('saved');
+      setTimeout(() => setAutosaveStatus('idle'), 2000);
+    } catch {
+      setAutosaveStatus('idle');
+    }
+  }, [entry, getValues, status, seoTitle, seoDescription, seoImage, seoNoIndex, publishAt]);
+
+  useAutosave(
+    JSON.stringify({ watchedValues, status, seoTitle, seoDescription, seoImage, seoNoIndex, publishAt }),
+    autosaveFn,
+    3000,      // 3-second debounce
+    !loading,  // only autosave after entry is fully loaded
+  );
 
   useEffect(() => {
     api.get(`/entries/${id}`)
@@ -124,8 +163,18 @@ export default function EditEntryPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Edit Entry{contentType ? ` — ${contentType.name}` : ''}</CardTitle>
-          <CardDescription>Slug is locked after creation. Change status to control visibility.</CardDescription>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <CardTitle>Edit Entry{contentType ? ` — ${contentType.name}` : ''}</CardTitle>
+              <CardDescription>Slug is locked after creation. Change status to control visibility.</CardDescription>
+            </div>
+            {autosaveStatus !== 'idle' && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 shrink-0">
+                <CloudIcon className="h-3.5 w-3.5" />
+                {autosaveStatus === 'saving' ? 'Saving…' : 'Saved'}
+              </span>
+            )}
+          </div>
         </CardHeader>
 
         <CardContent>

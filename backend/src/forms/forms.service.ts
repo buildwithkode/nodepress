@@ -34,11 +34,18 @@ export class FormsService {
     }
   }
 
-  findAll() {
-    return this.prisma.form.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { submissions: true } } },
-    });
+  async findAll(page = 1, limit = 50) {
+    const skip = (page - 1) * limit;
+    const [total, data] = await Promise.all([
+      this.prisma.form.count(),
+      this.prisma.form.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        include: { _count: { select: { submissions: true } } },
+      }),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   async findOne(id: number) {
@@ -87,11 +94,18 @@ export class FormsService {
     return form;
   }
 
-  findSubmissions(formId: number) {
-    return this.prisma.formSubmission.findMany({
-      where:   { formId },
-      orderBy: { createdAt: 'desc' },
-    });
+  async findSubmissions(formId: number, page = 1, limit = 50) {
+    const skip = (page - 1) * limit;
+    const [total, data] = await Promise.all([
+      this.prisma.formSubmission.count({ where: { formId } }),
+      this.prisma.formSubmission.findMany({
+        where:   { formId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   /** Recent submissions across all forms — used by the dashboard */
