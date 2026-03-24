@@ -1,0 +1,27 @@
+# NodePress — Development Docker Compose
+# Usage: docker-compose up -d
+# Starts PostgreSQL only; backend + frontend run with npm run dev locally.
+
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: nodepress_db
+    environment:
+      POSTGRES_DB:       nodepress
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

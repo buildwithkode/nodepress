@@ -1,18 +1,19 @@
 # Dependencies
 node_modules/
 
-# Environment variables
+# Environment variables — NEVER commit real secrets
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+backend/.env
+frontend/.env.local
 
 # Build output
-dist/
-build/
+backend/dist/
 frontend/.next/
+frontend/out/
 
-# Prisma
-backend/prisma/migrations/*.sql
+# Prisma migrations are safe to commit — do NOT ignore them
 
 # Uploads (keep folder, ignore files)
 backend/uploads/*

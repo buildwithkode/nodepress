@@ -1,0 +1,22 @@
+{
+  "name": "nodepress",
+  "version": "1.0.0",
+  "description": "NodePress — self-hosted headless CMS (NestJS + Next.js)",
+  "private": true,
+  "scripts": {
+    "dev:backend":  "cd backend && npm run start:dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build":        "cd backend && npm run build && cd ../frontend && npm run build",
+    "docker:dev":   "docker-compose up -d",
+    "docker:prod":  "docker-compose -f docker-compose.prod.yml up -d --build",
+    "docker:down":  "docker-compose down",
+    "migrate":      "cd backend && npx prisma migrate dev",
+    "studio":       "cd backend && npx prisma studio",
+    "install:all":  "cd backend && npm install && cd ../frontend && npm install && cd ../cli && npm install"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "cli"
+  ]
+}
