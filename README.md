@@ -3,7 +3,7 @@
   > Set up a headless CMS for your client in 10 minutes.
   > No Docker. No $99/mo. Just Node.js.
 
-  [Screenshot of admin panel]
+  <!-- [Screenshot of admin panel] -->
 
   ## Why NodePress?
 
