@@ -165,6 +165,10 @@ NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript
 ## Cloud version _(coming soon)_
 
 1-click deploy at [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com)
+
+## Documentation
+
+Full docs at [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
 $45/mo per project — no Docker, no server management, backups included.
 
 ---
