@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import Cookies from 'js-cookie';
+import api from '../lib/axios';
 
 interface User {
   id: number;
@@ -11,6 +12,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -20,29 +22,45 @@ const AuthContext = createContext<AuthContextType>(null!);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // On mount: if a valid access token cookie exists, fetch the canonical user
+  // from the server instead of trusting localStorage (which is XSS-readable).
   useEffect(() => {
-    const stored = localStorage.getItem('np_user');
-    if (stored) setUser(JSON.parse(stored));
+    const token = Cookies.get('np_token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    api
+      .get<User>('/auth/me')
+      .then((res) => setUser(res.data))
+      .catch(() => {
+        // Token is invalid or expired and refresh failed — clear auth state.
+        // The axios interceptor already handles the redirect to /login on 401.
+        Cookies.remove('np_token');
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const login = (token: string, newUser: User) => {
-    // Store token in cookie (readable by middleware)
+    // Store JWT in a cookie — readable by Next.js middleware for SSR route protection.
+    // The user object lives only in React state, never in localStorage.
     Cookies.set('np_token', token, { expires: 7, sameSite: 'strict' });
-    localStorage.setItem('np_user', JSON.stringify(newUser));
     setUser(newUser);
   };
 
   const logout = () => {
     Cookies.remove('np_token');
-    localStorage.removeItem('np_user');
     setUser(null);
+    // Ask the backend to clear the HttpOnly refresh cookie
+    api.post('/auth/logout').catch(() => {});
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated: !!user }}
-    >
+    <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

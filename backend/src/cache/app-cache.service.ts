@@ -19,6 +19,14 @@ export class AppCacheService implements OnModuleInit, OnModuleDestroy {
   private store  = new Map<string, MemoryEntry<unknown>>();
   private redis: import('ioredis').Redis | null = null;
 
+  private _redisAvailable = false;
+  private _redisError: string | null = null;
+
+  /** True when REDIS_URL is set and the connection is healthy */
+  get isRedisConnected(): boolean { return this._redisAvailable; }
+  /** Last Redis connection error, if any */
+  get lastRedisError(): string | null { return this._redisError; }
+
   async onModuleInit() {
     const url = process.env.REDIS_URL;
     if (!url) return;
@@ -31,9 +39,13 @@ export class AppCacheService implements OnModuleInit, OnModuleDestroy {
         enableReadyCheck: false,
       });
       await this.redis.connect();
+      this._redisAvailable = true;
+      this._redisError = null;
       this.logger.log('Cache: connected to Redis');
     } catch (err: any) {
-      this.logger.warn(`Cache: Redis connection failed (${err?.message}) — falling back to in-memory`);
+      this._redisAvailable = false;
+      this._redisError = err?.message ?? 'Unknown Redis error';
+      this.logger.warn(`Cache: Redis connection failed (${this._redisError}) — falling back to in-memory`);
       this.redis = null;
     }
   }

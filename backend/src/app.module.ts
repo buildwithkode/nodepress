@@ -20,6 +20,8 @@ import { AppCacheModule } from './cache/cache.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { HttpMetricsInterceptor } from './metrics/http-metrics.interceptor';
 import { ApiKeyRateLimitInterceptor } from './api-keys/api-key-rate-limit.interceptor';
+import { PluginModule } from './plugin/plugin.module';
+import { ENABLED_PLUGINS } from './plugin/plugins.config';
 
 @Module({
   imports: [
@@ -65,6 +67,9 @@ import { ApiKeyRateLimitInterceptor } from './api-keys/api-key-rate-limit.interc
 
     AppCacheModule,     // Global — AppCacheService available everywhere without re-importing
     MetricsModule,      // Global — Prometheus metrics + GET /api/metrics endpoint
+    PluginModule,       // Global — PluginRegistry + GET /api/plugins endpoint
+    // Dynamically import enabled plugin NestJS modules so their routes/services/listeners are wired in
+    ...ENABLED_PLUGINS.map((p) => p.module),
     PrismaModule,
     AuthModule,
     AuditModule,        // Global — AuditService available everywhere without re-importing

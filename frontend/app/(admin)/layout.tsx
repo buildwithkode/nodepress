@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
+import { usePlugins } from '../../context/PluginContext';
+import { PluginInitializer } from '@/components/PluginInitializer';
 import { canManageSettings } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -22,6 +24,7 @@ import {
   Users,
   ScrollText,
   Zap,
+  Puzzle,
 } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
@@ -69,10 +72,23 @@ const ALL_NAV_GROUPS = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { navItems: pluginNavItems } = usePlugins();
   const router = useRouter();
   const pathname = usePathname();
   const admin = canManageSettings(user?.role);
   const navGroups = ALL_NAV_GROUPS.filter((g) => !g.adminOnly || admin);
+
+  // Merge plugin-contributed nav items into a 'Plugins' group
+  const allNavGroups = pluginNavItems.length > 0
+    ? [
+        ...navGroups,
+        {
+          label: 'Plugins',
+          adminOnly: false,
+          items: pluginNavItems.map((item) => ({ ...item, icon: item.icon ?? Puzzle })),
+        },
+      ]
+    : navGroups;
 
   const [siteName, setSiteName] = useState('NodePress');
   useEffect(() => {
@@ -85,7 +101,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/login');
   };
 
-  const allNavItems = navGroups.flatMap((g) => g.items);
+  const allNavItems = allNavGroups.flatMap((g) => g.items);
   const pageTitle = allNavItems
     .slice()
     .sort((a, b) => b.href.length - a.href.length)
@@ -105,7 +121,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Nav groups */}
         <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
-          {navGroups.map((group) => (
+          <PluginInitializer />
+          {allNavGroups.map((group) => (
             <div key={group.label}>
               <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {group.label}

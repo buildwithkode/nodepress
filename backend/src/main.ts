@@ -2,6 +2,10 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+// Validate all env vars immediately — crashes loudly if anything is missing or malformed.
+// Import AFTER dotenv.config() so process.env is populated before Zod parses it.
+import { env } from './config/env';
+
 // Sentry MUST be initialised before any other import (instruments require() calls)
 import './instrument';
 
@@ -17,6 +21,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import helmet from 'helmet';
+import * as express from 'express';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { SentryExceptionFilter } from './common/sentry-exception.filter';
@@ -53,9 +58,43 @@ async function bootstrap() {
     }),
   );
 
+  // ─── Request body size limits ──────────────────────────────────────────────
+  // Prevents memory exhaustion via large JSON payloads.
+  // Multer enforces its own 10 MB limit on file uploads separately.
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '500kb' }));
+
+  // ─── Content-Type enforcement ──────────────────────────────────────────────
+  // Mutating requests (POST/PUT/PATCH/DELETE) must send application/json or
+  // multipart/form-data (for file uploads). This prevents CSRF via HTML form
+  // submission, since browsers cannot set application/json cross-origin without
+  // a CORS preflight that this server already restricts.
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const method = req.method;
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return next();
+
+    const ct = req.headers['content-type'] ?? '';
+    if (
+      ct.includes('application/json') ||
+      ct.includes('multipart/form-data') ||
+      ct.includes('application/x-www-form-urlencoded')
+    ) {
+      return next();
+    }
+
+    // Allow requests with no body (e.g. DELETE with empty body)
+    const contentLength = req.headers['content-length'];
+    if (!contentLength || contentLength === '0') return next();
+
+    res.status(415).json({ message: 'Unsupported Media Type' });
+  });
+
   // ─── CORS ──────────────────────────────────────────────────────────────────
+  // CORS_ORIGIN is now required — validated by env.ts at startup.
+  // Supports comma-separated origins: "https://app.com,https://staging.app.com"
+  const origins = env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean);
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: origins.length === 1 ? origins[0] : origins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
     credentials: true,
@@ -100,6 +139,7 @@ async function bootstrap() {
     .addTag('Media', 'File upload and management')
     .addTag('Forms', 'Dynamic form builder — create forms, collect submissions, trigger actions')
     .addTag('Health', 'System health and uptime check')
+    .addTag('Plugins', 'Registered plugin registry')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -107,7 +147,12 @@ async function bootstrap() {
     swaggerOptions: { persistAuthorization: true },
   });
 
-  const port = process.env.PORT || 3000;
+  // ─── Graceful shutdown ─────────────────────────────────────────────────────
+  // enableShutdownHooks() makes NestJS listen for SIGTERM/SIGINT and call
+  // OnModuleDestroy on all providers (PrismaService.$disconnect, Redis.quit, etc.)
+  app.enableShutdownHooks();
+
+  const port = env.PORT;
   await app.listen(port);
 
   console.log(`🚀 Server running on http://localhost:${port}/api`);

@@ -160,16 +160,27 @@ export class DynamicApiService {
       }),
     ]);
 
-    const data = await Promise.all(
-      entries.map(async (e) => {
-        let entryData = normalizeDataKeys(e.data as Record<string, any>);
-        if (needsRepeaterIds(entryData)) {
-          entryData = injectRepeaterIds(entryData);
-          await this.prisma.entry.update({ where: { id: e.id }, data: { data: entryData as any } });
-        }
-        return this.toPublicEntry(e, entryData);
-      }),
-    );
+    // Process repeater IDs in memory first, collect which entries need DB updates
+    const processed = entries.map((e) => {
+      let entryData = normalizeDataKeys(e.data as Record<string, any>);
+      if (needsRepeaterIds(entryData)) {
+        entryData = injectRepeaterIds(entryData);
+        return { e, entryData, needsUpdate: true };
+      }
+      return { e, entryData, needsUpdate: false };
+    });
+
+    // Batch all updates in a single transaction instead of N individual queries
+    const toUpdate = processed.filter((p) => p.needsUpdate);
+    if (toUpdate.length > 0) {
+      await this.prisma.$transaction(
+        toUpdate.map((p) =>
+          this.prisma.entry.update({ where: { id: p.e.id }, data: { data: p.entryData as any } }),
+        ),
+      );
+    }
+
+    const data = await Promise.all(processed.map(({ e, entryData }) => this.toPublicEntry(e, entryData)));
 
     const result: PaginatedResult<any> = { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
     await this.cache.set(cacheKey, result, LIST_TTL);

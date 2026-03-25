@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { AuthProvider } from '../context/AuthContext';
+import { PluginProvider } from '../context/PluginContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from 'sonner';
@@ -15,7 +16,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <TooltipProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <PluginProvider>
+              <AuthProvider>{children}</AuthProvider>
+            </PluginProvider>
             <Toaster richColors position="top-right" />
           </TooltipProvider>
         </ThemeProvider>

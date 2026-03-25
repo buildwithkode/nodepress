@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Param, Body, Query, BadRequestException, UseGuards,
+  Param, Body, Query, BadRequestException, UseGuards, UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -8,6 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { DynamicApiService } from './dynamic-api.service';
 import { JwtOrApiKeyGuard } from '../api-keys/jwt-or-api-key.guard';
+import { TimeoutInterceptor } from '../common/timeout.interceptor';
 
 @ApiTags('Dynamic API')
 @Controller()
@@ -15,6 +16,7 @@ export class DynamicApiController {
   constructor(private readonly dynamicApiService: DynamicApiService) {}
 
   @Get(':type')
+  @UseInterceptors(new TimeoutInterceptor(10_000))
   @ApiOperation({
     summary: 'List published entries for a content type (public)',
     description:
@@ -49,6 +51,7 @@ export class DynamicApiController {
   }
 
   @Get(':type/:slug')
+  @UseInterceptors(new TimeoutInterceptor(10_000))
   @ApiOperation({ summary: 'Get a single published entry by slug (public)' })
   @ApiParam({ name: 'type', example: 'blog' })
   @ApiParam({ name: 'slug', example: 'my-first-post' })

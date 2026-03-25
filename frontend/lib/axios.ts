@@ -52,7 +52,6 @@ api.interceptors.response.use(
 
       // Refresh failed — clear auth and redirect to login
       Cookies.remove('np_token');
-      localStorage.removeItem('np_user');
       window.location.href = '/login';
     }
 

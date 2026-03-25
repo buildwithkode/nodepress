@@ -133,16 +133,27 @@ export class EntriesService {
       }),
     ]);
 
-    const data = await Promise.all(
-      entries.map(async (e) => {
-        let entryData = e.data as Record<string, any>;
-        if (needsRepeaterIds(entryData)) {
-          entryData = injectRepeaterIds(entryData);
-          await this.prisma.entry.update({ where: { id: e.id }, data: { data: entryData as any } });
-        }
-        return { ...e, data: entryData };
-      }),
-    );
+    // Process repeater IDs: inject missing IDs and collect entries that need saving
+    const processed = entries.map((e) => {
+      let entryData = e.data as Record<string, any>;
+      if (needsRepeaterIds(entryData)) {
+        entryData = injectRepeaterIds(entryData);
+        return { entry: e, data: entryData, needsUpdate: true };
+      }
+      return { entry: e, data: entryData, needsUpdate: false };
+    });
+
+    // Batch all updates in a single transaction instead of N individual queries
+    const toUpdate = processed.filter((p) => p.needsUpdate);
+    if (toUpdate.length > 0) {
+      await this.prisma.$transaction(
+        toUpdate.map((p) =>
+          this.prisma.entry.update({ where: { id: p.entry.id }, data: { data: p.data as any } }),
+        ),
+      );
+    }
+
+    const data = processed.map(({ entry: e, data: entryData }) => ({ ...e, data: entryData }));
 
     return {
       data,

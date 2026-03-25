@@ -140,6 +140,9 @@ export class AuthService {
     await this.prisma.user.update({ where: { id: record.userId }, data: { password: hashed } });
     await (this.prisma as any).passwordResetToken.update({ where: { id: record.id }, data: { used: true } });
 
+    // Revoke all active sessions — stolen refresh tokens are no longer valid after a password reset
+    await (this.prisma as any).refreshToken.deleteMany({ where: { userId: record.userId } });
+
     return { message: 'Password updated successfully' };
   }
 
