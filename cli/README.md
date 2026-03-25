@@ -10,13 +10,33 @@ npx create-nodepress-app my-project
 
 ## Before you start — install these first
 
-You need three things installed on your computer before running the command above:
+You need three things installed on your computer before running the command above.
 
-| What | Why | Download |
-|---|---|---|
-| **Node.js 18+** | Runs NodePress | [nodejs.org](https://nodejs.org) |
-| **Git** | Downloads the source code | [git-scm.com](https://git-scm.com/downloads) |
-| **PostgreSQL 14+** | The database that stores your content | [postgresql.org](https://www.postgresql.org/download/) |
+**Already have all three? Skip to [After running the command](#after-running-the-command).**
+
+---
+
+### 1. Node.js 18+
+
+> **Already installed?** Run `node -v` in your terminal. If it shows `v18` or higher, skip to step 2.
+
+Download from [nodejs.org](https://nodejs.org) — install the **LTS** version.
+
+---
+
+### 2. Git
+
+> **Already installed?** Run `git --version` in your terminal. If it shows a version number, skip to step 3.
+
+Download from [git-scm.com/downloads](https://git-scm.com/downloads) — use the default options during install.
+
+---
+
+### 3. PostgreSQL 14+
+
+> **Already installed?** Skip to [After running the command](#after-running-the-command). Just make sure you remember the password you set for the `postgres` user during install.
+
+Download from [postgresql.org/download](https://www.postgresql.org/download/).
 
 > **PostgreSQL tip:** During installation, you will be asked to set a password for the `postgres` user. Write it down — you'll need it in step 2 below.
 

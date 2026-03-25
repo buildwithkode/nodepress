@@ -61,7 +61,7 @@ function MethodBadge({ m }: { m: string }) {
 // ─── Endpoint row ─────────────────────────────────────────────────────────────
 function Endpoint({ method, path, desc, auth }: { method: string; path: string; desc: string; auth?: boolean }) {
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-border last:border-0">
+    <div className="flex items-start gap-3 px-4 py-3 border-b border-border last:border-0">
       <MethodBadge m={method} />
       <div className="flex-1 min-w-0">
         <code className="text-sm font-mono text-foreground">{path}</code>
@@ -267,9 +267,17 @@ export default function DocsPage() {
 
           {/* ── Installation ──────────────────────────────────────────────── */}
           <Section id="installation" title="Installation — Step by Step" icon={Terminal}>
-            <p className="text-muted-foreground leading-relaxed mb-8">
+            <p className="text-muted-foreground leading-relaxed mb-6">
               Follow these steps in order. Each step takes only a few minutes. No prior coding experience required.
             </p>
+
+            {/* Quick check callout */}
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-8">
+              <p className="text-sm font-medium text-blue-400 mb-2">Already have some tools installed?</p>
+              <p className="text-xs text-muted-foreground mb-3">Run these commands in your terminal to check. If you see a version number, you can skip that step.</p>
+              <CodeBlock code={`node -v        # v18 or higher? → skip Step 1
+git --version  # any version?   → skip Step 2`} />
+            </div>
 
             {/* Step 1 — Node.js */}
             <div className="mb-8">
@@ -277,15 +285,18 @@ export default function DocsPage() {
                 <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">1</div>
                 <h3 className="font-semibold text-foreground">Install Node.js</h3>
               </div>
-              <p className="text-sm text-muted-foreground mb-3 ml-10">
-                Node.js is the engine that runs NodePress. Download and install version 18 or newer.
-              </p>
-              <div className="ml-10">
+              <div className="ml-10 space-y-3">
+                <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+                  <strong>Already installed?</strong> Run <IC>node -v</IC> in your terminal. If it shows <IC>v18</IC> or higher — skip to Step 2.
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Node.js is the engine that runs NodePress. Download and install version 18 or newer.
+                </p>
                 <a href="https://nodejs.org" target="_blank" rel="noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary border border-primary/30 rounded-lg px-4 py-2 hover:bg-primary/5 transition-colors">
                   <ExternalLink className="h-3.5 w-3.5" /> Download Node.js from nodejs.org
                 </a>
-                <p className="text-xs text-muted-foreground mt-2">After installing, verify it works by opening a terminal and running: <IC>node -v</IC> — it should print a version number like <IC>v22.0.0</IC></p>
+                <p className="text-xs text-muted-foreground">After installing, verify it works: <IC>node -v</IC> — it should print a version like <IC>v22.0.0</IC></p>
               </div>
             </div>
 
@@ -295,15 +306,18 @@ export default function DocsPage() {
                 <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">2</div>
                 <h3 className="font-semibold text-foreground">Install Git</h3>
               </div>
-              <p className="text-sm text-muted-foreground mb-3 ml-10">
-                Git is used to download the NodePress source code. You only need to install it — you don't need to know how to use it.
-              </p>
-              <div className="ml-10">
+              <div className="ml-10 space-y-3">
+                <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+                  <strong>Already installed?</strong> Run <IC>git --version</IC> in your terminal. If it shows a version number — skip to Step 3.
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Git is used to download the NodePress source code. You only need to install it — you don't need to know how to use it.
+                </p>
                 <a href="https://git-scm.com/downloads" target="_blank" rel="noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary border border-primary/30 rounded-lg px-4 py-2 hover:bg-primary/5 transition-colors">
                   <ExternalLink className="h-3.5 w-3.5" /> Download Git from git-scm.com
                 </a>
-                <p className="text-xs text-muted-foreground mt-2">On Windows: click Next through all the options, defaults are fine.</p>
+                <p className="text-xs text-muted-foreground">On Windows: click Next through all the options — the defaults are fine.</p>
               </div>
             </div>
 
@@ -313,10 +327,13 @@ export default function DocsPage() {
                 <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">3</div>
                 <h3 className="font-semibold text-foreground">Install PostgreSQL</h3>
               </div>
-              <p className="text-sm text-muted-foreground mb-3 ml-10">
-                PostgreSQL is the database where all your content is stored. Think of it as the filing cabinet behind the scenes.
-              </p>
               <div className="ml-10 space-y-3">
+                <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+                  <strong>Already installed?</strong> Make sure you remember the password you set for the <IC>postgres</IC> user — you'll need it in Step 5. Then skip to Step 4.
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  PostgreSQL is the database where all your content is stored. Think of it as the filing cabinet behind the scenes.
+                </p>
                 <a href="https://www.postgresql.org/download/" target="_blank" rel="noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary border border-primary/30 rounded-lg px-4 py-2 hover:bg-primary/5 transition-colors">
                   <ExternalLink className="h-3.5 w-3.5" /> Download PostgreSQL from postgresql.org

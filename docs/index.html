@@ -100,7 +100,15 @@
           </div>
           <h2 class="text-2xl font-bold text-white">Installation — Step by Step</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-8">Follow these steps in order. Each step takes only a few minutes. No prior coding experience required.</p>
+        <p class="text-zinc-400 leading-relaxed mb-6">Follow these steps in order. Each step takes only a few minutes. No prior coding experience required.</p>
+
+        <!-- Quick check -->
+        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-8">
+          <p class="text-sm font-medium text-blue-400 mb-1">Already have some tools installed?</p>
+          <p class="text-xs text-zinc-400 mb-3">Run these commands in your terminal to check. If you see a version number, you can skip that step.</p>
+          <div class="code-block" data-code="node -v        # v18 or higher? → skip Step 1
+git --version  # any version?   → skip Step 2"></div>
+        </div>
 
         <!-- Step 1: Node.js -->
         <div class="mb-8">
@@ -108,13 +116,16 @@
             <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">1</div>
             <h3 class="font-semibold text-white">Install Node.js</h3>
           </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">Node.js is the engine that runs NodePress. Download and install version 18 or newer.</p>
-            <a href="https://nodejs.org" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors mb-3">
+          <div class="ml-10 space-y-3">
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Already installed?</strong> Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> — if it shows <code class="text-pink-400 bg-zinc-800 px-1 rounded">v18</code> or higher, skip to Step 2.
+            </div>
+            <p class="text-sm text-zinc-400">Node.js is the engine that runs NodePress. Download and install version 18 or newer.</p>
+            <a href="https://nodejs.org" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               Download Node.js from nodejs.org
             </a>
-            <p class="text-xs text-zinc-500">After installing, open a terminal and run <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> — it should print a version like <code class="text-pink-400 bg-zinc-800 px-1 rounded">v22.0.0</code></p>
+            <p class="text-xs text-zinc-500">After installing, verify: <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> should print something like <code class="text-pink-400 bg-zinc-800 px-1 rounded">v22.0.0</code></p>
           </div>
         </div>
 
@@ -124,9 +135,12 @@
             <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">2</div>
             <h3 class="font-semibold text-white">Install Git</h3>
           </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">Git is used to download the NodePress source code. You only need to install it — no need to learn how to use it.</p>
-            <a href="https://git-scm.com/downloads" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors mb-3">
+          <div class="ml-10 space-y-3">
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Already installed?</strong> Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">git --version</code> — if it shows a version number, skip to Step 3.
+            </div>
+            <p class="text-sm text-zinc-400">Git is used to download the NodePress source code. You only need to install it — no need to learn how to use it.</p>
+            <a href="https://git-scm.com/downloads" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               Download Git from git-scm.com
             </a>
@@ -140,13 +154,16 @@
             <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">3</div>
             <h3 class="font-semibold text-white">Install PostgreSQL</h3>
           </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">PostgreSQL is the database where all your content is stored. Think of it as the filing cabinet behind the scenes.</p>
-            <a href="https://www.postgresql.org/download/" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors mb-3">
+          <div class="ml-10 space-y-3">
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Already installed?</strong> Make sure you remember the password you set for the <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> user — you'll need it in Step 5. Then skip to Step 4.
+            </div>
+            <p class="text-sm text-zinc-400">PostgreSQL is the database where all your content is stored. Think of it as the filing cabinet behind the scenes.</p>
+            <a href="https://www.postgresql.org/download/" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               Download PostgreSQL from postgresql.org
             </a>
-            <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mt-2">
+            <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm">
               <p class="text-amber-400 font-medium mb-2">⚠ Important during installation:</p>
               <ul class="text-zinc-400 text-xs space-y-1 list-disc list-inside">
                 <li>When asked to set a <strong class="text-zinc-200">password for the postgres user</strong>, write it down — you will need it in Step 5.</li>
