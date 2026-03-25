@@ -17,13 +17,25 @@ NodePress is the answer.
 
 ## Before you start
 
-Install these three things first:
+Install these three things first. **Already have all three? Skip to [Quick Start](#quick-start-recommended).**
 
-| What | Why | Download |
-|---|---|---|
-| **Node.js 18+** | Runs NodePress | [nodejs.org](https://nodejs.org) |
-| **Git** | Downloads the source code | [git-scm.com](https://git-scm.com/downloads) |
-| **PostgreSQL 14+** | The database | [postgresql.org](https://www.postgresql.org/download/) |
+### 1. Node.js 18+
+
+> **Already installed?** Run `node -v`. If it shows `v18` or higher, skip to step 2.
+
+Download from [nodejs.org](https://nodejs.org) — install the **LTS** version.
+
+### 2. Git
+
+> **Already installed?** Run `git --version`. If it shows a version number, skip to step 3.
+
+Download from [git-scm.com/downloads](https://git-scm.com/downloads) — use default options.
+
+### 3. PostgreSQL 14+
+
+> **Already installed?** Skip to [Quick Start](#quick-start-recommended). Just make sure you remember the password you set for the `postgres` user.
+
+Download from [postgresql.org/download](https://www.postgresql.org/download/).
 
 > **PostgreSQL tip:** During installation you'll be asked to set a password for the `postgres` user. Write it down — you'll need it below.
 
@@ -128,9 +140,12 @@ NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript
 
 ---
 
-## Documentation
+## Links
 
-Full docs: [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
+- **Documentation:** [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
+- **npm package:** [npmjs.com/package/create-nodepress-app](https://www.npmjs.com/package/create-nodepress-app)
+- **GitHub:** [github.com/buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)
+- **Issues:** [github.com/buildwithkode/nodepress/issues](https://github.com/buildwithkode/nodepress/issues)
 
 ---
 
