@@ -1,0 +1,8 @@
+# Only publish bin/ src/ README.md and package.json
+# Everything else is excluded
+
+*.log
+*.test.js
+*.spec.js
+.DS_Store
+node_modules/

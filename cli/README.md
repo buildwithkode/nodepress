@@ -1,9 +1,9 @@
-# NodePress CLI
+# create-nodepress-app
 
-Scaffold a self-hosted [NodePress](https://gitlab.com/leo9karthik/nodepress) headless CMS project in one command.
+Scaffold a self-hosted [NodePress](https://nodepress.buildwithkode.com) headless CMS project in one command.
 
 ```bash
-npx nodepress new my-cms
+npx create-nodepress-app my-cms
 ```
 
 ## What it does
@@ -22,15 +22,15 @@ npx nodepress new my-cms
 ## Usage
 
 ```bash
-npx nodepress new <project-name>
-npx nodepress --version
-npx nodepress --help
+npx create-nodepress-app <project-name>
+npx create-nodepress-app --version
+npx create-nodepress-app --help
 ```
 
 ## Quick start
 
 ```bash
-npx nodepress new my-cms
+npx create-nodepress-app my-cms
 cd my-cms
 
 # Option A — Docker (recommended)
@@ -47,6 +47,11 @@ cd frontend && npm run dev
 - API docs: `http://localhost:3000/api/docs`
 
 On first load the admin panel redirects to `/setup` where you create the first admin account.
+
+## Links
+
+- Website: [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com)
+- GitHub: [github.com/buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)
 
 ## License
 

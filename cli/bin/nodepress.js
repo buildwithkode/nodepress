@@ -7,17 +7,18 @@ const HELP = `
   NodePress CLI
 
   Usage:
-    npx nodepress new <project-name>   Scaffold a new NodePress project
-    npx nodepress --version            Show version
-    npx nodepress --help               Show this help
+    npx create-nodepress-app <project-name>   Scaffold a new NodePress project
+    npx create-nodepress-app --version        Show version
+    npx create-nodepress-app --help           Show this help
 
   Examples:
-    npx nodepress new my-website
-    npx nodepress new company-cms
+    npx create-nodepress-app my-website
+    npx create-nodepress-app company-cms
 `;
 
 switch (command) {
   case 'new':
+    // Legacy: npx create-nodepress-app new <name>
     require('../src/new')(args[0]);
     break;
   case '--version':
@@ -30,7 +31,12 @@ switch (command) {
     console.log(HELP);
     break;
   default:
-    console.error(`\n  Unknown command: "${command}"`);
-    console.log(HELP);
-    process.exit(1);
+    // Primary usage: npx create-nodepress-app <project-name>
+    if (!command.startsWith('-')) {
+      require('../src/new')(command);
+    } else {
+      console.error(`\n  Unknown option: "${command}"`);
+      console.log(HELP);
+      process.exit(1);
+    }
 }

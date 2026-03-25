@@ -5,7 +5,7 @@ const { randomBytes } = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const REPO_URL = 'https://gitlab.com/leo9karthik/nodepress.git';
+const REPO_URL = 'https://github.com/buildwithkode/nodepress.git';
 
 // ANSI colours (degrade gracefully if not supported)
 const c = {
@@ -162,6 +162,6 @@ module.exports = async function createProject(name) {
   log(`  ${c.cyan}API docs:${c.reset}     http://localhost:3000/api/docs`);
   log(`  ${c.cyan}Health check:${c.reset} http://localhost:3000/api/health`);
   log('');
-  log(`  ${c.dim}Docs: https://gitlab.com/leo9karthik/nodepress${c.reset}`);
+  log(`  ${c.dim}Docs: https://nodepress.buildwithkode.com${c.reset}`);
   log('');
 };
