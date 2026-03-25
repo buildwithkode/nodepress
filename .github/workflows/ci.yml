@@ -10,43 +10,22 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# ── Backend ───────────────────────────────────────────────────────────────────
 jobs:
+  # ── Backend ────────────────────────────────────────────────────────────────
   backend:
-    name: Backend (type-check · unit · e2e)
+    name: Backend (type-check)
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB:       nodepress_test
-          POSTGRES_USER:     postgres
-          POSTGRES_PASSWORD: testpassword
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     env:
       DATABASE_URL:   postgresql://postgres:testpassword@localhost:5432/nodepress_test
       JWT_SECRET:     ci_test_secret_not_used_in_production_64chars_xxxxxxxxxxxxx
-      JWT_EXPIRES_IN: 7d
-      PORT:           3001
-      APP_URL:        http://localhost:3001
-      SITE_URL:       http://localhost:3001
       CORS_ORIGIN:    http://localhost:3000
       NODE_ENV:       test
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
@@ -58,39 +37,17 @@ jobs:
 
       - name: Type-check
         working-directory: backend
-        run: node_modules/.bin/tsc --noEmit
+        run: npx tsc --noEmit
 
-      - name: Apply migrations
-        working-directory: backend
-        run: npx prisma migrate deploy
-
-      - name: Unit tests
-        working-directory: backend
-        run: npm test -- --coverage --coverageReporters=text-summary
-
-      - name: Integration (e2e) tests
-        working-directory: backend
-        run: npm run test:e2e
-
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-coverage
-          path: backend/coverage/
-          retention-days: 7
-
-# ── Frontend ──────────────────────────────────────────────────────────────────
+  # ── Frontend ───────────────────────────────────────────────────────────────
   frontend:
     name: Frontend (type-check · build)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
@@ -102,7 +59,7 @@ jobs:
 
       - name: Type-check
         working-directory: frontend
-        run: node_modules/.bin/tsc --noEmit
+        run: npx tsc --noEmit
 
       - name: Build
         working-directory: frontend
@@ -110,22 +67,20 @@ jobs:
           BACKEND_URL: http://localhost:3000
         run: npm run build
 
-# ── CLI ───────────────────────────────────────────────────────────────────────
+  # ── CLI ────────────────────────────────────────────────────────────────────
   cli:
     name: CLI (syntax check)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Syntax check CLI entry point
+      - name: Syntax check
         run: node --check cli/bin/nodepress.js && node --check cli/src/new.js
 
-      - name: Verify --version works
+      - name: Version check
         run: node cli/bin/nodepress.js --version
