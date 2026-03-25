@@ -48,7 +48,7 @@ jobs:
       - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
@@ -92,7 +92,7 @@ jobs:
       - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -122,7 +122,7 @@ jobs:
       - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Syntax check CLI entry point
         run: node --check cli/bin/nodepress.js && node --check cli/src/new.js
