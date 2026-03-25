@@ -36,7 +36,9 @@
       "Bash(wc -l /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/entries/new/page.tsx)",
       "Bash(wc -l /d/xampp/htdocs/nodepress/frontend/app/\\\\\\(admin\\\\\\)/entries/[id]/page.tsx)",
       "Bash(xargs grep:*)",
-      "Read(//c/Users/KARTIK/**)"
+      "Read(//c/Users/KARTIK/**)",
+      "Bash(npm version:*)",
+      "Bash(npm publish:*)"
     ]
   }
 }

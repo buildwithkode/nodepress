@@ -94,7 +94,17 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center px-4 py-12">
+    <div className="relative min-h-screen bg-[#0d0d0d] flex items-center justify-center px-4 py-12">
+
+      {/* Docs link */}
+      <a
+        href="/docs"
+        className="absolute top-4 right-4 flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Docs
+      </a>
+
       <div className="w-full max-w-sm">
 
         {/* Header */}
