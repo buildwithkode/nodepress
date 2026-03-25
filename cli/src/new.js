@@ -75,21 +75,31 @@ module.exports = async function createProject(name) {
   ok('Repository cloned');
 
   // Remove git history (this is a fresh project, not a fork)
-  // Use fs.rmSync for cross-platform support (rm -rf fails on Windows)
   fs.rmSync(path.join(projectDir, '.git'), { recursive: true, force: true });
   run(`git init`, projectDir);
   ok('Fresh git repository initialized');
+
+  // ── Remove dev-only files (not needed in a user project) ───────────────────
+  const devOnly = [
+    '.claude',        // Claude Code AI config
+    'CLAUDE.md',      // Claude Code instructions
+    'cli',            // The CLI tool itself
+    'scripts',        // Internal dev scripts
+    'package.json',   // Root package.json (not backend or frontend)
+    'package-lock.json',
+    'node_modules',
+  ];
+  for (const entry of devOnly) {
+    fs.rmSync(path.join(projectDir, entry), { recursive: true, force: true });
+  }
 
   // ── Generate secrets ───────────────────────────────────────────────────────
   const dbPassword = secret(24);
   const jwtSecret  = secret(48);
 
   // ── Write backend .env ─────────────────────────────────────────────────────
-  const dbUrl = `postgresql://postgres:${dbPassword}@localhost:5432/nodepress`;
   const backendEnv = {
-    // Database — DIRECT_URL bypasses PgBouncer for migrations (same as DATABASE_URL in local dev)
-    DATABASE_URL:  dbUrl,
-    DIRECT_URL:    dbUrl,
+    DATABASE_URL:  `postgresql://postgres:${dbPassword}@localhost:5432/nodepress`,
     PORT:          '3000',
     JWT_SECRET:    jwtSecret,
     CORS_ORIGIN:   'http://localhost:5173',

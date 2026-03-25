@@ -71,7 +71,6 @@ Open `backend/.env` and fill in these required values:
 
 ```env
 DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
-DIRECT_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
 JWT_SECRET="any-random-64-character-string"
 CORS_ORIGIN="http://localhost:5173"
 ```
