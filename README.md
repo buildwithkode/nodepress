@@ -15,103 +15,83 @@ NodePress is the answer.
 
 ---
 
-## Option A — One command (recommended)
+## Quick Start
 
 ```bash
 npx create-nodepress-app my-project
 ```
 
-This clones the repo, generates secrets, writes all `.env` files, and installs dependencies automatically.
+One command. Clones the repo, generates secrets, installs dependencies — done in under 10 minutes.
 
 > Requires Node.js 18+, Git, and PostgreSQL 14+ running locally.
 
-Skip to [step 4](#4-run-database-migrations) after running the above.
-
 ---
 
-## Option B — Manual setup
+## Manual Setup
 
 ### 1. Prerequisites
 
-Make sure you have the following installed:
-
 - [Node.js 18+](https://nodejs.org)
 - [Git](https://git-scm.com)
-- [PostgreSQL 14+](https://www.postgresql.org/download/) — running locally on port `5432`
-
-Verify:
+- [PostgreSQL 14+](https://www.postgresql.org/download/) running on port `5432`
 
 ```bash
-node -v       # should be v18 or higher
+node -v        # v18 or higher
 git --version
 psql --version
 ```
 
----
-
-### 2. Clone the repository
+### 2. Clone
 
 ```bash
 git clone https://github.com/buildwithkode/nodepress.git
 cd nodepress
 ```
 
----
+### 3. Configure environment
 
-### 3. Configure environment variables
-
-#### Backend
+**Backend:**
 
 ```bash
 cd backend
 cp .env.example .env
 ```
 
-Open `backend/.env` and fill in these required values:
+Edit `backend/.env` with your values:
 
 ```env
 DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
-JWT_SECRET="any-random-64-character-string"
+JWT_SECRET="paste-a-random-64-char-string-here"
 CORS_ORIGIN="http://localhost:5173"
 ```
 
-> **PostgreSQL password:** Use the password you set when installing PostgreSQL.
-> If you never set one, try `postgres` or leave it blank: `postgresql://postgres@localhost:5432/nodepress`
-
-Generate a JWT secret (run in terminal):
+Generate a JWT secret:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-#### Frontend
+> If your PostgreSQL has no password use: `postgresql://postgres@localhost:5432/nodepress`
+
+**Frontend:**
 
 ```bash
 cd ../frontend
 cp .env.local.example .env.local
 ```
 
-The default value works for local development:
+Default value works for local dev — no changes needed:
 
 ```env
 BACKEND_URL=http://localhost:3000
 ```
 
----
-
 ### 4. Install dependencies
 
 ```bash
-# Backend
-cd backend
-npm install
-
-# Frontend
-cd ../frontend
-npm install
+cd backend && npm install
+cd ../frontend && npm install
 ```
-
----
 
 ### 5. Run database migrations
 
@@ -120,11 +100,7 @@ cd backend
 npx prisma migrate dev
 ```
 
-This creates all the required tables in your PostgreSQL database.
-
-> If you get an authentication error, double-check the `DATABASE_URL` password in `backend/.env`.
-
----
+> Auth error? Double-check `DATABASE_URL` password in `backend/.env`.
 
 ### 6. Start the backend
 
@@ -133,43 +109,38 @@ cd backend
 npm run start:dev
 ```
 
-Backend runs at `http://localhost:3000`
-API docs: `http://localhost:3000/api/docs`
-Health check: `http://localhost:3000/api/health`
+- API: `http://localhost:3000/api`
+- API docs: `http://localhost:3000/api/docs`
+- Health: `http://localhost:3000/api/health`
 
----
-
-### 7. Start the frontend (new terminal)
+### 7. Start the frontend _(new terminal)_
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Admin panel runs at `http://localhost:5173`
-
----
+Admin panel: `http://localhost:5173`
 
 ### 8. First login
 
-Open `http://localhost:5173` — you will be redirected to `/setup`.
-
-Create your admin account (only works once — this is your owner account).
+Open `http://localhost:5173` — you'll be redirected to `/setup`.
+Create your admin account (first-time only).
 
 ---
 
 ## What you get
 
-- Visual content type builder (no code)
-- Auto-generated REST API
+- Visual content type builder — no code required
+- Auto-generated REST API for every content type
 - Media uploads with image optimization
-- API keys with rate limiting
-- Forms with submissions
+- API keys with per-key rate limiting
+- Forms with email and webhook actions
 - Webhooks with retry logic
 - Audit log and user management
 - Scheduled content publishing
 - Client-friendly admin panel
-- Self-hosted — your data, your server
+- 100% self-hosted — your data, your server
 
 ---
 
@@ -191,7 +162,7 @@ NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript
 
 ---
 
-## Cloud version (coming soon)
+## Cloud version _(coming soon)_
 
 1-click deploy at [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com)
 $45/mo per project — no Docker, no server management, backups included.
