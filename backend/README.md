@@ -2,10 +2,19 @@
 
 NestJS + PostgreSQL + Prisma REST API for the NodePress headless CMS.
 
-## Requirements
+> **New to NodePress?** Use the CLI instead: `npx create-nodepress-app my-project`
+> Full setup guide: [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
+
+---
+
+## Prerequisites
 
 - Node.js 18+
-- PostgreSQL 14+
+- PostgreSQL 14+ running locally on port `5432`
+  - Download: [postgresql.org/download](https://www.postgresql.org/download/)
+  - During install: write down the password you set for the `postgres` user
+
+---
 
 ## Setup
 
@@ -13,27 +22,40 @@ NestJS + PostgreSQL + Prisma REST API for the NodePress headless CMS.
 cp .env.example .env
 ```
 
-Edit `.env` with your values — three required fields:
+Open `.env` and fill in the three required fields:
 
 ```env
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/nodepress"
-JWT_SECRET="paste-a-random-64-char-string-here"
-CORS_ORIGIN="http://localhost:5173"
+# Use the password you set when installing PostgreSQL
+DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
+
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+JWT_SECRET=paste_a_64_char_random_string_here
+
+# The URL of your frontend/admin panel
+CORS_ORIGIN=http://localhost:5173
 ```
 
-Generate a JWT secret:
+> **Didn't set a PostgreSQL password?** Try: `postgresql://postgres@localhost:5432/nodepress`
 
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
+---
 
-## Install & run
+## Install & Run
 
 ```bash
 npm install
-npx prisma migrate dev     # create database tables
-npm run start:dev          # dev server with hot reload on :3000
+
+# Create database tables (run once)
+npx prisma migrate dev
+
+# Start development server
+npm run start:dev
 ```
+
+- API: `http://localhost:3000/api`
+- Swagger docs: `http://localhost:3000/api/docs`
+- Health check: `http://localhost:3000/api/health`
+
+---
 
 ## Commands
 
@@ -47,23 +69,25 @@ npm run start:dev          # dev server with hot reload on :3000
 | `npx prisma generate` | Regenerate Prisma client after schema changes |
 | `npx prisma studio` | Visual database browser |
 
-## API
-
-- Base URL: `http://localhost:3000/api`
-- Swagger docs: `http://localhost:3000/api/docs`
-- Health check: `http://localhost:3000/api/health`
+---
 
 ## Environment variables
 
-See `.env.example` for all available variables with descriptions.
+See `.env.example` for all available variables.
 
 **Required:**
-- `DATABASE_URL` — PostgreSQL connection string
-- `JWT_SECRET` — min 32 characters, used to sign auth tokens
-- `CORS_ORIGIN` — allowed origin for the admin panel
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JWT_SECRET` | Min 32 characters — signs auth tokens |
+| `CORS_ORIGIN` | Allowed frontend origin (no trailing slash) |
 
 **Optional:**
-- `PORT` — defaults to `3000`
-- `REDIS_URL` — enables shared Redis cache (in-memory by default)
-- `STORAGE_DRIVER` — `local` (default) or `s3`
-- `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` — for password reset emails
+
+| Variable | Description |
+|---|---|
+| `PORT` | Defaults to `3000` |
+| `REDIS_URL` | Enables shared Redis cache (in-memory by default) |
+| `STORAGE_DRIVER` | `local` (default) or `s3` |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | For password reset emails |

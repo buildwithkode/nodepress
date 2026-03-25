@@ -2,10 +2,17 @@
 
 Next.js 14 admin panel for the NodePress headless CMS.
 
-## Requirements
+> **New to NodePress?** Use the CLI instead: `npx create-nodepress-app my-project`
+> Full setup guide: [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
+
+---
+
+## Prerequisites
 
 - Node.js 18+
-- NodePress backend running on port `3000`
+- NodePress backend running on port `3000` (see `backend/README.md`)
+
+---
 
 ## Setup
 
@@ -19,12 +26,23 @@ Default value works for local development — no changes needed:
 BACKEND_URL=http://localhost:3000
 ```
 
-## Install & run
+---
+
+## Install & Run
 
 ```bash
 npm install
-npm run dev      # dev server on http://localhost:5173
+npm run dev      # admin panel at http://localhost:5173
 ```
+
+---
+
+## First login
+
+On first load you will be redirected to `/setup`.
+Create your admin account there — this only works once. After that the setup page is permanently disabled.
+
+---
 
 ## Commands
 
@@ -35,20 +53,12 @@ npm run dev      # dev server on http://localhost:5173
 | `npm run start` | Run production build |
 | `npx tsc --noEmit` | Type-check without building |
 
-## First login
-
-On first load you will be redirected to `/setup`.
-Create your admin account there — this only works once.
+---
 
 ## Environment variables
 
 | Variable | Required | Description |
 |---|---|---|
-| `BACKEND_URL` | Yes | Backend base URL — used by server components only. Client-side requests go through the `/api` proxy. |
+| `BACKEND_URL` | Yes | Backend base URL — used by Next.js server components only. Client-side requests go through the `/api` proxy in `next.config.js`. |
 
-## How API calls work
-
-- **Server components** use `BACKEND_URL` directly (set in `.env.local`)
-- **Client-side** requests go through the Next.js proxy: `/api/*` → `http://localhost:3000/api/*`
-
-In Docker/production the proxy is not used — set `BACKEND_URL` to the internal service URL (e.g. `http://backend:3000`).
+> In Docker/production set `BACKEND_URL=http://backend:3000` (internal service name).

@@ -15,117 +15,83 @@ NodePress is the answer.
 
 ---
 
-## Quick Start
+## Before you start
+
+Install these three things first:
+
+| What | Why | Download |
+|---|---|---|
+| **Node.js 18+** | Runs NodePress | [nodejs.org](https://nodejs.org) |
+| **Git** | Downloads the source code | [git-scm.com](https://git-scm.com/downloads) |
+| **PostgreSQL 14+** | The database | [postgresql.org](https://www.postgresql.org/download/) |
+
+> **PostgreSQL tip:** During installation you'll be asked to set a password for the `postgres` user. Write it down — you'll need it below.
+
+---
+
+## Quick Start (recommended)
 
 ```bash
 npx create-nodepress-app my-project
 ```
 
-One command. Clones the repo, generates secrets, installs dependencies — done in under 10 minutes.
+Then follow these steps:
 
-> Requires Node.js 18+, Git, and PostgreSQL 14+ running locally.
+### 1. Update the database password
 
----
-
-## Manual Setup
-
-### 1. Prerequisites
-
-- [Node.js 18+](https://nodejs.org)
-- [Git](https://git-scm.com)
-- [PostgreSQL 14+](https://www.postgresql.org/download/) running on port `5432`
-
-```bash
-node -v        # v18 or higher
-git --version
-psql --version
-```
-
-### 2. Clone
-
-```bash
-git clone https://github.com/buildwithkode/nodepress.git
-cd nodepress
-```
-
-### 3. Configure environment
-
-**Backend:**
-
-```bash
-cd backend
-cp .env.example .env
-```
-
-Edit `backend/.env` with your values:
+Open `my-project/backend/.env` in any text editor and update `DATABASE_URL` with your PostgreSQL password:
 
 ```env
 DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
-JWT_SECRET="paste-a-random-64-char-string-here"
-CORS_ORIGIN="http://localhost:5173"
 ```
 
-Generate a JWT secret:
+> Didn't set a password during PostgreSQL install? Try: `postgresql://postgres@localhost:5432/nodepress`
+
+### 2. Create database tables
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-> If your PostgreSQL has no password use: `postgresql://postgres@localhost:5432/nodepress`
-
-**Frontend:**
-
-```bash
-cd ../frontend
-cp .env.local.example .env.local
-```
-
-Default value works for local dev — no changes needed:
-
-```env
-BACKEND_URL=http://localhost:3000
-```
-
-### 4. Install dependencies
-
-```bash
-cd backend && npm install
-cd ../frontend && npm install
-```
-
-### 5. Run database migrations
-
-```bash
-cd backend
+cd my-project/backend
 npx prisma migrate dev
 ```
 
-> Auth error? Double-check `DATABASE_URL` password in `backend/.env`.
+> Auth error? The password in `DATABASE_URL` doesn't match your PostgreSQL password. Check step 1.
 
-### 6. Start the backend
+### 3. Start the backend
 
 ```bash
-cd backend
 npm run start:dev
 ```
 
-- API: `http://localhost:3000/api`
-- API docs: `http://localhost:3000/api/docs`
-- Health: `http://localhost:3000/api/health`
-
-### 7. Start the frontend _(new terminal)_
+### 4. Start the admin panel (new terminal)
 
 ```bash
-cd frontend
+cd my-project/frontend
 npm run dev
 ```
 
-Admin panel: `http://localhost:5173`
+### 5. Create your admin account
 
-### 8. First login
+Open `http://localhost:5173` → you'll be taken to the setup page. Enter your site name, email, and password. Done!
 
-Open `http://localhost:5173` — you'll be redirected to `/setup`.
-Create your admin account (first-time only).
+---
+
+## Manual Setup (clone from GitHub)
+
+```bash
+git clone https://github.com/buildwithkode/nodepress.git
+cd nodepress/backend
+cp .env.example .env
+# Edit .env — set DATABASE_URL, JWT_SECRET, CORS_ORIGIN
+npm install
+npx prisma migrate dev
+npm run start:dev
+
+# In a new terminal
+cd ../frontend
+cp .env.local.example .env.local
+npm install
+npm run dev
+```
 
 ---
 
@@ -162,13 +128,15 @@ NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript
 
 ---
 
+## Documentation
+
+Full docs: [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
+
+---
+
 ## Cloud version _(coming soon)_
 
 1-click deploy at [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com)
-
-## Documentation
-
-Full docs at [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
 $45/mo per project — no Docker, no server management, backups included.
 
 ---

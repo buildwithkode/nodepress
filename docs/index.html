@@ -47,9 +47,6 @@
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
           GitHub
         </a>
-        <a href="https://nodepress.buildwithkode.com" target="_blank" class="text-sm bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
-          Get Started
-        </a>
       </div>
     </div>
   </header>
@@ -101,44 +98,157 @@
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Installation</h2>
+          <h2 class="text-2xl font-bold text-white">Installation — Step by Step</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-8">Follow these steps in order. Each step takes only a few minutes. No prior coding experience required.</p>
+
+        <!-- Step 1: Node.js -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">1</div>
+            <h3 class="font-semibold text-white">Install Node.js</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">Node.js is the engine that runs NodePress. Download and install version 18 or newer.</p>
+            <a href="https://nodejs.org" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors mb-3">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Download Node.js from nodejs.org
+            </a>
+            <p class="text-xs text-zinc-500">After installing, open a terminal and run <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> — it should print a version like <code class="text-pink-400 bg-zinc-800 px-1 rounded">v22.0.0</code></p>
+          </div>
         </div>
 
-        <p class="text-zinc-400 leading-relaxed mb-6">
-          The fastest way to get NodePress running is the official CLI. One command scaffolds a full project
-          with randomised secrets, environment files, and dependency installation already done.
-        </p>
-
-        <h3 class="font-semibold mb-2 text-white">Requirements</h3>
-        <div class="flex flex-wrap gap-2 mb-6">
-          <span class="text-xs border border-zinc-700 rounded-full px-3 py-1 text-zinc-400">Node.js 18+</span>
-          <span class="text-xs border border-zinc-700 rounded-full px-3 py-1 text-zinc-400">Git</span>
-          <span class="text-xs border border-zinc-700 rounded-full px-3 py-1 text-zinc-400">PostgreSQL 14+</span>
+        <!-- Step 2: Git -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">2</div>
+            <h3 class="font-semibold text-white">Install Git</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">Git is used to download the NodePress source code. You only need to install it — no need to learn how to use it.</p>
+            <a href="https://git-scm.com/downloads" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors mb-3">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Download Git from git-scm.com
+            </a>
+            <p class="text-xs text-zinc-500">On Windows: click Next through all the options — the defaults are fine.</p>
+          </div>
         </div>
 
-        <h3 class="font-semibold mb-3 text-white">Create a new project</h3>
-        <div class="code-block" data-code="npx create-nodepress-app my-cms"></div>
-
-        <p class="text-sm text-zinc-400 mb-4">The CLI will automatically:</p>
-        <div class="space-y-2 mb-6">
-          <div class="flex gap-3 text-sm"><span class="font-medium text-white w-20 shrink-0">Clone</span><span class="text-zinc-400">Downloads NodePress from GitHub into a new folder.</span></div>
-          <div class="flex gap-3 text-sm"><span class="font-medium text-white w-20 shrink-0">Secrets</span><span class="text-zinc-400">Generates a cryptographically random JWT secret and database password.</span></div>
-          <div class="flex gap-3 text-sm"><span class="font-medium text-white w-20 shrink-0">Env files</span><span class="text-zinc-400">Writes <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">backend/.env</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">frontend/.env.local</code> with all values filled in.</span></div>
-          <div class="flex gap-3 text-sm"><span class="font-medium text-white w-20 shrink-0">Install</span><span class="text-zinc-400">Runs <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">npm install</code> in both backend and frontend.</span></div>
+        <!-- Step 3: PostgreSQL -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">3</div>
+            <h3 class="font-semibold text-white">Install PostgreSQL</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">PostgreSQL is the database where all your content is stored. Think of it as the filing cabinet behind the scenes.</p>
+            <a href="https://www.postgresql.org/download/" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors mb-3">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Download PostgreSQL from postgresql.org
+            </a>
+            <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mt-2">
+              <p class="text-amber-400 font-medium mb-2">⚠ Important during installation:</p>
+              <ul class="text-zinc-400 text-xs space-y-1 list-disc list-inside">
+                <li>When asked to set a <strong class="text-zinc-200">password for the postgres user</strong>, write it down — you will need it in Step 5.</li>
+                <li>Leave the port as <strong class="text-zinc-200">5432</strong> (the default).</li>
+                <li>PostgreSQL will run automatically in the background after installation.</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
-        <h3 class="font-semibold mb-3 text-white">After scaffolding</h3>
-        <div class="code-block" data-code="cd my-cms/backend
-npx prisma migrate dev   # create DB tables
-npm run start:dev        # backend on :3000
+        <!-- Step 4: Scaffold -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">4</div>
+            <h3 class="font-semibold text-white">Create your NodePress project</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">Open a terminal, navigate to the folder where you want your project, and run:</p>
+            <div class="code-block" data-code="npx create-nodepress-app my-cms"></div>
+            <p class="text-xs text-zinc-500 mt-2">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded">my-cms</code> with your project name. This downloads NodePress, generates secret keys, and installs all dependencies. Takes 2–5 minutes.</p>
+          </div>
+        </div>
 
-# In a new terminal
-cd my-cms/frontend
-npm run dev              # admin panel on :5173"></div>
+        <!-- Step 5: DATABASE_URL -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">5</div>
+            <h3 class="font-semibold text-white">Connect NodePress to your database</h3>
+          </div>
+          <div class="ml-10 space-y-3">
+            <p class="text-sm text-zinc-400">The CLI generates a random database password, but NodePress needs to connect to <em>your</em> PostgreSQL using the password you set in Step 3.</p>
+            <p class="text-sm text-zinc-400">Open <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">my-cms/backend/.env</code> in any text editor (Notepad is fine) and find this line:</p>
+            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/nodepress"'></div>
+            <p class="text-sm text-zinc-400">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">RANDOM_PASSWORD</code> with the password you set when installing PostgreSQL:</p>
+            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"'></div>
+            <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
+              <p class="text-blue-400 font-medium mb-1">What is DATABASE_URL?</p>
+              <p class="text-zinc-400 text-xs">It's the address NodePress uses to find and log into your database. <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> is the username, the part after <code class="text-pink-400 bg-zinc-800 px-1 rounded">:</code> is your password, <code class="text-pink-400 bg-zinc-800 px-1 rounded">localhost:5432</code> is where the database lives on your computer, and <code class="text-pink-400 bg-zinc-800 px-1 rounded">nodepress</code> is the database name that will be created automatically.</p>
+            </div>
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs text-zinc-400">
+              <strong class="text-zinc-200">Didn't set a password?</strong> Try leaving it out:<br/>
+              <code class="text-pink-400">DATABASE_URL="postgresql://postgres@localhost:5432/nodepress"</code>
+            </div>
+          </div>
+        </div>
 
-        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 mt-4">
-          <p class="text-sm text-zinc-300 font-medium mb-2">PostgreSQL password tip</p>
-          <p class="text-sm text-zinc-400">The CLI generates a random DB password but your local PostgreSQL has its own. Update <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">DATABASE_URL</code> in <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">backend/.env</code> to match your PostgreSQL password.</p>
+        <!-- Step 6: Migrate -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">6</div>
+            <h3 class="font-semibold text-white">Create the database tables</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">This command sets up all the tables NodePress needs. You only run this once.</p>
+            <div class="code-block" data-code="cd my-cms/backend
+npx prisma migrate dev"></div>
+            <div class="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300 mt-3">
+              <strong>Getting an authentication error?</strong> The password in DATABASE_URL doesn't match your PostgreSQL password. Go back to Step 5 and check it.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 7: Backend -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">7</div>
+            <h3 class="font-semibold text-white">Start the backend</h3>
+          </div>
+          <div class="ml-10">
+            <div class="code-block" data-code="cd my-cms/backend
+npm run start:dev"></div>
+            <p class="text-xs text-zinc-500 mt-2">The backend API is now running at <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:3000</code>. Keep this terminal open.</p>
+          </div>
+        </div>
+
+        <!-- Step 8: Frontend -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">8</div>
+            <h3 class="font-semibold text-white">Start the admin panel</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">Open a <strong class="text-white">new terminal window</strong> (keep the backend one running) and run:</p>
+            <div class="code-block" data-code="cd my-cms/frontend
+npm run dev"></div>
+            <p class="text-xs text-zinc-500 mt-2">Admin panel is now at <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:5173</code>. Keep this terminal open too.</p>
+          </div>
+        </div>
+
+        <!-- Step 9: First login -->
+        <div class="mb-4">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">9</div>
+            <h3 class="font-semibold text-white">Create your admin account</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">Open your browser and go to <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">http://localhost:5173</code>. You will be taken to the setup page automatically. Enter your site name, email, and a password.</p>
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-sm">
+              <p class="text-green-400 font-medium">🎉 You're done!</p>
+              <p class="text-zinc-400 text-xs mt-1">NodePress is running. You can now create content types, add entries, upload media, and start using the API. The setup page only appears once — it's disabled permanently after the first account is created.</p>
+            </div>
+          </div>
         </div>
       </section>
 
