@@ -3,6 +3,8 @@
 > Set up a headless CMS for your client in 10 minutes.
 > No Docker. No $99/mo. Just Node.js.
 
+[![Ko-fi](https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/buildwithkode)
+
 ## Why NodePress?
 
 You're a frontend developer. You build in React or Next.js.
