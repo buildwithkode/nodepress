@@ -158,4 +158,9 @@ $45/mo per project — no Docker, no server management, backups included.
 
 ## License
 
-MIT
+Copyright (c) 2026-present Karthik Paulraj / BuildWithKode. All Rights Reserved.
+
+NodePress is **proprietary software**. Source code is available for self-hosted use only.
+You may not copy, redistribute, sell, or claim this software as your own without written permission.
+
+See the [LICENSE](./LICENSE) file for full terms.

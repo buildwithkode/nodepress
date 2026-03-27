@@ -1,3 +1,7 @@
+// Copyright (c) 2026-present Karthik Paulraj / BuildWithKode. All Rights Reserved.
+// See LICENSE file in the project root for full license information.
+// Unauthorized copying, distribution, or modification is strictly prohibited.
+
 // Load environment variables FIRST — before any module is imported
 import * as dotenv from 'dotenv';
 dotenv.config();

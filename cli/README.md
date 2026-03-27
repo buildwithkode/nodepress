@@ -118,4 +118,9 @@ That's it — NodePress is running!
 
 ## License
 
-MIT
+Copyright (c) 2026-present Karthik Paulraj / BuildWithKode. All Rights Reserved.
+
+NodePress is proprietary software. Source code is available for self-hosted use only.
+You may not copy, redistribute, sell, or claim this software as your own without written permission.
+
+See the [full license](https://github.com/buildwithkode/nodepress/blob/main/LICENSE) for details.

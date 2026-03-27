@@ -1,0 +1,73 @@
+Copyright (c) 2026-present Karthik Paulraj / BuildWithKode. All Rights Reserved.
+
+NODEPRESS PROPRIETARY LICENSE
+
+This software and all associated source code, documentation, assets, and related
+materials (collectively, the "Software") are the exclusive intellectual property
+of Karthik Paulraj / BuildWithKode ("the Author").
+
+--------------------------------------------------------------------------------
+PERMISSIONS
+--------------------------------------------------------------------------------
+
+You ARE permitted to:
+
+  1. Use the Software for personal, internal, or commercial projects on your own
+     infrastructure (self-hosted use).
+  2. Read and study the source code for educational purposes.
+  3. Submit bug reports or contributions via the official repository.
+
+--------------------------------------------------------------------------------
+RESTRICTIONS
+--------------------------------------------------------------------------------
+
+You are NOT permitted to, without prior written permission from the Author:
+
+  1. Copy, reproduce, or distribute the Software or any substantial portion of
+     it, in source or compiled form, to any third party.
+  2. Publish, sublicense, sell, rent, lease, or otherwise transfer rights to the
+     Software.
+  3. Remove, alter, or obscure any copyright, trademark, or proprietary notices
+     in the Software.
+  4. Represent the Software, or any derivative of it, as your own original work.
+  5. Use the name "NodePress", "BuildWithKode", or the Author's name to endorse
+     or promote products derived from this Software without specific prior written
+     permission.
+  6. Create and distribute a competing product based on or derived from the
+     Software.
+  7. Use the Software as part of any software-as-a-service (SaaS) offering
+     provided to third parties without a separate commercial license agreement.
+
+--------------------------------------------------------------------------------
+CONTRIBUTIONS
+--------------------------------------------------------------------------------
+
+By submitting a contribution (pull request, patch, issue, or otherwise) to this
+repository, you agree that:
+
+  - Your contribution becomes the property of the Author.
+  - The Author may incorporate, modify, or use your contribution under this
+    license or any future license without additional permission or compensation.
+
+--------------------------------------------------------------------------------
+NO WARRANTY
+--------------------------------------------------------------------------------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE
+LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------------------------------------------------------------------------
+CONTACT
+--------------------------------------------------------------------------------
+
+For licensing inquiries, commercial use, or redistribution permission:
+
+  GitHub : https://github.com/buildwithkode
+  Website: https://nodepress.buildwithkode.com
+
+Any use of this Software not expressly permitted above constitutes copyright
+infringement and may be subject to civil and criminal penalties.

@@ -1,6 +1,8 @@
 {
   "name": "nodepress-frontend",
   "version": "1.0.0",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Karthik Paulraj / BuildWithKode <https://buildwithkode.com>",
   "scripts": {
     "dev": "next dev -p 5173",
     "build": "next build",

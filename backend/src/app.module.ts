@@ -1,3 +1,7 @@
+// Copyright (c) 2026-present Karthik Paulraj / BuildWithKode. All Rights Reserved.
+// See LICENSE file in the project root for full license information.
+// Unauthorized copying, distribution, or modification is strictly prohibited.
+
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
