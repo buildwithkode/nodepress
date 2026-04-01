@@ -41,7 +41,8 @@
       "Bash(npm publish:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(grep -E \"\\(module|controller|service\\)\\\\.ts$\")"
     ]
   }
 }
