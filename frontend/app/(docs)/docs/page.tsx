@@ -1754,7 +1754,7 @@ echo $result['slug'];`,
 
           {/* Footer note */}
           <div className="border-t border-border pt-8 mt-4 flex items-center justify-between text-xs text-muted-foreground">
-            <span>Copyright &copy; 2026-present Karthik Paulraj / BuildWithKode. All Rights Reserved. &mdash; <a href="https://github.com/buildwithkode/nodepress/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Proprietary License</a></span>
+            <span>Copyright &copy; 2026-present Karthik Paulraj / BuildWithKode. &mdash; <a href="https://github.com/buildwithkode/nodepress/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">MIT License</a></span>
             <div className="flex items-center gap-4">
               <a href="https://ko-fi.com/buildwithkode" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">☕ Support on Ko-fi</a>
               <Link href="/" className="flex items-center gap-1 hover:text-foreground transition-colors">

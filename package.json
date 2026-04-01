@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "NodePress — self-hosted headless CMS (NestJS + Next.js)",
   "private": true,
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "author": "Karthik Paulraj / BuildWithKode <https://buildwithkode.com>",
   "scripts": {
     "dev:backend":  "cd backend && npm run start:dev",

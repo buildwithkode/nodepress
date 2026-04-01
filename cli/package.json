@@ -10,7 +10,7 @@
     "nodepress",
     "self-hosted"
   ],
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "author": "Karthik Paulraj <karthik@buildwithkode.com>",
   "homepage": "https://nodepress.buildwithkode.com",
   "repository": {

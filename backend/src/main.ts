@@ -1,6 +1,5 @@
-// Copyright (c) 2026-present Karthik Paulraj / BuildWithKode. All Rights Reserved.
-// See LICENSE file in the project root for full license information.
-// Unauthorized copying, distribution, or modification is strictly prohibited.
+// Copyright (c) 2026-present Karthik Paulraj / BuildWithKode
+// Licensed under the MIT License. See LICENSE file in the project root for details.
 
 // Load environment variables FIRST — before any module is imported
 import * as dotenv from 'dotenv';

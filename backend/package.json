@@ -1,7 +1,7 @@
 {
   "name": "nodepress-backend",
   "version": "1.0.0",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "author": "Karthik Paulraj / BuildWithKode <https://buildwithkode.com>",
   "scripts": {
     "build": "nest build",
@@ -52,7 +52,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^7.3.0",
-    "@nestjs/terminus": "^11.1.1",
+    "@nestjs/terminus": "^10.0.0",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "^5.22.0",
     "@sentry/nestjs": "^10.45.0",
@@ -83,7 +83,7 @@
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
-    "@nestjs/testing": "^11.1.17",
+    "@nestjs/testing": "^10.0.0",
     "@types/bcrypt": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/multer": "^1.4.11",
