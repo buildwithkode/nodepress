@@ -1,7 +1,7 @@
 # NodePress — Headless CMS for Frontend Developers
 
 > Set up a headless CMS for your client in 10 minutes.
-> No Docker required. No $99/mo. Just Node.js.
+> No Docker required. No monthly fees. Just Node.js, PostgreSQL, and Git.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/create-nodepress-app)](https://www.npmjs.com/package/create-nodepress-app)
@@ -13,7 +13,7 @@
 You're a frontend developer. You build in React or Next.js.
 Your client needs to update their own content.
 You don't want to deal with WordPress.
-You can't justify $99/mo for Contentful.
+You can't justify $300/mo for Contentful.
 You tried Strapi and spent 4 hours on Docker.
 
 NodePress is the answer.
@@ -180,9 +180,9 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
 
 |                    | NodePress | Strapi   | Contentful |
 |--------------------|-----------|----------|------------|
-| Setup time         | 10 min    | 2–4 hrs  | 5 min      |
+| Setup time         | ~10 min*  | 2–4 hrs  | 5 min      |
 | Docker needed      | No        | Yes      | No         |
-| Price              | Free      | Free     | $300/mo    |
+| Price              | Free (self-hosted) | Free | $300/mo |
 | Self-hosted        | Yes       | Yes      | No         |
 | Client-friendly UI | Yes       | Mediocre | Yes        |
 
@@ -191,6 +191,8 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
 ## Tech Stack
 
 NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript
+
+> \* ~10 min assumes Node.js, PostgreSQL, and Git are already installed. First-time setup including prerequisites takes 20–30 min.
 
 ---
 
