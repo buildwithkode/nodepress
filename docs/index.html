@@ -182,8 +182,8 @@ git --version  # any version?   → skip Step 2"></div>
           </div>
           <div class="ml-10">
             <p class="text-sm text-zinc-400 mb-3">Open a terminal, navigate to the folder where you want your project, and run:</p>
-            <div class="code-block" data-code="npx create-nodepress-app my-cms"></div>
-            <p class="text-xs text-zinc-500 mt-2">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded">my-cms</code> with your project name. This downloads NodePress, generates secret keys, and installs all dependencies. Takes 2–5 minutes.</p>
+            <div class="code-block" data-code="npx create-nodepress-app my-project"></div>
+            <p class="text-xs text-zinc-500 mt-2">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded">my-project</code> with your project name. This downloads NodePress, generates secret keys, and installs all dependencies. Takes 2–5 minutes.</p>
           </div>
         </div>
 
@@ -195,7 +195,7 @@ git --version  # any version?   → skip Step 2"></div>
           </div>
           <div class="ml-10 space-y-3">
             <p class="text-sm text-zinc-400">The CLI generates a random database password, but NodePress needs to connect to <em>your</em> PostgreSQL using the password you set in Step 3.</p>
-            <p class="text-sm text-zinc-400">Open <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">my-cms/backend/.env</code> in any text editor (Notepad is fine) and find this line:</p>
+            <p class="text-sm text-zinc-400">Open <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">my-project/backend/.env</code> in any text editor (Notepad is fine) and find this line:</p>
             <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"'></div>
             <p class="text-sm text-zinc-400">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">RANDOM_PASSWORD</code> with the password you set when installing PostgreSQL:</p>
             <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"'></div>
@@ -218,7 +218,7 @@ git --version  # any version?   → skip Step 2"></div>
           </div>
           <div class="ml-10">
             <p class="text-sm text-zinc-400 mb-3">This command sets up all the tables NodePress needs. You only run this once.</p>
-            <div class="code-block" data-code="cd my-cms/backend
+            <div class="code-block" data-code="cd my-project/backend
 npx prisma migrate dev"></div>
             <div class="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300 mt-3">
               <strong>Getting an authentication error?</strong> The password in DATABASE_URL doesn't match your PostgreSQL password. Go back to Step 5 and check it.
@@ -233,7 +233,7 @@ npx prisma migrate dev"></div>
             <h3 class="font-semibold text-white">Start the backend</h3>
           </div>
           <div class="ml-10">
-            <div class="code-block" data-code="cd my-cms/backend
+            <div class="code-block" data-code="cd my-project/backend
 npm run start:dev"></div>
             <p class="text-xs text-zinc-500 mt-2">The backend API is now running at <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:3000</code>. Keep this terminal open.</p>
           </div>
@@ -247,7 +247,7 @@ npm run start:dev"></div>
           </div>
           <div class="ml-10">
             <p class="text-sm text-zinc-400 mb-3">Open a <strong class="text-white">new terminal window</strong> (keep the backend one running) and run:</p>
-            <div class="code-block" data-code="cd my-cms/frontend
+            <div class="code-block" data-code="cd my-project/frontend
 npm run dev"></div>
             <p class="text-xs text-zinc-500 mt-2">Admin panel is now at <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:5173</code>. Keep this terminal open too.</p>
           </div>
