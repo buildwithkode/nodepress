@@ -156,6 +156,9 @@ git --version  # any version?   → skip Step 2"></div>
           </div>
           <div class="ml-10 space-y-3">
             <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Have Docker?</strong> Skip this step and Step 5 — Docker will manage the database for you. Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose up -d</code> inside your project folder after Step 4.
+            </div>
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
               <strong>Already installed?</strong> Make sure you remember the password you set for the <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> user — you'll need it in Step 5. Then skip to Step 4.
             </div>
             <p class="text-sm text-zinc-400">PostgreSQL is the database where all your content is stored. Think of it as the filing cabinet behind the scenes.</p>
@@ -194,6 +197,9 @@ git --version  # any version?   → skip Step 2"></div>
             <h3 class="font-semibold text-white">Connect NodePress to your database</h3>
           </div>
           <div class="ml-10 space-y-3">
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Using Docker?</strong> Skip this step. Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose up -d</code> in your project folder instead — Docker manages the database password automatically.
+            </div>
             <p class="text-sm text-zinc-400">The CLI generates a random database password, but NodePress needs to connect to <em>your</em> PostgreSQL using the password you set in Step 3.</p>
             <p class="text-sm text-zinc-400">Open <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">my-project/backend/.env</code> in any text editor (Notepad is fine) and find this line:</p>
             <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"'></div>

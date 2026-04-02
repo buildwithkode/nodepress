@@ -338,6 +338,9 @@ git --version  # any version?   → skip Step 2`} />
                   className="inline-flex items-center gap-2 text-sm text-primary border border-primary/30 rounded-lg px-4 py-2 hover:bg-primary/5 transition-colors">
                   <ExternalLink className="h-3.5 w-3.5" /> Download PostgreSQL from postgresql.org
                 </a>
+                <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+                  <strong>Have Docker?</strong> Skip this step and Step 5 — Docker will manage the database for you. Run <IC>docker-compose up -d</IC> inside your project folder after Step 4.
+                </div>
                 <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm">
                   <strong className="text-amber-400">⚠ Important during installation:</strong>
                   <ul className="text-muted-foreground mt-2 space-y-1 list-disc list-inside text-xs">
@@ -359,8 +362,8 @@ git --version  # any version?   → skip Step 2`} />
                 Open a terminal (Command Prompt or Terminal), navigate to the folder where you want your project, and run:
               </p>
               <div className="ml-10">
-                <CodeBlock code={`npx create-nodepress-app my-cms`} />
-                <p className="text-xs text-muted-foreground mt-1">Replace <IC>my-cms</IC> with whatever you want to call your project. This command downloads NodePress, generates secret keys, and installs all dependencies automatically. It takes 2–5 minutes.</p>
+                <CodeBlock code={`npx create-nodepress-app my-project`} />
+                <p className="text-xs text-muted-foreground mt-1">Replace <IC>my-project</IC> with whatever you want to call your project. This command downloads NodePress, generates secret keys, and installs all dependencies automatically. It takes 2–5 minutes.</p>
               </div>
             </div>
 
@@ -371,11 +374,14 @@ git --version  # any version?   → skip Step 2`} />
                 <h3 className="font-semibold text-foreground">Connect NodePress to your database</h3>
               </div>
               <div className="ml-10 space-y-3">
+                <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+                  <strong>Using Docker?</strong> Skip this step. Run <IC>docker-compose up -d</IC> in your project folder instead — Docker manages the database password automatically.
+                </div>
                 <p className="text-sm text-muted-foreground">
                   The CLI generates a random database password, but NodePress needs to connect to <em>your</em> PostgreSQL using the password you set in Step 3.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Open the file <IC>my-cms/backend/.env</IC> in any text editor (Notepad is fine) and find this line:
+                  Open the file <IC>my-project/backend/.env</IC> in any text editor (Notepad is fine) and find this line:
                 </p>
                 <CodeBlock code={`DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"`} />
                 <p className="text-sm text-muted-foreground">Replace <IC>RANDOM_PASSWORD</IC> with the password you chose when installing PostgreSQL:</p>
@@ -403,7 +409,7 @@ git --version  # any version?   → skip Step 2`} />
                 <p className="text-sm text-muted-foreground">
                   This command creates all the tables NodePress needs inside your PostgreSQL database. You only run this once.
                 </p>
-                <CodeBlock code={`cd my-cms/backend
+                <CodeBlock code={`cd my-project/backend
 npx prisma migrate dev`} />
                 <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
                   <strong>Getting an authentication error?</strong> It means the password in <IC>DATABASE_URL</IC> doesn't match your PostgreSQL password. Go back to Step 5 and double-check the password.

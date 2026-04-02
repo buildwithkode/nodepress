@@ -52,11 +52,35 @@ Download from [postgresql.org/download](https://www.postgresql.org/download/).
 npx create-nodepress-app my-project
 ```
 
-The CLI scaffolds the project, generates secure secrets, and installs dependencies automatically.
+The CLI scaffolds the project, generates secure secrets, and installs all dependencies automatically.
+
+---
+
+## Option A — With Docker (easiest, no PostgreSQL needed)
+
+Docker manages the database for you — no password changes required.
+
+```bash
+cd my-project
+docker-compose up -d             # starts PostgreSQL + Redis
+cd backend
+npx prisma migrate dev           # create DB tables
+npm run start:dev                # backend on :3000
+
+# In a new terminal
+cd my-project/frontend
+npm run dev                      # admin panel on :5173
+```
+
+---
+
+## Option B — Local PostgreSQL
+
+> **Important:** The CLI generates a random database password in `backend/.env` that won't match your local PostgreSQL. You must update it before running migrations.
 
 ### 1. Update your database password
 
-Open `my-project/backend/.env` and replace `YOUR_POSTGRES_PASSWORD` with the password you set during PostgreSQL installation:
+Open `my-project/backend/.env` and replace the generated password with the one you set during PostgreSQL installation:
 
 ```env
 DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
@@ -90,27 +114,7 @@ Open `http://localhost:5173` — you'll see the NodePress setup screen. Enter yo
 
 ---
 
-## Docker Setup (alternative)
-
-If you prefer Docker, the CLI detects it automatically and gives you Docker commands. Or run manually:
-
-### Development (PostgreSQL + Redis only)
-
-```bash
-cd my-project
-docker-compose up -d       # starts PostgreSQL and Redis
-cd backend
-npm install
-npx prisma migrate dev
-npm run start:dev
-
-# In a new terminal
-cd frontend
-npm install
-npm run dev
-```
-
-### Production (full stack)
+## Production (full Docker stack)
 
 ```bash
 cd my-project
@@ -119,7 +123,7 @@ cd my-project
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
-The production Docker setup includes: PostgreSQL + PgBouncer (connection pooling), Nginx reverse proxy, Prometheus + Grafana monitoring, and automated daily backups.
+Includes: PostgreSQL + PgBouncer (connection pooling), Nginx reverse proxy, Prometheus + Grafana monitoring, and automated daily backups.
 
 ---
 

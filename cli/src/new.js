@@ -152,26 +152,49 @@ module.exports = async function createProject(name) {
   log('');
   log(`  ${c.green}${c.bold}✓ NodePress "${safeName}" is ready!${c.reset}`);
   log('');
-  log(`  ${c.bold}Next steps:${c.reset}`);
-  log('');
 
   if (hasDocker) {
-    log(`  ${c.cyan}Option A — Docker (recommended for production):${c.reset}`);
-    log(`    cd ${safeName}`);
-    log(`    docker-compose -f docker-compose.prod.yml up -d`);
+    log(`  ${c.bold}Next steps:${c.reset}`);
     log('');
-    log(`  ${c.cyan}Option B — Local development:${c.reset}`);
+    log(`  ${c.cyan}Option A — Docker (recommended, no PostgreSQL needed):${c.reset}`);
+    log(`    cd ${safeName}`);
+    log(`    docker-compose up -d             ${c.dim}# starts PostgreSQL + Redis${c.reset}`);
+    log(`    cd backend`);
+    log(`    npx prisma migrate dev           ${c.dim}# create DB tables${c.reset}`);
+    log(`    npm run start:dev                ${c.dim}# backend on :3000${c.reset}`);
+    log('');
+    log(`    cd ../${safeName}/frontend`);
+    log(`    npm run dev                      ${c.dim}# admin panel on :5173${c.reset}`);
+    log('');
+    log(`  ${c.cyan}Option B — Local PostgreSQL:${c.reset}`);
+    log(`  ${c.yellow}⚠${c.reset}  Open ${c.bold}${safeName}/backend/.env${c.reset} and update DATABASE_URL with your PostgreSQL password:`);
+    log(`    ${c.dim}postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress${c.reset}`);
+    log('');
+    log(`    cd ${safeName}/backend`);
+    log(`    npx prisma migrate dev           ${c.dim}# create DB tables${c.reset}`);
+    log(`    npm run start:dev                ${c.dim}# backend on :3000${c.reset}`);
+    log('');
+    log(`    cd ${safeName}/frontend`);
+    log(`    npm run dev                      ${c.dim}# admin panel on :5173${c.reset}`);
   } else {
-    log(`  ${c.cyan}Start local development:${c.reset}`);
-    warn('Docker not found — you\'ll need PostgreSQL running locally (port 5432)');
+    log(`  ${c.bold}Next steps:${c.reset}`);
+    log('');
+    warn(`Docker not found — using local PostgreSQL (port 5432)`);
+    log('');
+    log(`  ${c.yellow}1.${c.reset} Open ${c.bold}${safeName}/backend/.env${c.reset} and update DATABASE_URL with your PostgreSQL password:`);
+    log(`     ${c.dim}postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress${c.reset}`);
+    log(`     ${c.dim}(No password? Use: postgresql://postgres@localhost:5432/nodepress)${c.reset}`);
+    log('');
+    log(`  ${c.yellow}2.${c.reset} Run migrations and start the backend:`);
+    log(`     cd ${safeName}/backend`);
+    log(`     npx prisma migrate dev           ${c.dim}# create DB tables${c.reset}`);
+    log(`     npm run start:dev                ${c.dim}# backend on :3000${c.reset}`);
+    log('');
+    log(`  ${c.yellow}3.${c.reset} Start the frontend:`);
+    log(`     cd ${safeName}/frontend`);
+    log(`     npm run dev                      ${c.dim}# admin panel on :5173${c.reset}`);
   }
 
-  log(`    cd ${safeName}/backend`);
-  log(`    npx prisma migrate dev   ${c.dim}# create DB tables${c.reset}`);
-  log(`    npm run start:dev        ${c.dim}# backend on :3000${c.reset}`);
-  log('');
-  log(`    cd ${safeName}/frontend`);
-  log(`    npm run dev              ${c.dim}# admin panel on :5173${c.reset}`);
   log('');
   log(`  ${c.cyan}Admin panel:${c.reset}  http://localhost:5173`);
   log(`  ${c.cyan}API docs:${c.reset}     http://localhost:3000/api/docs`);

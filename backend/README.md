@@ -22,10 +22,11 @@ NestJS + PostgreSQL + Prisma REST API for the NodePress headless CMS.
 cp .env.example .env
 ```
 
-Open `.env` and fill in the three required fields:
+Open `.env` and fill in the required fields:
 
 ```env
 # Use the password you set when installing PostgreSQL
+# If using Docker (docker-compose up -d), use: postgresql://postgres:devpassword@localhost:5432/YOUR_NODEPRESS_DATABASE
 DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
 
 # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -36,6 +37,8 @@ CORS_ORIGIN=http://localhost:5173
 ```
 
 > **Didn't set a PostgreSQL password?** Try: `postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE`
+
+> **Using the CLI (`npx create-nodepress-app`)?** The `.env` is auto-generated but uses a random password. Update `DATABASE_URL` with your actual PostgreSQL password before running migrations.
 
 ---
 
