@@ -51,16 +51,16 @@ The CLI sets up everything automatically. Then follow these steps:
 Open `my-project/backend/.env` in any text editor and find:
 
 ```
-DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/nodepress"
+DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
 ```
 
 Replace `RANDOM_PASSWORD` with the password you set when installing PostgreSQL:
 
 ```
-DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
+DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
 ```
 
-> **Didn't set a password?** Try: `postgresql://postgres@localhost:5432/nodepress`
+> **Didn't set a password?** Try: `postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE`
 
 ### Step 2 — Create the database tables
 

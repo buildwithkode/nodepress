@@ -377,18 +377,18 @@ git --version  # any version?   → skip Step 2`} />
                 <p className="text-sm text-muted-foreground">
                   Open the file <IC>my-cms/backend/.env</IC> in any text editor (Notepad is fine) and find this line:
                 </p>
-                <CodeBlock code={`DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/nodepress"`} />
+                <CodeBlock code={`DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"`} />
                 <p className="text-sm text-muted-foreground">Replace <IC>RANDOM_PASSWORD</IC> with the password you chose when installing PostgreSQL:</p>
-                <CodeBlock code={`DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"`} />
+                <CodeBlock code={`DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"`} />
                 <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
                   <strong className="text-blue-400">What is DATABASE_URL?</strong>
                   <p className="text-muted-foreground mt-1 text-xs">
-                    It's the address NodePress uses to find and log into your database. Think of it like a home address: <IC>postgresql://</IC> is the transport, <IC>postgres</IC> is the username, the part after <IC>:</IC> is the password, <IC>localhost:5432</IC> is where the database lives on your computer, and <IC>nodepress</IC> is the name of the database that will be created.
+                    It's the address NodePress uses to find and log into your database. Think of it like a home address: <IC>postgresql://</IC> is the transport, <IC>postgres</IC> is the username, the part after <IC>:</IC> is the password, <IC>localhost:5432</IC> is where the database lives on your computer, and <IC>YOUR_NODEPRESS_DATABASE</IC> is the database name — you can name it anything you like.
                   </p>
                 </div>
                 <div className="rounded-xl border border-zinc-800 bg-muted/30 p-4 text-xs text-muted-foreground">
                   <strong className="text-foreground">Didn't set a password?</strong> If you clicked through the PostgreSQL installer without setting a password, try leaving it out entirely:<br />
-                  <IC>DATABASE_URL="postgresql://postgres@localhost:5432/nodepress"</IC>
+                  <IC>DATABASE_URL="postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE"</IC>
                 </div>
               </div>
             </div>

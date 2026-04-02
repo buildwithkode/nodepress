@@ -196,16 +196,16 @@ git --version  # any version?   → skip Step 2"></div>
           <div class="ml-10 space-y-3">
             <p class="text-sm text-zinc-400">The CLI generates a random database password, but NodePress needs to connect to <em>your</em> PostgreSQL using the password you set in Step 3.</p>
             <p class="text-sm text-zinc-400">Open <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">my-cms/backend/.env</code> in any text editor (Notepad is fine) and find this line:</p>
-            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/nodepress"'></div>
+            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"'></div>
             <p class="text-sm text-zinc-400">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">RANDOM_PASSWORD</code> with the password you set when installing PostgreSQL:</p>
-            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"'></div>
+            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"'></div>
             <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
               <p class="text-blue-400 font-medium mb-1">What is DATABASE_URL?</p>
-              <p class="text-zinc-400 text-xs">It's the address NodePress uses to find and log into your database. <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> is the username, the part after <code class="text-pink-400 bg-zinc-800 px-1 rounded">:</code> is your password, <code class="text-pink-400 bg-zinc-800 px-1 rounded">localhost:5432</code> is where the database lives on your computer, and <code class="text-pink-400 bg-zinc-800 px-1 rounded">nodepress</code> is the database name that will be created automatically.</p>
+              <p class="text-zinc-400 text-xs">It's the address NodePress uses to find and log into your database. <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> is the username, the part after <code class="text-pink-400 bg-zinc-800 px-1 rounded">:</code> is your password, <code class="text-pink-400 bg-zinc-800 px-1 rounded">localhost:5432</code> is where the database lives on your computer, and <code class="text-pink-400 bg-zinc-800 px-1 rounded">YOUR_NODEPRESS_DATABASE</code> is the database name — you can name it anything you like.</p>
             </div>
             <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs text-zinc-400">
               <strong class="text-zinc-200">Didn't set a password?</strong> Try leaving it out:<br/>
-              <code class="text-pink-400">DATABASE_URL="postgresql://postgres@localhost:5432/nodepress"</code>
+              <code class="text-pink-400">DATABASE_URL="postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE"</code>
             </div>
           </div>
         </div>

@@ -26,7 +26,7 @@ Open `.env` and fill in the three required fields:
 
 ```env
 # Use the password you set when installing PostgreSQL
-DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
+DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
 
 # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 JWT_SECRET=paste_a_64_char_random_string_here
@@ -35,7 +35,7 @@ JWT_SECRET=paste_a_64_char_random_string_here
 CORS_ORIGIN=http://localhost:5173
 ```
 
-> **Didn't set a PostgreSQL password?** Try: `postgresql://postgres@localhost:5432/nodepress`
+> **Didn't set a PostgreSQL password?** Try: `postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE`
 
 ---
 

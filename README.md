@@ -59,10 +59,10 @@ The CLI scaffolds the project, generates secure secrets, and installs dependenci
 Open `my-project/backend/.env` and replace `YOUR_POSTGRES_PASSWORD` with the password you set during PostgreSQL installation:
 
 ```env
-DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
+DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
 ```
 
-> No password set? Try: `postgresql://postgres@localhost:5432/nodepress`
+> No password set? Try: `postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE`
 
 ### 2. Run database migrations
 
@@ -200,7 +200,7 @@ NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript
 Make sure all `@nestjs/*` packages are on the same major version. Check `backend/package.json` — everything should be `^10.x.x`.
 
 **`npx prisma migrate dev` fails with auth error**
-The password in `DATABASE_URL` doesn't match your PostgreSQL password. Re-check `backend/.env` — the format is `postgresql://postgres:YOUR_PASSWORD@localhost:5432/nodepress`.
+The password in `DATABASE_URL` doesn't match your PostgreSQL password. Re-check `backend/.env` — the format is `postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE`.
 
 **Admin panel shows blank page or 401**
 The frontend can't reach the backend. Make sure `npm run start:dev` is running in the `backend/` folder and check that `CORS_ORIGIN=http://localhost:5173` is set in `backend/.env`.
