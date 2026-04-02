@@ -1,21 +1,3 @@
--- DropIndex
-DROP INDEX "entries_contentTypeId_status_idx";
-
--- DropIndex
-DROP INDEX "entries_deletedAt_idx";
-
--- DropIndex
-DROP INDEX "entries_publishAt_idx";
-
--- DropIndex
-DROP INDEX "entries_status_idx";
-
--- DropIndex
-DROP INDEX "media_createdAt_idx";
-
--- DropIndex
-DROP INDEX "media_uploadedBy_idx";
-
 -- AlterTable
 ALTER TABLE "webhooks" ALTER COLUMN "updatedAt" DROP DEFAULT;
 
