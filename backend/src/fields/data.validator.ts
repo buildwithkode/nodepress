@@ -183,9 +183,23 @@ export class DataValidator {
   }
 
   private validateImage(value: unknown, path: string, errors: string[]): void {
-    if (typeof value !== 'string' || !value) {
-      errors.push(`${path}: must be a non-empty string (URL)`);
+    // Legacy: plain URL string
+    if (typeof value === 'string') {
+      if (!value) errors.push(`${path}: must be a non-empty URL`);
+      return;
     }
+    // Current: { url, alt? } object
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const img = value as Record<string, unknown>;
+      if (typeof img.url !== 'string' || !img.url) {
+        errors.push(`${path}.url: must be a non-empty string`);
+      }
+      if (img.alt !== undefined && typeof img.alt !== 'string') {
+        errors.push(`${path}.alt: must be a string`);
+      }
+      return;
+    }
+    errors.push(`${path}: must be a URL string or { url, alt } object`);
   }
 
   // ─── Complex type validators ───────────────────────────────────────────────

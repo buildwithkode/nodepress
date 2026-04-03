@@ -44,7 +44,7 @@ export default function SubmissionsPage() {
       api.get(`/forms/${id}/submissions`),
     ]).then(([formRes, subRes]) => {
       if (formRes.status === 'fulfilled') setForm(formRes.value.data);
-      if (subRes.status === 'fulfilled')  setRows(subRes.value.data);
+      if (subRes.status === 'fulfilled')  setRows(subRes.value.data.data);
       else toast.error('Failed to load submissions');
     }).finally(() => setLoading(false));
   }, [id]);

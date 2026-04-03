@@ -46,7 +46,7 @@ export default function FormsPage() {
     setLoading(true);
     try {
       const res = await api.get('/forms');
-      setForms(res.data);
+      setForms(res.data.data);
     } catch {
       toast.error('Failed to load forms');
     } finally {

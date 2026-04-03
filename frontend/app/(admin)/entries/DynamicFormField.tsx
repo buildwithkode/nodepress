@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import RepeaterField from './RepeaterField';
 import FlexibleField from './FlexibleField';
+import { MediaPickerModal } from '@/components/MediaPickerModal';
 
 const RichTextEditor = dynamic(
   () => import('@/components/RichTextEditor'),
@@ -219,24 +220,7 @@ export default function DynamicFormField({
             control={control}
             name={field.name}
             render={({ field: f }) => (
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  placeholder="Paste image URL from Media Library"
-                  value={f.value ?? ''}
-                  onChange={f.onChange}
-                  className={cn(error && 'border-destructive focus-visible:ring-destructive')}
-                />
-                {f.value && (
-                  <div>
-                    <img
-                      src={f.value}
-                      alt="preview"
-                      className="h-20 rounded object-cover"
-                    />
-                  </div>
-                )}
-              </div>
+              <MediaPickerModal value={f.value ?? null} onChange={f.onChange} />
             )}
           />
         );

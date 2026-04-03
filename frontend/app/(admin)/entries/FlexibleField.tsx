@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { MediaPickerModal } from '@/components/MediaPickerModal';
 
 interface SubField {
   name: string;
@@ -45,6 +46,7 @@ function renderSubInput(
   fieldPath: string,
   register: any,
   sf: SubField,
+  control?: any,
 ) {
   switch (type) {
     case 'textarea':
@@ -66,10 +68,12 @@ function renderSubInput(
       );
     case 'image':
       return (
-        <Input
-          type="text"
-          placeholder="Image URL"
-          {...register(fieldPath)}
+        <Controller
+          control={control}
+          name={fieldPath}
+          render={({ field: f }) => (
+            <MediaPickerModal value={f.value ?? null} onChange={f.onChange} />
+          )}
         />
       );
     case 'boolean':
@@ -176,13 +180,13 @@ function FlexibleItem({
                 <div key={f.name}>
                   {f.type === 'boolean' ? (
                     <div className="flex items-center gap-2">
-                      {renderSubInput(f.type, fieldPath, register, f)}
+                      {renderSubInput(f.type, fieldPath, register, f, control)}
                       <Label className="text-sm">{sfLabel}</Label>
                     </div>
                   ) : (
                     <>
                       <Label className="mb-1 block text-sm">{sfLabel}</Label>
-                      {renderSubInput(f.type, fieldPath, register, f)}
+                      {renderSubInput(f.type, fieldPath, register, f, control)}
                     </>
                   )}
                 </div>

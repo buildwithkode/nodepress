@@ -65,7 +65,7 @@ export default function DashboardPage() {
       const cts:  ContentType[] = ct.status   === 'fulfilled' && Array.isArray(ct.value.data)   ? ct.value.data   : [];
       const ens:  Entry[]       = en.status   === 'fulfilled' && Array.isArray(en.value.data)   ? en.value.data   : [];
       const meds: MediaFile[]   = med.status  === 'fulfilled' && Array.isArray(med.value.data)  ? med.value.data  : [];
-      const fms:  FormRow[]     = frms.status === 'fulfilled' && Array.isArray(frms.value.data) ? frms.value.data : [];
+      const fms:  FormRow[]     = frms.status === 'fulfilled' && Array.isArray(frms.value.data.data) ? frms.value.data.data : [];
       const rss:  RecentSub[]   = subs.status === 'fulfilled' && Array.isArray(subs.value.data) ? subs.value.data : [];
 
       setContentTypes(cts);

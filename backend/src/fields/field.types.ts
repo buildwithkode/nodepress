@@ -85,6 +85,12 @@ export interface ImageFieldDef extends BaseField {
   options?: Record<string, never>;
 }
 
+/** Runtime value for an image field */
+export interface ImageValue {
+  url: string;
+  alt?: string;
+}
+
 /** Union of all non-nestable field definitions */
 export type SimpleFieldDef =
   | TextFieldDef
@@ -144,5 +150,6 @@ export type FieldValue =
   | boolean
   | null
   | undefined
+  | ImageValue
   | RepeaterItem[]
   | FlexibleItem[];
