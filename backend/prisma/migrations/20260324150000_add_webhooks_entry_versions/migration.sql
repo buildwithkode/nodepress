@@ -11,6 +11,9 @@ CREATE TABLE "webhooks" (
     CONSTRAINT "webhooks_pkey" PRIMARY KEY ("id")
 );
 
+-- AlterTable
+ALTER TABLE "webhooks" ALTER COLUMN "updatedAt" DROP DEFAULT;
+
 -- CreateTable: entry_versions
 CREATE TABLE "entry_versions" (
     "id"        SERIAL NOT NULL,

@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "webhooks" ALTER COLUMN "updatedAt" DROP DEFAULT;
-
 -- CreateTable
 CREATE TABLE "password_reset_tokens" (
     "id" SERIAL NOT NULL,
