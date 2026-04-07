@@ -31,6 +31,8 @@ export class DynamicApiController {
   @ApiQuery({ name: 'sort', required: false, example: 'createdAt:desc', description: 'field:direction' })
   @ApiQuery({ name: 'filter', required: false, description: 'filter[fieldName]=value — partial match on data field' })
   @ApiQuery({ name: 'search', required: false, type: String, description: 'Full-text search on slug and all data fields' })
+  @ApiQuery({ name: 'locale', required: false, type: String, description: 'Filter by locale (e.g. en, fr, de). Default: all locales.' })
+  @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiResponse({ status: 200, description: '{ data: Entry[], meta: { total, page, limit, totalPages } }' })
   @ApiResponse({ status: 404, description: 'Content type not found or method disabled' })
   findAll(
@@ -40,6 +42,8 @@ export class DynamicApiController {
     @Query('sort') sort?: string,
     @Query('filter') filter?: Record<string, string>,
     @Query('search') search?: string,
+    @Query('locale') locale?: string,
+    @Query('populate') populate?: string,
   ) {
     return this.dynamicApiService.findAll(type, {
       page: page ? parseInt(page, 10) : 1,
@@ -47,6 +51,8 @@ export class DynamicApiController {
       sort,
       filter: filter && typeof filter === 'object' ? filter : undefined,
       search: search?.trim() || undefined,
+      locale: locale?.trim() || undefined,
+      populate: populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
     });
   }
 
@@ -55,10 +61,20 @@ export class DynamicApiController {
   @ApiOperation({ summary: 'Get a single published entry by slug (public)' })
   @ApiParam({ name: 'type', example: 'blog' })
   @ApiParam({ name: 'slug', example: 'my-first-post' })
+  @ApiQuery({ name: 'locale', required: false, type: String, description: 'Locale of the entry to fetch. Default: en.' })
+  @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiResponse({ status: 200, description: 'Entry found' })
   @ApiResponse({ status: 404, description: 'Entry not found or not published' })
-  findOne(@Param('type') type: string, @Param('slug') slug: string) {
-    return this.dynamicApiService.findOne(type, slug);
+  findOne(
+    @Param('type') type: string,
+    @Param('slug') slug: string,
+    @Query('locale') locale?: string,
+    @Query('populate') populate?: string,
+  ) {
+    return this.dynamicApiService.findOne(type, slug, {
+      locale: locale?.trim() || undefined,
+      populate: populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
+    });
   }
 
   @UseGuards(JwtOrApiKeyGuard)
@@ -79,10 +95,11 @@ export class DynamicApiController {
     @Param('type') type: string,
     @Body('slug') slug: string,
     @Body('data') data: Record<string, any>,
+    @Body('locale') locale?: string,
   ) {
     if (!slug) throw new BadRequestException('slug is required');
     if (!data) throw new BadRequestException('data is required');
-    return this.dynamicApiService.create(type, slug, data);
+    return this.dynamicApiService.create(type, slug, data, locale?.trim() || 'en');
   }
 
   @UseGuards(JwtOrApiKeyGuard)
@@ -97,9 +114,10 @@ export class DynamicApiController {
     @Param('type') type: string,
     @Param('slug') slug: string,
     @Body('data') data: Record<string, any>,
+    @Body('locale') locale?: string,
   ) {
     if (!data) throw new BadRequestException('data is required');
-    return this.dynamicApiService.update(type, slug, data);
+    return this.dynamicApiService.update(type, slug, data, locale?.trim() || 'en');
   }
 
   @UseGuards(JwtOrApiKeyGuard)
@@ -109,7 +127,11 @@ export class DynamicApiController {
   @ApiOperation({ summary: 'Soft-delete an entry (JWT or write/all API key required)' })
   @ApiParam({ name: 'type', example: 'blog' })
   @ApiParam({ name: 'slug', example: 'my-first-post' })
-  remove(@Param('type') type: string, @Param('slug') slug: string) {
-    return this.dynamicApiService.remove(type, slug);
+  remove(
+    @Param('type') type: string,
+    @Param('slug') slug: string,
+    @Query('locale') locale?: string,
+  ) {
+    return this.dynamicApiService.remove(type, slug, locale?.trim() || 'en');
   }
 }

@@ -4,6 +4,7 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
@@ -21,8 +22,8 @@ export class FormsService {
         data: {
           name:     dto.name,
           slug,
-          fields:   (dto.fields  ?? []) as any,
-          actions:  (dto.actions ?? []) as any,
+          fields:   (dto.fields  ?? []) as Prisma.InputJsonValue,
+          actions:  (dto.actions ?? []) as Prisma.InputJsonValue,
           isActive: dto.isActive ?? true,
         },
       });
@@ -60,11 +61,11 @@ export class FormsService {
   async update(id: number, dto: UpdateFormDto) {
     await this.findOne(id); // ensure exists
 
-    const data: any = {};
+    const data: Prisma.FormUpdateInput = {};
     if (dto.name     !== undefined) data.name     = dto.name;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
-    if (dto.fields   !== undefined) data.fields   = dto.fields  as any;
-    if (dto.actions  !== undefined) data.actions  = dto.actions as any;
+    if (dto.fields   !== undefined) data.fields   = dto.fields  as Prisma.InputJsonValue;
+    if (dto.actions  !== undefined) data.actions  = dto.actions as Prisma.InputJsonValue;
     if (dto.slug     !== undefined) {
       data.slug = this.normalizeSlug(dto.slug);
       this.assertSlugNotReserved(data.slug);

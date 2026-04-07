@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
@@ -20,6 +21,13 @@ export interface PublicListQuery {
   sort?: string;                    // e.g. "createdAt:desc" or "slug:asc"
   filter?: Record<string, string>;  // e.g. { category: "tech", author: "john" }
   search?: string;                  // full-text search on slug + data
+  locale?: string;                  // filter by locale (e.g. "en", "fr")
+  populate?: string[];              // relation field names to inline-populate
+}
+
+export interface PublicSingleQuery {
+  locale?: string;   // default: "en"
+  populate?: string[];
 }
 
 export interface PaginatedResult<T> {
@@ -29,6 +37,9 @@ export interface PaginatedResult<T> {
     page: number;
     limit: number;
     totalPages: number;
+    /** Present when a search was executed. "fulltext" = PostgreSQL GIN index used.
+     *  "fallback" = fell back to LIKE (e.g. single character or special syntax). */
+    searchMode?: 'fulltext' | 'fallback';
   };
 }
 
@@ -89,7 +100,7 @@ export class DynamicApiService {
   }
 
   /** Map internal entry row → public-facing shape (UUID as id, no deletedAt) */
-  private async toPublicEntry(e: any, data: Record<string, any>) {
+  private toPublicEntry(e: any, data: Record<string, any>) {
     const { id: _internal, publicId, deletedAt: _del, status: _st, ...rest } = e;
     return { id: publicId, ...rest, data };
   }
@@ -107,8 +118,8 @@ export class DynamicApiService {
     const skip  = (page - 1) * limit;
     const orderBy = parseSortParam(query.sort);
 
-    // ── Cache lookup ───────────────────────────────────────────────────────────
-    const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter })}`;
+    // ── Cache lookup ──────────────────────────────────────────────────────────
+    const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter, locale: query.locale })}`;
     const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
     if (cached) return cached;
 
@@ -118,35 +129,42 @@ export class DynamicApiService {
       contentTypeId: contentType.id,
       status: 'published',
       deletedAt: null,
+      ...(query.locale ? { locale: query.locale } : {}),
       ...(dataFilters.length > 0 ? { AND: dataFilters } : {}),
     };
 
-    // Full-text search — uses the entries_fts_idx GIN index (added in Phase 1 migration).
-    // websearch_to_tsquery understands quoted phrases and AND/OR operators.
-    // Falls back to LIKE for single characters that tsquery rejects.
+    // ── Full-text search ──────────────────────────────────────────────────────
+    // Uses the entries_fts_idx GIN index for performance.
+    // Falls back to LIKE for short/special-char queries tsquery rejects.
+    // Adds searchMode to meta so clients know which path was taken.
+    let searchMode: 'fulltext' | 'fallback' | undefined;
+
     if (query.search && query.search.trim()) {
       const term = query.search.trim();
+      let matches: { id: number }[];
       try {
-        const matches = await this.prisma.$queryRaw<{ id: number }[]>`
+        matches = await this.prisma.$queryRaw<{ id: number }[]>`
           SELECT id FROM entries
           WHERE "contentTypeId" = ${contentType.id}
             AND status = 'published'
             AND "deletedAt" IS NULL
             AND to_tsvector('english', slug || ' ' || data::text) @@ websearch_to_tsquery('english', ${term})
         `;
-        where.id = { in: matches.map((m) => m.id) };
+        searchMode = 'fulltext';
       } catch {
         // Fallback: plain LIKE for short/special-char queries that tsquery can't parse
         const like = `%${term}%`;
-        const matches = await this.prisma.$queryRaw<{ id: number }[]>`
+        matches = await this.prisma.$queryRaw<{ id: number }[]>`
           SELECT id FROM entries
           WHERE "contentTypeId" = ${contentType.id}
             AND status = 'published'
             AND "deletedAt" IS NULL
             AND (LOWER(slug) LIKE LOWER(${like}) OR LOWER(data::text) LIKE LOWER(${like}))
         `;
-        where.id = { in: matches.map((m) => m.id) };
+        searchMode = 'fallback';
       }
+      // Use [-1] sentinel so Prisma returns 0 rows rather than ignoring the clause
+      where.id = { in: matches.length > 0 ? matches.map((m) => m.id) : [-1] };
     }
 
     const [total, entries] = await Promise.all([
@@ -156,11 +174,15 @@ export class DynamicApiService {
         orderBy,
         skip,
         take: limit,
-        select: { id: true, publicId: true, slug: true, status: true, deletedAt: true, data: true, createdAt: true, updatedAt: true },
+        select: {
+          id: true, publicId: true, slug: true, locale: true,
+          status: true, deletedAt: true, data: true,
+          createdAt: true, updatedAt: true,
+        },
       }),
     ]);
 
-    // Process repeater IDs in memory first, collect which entries need DB updates
+    // Process repeater IDs in memory; batch DB updates in one transaction
     const processed = entries.map((e) => {
       let entryData = normalizeDataKeys(e.data as Record<string, any>);
       if (needsRepeaterIds(entryData)) {
@@ -170,83 +192,111 @@ export class DynamicApiService {
       return { e, entryData, needsUpdate: false };
     });
 
-    // Batch all updates in a single transaction instead of N individual queries
     const toUpdate = processed.filter((p) => p.needsUpdate);
     if (toUpdate.length > 0) {
       await this.prisma.$transaction(
         toUpdate.map((p) =>
-          this.prisma.entry.update({ where: { id: p.e.id }, data: { data: p.entryData as any } }),
+          this.prisma.entry.update({
+            where: { id: p.e.id },
+            data: { data: p.entryData as Prisma.InputJsonValue },
+          }),
         ),
       );
     }
 
-    const data = await Promise.all(processed.map(({ e, entryData }) => this.toPublicEntry(e, entryData)));
+    const data = processed.map(({ e, entryData }) => this.toPublicEntry(e, entryData));
 
-    const result: PaginatedResult<any> = { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    const result: PaginatedResult<any> = {
+      data,
+      meta: {
+        total, page, limit,
+        totalPages: Math.ceil(total / limit),
+        ...(searchMode ? { searchMode } : {}),
+      },
+    };
     await this.cache.set(cacheKey, result, LIST_TTL);
     return result;
   }
 
-  async findOne(typeName: string, slug: string) {
+  async findOne(typeName: string, slug: string, query: PublicSingleQuery = {}): Promise<any> {
     const contentType = await this.resolveContentType(typeName, 'read');
+    const locale = query.locale ?? 'en';
 
-    // ── Cache lookup ───────────────────────────────────────────────────────────
-    const cacheKey = `${cachePrefix(typeName)}slug:${slug}`;
+    // ── Cache lookup ──────────────────────────────────────────────────────────
+    const cacheKey = `${cachePrefix(typeName)}slug:${slug}:${locale}`;
     const cached = await this.cache.get<any>(cacheKey);
     if (cached) return cached;
 
     const entry = await this.prisma.entry.findUnique({
-      where: { contentTypeId_slug: { contentTypeId: contentType.id, slug } },
-      select: { id: true, publicId: true, slug: true, status: true, deletedAt: true, data: true, createdAt: true, updatedAt: true },
+      where: {
+        contentTypeId_slug_locale: { contentTypeId: contentType.id, slug, locale },
+      },
+      select: {
+        id: true, publicId: true, slug: true, locale: true,
+        status: true, deletedAt: true, data: true,
+        createdAt: true, updatedAt: true,
+      },
     });
 
     if (!entry || entry.status !== 'published' || entry.deletedAt !== null) {
-      throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}"`);
+      throw new NotFoundException(
+        `Entry with slug "${slug}" not found in "${typeName}" (locale: ${locale})`,
+      );
     }
 
     let data = normalizeDataKeys(entry.data as Record<string, any>);
     if (needsRepeaterIds(data)) {
       data = injectRepeaterIds(data);
-      await this.prisma.entry.update({ where: { id: entry.id }, data: { data: data as any } });
+      await this.prisma.entry.update({
+        where: { id: entry.id },
+        data: { data: data as Prisma.InputJsonValue },
+      });
     }
 
-    const result = await this.toPublicEntry(entry, data);
+    const result = this.toPublicEntry(entry, data);
     await this.cache.set(cacheKey, result, ENTRY_TTL);
     return result;
   }
 
-  async create(typeName: string, slug: string, data: Record<string, any>) {
+  async create(typeName: string, slug: string, data: Record<string, any>, locale = 'en') {
     const contentType = await this.resolveContentType(typeName, 'create');
 
     const existing = await this.prisma.entry.findUnique({
-      where: { contentTypeId_slug: { contentTypeId: contentType.id, slug } },
+      where: { contentTypeId_slug_locale: { contentTypeId: contentType.id, slug, locale } },
     });
-    if (existing) throw new ConflictException(`Slug "${slug}" already exists in "${typeName}"`);
+    if (existing) {
+      throw new ConflictException(`Slug "${slug}" already exists in "${typeName}" (locale: ${locale})`);
+    }
 
     const created = await this.prisma.entry.create({
       data: {
         slug,
+        locale,
         status: 'published',
         data: normalizeDataKeys(
           sanitizeEntryData(injectRepeaterIds(data), contentType.schema as unknown as FieldDef[]),
-        ) as any,
+        ) as Prisma.InputJsonValue,
         contentTypeId: contentType.id,
       },
-      select: { id: true, publicId: true, slug: true, status: true, deletedAt: true, data: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true, publicId: true, slug: true, locale: true,
+        status: true, deletedAt: true, data: true,
+        createdAt: true, updatedAt: true,
+      },
     });
 
     await this.invalidate(typeName);
     return this.toPublicEntry(created, created.data as Record<string, any>);
   }
 
-  async update(typeName: string, slug: string, data: Record<string, any>) {
+  async update(typeName: string, slug: string, data: Record<string, any>, locale = 'en') {
     const contentType = await this.resolveContentType(typeName, 'update');
 
     const entry = await this.prisma.entry.findUnique({
-      where: { contentTypeId_slug: { contentTypeId: contentType.id, slug } },
+      where: { contentTypeId_slug_locale: { contentTypeId: contentType.id, slug, locale } },
     });
     if (!entry || entry.deletedAt !== null) {
-      throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}"`);
+      throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}" (locale: ${locale})`);
     }
 
     const updated = await this.prisma.entry.update({
@@ -254,23 +304,27 @@ export class DynamicApiService {
       data: {
         data: normalizeDataKeys(
           sanitizeEntryData(injectRepeaterIds(data), contentType.schema as unknown as FieldDef[]),
-        ) as any,
+        ) as Prisma.InputJsonValue,
       },
-      select: { id: true, publicId: true, slug: true, status: true, deletedAt: true, data: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true, publicId: true, slug: true, locale: true,
+        status: true, deletedAt: true, data: true,
+        createdAt: true, updatedAt: true,
+      },
     });
 
     await this.invalidate(typeName);
     return this.toPublicEntry(updated, updated.data as Record<string, any>);
   }
 
-  async remove(typeName: string, slug: string) {
+  async remove(typeName: string, slug: string, locale = 'en') {
     const contentType = await this.resolveContentType(typeName, 'delete');
 
     const entry = await this.prisma.entry.findUnique({
-      where: { contentTypeId_slug: { contentTypeId: contentType.id, slug } },
+      where: { contentTypeId_slug_locale: { contentTypeId: contentType.id, slug, locale } },
     });
     if (!entry || entry.deletedAt !== null) {
-      throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}"`);
+      throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}" (locale: ${locale})`);
     }
 
     await this.prisma.entry.update({ where: { id: entry.id }, data: { deletedAt: new Date() } });

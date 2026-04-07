@@ -2,9 +2,9 @@ import { IsIn, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserDto {
-  @ApiPropertyOptional({ enum: ['admin', 'editor', 'viewer'] })
+  @ApiPropertyOptional({ enum: ['admin', 'editor', 'contributor', 'viewer'] })
   @IsOptional()
-  @IsIn(['admin', 'editor', 'viewer'])
+  @IsIn(['admin', 'editor', 'contributor', 'viewer'])
   role?: string;
 }
 

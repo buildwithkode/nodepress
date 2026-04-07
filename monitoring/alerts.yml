@@ -1,0 +1,67 @@
+groups:
+  - name: nodepress
+    rules:
+      # ── Availability ────────────────────────────────────────────────────────
+
+      - alert: HighErrorRate
+        expr: |
+          100 * sum(rate(http_requests_total{status=~"5.."}[5m]))
+              / sum(rate(http_requests_total[5m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate ({{ $value | printf \"%.1f\" }}%)"
+          description: "More than 5% of requests are returning 5xx errors. Check application logs."
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P99 latency above 3 s ({{ $value | printf \"%.2f\" }}s)"
+          description: "The 99th-percentile request latency has exceeded 3 seconds for 5 minutes."
+
+      - alert: HighRequestRate
+        expr: sum(rate(http_requests_total[1m])) > 500
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High request rate ({{ $value | printf \"%.0f\" }} req/s)"
+          description: "The API is handling more than 500 requests/second. Consider scaling."
+
+      # ── Resource Usage ──────────────────────────────────────────────────────
+
+      - alert: HighMemoryUsage
+        expr: nodepress_nodejs_heap_size_used_bytes > 450000000   # 450 MB
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node.js heap usage above 450 MB"
+          description: "Heap has been above 450 MB for 5 minutes. Possible memory leak."
+
+      - alert: CriticalMemoryUsage
+        expr: nodepress_nodejs_heap_size_used_bytes > 700000000   # 700 MB
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node.js heap usage above 700 MB — OOM risk"
+          description: "Heap is critically high. Restart the service or investigate memory leak."
+
+      # ── Application Health ──────────────────────────────────────────────────
+
+      - alert: BackendDown
+        expr: up{job="nodepress-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "NodePress backend is unreachable"
+          description: "Prometheus cannot scrape the /api/metrics endpoint. The backend may be down."

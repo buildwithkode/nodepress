@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, Upload } from 'lucide-react';
 import { toast } from 'sonner';
@@ -27,6 +27,7 @@ const FIELD_TYPES = [
   { value: 'boolean',  label: 'Boolean' },
   { value: 'select',   label: 'Select' },
   { value: 'image',    label: 'Image' },
+  { value: 'relation', label: 'Relation' },
   { value: 'repeater', label: 'Repeater' },
   { value: 'flexible', label: 'Flexible Content' },
 ];
@@ -41,7 +42,7 @@ interface Field {
   name:     string;
   type:     string;
   required: boolean;
-  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string };
+  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
 }
 
 const toSnakeCase = (name: string) =>
@@ -86,6 +87,11 @@ export default function NewContentTypePage() {
   const [fields, setFields] = useState<Field[]>([{ name: '', type: 'text', required: false }]);
   const [openLayouts, setOpenLayouts] = useState<Record<string, boolean>>({});
   const [allowedMethods, setAllowedMethods] = useState(['list', 'read', 'create', 'update', 'delete']);
+  const [allContentTypes, setAllContentTypes] = useState<{ id: number; name: string }[]>([]);
+
+  useEffect(() => {
+    api.get('/content-types').then((r) => setAllContentTypes(r.data ?? [])).catch(() => {});
+  }, []);
   const importRef = useRef<HTMLInputElement>(null);
 
   const computedName = toSnakeCase(name);
@@ -130,6 +136,7 @@ export default function NewContentTypePage() {
       u[i] = { ...u[i], type: val, options: undefined };
       if (val === 'repeater') u[i].options = { subFields: [{ name: '', type: 'text' }] };
       if (val === 'flexible') u[i].options = { layouts: [{ name: 'section', label: 'Section', fields: [{ name: '', type: 'text' }] }] };
+      if (val === 'relation') u[i].options = { relatedContentType: '', cardinality: 'one' };
     } else { (u[i] as any)[key] = val; }
     setFields(u);
   };
@@ -285,6 +292,38 @@ export default function NewContentTypePage() {
                       <div className="pl-7 space-y-1">
                         <Label className="text-xs text-muted-foreground">Choices (comma-separated)</Label>
                         <Textarea placeholder="option1, option2, option3" value={field.options?.choices ?? ''} onChange={(e) => updateField(fi, 'options', { ...field.options, choices: e.target.value })} rows={2} className="resize-none" />
+                      </div>
+                    )}
+
+                    {field.type === 'relation' && (
+                      <div className="pl-7 grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Related Content Type</Label>
+                          <Select
+                            value={field.options?.relatedContentType ?? ''}
+                            onValueChange={(v) => updateField(fi, 'options', { ...field.options, relatedContentType: v })}
+                          >
+                            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select type…" /></SelectTrigger>
+                            <SelectContent>
+                              {allContentTypes.map((ct) => (
+                                <SelectItem key={ct.id} value={ct.name} className="text-xs capitalize">{ct.name.replace(/_/g, ' ')}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Cardinality</Label>
+                          <Select
+                            value={field.options?.cardinality ?? 'one'}
+                            onValueChange={(v) => updateField(fi, 'options', { ...field.options, cardinality: v })}
+                          >
+                            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="one" className="text-xs">One (single entry)</SelectItem>
+                              <SelectItem value="many" className="text-xs">Many (multiple entries)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     )}
 

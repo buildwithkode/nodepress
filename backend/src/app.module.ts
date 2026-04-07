@@ -25,6 +25,9 @@ import { HttpMetricsInterceptor } from './metrics/http-metrics.interceptor';
 import { ApiKeyRateLimitInterceptor } from './api-keys/api-key-rate-limit.interceptor';
 import { PluginModule } from './plugin/plugin.module';
 import { ENABLED_PLUGINS } from './plugin/plugins.config';
+import { PermissionsModule } from './permissions/permissions.module';
+import { GraphqlModule } from './graphql/graphql.module';
+import { RealtimeModule } from './realtime/realtime.module';
 
 @Module({
   imports: [
@@ -78,6 +81,9 @@ import { ENABLED_PLUGINS } from './plugin/plugins.config';
     AuditModule,        // Global — AuditService available everywhere without re-importing
     WebhooksModule,     // Global — WebhooksService available everywhere without re-importing
     UsersModule,
+    PermissionsModule,
+    GraphqlModule,
+    RealtimeModule,
     ContentTypeModule,
     EntriesModule,
     MediaModule,

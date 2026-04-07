@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Layers, FileText, Image, Key, ArrowRight, LayoutGrid,
   Clock, Globe, Copy, Check, ClipboardList, Inbox, ToggleRight, ToggleLeft,
 } from 'lucide-react';
-import api from '../../lib/axios';
+import { useFetch } from '../../lib/useFetch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,45 +42,32 @@ function StatCard({ label, sub, value, icon: Icon, loading, href }: {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
-  const [entries,      setEntries]      = useState<Entry[]>([]);
-  const [media,        setMedia]        = useState<MediaFile[]>([]);
-  const [apiKeyCount,  setApiKeyCount]  = useState(0);
-  const [forms,        setForms]        = useState<FormRow[]>([]);
-  const [recentSubs,   setRecentSubs]   = useState<RecentSub[]>([]);
-  const [ctEntryCounts, setCtEntryCounts] = useState<Record<number, number>>({});
   const [selectedCT,  setSelectedCT]   = useState<ContentType | null>(null);
   const [copiedUrl,   setCopiedUrl]    = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.allSettled([
-      api.get('/content-types'),
-      api.get('/entries'),
-      api.get('/media'),
-      api.get('/api-keys'),
-      api.get('/forms'),
-      api.get('/forms/submissions/recent'),
-    ]).then(([ct, en, med, keys, frms, subs]) => {
-      const cts:  ContentType[] = ct.status   === 'fulfilled' && Array.isArray(ct.value.data)   ? ct.value.data   : [];
-      const ens:  Entry[]       = en.status   === 'fulfilled' && Array.isArray(en.value.data)   ? en.value.data   : [];
-      const meds: MediaFile[]   = med.status  === 'fulfilled' && Array.isArray(med.value.data)  ? med.value.data  : [];
-      const fms:  FormRow[]     = frms.status === 'fulfilled' && Array.isArray(frms.value.data.data) ? frms.value.data.data : [];
-      const rss:  RecentSub[]   = subs.status === 'fulfilled' && Array.isArray(subs.value.data) ? subs.value.data : [];
+  // Stale-while-revalidate: cached data renders instantly on revisit,
+  // background revalidation happens when data is older than 30 s.
+  const { data: contentTypes = [], loading: loadingCT }     = useFetch<ContentType[]>('/content-types');
+  const { data: entriesResp,       loading: loadingEnt }    = useFetch<{ data: Entry[] }>('/entries');
+  const { data: mediaResp,         loading: loadingMed }    = useFetch<{ data: MediaFile[] }>('/media');
+  const { data: apiKeys = [],      loading: loadingKeys }   = useFetch<any[]>('/api-keys');
+  const { data: formsResp,         loading: loadingForms }  = useFetch<{ data: FormRow[] }>('/forms');
+  const { data: recentSubs = [],   loading: loadingSubs }   = useFetch<RecentSub[]>('/forms/submissions/recent');
 
-      setContentTypes(cts);
-      if (cts.length > 0) setSelectedCT(cts[0]);
-      setEntries(ens);
-      setMedia(meds);
-      setApiKeyCount(keys.status === 'fulfilled' && Array.isArray(keys.value.data) ? keys.value.data.length : 0);
-      setForms(fms);
-      setRecentSubs(rss);
+  const entries    = entriesResp?.data ?? [];
+  const media      = mediaResp?.data   ?? [];
+  const forms      = formsResp?.data   ?? [];
+  const apiKeyCount = Array.isArray(apiKeys) ? apiKeys.length : 0;
 
-      const counts: Record<number, number> = {};
-      ens.forEach((e) => { counts[e.contentTypeId] = (counts[e.contentTypeId] ?? 0) + 1; });
-      setCtEntryCounts(counts);
-    }).finally(() => setLoading(false));
-  }, []);
+  const loading = loadingCT || loadingEnt || loadingMed || loadingKeys || loadingForms || loadingSubs;
+
+  // Select first content type by default once loaded
+  if (contentTypes.length > 0 && !selectedCT) {
+    setSelectedCT(contentTypes[0]);
+  }
+
+  const ctEntryCounts: Record<number, number> = {};
+  entries.forEach((e) => { ctEntryCounts[e.contentTypeId] = (ctEntryCounts[e.contentTypeId] ?? 0) + 1; });
 
   const recentMedia = [...media]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())

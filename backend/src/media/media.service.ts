@@ -12,6 +12,7 @@ import { STORAGE_ADAPTER, StorageAdapter } from './adapters/storage.adapter';
 import { optimizeImage, isOptimizableImage } from './image-optimizer';
 import { AuditService } from '../audit/audit.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 
 @Injectable()
 export class MediaService {
@@ -23,6 +24,7 @@ export class MediaService {
     @Inject(STORAGE_ADAPTER) private storage: StorageAdapter,
     private auditService: AuditService,
     private webhooks: WebhooksService,
+    private realtime: RealtimeGateway,
   ) {}
 
   /**
@@ -101,6 +103,13 @@ export class MediaService {
       height: height ?? null,
     });
 
+    this.realtime.notifyMediaUploaded({
+      id: record.id,
+      filename: record.filename,
+      url: record.url,
+      mimetype: record.mimetype,
+    });
+
     return record;
   }
 
@@ -156,6 +165,8 @@ export class MediaService {
     }
 
     this.webhooks.fire('media.deleted', { filename: safe });
+
+    this.realtime.notifyMediaDeleted({ filename: safe });
 
     return { message: `File "${filename}" deleted` };
   }

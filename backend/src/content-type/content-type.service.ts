@@ -100,10 +100,10 @@ export class ContentTypeService {
     return contentType;
   }
 
-  async update(id: number, dto: UpdateContentTypeDto) {
-    await this.findOne(id);
+  async update(id: number, dto: UpdateContentTypeDto, actorId?: number) {
+    const current = await this.findOne(id);
 
-    const updateData: any = {};
+    const updateData: Partial<{ name: string; schema: any; allowedMethods: any }> = {};
 
     if (dto.name !== undefined) {
       const name = normalizeName(dto.name);
@@ -135,9 +135,30 @@ export class ContentTypeService {
       updateData.allowedMethods = dto.allowedMethods ?? null;
     }
 
+    // Snapshot current schema before applying changes so history is preserved
+    if (updateData.schema !== undefined) {
+      await this.prisma.contentTypeSchemaVersion.create({
+        data: {
+          contentTypeId: id,
+          schema: current.schema,
+          changedBy: actorId ?? null,
+        },
+      });
+    }
+
     return this.prisma.contentType.update({
       where: { id },
       data: updateData,
+    });
+  }
+
+  /** List the schema change history for a content type (newest first, max 50). */
+  async getSchemaHistory(id: number) {
+    await this.findOne(id);
+    return this.prisma.contentTypeSchemaVersion.findMany({
+      where: { contentTypeId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
     });
   }
 

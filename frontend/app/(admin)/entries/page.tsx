@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers, Copy, Loader2 } from 'lucide-react';
+import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers, Copy, Loader2, CheckSquare } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,8 @@ function truncate(val: any, max = 60): string {
   if (val === null || val === undefined) return '—';
   if (Array.isArray(val)) return `${val.length} item${val.length !== 1 ? 's' : ''}`;
   if (typeof val === 'object') {
+    // ImageValue: { url, alt }
+    if (typeof val.url === 'string') return val.url;
     const str = Object.entries(val)
       .filter(([k]) => k !== '_layout')
       .map(([, v]) => String(v))
@@ -74,6 +76,10 @@ export default function EntriesPage() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
+  // Bulk selection
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   const selectedCT = contentTypes.find((ct) => ct.name === ctParam) ?? null;
 
   /* ── Load content types + counts ───────────────────────────────────────── */
@@ -100,28 +106,59 @@ export default function EntriesPage() {
   useEffect(() => {
     if (!selectedCT) { setEntries([]); return; }
     setLoadingEntries(true);
+    setSelected(new Set());
     api.get('/entries', { params: { contentTypeId: selectedCT.id, limit: 100 } })
       .then((res) => setEntries(res.data.data ?? res.data))
       .catch(() => toast.error('Failed to load entries'))
       .finally(() => setLoadingEntries(false));
   }, [selectedCT?.id]);
 
-  useEffect(() => { setPage(1); }, [search, ctParam]);
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam]);
+
+  /* ── Refresh helpers ────────────────────────────────────────────────────── */
+  const refreshEntries = async () => {
+    if (!selectedCT) return;
+    const res = await api.get('/entries', { params: { contentTypeId: selectedCT.id, limit: 100 } });
+    const list = res.data.data ?? res.data;
+    setEntries(list);
+    setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: res.data.meta?.total ?? list.length }));
+    setSelected(new Set());
+  };
 
   /* ── Delete ────────────────────────────────────────────────────────────── */
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/entries/${id}`);
       toast.success('Entry deleted');
-      if (selectedCT) {
-        const res = await api.get('/entries', { params: { contentTypeId: selectedCT.id, limit: 100 } });
-        const list = res.data.data ?? res.data;
-        setEntries(list);
-        setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: res.data.meta?.total ?? list.length }));
-      }
+      await refreshEntries();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Delete failed');
     }
+  };
+
+  /* ── Bulk actions ───────────────────────────────────────────────────────── */
+  const handleBulkAction = async (action: 'bulk-delete' | 'bulk-publish' | 'bulk-archive') => {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await api.post(`/entries/${action}`, { ids: Array.from(selected) });
+      const label = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published' : 'archived';
+      toast.success(`${res.data.affected} ${res.data.affected === 1 ? 'entry' : 'entries'} ${label}`);
+      await refreshEntries();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Bulk action failed');
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  /* ── Selection helpers ──────────────────────────────────────────────────── */
+  const toggleSelect = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
   /* ── Duplicate ──────────────────────────────────────────────────────────── */
@@ -237,6 +274,23 @@ export default function EntriesPage() {
     e.slug.toLowerCase().includes(search.toLowerCase()),
   );
   const paginatedEntries = filteredEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const allPageSelected = paginatedEntries.length > 0 && paginatedEntries.every((e) => selected.has(e.id));
+
+  const toggleSelectAll = () => {
+    if (allPageSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        paginatedEntries.forEach((e) => next.delete(e.id));
+        return next;
+      });
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        paginatedEntries.forEach((e) => next.add(e.id));
+        return next;
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -266,10 +320,75 @@ export default function EntriesPage() {
         </div>
       </div>
 
+      {/* Bulk action bar */}
+      {canEdit && selected.size > 0 && (
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2.5">
+          <CheckSquare className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">
+            {selected.size} {selected.size === 1 ? 'entry' : 'entries'} selected
+          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={bulkLoading}
+              onClick={() => handleBulkAction('bulk-publish')}
+            >
+              {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+              Publish
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={bulkLoading}
+              onClick={() => handleBulkAction('bulk-archive')}
+            >
+              Archive
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger render={
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={bulkLoading}
+                />
+              }>
+                Delete
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {selected.size} {selected.size === 1 ? 'entry' : 'entries'}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Selected entries will be moved to trash. You can restore them later.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" onClick={() => handleBulkAction('bulk-delete')}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <Table>
         <TableHeader>
           <TableRow>
+            {canEdit && (
+              <TableHead className="w-10">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-border cursor-pointer accent-primary"
+                  checked={allPageSelected}
+                  onChange={toggleSelectAll}
+                  title="Select all on this page"
+                />
+              </TableHead>
+            )}
             <TableHead>Slug</TableHead>
             <TableHead>Status</TableHead>
             {schemaColumns.map((col) => (
@@ -284,7 +403,9 @@ export default function EntriesPage() {
         <TableBody>
           {loadingEntries && Array.from({ length: 4 }).map((_, i) => (
             <TableRow key={i}>
+              {canEdit && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
               <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-16" /></TableCell>
               {schemaColumns.map((col) => (
                 <TableCell key={col.name}><Skeleton className="h-4 w-24" /></TableCell>
               ))}
@@ -295,7 +416,7 @@ export default function EntriesPage() {
           {!loadingEntries && paginatedEntries.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={schemaColumns.length + 3}
+                colSpan={schemaColumns.length + (canEdit ? 4 : 3)}
                 className="py-12 text-center text-muted-foreground"
               >
                 {search ? 'No entries match your search.' : 'No entries yet. Create the first one.'}
@@ -303,7 +424,17 @@ export default function EntriesPage() {
             </TableRow>
           )}
           {paginatedEntries.map((entry) => (
-            <TableRow key={entry.id}>
+            <TableRow key={entry.id} className={selected.has(entry.id) ? 'bg-muted/40' : ''}>
+              {canEdit && (
+                <TableCell>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-border cursor-pointer accent-primary"
+                    checked={selected.has(entry.id)}
+                    onChange={() => toggleSelect(entry.id)}
+                  />
+                </TableCell>
+              )}
               <TableCell>
                 <p className="font-medium text-foreground">{entry.slug}</p>
               </TableCell>
@@ -319,16 +450,19 @@ export default function EntriesPage() {
               </TableCell>
               {schemaColumns.map((col) => {
                 const val = entry.data[col.name];
+                const imgSrc = col.type === 'image' && val
+                  ? (typeof val === 'object' && val.url ? val.url : typeof val === 'string' ? val : null)
+                  : null;
                 return (
                   <TableCell key={col.name} className="text-muted-foreground">
                     {val === undefined || val === null ? (
                       <span className="text-muted-foreground/40">—</span>
+                    ) : imgSrc ? (
+                      <img src={imgSrc} alt={val?.alt ?? ''} className="h-9 w-12 rounded object-cover" />
                     ) : col.type === 'boolean' ? (
                       <Badge variant={val ? 'default' : 'outline'} className="text-xs">
                         {val ? 'Yes' : 'No'}
                       </Badge>
-                    ) : col.type === 'image' && val ? (
-                      <img src={val} alt="" className="h-9 w-12 rounded object-cover" />
                     ) : col.type === 'repeater' || col.type === 'flexible' ? (
                       <Badge variant="secondary" className="text-xs">
                         {Array.isArray(val) ? `${val.length} item${val.length !== 1 ? 's' : ''}` : '—'}

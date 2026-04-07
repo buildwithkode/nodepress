@@ -167,14 +167,21 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
 ## What you get
 
 - Visual content type builder — no code required
-- Auto-generated REST API for every content type
+- Auto-generated REST API + GraphQL API for every content type
+- Multi-locale (i18n) content — per-entry locale field with locale filtering
+- Content relations — link entries across content types with `?populate=` support
+- Real-time updates via WebSocket (Socket.io) — subscribe to entry/media events
 - Media uploads with automatic WebP image optimisation
-- API keys with per-key rate limiting
+- API keys with per-key rate limiting (read: 120/min, write: 60/min)
 - Form builder with email and webhook actions
-- Webhooks with retry logic and HMAC signing
+- Webhooks with retry logic, HMAC signing, and exponential backoff
+- Granular role-based permissions — admin, editor, contributor, viewer
+- Per-content-type permission overrides via admin UI
 - Audit log and user management
 - Scheduled content publishing
-- Entry version history
+- Entry version history + content type schema change history
+- Plugin system — extend NodePress with custom NestJS modules
+- Prometheus metrics + Grafana dashboard + alerting rules
 - Client-friendly admin panel
 - 100% self-hosted — your data, your server
 
@@ -182,19 +189,27 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
 
 ## vs The Alternatives
 
-|                    | NodePress | Strapi   | Contentful |
-|--------------------|-----------|----------|------------|
-| Setup time         | 10 min    | 2–4 hrs  | 5 min      |
-| Docker needed      | No        | Yes      | No         |
-| Price              | Free      | Free     | $300/mo    |
-| Self-hosted        | Yes       | Yes      | No         |
-| Client-friendly UI | Yes       | Mediocre | Yes        |
+|                      | NodePress | Strapi   | Contentful |
+|----------------------|-----------|----------|------------|
+| Setup time           | 10 min    | 2–4 hrs  | 5 min      |
+| Docker needed        | No        | Yes      | No         |
+| Price                | Free      | Free     | $300/mo    |
+| Self-hosted          | Yes       | Yes      | No         |
+| REST API             | ✅        | ✅       | ✅         |
+| GraphQL API          | ✅        | ✅       | ✅         |
+| Real-time (WS)       | ✅        | ❌ paid  | ❌         |
+| i18n                 | ✅        | ✅       | ✅         |
+| Content relations    | ✅        | ✅       | ✅         |
+| Webhooks + retry     | ✅        | ✅ basic | ✅         |
+| Audit log            | ✅        | ❌ paid  | ✅         |
+| Plugin system        | ✅        | ✅       | ❌         |
+| Client-friendly UI   | Yes       | Mediocre | Yes        |
 
 ---
 
 ## Tech Stack
 
-NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript
+NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript · Socket.io · Apollo GraphQL · Redis · Prometheus
 
 ---
 

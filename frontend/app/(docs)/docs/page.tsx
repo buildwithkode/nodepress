@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -145,6 +145,7 @@ const FIELD_TYPES = [
   { type: 'image',    label: 'Image URL',      color: 'bg-pink-500/10 text-pink-400',    desc: 'A URL string pointing to an image (from Media Library or external).', example: '"/uploads/photo.jpg"' },
   { type: 'repeater', label: 'Repeater',       color: 'bg-red-500/10 text-red-400',      desc: 'A list of items, each sharing the same sub-fields.',              example: '[{"name":"Kartik","role":"Dev"}]' },
   { type: 'flexible', label: 'Flexible',       color: 'bg-indigo-500/10 text-indigo-400',desc: 'A list of blocks where each block can be a different layout.',    example: '[{"_layout":"hero","heading":"Welcome"}]' },
+  { type: 'relation', label: 'Relation',       color: 'bg-teal-500/10 text-teal-400',    desc: 'Link to one or many entries in another content type. Returns publicId UUID(s). Use ?populate= to inline the related data.', example: '"uuid-v4" or ["uuid1","uuid2"]' },
 ];
 
 // ─── Form field types ─────────────────────────────────────────────────────────
@@ -166,6 +167,12 @@ const TOC_ITEMS = [
   { id: 'content-types',  label: 'Content Types' },
   { id: 'field-types',    label: 'Field Types' },
   { id: 'entries',        label: 'Entries & Slugs' },
+  { id: 'i18n',           label: 'i18n / Multi-locale' },
+  { id: 'relations',      label: 'Content Relations' },
+  { id: 'graphql',        label: 'GraphQL API' },
+  { id: 'realtime',       label: 'Real-time (WebSocket)' },
+  { id: 'roles',          label: 'Roles & Permissions' },
+  { id: 'plugins',        label: 'Plugin System' },
   { id: 'media',          label: 'Media Library' },
   { id: 'api-keys',       label: 'API Keys' },
   { id: 'forms',          label: 'Forms' },
@@ -253,15 +260,16 @@ export default function DocsPage() {
 
           {/* Hero */}
           <div className="mb-14">
-            <div className="flex items-center gap-2 mb-4">
-              {['v1.0', 'Self-hosted', 'REST API'].map((t) => (
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              {['v1.0', 'Self-hosted', 'REST API', 'GraphQL', 'Real-time', 'i18n', 'MIT License'].map((t) => (
                 <span key={t} className="text-[11px] px-2 py-0.5 rounded-full border border-border text-muted-foreground">{t}</span>
               ))}
             </div>
             <h1 className="text-4xl font-extrabold mb-3">NodePress CMS</h1>
             <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
               A self-hosted headless CMS. Define your content structure, fill it with data through the
-              admin panel, then consume it via a clean REST API from any website, app, or platform.
+              admin panel, then consume it via REST or GraphQL from any website, app, or platform.
+              Built-in i18n, content relations, real-time WebSocket updates, and a plugin system.
             </p>
           </div>
 
@@ -749,6 +757,402 @@ npm run dev`} />
               A <strong className="text-foreground">Saving…</strong> / <strong className="text-foreground">Saved</strong> indicator
               appears in the card header. Autosave performs a silent PUT in the background — no page navigation or notification.
             </p>
+          </Section>
+
+          {/* ── i18n ──────────────────────────────────────────────────────── */}
+          <Section id="i18n" title="i18n / Multi-locale" icon={Languages}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Every entry carries a <IC>locale</IC> field (BCP 47 code, e.g. <IC>en</IC>, <IC>fr</IC>, <IC>de</IC>).
+              The same slug can exist in multiple locales — each combination is a unique entry.
+            </p>
+
+            <h3 className="font-semibold mb-2">Creating a localized entry</h3>
+            <p className="text-muted-foreground text-sm mb-2">In the admin panel, select the locale from the dropdown next to Status when creating or editing an entry. Via API:</p>
+            <CodeBlock code={`POST /api/entries
+{
+  "contentTypeId": 1,
+  "slug": "mon-article",
+  "locale": "fr",
+  "data": { "title": "Mon premier article" }
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Fetching by locale (public API)</h3>
+            <CodeBlock code={`# All French articles
+GET /api/article?locale=fr
+
+# Single entry in French
+GET /api/article/mon-article?locale=fr`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Supported locales</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Any BCP 47 code is accepted. The admin panel includes shortcuts for:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {['en', 'fr', 'de', 'es', 'it', 'pt', 'ja', 'zh', 'ar'].map((l) => (
+                <span key={l} className="px-2 py-1 rounded bg-muted font-mono text-xs">{l}</span>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
+              <strong className="text-blue-400">Unique constraint:</strong>
+              <p className="text-muted-foreground mt-1 text-xs">
+                The combination of <IC>contentTypeId + slug + locale</IC> must be unique.
+                The same slug <IC>hello-world</IC> can exist in <IC>en</IC>, <IC>fr</IC>, and <IC>de</IC> simultaneously.
+              </p>
+            </div>
+          </Section>
+
+          {/* ── Relations ─────────────────────────────────────────────────── */}
+          <Section id="relations" title="Content Relations" icon={Link2}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              The <IC>relation</IC> field type links entries across content types using their public UUID (<IC>publicId</IC>).
+              Relations support one-to-one and one-to-many cardinality.
+            </p>
+
+            <h3 className="font-semibold mb-2">Defining a relation field</h3>
+            <p className="text-muted-foreground text-sm mb-2">In the content type builder, add a field of type <IC>Relation</IC> and configure:</p>
+            <div className="overflow-x-auto rounded-xl border border-border mb-4">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Option</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Values</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Description</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border">
+                  <tr><td className="px-4 py-2.5 font-mono">relatedContentType</td><td className="px-4 py-2.5">any content type name</td><td className="px-4 py-2.5">The content type to link to</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">cardinality</td><td className="px-4 py-2.5"><IC>one</IC> | <IC>many</IC></td><td className="px-4 py-2.5">Single link or multi-select</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-2 mt-5">Storing relation values</h3>
+            <p className="text-muted-foreground text-sm mb-2">The field stores the <IC>publicId</IC> UUID(s) of linked entries:</p>
+            <CodeBlock code={`// cardinality: "one"
+{ "author": "550e8400-e29b-41d4-a716-446655440000" }
+
+// cardinality: "many"
+{ "tags": ["uuid-1", "uuid-2", "uuid-3"] }`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Populating relations</h3>
+            <p className="text-muted-foreground text-sm mb-2">Use <IC>?populate=fieldName</IC> to replace UUIDs with full entry objects in the response:</p>
+            <CodeBlock code={`# Single field
+GET /api/article/my-post?populate=author
+
+# Multiple fields
+GET /api/article/my-post?populate=author,tags
+
+# Response — author is now a full object instead of a UUID string
+{
+  "slug": "my-post",
+  "data": {
+    "title": "My Post",
+    "author": {
+      "id": "550e8400-...",
+      "slug": "john-doe",
+      "data": { "name": "John Doe", "bio": "..." }
+    }
+  }
+}`} />
+          </Section>
+
+          {/* ── GraphQL ───────────────────────────────────────────────────── */}
+          <Section id="graphql" title="GraphQL API" icon={Code2}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              NodePress exposes a GraphQL endpoint at <IC>/api/graphql</IC> alongside the REST API.
+              Use GraphQL when you need to fetch multiple resources in one round-trip or want strict typing.
+            </p>
+
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mb-5">
+              <strong className="text-amber-400">Playground disabled in production.</strong>
+              <p className="text-muted-foreground mt-1 text-xs">
+                The interactive playground is available at <IC>/api/graphql</IC> in development only.
+                In production, introspection is also disabled for security.
+              </p>
+            </div>
+
+            <h3 className="font-semibold mb-2">Example queries</h3>
+            <CodeBlock code={`# List entries
+query {
+  entries(contentTypeId: 1, status: "published", locale: "en", page: 1, limit: 10) {
+    total
+    data {
+      id
+      slug
+      locale
+      data
+    }
+  }
+}
+
+# Single entry
+query {
+  entry(id: 42) {
+    slug
+    status
+    data
+    createdAt
+  }
+}
+
+# All content types
+query {
+  contentTypes {
+    id
+    name
+    schema
+  }
+}
+
+# Media files (requires auth)
+query {
+  mediaFiles(page: 1, limit: 20) {
+    total
+    data {
+      filename
+      url
+      mimetype
+    }
+  }
+}
+
+# Webhooks (admin only)
+query {
+  webhooks {
+    id
+    name
+    url
+    events
+    enabled
+  }
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Mutations</h3>
+            <CodeBlock code={`# Create entry (requires auth: editor/contributor/admin)
+mutation {
+  createEntry(
+    contentTypeId: 1,
+    slug: "my-post",
+    locale: "en",
+    status: "published",
+    data: "{\\"title\\":\\"Hello\\"}"
+  ) {
+    id
+    slug
+  }
+}
+
+# Update entry
+mutation {
+  updateEntry(id: 42, data: "{\\"title\\":\\"Updated\\"}") {
+    slug
+    updatedAt
+  }
+}
+
+# Bulk operations (editor/admin)
+mutation {
+  bulkPublishEntries(ids: [1, 2, 3]) { affected }
+  bulkDeleteEntries(ids: [4, 5])     { affected }
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Authentication</h3>
+            <p className="text-muted-foreground text-sm mb-2">Pass a JWT Bearer token in the Authorization header. Public queries (entries, contentTypes) work without auth — authenticated users see all statuses, unauthenticated users see only published.</p>
+            <CodeBlock code={`fetch('/api/graphql', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_JWT_TOKEN',
+  },
+  body: JSON.stringify({ query: '{ contentTypes { id name } }' }),
+})`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Query depth limit</h3>
+            <p className="text-muted-foreground text-sm">Queries are limited to a depth of <strong className="text-foreground">6</strong> to prevent abuse. Queries deeper than 6 nested fields are rejected with a validation error.</p>
+          </Section>
+
+          {/* ── Real-time ─────────────────────────────────────────────────── */}
+          <Section id="realtime" title="Real-time (WebSocket)" icon={Radio}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              NodePress broadcasts content changes over WebSocket using Socket.io.
+              Connect to <IC>ws://your-api/api/realtime</IC> to receive live updates in your frontend.
+            </p>
+
+            <h3 className="font-semibold mb-2">Events emitted by the server</h3>
+            <div className="overflow-x-auto rounded-xl border border-border mb-4">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Event</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Payload</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border">
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">entry:created</td><td className="px-4 py-2.5 font-mono text-xs">{'{ id, slug, contentType, locale }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">entry:updated</td><td className="px-4 py-2.5 font-mono text-xs">{'{ id, slug, contentType, locale, status }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">entry:deleted</td><td className="px-4 py-2.5 font-mono text-xs">{'{ id, slug, contentType? }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">media:uploaded</td><td className="px-4 py-2.5 font-mono text-xs">{'{ id, filename, url, mimetype }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">media:deleted</td><td className="px-4 py-2.5 font-mono text-xs">{'{ filename }'}</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-2">Rooms</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Every client automatically joins the <IC>global</IC> room (all events). Subscribe to a content-type room to receive only events for that type:
+            </p>
+            <CodeBlock code={`// Subscribe to article events only
+socket.emit('subscribe', { contentType: 'article' });
+
+// Unsubscribe
+socket.emit('unsubscribe', { contentType: 'article' });`} />
+
+            <h3 className="font-semibold mb-2 mt-5">React hook (built-in)</h3>
+            <p className="text-muted-foreground text-sm mb-2">Import <IC>useRealtimeEvents</IC> from <IC>lib/useRealtimeEvents</IC>:</p>
+            <CodeBlock code={`import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
+
+export default function LiveDashboard() {
+  useRealtimeEvents(
+    {
+      onEntryCreated: (p) => console.log('New entry:', p.slug),
+      onEntryUpdated: (p) => console.log('Updated:', p.slug, p.status),
+      onMediaUploaded: (p) => console.log('Uploaded:', p.filename),
+    },
+    ['article', 'page'],   // subscribe to these content types
+  );
+
+  return <div>Watching for updates...</div>;
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Vanilla JavaScript</h3>
+            <CodeBlock code={`import { io } from 'socket.io-client';
+
+const socket = io('https://your-api.com', {
+  path: '/api/realtime',
+  withCredentials: true,
+});
+
+socket.on('entry:created', ({ id, slug, contentType }) => {
+  console.log(\`New \${contentType} entry: \${slug}\`);
+});
+
+socket.on('entry:updated', ({ slug, status }) => {
+  if (status === 'published') refreshPage(slug);
+});`} />
+          </Section>
+
+          {/* ── Roles & Permissions ───────────────────────────────────────── */}
+          <Section id="roles" title="Roles & Permissions" icon={ShieldCheck}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              NodePress has four built-in roles. Access to admin routes is enforced server-side — the frontend role display is for UX only.
+            </p>
+
+            <div className="overflow-x-auto rounded-xl border border-border mb-5">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Role</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Can do</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Cannot do</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border">
+                  <tr><td className="px-4 py-2.5 font-semibold text-foreground">admin</td><td className="px-4 py-2.5">Everything — users, permissions, content types, entries, media, webhooks</td><td className="px-4 py-2.5">—</td></tr>
+                  <tr><td className="px-4 py-2.5 font-semibold text-foreground">editor</td><td className="px-4 py-2.5">Create, read, update, delete, publish any entry or media</td><td className="px-4 py-2.5">Manage users, content types, webhooks, permissions</td></tr>
+                  <tr><td className="px-4 py-2.5 font-semibold text-foreground">contributor</td><td className="px-4 py-2.5">Create and update entries (cannot delete or publish)</td><td className="px-4 py-2.5">Delete, publish, manage settings</td></tr>
+                  <tr><td className="px-4 py-2.5 font-semibold text-foreground">viewer</td><td className="px-4 py-2.5">Read-only access to the admin panel</td><td className="px-4 py-2.5">Create, edit, or delete anything</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-2">Per-content-type overrides</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Go to <strong className="text-foreground">Users → Permissions</strong> to set which actions each role can perform on specific content types.
+              A wildcard row (<IC>*</IC>) applies to all content types unless overridden.
+            </p>
+            <CodeBlock code={`# Get all permissions
+GET /api/permissions
+
+# Get permissions for a role
+GET /api/permissions/editor
+
+# Update permissions for a role + content type
+PUT /api/permissions/editor/article
+{
+  "actions": ["create", "read", "update"]
+}
+
+# Reset all permissions to defaults
+PUT /api/permissions/reset/all`} />
+
+            <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
+              <strong className="text-blue-400">How permissions are checked:</strong>
+              <ol className="text-muted-foreground mt-1 text-xs space-y-1 list-decimal list-inside">
+                <li>Check for an exact <IC>role + contentType</IC> row</li>
+                <li>Fall back to the wildcard <IC>role + *</IC> row</li>
+                <li>If neither exists, deny by default</li>
+              </ol>
+            </div>
+          </Section>
+
+          {/* ── Plugin System ─────────────────────────────────────────────── */}
+          <Section id="plugins" title="Plugin System" icon={Puzzle}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              NodePress ships with a plugin architecture that lets you extend the CMS with custom NestJS modules — new REST endpoints, event listeners, background jobs, and more.
+            </p>
+
+            <h3 className="font-semibold mb-2">Plugin contract</h3>
+            <p className="text-muted-foreground text-sm mb-2">A plugin is a folder that exports two things:</p>
+            <CodeBlock code={`// src/plugins/my-plugin/manifest.ts
+import { PluginManifest } from '../../plugin/plugin-sdk';
+
+export const MyPluginManifest: PluginManifest = {
+  id: 'my-plugin',           // kebab-case unique ID
+  name: 'My Plugin',
+  version: '1.0.0',
+  description: 'What this plugin does',
+  permissions: ['entries:read'],
+};
+
+// src/plugins/my-plugin/my-plugin.module.ts
+import { Module } from '@nestjs/common';
+import { MyPluginService } from './my-plugin.service';
+
+@Module({ providers: [MyPluginService] })
+export class MyPluginModule {}`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Enabling a plugin</h3>
+            <p className="text-muted-foreground text-sm mb-2">Add it to <IC>src/plugin/plugins.config.ts</IC>:</p>
+            <CodeBlock code={`import { MyPluginManifest, MyPluginModule } from '../plugins/my-plugin';
+
+export const ENABLED_PLUGINS = [
+  { manifest: MyPluginManifest, module: MyPluginModule },
+];`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Reacting to entry lifecycle events</h3>
+            <p className="text-muted-foreground text-sm mb-2">Install <IC>@nestjs/event-emitter</IC> and use <IC>@OnEvent()</IC> in your plugin service:</p>
+            <CodeBlock code={`import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { PluginEvents, EntryLifecyclePayload } from '../../plugin/plugin-sdk';
+
+@Injectable()
+export class MyPluginService {
+  @OnEvent(PluginEvents.ENTRY_AFTER_CREATE)
+  handleCreate(payload: EntryLifecyclePayload) {
+    console.log('Entry created:', payload.slug, payload.contentType);
+  }
+
+  @OnEvent(PluginEvents.ENTRY_AFTER_PUBLISH)
+  handlePublish(payload: EntryLifecyclePayload) {
+    // e.g. post to social media, ping a CDN, update a search index
+  }
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Available lifecycle events</h3>
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Event constant</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Fires when</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border font-mono text-xs">
+                  {[
+                    ['ENTRY_BEFORE_CREATE / ENTRY_AFTER_CREATE', 'Entry is being / has been created'],
+                    ['ENTRY_BEFORE_UPDATE / ENTRY_AFTER_UPDATE', 'Entry is being / has been updated'],
+                    ['ENTRY_BEFORE_DELETE / ENTRY_AFTER_DELETE', 'Entry is being / has been soft-deleted'],
+                    ['ENTRY_BEFORE_PUBLISH / ENTRY_AFTER_PUBLISH', 'Entry status changes to published'],
+                  ].map(([event, desc]) => (
+                    <tr key={event}><td className="px-4 py-2.5">{event}</td><td className="px-4 py-2.5 font-sans">{desc}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
+              <strong className="text-blue-400">Discover installed plugins:</strong>
+              <p className="text-muted-foreground mt-1 text-xs"><IC>GET /api/plugins</IC> — returns all registered plugins with their manifest, version, and enabled status.</p>
+            </div>
           </Section>
 
           {/* ── Media ─────────────────────────────────────────────────────── */}

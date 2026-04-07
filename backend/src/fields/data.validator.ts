@@ -79,6 +79,9 @@ export class DataValidator {
         case 'image':
           this.validateImage(value, path, errors);
           break;
+        case 'relation':
+          this.validateRelation(value, path, errors);
+          break;
         case 'repeater':
           this.validateRepeater(value, field as RepeaterFieldDef, path, errors, partial);
           break;
@@ -200,6 +203,23 @@ export class DataValidator {
       return;
     }
     errors.push(`${path}: must be a URL string or { url, alt } object`);
+  }
+
+  private validateRelation(value: unknown, path: string, errors: string[]): void {
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (Array.isArray(value)) {
+      value.forEach((v, i) => {
+        if (typeof v !== 'string' || !uuidRe.test(v)) {
+          errors.push(`${path}[${i}]: must be a valid UUID (publicId)`);
+        }
+      });
+    } else if (typeof value === 'string') {
+      if (!uuidRe.test(value)) {
+        errors.push(`${path}: must be a valid UUID (publicId)`);
+      }
+    } else {
+      errors.push(`${path}: must be a UUID string or array of UUID strings`);
+    }
   }
 
   // ─── Complex type validators ───────────────────────────────────────────────

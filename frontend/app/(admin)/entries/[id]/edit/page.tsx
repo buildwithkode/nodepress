@@ -45,6 +45,7 @@ export default function EditEntryPage() {
   const [entry, setEntry] = useState<Entry | null>(null);
   const [contentType, setContentType] = useState<ContentType | null>(null);
   const [status, setStatus] = useState<string>('published');
+  const [locale, setLocale] = useState<string>('en');
   const [seoOpen, setSeoOpen] = useState(false);
 
   // SEO fields
@@ -99,6 +100,7 @@ export default function EditEntryPage() {
         const e: Entry = res.data;
         setEntry(e);
         setStatus(e.status ?? 'published');
+        setLocale((e as any).locale ?? 'en');
         setSeoTitle(e.seo?.title ?? '');
         setSeoDescription(e.seo?.description ?? '');
         setSeoImage(e.seo?.image ?? '');
@@ -191,20 +193,42 @@ export default function EditEntryPage() {
               <p className="mt-1 text-xs text-muted-foreground">Slug cannot be changed after creation</p>
             </div>
 
-            {/* Status */}
-            <div className="mb-4">
-              <Label className="mb-1.5 block">Status</Label>
-              <Select value={status} onValueChange={(v: string | null) => v && setStatus(v)}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="mt-1 text-xs text-muted-foreground">Only published entries appear in the public API</p>
+            {/* Status + Locale */}
+            <div className="mb-4 flex items-start gap-4 flex-wrap">
+              <div>
+                <Label className="mb-1.5 block">Status</Label>
+                <Select value={status} onValueChange={(v: string | null) => v && setStatus(v)}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-muted-foreground">Only published entries appear in the public API</p>
+              </div>
+              <div>
+                <Label className="mb-1.5 block">Locale</Label>
+                <Select value={locale} onValueChange={setLocale}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">🇬🇧 en</SelectItem>
+                    <SelectItem value="fr">🇫🇷 fr</SelectItem>
+                    <SelectItem value="de">🇩🇪 de</SelectItem>
+                    <SelectItem value="es">🇪🇸 es</SelectItem>
+                    <SelectItem value="it">🇮🇹 it</SelectItem>
+                    <SelectItem value="pt">🇧🇷 pt</SelectItem>
+                    <SelectItem value="ja">🇯🇵 ja</SelectItem>
+                    <SelectItem value="zh">🇨🇳 zh</SelectItem>
+                    <SelectItem value="ar">🇸🇦 ar</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-muted-foreground">BCP 47 language code</p>
+              </div>
             </div>
 
             {/* Scheduled publish */}

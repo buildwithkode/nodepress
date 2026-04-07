@@ -19,6 +19,7 @@ export const SIMPLE_FIELD_TYPES = [
   'boolean',
   'select',
   'image',
+  'relation',
 ] as const;
 
 export const COMPLEX_FIELD_TYPES = ['repeater', 'flexible'] as const;
@@ -91,13 +92,31 @@ export interface ImageValue {
   alt?: string;
 }
 
+export interface RelationFieldDef extends BaseField {
+  type: 'relation';
+  options: {
+    /** The content type name this field links to (e.g. 'author') */
+    relatedContentType: string;
+    /** 'one' → single UUID; 'many' → array of UUIDs */
+    cardinality: 'one' | 'many';
+  };
+}
+
+/**
+ * Runtime value for a relation field.
+ * Stored as a publicId UUID string (cardinality=one) or UUID string[] (cardinality=many).
+ * When ?populate=fieldName is requested, replaced inline with the full entry object.
+ */
+export type RelationValue = string | string[] | null;
+
 /** Union of all non-nestable field definitions */
 export type SimpleFieldDef =
   | TextFieldDef
   | NumberFieldDef
   | BooleanFieldDef
   | SelectFieldDef
-  | ImageFieldDef;
+  | ImageFieldDef
+  | RelationFieldDef;
 
 // ─── Complex field defs ───────────────────────────────────────────────────────
 
@@ -151,5 +170,6 @@ export type FieldValue =
   | null
   | undefined
   | ImageValue
+  | RelationValue
   | RepeaterItem[]
   | FlexibleItem[];

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Trash2, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, ShieldCheck, Settings2 } from 'lucide-react';
 import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -31,9 +31,10 @@ interface User {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  admin:  'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
-  editor: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-  viewer: 'bg-muted text-muted-foreground',
+  admin:       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+  editor:      'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+  contributor: 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300',
+  viewer:      'bg-muted text-muted-foreground',
 };
 
 export default function UsersPage() {
@@ -154,6 +155,7 @@ export default function UsersPage() {
                         <SelectContent>
                           <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="editor">Editor</SelectItem>
+                          <SelectItem value="contributor">Contributor</SelectItem>
                           <SelectItem value="viewer">Viewer</SelectItem>
                         </SelectContent>
                       </Select>
@@ -197,15 +199,21 @@ export default function UsersPage() {
       {/* ── Role guide ────────────────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Role Permissions</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Role Permissions</CardTitle>
+            <a href="/users/permissions" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+              <Settings2 className="h-3.5 w-3.5" /> Manage permissions
+            </a>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             {[
-              { role: 'Admin', color: 'yellow', perms: ['Full access', 'Manage users', 'Content types & API keys', 'Audit log', 'All entries & forms'] },
-              { role: 'Editor', color: 'blue', perms: ['Entries (create/edit/delete)', 'Forms & submissions', 'Media upload/delete', 'Read content types'] },
-              { role: 'Viewer', color: 'muted', perms: ['Read-only admin panel', 'View entries & forms', 'Cannot create or modify anything'] },
-            ].map(({ role: r, color, perms }) => (
+              { role: 'Admin',       perms: ['Full access to everything', 'Manage users & roles', 'Content types & API keys', 'Audit log & webhooks'] },
+              { role: 'Editor',      perms: ['Create / edit / delete entries', 'Publish & archive entries', 'Forms, media upload/delete', 'Read content types'] },
+              { role: 'Contributor', perms: ['Create & edit entries', 'Cannot delete entries', 'Cannot publish or archive', 'Media upload only'] },
+              { role: 'Viewer',      perms: ['Read-only dashboard', 'View entries & forms', 'View media library', 'Cannot modify anything'] },
+            ].map(({ role: r, perms }) => (
               <div key={r} className="space-y-2">
                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r.toLowerCase()] ?? ROLE_COLORS.viewer}`}>
                   {r}
@@ -244,6 +252,7 @@ export default function UsersPage() {
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="editor">Editor</SelectItem>
+                  <SelectItem value="contributor">Contributor</SelectItem>
                   <SelectItem value="viewer">Viewer</SelectItem>
                 </SelectContent>
               </Select>

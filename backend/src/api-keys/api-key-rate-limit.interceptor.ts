@@ -49,8 +49,13 @@ export class ApiKeyRateLimitInterceptor implements NestInterceptor {
     res.setHeader('X-RateLimit-Reset',     60);
 
     if (count > limit) {
+      res.setHeader('Retry-After', 60);
       throw new HttpException(
-        { statusCode: 429, message: 'API key rate limit exceeded. Try again in 60 seconds.' },
+        {
+          statusCode: 429,
+          error: 'Too Many Requests',
+          message: `API key rate limit exceeded (${limit} req/min for "${access}" access). Retry after 60 seconds.`,
+        },
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }

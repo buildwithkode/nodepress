@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { MediaController } from './media.controller';
 import { MediaService } from './media.service';
+import { RealtimeModule } from '../realtime/realtime.module';
 import { STORAGE_ADAPTER } from './adapters/storage.adapter';
 import { LocalStorageAdapter } from './adapters/local.adapter';
 import { S3StorageAdapter } from './adapters/s3.adapter';
@@ -31,7 +32,7 @@ const storageAdapterProvider = {
 };
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, RealtimeModule],
   controllers: [MediaController],
   providers: [MediaService, storageAdapterProvider],
   exports: [MediaService],

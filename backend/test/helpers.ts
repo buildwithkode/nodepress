@@ -30,6 +30,9 @@ export async function cleanDatabase(app: INestApplication) {
   await prisma.$executeRawUnsafe(`DELETE FROM "webhook_deliveries"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "webhooks"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "api_keys"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "form_submissions"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "forms"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "media"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "password_reset_tokens"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "refresh_tokens"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "users"`);

@@ -40,6 +40,11 @@ export class CreateEntryDto {
   @IsNotEmpty()
   slug: string;
 
+  @ApiPropertyOptional({ example: 'en', description: 'BCP 47 locale code (e.g. en, fr, de). Defaults to en.' })
+  @IsOptional()
+  @IsString()
+  locale?: string;
+
   @ApiPropertyOptional({
     example: 'published',
     enum: ENTRY_STATUSES,

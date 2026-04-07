@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import RepeaterField from './RepeaterField';
 import FlexibleField from './FlexibleField';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
+import { RelationPicker } from '@/components/RelationPicker';
 
 const RichTextEditor = dynamic(
   () => import('@/components/RichTextEditor'),
@@ -37,7 +38,7 @@ interface Layout {
 interface Field {
   name: string;
   type: string;
-  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string };
+  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
 }
 
 interface Props {
@@ -224,6 +225,24 @@ export default function DynamicFormField({
             )}
           />
         );
+
+      case 'relation': {
+        const relOpts = field.options as { relatedContentType?: string; cardinality?: string } | undefined;
+        return (
+          <Controller
+            control={control}
+            name={field.name}
+            render={({ field: f }) => (
+              <RelationPicker
+                relatedContentType={relOpts?.relatedContentType ?? ''}
+                cardinality={(relOpts?.cardinality as 'one' | 'many') ?? 'one'}
+                value={f.value ?? null}
+                onChange={f.onChange}
+              />
+            )}
+          />
+        );
+      }
 
       default:
         return (

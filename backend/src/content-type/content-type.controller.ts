@@ -74,12 +74,22 @@ export class ContentTypeController {
     @Body() dto: UpdateContentTypeDto,
     @Request() req: any,
   ) {
-    const ct = await this.contentTypeService.update(id, dto);
+    const ct = await this.contentTypeService.update(id, dto, req.user.id);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'updated', 'content_type', ct.name,
     );
     return ct;
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get(':id/schema-history')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get schema change history for a content type (admin only)' })
+  @ApiParam({ name: 'id', type: Number })
+  getSchemaHistory(@Param('id', ParseIntPipe) id: number) {
+    return this.contentTypeService.getSchemaHistory(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

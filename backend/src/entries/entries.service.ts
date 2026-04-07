@@ -4,12 +4,14 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
 import { DataValidator } from '../fields/data.validator';
-import { FieldDef } from '../fields/field.types';
+import { FieldDef, RelationFieldDef } from '../fields/field.types';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 import { sanitizeEntryData } from '../common/sanitize';
 
@@ -18,6 +20,7 @@ export interface AdminListQuery {
   status?: string;          // filter by status (draft | published | archived)
   deleted?: boolean;        // true = show only soft-deleted entries
   search?: string;          // full-text search on slug + data
+  locale?: string;          // filter by locale (e.g. 'en', 'fr')
   page?: number;
   limit?: number;
 }
@@ -38,6 +41,7 @@ export class EntriesService {
     private prisma: PrismaService,
     private dataValidator: DataValidator,
     private webhooks: WebhooksService,
+    private realtime: RealtimeGateway,
   ) {}
 
   async create(dto: CreateEntryDto, actorId?: number) {
@@ -54,17 +58,19 @@ export class EntriesService {
       contentType.schema as unknown as FieldDef[],
     );
 
+    const locale = dto.locale ?? 'en';
     const existing = await this.prisma.entry.findUnique({
-      where: { contentTypeId_slug: { contentTypeId: dto.contentTypeId, slug: dto.slug } },
+      where: { contentTypeId_slug_locale: { contentTypeId: dto.contentTypeId, slug: dto.slug, locale } },
     });
 
     if (existing) {
-      throw new ConflictException(`Slug "${dto.slug}" already exists in this content type`);
+      throw new ConflictException(`Slug "${dto.slug}" already exists for locale "${locale}" in this content type`);
     }
 
     const entry = await this.prisma.entry.create({
       data: {
         slug: dto.slug,
+        locale,
         status: dto.status ?? 'published',
         data: normalizeDataKeys(
           sanitizeEntryData(
@@ -86,6 +92,13 @@ export class EntriesService {
       contentType: contentType.name,
     });
 
+    this.realtime.notifyEntryCreated({
+      id: entry.id,
+      slug: entry.slug,
+      contentType: contentType.name,
+      locale: entry.locale,
+    });
+
     return entry;
   }
 
@@ -98,6 +111,7 @@ export class EntriesService {
 
     if (query.contentTypeId) where.contentTypeId = query.contentTypeId;
     if (query.status) where.status = query.status;
+    if (query.locale) where.locale = query.locale;
 
     if (query.deleted) {
       where.deletedAt = { not: null };
@@ -148,7 +162,7 @@ export class EntriesService {
     if (toUpdate.length > 0) {
       await this.prisma.$transaction(
         toUpdate.map((p) =>
-          this.prisma.entry.update({ where: { id: p.entry.id }, data: { data: p.data as any } }),
+          this.prisma.entry.update({ where: { id: p.entry.id }, data: { data: p.data as Prisma.InputJsonValue } }),
         ),
       );
     }
@@ -161,7 +175,7 @@ export class EntriesService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, populate: string[] = []) {
     const entry = await this.prisma.entry.findUnique({
       where: { id },
       include: { contentType: true },
@@ -174,9 +188,39 @@ export class EntriesService {
     let data = entry.data as Record<string, any>;
     if (needsRepeaterIds(data)) {
       data = injectRepeaterIds(data);
-      await this.prisma.entry.update({ where: { id: entry.id }, data: { data: data as any } });
+      await this.prisma.entry.update({ where: { id: entry.id }, data: { data: data as Prisma.InputJsonValue } });
     }
+
+    if (populate.length && entry.contentType) {
+      data = await this.populateRelations(data, entry.contentType.schema as FieldDef[], populate);
+    }
+
     return { ...entry, data };
+  }
+
+  /** Inline-replace relation UUIDs with full entry objects for requested fields. */
+  private async populateRelations(
+    data: Record<string, any>,
+    schema: FieldDef[],
+    populate: string[],
+  ): Promise<Record<string, any>> {
+    const result = { ...data };
+    const relationFields = schema.filter(
+      (f): f is RelationFieldDef => f.type === 'relation' && populate.includes(f.name),
+    );
+
+    for (const field of relationFields) {
+      const raw = data[field.name];
+      if (!raw) continue;
+      const ids: string[] = Array.isArray(raw) ? raw : [raw];
+      const related = await this.prisma.entry.findMany({
+        where: { publicId: { in: ids }, deletedAt: null },
+        include: { contentType: true },
+      });
+      result[field.name] = field.options.cardinality === 'many' ? related : (related[0] ?? null);
+    }
+
+    return result;
   }
 
   async update(id: number, dto: UpdateEntryDto, actorId?: number) {
@@ -198,10 +242,10 @@ export class EntriesService {
     if (dto.slug !== undefined) {
       if (dto.slug !== entry.slug) {
         const conflict = await this.prisma.entry.findUnique({
-          where: { contentTypeId_slug: { contentTypeId: entry.contentTypeId, slug: dto.slug } },
+          where: { contentTypeId_slug_locale: { contentTypeId: entry.contentTypeId, slug: dto.slug, locale: entry.locale } },
         });
         if (conflict) {
-          throw new ConflictException(`Slug "${dto.slug}" already exists in this content type`);
+          throw new ConflictException(`Slug "${dto.slug}" already exists for locale "${entry.locale}" in this content type`);
         }
       }
       updateData.slug = dto.slug;
@@ -246,6 +290,14 @@ export class EntriesService {
       contentType: updated.contentType?.name,
     });
 
+    this.realtime.notifyEntryUpdated({
+      id: updated.id,
+      slug: updated.slug,
+      contentType: updated.contentType?.name ?? '',
+      locale: updated.locale,
+      status: updated.status,
+    });
+
     return updated;
   }
 
@@ -255,6 +307,12 @@ export class EntriesService {
     await this.prisma.entry.update({ where: { id }, data: { deletedAt: new Date() } });
 
     this.webhooks.fire('entry.deleted', { id: entry.id, slug: entry.slug });
+
+    this.realtime.notifyEntryDeleted({
+      id: entry.id,
+      slug: entry.slug,
+      contentType: (entry as { contentType?: { name: string } }).contentType?.name,
+    });
 
     return { message: `Entry #${id} moved to trash` };
   }
@@ -291,6 +349,32 @@ export class EntriesService {
     this.webhooks.fire('entry.purged', { id: entry.id, slug: entry.slug });
 
     return { message: `Entry #${id} permanently deleted` };
+  }
+
+  // ── Bulk operations ───────────────────────────────────────────────────────
+
+  async bulkDelete(ids: number[]) {
+    const result = await this.prisma.entry.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    return { affected: result.count };
+  }
+
+  async bulkPublish(ids: number[]) {
+    const result = await this.prisma.entry.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { status: 'published' },
+    });
+    return { affected: result.count };
+  }
+
+  async bulkArchive(ids: number[]) {
+    const result = await this.prisma.entry.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { status: 'archived' },
+    });
+    return { affected: result.count };
   }
 
   // ── Content versioning ────────────────────────────────────────────────────
@@ -338,6 +422,14 @@ export class EntriesService {
       status: updated.status,
       contentType: updated.contentType?.name,
       restoredFromVersion: versionId,
+    });
+
+    this.realtime.notifyEntryUpdated({
+      id: updated.id,
+      slug: updated.slug,
+      contentType: updated.contentType?.name ?? '',
+      locale: updated.locale,
+      status: updated.status,
     });
 
     return updated;

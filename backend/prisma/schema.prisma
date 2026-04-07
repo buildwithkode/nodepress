@@ -15,14 +15,29 @@ model ContentType {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   entries        Entry[]
+  schemaVersions ContentTypeSchemaVersion[]
 
   @@map("content_types")
+}
+
+model ContentTypeSchemaVersion {
+  id            Int         @id @default(autoincrement())
+  contentTypeId Int
+  schema        Json        // snapshot of schema at time of change
+  changedBy     Int?        // userId — null if changed via API key or system
+  createdAt     DateTime    @default(now())
+  contentType   ContentType @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+
+  @@index([contentTypeId])
+  @@index([createdAt(sort: Desc)])
+  @@map("content_type_schema_versions")
 }
 
 model Entry {
   id            Int            @id @default(autoincrement())
   publicId      String         @unique @default(uuid())   // public-facing UUID v4 — exposed as "id" in API
   slug          String
+  locale        String         @default("en")             // BCP 47 locale code e.g. "en", "fr", "de"
   status        String         @default("published")       // draft | published | archived
   data          Json
   contentType   ContentType    @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
@@ -34,8 +49,9 @@ model Entry {
   deletedAt     DateTime?                                  // null = active; set on soft delete
   versions      EntryVersion[]
 
-  @@unique([contentTypeId, slug])
+  @@unique([contentTypeId, slug, locale])
   @@index([contentTypeId])
+  @@index([locale])
   @@index([status])
   @@index([deletedAt])
   @@index([publishAt])
@@ -62,7 +78,7 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  role      String   @default("admin")
+  role      String   @default("editor")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -150,6 +166,19 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt(sort: Desc)])
   @@map("audit_logs")
+}
+
+// ─── Permissions ─────────────────────────────────────────────────────────────
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  role        String   // 'editor' | 'viewer' | 'contributor'
+  contentType String   // '*' = all content types, or specific name e.g. 'article'
+  actions     String[] // subset of: create, read, update, delete, publish
+
+  @@unique([role, contentType])
+  @@index([role])
+  @@map("permissions")
 }
 
 // ─── Refresh Tokens ───────────────────────────────────────────────────────────

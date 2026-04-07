@@ -10,6 +10,41 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [1.1.0] — 2026-04-07
+
+### Added
+- **i18n / Multi-locale** — `locale` field on every entry; composite unique key `(contentTypeId, slug, locale)`; `?locale=` filter on all public and admin APIs
+- **Content Relations** — `relation` field type storing publicId UUIDs; `?populate=field1,field2` to inline related entries on any endpoint
+- **GraphQL API** — Apollo Server at `/api/graphql`; resolvers for entries, content types, media, webhooks; optional JWT guard for public/private queries; query depth limit (max 6)
+- **Real-time WebSocket** — Socket.io gateway at `/api/realtime`; `global` room + per-content-type rooms (`ct:<name>`); events: `entry:created`, `entry:updated`, `entry:deleted`, `media:uploaded`, `media:deleted`
+- **Granular Roles** — `contributor` and `viewer` roles added alongside `admin` and `editor`
+- **Permission matrix** — `Permission` DB table with role + contentType + actions[]; admin UI at `/users/permissions`; `GET/PUT /api/permissions` endpoints
+- **Schema versioning** — Content type schema snapshots saved before each update; `GET /api/content-types/:id/schema-history` endpoint
+- **Prometheus alerting rules** — `monitoring/alerts.yml` with rules for high error rate, high latency, high memory, and backend-down
+- **Frontend stale-while-revalidate cache** — `lib/useFetch.ts` hook; cached API responses reused on navigation; background revalidation after 30 s
+- **`useRealtimeEvents` hook** — `lib/useRealtimeEvents.ts`; typed handlers for all 5 WebSocket event types; automatic room subscriptions
+
+### Fixed
+- `auth.service.ts` — removed 9 `(this.prisma as any)` casts for `refreshToken` and `passwordResetToken`; now fully typed
+- `dynamic-api.service.ts` — `findOne` referenced undefined `query` variable (runtime bug); fixed with proper `query: PublicSingleQuery` parameter
+- `dynamic-api.service.ts` — `create`/`update`/`remove` used stale `contentTypeId_slug` unique key; updated to `contentTypeId_slug_locale`
+- `dynamic-api.service.ts` — empty full-text search results now use `{ in: [-1] }` sentinel to prevent returning all entries
+- `forms.service.ts` — `as any` casts replaced with `Prisma.InputJsonValue` / `Prisma.FormUpdateInput`
+- `entries.service.ts` — JSON field casts replaced with `Prisma.InputJsonValue`
+- CI — E2E tests now run in GitHub Actions with real PostgreSQL + Redis services (previously only type-check ran)
+- Rate limit 429 response now includes `Retry-After: 60` header
+
+### Migration required
+```bash
+npx prisma migrate deploy
+```
+Applies:
+- `20260407100000_add_permissions` — permissions table
+- `20260407110000_add_i18n_locale` — locale column + updated unique index on entries
+- `20260407120000_add_schema_versions` — content_type_schema_versions table
+
+---
+
 ## [1.0.0] — 2026-04-01
 
 ### Added

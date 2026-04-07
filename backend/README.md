@@ -1,6 +1,6 @@
 # NodePress Backend
 
-NestJS + PostgreSQL + Prisma REST API for the NodePress headless CMS.
+NestJS + PostgreSQL + Prisma — REST, GraphQL, and WebSocket API for the NodePress headless CMS.
 
 > **New to NodePress?** Use the CLI instead: `npx create-nodepress-app my-project`
 > Full setup guide: [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
@@ -54,9 +54,12 @@ npx prisma migrate dev
 npm run start:dev
 ```
 
-- API: `http://localhost:3000/api`
+- REST API: `http://localhost:3000/api`
+- GraphQL: `http://localhost:3000/api/graphql`
+- WebSocket: `ws://localhost:3000/api/realtime`
 - Swagger docs: `http://localhost:3000/api/docs`
 - Health check: `http://localhost:3000/api/health`
+- Metrics: `http://localhost:3000/api/metrics`
 
 ---
 
@@ -91,6 +94,64 @@ See `.env.example` for all available variables.
 | Variable | Description |
 |---|---|
 | `PORT` | Defaults to `3000` |
+| `APP_URL` | Public backend URL — used in uploaded file URLs |
+| `SITE_URL` | Public frontend URL — used in sitemap/robots.txt |
 | `REDIS_URL` | Enables shared Redis cache (in-memory by default) |
 | `STORAGE_DRIVER` | `local` (default) or `s3` |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | For password reset emails |
+| `STORAGE_S3_BUCKET` / `STORAGE_S3_REGION` / `STORAGE_S3_ACCESS_KEY` / `STORAGE_S3_SECRET_KEY` | S3 storage credentials |
+| `STORAGE_S3_ENDPOINT` | Custom S3 endpoint for R2/MinIO |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | SMTP for password reset + form emails |
+| `SENTRY_DSN` | Sentry error tracking |
+| `METRICS_TOKEN` | Bearer token to protect `/api/metrics` |
+| `LOG_LEVEL` | `debug` \| `info` \| `warn` \| `error` (default: `debug` in dev, `info` in prod) |
+| `DIRECT_URL` | Direct DB URL for Prisma migrations when using PgBouncer |
+
+---
+
+## Module architecture
+
+| Module | Path | Description |
+|---|---|---|
+| `AuthModule` | `src/auth/` | JWT auth, refresh tokens, password reset |
+| `UsersModule` | `src/users/` | User CRUD, role management |
+| `PermissionsModule` | `src/permissions/` | Per-role, per-content-type action permissions |
+| `ContentTypeModule` | `src/content-type/` | Schema builder, schema versioning |
+| `EntriesModule` | `src/entries/` | Entry CRUD, versioning, soft delete, bulk ops |
+| `DynamicApiModule` | `src/dynamic-api/` | Public REST API — `GET /api/:type/:slug` |
+| `GraphqlModule` | `src/graphql/` | Apollo GraphQL — `/api/graphql` |
+| `RealtimeModule` | `src/realtime/` | Socket.io WebSocket — `/api/realtime` |
+| `MediaModule` | `src/media/` | File uploads, Sharp optimisation, S3/local |
+| `ApiKeysModule` | `src/api-keys/` | API key CRUD + per-key rate limiting |
+| `FormsModule` | `src/forms/` | Form builder + submissions |
+| `WebhooksModule` | `src/webhooks/` | Webhook CRUD, delivery log, retry |
+| `AuditModule` | `src/audit/` | Global audit log (non-blocking) |
+| `SchedulerModule` | `src/scheduler/` | Cron: auto-publish, webhook retries, log pruning |
+| `SeoModule` | `src/seo/` | Sitemap.xml + robots.txt |
+| `HealthModule` | `src/health/` | `GET /api/health` — DB + Redis ping |
+| `MetricsModule` | `src/metrics/` | Prometheus `GET /api/metrics` |
+| `AppCacheModule` | `src/cache/` | Redis / in-memory TTL cache |
+| `PluginModule` | `src/plugin/` | Plugin registry + `GET /api/plugins` |
+
+---
+
+## Testing
+
+```bash
+# Unit tests
+npm test
+
+# E2E tests (requires running PostgreSQL + Redis)
+npm run test:e2e
+
+# Type-check only
+npx tsc --noEmit
+```
+
+---
+
+## Adding a plugin
+
+1. Create `src/plugins/<name>/` with `manifest.ts`, `<name>.service.ts`, `<name>.module.ts`, `index.ts`
+2. Register in `src/plugin/plugins.config.ts`
+
+See `src/plugins/word-count/` for a complete example and `src/plugin/plugin-sdk.ts` for all available types.

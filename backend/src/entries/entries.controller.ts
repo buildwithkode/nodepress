@@ -10,6 +10,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { EntriesService } from './entries.service';
 import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
+import { BulkActionDto } from './dto/bulk-action.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -23,13 +24,13 @@ export class EntriesController {
     private readonly auditService: AuditService,
   ) {}
 
-  // ─── Write — editor or admin ───────────────────────────────────────────────
+  // ─── Write — editor, contributor, or admin ────────────────────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Roles('admin', 'editor', 'contributor')
   @Post()
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Create a new entry (editor or admin)' })
+  @ApiOperation({ summary: 'Create a new entry (contributor, editor, or admin)' })
   @ApiResponse({ status: 201, description: 'Entry created' })
   @ApiResponse({ status: 409, description: 'Slug already exists in this content type' })
   async create(@Body() dto: CreateEntryDto, @Request() req: any) {
@@ -55,6 +56,7 @@ export class EntriesController {
   @ApiQuery({ name: 'search', required: false, type: String, description: 'Full-text search on slug and data fields' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
+  @ApiQuery({ name: 'locale', required: false, type: String, description: 'Filter by locale (e.g. en, fr, de)' })
   findAll(
     @Query('contentTypeId') contentTypeId?: string,
     @Query('status') status?: string,
@@ -62,6 +64,7 @@ export class EntriesController {
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('locale') locale?: string,
   ) {
     const ctId = contentTypeId ? parseInt(contentTypeId, 10) : undefined;
     return this.entriesService.findAll({
@@ -71,23 +74,29 @@ export class EntriesController {
       search: search?.trim() || undefined,
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
+      locale: locale?.trim() || undefined,
     });
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Get a single entry by ID (viewer, editor, admin)' })
+  @ApiOperation({ summary: 'Get a single entry by ID — optionally populate relation fields' })
   @ApiParam({ name: 'id', type: Number })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.entriesService.findOne(id);
+  @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to inline-populate' })
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('populate') populate?: string,
+  ) {
+    const fields = populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : [];
+    return this.entriesService.findOne(id, fields);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Roles('admin', 'editor', 'contributor')
   @Put(':id')
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Update an entry — auto-snapshots a version before saving (editor or admin)' })
+  @ApiOperation({ summary: 'Update an entry — auto-snapshots a version before saving (contributor, editor, or admin)' })
   @ApiParam({ name: 'id', type: Number })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -101,6 +110,35 @@ export class EntriesController {
       { status: entry.status },
     );
     return entry;
+  }
+
+  // ─── Bulk operations ───────────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('bulk-delete')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk soft-delete entries' })
+  bulkDelete(@Body() dto: BulkActionDto) {
+    return this.entriesService.bulkDelete(dto.ids);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('bulk-publish')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk publish entries' })
+  bulkPublish(@Body() dto: BulkActionDto) {
+    return this.entriesService.bulkPublish(dto.ids);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('bulk-archive')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk archive entries' })
+  bulkArchive(@Body() dto: BulkActionDto) {
+    return this.entriesService.bulkArchive(dto.ids);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

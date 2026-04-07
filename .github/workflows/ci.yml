@@ -11,13 +11,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Backend ────────────────────────────────────────────────────────────────
-  backend:
-    name: Backend (type-check)
+  # ── Backend: type-check + unit tests ──────────────────────────────────────
+  backend-unit:
+    name: Backend (type-check · unit tests)
     runs-on: ubuntu-latest
 
     env:
       DATABASE_URL:   postgresql://postgres:testpassword@localhost:5432/nodepress_test
+      DIRECT_URL:     postgresql://postgres:testpassword@localhost:5432/nodepress_test
       JWT_SECRET:     ci_test_secret_not_used_in_production_64chars_xxxxxxxxxxxxx
       CORS_ORIGIN:    http://localhost:3000
       NODE_ENV:       test
@@ -38,6 +39,70 @@ jobs:
       - name: Type-check
         working-directory: backend
         run: npx tsc --noEmit
+
+      - name: Unit tests
+        working-directory: backend
+        run: npm test -- --passWithNoTests --forceExit
+
+  # ── Backend: e2e tests (needs real Postgres + Redis) ──────────────────────
+  backend-e2e:
+    name: Backend (e2e tests)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER:     postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB:       nodepress_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL:   postgresql://postgres:testpassword@localhost:5432/nodepress_test
+      DIRECT_URL:     postgresql://postgres:testpassword@localhost:5432/nodepress_test
+      REDIS_URL:      redis://localhost:6379
+      JWT_SECRET:     ci_test_secret_not_used_in_production_64chars_xxxxxxxxxxxxx
+      CORS_ORIGIN:    http://localhost:3000
+      NODE_ENV:       test
+      STORAGE_DRIVER: local
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run Prisma migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+
+      - name: E2E tests
+        working-directory: backend
+        run: npm run test:e2e
 
   # ── Frontend ───────────────────────────────────────────────────────────────
   frontend:
@@ -64,7 +129,8 @@ jobs:
       - name: Build
         working-directory: frontend
         env:
-          BACKEND_URL: http://localhost:3000
+          BACKEND_URL: http://localhost:4000
+          NEXT_PUBLIC_API_URL: http://localhost:4000
         run: npm run build
 
   # ── CLI ────────────────────────────────────────────────────────────────────

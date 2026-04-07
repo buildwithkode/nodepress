@@ -73,7 +73,7 @@ export class AuthService {
    * a new refresh token and invalidates the old one.
    */
   async refresh(refreshToken: string, res: Response): Promise<{ access_token: string }> {
-    const record = await (this.prisma as any).refreshToken.findUnique({
+    const record = await this.prisma.refreshToken.findUnique({
       where: { token: refreshToken },
     });
 
@@ -89,7 +89,7 @@ export class AuthService {
     }
 
     // Rotate: delete old token, issue new one
-    await (this.prisma as any).refreshToken.delete({ where: { id: record.id } });
+    await this.prisma.refreshToken.delete({ where: { id: record.id } });
     await this.issueRefreshCookie(user.id, res);
 
     const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
@@ -98,7 +98,7 @@ export class AuthService {
 
   async logout(refreshToken: string | undefined, res: Response): Promise<{ message: string }> {
     if (refreshToken) {
-      await (this.prisma as any).refreshToken.deleteMany({ where: { token: refreshToken } });
+      await this.prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
     }
     this.clearRefreshCookie(res);
     return { message: 'Logged out' };
@@ -110,7 +110,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (user) {
-      await (this.prisma as any).passwordResetToken.updateMany({
+      await this.prisma.passwordResetToken.updateMany({
         where: { userId: user.id, used: false },
         data: { used: true },
       });
@@ -118,7 +118,7 @@ export class AuthService {
       const token = randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-      await (this.prisma as any).passwordResetToken.create({
+      await this.prisma.passwordResetToken.create({
         data: { userId: user.id, token, expiresAt },
       });
 
@@ -130,7 +130,7 @@ export class AuthService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
-    const record = await (this.prisma as any).passwordResetToken.findUnique({ where: { token } });
+    const record = await this.prisma.passwordResetToken.findUnique({ where: { token } });
 
     if (!record || record.used || new Date(record.expiresAt) < new Date()) {
       throw new BadRequestException('Invalid or expired reset token');
@@ -138,10 +138,10 @@ export class AuthService {
 
     const hashed = await bcrypt.hash(newPassword, 10);
     await this.prisma.user.update({ where: { id: record.userId }, data: { password: hashed } });
-    await (this.prisma as any).passwordResetToken.update({ where: { id: record.id }, data: { used: true } });
+    await this.prisma.passwordResetToken.update({ where: { id: record.id }, data: { used: true } });
 
     // Revoke all active sessions — stolen refresh tokens are no longer valid after a password reset
-    await (this.prisma as any).refreshToken.deleteMany({ where: { userId: record.userId } });
+    await this.prisma.refreshToken.deleteMany({ where: { userId: record.userId } });
 
     return { message: 'Password updated successfully' };
   }
@@ -152,7 +152,7 @@ export class AuthService {
     const token = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
 
-    await (this.prisma as any).refreshToken.create({ data: { userId, token, expiresAt } });
+    await this.prisma.refreshToken.create({ data: { userId, token, expiresAt } });
 
     res.cookie(REFRESH_COOKIE, token, {
       httpOnly: true,

@@ -39,6 +39,7 @@ export default function NewEntryPage() {
   const [loadingCT, setLoadingCT] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<'published' | 'draft' | 'archived'>('published');
+  const [locale, setLocale] = useState('en');
   const slugManualRef = useRef(false);
 
   const { register, control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<Record<string, any>>();
@@ -74,7 +75,7 @@ export default function NewEntryPage() {
     setSubmitting(true);
     try {
       const { slug, ...rest } = values;
-      await api.post('/entries', { contentTypeId: selectedCT.id, slug, status, data: rest });
+      await api.post('/entries', { contentTypeId: selectedCT.id, slug, locale, status, data: rest });
       toast.success('Entry created');
       router.push('/entries');
     } catch (err: any) {
@@ -159,20 +160,42 @@ export default function NewEntryPage() {
                   : <p className="mt-1 text-xs text-muted-foreground">Auto-generated from the first text field</p>}
               </div>
 
-              {/* Status */}
-              <div className="mb-4">
-                <Label className="mb-1.5 block">Status</Label>
-                <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="mt-1 text-xs text-muted-foreground">Only published entries appear in the public API</p>
+              {/* Status + Locale */}
+              <div className="mb-4 flex items-start gap-4 flex-wrap">
+                <div>
+                  <Label className="mb-1.5 block">Status</Label>
+                  <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-muted-foreground">Only published entries appear in the public API</p>
+                </div>
+                <div>
+                  <Label className="mb-1.5 block">Locale</Label>
+                  <Select value={locale} onValueChange={setLocale}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">🇬🇧 en</SelectItem>
+                      <SelectItem value="fr">🇫🇷 fr</SelectItem>
+                      <SelectItem value="de">🇩🇪 de</SelectItem>
+                      <SelectItem value="es">🇪🇸 es</SelectItem>
+                      <SelectItem value="it">🇮🇹 it</SelectItem>
+                      <SelectItem value="pt">🇧🇷 pt</SelectItem>
+                      <SelectItem value="ja">🇯🇵 ja</SelectItem>
+                      <SelectItem value="zh">🇨🇳 zh</SelectItem>
+                      <SelectItem value="ar">🇸🇦 ar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-muted-foreground">BCP 47 language code</p>
+                </div>
               </div>
 
               {selectedCT.schema.length > 0 && (
