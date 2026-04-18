@@ -32,6 +32,12 @@ export class PermissionsController {
     return this.permissionsService.findByRole(role);
   }
 
+  @Put('reset/all')
+  @ApiOperation({ summary: 'Reset all permissions to factory defaults (admin only)' })
+  resetAll() {
+    return this.permissionsService.resetAll();
+  }
+
   @Put(':role/:contentType')
   @ApiOperation({ summary: 'Set allowed actions for a role on a content type (admin only). Use * for all.' })
   @ApiParam({ name: 'role', type: String })
@@ -50,11 +56,5 @@ export class PermissionsController {
   @ApiParam({ name: 'contentType', type: String })
   remove(@Param('role') role: string, @Param('contentType') contentType: string) {
     return this.permissionsService.remove(role, contentType);
-  }
-
-  @Put('reset/all')
-  @ApiOperation({ summary: 'Reset all permissions to factory defaults (admin only)' })
-  resetAll() {
-    return this.permissionsService.resetAll();
   }
 }

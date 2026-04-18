@@ -34,9 +34,22 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s",
       "!**/*.spec.ts",
-      "!**/index.ts"
+      "!**/index.ts",
+      "!**/main.ts",
+      "!**/instrument.ts",
+      "!**/*.module.ts",
+      "!**/prisma/prisma.service.ts"
     ],
     "coverageDirectory": "../coverage",
+    "coverageReporters": ["text-summary", "lcov", "json-summary"],
+    "coverageThresholds": {
+      "global": {
+        "statements": 60,
+        "branches":   50,
+        "functions":  60,
+        "lines":      60
+      }
+    },
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/$1"

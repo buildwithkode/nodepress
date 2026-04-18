@@ -2,14 +2,13 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { GraphQLError, ValidationContext } from 'graphql';
+import { GraphQLError } from 'graphql';
 import GraphQLJSON from 'graphql-type-json';
 
 /** Simple query depth limiter — rejects queries nested deeper than maxDepth. */
 function depthLimit(maxDepth: number) {
-  return (context: ValidationContext) => ({
-    Field() {
-      const ancestors = context.getAncestors();
+  return (context: any) => ({
+    Field(_node: any, _key: any, _parent: any, _path: any, ancestors: readonly any[]) {
       const depth = ancestors.filter((a: any) => a?.kind === 'Field').length;
       if (depth > maxDepth) {
         context.reportError(
@@ -24,6 +23,7 @@ import { ContentTypesResolver } from './resolvers/content-types.resolver';
 import { MediaResolver } from './resolvers/media.resolver';
 import { WebhooksResolver } from './resolvers/webhooks.resolver';
 import { GqlJwtOptionalGuard } from './guards/gql-jwt-optional.guard';
+import { GqlJwtAuthGuard } from './guards/gql-jwt-auth.guard';
 import { EntriesModule } from '../entries/entries.module';
 import { ContentTypeModule } from '../content-type/content-type.module';
 import { MediaModule } from '../media/media.module';
@@ -37,7 +37,11 @@ import { JwtModule } from '@nestjs/jwt';
       // Code-first: auto-generate schema from decorators
       autoSchemaFile: join(process.cwd(), 'src/graphql/schema.gql'),
       sortSchema: true,
-      path: '/api/graphql',
+      // Path is relative to the Express root, NOT to the NestJS global prefix.
+      // Global prefix 'api' is applied to NestJS controllers only, not Apollo middleware.
+      // Using '/graphql' here makes Apollo register at '/graphql' (Express-level),
+      // while DynamicApiController's /:type wildcard (at /api/:type) cannot shadow it.
+      path: '/graphql',
       resolvers: { JSON: GraphQLJSON },
       // Pass HTTP request into GraphQL context for auth guards
       context: ({ req }: { req: any }) => ({ req }),
@@ -60,6 +64,7 @@ import { JwtModule } from '@nestjs/jwt';
     MediaResolver,
     WebhooksResolver,
     GqlJwtOptionalGuard,
+    GqlJwtAuthGuard,
   ],
 })
 export class GraphqlModule {}

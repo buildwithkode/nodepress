@@ -12,16 +12,23 @@ export class SubmitController {
 
   /**
    * Public endpoint — no authentication required.
-   * POST /api/submit/:slug  { "data": { "email": "...", "message": "..." } }
+   * POST /api/submit/:slug  { "data": { ... }, "captchaToken": "..." }
    *
-   * Rate-limited to 20 submissions per minute per IP to prevent flooding.
+   * Spam protection:
+   *   - Rate-limited to 20 submissions per minute per IP.
+   *   - Honeypot: include a hidden _honey field in your form HTML;
+   *     any submission where _honey is non-empty is silently dropped.
+   *   - Captcha: when captchaEnabled=true on the form and CAPTCHA_PROVIDER
+   *     is set in the backend env, the captchaToken field is verified
+   *     server-side (Turnstile / hCaptcha / reCAPTCHA).
    */
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @Post(':slug')
   @ApiOperation({
     summary: 'Submit a form (public)',
     description:
-      'No auth required. Validates against form schema, stores submission, and fires configured actions. Rate-limited to 20/min per IP.',
+      'No auth required. Validates against form schema, stores submission, and fires configured actions. ' +
+      'Rate-limited to 20/min per IP. Supports honeypot (_honey field) and captcha (captchaToken field).',
   })
   @ApiParam({ name: 'slug', description: 'Form slug as configured in the admin panel' })
   submit(
@@ -32,6 +39,6 @@ export class SubmitController {
     const ip =
       (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ??
       req.socket.remoteAddress;
-    return this.submission.submit(slug, dto.data, ip);
+    return this.submission.submit(slug, dto.data, dto.captchaToken, ip);
   }
 }

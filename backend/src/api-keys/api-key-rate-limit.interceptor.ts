@@ -32,6 +32,9 @@ export class ApiKeyRateLimitInterceptor implements NestInterceptor {
   constructor(private readonly cache: AppCacheService) {}
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+    // Skip rate limiting for non-HTTP contexts (e.g. GraphQL, WebSocket)
+    if (context.getType() !== 'http') return next.handle();
+
     const req = context.switchToHttp().getRequest();
     const res = context.switchToHttp().getResponse();
 

@@ -10,6 +10,35 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [1.2.0] — 2026-04-18
+
+### Added
+- **Form spam protection** — 3-layer defence on every `POST /api/submit/:slug`:
+  - Rate limiting (20 req/min per IP via `@nestjs/throttler`)
+  - Honeypot field (`_honey`) — non-empty value silently drops submission; bots never notified
+  - Captcha verification — set `CAPTCHA_PROVIDER` (turnstile | hcaptcha | recaptcha) + `CAPTCHA_SECRET_KEY` in env; enable per-form with `captchaEnabled: true`; passes `captchaToken` from the client widget to the server for verification; fails open in dev if no provider is configured
+- **Nested populate (dot-notation)** — `?populate=author,author.company,author.company.address` resolves relation chains up to 3 levels deep with one batched DB query per depth level; shared `populate.util.ts` used by both REST and admin APIs; caching bypassed when `?populate` is present
+- **Socket.io Redis adapter** — when `REDIS_URL` is set, `@socket.io/redis-adapter` is dynamically attached in `RealtimeGateway.afterInit()`; syncs rooms and events across all backend instances; fails open (falls back to in-memory adapter on error, logs a warning)
+- **Configurable audit log retention** — `AUDIT_LOG_RETENTION_DAYS` env var (default 90); scheduler reads the env at runtime; documented in `.env.example` and self-hosting table
+- **Bulk entry operations** — `POST /api/entries/bulk-publish`, `bulk-archive`, `bulk-pending-review`, `bulk-delete` — all accept `{ ids: number[] }`
+- **Export / import entries** — `GET /api/entries/export?contentTypeId=X` returns a JSON array; `POST /api/entries/import` upserts by slug+locale, returns `{ created, updated, errors }`
+- **Draft preview tokens** — `POST /api/entries/:id/preview-url` returns a 1-hour signed JWT; `GET /api/:type/:slug/preview?token=<token>` serves the entry regardless of publish status
+- **`?fields=` projection on admin entries API** — `GET /api/entries/:id?populate=...` now supported; comma-separated field projection strips non-requested data keys from the response
+
+### Fixed
+- `graphql.module.ts` — `ValidationContext.getAncestors()` removed in graphql-js v16; rewrote depth-limit rule to use the visitor function's 5th `ancestors` parameter
+- `forms.e2e-spec.ts` — submission tests updated to use `{ data: { ... } }` wrapper matching `SubmitFormDto` shape; assertions updated from `res.body.id` to `res.body.submissionId`
+- `.env.example` fully synced: added `DIRECT_URL`, `JWT_EXPIRES_IN`, `SMTP_SECURE`, `CAPTCHA_PROVIDER`, `CAPTCHA_SECRET_KEY`, `AUDIT_LOG_RETENTION_DAYS`, `ROBOTS_DISALLOW`
+
+### Migration required
+```bash
+npx prisma migrate deploy
+```
+Applies:
+- `20260418124205_add_form_captcha_enabled` — adds `captchaEnabled Boolean @default(false)` to the `forms` table
+
+---
+
 ## [1.1.0] — 2026-04-07
 
 ### Added

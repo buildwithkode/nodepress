@@ -2,10 +2,10 @@ import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { EntriesService } from '../../entries/entries.service';
 import { EntryModel, EntryPage, BulkResult, DeleteResult } from '../models/entry.model';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { GqlJwtOptionalGuard } from '../guards/gql-jwt-optional.guard';
+import { GqlJwtAuthGuard } from '../guards/gql-jwt-auth.guard';
 
 @Resolver(() => EntryModel)
 export class EntriesResolver {
@@ -53,7 +53,7 @@ export class EntriesResolver {
 
   // ─── Mutations ────────────────────────────────────────────────────────────────
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
   @Mutation(() => EntryModel, { name: 'createEntry' })
   createEntry(
@@ -70,7 +70,7 @@ export class EntriesResolver {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
   @Mutation(() => EntryModel, { name: 'updateEntry' })
   updateEntry(
@@ -87,28 +87,28 @@ export class EntriesResolver {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Mutation(() => DeleteResult, { name: 'deleteEntry' })
   deleteEntry(@Args('id', { type: () => Int }) id: number) {
     return this.entriesService.remove(id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkDeleteEntries' })
   bulkDelete(@Args('ids', { type: () => [Int] }) ids: number[]) {
     return this.entriesService.bulkDelete(ids);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkPublishEntries' })
   bulkPublish(@Args('ids', { type: () => [Int] }) ids: number[]) {
     return this.entriesService.bulkPublish(ids);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkArchiveEntries' })
   bulkArchive(@Args('ids', { type: () => [Int] }) ids: number[]) {

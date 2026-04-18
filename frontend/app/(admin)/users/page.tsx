@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Trash2, ShieldCheck, Settings2 } from 'lucide-react';
+import { Plus, Trash2, ShieldCheck, Settings2, Mail } from 'lucide-react';
 import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -47,6 +47,9 @@ export default function UsersPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('editor');
   const [creating, setCreating] = useState(false);
+
+  // Per-user invite loading state
+  const [inviting, setInviting] = useState<number | null>(null);
 
   // Change own password form
   const [currentPw, setCurrentPw] = useState('');
@@ -95,6 +98,18 @@ export default function UsersPage() {
       load();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to delete user');
+    }
+  };
+
+  const handleSendInvite = async (id: number, email: string) => {
+    setInviting(id);
+    try {
+      await api.post(`/users/${id}/invite`);
+      toast.success(`Invitation sent to ${email}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to send invitation');
+    } finally {
+      setInviting(null);
     }
   };
 
@@ -166,6 +181,16 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     {u.id !== me?.id && (
+                      <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        title="Send invitation email"
+                        disabled={inviting === u.id}
+                        onClick={() => handleSendInvite(u.id, u.email)}
+                      >
+                        <Mail className="h-3.5 w-3.5" />
+                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger render={
                           <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" />
@@ -187,6 +212,7 @@ export default function UsersPage() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>

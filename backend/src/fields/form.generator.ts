@@ -75,6 +75,7 @@ export class FormGenerator {
     image:      'image-url-input',
     repeater:   'repeater',
     flexible:   'flexible-content',
+    relation:   'relation-picker',
   };
 
   // ─── Public entry point ──────────────────────────────────────────────────────

@@ -122,22 +122,104 @@ describe('Forms (e2e)', () => {
       .send({ isActive: true });
   });
 
+  // ── captchaEnabled flag ───────────────────────────────────────────────────────
+
+  it('PUT /api/forms/:id → sets captchaEnabled to true', async () => {
+    const res = await request(app.getHttpServer())
+      .put(`/api/forms/${formId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ captchaEnabled: true })
+      .expect(200);
+
+    expect(res.body.captchaEnabled).toBe(true);
+  });
+
+  it('PUT /api/forms/:id → sets captchaEnabled back to false', async () => {
+    const res = await request(app.getHttpServer())
+      .put(`/api/forms/${formId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ captchaEnabled: false })
+      .expect(200);
+
+    expect(res.body.captchaEnabled).toBe(false);
+  });
+
+  it('POST /api/forms → creates form with captchaEnabled=true', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/forms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Captcha Form',
+        slug: 'captcha-form',
+        fields: [{ name: 'email', type: 'email', label: 'Email', required: true }],
+        captchaEnabled: true,
+      })
+      .expect(201);
+
+    expect(res.body.captchaEnabled).toBe(true);
+
+    // Cleanup
+    await request(app.getHttpServer())
+      .delete(`/api/forms/${res.body.id}`)
+      .set('Authorization', `Bearer ${token}`);
+  });
+
   // ── Public submission ─────────────────────────────────────────────────────────
 
   it('POST /api/submit/:slug → accepts a valid submission', async () => {
     const res = await request(app.getHttpServer())
       .post(`/api/submit/${formSlug}`)
-      .send({ name: 'John', email: 'john@example.com', message: 'Hello!' })
+      .send({ data: { name: 'John', email: 'john@example.com', message: 'Hello!' } })
       .expect(201);
 
-    expect(res.body.id).toBeDefined();
+    expect(res.body.submissionId).toBeDefined();
+    expect(res.body.success).toBe(true);
   });
 
   it('POST /api/submit/:slug → 404 for unknown form slug', async () => {
     await request(app.getHttpServer())
       .post('/api/submit/does-not-exist')
-      .send({ name: 'John' })
+      .send({ data: { name: 'John' } })
       .expect(404);
+  });
+
+  // ── Honeypot spam protection ───────────────────────────────────────────────────
+
+  it('POST /api/submit/:slug → silently drops submission when _honey field is filled', async () => {
+    // A bot filling the honeypot field should get a "success" response but no submission stored
+    const countBefore = await request(app.getHttpServer())
+      .get(`/api/forms/${formId}/submissions`)
+      .set('Authorization', `Bearer ${token}`)
+      .then((r) => r.body.meta.total as number);
+
+    // Send with honeypot filled (inside data object, as a bot would fill a hidden field)
+    const res = await request(app.getHttpServer())
+      .post(`/api/submit/${formSlug}`)
+      .send({ data: { name: 'Bot', email: 'bot@spam.com', _honey: 'i-am-a-bot' } })
+      .expect(201);
+
+    // Response looks like success (don't alert the bot)
+    expect(res.body.success).toBe(true);
+    expect(res.body.submissionId).toBeNull(); // not stored
+
+    const countAfter = await request(app.getHttpServer())
+      .get(`/api/forms/${formId}/submissions`)
+      .set('Authorization', `Bearer ${token}`)
+      .then((r) => r.body.meta.total as number);
+
+    // No new submission was recorded
+    expect(countAfter).toBe(countBefore);
+  });
+
+  it('POST /api/submit/:slug → accepts submission when _honey field is empty string', async () => {
+    // Empty honeypot means legitimate user — should be stored
+    const res = await request(app.getHttpServer())
+      .post(`/api/submit/${formSlug}`)
+      .send({ data: { name: 'Alice', email: 'alice@example.com', _honey: '' } })
+      .expect(201);
+
+    expect(res.body.submissionId).toBeDefined();
+    expect(res.body.success).toBe(true);
   });
 
   // ── Submissions list ──────────────────────────────────────────────────────────
@@ -150,7 +232,9 @@ describe('Forms (e2e)', () => {
 
     expect(res.body.data).toBeInstanceOf(Array);
     expect(res.body.data.length).toBeGreaterThanOrEqual(1);
-    expect(res.body.data[0].data.name).toBe('John');
+    // submissions are stored by field name from the form data
+    const johnSubmission = res.body.data.find((s: any) => s.data?.name === 'John');
+    expect(johnSubmission).toBeDefined();
   });
 
   it('GET /api/forms/submissions/recent → returns recent submissions across all forms', async () => {

@@ -8,9 +8,9 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import * as nodemailer from 'nodemailer';
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -24,6 +24,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private mail: MailService,
   ) {}
 
   /** Returns true if no admin account exists yet */
@@ -40,7 +41,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = await this.prisma.user.create({
-      data: { email: dto.email, password: hashedPassword },
+      data: { email: dto.email, password: hashedPassword, role: 'admin' },
       select: { id: true, email: true, role: true, createdAt: true },
     });
 
@@ -123,7 +124,7 @@ export class AuthService {
       });
 
       const resetUrl = `${process.env.SITE_URL || process.env.APP_URL}/reset-password?token=${token}`;
-      await this.sendResetEmail(email, resetUrl);
+      await this.mail.sendPasswordReset(email, resetUrl);
     }
 
     return { message: 'If that email exists, a reset link has been sent.' };
@@ -167,28 +168,4 @@ export class AuthService {
     res.clearCookie(REFRESH_COOKIE, { path: '/api/auth' });
   }
 
-  private async sendResetEmail(to: string, resetUrl: string): Promise<void> {
-    const smtpHost = process.env.SMTP_HOST;
-    if (!smtpHost) {
-      this.logger.warn(`[Password Reset] No SMTP configured. Reset URL for ${to}: ${resetUrl}`);
-      return;
-    }
-
-    const transport = nodemailer.createTransport({
-      host: smtpHost,
-      port: parseInt(process.env.SMTP_PORT ?? '587', 10),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: process.env.SMTP_USER
-        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-        : undefined,
-    });
-
-    await transport.sendMail({
-      from: process.env.SMTP_FROM ?? `NodePress <noreply@${smtpHost}>`,
-      to,
-      subject: 'Reset your NodePress password',
-      text: `Reset link (expires in 15 minutes):\n\n${resetUrl}\n\nIf you did not request this, ignore this email.`,
-      html: `<p>Click to reset your password (expires in 15 minutes):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
-    });
-  }
 }

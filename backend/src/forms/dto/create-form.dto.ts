@@ -40,4 +40,14 @@ export class CreateFormDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    example: false,
+    description:
+      'Require a captcha token on every submission to this form. ' +
+      'Only takes effect when CAPTCHA_PROVIDER is configured in the backend.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  captchaEnabled?: boolean;
 }

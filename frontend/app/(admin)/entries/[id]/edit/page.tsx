@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2 } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,6 +40,7 @@ export default function EditEntryPage() {
   const router = useRouter();
   const params = useParams() ?? {};
   const id = (params.id ?? '') as string;
+  const { user: me } = useAuth();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -47,6 +49,8 @@ export default function EditEntryPage() {
   const [status, setStatus] = useState<string>('published');
   const [locale, setLocale] = useState<string>('en');
   const [seoOpen, setSeoOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewCopied, setPreviewCopied] = useState(false);
 
   // SEO fields
   const [seoTitle, setSeoTitle] = useState('');
@@ -157,11 +161,63 @@ export default function EditEntryPage() {
     );
   }
 
+  const canApprove = me?.role === 'admin' || me?.role === 'editor';
+
+  const handleApprove = async () => {
+    if (!entry) return;
+    setSubmitting(true);
+    try {
+      await api.put(`/entries/${entry.id}`, { status: 'published' });
+      setStatus('published');
+      setEntry((e) => e ? { ...e, status: 'published' } : e);
+      toast.success('Entry approved and published');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to approve entry');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReturnToDraft = async () => {
+    if (!entry) return;
+    setSubmitting(true);
+    try {
+      await api.put(`/entries/${entry.id}`, { status: 'draft' });
+      setStatus('draft');
+      setEntry((e) => e ? { ...e, status: 'draft' } : e);
+      toast.success('Entry returned to draft');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to return entry to draft');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/entries')}>
         <ArrowLeft className="h-4 w-4" /> Back to Entries
       </Button>
+
+      {/* Pending review approval banner — shown to admins and editors only */}
+      {status === 'pending_review' && canApprove && (
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-950/40">
+          <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+            <ThumbsUp className="h-4 w-4 shrink-0" />
+            <span>This entry is awaiting review. Approve to publish it, or return to draft.</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" variant="outline" disabled={submitting} onClick={handleReturnToDraft}>
+              <Undo2 className="h-3.5 w-3.5 mr-1.5" />
+              Return to Draft
+            </Button>
+            <Button size="sm" disabled={submitting} onClick={handleApprove}>
+              <ThumbsUp className="h-3.5 w-3.5 mr-1.5" />
+              Approve & Publish
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -204,6 +260,7 @@ export default function EditEntryPage() {
                   <SelectContent>
                     <SelectItem value="published">Published</SelectItem>
                     <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="pending_review">Pending Review</SelectItem>
                     <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
@@ -341,11 +398,54 @@ export default function EditEntryPage() {
           </form>
         </CardContent>
 
-        <CardFooter className="justify-end gap-2">
-          <Button variant="outline" onClick={() => router.push('/entries')}>Cancel</Button>
-          <Button type="submit" form="entry-form" disabled={submitting}>
-            {submitting ? 'Saving…' : 'Save Changes'}
-          </Button>
+        <CardFooter className="justify-between gap-2 flex-wrap">
+          {/* Preview URL panel */}
+          {previewUrl && (
+            <div className="flex items-center gap-2 flex-1 min-w-0 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
+              <span className="text-muted-foreground shrink-0">Preview API:</span>
+              <span className="truncate font-mono text-foreground flex-1">{previewUrl}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(previewUrl);
+                  setPreviewCopied(true);
+                  setTimeout(() => setPreviewCopied(false), 2000);
+                }}
+                className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                title="Copy URL"
+              >
+                {previewCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          )}
+          <div className="flex items-center gap-2 ml-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              disabled={!entry}
+              onClick={async () => {
+                if (!entry || !contentType) return;
+                try {
+                  const res = await api.post(`/entries/${entry.id}/preview-url`);
+                  const base = window.location.origin;
+                  const url = `${base}/api/${contentType.name}/${entry.slug}/preview?token=${res.data.token}`;
+                  setPreviewUrl(url);
+                  toast.success('Preview URL generated — valid for 1 hour');
+                } catch {
+                  toast.error('Failed to generate preview URL');
+                }
+              }}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Preview
+            </Button>
+            <Button variant="outline" onClick={() => router.push('/entries')}>Cancel</Button>
+            <Button type="submit" form="entry-form" disabled={submitting}>
+              {submitting ? 'Saving…' : 'Save Changes'}
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </div>

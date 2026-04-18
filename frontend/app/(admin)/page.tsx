@@ -53,6 +53,7 @@ export default function DashboardPage() {
   const { data: apiKeys = [],      loading: loadingKeys }   = useFetch<any[]>('/api-keys');
   const { data: formsResp,         loading: loadingForms }  = useFetch<{ data: FormRow[] }>('/forms');
   const { data: recentSubs = [],   loading: loadingSubs }   = useFetch<RecentSub[]>('/forms/submissions/recent');
+  const { data: pendingResp }   = useFetch<{ meta: { total: number } }>('/entries?status=pending_review&limit=1');
 
   const entries    = entriesResp?.data ?? [];
   const media      = mediaResp?.data   ?? [];
@@ -73,8 +74,9 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6);
 
-  const totalSubmissions = forms.reduce((sum, f) => sum + f._count.submissions, 0);
-  const activeForms      = forms.filter((f) => f.isActive).length;
+  const totalSubmissions    = forms.reduce((sum, f) => sum + f._count.submissions, 0);
+  const activeForms         = forms.filter((f) => f.isActive).length;
+  const pendingReviewCount  = pendingResp?.meta?.total ?? 0;
 
   const copyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
@@ -107,6 +109,19 @@ export default function DashboardPage() {
           <StatCard label="Submissions"      sub="total responses"    value={totalSubmissions}    icon={Inbox}         loading={loading} href="/forms" />
         </div>
       </div>
+
+      {/* ── Pending review alert ── */}
+      {pendingReviewCount > 0 && (
+        <div
+          className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 cursor-pointer hover:bg-blue-100 transition-colors dark:border-blue-800 dark:bg-blue-950/40 dark:hover:bg-blue-950/60"
+          onClick={() => router.push('/entries?status=pending_review')}
+        >
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            <span className="font-semibold">{pendingReviewCount}</span> {pendingReviewCount === 1 ? 'entry is' : 'entries are'} awaiting review
+          </p>
+          <span className="text-xs text-blue-600 dark:text-blue-400 underline underline-offset-2 shrink-0">Review now →</span>
+        </div>
+      )}
 
       {/* ── Content Types + Recent Entries ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

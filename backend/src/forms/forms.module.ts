@@ -8,6 +8,7 @@ import { SubmissionService } from './submission.service';
 import { ActionsService } from './actions/actions.service';
 import { EmailActionHandler } from './actions/email.action';
 import { WebhookActionHandler } from './actions/webhook.action';
+import { CaptchaService } from './captcha.service';
 
 @Module({
   imports: [PrismaModule, AuthModule],
@@ -18,6 +19,7 @@ import { WebhookActionHandler } from './actions/webhook.action';
     ActionsService,
     EmailActionHandler,
     WebhookActionHandler,
+    CaptchaService,
   ],
 })
 export class FormsModule {}

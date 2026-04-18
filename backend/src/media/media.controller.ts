@@ -1,6 +1,6 @@
 import {
-  Controller, Post, Get, Delete, Param, Query,
-  UseInterceptors, UploadedFile, UseGuards, BadRequestException, Request,
+  Controller, Post, Get, Put, Delete, Param, Query, Body,
+  UseInterceptors, UploadedFile, UseGuards, BadRequestException, ParseIntPipe, Request,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse, ApiBearerAuth,
@@ -90,16 +90,75 @@ export class MediaController {
 
   @SkipThrottle()
   @Get()
-  @ApiOperation({ summary: 'List all media files (paginated)' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'List media files (paginated, optional folder filter)' })
+  @ApiQuery({ name: 'page',     required: false, type: Number })
+  @ApiQuery({ name: 'limit',    required: false, type: Number })
+  @ApiQuery({ name: 'folderId', required: false, type: Number, description: 'Filter by folder ID. Omit for all files, use "null" for unfiled.' })
   @ApiResponse({ status: 200, description: '{ data: Media[], meta: { total, page, limit, totalPages } }' })
-  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('folderId') folderId?: string,
+  ) {
+    let folderIdParsed: number | null | undefined;
+    if (folderId === 'null') folderIdParsed = null;
+    else if (folderId !== undefined) folderIdParsed = parseInt(folderId, 10);
+
     return this.mediaService.findAll(
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 50,
+      folderIdParsed,
     );
   }
+
+  // ── Folder endpoints — MUST be before :filename wildcard ──────────────────
+
+  @UseGuards(JwtAuthGuard)
+  @SkipThrottle()
+  @Get('folders')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'List all media folders (flat list, build tree from parentId)' })
+  listFolders() {
+    return this.mediaService.listFolders();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('folders')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Create a media folder' })
+  @ApiResponse({ status: 201, description: 'Folder created' })
+  createFolder(
+    @Body('name') name: string,
+    @Body('parentId') parentId?: number,
+  ) {
+    return this.mediaService.createFolder(name, parentId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Delete('folders/:id')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Delete a folder (cascades to sub-folders; files become unfiled)' })
+  @ApiParam({ name: 'id', type: Number })
+  deleteFolder(@Param('id', ParseIntPipe) id: number) {
+    return this.mediaService.deleteFolder(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Put(':filename/folder')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Move a file into a folder (or to root with folderId: null)' })
+  @ApiParam({ name: 'filename', example: '1234567890-abc123.jpg' })
+  moveToFolder(
+    @Param('filename') filename: string,
+    @Body('folderId') folderId: number | null,
+  ) {
+    return this.mediaService.moveToFolder(filename, folderId ?? null);
+  }
+
+  // ── File delete — must come after all static /folders/* routes ─────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')

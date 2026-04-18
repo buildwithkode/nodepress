@@ -5,12 +5,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AppCacheService } from '../cache/app-cache.service';
 import { CreateContentTypeDto } from './dto/create-content-type.dto';
 import { UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { SchemaValidator } from '../fields/schema.validator';
 import { FormGenerator } from '../fields/form.generator';
 import { FieldDef } from '../fields/field.types';
 import { normalizeKey } from '../common/normalize';
+
+const ctCacheKey = (name: string) => `ct:meta:${name}`;
 
 // These route names are already taken by static controllers
 const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads'];
@@ -49,6 +52,7 @@ const normalizeSchema = (schema: any[]): any[] =>
 export class ContentTypeService {
   constructor(
     private prisma: PrismaService,
+    private cache: AppCacheService,
     private schemaValidator: SchemaValidator,
     private formGenerator: FormGenerator,
   ) {}
@@ -146,10 +150,69 @@ export class ContentTypeService {
       });
     }
 
-    return this.prisma.contentType.update({
+    const updated = await this.prisma.contentType.update({
       where: { id },
       data: updateData,
     });
+
+    // Bust the dynamic-api content-type cache for both old and new name
+    await Promise.all([
+      this.cache.invalidatePrefix(ctCacheKey(current.name)),
+      ...(updateData.name ? [this.cache.invalidatePrefix(ctCacheKey(updateData.name))] : []),
+    ]);
+
+    // Build schema-change impact warnings when schema was updated
+    const warnings: string[] = [];
+    if (updateData.schema) {
+      warnings.push(...await this.buildSchemaWarnings(id, current.schema as any[], updateData.schema));
+    }
+
+    return warnings.length > 0 ? { ...updated, warnings } : updated;
+  }
+
+  /**
+   * Compares old schema → new schema and returns human-readable warnings about
+   * existing entries that will be affected by the change.
+   */
+  private async buildSchemaWarnings(
+    contentTypeId: number,
+    oldSchema: any[],
+    newSchema: any[],
+  ): Promise<string[]> {
+    const entryCount = await this.prisma.entry.count({
+      where: { contentTypeId, deletedAt: null },
+    });
+    if (entryCount === 0) return [];
+
+    const warnings: string[] = [];
+    const oldFieldMap = new Map(oldSchema.map((f: any) => [f.name, f]));
+    const newFieldMap = new Map(newSchema.map((f: any) => [f.name, f]));
+
+    // Removed fields — data still present in existing entries (no data loss, just schema drift)
+    for (const [name] of oldFieldMap) {
+      if (!newFieldMap.has(name)) {
+        warnings.push(
+          `Field "${name}" was removed. ${entryCount} existing entr${entryCount === 1 ? 'y' : 'ies'} still contain data for this field (no data loss — data is preserved in the JSON blob).`,
+        );
+      }
+    }
+
+    // Newly required fields — existing entries will fail validation on next save
+    for (const [name, field] of newFieldMap) {
+      if (field.required && !oldFieldMap.has(name)) {
+        warnings.push(
+          `Field "${name}" is new and required. ${entryCount} existing entr${entryCount === 1 ? 'y' : 'ies'} will fail validation until this field is populated.`,
+        );
+      }
+      const old = oldFieldMap.get(name);
+      if (old && !old.required && field.required) {
+        warnings.push(
+          `Field "${name}" is now required (was optional). ${entryCount} existing entr${entryCount === 1 ? 'y' : 'ies'} may have empty values and will fail validation until populated.`,
+        );
+      }
+    }
+
+    return warnings;
   }
 
   /** List the schema change history for a content type (newest first, max 50). */
@@ -171,7 +234,9 @@ export class ContentTypeService {
   }
 
   async remove(id: number) {
-    await this.findOne(id);
-    return this.prisma.contentType.delete({ where: { id } });
+    const ct = await this.findOne(id);
+    await this.prisma.contentType.delete({ where: { id } });
+    await this.cache.invalidatePrefix(ctCacheKey(ct.name));
+    return ct;
   }
 }

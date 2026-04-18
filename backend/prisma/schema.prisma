@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model ContentType {
@@ -98,20 +99,40 @@ model ApiKey {
 
 // ─── Media Library ───────────────────────────────────────────────────────────
 
-model Media {
-  id           Int      @id @default(autoincrement())
-  filename     String   @unique              // stored filename / S3 key
-  webpFilename String?                       // WebP version key (images only)
-  url          String                        // public URL
-  webpUrl      String?                       // WebP version URL
-  originalName String                        // original upload filename
-  mimetype     String
-  size         Int                           // bytes (after optimization)
-  width        Int?                          // pixels (images only)
-  height       Int?                          // pixels (images only)
-  uploadedBy   Int?                          // userId
-  createdAt    DateTime @default(now())
+// ─── Media Library ───────────────────────────────────────────────────────────
 
+model MediaFolder {
+  id        Int           @id @default(autoincrement())
+  name      String
+  parentId  Int?                                   // null = root folder
+  parent    MediaFolder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  MediaFolder[] @relation("FolderTree")
+  media     Media[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([parentId, name])                       // unique name within the same parent
+  @@index([parentId])
+  @@map("media_folders")
+}
+
+model Media {
+  id           Int          @id @default(autoincrement())
+  filename     String       @unique              // stored filename / S3 key
+  webpFilename String?                           // WebP version key (images only)
+  url          String                            // public URL
+  webpUrl      String?                           // WebP version URL
+  originalName String                            // original upload filename
+  mimetype     String
+  size         Int                               // bytes (after optimization)
+  width        Int?                              // pixels (images only)
+  height       Int?                              // pixels (images only)
+  uploadedBy   Int?                              // userId
+  folderId     Int?                              // null = root / unfiled
+  folder       MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  createdAt    DateTime     @default(now())
+
+  @@index([folderId])
   @@map("media")
 }
 
@@ -211,15 +232,16 @@ model PasswordResetToken {
 // ─── Forms Module ────────────────────────────────────────────────────────────
 
 model Form {
-  id          Int              @id @default(autoincrement())
-  name        String
-  slug        String           @unique  // used in public submit endpoint: POST /api/submit/:slug
-  fields      Json             // FieldDef[]  — see forms/types/form-field.types.ts
-  actions     Json             @default("[]") // ActionDef[] — email | webhook
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  submissions FormSubmission[]
+  id             Int              @id @default(autoincrement())
+  name           String
+  slug           String           @unique  // used in public submit endpoint: POST /api/submit/:slug
+  fields         Json             // FieldDef[]  — see forms/types/form-field.types.ts
+  actions        Json             @default("[]") // ActionDef[] — email | webhook
+  isActive       Boolean          @default(true)
+  captchaEnabled Boolean          @default(false) // require captcha token on submit (needs CAPTCHA_PROVIDER env)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  submissions    FormSubmission[]
 
   @@map("forms")
 }

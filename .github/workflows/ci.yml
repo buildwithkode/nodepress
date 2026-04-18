@@ -40,9 +40,17 @@ jobs:
         working-directory: backend
         run: npx tsc --noEmit
 
-      - name: Unit tests
+      - name: Unit tests (with coverage)
         working-directory: backend
-        run: npm test -- --passWithNoTests --forceExit
+        run: npm run test:cov -- --passWithNoTests --forceExit
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: coverage/
+          retention-days: 30
 
   # ── Backend: e2e tests (needs real Postgres + Redis) ──────────────────────
   backend-e2e:

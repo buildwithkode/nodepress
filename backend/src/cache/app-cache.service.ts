@@ -29,7 +29,16 @@ export class AppCacheService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     const url = process.env.REDIS_URL;
-    if (!url) return;
+    if (!url) {
+      this.logger.warn(
+        'REDIS_URL is not set — using in-memory cache. ' +
+        'This is fine for single-instance deployments. ' +
+        'Running multiple backend instances WITHOUT Redis will cause cache ' +
+        'inconsistency: writes on one instance will not invalidate cache on others. ' +
+        'Set REDIS_URL to enable a shared cache for horizontal scaling.',
+      );
+      return;
+    }
 
     try {
       const { default: Redis } = await import('ioredis');

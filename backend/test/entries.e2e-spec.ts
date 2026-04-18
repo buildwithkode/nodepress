@@ -294,4 +294,173 @@ describe('Entries (e2e)', () => {
 
     expect(res.body.data.some((e: any) => e.slug === 'public-post')).toBe(true);
   });
+
+  // ── Bulk operations ───────────────────────────────────────────────────────────
+
+  it('POST /api/entries/bulk-publish → publishes multiple entries', async () => {
+    // Create two draft entries
+    const a = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId, slug: 'bulk-a', status: 'draft', data: { title: 'Bulk A' } });
+    const b = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId, slug: 'bulk-b', status: 'draft', data: { title: 'Bulk B' } });
+
+    await request(app.getHttpServer())
+      .post('/api/entries/bulk-publish')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ids: [a.body.id, b.body.id] })
+      .expect(201);
+
+    const checkA = await request(app.getHttpServer())
+      .get(`/api/entries/${a.body.id}`)
+      .set('Authorization', `Bearer ${token}`);
+    const checkB = await request(app.getHttpServer())
+      .get(`/api/entries/${b.body.id}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(checkA.body.status).toBe('published');
+    expect(checkB.body.status).toBe('published');
+  });
+
+  it('POST /api/entries/bulk-archive → archives multiple entries', async () => {
+    const c = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId, slug: 'bulk-c', status: 'published', data: { title: 'Bulk C' } });
+
+    await request(app.getHttpServer())
+      .post('/api/entries/bulk-archive')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ids: [c.body.id] })
+      .expect(201);
+
+    const check = await request(app.getHttpServer())
+      .get(`/api/entries/${c.body.id}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(check.body.status).toBe('archived');
+  });
+
+  it('POST /api/entries/bulk-pending-review → sets entries to pending_review', async () => {
+    const d = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId, slug: 'bulk-d', status: 'draft', data: { title: 'Bulk D' } });
+
+    await request(app.getHttpServer())
+      .post('/api/entries/bulk-pending-review')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ids: [d.body.id] })
+      .expect(201);
+
+    const check = await request(app.getHttpServer())
+      .get(`/api/entries/${d.body.id}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(check.body.status).toBe('pending_review');
+  });
+
+  it('POST /api/entries/bulk-delete → soft-deletes multiple entries', async () => {
+    const e1 = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId, slug: 'bulk-e1', status: 'draft', data: { title: 'Bulk E1' } });
+    const e2 = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId, slug: 'bulk-e2', status: 'draft', data: { title: 'Bulk E2' } });
+
+    await request(app.getHttpServer())
+      .post('/api/entries/bulk-delete')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ids: [e1.body.id, e2.body.id] })
+      .expect(201);
+
+    // Entries should appear in deleted=true list
+    const deleted = await request(app.getHttpServer())
+      .get('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ deleted: 'true' });
+
+    const slugs = deleted.body.data.map((e: any) => e.slug);
+    expect(slugs).toContain('bulk-e1');
+    expect(slugs).toContain('bulk-e2');
+  });
+
+  // ── Export / Import ───────────────────────────────────────────────────────────
+
+  it('GET /api/entries/export → exports all entries for a content type', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/entries/export')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ contentTypeId })
+      .expect(200);
+
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
+    expect(res.body[0]).toHaveProperty('slug');
+    expect(res.body[0]).toHaveProperty('data');
+  });
+
+  it('POST /api/entries/import → imports entries (upsert by slug)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/entries/import')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        contentTypeId,
+        entries: [
+          { slug: 'import-new',       data: { title: 'Imported New' },       status: 'published' },
+          { slug: 'public-post',      data: { title: 'Public Post Updated' }, status: 'published' },
+        ],
+      })
+      .expect(201);
+
+    expect(res.body.created).toBeGreaterThanOrEqual(1);
+    expect(res.body.updated).toBeGreaterThanOrEqual(1);
+    expect(res.body.errors).toBeInstanceOf(Array);
+  });
+
+  it('POST /api/entries/import → skips rows without slug and lists them in errors', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/entries/import')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        contentTypeId,
+        entries: [
+          { data: { title: 'Missing slug' } },
+        ],
+      })
+      .expect(201);
+
+    expect(res.body.errors.length).toBeGreaterThanOrEqual(1);
+  });
+
+  // ── Preview token ─────────────────────────────────────────────────────────────
+
+  it('POST /api/entries/:id/preview-url → generates a signed preview token', async () => {
+    // Create a draft entry
+    const draft = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId, slug: 'preview-draft', status: 'draft', data: { title: 'Preview Draft' } });
+
+    const res = await request(app.getHttpServer())
+      .post(`/api/entries/${draft.body.id}/preview-url`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(201);
+
+    expect(res.body.token).toBeDefined();
+    expect(res.body.expiresAt).toBeDefined();
+
+    // Use the token to read the draft via the public API
+    const previewRes = await request(app.getHttpServer())
+      .get(`/api/blog/${draft.body.slug}/preview`)
+      .query({ token: res.body.token })
+      .expect(200);
+
+    expect(previewRes.body.slug).toBe('preview-draft');
+  });
 });

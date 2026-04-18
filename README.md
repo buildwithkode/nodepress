@@ -169,16 +169,18 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
 - Visual content type builder — no code required
 - Auto-generated REST API + GraphQL API for every content type
 - Multi-locale (i18n) content — per-entry locale field with locale filtering
-- Content relations — link entries across content types with `?populate=` support
-- Real-time updates via WebSocket (Socket.io) — subscribe to entry/media events
+- Content relations — link entries across content types with `?populate=author,author.company` (nested dot-notation, up to 3 levels)
+- Real-time updates via WebSocket (Socket.io) — subscribe to entry/media events; scales across instances with Redis adapter
 - Media uploads with automatic WebP image optimisation
 - API keys with per-key rate limiting (read: 120/min, write: 60/min)
-- Form builder with email and webhook actions
+- Form builder with email and webhook actions; 3-layer spam protection — rate limiting, honeypot, and captcha (Cloudflare Turnstile / hCaptcha / reCAPTCHA)
 - Webhooks with retry logic, HMAC signing, and exponential backoff
 - Granular role-based permissions — admin, editor, contributor, viewer
 - Per-content-type permission overrides via admin UI
-- Audit log and user management
-- Scheduled content publishing
+- Audit log with configurable retention, and user management
+- Scheduled content publishing (`publishAt`) and draft preview tokens
+- Bulk publish, archive, and delete across multiple entries at once
+- Export and import entries as JSON (for backup, migration, or seeding)
 - Entry version history + content type schema change history
 - Plugin system — extend NodePress with custom NestJS modules
 - Prometheus metrics + Grafana dashboard + alerting rules

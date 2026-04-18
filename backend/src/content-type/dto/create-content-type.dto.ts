@@ -10,10 +10,10 @@ export class FieldDto {
 
   @ApiProperty({
     example: 'text',
-    enum: ['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'repeater', 'flexible'],
+    enum: ['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'relation', 'repeater', 'flexible'],
   })
   @IsString()
-  @IsIn(['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'repeater', 'flexible'])
+  @IsIn(['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'relation', 'repeater', 'flexible'])
   type: string;
 
   @ApiPropertyOptional({ example: 'Article Title' })

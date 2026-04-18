@@ -5,7 +5,7 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export const ENTRY_STATUSES = ['draft', 'published', 'archived'] as const;
+export const ENTRY_STATUSES = ['draft', 'published', 'archived', 'pending_review'] as const;
 export type EntryStatus = (typeof ENTRY_STATUSES)[number];
 
 export class SeoDto {
@@ -48,7 +48,7 @@ export class CreateEntryDto {
   @ApiPropertyOptional({
     example: 'published',
     enum: ENTRY_STATUSES,
-    description: 'Entry visibility status. Defaults to "published".',
+    description: 'Entry visibility status. Defaults to "published". Use "pending_review" for a contributor-submitted entry awaiting editor approval.',
   })
   @IsOptional()
   @IsIn(ENTRY_STATUSES)

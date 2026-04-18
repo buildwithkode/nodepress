@@ -113,17 +113,66 @@ export class MediaService {
     return record;
   }
 
-  async findAll(page = 1, limit = 50) {
-    const skip = (page - 1) * limit;
+  async findAll(page = 1, limit = 50, folderId?: number | null) {
+    const skip  = (page - 1) * limit;
+    // folderId=null → unfiled (root); folderId=undefined → all files
+    const where: any = folderId !== undefined ? { folderId } : {};
     const [total, data] = await Promise.all([
-      this.prisma.media.count(),
+      this.prisma.media.count({ where }),
       this.prisma.media.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       }),
     ]);
     return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  // ── Media Folders ─────────────────────────────────────────────────────────
+
+  /** List all folders (flat list). The frontend builds the tree from parentId. */
+  async listFolders() {
+    return (this.prisma as any).mediaFolder.findMany({
+      orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
+    });
+  }
+
+  async createFolder(name: string, parentId?: number) {
+    if (!name?.trim()) throw new BadRequestException('Folder name is required');
+    try {
+      return await (this.prisma as any).mediaFolder.create({
+        data: { name: name.trim(), parentId: parentId ?? null },
+      });
+    } catch (err: any) {
+      if (err?.code === 'P2002') {
+        throw new BadRequestException(`A folder named "${name}" already exists here`);
+      }
+      throw err;
+    }
+  }
+
+  async deleteFolder(id: number) {
+    const folder = await (this.prisma as any).mediaFolder.findUnique({ where: { id } });
+    if (!folder) throw new NotFoundException(`Folder #${id} not found`);
+    // ON DELETE CASCADE removes child folders; ON DELETE SET NULL unfiles media
+    await (this.prisma as any).mediaFolder.delete({ where: { id } });
+    return { message: `Folder "${folder.name}" deleted` };
+  }
+
+  /** Move a media file into a folder (or to root when folderId is null). */
+  async moveToFolder(filename: string, folderId: number | null) {
+    const safe = basename(filename);
+    const record = await this.prisma.media.findUnique({ where: { filename: safe } });
+    if (!record) throw new NotFoundException(`File "${filename}" not found`);
+    if (folderId !== null) {
+      const folder = await (this.prisma as any).mediaFolder.findUnique({ where: { id: folderId } });
+      if (!folder) throw new NotFoundException(`Folder #${folderId} not found`);
+    }
+    return this.prisma.media.update({
+      where: { filename: safe },
+      data: { folderId },
+    });
   }
 
   async remove(filename: string, actor?: { id: number; email: string; ip?: string }) {

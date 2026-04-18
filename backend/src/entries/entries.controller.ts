@@ -1,6 +1,7 @@
 import {
   Controller, Get, Post, Put, Delete,
   Body, Param, Query, ParseIntPipe, UseGuards, Request,
+  BadRequestException, ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuditService } from '../audit/audit.service';
+import { PermissionsService } from '../permissions/permissions.service';
 
 @ApiTags('Entries')
 @Controller('entries')
@@ -22,6 +24,7 @@ export class EntriesController {
   constructor(
     private readonly entriesService: EntriesService,
     private readonly auditService: AuditService,
+    private readonly permissionsService: PermissionsService,
   ) {}
 
   // ─── Write — editor, contributor, or admin ────────────────────────────────
@@ -51,7 +54,7 @@ export class EntriesController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'List entries with pagination + search (viewer, editor, admin)' })
   @ApiQuery({ name: 'contentTypeId', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, enum: ['draft', 'published', 'archived'] })
+  @ApiQuery({ name: 'status', required: false, enum: ['draft', 'published', 'archived', 'pending_review'] })
   @ApiQuery({ name: 'deleted', required: false, type: Boolean })
   @ApiQuery({ name: 'search', required: false, type: String, description: 'Full-text search on slug and data fields' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
@@ -77,6 +80,93 @@ export class EntriesController {
       locale: locale?.trim() || undefined,
     });
   }
+
+  // ─── Import / Export — MUST be before @Get(':id') to avoid route shadowing ─
+  // NestJS registers routes in declaration order. A static segment like "export"
+  // must appear before a wildcard like ":id", otherwise GET /entries/export
+  // would match :id='export' and ParseIntPipe would throw 400.
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @SkipThrottle()
+  @Get('export')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({
+    summary: 'Export all entries for a content type as JSON (editor, admin)',
+    description: 'Returns a flat JSON array of all non-deleted entries. Use the response to seed, back up, or migrate content.',
+  })
+  @ApiQuery({ name: 'contentTypeId', required: true, type: Number })
+  exportEntries(@Query('contentTypeId') contentTypeId: string) {
+    const id = parseInt(contentTypeId, 10);
+    if (isNaN(id)) throw new BadRequestException('contentTypeId must be a number');
+    return this.entriesService.exportEntries(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('import')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({
+    summary: 'Import entries into a content type from a JSON array (editor, admin)',
+    description:
+      'Upserts entries by slug + locale. Existing (non-deleted) entries are updated; new entries are created. ' +
+      'Returns `{ created, updated, errors }`. Rows with missing slugs are skipped and listed in `errors`.',
+  })
+  async importEntries(
+    @Body('contentTypeId') contentTypeId: number,
+    @Body('entries') entries: any[],
+    @Request() req: any,
+  ) {
+    if (!contentTypeId) throw new BadRequestException('contentTypeId is required');
+    if (!Array.isArray(entries)) throw new BadRequestException('entries must be an array');
+    const result = await this.entriesService.importEntries(contentTypeId, entries, req.user.id);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'created', 'entry', `import:contentType:${contentTypeId}`,
+      { created: result.created, updated: result.updated, errors: result.errors.length },
+    );
+    return result;
+  }
+
+  // ─── Bulk operations — also static paths, must precede :id wildcards ───────
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('bulk-delete')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk soft-delete entries' })
+  bulkDelete(@Body() dto: BulkActionDto) {
+    return this.entriesService.bulkDelete(dto.ids);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('bulk-publish')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk publish entries' })
+  bulkPublish(@Body() dto: BulkActionDto) {
+    return this.entriesService.bulkPublish(dto.ids);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('bulk-archive')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk archive entries' })
+  bulkArchive(@Body() dto: BulkActionDto) {
+    return this.entriesService.bulkArchive(dto.ids);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor', 'contributor')
+  @Post('bulk-pending-review')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk set entries to pending_review — contributors can submit work for approval' })
+  bulkPendingReview(@Body() dto: BulkActionDto) {
+    return this.entriesService.bulkSetPendingReview(dto.ids);
+  }
+
+  // ─── Single entry by ID (wildcard — must come after all static GET paths) ──
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
@@ -112,35 +202,6 @@ export class EntriesController {
     return entry;
   }
 
-  // ─── Bulk operations ───────────────────────────────────────────────────────
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
-  @Post('bulk-delete')
-  @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Bulk soft-delete entries' })
-  bulkDelete(@Body() dto: BulkActionDto) {
-    return this.entriesService.bulkDelete(dto.ids);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
-  @Post('bulk-publish')
-  @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Bulk publish entries' })
-  bulkPublish(@Body() dto: BulkActionDto) {
-    return this.entriesService.bulkPublish(dto.ids);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
-  @Post('bulk-archive')
-  @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Bulk archive entries' })
-  bulkArchive(@Body() dto: BulkActionDto) {
-    return this.entriesService.bulkArchive(dto.ids);
-  }
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Delete(':id')
@@ -149,6 +210,11 @@ export class EntriesController {
   @ApiParam({ name: 'id', type: Number })
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     const entry = await this.entriesService.findOne(id);
+    const contentTypeName = (entry as any).contentType?.name;
+    if (req.user.role !== 'admin' && contentTypeName) {
+      const allowed = await this.permissionsService.can(req.user.role, contentTypeName, 'delete');
+      if (!allowed) throw new ForbiddenException('You do not have permission to delete entries of this content type');
+    }
     const result = await this.entriesService.remove(id);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
@@ -180,6 +246,23 @@ export class EntriesController {
   @ApiParam({ name: 'id', type: Number })
   purge(@Param('id', ParseIntPipe) id: number) {
     return this.entriesService.purge(id);
+  }
+
+  // ─── Content preview ──────────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor', 'contributor')
+  @Post(':id/preview-url')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({
+    summary: 'Generate a 1-hour signed preview token for a draft entry',
+    description:
+      'Returns a `token` and `expiresAt`. Pass the token as `?token=<token>` to ' +
+      '`GET /api/:type/:slug/preview` to read the entry regardless of its publish status.',
+  })
+  @ApiParam({ name: 'id', type: Number })
+  generatePreviewUrl(@Param('id', ParseIntPipe) id: number) {
+    return this.entriesService.generatePreviewToken(id);
   }
 
   // ─── Version history ───────────────────────────────────────────────────────

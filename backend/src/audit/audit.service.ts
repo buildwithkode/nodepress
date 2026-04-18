@@ -7,7 +7,7 @@ export interface AuditActor {
   ip?: string;
 }
 
-export type AuditAction = 'created' | 'updated' | 'deleted' | 'restored' | 'login' | 'role_changed' | 'password_changed';
+export type AuditAction = 'created' | 'updated' | 'deleted' | 'restored' | 'login' | 'role_changed' | 'password_changed' | 'invited';
 export type AuditResource = 'entry' | 'content_type' | 'user' | 'api_key' | 'form' | 'media';
 
 @Injectable()

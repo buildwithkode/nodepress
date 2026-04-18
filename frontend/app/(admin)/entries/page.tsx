@@ -14,6 +14,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { SearchInput } from '@/components/ui/search-input';
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
   Card, CardHeader, CardTitle, CardDescription, CardFooter,
 } from '@/components/ui/card';
 import {
@@ -46,9 +49,10 @@ function truncate(val: any, max = 60): string {
 }
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  published: { label: 'Published', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' },
-  draft:     { label: 'Draft',     className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' },
-  archived:  { label: 'Archived',  className: 'bg-muted text-muted-foreground' },
+  published:      { label: 'Published',      className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' },
+  draft:          { label: 'Draft',          className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' },
+  pending_review: { label: 'Pending Review', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' },
+  archived:       { label: 'Archived',       className: 'bg-muted text-muted-foreground' },
 };
 
 interface Field { name: string; type: string; options?: any }
@@ -63,7 +67,8 @@ export default function EntriesPage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canEdit = canManageContent(user?.role);
-  const ctParam = searchParams?.get('ct') ?? '';
+  const ctParam     = searchParams?.get('ct')     ?? '';
+  const statusParam = searchParams?.get('status') ?? '';
 
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
   const [entryCounts, setEntryCounts] = useState<Record<number, number>>({});
@@ -73,6 +78,7 @@ export default function EntriesPage() {
   const [loadingEntries, setLoadingEntries] = useState(false);
   const [duplicating, setDuplicating] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>(statusParam || 'all');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
@@ -107,13 +113,15 @@ export default function EntriesPage() {
     if (!selectedCT) { setEntries([]); return; }
     setLoadingEntries(true);
     setSelected(new Set());
-    api.get('/entries', { params: { contentTypeId: selectedCT.id, limit: 100 } })
+    const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
+    if (statusFilter !== 'all') params.status = statusFilter;
+    api.get('/entries', { params })
       .then((res) => setEntries(res.data.data ?? res.data))
       .catch(() => toast.error('Failed to load entries'))
       .finally(() => setLoadingEntries(false));
-  }, [selectedCT?.id]);
+  }, [selectedCT?.id, statusFilter]);
 
-  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam]);
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter]);
 
   /* ── Refresh helpers ────────────────────────────────────────────────────── */
   const refreshEntries = async () => {
@@ -137,12 +145,12 @@ export default function EntriesPage() {
   };
 
   /* ── Bulk actions ───────────────────────────────────────────────────────── */
-  const handleBulkAction = async (action: 'bulk-delete' | 'bulk-publish' | 'bulk-archive') => {
+  const handleBulkAction = async (action: 'bulk-delete' | 'bulk-publish' | 'bulk-archive' | 'bulk-pending-review') => {
     if (selected.size === 0) return;
     setBulkLoading(true);
     try {
       const res = await api.post(`/entries/${action}`, { ids: Array.from(selected) });
-      const label = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published' : 'archived';
+      const label = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published' : action === 'bulk-pending-review' ? 'submitted for review' : 'archived';
       toast.success(`${res.data.affected} ${res.data.affected === 1 ? 'entry' : 'entries'} ${label}`);
       await refreshEntries();
     } catch (err: any) {
@@ -307,6 +315,18 @@ export default function EntriesPage() {
         <span className="text-muted-foreground/40 text-sm">/</span>
         <span className="text-sm font-medium capitalize">{ctParam.replace(/_/g, ' ')}</span>
         <div className="ml-auto flex items-center gap-2">
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="pending_review">Pending Review</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
+            </SelectContent>
+          </Select>
           <SearchInput
             placeholder="Search entries…"
             value={search}
@@ -336,6 +356,14 @@ export default function EntriesPage() {
             >
               {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
               Publish
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={bulkLoading}
+              onClick={() => handleBulkAction('bulk-pending-review')}
+            >
+              Submit for Review
             </Button>
             <Button
               size="sm"

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
+import { env } from '../config/env';
 
 /** Stable advisory lock ID for the scheduled-publish job (arbitrary unique integer). */
 const PUBLISH_LOCK_ID = 7_734_982;
@@ -12,8 +13,8 @@ const RETRY_LOCK_ID = 7_734_983;
 /** Stable advisory lock ID for the weekly maintenance job. */
 const MAINTENANCE_LOCK_ID = 7_734_984;
 
-/** Audit log retention period in days. */
-const AUDIT_RETENTION_DAYS = 90;
+/** Audit log retention period in days — configurable via AUDIT_LOG_RETENTION_DAYS env var (default 90). */
+const AUDIT_RETENTION_DAYS = env.AUDIT_LOG_RETENTION_DAYS;
 
 @Injectable()
 export class SchedulerService {

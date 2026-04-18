@@ -4,6 +4,7 @@ import {
   SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
@@ -25,6 +26,12 @@ import { Injectable, Logger } from '@nestjs/common';
  * Clients can subscribe to specific content type rooms:
  *   subscribe { contentType: 'article' }  → joins room "ct:article"
  *   unsubscribe { contentType: 'article' }
+ *
+ * Multi-instance scaling:
+ *   When REDIS_URL is set, the @socket.io/redis-adapter is attached automatically.
+ *   This syncs Socket.io rooms and events across all backend instances so a
+ *   broadcast from instance A reaches clients connected to instance B.
+ *   Falls back to in-memory adapter if Redis is unavailable (single-instance mode).
  */
 @Injectable()
 @WebSocketGateway({
@@ -35,11 +42,39 @@ import { Injectable, Logger } from '@nestjs/common';
     credentials: true,
   },
 })
-export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
   private readonly logger = new Logger(RealtimeGateway.name);
+
+  async afterInit(server: Server) {
+    if (process.env.REDIS_URL) {
+      try {
+        const { createAdapter } = await import('@socket.io/redis-adapter');
+        const { Redis }         = await import('ioredis');
+        const pubClient = new Redis(process.env.REDIS_URL);
+        const subClient = pubClient.duplicate();
+
+        pubClient.on('error', (err) =>
+          this.logger.warn(`Socket.io Redis pub error: ${err.message}`),
+        );
+        subClient.on('error', (err) =>
+          this.logger.warn(`Socket.io Redis sub error: ${err.message}`),
+        );
+
+        server.adapter(createAdapter(pubClient, subClient));
+        this.logger.log('Socket.io: Redis adapter enabled — events sync across all instances');
+      } catch (err: any) {
+        // Fail-open: app still works with in-memory adapter on a single instance
+        this.logger.warn(
+          `Socket.io: Redis adapter init failed (${err.message}) — falling back to in-memory adapter`,
+        );
+      }
+    } else {
+      this.logger.log('Socket.io: using in-memory adapter (set REDIS_URL to enable multi-instance sync)');
+    }
+  }
 
   handleConnection(client: Socket) {
     this.logger.debug(`Client connected: ${client.id}`);

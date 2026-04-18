@@ -80,6 +80,21 @@ export class UsersController {
     return result;
   }
 
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  @Post(':id/invite')
+  @ApiOperation({ summary: 'Send a "Set Your Password" invitation email to a user (admin only)' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 201, description: 'Invitation sent (no-op if SMTP not configured)' })
+  async sendInvitation(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const result = await this.usersService.sendInvitation(id, req.user.email);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'invited', 'user', String(id),
+    );
+    return result;
+  }
+
   // ─── Self-service ──────────────────────────────────────────────────────────
 
   @Put('me/password')

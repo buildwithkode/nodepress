@@ -418,8 +418,18 @@ git --version  # any version?   → skip Step 2`} />
                   This command creates all the tables NodePress needs inside your PostgreSQL database. You only run this once.
                 </p>
                 <CodeBlock code={`cd my-project/backend
-npx prisma migrate dev`} />
-                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+
+# Local PostgreSQL (recommended for development)
+npx prisma migrate dev
+
+# Cloud database — Neon, Supabase, Railway, RDS (use deploy instead)
+npx prisma migrate deploy`} />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Both commands apply all existing migrations to a fresh database.
+                  Use <IC>migrate dev</IC> locally — it also generates new migration files when you change the schema.
+                  Use <IC>migrate deploy</IC> for cloud databases — it only applies existing files and never prompts.
+                </p>
+                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300 mt-2">
                   <strong>Getting an authentication error?</strong> It means the password in <IC>DATABASE_URL</IC> doesn't match your PostgreSQL password. Go back to Step 5 and double-check the password.
                 </div>
               </div>
@@ -675,9 +685,10 @@ npm run dev`} />
             <h3 className="font-semibold mb-3">Status</h3>
             <div className="space-y-2 mb-6">
               {[
-                ['draft',     'Not visible on the public API. Editable in the admin panel.'],
-                ['published', 'Visible on the public API. Default for new entries.'],
-                ['archived',  'Hidden from both the public API and the default admin list.'],
+                ['draft',          'Not visible on the public API. Editable in the admin panel.'],
+                ['published',      'Visible on the public API. Default for new entries.'],
+                ['pending_review', 'Waiting for approval before publishing. Not visible on the public API. Use the status filter in the admin entries list to see these entries.'],
+                ['archived',       'Hidden from both the public API and the default admin list.'],
               ].map(([status, desc]) => (
                 <div key={status} className="flex gap-3 text-sm">
                   <IC>{status}</IC>
@@ -830,12 +841,18 @@ GET /api/article/mon-article?locale=fr`} />
 { "tags": ["uuid-1", "uuid-2", "uuid-3"] }`} />
 
             <h3 className="font-semibold mb-2 mt-5">Populating relations</h3>
-            <p className="text-muted-foreground text-sm mb-2">Use <IC>?populate=fieldName</IC> to replace UUIDs with full entry objects in the response:</p>
+            <p className="text-muted-foreground text-sm mb-2">Use <IC>?populate=fieldName</IC> to replace UUIDs with full entry objects in the response. Supports dot-notation for nested relations (up to 3 levels deep):</p>
             <CodeBlock code={`# Single field
 GET /api/article/my-post?populate=author
 
 # Multiple fields
 GET /api/article/my-post?populate=author,tags
+
+# Nested — also resolve author's "company" relation
+GET /api/article/my-post?populate=author,author.company
+
+# Deep nesting — up to 3 levels
+GET /api/article/my-post?populate=author,author.company,author.company.address
 
 # Response — author is now a full object instead of a UUID string
 {
@@ -845,23 +862,37 @@ GET /api/article/my-post?populate=author,tags
     "author": {
       "id": "550e8400-...",
       "slug": "john-doe",
-      "data": { "name": "John Doe", "bio": "..." }
+      "data": {
+        "name": "John Doe",
+        "bio": "...",
+        "company": {
+          "slug": "acme-corp",
+          "data": { "name": "Acme Corp", "address": "..." }
+        }
+      }
     }
   }
 }`} />
+
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm mt-4">
+              <strong className="text-blue-400">Performance note.</strong>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Each depth level makes one additional batched DB query — not N queries per relation. Caching is bypassed when <IC>?populate</IC> is used because the response shape varies per request.
+              </p>
+            </div>
           </Section>
 
           {/* ── GraphQL ───────────────────────────────────────────────────── */}
           <Section id="graphql" title="GraphQL API" icon={Code2}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              NodePress exposes a GraphQL endpoint at <IC>/api/graphql</IC> alongside the REST API.
+              NodePress exposes a GraphQL endpoint at <IC>/graphql</IC> alongside the REST API.
               Use GraphQL when you need to fetch multiple resources in one round-trip or want strict typing.
             </p>
 
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mb-5">
               <strong className="text-amber-400">Playground disabled in production.</strong>
               <p className="text-muted-foreground mt-1 text-xs">
-                The interactive playground is available at <IC>/api/graphql</IC> in development only.
+                The interactive playground is available at <IC>/graphql</IC> in development only.
                 In production, introspection is also disabled for security.
               </p>
             </div>
@@ -947,13 +978,14 @@ mutation {
 
 # Bulk operations (editor/admin)
 mutation {
-  bulkPublishEntries(ids: [1, 2, 3]) { affected }
-  bulkDeleteEntries(ids: [4, 5])     { affected }
+  bulkPublishEntries(ids: [1, 2, 3])          { affected }
+  bulkDeleteEntries(ids: [4, 5])               { affected }
+  bulkSetPendingReviewEntries(ids: [6, 7])     { affected }
 }`} />
 
             <h3 className="font-semibold mb-2 mt-5">Authentication</h3>
             <p className="text-muted-foreground text-sm mb-2">Pass a JWT Bearer token in the Authorization header. Public queries (entries, contentTypes) work without auth — authenticated users see all statuses, unauthenticated users see only published.</p>
-            <CodeBlock code={`fetch('/api/graphql', {
+            <CodeBlock code={`fetch('/graphql', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -1029,6 +1061,19 @@ socket.on('entry:created', ({ id, slug, contentType }) => {
 socket.on('entry:updated', ({ slug, status }) => {
   if (status === 'published') refreshPage(slug);
 });`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Multi-instance scaling (Redis)</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              When <IC>REDIS_URL</IC> is set, NodePress automatically attaches the <IC>@socket.io/redis-adapter</IC> to Socket.io.
+              This syncs rooms and events across all backend instances — a broadcast from instance A reaches clients connected to instance B.
+            </p>
+            <CodeBlock code={`# Set in your .env to enable multi-instance WebSocket sync
+REDIS_URL=redis://localhost:6379
+
+# When unset, falls back to the in-memory adapter (single-instance mode)`} />
+            <p className="text-muted-foreground text-xs mt-2">
+              The Redis adapter is lazy-loaded and fails open — if Redis is unavailable at startup, the backend continues with the in-memory adapter and logs a warning. No restart required to re-enable after Redis recovers (set the env var and restart the process).
+            </p>
           </Section>
 
           {/* ── Roles & Permissions ───────────────────────────────────────── */}
@@ -1185,8 +1230,26 @@ curl -X POST ${baseUrl}/api/media/upload \\
   "id": 1,
   "filename": "1712345678-abc123.jpg",
   "url": "${baseUrl}/uploads/1712345678-abc123.jpg",
-  "mimetype": "image/jpeg"
+  "webpUrl": "${baseUrl}/uploads/1712345678-abc123.webp",
+  "mimetype": "image/jpeg",
+  "width": 1920,
+  "height": 1080
 }`} />
+
+            <h3 className="font-semibold mb-3 mt-6">Media Folders</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Organise your uploads into folders. Folders support nesting — create sub-folders
+              under any parent. The folder tree is shown in the left sidebar on the Media page.
+              Deleting a folder unfiles its media (files stay, just move to root); sub-folders are
+              deleted recursively.
+            </p>
+            <div className="rounded-xl border border-border overflow-hidden text-sm mb-4">
+              <Endpoint method="GET"    path="/api/media/folders"            desc="List all folders (flat list — build tree from parentId)" auth />
+              <Endpoint method="POST"   path="/api/media/folders"            desc="Create a folder — body: { name, parentId? }" auth />
+              <Endpoint method="DELETE" path="/api/media/folders/:id"        desc="Delete a folder (cascades to sub-folders; files become unfiled)" auth />
+              <Endpoint method="PUT"    path="/api/media/:filename/folder"   desc="Move a file into a folder — body: { folderId } (null = root)" auth />
+              <Endpoint method="GET"    path="/api/media?folderId=:id"       desc="List files in a specific folder — use folderId=null for unfiled files" />
+            </div>
           </Section>
 
           {/* ── API Keys ──────────────────────────────────────────────────── */}
@@ -1325,6 +1388,60 @@ X-RateLimit-Reset: 60       # seconds until window resets
                   POSTs the submission data as JSON to any URL — Slack, Zapier, Make, your own server.
                   Body format: <IC>{'{ "data": { ...fields } }'}</IC>. Supports POST or PUT method.
                 </p>
+              </div>
+            </div>
+
+            {/* Spam protection */}
+            <h3 className="font-semibold mb-3">Spam Protection</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Every form submission endpoint has three layers of spam protection built in. They stack — you can use all three at once.
+            </p>
+            <div className="space-y-4 mb-6">
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-sm font-semibold mb-1">1 — Rate limiting <span className="text-xs font-normal text-muted-foreground ml-1">(always on)</span></p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  20 submissions per minute per IP. Returns HTTP 429 when exceeded. No configuration needed.
+                </p>
+              </div>
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-sm font-semibold mb-1">2 — Honeypot <span className="text-xs font-normal text-muted-foreground ml-1">(always on, zero friction)</span></p>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-2">
+                  Add a hidden <IC>_honey</IC> field to your HTML form (hidden via CSS — never visible to real users).
+                  If the field is filled in, the submission is silently accepted but never saved and no actions fire.
+                  Bots that auto-fill every field are caught without any user friction.
+                </p>
+                <CodeBlock code={`<!-- Add to your HTML form — hidden with CSS -->
+<input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />`} />
+              </div>
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-sm font-semibold mb-1">3 — Captcha <span className="text-xs font-normal text-muted-foreground ml-1">(opt-in per form)</span></p>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                  Supports <strong className="text-foreground">Cloudflare Turnstile</strong> (recommended — no user puzzle),{' '}
+                  <strong className="text-foreground">hCaptcha</strong>, and <strong className="text-foreground">Google reCAPTCHA v2/v3</strong>.
+                  Set up in two steps:
+                </p>
+                <div className="space-y-2 text-xs text-muted-foreground mb-3">
+                  {[
+                    ['Step 1 — backend/.env', 'Set CAPTCHA_PROVIDER=turnstile and CAPTCHA_SECRET_KEY=your_server_secret'],
+                    ['Step 2 — create/update form', 'Set captchaEnabled=true on the form via the API or admin panel'],
+                    ['Step 3 — frontend', 'Render the captcha widget and pass the token as captchaToken in the submit body'],
+                  ].map(([step, desc]) => (
+                    <div key={step} className="flex gap-3">
+                      <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
+                      <span>{desc}</span>
+                    </div>
+                  ))}
+                </div>
+                <CodeBlock code={`# backend/.env
+CAPTCHA_PROVIDER=turnstile
+CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_secret_here
+
+# Submit body — include captchaToken alongside your form data
+POST /api/submit/contact-us
+{
+  "data":         { "full_name": "Jane", "email": "jane@example.com" },
+  "captchaToken": "XXXX.DUMMY.TOKEN.from.widget"
+}`} />
               </div>
             </div>
 
@@ -1649,7 +1766,8 @@ Sitemap: https://your-site.com/api/sitemap.xml`} />
                 </thead>
                 <tbody className="divide-y divide-border text-xs">
                   {[
-                    ['DATABASE_URL',         'PostgreSQL connection string (auto-generated by CLI)'],
+                    ['DATABASE_URL',         'PostgreSQL connection string — pooled URL for the app (e.g. Neon pooled, PgBouncer)'],
+                    ['DIRECT_URL',           'Direct (non-pooled) PostgreSQL URL — required by Prisma migrations. If not using a pooler, set to the same value as DATABASE_URL.'],
                     ['JWT_SECRET',           '64+ char random secret for signing tokens (auto-generated by CLI)'],
                     ['JWT_EXPIRES_IN',       'Access token lifetime — default 15m. Refresh tokens last 30 days (HttpOnly cookie).'],
                     ['PORT',                 'API port (default 3000)'],
@@ -1661,13 +1779,16 @@ Sitemap: https://your-site.com/api/sitemap.xml`} />
                     ['STORAGE_S3_BUCKET',    'S3/R2/MinIO bucket name (if STORAGE_DRIVER=s3)'],
                     ['STORAGE_S3_REGION',    'AWS region or "auto" for Cloudflare R2'],
                     ['STORAGE_S3_ENDPOINT',  'Custom endpoint URL for R2/MinIO/Backblaze'],
-                    ['SMTP_HOST',            'SMTP server hostname for password reset emails'],
+                    ['SMTP_HOST',            'SMTP server hostname — enables password reset and team invitation emails'],
                     ['SMTP_PORT',            'SMTP port (default 587)'],
                     ['SMTP_USER',            'SMTP username'],
                     ['SMTP_PASS',            'SMTP password'],
                     ['SMTP_FROM',            'From address for outgoing emails'],
                     ['REDIS_URL',            'Redis connection URL (optional). Enables shared cache across instances.'],
                     ['METRICS_TOKEN',        'Bearer token to protect GET /api/metrics (optional but recommended in production)'],
+                    ['CAPTCHA_PROVIDER',     'Captcha provider for form spam protection: turnstile | hcaptcha | recaptcha (optional)'],
+                    ['CAPTCHA_SECRET_KEY',   'Server-side secret from your captcha provider dashboard (required when CAPTCHA_PROVIDER is set)'],
+                    ['AUDIT_LOG_RETENTION_DAYS', 'How many days to keep audit log entries before pruning — default 90 (optional)'],
                     ['SENTRY_DSN',           'Sentry DSN for backend error tracking (optional)'],
                   ].map(([key, desc]) => (
                     <tr key={key}>
@@ -1837,12 +1958,17 @@ X-API-Key: np_abc123...`} />
               After 30 days, or after calling <IC>POST /api/auth/logout</IC>, the user must log in again.
             </p>
 
-            <h3 className="font-semibold mb-3 mt-6">Password reset</h3>
+            <h3 className="font-semibold mb-3 mt-6">Password reset &amp; team invitations</h3>
             <p className="text-muted-foreground text-sm mb-3">
               If SMTP is configured, <IC>POST /api/auth/forgot-password</IC> emails a 15-minute reset link.
               Without SMTP, the link is logged to the server console (useful in development).
               The reset link points to <IC>/reset-password?token=…</IC> in the admin panel.
               Always returns <IC>200</IC> — never reveals whether an email exists.
+            </p>
+            <p className="text-muted-foreground text-sm mb-3">
+              Admins can also invite team members via <IC>POST /api/users/:id/invite</IC> — sends a
+              "Set Your Password" email reusing the same reset-token flow. The invite button is also
+              available on each user row in the Users admin page. Silently no-ops when SMTP is not configured.
             </p>
 
             <h3 className="font-semibold mb-3 mt-6">Dynamic content API</h3>
@@ -1851,11 +1977,12 @@ X-API-Key: np_abc123...`} />
               Replace <IC>{'{type}'}</IC> with your content type name (e.g. <IC>blog</IC>, <IC>product</IC>).
             </p>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/{type}"        desc="List entries — ?page, ?limit (default 20, max 100), ?sort=createdAt:desc, ?search=term, ?filter[field]=value. Cached 30 s." />
-              <Endpoint method="GET"    path="/api/{type}/{slug}" desc="Get a single entry by its slug. Cached 60 s." />
-              <Endpoint method="POST"   path="/api/{type}"        desc="Create a new entry" auth />
-              <Endpoint method="PUT"    path="/api/{type}/{slug}" desc="Update an existing entry" auth />
-              <Endpoint method="DELETE" path="/api/{type}/{slug}" desc="Delete an entry (soft delete)" auth />
+              <Endpoint method="GET"    path="/api/{type}"               desc="List entries — ?page, ?limit (max 100), ?sort=createdAt:desc, ?search=term, ?filter[field]=value, ?fields=title,slug (projection), ?populate=author,author.company (dot-notation nested, up to 3 levels). ETag + Cache-Control: public, max-age=30." />
+              <Endpoint method="GET"    path="/api/{type}/{slug}"        desc="Get a single entry — ?fields=title,slug, ?populate=author,author.company (dot-notation nested). ETag + Cache-Control: public, max-age=30." />
+              <Endpoint method="GET"    path="/api/{type}/{slug}/preview" desc="Preview any entry (draft/archived) using a signed token — ?token=<token>. Token generated by POST /api/entries/:id/preview-url." />
+              <Endpoint method="POST"   path="/api/{type}"               desc="Create a new entry" auth />
+              <Endpoint method="PUT"    path="/api/{type}/{slug}"        desc="Update an existing entry" auth />
+              <Endpoint method="DELETE" path="/api/{type}/{slug}"        desc="Delete an entry (soft delete)" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Auth</h3>
@@ -1887,15 +2014,26 @@ X-API-Key: np_abc123...`} />
               <Endpoint method="DELETE" path="/api/entries/:id"                desc="Soft-delete — moves to trash" auth />
               <Endpoint method="POST"   path="/api/entries/:id/restore"        desc="Restore a trashed entry" auth />
               <Endpoint method="DELETE" path="/api/entries/:id/purge"          desc="Permanently delete a trashed entry" auth />
-              <Endpoint method="GET"    path="/api/entries/:id/versions"       desc="List all version snapshots for an entry" auth />
+              <Endpoint method="GET"    path="/api/entries/:id/versions"              desc="List all version snapshots for an entry" auth />
               <Endpoint method="POST"   path="/api/entries/:id/versions/:vid/restore" desc="Restore entry to a specific version" auth />
+              <Endpoint method="POST"   path="/api/entries/:id/preview-url"           desc="Generate a 1-hour signed preview token for any entry status (draft, archived, published)" auth />
+              <Endpoint method="GET"    path="/api/entries/export?contentTypeId=X"    desc="Export all entries as a JSON array (for backup or migration)" auth />
+              <Endpoint method="POST"   path="/api/entries/import"                    desc="Import entries from a JSON array — upserts by slug+locale. Body: { contentTypeId, entries[] }" auth />
+              <Endpoint method="POST"   path="/api/entries/bulk-publish"              desc="Bulk publish entries — body: { ids: number[] }" auth />
+              <Endpoint method="POST"   path="/api/entries/bulk-archive"              desc="Bulk archive entries — body: { ids: number[] }" auth />
+              <Endpoint method="POST"   path="/api/entries/bulk-pending-review"       desc="Bulk submit entries for review — body: { ids: number[] }" auth />
+              <Endpoint method="POST"   path="/api/entries/bulk-delete"               desc="Bulk soft-delete entries — body: { ids: number[] }" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Media</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/media"                      desc="List media files — ?page, ?limit" auth />
+              <Endpoint method="GET"    path="/api/media"                      desc="List media files — ?page, ?limit, ?folderId (null=unfiled)" />
               <Endpoint method="POST"   path="/api/media/upload"               desc="Upload a file (multipart/form-data)" auth />
               <Endpoint method="DELETE" path="/api/media/:filename"            desc="Delete a file" auth />
+              <Endpoint method="GET"    path="/api/media/folders"              desc="List all media folders (flat list)" auth />
+              <Endpoint method="POST"   path="/api/media/folders"              desc="Create a folder — body: { name, parentId? }" auth />
+              <Endpoint method="DELETE" path="/api/media/folders/:id"          desc="Delete a folder (cascades sub-folders; files become unfiled)" auth />
+              <Endpoint method="PUT"    path="/api/media/:filename/folder"     desc="Move file to folder — body: { folderId } (null = root)" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Webhooks</h3>
@@ -1921,6 +2059,7 @@ X-API-Key: np_abc123...`} />
               <Endpoint method="POST"   path="/api/users"                      desc="Create a new user — admin only" auth />
               <Endpoint method="PUT"    path="/api/users/:id/role"             desc="Change a user's role — admin only" auth />
               <Endpoint method="DELETE" path="/api/users/:id"                  desc="Delete a user — cannot delete self or last admin" auth />
+              <Endpoint method="POST"   path="/api/users/:id/invite"           desc="Send a 'Set Your Password' invitation email — admin only (no-op if SMTP not configured)" auth />
               <Endpoint method="PUT"    path="/api/users/me/password"          desc="Change your own password (requires current password)" auth />
             </div>
 

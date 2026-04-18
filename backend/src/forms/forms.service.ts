@@ -20,11 +20,12 @@ export class FormsService {
     try {
       return await this.prisma.form.create({
         data: {
-          name:     dto.name,
+          name:           dto.name,
           slug,
-          fields:   (dto.fields  ?? []) as Prisma.InputJsonValue,
-          actions:  (dto.actions ?? []) as Prisma.InputJsonValue,
-          isActive: dto.isActive ?? true,
+          fields:         (dto.fields  ?? []) as Prisma.InputJsonValue,
+          actions:        (dto.actions ?? []) as Prisma.InputJsonValue,
+          isActive:       dto.isActive       ?? true,
+          captchaEnabled: dto.captchaEnabled ?? false,
         },
       });
     } catch (err: any) {
@@ -62,11 +63,12 @@ export class FormsService {
     await this.findOne(id); // ensure exists
 
     const data: Prisma.FormUpdateInput = {};
-    if (dto.name     !== undefined) data.name     = dto.name;
-    if (dto.isActive !== undefined) data.isActive = dto.isActive;
-    if (dto.fields   !== undefined) data.fields   = dto.fields  as Prisma.InputJsonValue;
-    if (dto.actions  !== undefined) data.actions  = dto.actions as Prisma.InputJsonValue;
-    if (dto.slug     !== undefined) {
+    if (dto.name           !== undefined) data.name           = dto.name;
+    if (dto.isActive       !== undefined) data.isActive       = dto.isActive;
+    if (dto.captchaEnabled !== undefined) data.captchaEnabled = dto.captchaEnabled;
+    if (dto.fields         !== undefined) data.fields         = dto.fields  as Prisma.InputJsonValue;
+    if (dto.actions        !== undefined) data.actions        = dto.actions as Prisma.InputJsonValue;
+    if (dto.slug           !== undefined) {
       data.slug = this.normalizeSlug(dto.slug);
       this.assertSlugNotReserved(data.slug);
     }

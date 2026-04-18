@@ -5,6 +5,8 @@
   "testRegex": "\\.e2e-spec\\.ts$",
   "transform": { "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": { "esModuleInterop": true } }] },
   "moduleNameMapper": { "^src/(.*)$": "<rootDir>/../src/$1" },
+  "setupFiles": ["<rootDir>/jest.setup.ts"],
+  "testTimeout": 60000,
   "globals": {
     "ts-jest": {
       "tsconfig": "<rootDir>/../tsconfig.json"

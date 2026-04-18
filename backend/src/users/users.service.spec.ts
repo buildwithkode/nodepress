@@ -3,6 +3,7 @@ import { ConflictException, ForbiddenException, BadRequestException, NotFoundExc
 import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 
 const hashedPassword = bcrypt.hashSync('Password123!', 10);
 
@@ -18,6 +19,14 @@ const mockPrisma = {
     delete:     jest.fn(),
     count:      jest.fn(),
   },
+  passwordResetToken: {
+    updateMany: jest.fn().mockResolvedValue({}),
+    create:     jest.fn().mockResolvedValue({ id: 1, token: 'tok', expiresAt: new Date() }),
+  },
+};
+
+const mockMail = {
+  sendInvitation: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('UsersService', () => {
@@ -30,6 +39,7 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: MailService,   useValue: mockMail   },
       ],
     }).compile();
 
@@ -142,6 +152,32 @@ describe('UsersService', () => {
       await expect(
         service.changePassword(1, { currentPassword: 'wrongpassword', newPassword: 'NewPassword456!' }),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  // ── sendInvitation ─────────────────────────────────────────────────────────
+
+  describe('sendInvitation()', () => {
+    it('generates a reset token and sends invitation email', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockEditor);
+
+      const result = await service.sendInvitation(2, 'admin@test.com');
+
+      expect(result.message).toContain('editor@test.com');
+      expect(mockPrisma.passwordResetToken.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { userId: 2, used: false } }),
+      );
+      expect(mockPrisma.passwordResetToken.create).toHaveBeenCalled();
+      expect(mockMail.sendInvitation).toHaveBeenCalledWith(
+        'editor@test.com',
+        expect.stringContaining('reset-password?token='),
+        'admin@test.com',
+      );
+    });
+
+    it('throws NotFoundException for unknown user', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      await expect(service.sendInvitation(999, 'admin@test.com')).rejects.toThrow(NotFoundException);
     });
   });
 });

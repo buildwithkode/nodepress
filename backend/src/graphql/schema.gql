@@ -1,0 +1,139 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type BulkResult {
+  affected: Int!
+}
+
+type ContentTypeModel {
+  allowedMethods: JSON
+  createdAt: DateTime!
+  id: Int!
+  name: String!
+  schema: JSON!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type DeleteResult {
+  message: String!
+}
+
+type EntryModel {
+  createdAt: DateTime!
+  data: JSON
+  deletedAt: DateTime
+  id: Int!
+  locale: String!
+  publicId: ID!
+  seo: JSON
+  slug: String!
+  status: String!
+  updatedAt: DateTime!
+}
+
+type EntryPage {
+  data: [EntryModel!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+  totalPages: Int!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type MediaModel {
+  createdAt: DateTime!
+  filename: String!
+  height: Int
+  id: Int!
+  mimetype: String!
+  originalName: String!
+  size: Int!
+  uploadedBy: Int
+  url: String!
+  webpUrl: String
+  width: Int
+}
+
+type MediaPage {
+  data: [MediaModel!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+  totalPages: Int!
+}
+
+type Mutation {
+  bulkArchiveEntries(ids: [Int!]!): BulkResult!
+  bulkDeleteEntries(ids: [Int!]!): BulkResult!
+  bulkPublishEntries(ids: [Int!]!): BulkResult!
+  createEntry(
+    contentTypeId: Int!
+
+    """JSON string of entry data"""
+    data: String!
+    locale: String = "en"
+    slug: String!
+    status: String = "published"
+  ): EntryModel!
+  deleteEntry(id: Int!): DeleteResult!
+
+  """Delete a media file by filename (admin/editor only)"""
+  deleteMedia(filename: String!): DeleteResult!
+
+  """Delete a webhook (admin only)"""
+  deleteWebhook(id: Int!): DeleteResult!
+  updateEntry(data: String, id: Int!, slug: String, status: String): EntryModel!
+}
+
+type Query {
+  contentType(id: Int!): ContentTypeModel
+  contentTypes: [ContentTypeModel!]!
+
+  """List entries (authenticated: all statuses; public: published only)"""
+  entries(contentTypeId: Int, limit: Int = 20, locale: String, page: Int = 1, search: String, status: String): EntryPage!
+  entry(id: Int!, populate: [String!]): EntryModel
+
+  """List all uploaded media files (authenticated)"""
+  mediaFiles(limit: Int = 50, page: Int = 1): MediaPage!
+
+  """Get a webhook by ID (admin only)"""
+  webhook(id: Int!): WebhookModel
+
+  """Delivery log for a webhook (admin only)"""
+  webhookDeliveries(limit: Int = 50, webhookId: Int!): [WebhookDeliveryModel!]!
+
+  """List all webhooks (admin only)"""
+  webhooks: [WebhookModel!]!
+}
+
+type WebhookDeliveryModel {
+  attempts: Int!
+  createdAt: DateTime!
+  errorMessage: String
+  event: String!
+  id: Int!
+  payload: JSON!
+  responseStatus: Int
+  status: String!
+  webhookId: Int!
+}
+
+type WebhookModel {
+  createdAt: DateTime!
+  enabled: Boolean!
+  events: JSON!
+  id: Int!
+  name: String!
+  updatedAt: DateTime!
+  url: String!
+}

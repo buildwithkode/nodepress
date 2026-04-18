@@ -47,7 +47,7 @@ describe('Dynamic API (e2e)', () => {
     const keyRes = await request(app.getHttpServer())
       .post('/api/api-keys')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Test Key', permissions: { access: 'all', contentTypes: '*' } });
+      .send({ name: 'Test Key', permissions: { access: 'all', contentTypes: ['*'] } });
     apiKey = keyRes.body.key;
   });
 
@@ -182,12 +182,98 @@ describe('Dynamic API (e2e)', () => {
     const readKeyRes = await request(app.getHttpServer())
       .post('/api/api-keys')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Read Key', permissions: { access: 'read', contentTypes: '*' } });
+      .send({ name: 'Read Key', permissions: { access: 'read', contentTypes: ['*'] } });
 
     await request(app.getHttpServer())
       .post('/api/article')
       .set('X-API-Key', readKeyRes.body.key)
       .send({ slug: 'read-only-attempt', data: { title: 'Should Fail' } })
       .expect(403);
+  });
+
+  // ── ?fields projection ────────────────────────────────────────────────────────
+
+  it('GET /api/article?fields=title → returns only the requested field in data', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/article')
+      .query({ fields: 'title' })
+      .expect(200);
+
+    expect(res.body.data).toBeInstanceOf(Array);
+    res.body.data.forEach((entry: any) => {
+      expect(entry.data).toHaveProperty('title');
+      // body should be stripped — not present or undefined
+      expect(entry.data.body).toBeUndefined();
+    });
+  });
+
+  it('GET /api/article/:slug?fields=title → single entry projection', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/article/hello-world')
+      .query({ fields: 'title' })
+      .expect(200);
+
+    expect(res.body.data).toHaveProperty('title');
+    expect(res.body.data.body).toBeUndefined();
+  });
+
+  // ── ?populate (relation) ──────────────────────────────────────────────────────
+
+  it('GET /api/article?populate=author → populate is accepted and does not crash (no relation field)', async () => {
+    // article schema has no relation field — populate should be a no-op and return normally
+    const res = await request(app.getHttpServer())
+      .get('/api/article')
+      .query({ populate: 'author' })
+      .expect(200);
+
+    expect(res.body.data).toBeInstanceOf(Array);
+  });
+
+  it('GET /api/{type}?populate= with relation content type → inlines related entry', async () => {
+    // Create a "person" content type
+    const personCtRes = await request(app.getHttpServer())
+      .post('/api/content-types')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'person',
+        schema: [{ name: 'full_name', type: 'text', required: true }],
+      });
+    const personCtId = personCtRes.body.id;
+
+    // Create a person entry
+    const personRes = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId: personCtId, slug: 'jane-doe', status: 'published', data: { full_name: 'Jane Doe' } });
+    const personPublicId = personRes.body.publicId;
+
+    // Create a "post" content type with an author relation
+    const postCtRes = await request(app.getHttpServer())
+      .post('/api/content-types')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'relpost',
+        schema: [
+          { name: 'title',  type: 'text',     required: true },
+          { name: 'author', type: 'relation',  options: { cardinality: 'one', contentType: 'person' } },
+        ],
+      });
+    const postCtId = postCtRes.body.id;
+
+    // Create a post entry referencing the person
+    await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId: postCtId, slug: 'my-post', status: 'published', data: { title: 'My Post', author: personPublicId } });
+
+    // Fetch via dynamic API with ?populate=author
+    const res = await request(app.getHttpServer())
+      .get('/api/relpost/my-post')
+      .query({ populate: 'author' })
+      .expect(200);
+
+    expect(res.body.data.author).toBeDefined();
+    expect(typeof res.body.data.author).toBe('object');
+    expect(res.body.data.author.slug).toBe('jane-doe');
   });
 });

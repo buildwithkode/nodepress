@@ -4,6 +4,7 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
@@ -11,9 +12,10 @@ import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { CreateEntryDto } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
 import { DataValidator } from '../fields/data.validator';
-import { FieldDef, RelationFieldDef } from '../fields/field.types';
+import { FieldDef } from '../fields/field.types';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 import { sanitizeEntryData } from '../common/sanitize';
+import { populateDeep } from '../common/populate.util';
 
 export interface AdminListQuery {
   contentTypeId?: number;
@@ -42,6 +44,7 @@ export class EntriesService {
     private dataValidator: DataValidator,
     private webhooks: WebhooksService,
     private realtime: RealtimeGateway,
+    private jwtService: JwtService,
   ) {}
 
   async create(dto: CreateEntryDto, actorId?: number) {
@@ -192,35 +195,11 @@ export class EntriesService {
     }
 
     if (populate.length && entry.contentType) {
-      data = await this.populateRelations(data, entry.contentType.schema as FieldDef[], populate);
+      const schema = entry.contentType.schema as unknown as FieldDef[];
+      data = await populateDeep(data, schema, populate, this.prisma);
     }
 
     return { ...entry, data };
-  }
-
-  /** Inline-replace relation UUIDs with full entry objects for requested fields. */
-  private async populateRelations(
-    data: Record<string, any>,
-    schema: FieldDef[],
-    populate: string[],
-  ): Promise<Record<string, any>> {
-    const result = { ...data };
-    const relationFields = schema.filter(
-      (f): f is RelationFieldDef => f.type === 'relation' && populate.includes(f.name),
-    );
-
-    for (const field of relationFields) {
-      const raw = data[field.name];
-      if (!raw) continue;
-      const ids: string[] = Array.isArray(raw) ? raw : [raw];
-      const related = await this.prisma.entry.findMany({
-        where: { publicId: { in: ids }, deletedAt: null },
-        include: { contentType: true },
-      });
-      result[field.name] = field.options.cardinality === 'many' ? related : (related[0] ?? null);
-    }
-
-    return result;
   }
 
   async update(id: number, dto: UpdateEntryDto, actorId?: number) {
@@ -377,6 +356,14 @@ export class EntriesService {
     return { affected: result.count };
   }
 
+  async bulkSetPendingReview(ids: number[]) {
+    const result = await this.prisma.entry.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { status: 'pending_review' },
+    });
+    return { affected: result.count };
+  }
+
   // ── Content versioning ────────────────────────────────────────────────────
 
   async listVersions(entryId: number) {
@@ -387,6 +374,108 @@ export class EntriesService {
       take: 50,
     });
     return versions;
+  }
+
+  // ── Import / Export ────────────────────────────────────────────────────���──
+
+  /**
+   * Export all non-deleted entries for a content type as a plain JSON array.
+   * Suitable for backup, migration, or seeding another NodePress instance.
+   */
+  async exportEntries(contentTypeId: number): Promise<any[]> {
+    const contentType = await this.prisma.contentType.findUnique({ where: { id: contentTypeId } });
+    if (!contentType) throw new BadRequestException(`Content type #${contentTypeId} not found`);
+
+    const entries = await this.prisma.entry.findMany({
+      where: { contentTypeId, deletedAt: null },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        publicId: true, slug: true, locale: true, status: true,
+        data: true, seo: true, publishAt: true, createdAt: true, updatedAt: true,
+      },
+    });
+
+    return entries;
+  }
+
+  /**
+   * Import entries from an array (e.g. a previous exportEntries result).
+   * - Existing entries (matched by slug + locale) are updated in-place.
+   * - New entries are created.
+   * - Returns counts of created / updated / skipped.
+   */
+  async importEntries(
+    contentTypeId: number,
+    rows: Array<{ slug: string; locale?: string; status?: string; data?: Record<string, any>; seo?: any; publishAt?: string }>,
+    actorId?: number,
+  ): Promise<{ created: number; updated: number; errors: string[] }> {
+    const contentType = await this.prisma.contentType.findUnique({ where: { id: contentTypeId } });
+    if (!contentType) throw new BadRequestException(`Content type #${contentTypeId} not found`);
+
+    let created = 0;
+    let updated = 0;
+    const errors: string[] = [];
+
+    for (const row of rows) {
+      const locale = row.locale ?? 'en';
+      if (!row.slug) { errors.push(`Row missing slug — skipped`); continue; }
+      try {
+        const existing = await this.prisma.entry.findUnique({
+          where: { contentTypeId_slug_locale: { contentTypeId, slug: row.slug, locale } },
+        });
+
+        const entryData = normalizeDataKeys(
+          injectRepeaterIds((row.data ?? {}) as Record<string, any>),
+        );
+
+        if (existing && existing.deletedAt === null) {
+          await this.prisma.entry.update({
+            where: { id: existing.id },
+            data: {
+              status: (row.status as any) ?? existing.status,
+              data: entryData,
+              seo: row.seo ?? existing.seo,
+              publishAt: row.publishAt ? new Date(row.publishAt) : existing.publishAt,
+            },
+          });
+          updated++;
+        } else {
+          await this.prisma.entry.create({
+            data: {
+              slug: row.slug,
+              locale,
+              status: (row.status as any) ?? 'draft',
+              data: entryData,
+              contentTypeId,
+              seo: row.seo ?? null,
+              publishAt: row.publishAt ? new Date(row.publishAt) : null,
+            },
+          });
+          created++;
+        }
+      } catch (err: any) {
+        errors.push(`${row.slug} (${locale}): ${err?.message ?? 'unknown error'}`);
+      }
+    }
+
+    return { created, updated, errors };
+  }
+
+  /**
+   * Generate a signed preview token for a draft entry.
+   * The token encodes the entry's internal id and expires in 1 hour.
+   * Pass it to GET /api/:type/:slug/preview?token=<token> to read the draft.
+   */
+  async generatePreviewToken(entryId: number): Promise<{ token: string; expiresAt: string }> {
+    const entry = await this.prisma.entry.findUnique({ where: { id: entryId } });
+    if (!entry) throw new NotFoundException(`Entry #${entryId} not found`);
+
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const token = this.jwtService.sign(
+      { sub: 'preview', entryId: entry.id, publicId: entry.publicId },
+      { expiresIn: '1h' },
+    );
+    return { token, expiresAt: expiresAt.toISOString() };
   }
 
   async restoreVersion(entryId: number, versionId: number, actorId?: number) {

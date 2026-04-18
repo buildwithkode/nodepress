@@ -40,6 +40,15 @@ const EnvSchema = z.object({
 
   // Metrics endpoint bearer token — optional
   METRICS_TOKEN: z.string().optional(),
+
+  // Captcha — optional spam protection for public form submissions
+  // CAPTCHA_PROVIDER: 'turnstile' (Cloudflare) | 'hcaptcha' | 'recaptcha'
+  // CAPTCHA_SECRET_KEY: server-side secret from your captcha provider dashboard
+  CAPTCHA_PROVIDER:   z.enum(['turnstile', 'hcaptcha', 'recaptcha']).optional(),
+  CAPTCHA_SECRET_KEY: z.string().optional(),
+
+  // Audit log retention in days — default 90
+  AUDIT_LOG_RETENTION_DAYS: z.coerce.number().int().positive().default(90),
 });
 
 function validateEnv(raw: NodeJS.ProcessEnv) {
@@ -55,8 +64,14 @@ function validateEnv(raw: NodeJS.ProcessEnv) {
     process.exit(1);
   }
 
-  // Extra validation: S3 driver requires bucket + credentials
+  // Extra validation: captcha provider requires a secret key
   const data = result.data;
+  if (data.CAPTCHA_PROVIDER && !data.CAPTCHA_SECRET_KEY) {
+    console.error(`\n❌  CAPTCHA_PROVIDER=${data.CAPTCHA_PROVIDER} requires CAPTCHA_SECRET_KEY to be set\n`);
+    process.exit(1);
+  }
+
+  // Extra validation: S3 driver requires bucket + credentials
   if (data.STORAGE_DRIVER === 's3') {
     const missing = ['STORAGE_S3_BUCKET', 'STORAGE_S3_ACCESS_KEY', 'STORAGE_S3_SECRET_KEY'].filter(
       (k) => !data[k as keyof typeof data],

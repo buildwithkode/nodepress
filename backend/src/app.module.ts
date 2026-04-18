@@ -3,7 +3,8 @@
 
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { GqlThrottlerGuard } from './common/gql-throttler.guard';
 import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -28,6 +29,7 @@ import { ENABLED_PLUGINS } from './plugin/plugins.config';
 import { PermissionsModule } from './permissions/permissions.module';
 import { GraphqlModule } from './graphql/graphql.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -72,6 +74,7 @@ import { RealtimeModule } from './realtime/realtime.module';
     ]),
 
     AppCacheModule,     // Global — AppCacheService available everywhere without re-importing
+    MailModule,         // Global — MailService available everywhere without re-importing
     MetricsModule,      // Global — Prometheus metrics + GET /api/metrics endpoint
     PluginModule,       // Global — PluginRegistry + GET /api/plugins endpoint
     // Dynamically import enabled plugin NestJS modules so their routes/services/listeners are wired in
@@ -99,7 +102,7 @@ import { RealtimeModule } from './realtime/realtime.module';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: GqlThrottlerGuard,
     },
     {
       provide: APP_INTERCEPTOR,
