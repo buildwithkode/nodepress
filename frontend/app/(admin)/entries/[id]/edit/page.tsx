@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2 } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -51,6 +51,12 @@ export default function EditEntryPage() {
   const [seoOpen, setSeoOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewCopied, setPreviewCopied] = useState(false);
+
+  // Version history
+  const [versionsOpen, setVersionsOpen] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [restoringVersion, setRestoringVersion] = useState<number | null>(null);
 
   // SEO fields
   const [seoTitle, setSeoTitle] = useState('');
@@ -193,6 +199,37 @@ export default function EditEntryPage() {
     }
   };
 
+  const loadVersions = async () => {
+    if (!entry) return;
+    setVersionsLoading(true);
+    try {
+      const res = await api.get(`/entries/${entry.id}/versions`);
+      setVersions(res.data ?? []);
+    } catch {
+      toast.error('Failed to load version history');
+    } finally {
+      setVersionsLoading(false);
+    }
+  };
+
+  const handleRestoreVersion = async (versionId: number) => {
+    if (!entry) return;
+    setRestoringVersion(versionId);
+    try {
+      const res = await api.post(`/entries/${entry.id}/versions/${versionId}/restore`);
+      const restored = res.data;
+      setEntry(restored);
+      setStatus(restored.status ?? 'published');
+      reset({ slug: restored.slug, ...restored.data });
+      toast.success('Version restored');
+      await loadVersions();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to restore version');
+    } finally {
+      setRestoringVersion(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/entries')}>
@@ -268,7 +305,7 @@ export default function EditEntryPage() {
               </div>
               <div>
                 <Label className="mb-1.5 block">Locale</Label>
-                <Select value={locale} onValueChange={setLocale}>
+                <Select value={locale} onValueChange={(v) => { if (v !== null) setLocale(v); }}>
                   <SelectTrigger className="w-32">
                     <SelectValue />
                   </SelectTrigger>
@@ -397,6 +434,65 @@ export default function EditEntryPage() {
             </div>
           </form>
         </CardContent>
+
+        {/* Version History Panel */}
+        <div className="border-t border-border px-6 py-4">
+          <button
+            type="button"
+            onClick={() => {
+              const next = !versionsOpen;
+              setVersionsOpen(next);
+              if (next && versions.length === 0) loadVersions();
+            }}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left"
+          >
+            <History className="h-3.5 w-3.5" />
+            <span>Version History</span>
+            {versionsOpen
+              ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
+              : <ChevronRight className="h-3.5 w-3.5 ml-auto" />
+            }
+          </button>
+
+          {versionsOpen && (
+            <div className="mt-3 space-y-1">
+              {versionsLoading && (
+                <p className="text-xs text-muted-foreground py-2">Loading…</p>
+              )}
+              {!versionsLoading && versions.length === 0 && (
+                <p className="text-xs text-muted-foreground py-2">No versions yet — versions are created on each save.</p>
+              )}
+              {versions.map((v: any) => (
+                <div
+                  key={v.id}
+                  className="flex items-center justify-between gap-3 rounded-md px-3 py-2 text-xs hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="font-medium text-foreground">
+                      {new Date(v.createdAt).toLocaleString()}
+                    </span>
+                    {v.createdBy && (
+                      <span className="text-muted-foreground truncate">by {v.createdBy.email}</span>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1.5 text-xs shrink-0"
+                    disabled={restoringVersion === v.id}
+                    onClick={() => handleRestoreVersion(v.id)}
+                  >
+                    {restoringVersion === v.id
+                      ? <Loader2 className="h-3 w-3 animate-spin" />
+                      : <RotateCcw className="h-3 w-3" />
+                    }
+                    Restore
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <CardFooter className="justify-between gap-2 flex-wrap">
           {/* Preview URL panel */}

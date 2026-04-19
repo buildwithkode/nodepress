@@ -25,6 +25,7 @@ import {
   ScrollText,
   Zap,
   Puzzle,
+  Code2,
 } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
@@ -52,6 +53,9 @@ const ALL_NAV_GROUPS = [
       { href: '/api-keys',  label: 'API Keys',  icon: Key },
       { href: '/webhooks',  label: 'Webhooks',  icon: Zap },
       { href: '/audit-log', label: 'Audit Log', icon: ScrollText },
+    ],
+    externalLinks: [
+      { href: '/graphql', label: 'GraphQL Playground', icon: Code2 },
     ],
   },
   {
@@ -146,6 +150,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </Link>
                   );
                 })}
+                {(group as any).externalLinks?.map(({ href, label, icon: Icon }: any) => (
+                  <a
+                    key={href}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-sidebar-foreground/50 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors"
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {label}
+                    <span className="ml-auto text-[9px] opacity-50">↗</span>
+                  </a>
+                ))}
               </div>
             </div>
           ))}

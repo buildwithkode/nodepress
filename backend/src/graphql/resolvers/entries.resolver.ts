@@ -14,7 +14,7 @@ export class EntriesResolver {
   // ─── Queries ─────────────────────────────────────────────────────────────────
 
   @UseGuards(GqlJwtOptionalGuard)
-  @Query(() => EntryPage, { name: 'entries', description: 'List entries (authenticated: all statuses; public: published only)' })
+  @Query(() => EntryPage, { name: 'entries', description: 'List entries. Authenticated: all statuses. Public: published only.' })
   findAll(
     @Args('contentTypeId', { type: () => Int, nullable: true }) contentTypeId?: number,
     @Args('status', { nullable: true }) status?: string,
@@ -32,14 +32,11 @@ export class EntriesResolver {
       search,
       page,
       limit,
-    }).then((result) => ({
-      ...result.meta,
-      data: result.data,
-    }));
+    }).then((result) => ({ ...result.meta, data: result.data }));
   }
 
   @UseGuards(GqlJwtOptionalGuard)
-  @Query(() => EntryModel, { name: 'entry', nullable: true })
+  @Query(() => EntryModel, { name: 'entry', nullable: true, description: 'Fetch a single entry by ID.' })
   async findOne(
     @Args('id', { type: () => Int }) id: number,
     @Args('populate', { type: () => [String], nullable: true }) populate?: string[],
@@ -55,13 +52,13 @@ export class EntriesResolver {
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
-  @Mutation(() => EntryModel, { name: 'createEntry' })
+  @Mutation(() => EntryModel, { name: 'createEntry', description: 'Create a new entry. Requires editor or admin role.' })
   createEntry(
     @Args('contentTypeId', { type: () => Int }) contentTypeId: number,
     @Args('slug') slug: string,
     @Args('locale', { nullable: true, defaultValue: 'en' }) locale: string,
-    @Args('status', { nullable: true, defaultValue: 'published' }) status: string,
-    @Args('data', { type: () => String, description: 'JSON string of entry data' }) dataJson: string,
+    @Args('status', { nullable: true, defaultValue: 'draft' }) status: string,
+    @Args('data', { type: () => String, description: 'JSON string of entry field values' }) dataJson: string,
     @Context() ctx: any,
   ) {
     return this.entriesService.create(
@@ -72,10 +69,10 @@ export class EntriesResolver {
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
-  @Mutation(() => EntryModel, { name: 'updateEntry' })
+  @Mutation(() => EntryModel, { name: 'updateEntry', description: 'Update an existing entry.' })
   updateEntry(
     @Args('id', { type: () => Int }) id: number,
-    @Args('data', { type: () => String, nullable: true }) dataJson?: string,
+    @Args('data', { type: () => String, nullable: true, description: 'JSON string of updated field values' }) dataJson?: string,
     @Args('status', { nullable: true }) status?: string,
     @Args('slug', { nullable: true }) slug?: string,
     @Context() ctx?: any,
@@ -89,29 +86,61 @@ export class EntriesResolver {
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
-  @Mutation(() => DeleteResult, { name: 'deleteEntry' })
+  @Mutation(() => DeleteResult, { name: 'deleteEntry', description: 'Soft-delete an entry (recoverable). Requires editor or admin.' })
   deleteEntry(@Args('id', { type: () => Int }) id: number) {
     return this.entriesService.remove(id);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Mutation(() => DeleteResult, { name: 'purgeEntry', description: 'Permanently delete a soft-deleted entry. Admin only.' })
+  purgeEntry(@Args('id', { type: () => Int }) id: number) {
+    return this.entriesService.purge(id);
+  }
+
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
-  @Mutation(() => BulkResult, { name: 'bulkDeleteEntries' })
+  @Mutation(() => EntryModel, { name: 'restoreEntry', description: 'Restore a soft-deleted entry.' })
+  restoreEntry(@Args('id', { type: () => Int }) id: number) {
+    return this.entriesService.restore(id);
+  }
+
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor', 'contributor')
+  @Mutation(() => EntryModel, { name: 'restoreEntryVersion', description: 'Restore an entry to a previous version.' })
+  restoreVersion(
+    @Args('entryId', { type: () => Int }) entryId: number,
+    @Args('versionId', { type: () => Int }) versionId: number,
+    @Context() ctx?: any,
+  ) {
+    return this.entriesService.restoreVersion(entryId, versionId, ctx?.req?.user?.id);
+  }
+
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Mutation(() => BulkResult, { name: 'bulkDeleteEntries', description: 'Soft-delete multiple entries.' })
   bulkDelete(@Args('ids', { type: () => [Int] }) ids: number[]) {
     return this.entriesService.bulkDelete(ids);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
-  @Mutation(() => BulkResult, { name: 'bulkPublishEntries' })
+  @Mutation(() => BulkResult, { name: 'bulkPublishEntries', description: 'Publish multiple entries.' })
   bulkPublish(@Args('ids', { type: () => [Int] }) ids: number[]) {
     return this.entriesService.bulkPublish(ids);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
-  @Mutation(() => BulkResult, { name: 'bulkArchiveEntries' })
+  @Mutation(() => BulkResult, { name: 'bulkArchiveEntries', description: 'Archive multiple entries.' })
   bulkArchive(@Args('ids', { type: () => [Int] }) ids: number[]) {
     return this.entriesService.bulkArchive(ids);
+  }
+
+  @UseGuards(GqlJwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor', 'contributor')
+  @Mutation(() => BulkResult, { name: 'bulkSetPendingReviewEntries', description: 'Set multiple entries to pending_review.' })
+  bulkSetPendingReview(@Args('ids', { type: () => [Int] }) ids: number[]) {
+    return this.entriesService.bulkSetPendingReview(ids);
   }
 }

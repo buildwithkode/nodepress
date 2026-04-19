@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers, Copy, Loader2, CheckSquare } from 'lucide-react';
+import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers, Copy, Loader2, CheckSquare, Trash, RotateCcw, X, Download, Upload } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,7 @@ import {
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { canManageContent } from '@/lib/roles';
+import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString();
@@ -86,6 +87,9 @@ export default function EntriesPage() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
 
+  // Trash view
+  const [showTrash, setShowTrash] = useState(false);
+
   const selectedCT = contentTypes.find((ct) => ct.name === ctParam) ?? null;
 
   /* ── Load content types + counts ───────────────────────────────────────── */
@@ -114,14 +118,18 @@ export default function EntriesPage() {
     setLoadingEntries(true);
     setSelected(new Set());
     const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
-    if (statusFilter !== 'all') params.status = statusFilter;
+    if (showTrash) {
+      params.deleted = true;
+    } else if (statusFilter !== 'all') {
+      params.status = statusFilter;
+    }
     api.get('/entries', { params })
       .then((res) => setEntries(res.data.data ?? res.data))
       .catch(() => toast.error('Failed to load entries'))
       .finally(() => setLoadingEntries(false));
-  }, [selectedCT?.id, statusFilter]);
+  }, [selectedCT?.id, statusFilter, showTrash]);
 
-  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter]);
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter, showTrash]);
 
   /* ── Refresh helpers ────────────────────────────────────────────────────── */
   const refreshEntries = async () => {
@@ -133,6 +141,16 @@ export default function EntriesPage() {
     setSelected(new Set());
   };
 
+  /* ── Realtime ───────────────────────────────────────────────────────────── */
+  useRealtimeEvents(
+    {
+      onEntryCreated: () => { if (selectedCT && !showTrash) refreshEntries(); },
+      onEntryUpdated: () => { if (selectedCT && !showTrash) refreshEntries(); },
+      onEntryDeleted: () => { if (selectedCT) refreshEntries(); },
+    },
+    selectedCT ? [selectedCT.name] : [],
+  );
+
   /* ── Delete ────────────────────────────────────────────────────────────── */
   const handleDelete = async (id: number) => {
     try {
@@ -141,6 +159,70 @@ export default function EntriesPage() {
       await refreshEntries();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Delete failed');
+    }
+  };
+
+  /* ── Restore / Purge (trash bin) ───────────────────────────────────────── */
+  const handleRestore = async (id: number) => {
+    try {
+      await api.post(`/entries/${id}/restore`);
+      toast.success('Entry restored');
+      await refreshEntries();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Restore failed');
+    }
+  };
+
+  const handlePurge = async (id: number) => {
+    try {
+      await api.delete(`/entries/${id}/purge`);
+      toast.success('Entry permanently deleted');
+      await refreshEntries();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Purge failed');
+    }
+  };
+
+  /* ── Export / Import ───────────────────────────────────────────────────── */
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!selectedCT) return;
+    setExporting(true);
+    try {
+      const res = await api.get('/entries/export', { params: { contentTypeId: selectedCT.id } });
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${selectedCT.name}-export.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Export downloaded');
+    } catch {
+      toast.error('Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedCT) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const entries = JSON.parse(text);
+      const payload = Array.isArray(entries) ? entries : entries.data ?? entries.entries ?? [];
+      const res = await api.post('/entries/import', { contentTypeId: selectedCT.id, entries: payload });
+      toast.success(`Imported ${res.data.imported} entries${res.data.errors?.length ? `, ${res.data.errors.length} skipped` : ''}`);
+      await refreshEntries();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Import failed — check file format');
+    } finally {
+      setImporting(false);
+      e.target.value = '';
     }
   };
 
@@ -315,24 +397,56 @@ export default function EntriesPage() {
         <span className="text-muted-foreground/40 text-sm">/</span>
         <span className="text-sm font-medium capitalize">{ctParam.replace(/_/g, ' ')}</span>
         <div className="ml-auto flex items-center gap-2">
-          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="pending_review">Pending Review</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
-            </SelectContent>
-          </Select>
+          {!showTrash && (
+            <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setPage(1); } }}>
+              <SelectTrigger className="h-8 w-36 text-xs">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="pending_review">Pending Review</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
           <SearchInput
             placeholder="Search entries…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          {canEdit && (
+          {!showTrash && (
+            <>
+              <Button variant="outline" size="sm" className="gap-1.5" disabled={exporting} onClick={handleExport}>
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Export
+              </Button>
+              <label className="inline-flex cursor-pointer">
+                <span className="inline-flex items-center gap-1.5 h-9 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors select-none">
+                  {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Import
+                </span>
+                <input
+                  type="file"
+                  accept=".json,application/json"
+                  className="sr-only"
+                  disabled={importing}
+                  onChange={handleImport}
+                />
+              </label>
+            </>
+          )}
+          <Button
+            variant={showTrash ? 'default' : 'outline'}
+            size="sm"
+            className="gap-1.5"
+            onClick={() => { setShowTrash((v) => !v); setSelected(new Set()); }}
+          >
+            <Trash className="h-4 w-4" />
+            {showTrash ? 'Exit Trash' : 'Trash'}
+          </Button>
+          {canEdit && !showTrash && (
             <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
               <Plus className="h-4 w-4 mr-1.5" /> New Entry
             </Button>
@@ -341,7 +455,7 @@ export default function EntriesPage() {
       </div>
 
       {/* Bulk action bar */}
-      {canEdit && selected.size > 0 && (
+      {canEdit && selected.size > 0 && !showTrash && (
         <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2.5">
           <CheckSquare className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">
@@ -406,7 +520,7 @@ export default function EntriesPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            {canEdit && (
+            {canEdit && !showTrash && (
               <TableHead className="w-10">
                 <input
                   type="checkbox"
@@ -444,16 +558,16 @@ export default function EntriesPage() {
           {!loadingEntries && paginatedEntries.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={schemaColumns.length + (canEdit ? 4 : 3)}
+                colSpan={schemaColumns.length + (canEdit && !showTrash ? 4 : 3)}
                 className="py-12 text-center text-muted-foreground"
               >
-                {search ? 'No entries match your search.' : 'No entries yet. Create the first one.'}
+                {showTrash ? 'Trash is empty.' : search ? 'No entries match your search.' : 'No entries yet. Create the first one.'}
               </TableCell>
             </TableRow>
           )}
           {paginatedEntries.map((entry) => (
             <TableRow key={entry.id} className={selected.has(entry.id) ? 'bg-muted/40' : ''}>
-              {canEdit && (
+              {canEdit && !showTrash && (
                 <TableCell>
                   <input
                     type="checkbox"
@@ -506,56 +620,98 @@ export default function EntriesPage() {
               <TableCell className="text-muted-foreground">{formatDate(entry.updatedAt)}</TableCell>
               <TableCell>
                 <div className="flex items-center justify-end gap-1">
-                  {canEdit && (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Edit"
-                      onClick={() => router.push(`/entries/${entry.id}/edit`)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
-                  {canEdit && (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Duplicate"
-                      disabled={duplicating === entry.id}
-                      onClick={() => handleDuplicate(entry)}
-                    >
-                      {duplicating === entry.id
-                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        : <Copy className="h-3.5 w-3.5" />}
-                    </Button>
-                  )}
-                  {canEdit && (
-                    <AlertDialog>
-                      <AlertDialogTrigger render={
+                  {showTrash ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        title="Restore"
+                        className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+                        onClick={() => handleRestore(entry.id)}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger render={
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            title="Purge permanently"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          />
+                        }>
+                          <X className="h-3.5 w-3.5" />
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Permanently delete?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              <strong>{entry.slug}</strong> and all its versions will be erased forever. This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction variant="destructive" onClick={() => handlePurge(entry.id)}>
+                              Purge
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </>
+                  ) : (
+                    <>
+                      {canEdit && (
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          title="Delete"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        />
-                      }>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            <strong>{entry.slug}</strong> will be moved to trash. You can restore it from the API or permanently delete it later.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction variant="destructive" onClick={() => handleDelete(entry.id)}>
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                          title="Edit"
+                          onClick={() => router.push(`/entries/${entry.id}/edit`)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      {canEdit && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title="Duplicate"
+                          disabled={duplicating === entry.id}
+                          onClick={() => handleDuplicate(entry)}
+                        >
+                          {duplicating === entry.id
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Copy className="h-3.5 w-3.5" />}
+                        </Button>
+                      )}
+                      {canEdit && (
+                        <AlertDialog>
+                          <AlertDialogTrigger render={
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              title="Delete"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            />
+                          }>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                <strong>{entry.slug}</strong> will be moved to trash. You can restore it later.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction variant="destructive" onClick={() => handleDelete(entry.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </>
                   )}
                 </div>
               </TableCell>

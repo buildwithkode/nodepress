@@ -46,18 +46,13 @@ async function bootstrap() {
   // ─── Security headers (Helmet) ─────────────────────────────────────────────
   // Sets: X-Frame-Options, X-Content-Type-Options, HSTS, Referrer-Policy,
   // X-XSS-Protection, Content-Security-Policy, and 6 more headers.
+  // CSP is disabled — this is an API server serving JSON, not user-facing HTML.
+  // Swagger UI and GraphQL Playground both need external CDN resources that CSP would block.
+  // Other Helmet protections (HSTS, X-Frame-Options, X-Content-Type-Options, etc.) remain active.
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow /uploads served to other origins
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"],   // needed for Swagger UI
-          styleSrc: ["'self'", "'unsafe-inline'"],    // needed for Swagger UI
-          imgSrc: ["'self'", 'data:', 'blob:', '*'],  // allow uploaded images
-          connectSrc: ["'self'"],
-        },
-      },
+      contentSecurityPolicy: false,
     }),
   );
 
@@ -98,7 +93,7 @@ async function bootstrap() {
   const origins = env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean);
   app.enableCors({
     origin: origins.length === 1 ? origins[0] : origins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
     credentials: true,
   });

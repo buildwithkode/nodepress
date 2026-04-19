@@ -107,7 +107,7 @@ export class AuthService {
 
   // ── Password reset ──────────────────────────────────────────────────────────
 
-  async forgotPassword(email: string): Promise<{ message: string }> {
+  async forgotPassword(email: string): Promise<{ message: string; devResetUrl?: string }> {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (user) {
@@ -125,6 +125,15 @@ export class AuthService {
 
       const resetUrl = `${process.env.SITE_URL || process.env.APP_URL}/reset-password?token=${token}`;
       await this.mail.sendPasswordReset(email, resetUrl);
+
+      // In development with no SMTP, expose the reset URL in the response so
+      // developers don't have to dig through terminal logs to find it.
+      if (process.env.NODE_ENV !== 'production' && !this.mail.isConfigured) {
+        return {
+          message: 'If that email exists, a reset link has been sent.',
+          devResetUrl: resetUrl,
+        };
+      }
     }
 
     return { message: 'If that email exists, a reset link has been sent.' };

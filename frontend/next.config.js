@@ -17,6 +17,18 @@ const nextConfig = {
         source: '/uploads/:path*',
         destination: `${BACKEND_URL}/uploads/:path*`,
       },
+      {
+        source: '/graphql',
+        destination: `${BACKEND_URL}/graphql`,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: '/graphql',
+        headers: [{ key: 'Cache-Control', value: 'no-store' }],
+      },
     ];
   },
 };

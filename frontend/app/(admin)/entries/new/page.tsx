@@ -179,7 +179,7 @@ export default function NewEntryPage() {
                 </div>
                 <div>
                   <Label className="mb-1.5 block">Locale</Label>
-                  <Select value={locale} onValueChange={setLocale}>
+                  <Select value={locale} onValueChange={(v) => { if (v !== null) setLocale(v); }}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>

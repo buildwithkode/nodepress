@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import api from '../../../lib/axios';
 import { useAuth } from '@/context/AuthContext';
+import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
 import { canManageContent } from '@/lib/roles';
 
 interface MediaFile {
@@ -93,6 +94,11 @@ export default function MediaPage() {
     fetchFiles(activeFolderId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFolderId]);
+
+  useRealtimeEvents({
+    onMediaUploaded: () => fetchFiles(activeFolderId),
+    onMediaDeleted:  () => fetchFiles(activeFolderId),
+  });
 
   const handleDelete = async (filename: string) => {
     try {

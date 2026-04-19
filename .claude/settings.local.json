@@ -54,7 +54,11 @@
       "Bash(git -C D:/xampp/htdocs/nodepress status --short)",
       "Bash(awk '{print $NF}')",
       "Bash(node_modules/.bin/nest build:*)",
-      "Bash(grep -n \"socket.io\\\\|@socket.io\\\\|redis-adapter\\\\|createAdapter\" /d/xampp/htdocs/nodepress/backend/src/realtime/*.ts /d/xampp/htdocs/nodepress/backend/src/main.ts)"
+      "Bash(grep -n \"socket.io\\\\|@socket.io\\\\|redis-adapter\\\\|createAdapter\" /d/xampp/htdocs/nodepress/backend/src/realtime/*.ts /d/xampp/htdocs/nodepress/backend/src/main.ts)",
+      "Bash(sed 's/.*it\\(//')",
+      "Bash(sed \"s/', .*//\")",
+      "Bash(grep -v \"^$\")",
+      "Bash(git stash *)"
     ]
   }
 }

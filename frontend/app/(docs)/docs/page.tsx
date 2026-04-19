@@ -889,40 +889,86 @@ GET /api/article/my-post?populate=author,author.company,author.company.address
               Use GraphQL when you need to fetch multiple resources in one round-trip or want strict typing.
             </p>
 
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mb-5">
-              <strong className="text-amber-400">Playground disabled in production.</strong>
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm mb-4">
+              <strong className="text-blue-400">Playground available in all environments.</strong>
               <p className="text-muted-foreground mt-1 text-xs">
-                The interactive playground is available at <IC>/graphql</IC> in development only.
-                In production, introspection is also disabled for security.
+                Click <strong>GraphQL Playground</strong> in the Developer section of the sidebar. It opens Apollo Sandbox at <IC>/graphql</IC> — works in both development and production.
               </p>
             </div>
 
-            <h3 className="font-semibold mb-2">Example queries</h3>
-            <CodeBlock code={`# List entries
-query {
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mb-5">
+              <strong className="text-amber-400">Playground shows blank page?</strong>
+              <p className="text-muted-foreground mt-1 text-xs">
+                This is a browser cache issue — the browser cached an old response with stale security headers.
+                Fix: open an <strong>Incognito window</strong> (works immediately) or press <strong>Ctrl+Shift+Delete</strong> → clear <em>Cached images and files</em> → refresh.
+                This only happens once after a server restart with changed headers.
+              </p>
+            </div>
+
+            <h3 className="font-semibold mb-3">Step-by-step: first query</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              This walkthrough assumes you have a <IC>blog</IC> content type with fields <IC>title</IC> (text) and <IC>body</IC> (richtext). Create it in <strong>Content Types</strong> and add a few entries first.
+            </p>
+
+            <div className="space-y-3 mb-5">
+              <div className="rounded-lg border border-border bg-card p-3 text-sm">
+                <p className="font-medium mb-1">1 — Open the playground</p>
+                <p className="text-xs text-muted-foreground">Click <strong>GraphQL Playground ↗</strong> in the sidebar. Apollo Sandbox opens at <IC>/graphql</IC>.</p>
+              </div>
+              <div className="rounded-lg border border-border bg-card p-3 text-sm">
+                <p className="font-medium mb-1">2 — Add your auth token (for protected queries)</p>
+                <p className="text-xs text-muted-foreground mb-2">In Apollo Sandbox click <strong>Headers</strong> at the bottom and add:</p>
+                <CodeBlock code={`{ "Authorization": "Bearer YOUR_JWT_TOKEN" }`} />
+                <p className="text-xs text-muted-foreground mt-2">Get your token from <IC>POST /api/auth/login</IC> or copy it from your browser's cookies (<IC>np_token</IC>).</p>
+              </div>
+              <div className="rounded-lg border border-border bg-card p-3 text-sm">
+                <p className="font-medium mb-1">3 — Run your first query</p>
+                <p className="text-xs text-muted-foreground mb-2">Paste this into the editor and click Run:</p>
+                <CodeBlock code={`query ListBlogPosts {
   entries(contentTypeId: 1, status: "published", locale: "en", page: 1, limit: 10) {
     total
     data {
       id
       slug
-      locale
+      status
       data
+      createdAt
+    }
+  }
+}`} />
+              </div>
+            </div>
+
+            <h3 className="font-semibold mb-2">Sample queries</h3>
+            <CodeBlock code={`# List published blog posts
+query ListBlogPosts {
+  entries(contentTypeId: 1, status: "published", locale: "en", page: 1, limit: 10) {
+    total
+    data {
+      id
+      slug
+      status
+      data
+      createdAt
     }
   }
 }
 
-# Single entry
-query {
-  entry(id: 42) {
+# Fetch a single entry by ID
+query GetPost {
+  entry(id: 1) {
+    id
     slug
     status
+    locale
     data
     createdAt
+    updatedAt
   }
 }
 
-# All content types
-query {
+# List all content types
+query GetContentTypes {
   contentTypes {
     id
     name
@@ -930,20 +976,22 @@ query {
   }
 }
 
-# Media files (requires auth)
-query {
+# List media files (auth required)
+query GetMedia {
   mediaFiles(page: 1, limit: 20) {
     total
     data {
+      id
       filename
       url
       mimetype
+      size
     }
   }
 }
 
-# Webhooks (admin only)
-query {
+# List webhooks (admin only)
+query GetWebhooks {
   webhooks {
     id
     name
@@ -953,45 +1001,149 @@ query {
   }
 }`} />
 
-            <h3 className="font-semibold mb-2 mt-5">Mutations</h3>
-            <CodeBlock code={`# Create entry (requires auth: editor/contributor/admin)
-mutation {
+            <h3 className="font-semibold mb-2 mt-5">Entry mutations</h3>
+            <CodeBlock code={`# Create an entry (editor / contributor / admin)
+mutation CreatePost {
   createEntry(
-    contentTypeId: 1,
-    slug: "my-post",
-    locale: "en",
-    status: "published",
-    data: "{\\"title\\":\\"Hello\\"}"
+    contentTypeId: 1
+    slug: "hello-world"
+    locale: "en"
+    status: "draft"
+    data: "{\\"title\\":\\"Hello World\\",\\"body\\":\\"<p>My first post.</p>\\"}"
   ) {
     id
     slug
+    status
+    createdAt
   }
 }
 
-# Update entry
-mutation {
-  updateEntry(id: 42, data: "{\\"title\\":\\"Updated\\"}") {
+# Update an entry
+mutation UpdatePost {
+  updateEntry(
+    id: 1
+    status: "published"
+    data: "{\\"title\\":\\"Updated Title\\",\\"body\\":\\"<p>Edited.</p>\\"}"
+  ) {
+    id
     slug
+    status
     updatedAt
   }
 }
 
-# Bulk operations (editor/admin)
-mutation {
-  bulkPublishEntries(ids: [1, 2, 3])          { affected }
-  bulkDeleteEntries(ids: [4, 5])               { affected }
-  bulkSetPendingReviewEntries(ids: [6, 7])     { affected }
+# Soft-delete an entry (editor / admin)
+mutation DeletePost {
+  deleteEntry(id: 1) { message }
+}
+
+# Restore a soft-deleted entry
+mutation RestorePost {
+  restoreEntry(id: 1) { id slug status }
+}
+
+# Permanently delete (admin only)
+mutation PurgePost {
+  purgeEntry(id: 1) { message }
+}
+
+# Restore to a previous version
+mutation RestoreVersion {
+  restoreEntryVersion(entryId: 1, versionId: 3) { id slug updatedAt }
+}
+
+# Bulk operations
+mutation BulkPublish  { bulkPublishEntries(ids: [1, 2, 3])          { affected } }
+mutation BulkArchive  { bulkArchiveEntries(ids: [4, 5])              { affected } }
+mutation BulkPending  { bulkSetPendingReviewEntries(ids: [6, 7])     { affected } }
+mutation BulkDelete   { bulkDeleteEntries(ids: [8, 9])               { affected } }`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Content type mutations</h3>
+            <CodeBlock code={`# Create a content type (admin only)
+# schema arg is a JSON array of field definitions
+mutation CreateBlogType {
+  createContentType(
+    name: "blog"
+    schema: "[{\\"name\\":\\"title\\",\\"type\\":\\"text\\",\\"required\\":true},{\\"name\\":\\"body\\",\\"type\\":\\"richtext\\"}]"
+  ) {
+    id
+    name
+    schema
+  }
+}
+
+# Update a content type
+mutation UpdateBlogType {
+  updateContentType(
+    id: 1
+    schema: "[{\\"name\\":\\"title\\",\\"type\\":\\"text\\"},{\\"name\\":\\"body\\",\\"type\\":\\"richtext\\"},{\\"name\\":\\"tags\\",\\"type\\":\\"select\\"}]"
+  ) {
+    id
+    name
+    schema
+    updatedAt
+  }
+}
+
+# Delete a content type (also deletes all entries)
+mutation DeleteBlogType {
+  deleteContentType(id: 1) { id name }
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Webhook mutations</h3>
+            <CodeBlock code={`# Create a webhook (admin only)
+mutation CreateWebhook {
+  createWebhook(
+    name: "Deploy trigger"
+    url: "https://example.com/hooks/deploy"
+    events: ["entry.created", "entry.updated"]
+    secret: "my-hmac-secret"
+    enabled: true
+  ) {
+    id
+    name
+    url
+    events
+    enabled
+  }
+}
+
+# Enable / disable
+mutation ToggleWebhook {
+  toggleWebhook(id: 1, enabled: false) { id enabled }
+}
+
+# Send a test ping
+mutation PingWebhook {
+  pingWebhook(id: 1) { message }
+}
+
+# Delete a webhook
+mutation DeleteWebhook {
+  deleteWebhook(id: 1) { message }
 }`} />
 
             <h3 className="font-semibold mb-2 mt-5">Authentication</h3>
-            <p className="text-muted-foreground text-sm mb-2">Pass a JWT Bearer token in the Authorization header. Public queries (entries, contentTypes) work without auth — authenticated users see all statuses, unauthenticated users see only published.</p>
+            <p className="text-muted-foreground text-sm mb-2">
+              Public queries (<IC>entries</IC>, <IC>contentTypes</IC>) work without auth and return only published entries.
+              Authenticated users (JWT Bearer token) see all statuses. Write mutations require <IC>editor</IC> or <IC>admin</IC> role.
+            </p>
             <CodeBlock code={`fetch('/graphql', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer YOUR_JWT_TOKEN',
   },
-  body: JSON.stringify({ query: '{ contentTypes { id name } }' }),
+  body: JSON.stringify({
+    query: \`
+      query {
+        entries(contentTypeId: 1, status: "published") {
+          total
+          data { id slug data }
+        }
+      }
+    \`
+  }),
 })`} />
 
             <h3 className="font-semibold mb-2 mt-5">Query depth limit</h3>
@@ -1046,20 +1198,54 @@ export default function LiveDashboard() {
   return <div>Watching for updates...</div>;
 }`} />
 
-            <h3 className="font-semibold mb-2 mt-5">Vanilla JavaScript</h3>
+            <h3 className="font-semibold mb-2 mt-5">Authentication</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Every connection must provide a valid <strong>JWT token</strong> or <strong>API key</strong>. Unauthenticated connections receive an <IC>error</IC> event and are immediately disconnected.
+            </p>
+
+            <div className="rounded-lg border border-border bg-card p-4 text-sm mb-4 space-y-2">
+              <p className="font-medium">How to get your Bearer token</p>
+              <p className="text-xs text-muted-foreground"><strong>Option A — Login API:</strong> call <IC>POST /api/auth/login</IC> with your email and password. The response contains <IC>access_token</IC>. Use it as <IC>Bearer {'<'}access_token{'>'}</IC>.</p>
+              <CodeBlock code={`# Step 1 — login and get your token
+curl -X POST https://your-api.com/api/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"you@example.com","password":"yourpassword"}'
+
+# Response:
+# { "access_token": "eyJhbGci...", "user": { ... } }
+
+# Step 2 — use it
+Authorization: Bearer eyJhbGci...`} />
+              <p className="text-xs text-muted-foreground"><strong>Option B — From the browser:</strong> after logging into the admin panel, open DevTools → Application → Cookies → find <IC>np_token</IC>. Copy its value — that is your Bearer token.</p>
+              <p className="text-xs text-muted-foreground"><strong>Option C — API key:</strong> create one in Admin → API Keys. Use it as the <IC>apiKey</IC> option instead of a token (no expiry).</p>
+            </div>
+
             <CodeBlock code={`import { io } from 'socket.io-client';
 
+// Option 1 — JWT token (get from POST /api/auth/login or np_token cookie)
 const socket = io('https://your-api.com', {
   path: '/api/realtime',
   withCredentials: true,
+  auth: { token: 'Bearer eyJhbGci...' },
 });
 
+// Option 2 — API key (server-to-server, no expiry)
+const socket = io('https://your-api.com', {
+  path: '/api/realtime',
+  auth: { apiKey: 'np_your_api_key_here' },
+});
+
+// Listen for events
 socket.on('entry:created', ({ id, slug, contentType }) => {
   console.log(\`New \${contentType} entry: \${slug}\`);
 });
 
 socket.on('entry:updated', ({ slug, status }) => {
   if (status === 'published') refreshPage(slug);
+});
+
+socket.on('error', ({ message }) => {
+  console.error('WebSocket auth failed:', message);
 });`} />
 
             <h3 className="font-semibold mb-2 mt-5">Multi-instance scaling (Redis)</h3>
@@ -1769,7 +1955,7 @@ Sitemap: https://your-site.com/api/sitemap.xml`} />
                     ['DATABASE_URL',         'PostgreSQL connection string — pooled URL for the app (e.g. Neon pooled, PgBouncer)'],
                     ['DIRECT_URL',           'Direct (non-pooled) PostgreSQL URL — required by Prisma migrations. If not using a pooler, set to the same value as DATABASE_URL.'],
                     ['JWT_SECRET',           '64+ char random secret for signing tokens (auto-generated by CLI)'],
-                    ['JWT_EXPIRES_IN',       'Access token lifetime — default 15m. Refresh tokens last 30 days (HttpOnly cookie).'],
+                    ['JWT_EXPIRES_IN',       'Access token lifetime — default 7d. Refresh tokens last 30 days (HttpOnly cookie, rotated on use).'],
                     ['PORT',                 'API port (default 3000)'],
                     ['CORS_ORIGIN',          'Frontend origin allowed in CORS headers'],
                     ['APP_URL',              'Backend URL — used in API responses'],
@@ -1951,7 +2137,7 @@ X-API-Key: np_abc123...`} />
 
             <h3 className="font-semibold mb-3 mt-6">Token lifecycle</h3>
             <p className="text-muted-foreground text-sm mb-3">
-              Login returns a short-lived <strong className="text-foreground">JWT access token (15 min)</strong> and
+              Login returns a <strong className="text-foreground">JWT access token (7 days)</strong> and
               sets an <IC>HttpOnly SameSite=Strict</IC> refresh cookie valid for <strong className="text-foreground">30 days</strong>.
               The admin frontend silently calls <IC>POST /api/auth/refresh</IC> when a 401 is received,
               obtains a new access token, and retries the original request — completely transparent to the user.
@@ -1961,10 +2147,51 @@ X-API-Key: np_abc123...`} />
             <h3 className="font-semibold mb-3 mt-6">Password reset &amp; team invitations</h3>
             <p className="text-muted-foreground text-sm mb-3">
               If SMTP is configured, <IC>POST /api/auth/forgot-password</IC> emails a 15-minute reset link.
-              Without SMTP, the link is logged to the server console (useful in development).
+              In development without SMTP, the reset URL is returned in the API response (<IC>devResetUrl</IC>) and
+              displayed directly in the forgot-password UI — no terminal digging required.
+              In production without SMTP, the link is silently skipped (configure SMTP before going live).
               The reset link points to <IC>/reset-password?token=…</IC> in the admin panel.
               Always returns <IC>200</IC> — never reveals whether an email exists.
             </p>
+            <p className="text-muted-foreground text-sm mb-2">
+              <strong>Configuring SMTP</strong> — choose any free provider:
+            </p>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-1.5 pr-4 font-medium text-muted-foreground">Provider</th>
+                    <th className="text-left py-1.5 pr-4 font-medium text-muted-foreground">Free tier</th>
+                    <th className="text-left py-1.5 pr-4 font-medium text-muted-foreground">SMTP_HOST</th>
+                    <th className="text-left py-1.5 pr-4 font-medium text-muted-foreground">SMTP_USER</th>
+                    <th className="text-left py-1.5 font-medium text-muted-foreground">Get credentials</th>
+                  </tr>
+                </thead>
+                <tbody className="text-muted-foreground">
+                  <tr className="border-b border-border/50">
+                    <td className="py-1.5 pr-4 font-medium text-foreground">Gmail</td>
+                    <td className="py-1.5 pr-4">Unlimited</td>
+                    <td className="py-1.5 pr-4"><IC>smtp.gmail.com</IC></td>
+                    <td className="py-1.5 pr-4">your Gmail address</td>
+                    <td className="py-1.5"><a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2">App Passwords ↗</a></td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-1.5 pr-4 font-medium text-foreground">Resend</td>
+                    <td className="py-1.5 pr-4">100/day</td>
+                    <td className="py-1.5 pr-4"><IC>smtp.resend.com</IC></td>
+                    <td className="py-1.5 pr-4"><IC>resend</IC></td>
+                    <td className="py-1.5"><a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2">API Keys ↗</a></td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 pr-4 font-medium text-foreground">SendGrid</td>
+                    <td className="py-1.5 pr-4">100/day</td>
+                    <td className="py-1.5 pr-4"><IC>smtp.sendgrid.net</IC></td>
+                    <td className="py-1.5 pr-4"><IC>apikey</IC></td>
+                    <td className="py-1.5"><a href="https://app.sendgrid.com/settings/api_keys" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2">API Keys ↗</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <p className="text-muted-foreground text-sm mb-3">
               Admins can also invite team members via <IC>POST /api/users/:id/invite</IC> — sends a
               "Set Your Password" email reusing the same reset-token flow. The invite button is also
@@ -1989,7 +2216,7 @@ X-API-Key: np_abc123...`} />
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/auth/setup-status"          desc="Check if initial setup is required" />
               <Endpoint method="POST"   path="/api/auth/register"              desc="Create first admin account (setup only)" />
-              <Endpoint method="POST"   path="/api/auth/login"                 desc="Login — returns JWT access token (15 min) + sets HttpOnly refresh cookie" />
+              <Endpoint method="POST"   path="/api/auth/login"                 desc="Login — returns JWT access token (7d) + sets HttpOnly refresh cookie (30d)" />
               <Endpoint method="POST"   path="/api/auth/refresh"               desc="Exchange refresh cookie for a new access token (silent — no user prompt)" />
               <Endpoint method="POST"   path="/api/auth/logout"                desc="Revoke refresh token and clear the cookie" auth />
               <Endpoint method="GET"    path="/api/auth/me"                    desc="Get current user" auth />

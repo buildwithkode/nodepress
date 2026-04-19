@@ -33,10 +33,10 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Throttle({ default: { ttl: 60_000, limit: process.env.NODE_ENV === 'production' ? 10 : 100 } })
   @Post('login')
   @ApiOperation({ summary: 'Login — returns a short-lived access token and sets an HttpOnly refresh cookie' })
-  @ApiResponse({ status: 200, description: 'Returns access_token (15 min) + sets np_refresh cookie (30 days)' })
+  @ApiResponse({ status: 200, description: 'Returns access_token (7d) + sets np_refresh cookie (30 days)' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: ExpressResponse) {
     return this.authService.login(dto, res);
@@ -72,14 +72,14 @@ export class AuthController {
     return req.user;
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Throttle({ default: { ttl: 60_000, limit: process.env.NODE_ENV === 'production' ? 5 : 50 } })
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request a password reset email (always returns 200)' })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto.email);
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Throttle({ default: { ttl: 60_000, limit: process.env.NODE_ENV === 'production' ? 5 : 50 } })
   @Post('reset-password')
   @ApiOperation({ summary: 'Reset password using a token from the reset email' })
   @ApiResponse({ status: 200, description: 'Password updated' })

@@ -440,27 +440,51 @@ describe('Entries (e2e)', () => {
 
   // ── Preview token ─────────────────────────────────────────────────────────────
 
-  it('POST /api/entries/:id/preview-url → generates a signed preview token', async () => {
-    // Create a draft entry
+  it('POST /api/entries/:id/preview-url → round-trip: draft is readable via signed token', async () => {
+    // Create a draft entry (not published — would be invisible on the public API)
     const draft = await request(app.getHttpServer())
       .post('/api/entries')
       .set('Authorization', `Bearer ${token}`)
       .send({ contentTypeId, slug: 'preview-draft', status: 'draft', data: { title: 'Preview Draft' } });
 
-    const res = await request(app.getHttpServer())
+    expect(draft.status).toBe(201);
+    expect(draft.body.status).toBe('draft');
+
+    // Confirm the draft is NOT reachable via the normal public endpoint
+    await request(app.getHttpServer())
+      .get('/api/blog/preview-draft')
+      .expect(404);
+
+    // Generate a signed preview token
+    const tokenRes = await request(app.getHttpServer())
       .post(`/api/entries/${draft.body.id}/preview-url`)
       .set('Authorization', `Bearer ${token}`)
       .expect(201);
 
-    expect(res.body.token).toBeDefined();
-    expect(res.body.expiresAt).toBeDefined();
+    expect(tokenRes.body.token).toBeDefined();
+    expect(tokenRes.body.expiresAt).toBeDefined();
 
-    // Use the token to read the draft via the public API
+    // Use the token to read the draft via the preview endpoint
     const previewRes = await request(app.getHttpServer())
-      .get(`/api/blog/${draft.body.slug}/preview`)
-      .query({ token: res.body.token })
+      .get('/api/blog/preview-draft/preview')
+      .query({ token: tokenRes.body.token })
       .expect(200);
 
     expect(previewRes.body.slug).toBe('preview-draft');
+    expect(previewRes.body.status).toBe('draft');
+    expect(previewRes.body._preview).toBe(true);
+  });
+
+  it('GET /api/:type/:slug/preview → 401 with invalid token', async () => {
+    await request(app.getHttpServer())
+      .get('/api/blog/preview-draft/preview')
+      .query({ token: 'not-a-valid-token' })
+      .expect(401);
+  });
+
+  it('GET /api/:type/:slug/preview → 401 with no token', async () => {
+    await request(app.getHttpServer())
+      .get('/api/blog/preview-draft/preview')
+      .expect(401);
   });
 });

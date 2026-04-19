@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import Cookies from 'js-cookie';
 
 export interface EntryCreatedPayload {
   id: number;
@@ -66,12 +67,15 @@ export function useRealtimeEvents(
   handlersRef.current = handlers;
 
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+    const token = Cookies.get('np_token');
 
     const socket = io(apiBase, {
       path: '/api/realtime',
       transports: ['websocket', 'polling'],
       withCredentials: true,
+      // Pass JWT so the gateway can authenticate this connection
+      auth: token ? { token: `Bearer ${token}` } : {},
     });
     socketRef.current = socket;
 

@@ -21,7 +21,7 @@ async function tryRefresh(): Promise<string | null> {
   try {
     const res = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
     const { access_token } = res.data;
-    Cookies.set('np_token', access_token, { expires: 1 / 96 }); // ~15 min
+    Cookies.set('np_token', access_token, { expires: 7 }); // 7 days — matches JWT expiry
     return access_token;
   } catch {
     return null;
@@ -50,9 +50,9 @@ api.interceptors.response.use(
         return api(original);  // retry with new token
       }
 
-      // Refresh failed — clear auth and redirect to login
+      // Refresh failed — clear auth and redirect to login with reason
       Cookies.remove('np_token');
-      window.location.href = '/login';
+      window.location.href = '/login?reason=expired';
     }
 
     return Promise.reject(error);

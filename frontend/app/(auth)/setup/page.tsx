@@ -211,9 +211,13 @@ export default function SetupPage() {
                   <span className="text-white font-medium">{siteName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/40">Email</span>
+                  <span className="text-white/40">Admin Email</span>
                   <span className="text-white font-medium">{savedEmail}</span>
                 </div>
+              </div>
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-300">
+                <strong>Save your credentials.</strong> Password reset requires SMTP to be configured.
+                If you lose access without SMTP, use <code className="opacity-70">npx prisma studio</code> to reset directly.
               </div>
               <Button onClick={() => router.push('/')} className="w-full">
                 Go to Admin Panel

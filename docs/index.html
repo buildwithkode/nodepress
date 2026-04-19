@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-version="1.0.7">
+<html lang="en" data-version="1.4.0">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -67,6 +67,8 @@
           <li><a href="#api-keys"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Keys</a></li>
           <li><a href="#forms"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Forms</a></li>
           <li><a href="#webhooks"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Webhooks</a></li>
+          <li><a href="#graphql"       class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">GraphQL API</a></li>
+          <li><a href="#realtime"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Real-time</a></li>
           <li><a href="#seo"           class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">SEO & Sitemap</a></li>
           <li><a href="#self-hosting"  class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Self-Hosting</a></li>
           <li><a href="#api-reference" class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Reference</a></li>
@@ -81,14 +83,17 @@
       <!-- Hero -->
       <div class="mb-14">
         <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">v1.0</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">v1.4</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Self-hosted</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">REST API</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">GraphQL</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Real-time</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">MIT License</span>
         </div>
         <h1 class="text-4xl font-extrabold mb-3 text-white">NodePress CMS</h1>
         <p class="text-lg text-zinc-400 leading-relaxed max-w-2xl">
           A self-hosted headless CMS. Define your content structure, fill it with data through the
-          admin panel, then consume it via a clean REST API from any website, app, or platform.
+          admin panel, then consume it via REST API, GraphQL, or real-time WebSocket from any website, app, or platform.
         </p>
       </div>
 
@@ -440,9 +445,114 @@ fetch('https://your-domain.com/api/submit/contact', {
         </div>
         <p class="text-zinc-400 leading-relaxed mb-6">Webhooks fire HTTP requests to external URLs when content events happen. Useful for triggering rebuilds, sending notifications, or syncing with other services.</p>
         <div class="grid sm:grid-cols-2 gap-4 mb-6">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-2 text-sm">Events</p><div class="space-y-1 text-xs text-zinc-400"><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.created</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.updated</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.uploaded</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">*</code> (all events)</p></div></div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-2 text-sm">Events</p><div class="space-y-1 text-xs text-zinc-400"><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.created</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.updated</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.restored</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.purged</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.uploaded</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">*</code> (all events)</p></div></div>
           <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Retry logic</p><p class="text-xs text-zinc-400">Failed deliveries are retried up to 3 times: immediately, after 5 min, after 30 min. HMAC-SHA256 signature in <code class="text-pink-400 bg-zinc-800 px-1 rounded">X-NodePress-Signature</code> header.</p></div>
         </div>
+      </section>
+
+      <!-- GraphQL -->
+      <section id="graphql" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">GraphQL API</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">NodePress exposes a full GraphQL API at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/graphql</code> alongside REST. Apollo Sandbox (interactive playground) is available in all environments — click <strong class="text-zinc-200">GraphQL Playground</strong> in the Developer section of the admin sidebar.</p>
+
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mb-5">
+          <strong class="text-amber-400">Playground shows a blank page?</strong>
+          <p class="text-zinc-400 mt-1 text-xs">This is a browser cache issue — the browser cached a response with old security headers. Fix: open an <strong>Incognito window</strong> (works immediately) or press <strong>Ctrl+Shift+Delete</strong> → clear <em>Cached images and files</em> → refresh. Happens only once after a server restart.</p>
+        </div>
+
+        <h3 class="font-semibold mb-2 text-white">Queries</h3>
+        <div class="code-block" data-code="query { entries(contentTypeId: 1, status: &quot;published&quot;) { total data { id slug data } } }
+query { entry(id: 1) { id slug status data createdAt } }
+query { contentTypes { id name schema } }
+query { mediaFiles(page: 1, limit: 20) { total data { id filename url mimetype } } }
+query { webhooks { id name url events enabled } }   # admin only"></div>
+
+        <h3 class="font-semibold mb-2 mt-5 text-white">Entry mutations</h3>
+        <div class="code-block" data-code='mutation { createEntry(contentTypeId: 1, slug: "hello", locale: "en", status: "draft", data: "{\"title\":\"Hello\"}") { id slug } }
+mutation { updateEntry(id: 1, status: "published") { id updatedAt } }
+mutation { deleteEntry(id: 1) { message } }           # soft delete
+mutation { restoreEntry(id: 1) { id slug } }
+mutation { purgeEntry(id: 1) { message } }            # permanent, admin only
+mutation { restoreEntryVersion(entryId: 1, versionId: 3) { id updatedAt } }
+mutation { bulkPublishEntries(ids: [1,2,3]) { affected } }
+mutation { bulkArchiveEntries(ids: [4,5]) { affected } }
+mutation { bulkDeleteEntries(ids: [6,7]) { affected } }
+mutation { bulkSetPendingReviewEntries(ids: [8,9]) { affected } }'></div>
+
+        <h3 class="font-semibold mb-2 mt-5 text-white">Content type mutations <span class="text-xs font-normal text-zinc-500">(admin only)</span></h3>
+        <div class="code-block" data-code='mutation { createContentType(name: "blog", schema: "[{\"name\":\"title\",\"type\":\"text\"}]") { id name } }
+mutation { updateContentType(id: 1, schema: "[{\"name\":\"title\",\"type\":\"text\"},{\"name\":\"body\",\"type\":\"richtext\"}]") { id } }
+mutation { deleteContentType(id: 1) { id name } }'></div>
+
+        <h3 class="font-semibold mb-2 mt-5 text-white">Webhook mutations <span class="text-xs font-normal text-zinc-500">(admin only)</span></h3>
+        <div class="code-block" data-code='mutation { createWebhook(name: "Deploy", url: "https://example.com/hook", events: ["entry.created"]) { id } }
+mutation { toggleWebhook(id: 1, enabled: false) { id enabled } }
+mutation { pingWebhook(id: 1) { message } }
+mutation { deleteWebhook(id: 1) { message } }'></div>
+
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 mt-5 text-sm">
+          <p class="font-medium text-white mb-1">Authentication</p>
+          <p class="text-xs text-zinc-400">Public queries (<code class="text-pink-400 bg-zinc-800 px-1 rounded">entries</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">contentTypes</code>) work without auth and return only published entries. Add <code class="text-pink-400 bg-zinc-800 px-1 rounded">Authorization: Bearer YOUR_JWT_TOKEN</code> header for mutations and protected queries. Query depth is limited to 6 levels to prevent abuse.</p>
+        </div>
+      </section>
+
+      <!-- Real-time -->
+      <section id="realtime" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Real-time (WebSocket)</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">NodePress broadcasts content changes over WebSocket using Socket.io at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/realtime</code>. Subscribe from your frontend to receive live updates without polling.</p>
+        <div class="grid sm:grid-cols-2 gap-4 mb-5">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-2 text-sm">Events received</p><div class="space-y-1 text-xs text-zinc-400"><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry:created</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry:updated</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry:deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry:restored</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media:uploaded</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media:deleted</code></p></div></div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Rooms</p><p class="text-xs text-zinc-400 mb-2">All connections join the <code class="text-pink-400 bg-zinc-800 px-1 rounded">global</code> room automatically. Subscribe to a specific content type room to filter events:</p><code class="text-xs text-pink-400 bg-zinc-800 px-1.5 py-0.5 rounded">ct:blog</code>, <code class="text-xs text-pink-400 bg-zinc-800 px-1.5 py-0.5 rounded">ct:products</code></div>
+        </div>
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300 mb-4">
+          <strong>Authentication required.</strong> Every connection must send a JWT token or API key. Unauthenticated connections are immediately disconnected.
+        </div>
+
+        <p class="text-sm font-semibold text-white mb-2">How to get your Bearer token</p>
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-xs text-zinc-400 space-y-2 mb-4">
+          <p><strong class="text-zinc-200">Option A — Login API:</strong> call <code class="text-pink-400 bg-zinc-800 px-1 rounded">POST /api/auth/login</code> with your email + password. The response contains <code class="text-pink-400 bg-zinc-800 px-1 rounded">access_token</code>. Use it as <code class="text-pink-400 bg-zinc-800 px-1 rounded">Bearer &lt;access_token&gt;</code>.</p>
+          <p><strong class="text-zinc-200">Option B — Browser cookie:</strong> log into the admin panel, open DevTools → Application → Cookies → find <code class="text-pink-400 bg-zinc-800 px-1 rounded">np_token</code>. That value is your Bearer token (valid for 7 days).</p>
+          <p><strong class="text-zinc-200">Option C — API key:</strong> create one in Admin → API Keys. Pass it as <code class="text-pink-400 bg-zinc-800 px-1 rounded">auth.apiKey</code> — no expiry.</p>
+        </div>
+        <div class="code-block" data-code="# Step 1: get your token via login
+curl -X POST https://your-api.com/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{&quot;email&quot;:&quot;you@example.com&quot;,&quot;password&quot;:&quot;yourpassword&quot;}'
+
+# Response: { &quot;access_token&quot;: &quot;eyJhbGci...&quot; }"></div>
+
+        <div class="code-block" data-code="import { io } from 'socket.io-client';
+
+// JWT token (from POST /api/auth/login or np_token cookie)
+const socket = io('http://localhost:3000', {
+  path: '/api/realtime',
+  auth: { token: 'Bearer eyJhbGci...' },
+});
+
+// Or with an API key (server-to-server, no expiry)
+const socket = io('http://localhost:3000', {
+  path: '/api/realtime',
+  auth: { apiKey: 'np_your_api_key_here' },
+});
+
+// Subscribe to a specific content type room
+socket.emit('subscribe', { contentType: 'blog' });
+
+// Listen for events
+socket.on('entry:created', (data) => console.log('New entry:', data));
+socket.on('entry:updated', (data) => console.log('Updated:', data));
+socket.on('media:uploaded', (data) => console.log('New file:', data));
+socket.on('error', ({ message }) => console.error('Auth failed:', message));"></div>
       </section>
 
       <!-- SEO -->
@@ -508,9 +618,10 @@ docker-compose -f docker-compose.prod.yml up -d"></div>
 
         <h3 class="font-semibold mb-3 text-white text-sm uppercase tracking-wide text-zinc-500">Auth</h3>
         <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800">
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/login</code><p class="text-xs text-zinc-500 mt-0.5">Email + password → returns JWT access token</p></div></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/login</code><p class="text-xs text-zinc-500 mt-0.5">Email + password → returns JWT access token (7d) + sets refresh cookie (30d)</p></div></div>
           <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/me</code><p class="text-xs text-zinc-500 mt-0.5">Returns current user from token</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/refresh</code><p class="text-xs text-zinc-500 mt-0.5">Exchange refresh token for new access token</p></div></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/refresh</code><p class="text-xs text-zinc-500 mt-0.5">Exchange refresh token for new access token (silent rotation)</p></div></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/forgot-password</code><p class="text-xs text-zinc-500 mt-0.5">Request password reset email. In dev without SMTP, returns <code class="bg-zinc-800 px-1 rounded">devResetUrl</code> in response.</p></div></div>
         </div>
 
         <h3 class="font-semibold mb-3 text-sm uppercase tracking-wide text-zinc-500">Content (Public)</h3>
@@ -535,6 +646,8 @@ docker-compose -f docker-compose.prod.yml up -d"></div>
           <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/health</code><p class="text-xs text-zinc-500 mt-0.5">Health check — DB connectivity</p></div></div>
           <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/sitemap.xml</code><p class="text-xs text-zinc-500 mt-0.5">Auto-generated sitemap with all published entries</p></div></div>
           <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/docs</code><p class="text-xs text-zinc-500 mt-0.5">Interactive Swagger UI</p></div></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/graphql</code><p class="text-xs text-zinc-500 mt-0.5">GraphQL endpoint — Apollo Sandbox playground (GET) + API (POST). All environments.</p></div></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/metrics</code><p class="text-xs text-zinc-500 mt-0.5">Prometheus metrics (optional <code class="bg-zinc-800 px-1 rounded">METRICS_TOKEN</code> bearer auth)</p></div></div>
         </div>
       </section>
 
@@ -580,6 +693,27 @@ data.forEach(post => {
     data: { title: 'My New Post', body: '<p>Hello world</p>', published: true },
   }),
 });"></div>
+
+        <h3 class="font-semibold mb-2 mt-6 text-white">GraphQL query (JavaScript)</h3>
+        <div class="code-block" data-code="const res = await fetch('/graphql', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_JWT_TOKEN',
+  },
+  body: JSON.stringify({
+    query: `
+      query {
+        entries(contentTypeId: 1, status: &quot;published&quot;) {
+          total
+          data { id slug data createdAt }
+        }
+      }
+    `
+  }),
+});
+const { data } = await res.json();
+console.log(data.entries);"></div>
 
         <h3 class="font-semibold mb-2 mt-6 text-white">cURL</h3>
         <div class="code-block" data-code="# List entries

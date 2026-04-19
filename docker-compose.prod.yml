@@ -107,12 +107,15 @@ services:
       # STORAGE_S3_SECRET_KEY:  ${STORAGE_S3_SECRET_KEY}
       # STORAGE_S3_ENDPOINT:    ${STORAGE_S3_ENDPOINT}
       # STORAGE_S3_PUBLIC_URL:  ${STORAGE_S3_PUBLIC_URL}
-      # Email (for password reset):
+      # Email — required in production for password reset and team invitations.
+      # Pick a provider: Gmail, Resend (resend.com), or SendGrid (sendgrid.com).
       # SMTP_HOST: ${SMTP_HOST}
       # SMTP_PORT: ${SMTP_PORT:-587}
       # SMTP_USER: ${SMTP_USER}
       # SMTP_PASS: ${SMTP_PASS}
       # SMTP_FROM: ${SMTP_FROM}
+      # Metrics auth — protects GET /api/metrics (recommended in production):
+      # METRICS_TOKEN: ${METRICS_TOKEN}
     volumes:
       - uploads:/app/uploads
     restart: unless-stopped

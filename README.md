@@ -1,70 +1,176 @@
-# NodePress — Headless CMS for Frontend Developers
+<div align="center">
 
-> Set up a headless CMS for your client in 10 minutes.
-> Self-hosted. Open source. No subscription required.
+<h1>⚡ NodePress</h1>
+
+<p><strong>The self-hosted headless CMS that's actually easy to run.</strong><br/>
+Open source · Free forever · Production ready in 10 minutes</p>
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/create-nodepress-app)](https://www.npmjs.com/package/create-nodepress-app)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/e2e%20tests-173%20passing-brightgreen)](#)
 [![Ko-fi](https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/buildwithkode)
 
-## Why NodePress?
-
-You're a frontend developer. You build in React or Next.js.
-Your client needs to update their own content.
-You don't want to deal with WordPress.
-You can't justify $300/mo for Contentful.
-You tried Strapi and spent 4 hours on Docker.
-
-NodePress is the answer.
+</div>
 
 ---
 
-## Before you start
+## The problem with every other CMS
 
-Install these three things first. **Already have all three? Skip to [Quick Start](#quick-start-recommended).**
+**WordPress** — You're maintaining PHP, plugins, and a theme engine for a simple blog.
 
-### 1. Node.js 18+
+**Contentful** — $300/mo for features your project will use maybe 20% of.
 
-> **Already installed?** Run `node -v`. If it shows `v18` or higher, skip to step 2.
+**Strapi** — Spent 4 hours fighting Docker, Node version conflicts, and a half-broken admin UI.
 
-Download from [nodejs.org](https://nodejs.org) — install the **LTS** version.
+**Sanity** — Vendor lock-in, CDN pricing surprises, and a learning curve nobody warned you about.
 
-### 2. Git
-
-> **Already installed?** Run `git --version`. If it shows a version number, skip to step 3.
-
-Download from [git-scm.com/downloads](https://git-scm.com/downloads) — use default options.
-
-### 3. PostgreSQL 14+
-
-> **Already installed?** Skip to [Quick Start](#quick-start-recommended). Just make sure you remember the password you set during installation.
-
-Download from [postgresql.org/download](https://www.postgresql.org/download/).
-
-> **Tip:** During PostgreSQL installation you'll be asked to set a password for the `postgres` user. Write it down — you'll need it in step 1 below.
+**NodePress is different.** It's a headless CMS built specifically for frontend developers who need a backend for their clients — not a platform to build a career on.
 
 ---
 
-## Quick Start (recommended)
+## Get running in 60 seconds
 
 ```bash
 npx create-nodepress-app my-project
 ```
 
-The CLI scaffolds the project, generates secure secrets, and installs all dependencies automatically.
+That's it. The CLI scaffolds the project, generates cryptographically secure secrets, installs all dependencies, and tells you exactly what to do next.
+
+Open `http://localhost:5173` → fill in a form → you have a working CMS with a REST API, GraphQL API, admin panel, and real-time WebSocket events.
 
 ---
 
-## Option A — With Docker (easiest, no PostgreSQL needed)
+## Everything you need. Nothing you don't.
 
-Docker manages the database for you — no password changes required.
+### Content Management
+| Feature | What it does |
+|---|---|
+| **Visual content type builder** | Define your schema in the UI — no code, no config files |
+| **Auto-generated REST API** | Every content type instantly gets `GET`, `POST`, `PUT`, `DELETE` endpoints |
+| **GraphQL API** | Apollo Server with full queries + mutations — entries, content types, webhooks, media |
+| **Multi-locale (i18n)** | Per-entry locale field with `?locale=` filtering on all endpoints |
+| **Content relations** | Link entries across types — `?populate=author,author.company` (3 levels deep) |
+| **Draft / Publish workflow** | Save as draft, publish when ready, or schedule with `publishAt` |
+| **Draft preview tokens** | Share a signed URL to preview unpublished content on your frontend |
+| **Bulk operations** | Publish, archive, or delete hundreds of entries in one click |
+| **Export / Import** | Download all entries as JSON, re-import to seed or migrate |
+| **Version history** | Every entry save is versioned — restore any previous state in one click |
+| **Schema versioning** | Content type changes are tracked — see exactly what changed and when |
+
+### Developer Experience
+| Feature | What it does |
+|---|---|
+| **Real-time WebSocket** | Socket.io gateway — subscribe to `entry:created`, `entry:updated`, `media:uploaded`, and more |
+| **API keys** | Scoped keys with per-key rate limiting (read / write / all · per content type) |
+| **Webhooks** | HTTP callbacks on any event — HMAC signed, with retry + exponential backoff |
+| **Swagger UI** | Interactive API docs at `/api/docs` — test every endpoint in the browser |
+| **GraphQL Playground** | Apollo Sandbox at `/graphql` — explore your full schema and run mutations interactively in any environment |
+| **Plugin system** | Drop in custom NestJS modules — add routes, services, and nav items |
+| **Audit log** | Every admin action is logged with user, IP, resource, and timestamp |
+
+### Media
+| Feature | What it does |
+|---|---|
+| **File uploads** | Images, PDFs, videos — up to 10MB per file |
+| **Auto WebP optimisation** | Sharp converts images to WebP on upload — smaller files, faster sites |
+| **Folder organisation** | Group media into folders in the admin panel |
+| **S3 compatible** | Switch from local disk to any S3-compatible bucket with one env var |
+
+### Security & Access Control
+| Feature | What it does |
+|---|---|
+| **4 roles** | Admin · Editor · Contributor · Viewer — each with a distinct permission set |
+| **Per-content-type overrides** | Give Editor full access to `blog` but read-only on `legal` |
+| **JWT + refresh tokens** | 7-day access tokens, 30-day silent refresh (HttpOnly cookie) |
+| **Helmet + CORS** | Security headers on every response, strict origin enforcement |
+| **Rate limiting** | Per-IP throttling on all endpoints, stricter on auth routes |
+
+### Forms
+| Feature | What it does |
+|---|---|
+| **Form builder** | Create forms in the UI, get a hosted submission endpoint |
+| **Email actions** | Send submission data to any email address |
+| **Webhook actions** | Forward submissions to Zapier, Make, or your own endpoint |
+| **3-layer spam protection** | Rate limiting + honeypot field + captcha (Turnstile / hCaptcha / reCAPTCHA) |
+
+### Production Infrastructure
+| Feature | What it does |
+|---|---|
+| **Docker Compose stack** | One command deploys the full stack — backend, frontend, Nginx, Redis, PgBouncer |
+| **PgBouncer** | Connection pooling — handles traffic spikes without exhausting PostgreSQL |
+| **Redis** | Query-result cache + Socket.io multi-instance sync |
+| **Prometheus + Grafana** | Pre-built dashboard, alerting rules for high error rate, high latency, backend-down |
+| **Automated daily backups** | pg_dump every night at 2am UTC, 30-day retention, optional S3 upload |
+| **Graceful shutdown** | SIGTERM / SIGINT handled — no dropped requests on deploy |
+
+---
+
+## How NodePress compares
+
+|  | **NodePress** | Strapi | Contentful | Sanity |
+|---|:---:|:---:|:---:|:---:|
+| **Price** | Free forever | Free / $499+/mo | $300+/mo | Free / $99+/mo |
+| **Self-hosted** | ✅ | ✅ | ❌ | ❌ |
+| **Setup time** | ~10 min | 2–4 hrs | 5 min | 30 min |
+| **Docker required (dev)** | ❌ No | ✅ Yes | N/A | N/A |
+| **REST API** | ✅ | ✅ | ✅ | ✅ |
+| **GraphQL API** | ✅ | ✅ | ✅ | ✅ |
+| **Real-time WebSocket** | ✅ Free | ❌ Paid | ❌ | ❌ |
+| **Multi-locale (i18n)** | ✅ | ✅ Paid | ✅ | ✅ |
+| **Content relations** | ✅ | ✅ | ✅ | ✅ |
+| **Draft preview tokens** | ✅ | ✅ | ✅ | ✅ |
+| **Webhooks + retry** | ✅ | ✅ Basic | ✅ | ✅ |
+| **Form builder** | ✅ | ❌ | ❌ | ❌ |
+| **Audit log** | ✅ | ❌ Paid | ✅ | ❌ |
+| **Plugin system** | ✅ | ✅ | ❌ | ✅ |
+| **Prometheus + Grafana** | ✅ Built-in | ❌ | ❌ | ❌ |
+| **Automated backups** | ✅ Built-in | ❌ | ❌ | ❌ |
+| **PgBouncer pooling** | ✅ Built-in | ❌ | N/A | N/A |
+| **Export / Import** | ✅ | ✅ | ✅ | ✅ |
+| **Version history** | ✅ | ✅ Paid | ✅ | ✅ |
+| **TypeScript end-to-end** | ✅ | ✅ | N/A | ✅ |
+| **E2E test coverage** | ✅ 173 tests | Partial | N/A | N/A |
+
+---
+
+## Before you start
+
+You need three things. **Already have them? Jump to [Quick Start](#get-running-in-60-seconds).**
+
+**1. Node.js 18+**
+```bash
+node -v   # must show v18 or higher
+```
+Download from [nodejs.org](https://nodejs.org) — install the LTS version.
+
+**2. Git**
+```bash
+git --version   # any version is fine
+```
+Download from [git-scm.com](https://git-scm.com/downloads).
+
+**3. PostgreSQL 14+** *(or use Docker — see Option A below)*
+```bash
+psql --version   # must show 14 or higher
+```
+Download from [postgresql.org](https://www.postgresql.org/download/).
+
+---
+
+## Installation
+
+### Option A — Docker (easiest, no PostgreSQL needed)
+
+Docker manages the database and Redis for you.
 
 ```bash
+npx create-nodepress-app my-project
 cd my-project
 docker-compose up -d             # starts PostgreSQL + Redis
 cd backend
-npx prisma migrate dev           # create DB tables
+npx prisma migrate dev           # creates all DB tables
 npm run start:dev                # backend on :3000
 
 # In a new terminal
@@ -72,62 +178,31 @@ cd my-project/frontend
 npm run dev                      # admin panel on :5173
 ```
 
----
+### Option B — Local PostgreSQL
 
-## Option B — Local PostgreSQL
+```bash
+npx create-nodepress-app my-project
+cd my-project/backend
+```
 
-> **Important:** The CLI generates a random database password in `backend/.env` that won't match your local PostgreSQL. You must update it before running migrations.
-
-### 1. Update your database password
-
-Open `my-project/backend/.env` and replace the generated password with the one you set during PostgreSQL installation:
+Open `backend/.env` and set your PostgreSQL credentials:
 
 ```env
-DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/nodepress"
 ```
 
-> No password set? Try: `postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE`
-
-### 2. Run database migrations
+Then:
 
 ```bash
-cd my-project/backend
-npx prisma migrate dev
+npx prisma migrate dev    # creates all DB tables
+npm run start:dev         # backend on :3000
+
+# New terminal
+cd ../frontend
+npm run dev               # admin panel on :5173
 ```
 
-### 3. Start the backend
-
-```bash
-npm run start:dev
-```
-
-### 4. Start the frontend (new terminal)
-
-```bash
-cd my-project/frontend
-npm run dev
-```
-
-### 5. Create your admin account
-
-Open `http://localhost:5173` — you'll see the NodePress setup screen. Enter your site name, email, and password. Done!
-
----
-
-## Production (full Docker stack)
-
-```bash
-cd my-project
-# 1. Edit nginx/default.conf — replace YOUR_DOMAIN with your actual domain
-# 2. Set strong passwords in docker-compose.prod.yml
-docker-compose -f docker-compose.prod.yml up -d --build
-```
-
-Includes: PostgreSQL + PgBouncer (connection pooling), Nginx reverse proxy, Prometheus + Grafana monitoring, and automated daily backups.
-
----
-
-## Manual Setup (clone from GitHub)
+### Option C — Clone from GitHub
 
 ```bash
 git clone https://github.com/buildwithkode/nodepress.git
@@ -148,86 +223,292 @@ npm install
 npm run dev
 ```
 
+### First-time setup
+
+Open `http://localhost:5173` — you'll see the NodePress setup screen.
+
+Enter your site name, email, and password. **Save these credentials** — password reset requires SMTP to be configured. If you lose access before setting up SMTP, run `npx prisma studio` in the `backend/` folder to reset directly.
+
 ---
 
-## Upgrading an existing install
+## Going to production
 
-NodePress uses Prisma migrations — your data is safe. Just pull and migrate:
+### Step 1 — Get a server
+
+Any Ubuntu 22.04 VPS works. Recommended providers:
+
+| Provider | Spec | Price |
+|---|---|---|
+| [Hetzner](https://hetzner.com) | 2 vCPU · 4GB RAM | ~€6/mo |
+| [DigitalOcean](https://digitalocean.com) | 2 vCPU · 2GB RAM | ~$12/mo |
+| [Vultr](https://vultr.com) | 1 vCPU · 2GB RAM | ~$6/mo |
+
+Minimum: **1 vCPU · 1GB RAM**. Recommended: **2 vCPU · 2GB RAM** for Grafana + Redis.
+
+### Step 2 — Install Docker
+
+```bash
+curl -fsSL https://get.docker.com | sh
+```
+
+### Step 3 — Clone and configure
+
+```bash
+git clone https://github.com/buildwithkode/nodepress.git
+cd nodepress
+```
+
+Create your production environment file:
+
+```env
+# backend/.env
+
+NODE_ENV=production
+
+DATABASE_URL=postgresql://postgres:STRONG_PASSWORD@pgbouncer:5432/nodepress
+DIRECT_URL=postgresql://postgres:STRONG_PASSWORD@db:5432/nodepress
+DB_PASSWORD=STRONG_PASSWORD
+
+JWT_SECRET=<run: openssl rand -hex 32>
+CORS_ORIGIN=https://yourdomain.com
+APP_URL=https://yourdomain.com
+SITE_URL=https://yourdomain.com
+
+# SMTP — required for password reset (see providers below)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=you@gmail.com
+SMTP_PASS=xxxx xxxx xxxx xxxx
+SMTP_FROM=you@gmail.com
+
+# Protect the metrics endpoint
+METRICS_TOKEN=<run: openssl rand -hex 16>
+```
+
+### Step 4 — Edit nginx config
+
+Open `nginx/default.conf` and replace `YOUR_DOMAIN` with your actual domain:
+
+```nginx
+server_name yourdomain.com www.yourdomain.com;
+```
+
+### Step 5 — Deploy
+
+```bash
+NODE_ENV=production docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+This starts: PostgreSQL · PgBouncer · Redis · NestJS backend · Next.js frontend · Nginx · Prometheus · Grafana · daily backup job.
+
+Migrations run automatically on first start.
+
+### Step 6 — Enable HTTPS
+
+```bash
+apt install certbot python3-certbot-nginx
+certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
+
+Then uncomment the HTTPS server block in `nginx/default.conf` and reload:
+
+```bash
+docker-compose -f docker-compose.prod.yml restart nginx
+```
+
+### Step 7 — Open your site
+
+Visit `https://yourdomain.com` → complete the setup wizard → you're live.
+
+---
+
+## SMTP setup (required for password reset in production)
+
+> **Development:** No SMTP needed — the reset link is shown directly in the browser UI.
+> **Production:** Configure one of the providers below before going live.
+
+**Gmail** — free, works with any Google account
+
+1. Enable 2-Step Verification → [generate an App Password](https://myaccount.google.com/apppasswords)
+2. Add to `backend/.env`:
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=you@gmail.com
+SMTP_PASS=xxxx xxxx xxxx xxxx
+SMTP_FROM=you@gmail.com
+```
+
+**Resend** — recommended for developers, 100 free emails/day
+
+1. Create account at [resend.com](https://resend.com) → [get API key](https://resend.com/api-keys)
+2. Add to `backend/.env`:
+```env
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=resend
+SMTP_PASS=re_xxxxxxxxxxxx
+SMTP_FROM=onboarding@resend.dev
+```
+
+**SendGrid** — 100 free emails/day
+
+1. Create account at [sendgrid.com](https://sendgrid.com) → [get API key](https://app.sendgrid.com/settings/api_keys)
+2. Add to `backend/.env`:
+```env
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USER=apikey
+SMTP_PASS=SG.xxxxxxxxxxxx
+SMTP_FROM=you@yourdomain.com
+```
+
+---
+
+## Pre-launch security checklist
+
+Before going live, verify:
+
+- [ ] `JWT_SECRET` is at least 32 random characters (`openssl rand -hex 32`)
+- [ ] `NODE_ENV=production` is set
+- [ ] `CORS_ORIGIN` matches your exact frontend domain — no trailing slash
+- [ ] SMTP is configured — password reset will silently fail without it
+- [ ] `METRICS_TOKEN` is set — otherwise `/api/metrics` is publicly readable
+- [ ] HTTPS is enabled and the HTTP → HTTPS redirect is uncommented in nginx
+- [ ] Firewall: only ports 80 and 443 exposed to the internet
+
+---
+
+## GraphQL API
+
+The GraphQL endpoint is at `/graphql`. Apollo Sandbox (interactive playground) is available in all environments — click **GraphQL Playground** in the Developer sidebar.
+
+### Getting a Bearer token
+
+All write mutations and protected queries require a JWT Bearer token. Three ways to get one:
+
+**Option A — Login API (curl):**
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"yourpassword"}'
+# Response: { "access_token": "eyJhbGci..." }
+```
+
+**Option B — Browser cookie:** Log into the admin panel → open DevTools (`F12`) → Application → Cookies → copy the value of `np_token`. That is your Bearer token (valid 7 days).
+
+**Option C — API key:** Create one in Admin → API Keys. Use `X-API-Key: np_yourkey` header instead of Bearer token (no expiry).
+
+Use the token in any request:
+```
+Authorization: Bearer eyJhbGci...
+```
+In Apollo Sandbox: click **Headers** tab at the bottom → add `{ "Authorization": "Bearer eyJhbGci..." }`.
+
+### Queries
+```graphql
+query { entries(contentTypeId: 1, status: "published") { total data { id slug data } } }
+query { entry(id: 1) { id slug status data createdAt } }
+query { contentTypes { id name schema } }
+query { contentType(id: 1) { id name schema } }
+query { mediaFiles(page: 1, limit: 20) { total data { id filename url mimetype } } }
+query { webhooks { id name url events enabled } }          # admin only
+query { webhookDeliveries(webhookId: 1) { id status attempts responseStatus } }
+```
+
+### Mutations — Entries
+```graphql
+mutation { createEntry(contentTypeId: 1, slug: "hello", locale: "en", status: "draft", data: "{\"title\":\"Hello\"}") { id slug } }
+mutation { updateEntry(id: 1, status: "published", data: "{\"title\":\"Updated\"}") { id updatedAt } }
+mutation { deleteEntry(id: 1) { message } }           # soft delete
+mutation { restoreEntry(id: 1) { id slug } }
+mutation { purgeEntry(id: 1) { message } }            # permanent, admin only
+mutation { restoreEntryVersion(entryId: 1, versionId: 3) { id updatedAt } }
+mutation { bulkPublishEntries(ids: [1,2,3]) { affected } }
+mutation { bulkArchiveEntries(ids: [4,5]) { affected } }
+mutation { bulkDeleteEntries(ids: [6,7]) { affected } }
+mutation { bulkSetPendingReviewEntries(ids: [8,9]) { affected } }
+```
+
+### Mutations — Content Types (admin only)
+```graphql
+mutation { createContentType(name: "blog", schema: "[{\"name\":\"title\",\"type\":\"text\"}]") { id name } }
+mutation { updateContentType(id: 1, schema: "[{\"name\":\"title\",\"type\":\"text\"},{\"name\":\"body\",\"type\":\"richtext\"}]") { id } }
+mutation { deleteContentType(id: 1) { id name } }
+```
+
+### Mutations — Webhooks (admin only)
+```graphql
+mutation { createWebhook(name: "Deploy", url: "https://example.com/hook", events: ["entry.created"]) { id } }
+mutation { toggleWebhook(id: 1, enabled: false) { id enabled } }
+mutation { pingWebhook(id: 1) { message } }
+mutation { deleteWebhook(id: 1) { message } }
+```
+
+Add `Authorization: Bearer YOUR_JWT_TOKEN` header for authenticated mutations. Public queries (entries, contentTypes) work without auth but return published entries only.
+
+---
+
+## Upgrading
+
+NodePress uses Prisma migrations — your data is safe. Pull and migrate:
 
 ```bash
 git pull
 cd backend && npm install && npx prisma migrate deploy
 cd ../frontend && npm install
+# Restart your server
 ```
 
 See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
 
 ---
 
-## What you get
+## Tech stack
 
-- Visual content type builder — no code required
-- Auto-generated REST API + GraphQL API for every content type
-- Multi-locale (i18n) content — per-entry locale field with locale filtering
-- Content relations — link entries across content types with `?populate=author,author.company` (nested dot-notation, up to 3 levels)
-- Real-time updates via WebSocket (Socket.io) — subscribe to entry/media events; scales across instances with Redis adapter
-- Media uploads with automatic WebP image optimisation
-- API keys with per-key rate limiting (read: 120/min, write: 60/min)
-- Form builder with email and webhook actions; 3-layer spam protection — rate limiting, honeypot, and captcha (Cloudflare Turnstile / hCaptcha / reCAPTCHA)
-- Webhooks with retry logic, HMAC signing, and exponential backoff
-- Granular role-based permissions — admin, editor, contributor, viewer
-- Per-content-type permission overrides via admin UI
-- Audit log with configurable retention, and user management
-- Scheduled content publishing (`publishAt`) and draft preview tokens
-- Bulk publish, archive, and delete across multiple entries at once
-- Export and import entries as JSON (for backup, migration, or seeding)
-- Entry version history + content type schema change history
-- Plugin system — extend NodePress with custom NestJS modules
-- Prometheus metrics + Grafana dashboard + alerting rules
-- Client-friendly admin panel
-- 100% self-hosted — your data, your server
-
----
-
-## vs The Alternatives
-
-|                      | NodePress | Strapi   | Contentful |
-|----------------------|-----------|----------|------------|
-| Setup time           | 10 min    | 2–4 hrs  | 5 min      |
-| Docker needed        | No        | Yes      | No         |
-| Price                | Free      | Free     | $300/mo    |
-| Self-hosted          | Yes       | Yes      | No         |
-| REST API             | ✅        | ✅       | ✅         |
-| GraphQL API          | ✅        | ✅       | ✅         |
-| Real-time (WS)       | ✅        | ❌ paid  | ❌         |
-| i18n                 | ✅        | ✅       | ✅         |
-| Content relations    | ✅        | ✅       | ✅         |
-| Webhooks + retry     | ✅        | ✅ basic | ✅         |
-| Audit log            | ✅        | ❌ paid  | ✅         |
-| Plugin system        | ✅        | ✅       | ❌         |
-| Client-friendly UI   | Yes       | Mediocre | Yes        |
-
----
-
-## Tech Stack
-
-NestJS · PostgreSQL · Prisma · Next.js 14 · TypeScript · Socket.io · Apollo GraphQL · Redis · Prometheus
+| Layer | Technology |
+|---|---|
+| **Backend** | NestJS · TypeScript · Prisma ORM |
+| **Database** | PostgreSQL 16 · PgBouncer |
+| **Cache** | Redis (ioredis) |
+| **Auth** | JWT · Passport · bcrypt |
+| **API** | REST · Apollo GraphQL · Swagger |
+| **Real-time** | Socket.io (Redis adapter for multi-instance) |
+| **Media** | Multer · Sharp (WebP) · S3 compatible |
+| **Frontend** | Next.js 14 App Router · TypeScript · Tailwind CSS |
+| **Proxy** | Nginx (gzip · rate limiting · WebSocket · SSL) |
+| **Monitoring** | Prometheus · Grafana · pino structured logging |
+| **Testing** | Jest · Supertest · 173 e2e tests |
 
 ---
 
 ## Troubleshooting
 
-**`npm install` fails with peer dependency error**
-Make sure all `@nestjs/*` packages are on the same major version. Check `backend/package.json` — everything should be `^10.x.x`.
+**"Cannot connect to the server" on login**
+The backend isn't running. In the `backend/` folder run `npm run start:dev`, then check `http://localhost:3000/api/health`.
+
+**Login fails with correct credentials**
+You may have hit the rate limit (10 attempts/min in production). Restart the backend to clear it. If the problem persists, check `http://localhost:3000/api/auth/setup-status` — if `required: true`, setup wasn't completed.
+
+**"Your session expired" after signing in**
+Normal behaviour after 30 days of inactivity (refresh token lifetime). Just sign in again — no data is lost.
+
+**Forgot password — no email received**
+In development: the reset link appears directly on the forgot-password page — no SMTP needed.
+In production: configure `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` in `backend/.env` using one of the [providers above](#smtp-setup-required-for-password-reset-in-production).
 
 **`npx prisma migrate dev` fails with auth error**
-The password in `DATABASE_URL` doesn't match your PostgreSQL password. Re-check `backend/.env` — the format is `postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE`.
+The password in `DATABASE_URL` doesn't match your PostgreSQL installation. Update `backend/.env`:
+```env
+DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
+```
 
 **Admin panel shows blank page or 401**
-The frontend can't reach the backend. Make sure `npm run start:dev` is running in the `backend/` folder and check that `CORS_ORIGIN=http://localhost:5173` is set in `backend/.env`.
+The frontend can't reach the backend. Confirm `npm run start:dev` is running in `backend/` and that `CORS_ORIGIN=http://localhost:5173` is set in `backend/.env`.
 
 **Images not loading after deploy**
-Set `APP_URL` in `backend/.env` to your backend's public URL (e.g. `https://api.yourdomain.com`). Without it, uploaded file URLs point to localhost.
+Set `APP_URL` in `backend/.env` to your backend's public URL (e.g. `https://yourdomain.com`). Without it, uploaded file URLs point to localhost.
 
 **Sitemap shows localhost URLs**
 Set `SITE_URL` in `backend/.env` to your frontend's public URL (e.g. `https://yourdomain.com`).
@@ -235,11 +516,17 @@ Set `SITE_URL` in `backend/.env` to your frontend's public URL (e.g. `https://yo
 **Port 3000 or 5173 already in use**
 Change `PORT=3001` in `backend/.env` and update `CORS_ORIGIN` and `BACKEND_URL` accordingly.
 
+**Real-time updates not working in production**
+Ensure your nginx config includes the `/api/realtime` WebSocket location block (included by default in `nginx/proxy.conf`). Check that port 80/443 is open and nginx is running.
+
+**GraphQL Playground shows a blank page**
+Browser cached an old response with stale security headers. Open an **Incognito window** (works immediately) or press `Ctrl+Shift+Delete` → clear *Cached images and files* → refresh. This only happens once after a server restart where headers changed.
+
 ---
 
 ## Contributing
 
-NodePress is open source and contributions are welcome!
+NodePress is open source and contributions are welcome.
 
 - [Contributing guide](./CONTRIBUTING.md) — local setup, code style, PR checklist
 - [Bug reports](https://github.com/buildwithkode/nodepress/issues/new?template=bug_report.md)
@@ -249,23 +536,23 @@ NodePress is open source and contributions are welcome!
 
 ## Links
 
-- **Documentation:** [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
+- **Documentation:** `/docs` in your running admin panel, or [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
 - **npm package:** [npmjs.com/package/create-nodepress-app](https://www.npmjs.com/package/create-nodepress-app)
 - **GitHub:** [github.com/buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)
 - **Issues:** [github.com/buildwithkode/nodepress/issues](https://github.com/buildwithkode/nodepress/issues)
 - **Changelog:** [CHANGELOG.md](./CHANGELOG.md)
+- **Support:** [ko-fi.com/buildwithkode](https://ko-fi.com/buildwithkode)
 
 ---
 
-## Cloud version _(coming soon)_
+## Cloud version *(coming soon)*
 
-1-click deploy at [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com)
-$45/mo per project — no Docker, no server management, backups included.
+1-click deploy at [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com) — $45/mo per project. No Docker, no server management, automated backups included.
 
 ---
 
 ## License
 
-Copyright (c) 2026-present Karthik Paulraj / BuildWithKode.
+Copyright © 2026-present Karthik Paulraj / BuildWithKode.
 
-NodePress is open source software licensed under the **[MIT License](./LICENSE)**. You are free to use, modify, and distribute it.
+NodePress is open source software licensed under the **[MIT License](./LICENSE)**. Free to use, modify, and distribute — forever.

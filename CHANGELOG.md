@@ -10,6 +10,60 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [1.5.0] — 2026-04-19
+
+### Added
+- **WebSocket authentication** — `RealtimeGateway` now verifies JWT or API key on every connection; unauthenticated clients receive an `error` event and are immediately disconnected; token passed via `auth.token` (Socket.io handshake) or `Authorization` header; API keys accepted via `auth.apiKey` or `X-API-Key` header for server-to-server use
+- **Frontend passes JWT to WebSocket** — `useRealtimeEvents` hook now reads `np_token` from cookies and passes it as `auth: { token: 'Bearer ...' }` in the Socket.io connection options
+
+### No migration required
+
+---
+
+## [1.4.0] — 2026-04-19
+
+### Added
+- **GraphQL mutations — entries** — `createEntry`, `updateEntry`, `deleteEntry` (soft), `purgeEntry`, `restoreEntry`, `restoreEntryVersion`, `bulkDeleteEntries`, `bulkPublishEntries`, `bulkArchiveEntries`, `bulkSetPendingReviewEntries`
+- **GraphQL mutations — content types** — `createContentType`, `updateContentType`, `deleteContentType`
+- **GraphQL mutations — webhooks** — `createWebhook`, `toggleWebhook`, `pingWebhook`, `deleteWebhook`
+- **GraphQL Playground always-on** — Apollo Sandbox enabled in all environments (dev + production); `contentSecurityPolicy` disabled on backend (API server, not an HTML app); `Cache-Control: no-store` added to `/graphql` in Next.js to prevent browser caching stale CSP headers
+
+### No migration required
+
+---
+
+## [1.3.0] — 2026-04-19
+
+### Added
+- **Forgot-password dev mode** — when SMTP is not configured and `NODE_ENV !== 'production'`, `POST /api/auth/forgot-password` now includes `devResetUrl` in the response; the frontend displays the reset link directly on the page with Copy and Open buttons — no terminal required
+- **Session-expired banner** — when the refresh token expires, the axios interceptor redirects to `/login?reason=expired`; the login page shows an amber "Your session expired" banner so users understand why they were signed out
+- **Permissions role detail panel** — clicking a role card on the Permissions page now fetches and displays all permission overrides for that role via `GET /api/permissions/:role`
+- **GraphQL Playground link in sidebar** — Developer nav group includes an external link to `/graphql` (Apollo Sandbox) available in all environments with `↗` indicator
+- **Setup page credentials reminder** — after completing setup, an amber warning advises saving credentials and documents the Prisma Studio fallback for recovery without SMTP
+
+### Changed
+- **JWT access token lifetime** changed from `15m` to `7d` — better developer experience for internal admin tools; refresh tokens remain 30 days with silent rotation
+- **Cookie expiry now matches JWT lifetime** — `np_token` cookie was previously set for 7 days while the JWT inside expired in 15 minutes, causing confusing middleware redirects; both are now aligned to 7 days
+- **Login error messages now distinguish failure types** — `401` → "Invalid email or password", `429` → "Too many attempts, wait a minute", no response → "Cannot connect to the server", `5xx` → "Server error"
+- **Rate limits relaxed in development** — login raised from 10 to 100 req/min, forgot-password from 5 to 50 req/min; production limits unchanged
+- **`pino-pretty` moved to `devDependencies`** — not needed in production Docker image (transport is disabled when `NODE_ENV=production`)
+- **`@types/cookie-parser`, `@types/nodemailer`, `@types/sanitize-html` moved to `devDependencies`** — type-only packages have no runtime role
+- **`shadcn` moved to `devDependencies`** in frontend — CLI code generator, no runtime import
+
+### Fixed
+- **WebSocket (Socket.io) broken through nginx in production** — `/api/realtime` lacked `Upgrade` and `Connection` headers in `nginx/proxy.conf`; real-time events were silently falling back to HTTP polling; dedicated location block added with `proxy_read_timeout 3600s`
+- **CORS missing PATCH method** — `backend/src/main.ts` CORS config omitted `PATCH`; `PATCH /api/webhooks/:id/toggle` was silently blocked in browsers; `PATCH` added to allowed methods
+- **GraphQL Playground 404 through Next.js proxy** — `/graphql` was not included in `next.config.js` rewrites; clicking the Playground link hit Next.js 404 instead of Apollo Sandbox; rewrite added
+- **Sidebar Metrics link removed** — `/api/metrics` returns unreadable Prometheus text in dev and a 403 in production; Grafana sidebar link removed entirely (Grafana remains available as an optional Docker add-on documented in README)
+- **GraphQL Playground blank page** — Helmet's `contentSecurityPolicy` blocked scripts from `cdn.jsdelivr.net` and `fonts.googleapis.com` loaded by the playground; CSP disabled on the backend (API servers serving JSON gain no meaningful protection from CSP; Swagger UI and GraphQL Playground both require external CDN resources)
+- **GraphQL Playground dev-only restriction lifted** — `introspection` and `playground` were disabled in production; both are now always enabled so developers can explore the API in any environment
+- **TypeScript errors in entry locale Select** — `onValueChange={setLocale}` in `entries/[id]/edit/page.tsx` and `entries/new/page.tsx` passed `Dispatch<SetStateAction<string>>` where `(value: string | null) => void` was expected; fixed with null guard wrapper
+- **`backend/.env.example`** — `JWT_EXPIRES_IN` comment updated from `15m` to `7d`; SMTP description updated to reflect browser UI display (not server console) for dev mode reset links
+
+### No migration required
+
+---
+
 ## [1.2.0] — 2026-04-18
 
 ### Added

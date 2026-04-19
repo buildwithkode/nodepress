@@ -73,46 +73,122 @@ type MediaPage {
 }
 
 type Mutation {
+  """Archive multiple entries."""
   bulkArchiveEntries(ids: [Int!]!): BulkResult!
+
+  """Soft-delete multiple entries."""
   bulkDeleteEntries(ids: [Int!]!): BulkResult!
+
+  """Publish multiple entries."""
   bulkPublishEntries(ids: [Int!]!): BulkResult!
+
+  """Set multiple entries to pending_review."""
+  bulkSetPendingReviewEntries(ids: [Int!]!): BulkResult!
+
+  """Create a new content type. Admin only."""
+  createContentType(
+    """Restrict allowed API methods"""
+    allowedMethods: [String!]
+    name: String!
+
+    """JSON array of field definitions"""
+    schema: String!
+  ): ContentTypeModel!
+
+  """Create a new entry. Requires editor or admin role."""
   createEntry(
     contentTypeId: Int!
 
-    """JSON string of entry data"""
+    """JSON string of entry field values"""
     data: String!
     locale: String = "en"
     slug: String!
-    status: String = "published"
+    status: String = "draft"
   ): EntryModel!
+
+  """Create a new webhook. Admin only."""
+  createWebhook(
+    enabled: Boolean = true
+
+    """Event names, e.g. ["entry.created"] or ["*"]"""
+    events: [String!]!
+    name: String!
+
+    """HMAC signing secret"""
+    secret: String
+    url: String!
+  ): WebhookModel!
+
+  """Delete a content type and all its entries. Admin only."""
+  deleteContentType(id: Int!): ContentTypeModel!
+
+  """Soft-delete an entry (recoverable). Requires editor or admin."""
   deleteEntry(id: Int!): DeleteResult!
 
   """Delete a media file by filename (admin/editor only)"""
   deleteMedia(filename: String!): DeleteResult!
 
-  """Delete a webhook (admin only)"""
+  """Delete a webhook. Admin only."""
   deleteWebhook(id: Int!): DeleteResult!
-  updateEntry(data: String, id: Int!, slug: String, status: String): EntryModel!
+
+  """Send a test ping to a webhook. Admin only."""
+  pingWebhook(id: Int!): DeleteResult!
+
+  """Permanently delete a soft-deleted entry. Admin only."""
+  purgeEntry(id: Int!): DeleteResult!
+
+  """Restore a soft-deleted entry."""
+  restoreEntry(id: Int!): EntryModel!
+
+  """Restore an entry to a previous version."""
+  restoreEntryVersion(entryId: Int!, versionId: Int!): EntryModel!
+
+  """Enable or disable a webhook. Admin only."""
+  toggleWebhook(enabled: Boolean!, id: Int!): WebhookModel!
+
+  """Update a content type schema or name. Admin only."""
+  updateContentType(
+    allowedMethods: [String!]
+    id: Int!
+    name: String
+
+    """JSON array of field definitions"""
+    schema: String
+  ): ContentTypeModel!
+
+  """Update an existing entry."""
+  updateEntry(
+    """JSON string of updated field values"""
+    data: String
+    id: Int!
+    slug: String
+    status: String
+  ): EntryModel!
 }
 
 type Query {
+  """Fetch a single content type by ID."""
   contentType(id: Int!): ContentTypeModel
+
+  """List all content types."""
   contentTypes: [ContentTypeModel!]!
 
-  """List entries (authenticated: all statuses; public: published only)"""
+  """List entries. Authenticated: all statuses. Public: published only."""
   entries(contentTypeId: Int, limit: Int = 20, locale: String, page: Int = 1, search: String, status: String): EntryPage!
+
+  """Fetch a single entry by ID."""
   entry(id: Int!, populate: [String!]): EntryModel
 
   """List all uploaded media files (authenticated)"""
   mediaFiles(limit: Int = 50, page: Int = 1): MediaPage!
 
-  """Get a webhook by ID (admin only)"""
+  """Get a webhook by ID. Admin only."""
   webhook(id: Int!): WebhookModel
 
-  """Delivery log for a webhook (admin only)"""
+  """Delivery log for a webhook. Admin only."""
   webhookDeliveries(limit: Int = 50, webhookId: Int!): [WebhookDeliveryModel!]!
 
-  """List all webhooks (admin only)"""
+  """List all webhooks. Admin only."""
   webhooks: [WebhookModel!]!
 }
 

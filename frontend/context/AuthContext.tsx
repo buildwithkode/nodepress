@@ -48,10 +48,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (token: string, newUser: User) => {
     // Store JWT in a cookie — readable by Next.js middleware for SSR route protection.
     // The user object lives only in React state, never in localStorage.
-    Cookies.set('np_token', token, { expires: 7, sameSite: 'strict' });
+    Cookies.set('np_token', token, { expires: 7, sameSite: 'strict' }); // 7 days — matches JWT expiry
     // Store role in a separate cookie so middleware can enforce role-based routing.
     // This cookie is for UX only — the backend enforces actual permissions.
-    Cookies.set('np_role', newUser.role, { expires: 7, sameSite: 'strict' });
+    Cookies.set('np_role', newUser.role, { expires: 30, sameSite: 'strict' });
     setUser(newUser);
   };
 

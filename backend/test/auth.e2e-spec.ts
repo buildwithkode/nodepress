@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanDatabase } from './helpers';
+import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
@@ -108,5 +109,91 @@ describe('Auth (e2e)', () => {
       .get('/api/auth/me')
       .set('Authorization', 'Bearer not.a.valid.token')
       .expect(401);
+  });
+
+  // ── Password reset ────────────────────────────────────────────────────────────
+
+  it('POST /api/auth/forgot-password → returns generic message for unknown email (no leaking)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/forgot-password')
+      .send({ email: 'nobody@nodepress.test' })
+      .expect(201);
+
+    expect(res.body.message).toBeDefined();
+  });
+
+  it('POST /api/auth/forgot-password → returns same generic message for known email', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/forgot-password')
+      .send({ email: 'admin@nodepress.test' })
+      .expect(201);
+
+    expect(res.body.message).toBeDefined();
+  });
+
+  it('POST /api/auth/reset-password → updates password with valid token', async () => {
+    // Request a reset so the token is written to the DB
+    await request(app.getHttpServer())
+      .post('/api/auth/forgot-password')
+      .send({ email: 'admin@nodepress.test' });
+
+    // Read token directly from DB (SMTP is a no-op in test env)
+    const prisma = app.get(PrismaService);
+    const record = await prisma.passwordResetToken.findFirst({
+      where: { used: false },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(record).not.toBeNull();
+
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/reset-password')
+      .send({ token: record!.token, password: 'NewSecure456!' })
+      .expect(201);
+
+    expect(res.body.message).toBeDefined();
+
+    // Old password no longer works
+    await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: 'admin@nodepress.test', password: 'Secure123!' })
+      .expect(401);
+
+    // New password works
+    const loginRes = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: 'admin@nodepress.test', password: 'NewSecure456!' })
+      .expect(201);
+    expect(loginRes.body.access_token).toBeDefined();
+  });
+
+  it('POST /api/auth/reset-password → 400 when token is already used', async () => {
+    await request(app.getHttpServer())
+      .post('/api/auth/forgot-password')
+      .send({ email: 'admin@nodepress.test' });
+
+    const prisma = app.get(PrismaService);
+    const record = await prisma.passwordResetToken.findFirst({
+      where: { used: false },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Use it once
+    await request(app.getHttpServer())
+      .post('/api/auth/reset-password')
+      .send({ token: record!.token, password: 'AnotherPass789!' })
+      .expect(201);
+
+    // Use it again — must be rejected
+    await request(app.getHttpServer())
+      .post('/api/auth/reset-password')
+      .send({ token: record!.token, password: 'AnotherPass789!' })
+      .expect(400);
+  });
+
+  it('POST /api/auth/reset-password → 400 for invalid token', async () => {
+    await request(app.getHttpServer())
+      .post('/api/auth/reset-password')
+      .send({ token: 'not-a-real-token', password: 'SomePass123!' })
+      .expect(400);
   });
 });

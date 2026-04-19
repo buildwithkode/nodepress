@@ -10,6 +10,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
 
 /**
  * NodePress Real-time Gateway
@@ -48,6 +50,52 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
   private readonly logger = new Logger(RealtimeGateway.name);
 
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  // Extracts and verifies JWT or API key from the socket handshake.
+  // Returns the authenticated user/key payload, or null if invalid.
+  private async authenticate(client: Socket): Promise<{ id: number; email: string; role: string } | null> {
+    try {
+      // 1 — Bearer token in Authorization header (browser WebSocket via auth option)
+      const authHeader = client.handshake.headers?.authorization as string | undefined;
+      const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+      // 2 — Token passed as socket auth object: io(url, { auth: { token: 'Bearer ...' } })
+      const tokenFromAuth = (client.handshake.auth?.token as string | undefined)
+        ?.replace(/^Bearer\s+/i, '') ?? null;
+
+      // 3 — API key: X-API-Key header or auth.apiKey
+      const apiKey =
+        (client.handshake.headers?.['x-api-key'] as string | undefined) ??
+        (client.handshake.auth?.apiKey as string | undefined) ?? null;
+
+      const token = tokenFromHeader ?? tokenFromAuth;
+
+      if (token) {
+        const payload = this.jwtService.verify<{ sub: number; email: string }>(token, {
+          secret: process.env.JWT_SECRET,
+        });
+        const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+        if (!user) return null;
+        return { id: user.id, email: user.email, role: user.role };
+      }
+
+      if (apiKey) {
+        const key = await this.prisma.apiKey.findUnique({ where: { key: apiKey } });
+        if (!key) return null;
+        // API keys get a synthetic user object — no role restrictions on read-only events
+        return { id: 0, email: `apikey:${key.name}`, role: 'viewer' };
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   async afterInit(server: Server) {
     if (process.env.REDIS_URL) {
       try {
@@ -76,9 +124,17 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     }
   }
 
-  handleConnection(client: Socket) {
-    this.logger.debug(`Client connected: ${client.id}`);
+  async handleConnection(client: Socket) {
+    const user = await this.authenticate(client);
+    if (!user) {
+      client.emit('error', { message: 'Unauthorized — provide a valid JWT or API key' });
+      client.disconnect(true);
+      this.logger.debug(`Rejected unauthenticated connection: ${client.id}`);
+      return;
+    }
+    (client as any).user = user;
     client.join('global');
+    this.logger.debug(`Client connected: ${client.id} (${user.email})`);
   }
 
   handleDisconnect(client: Socket) {

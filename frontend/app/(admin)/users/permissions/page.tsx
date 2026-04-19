@@ -49,6 +49,9 @@ export default function PermissionsPage() {
   const [saving, setSaving]             = useState<MatrixKey | null>(null);
   const [resetting, setResetting]       = useState(false);
   const [loading, setLoading]           = useState(true);
+  const [focusedRole, setFocusedRole]   = useState<Role | null>(null);
+  const [rolePerms, setRolePerms]       = useState<PermRow[] | null>(null);
+  const [roleLoading, setRoleLoading]   = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -67,6 +70,20 @@ export default function PermissionsPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const focusRole = async (role: Role) => {
+    if (focusedRole === role) { setFocusedRole(null); setRolePerms(null); return; }
+    setFocusedRole(role);
+    setRoleLoading(true);
+    try {
+      const res = await api.get(`/permissions/${role}`);
+      setRolePerms(res.data ?? []);
+    } catch {
+      toast.error('Failed to load role permissions');
+    } finally {
+      setRoleLoading(false);
+    }
+  };
 
   const getActions = (role: Role, contentType: string): string[] => {
     const specific = perms.find((p) => p.role === role && p.contentType === contentType);
@@ -144,19 +161,76 @@ export default function PermissionsPage() {
           </div>
         </div>
 
-        {/* Role overview */}
+        {/* Role overview — click to focus */}
         <div className="grid grid-cols-3 gap-3">
           {ROLES.map((r) => (
-            <Card key={r} className="text-sm">
+            <Card
+              key={r}
+              className={`text-sm cursor-pointer transition-all hover:border-primary/50 ${focusedRole === r ? 'ring-2 ring-primary border-primary' : ''}`}
+              onClick={() => focusRole(r)}
+            >
               <CardHeader className="pb-2">
-                <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r]}`}>
-                  {r}
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r]}`}>
+                    {r}
+                  </span>
+                  {focusedRole === r && (
+                    <span className="text-[10px] text-muted-foreground">click to deselect</span>
+                  )}
+                </div>
                 <CardDescription className="text-xs mt-1">{ROLE_DESCRIPTIONS[r]}</CardDescription>
               </CardHeader>
             </Card>
           ))}
         </div>
+
+        {/* Focused role detail — shown when a role card is clicked */}
+        {focusedRole && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[focusedRole]}`}>
+                  {focusedRole}
+                </span>
+                — Permission Summary
+              </CardTitle>
+              <CardDescription>Overrides configured for this role. Rows not listed here fall back to the wildcard default.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {roleLoading ? (
+                <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+                </div>
+              ) : !rolePerms || rolePerms.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">No overrides — using factory defaults for all content types.</p>
+              ) : (
+                <div className="space-y-2">
+                  {rolePerms.map((p) => (
+                    <div key={p.contentType} className="flex items-center gap-3 rounded-md border border-border px-3 py-2 text-sm">
+                      <span className="w-28 font-medium text-foreground capitalize shrink-0">
+                        {p.contentType === '*' ? <Badge variant="secondary" className="text-xs">Default *</Badge> : p.contentType.replace(/_/g, ' ')}
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {ALL_ACTIONS.map((a) => (
+                          <span
+                            key={a}
+                            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                              p.actions.includes(a)
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                                : 'bg-muted text-muted-foreground line-through opacity-50'
+                            }`}
+                          >
+                            {ACTION_LABELS[a]}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Permission matrix */}
         <Card>

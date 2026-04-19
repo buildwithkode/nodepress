@@ -1,14 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/axios';
 import { Button } from '@/components/ui/button';
 
-export default function LoginPage() {
+function loginErrorMessage(err: any): string {
+  if (!err.response) return 'Cannot connect to the server. Is the backend running?';
+  if (err.response.status === 401) return 'Invalid email or password.';
+  if (err.response.status === 429) return 'Too many attempts. Please wait a minute and try again.';
+  if (err.response.status >= 500) return 'Server error. Please try again later.';
+  return err.response?.data?.message || 'Something went wrong. Please try again.';
+}
+
+function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const reason = searchParams?.get('reason');
 
   const [siteName, setSiteName] = useState('NodePress Admin');
   const [email, setEmail] = useState('');
@@ -37,7 +47,7 @@ export default function LoginPage() {
       login(res.data.access_token, res.data.user);
       router.push('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      setError(loginErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -63,6 +73,13 @@ export default function LoginPage() {
             <h1 className="text-xl font-bold text-white">{siteName}</h1>
             <p className="text-sm text-white/40 mt-1">Sign in to your admin account</p>
           </div>
+
+          {/* Session expired banner */}
+          {reason === 'expired' && (
+            <div className="mb-5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-300 text-center">
+              Your session expired. Please sign in again.
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
@@ -114,5 +131,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

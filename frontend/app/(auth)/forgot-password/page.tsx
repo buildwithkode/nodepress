@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [devResetUrl, setDevResetUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,13 +21,26 @@ export default function ForgotPasswordPage() {
     }
     setLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email });
+      const res = await api.post('/auth/forgot-password', { email });
+      if (res.data.devResetUrl) setDevResetUrl(res.data.devResetUrl);
       setSubmitted(true);
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err: any) {
+      if (!err.response) {
+        setError('Cannot connect to the server. Is the backend running?');
+      } else if (err.response.status === 429) {
+        setError('Too many attempts. Please wait a minute and try again.');
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(devResetUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -37,15 +52,50 @@ export default function ForgotPasswordPage() {
             <h1 className="text-xl font-bold text-white">Reset your password</h1>
             <p className="text-sm text-white/40 mt-1">
               {submitted
-                ? "Check your email for the reset link."
+                ? devResetUrl
+                  ? 'SMTP not configured — use the link below.'
+                  : 'Check your email for the reset link.'
                 : "Enter your email and we'll send you a reset link."}
             </p>
           </div>
 
           {submitted ? (
-            <p className="text-center text-sm text-white/50 mb-4">
-              If that email is registered, a reset link valid for 15 minutes has been sent.
-            </p>
+            <div className="space-y-4">
+              {devResetUrl ? (
+                /* Dev mode: no SMTP — show the link directly */
+                <div className="space-y-3">
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-300">
+                    <strong>Development mode:</strong> No SMTP is configured, so no email was sent.
+                    Use this link to reset your password (valid 15 minutes):
+                  </div>
+                  <div className="rounded-lg bg-[#2a2a2a] border border-white/10 px-3 py-2 text-xs text-white/60 break-all">
+                    {devResetUrl}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={handleCopy}
+                    >
+                      {copied ? 'Copied!' : 'Copy link'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => window.open(devResetUrl, '_self')}
+                    >
+                      Open link
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                /* Production mode: SMTP configured */
+                <p className="text-center text-sm text-white/50">
+                  If that email is registered, a reset link valid for 15 minutes has been sent.
+                </p>
+              )}
+            </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <div className="space-y-1.5">

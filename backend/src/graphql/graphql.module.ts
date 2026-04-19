@@ -45,9 +45,8 @@ import { JwtModule } from '@nestjs/jwt';
       resolvers: { JSON: GraphQLJSON },
       // Pass HTTP request into GraphQL context for auth guards
       context: ({ req }: { req: any }) => ({ req }),
-      // Disable introspection and playground in production
-      introspection: process.env.NODE_ENV !== 'production',
-      playground: process.env.NODE_ENV !== 'production',
+      introspection: true,
+      playground: true,
       // Prevent deeply nested queries from overloading the server.
       // Depth 6 allows: query { entries { data { ... } } } comfortably.
       validationRules: [depthLimit(6)],
