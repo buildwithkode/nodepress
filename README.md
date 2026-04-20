@@ -549,7 +549,7 @@ NodePress is open source and contributions are welcome.
 
 ## Cloud version *(coming soon)*
 
-1-click deploy at [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com) — $45/mo per project. No Docker, no server management, automated backups included.
+1-click deploy at [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com) — $?/mo per project. No Docker, no server management, automated backups included.
 
 ---
 
