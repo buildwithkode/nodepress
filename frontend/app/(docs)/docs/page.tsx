@@ -223,9 +223,14 @@ export default function DocsPage() {
             <span className="text-muted-foreground/40">/</span>
             <span className="text-muted-foreground text-sm">Documentation</span>
           </div>
-          <Link href="/" className="text-sm text-primary hover:underline flex items-center gap-1">
-            Admin Panel <ExternalLink className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex items-center gap-4">
+            <a href="https://nodepress.buildwithkode.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              nodepress.buildwithkode.com
+            </a>
+            <Link href="/" className="text-sm text-primary hover:underline flex items-center gap-1">
+              Admin Panel <ExternalLink className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
       </header>
 
