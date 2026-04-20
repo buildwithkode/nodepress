@@ -267,7 +267,7 @@ Create your production environment file:
 
 NODE_ENV=production
 
-DATABASE_URL=postgresql://postgres:STRONG_PASSWORD@pgbouncer:5432/nodepress
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/YOUR_NODEPRESS_DATABASE
 DIRECT_URL=postgresql://postgres:STRONG_PASSWORD@db:5432/nodepress
 DB_PASSWORD=STRONG_PASSWORD
 
@@ -555,6 +555,6 @@ NodePress is open source and contributions are welcome.
 
 ## License
 
-Copyright © 2026-present Karthik Paulraj / BuildWithKode.
+Copyright © 2026-present BuildWithKode.
 
 NodePress is open source software licensed under the **[MIT License](./LICENSE)**. Free to use, modify, and distribute — forever.

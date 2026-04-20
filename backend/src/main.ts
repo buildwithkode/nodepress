@@ -1,4 +1,4 @@
-// Copyright (c) 2026-present Karthik Paulraj / BuildWithKode
+// Copyright (c) 2026-present BuildWithKode
 // Licensed under the MIT License. See LICENSE file in the project root for details.
 
 // Load environment variables FIRST — before any module is imported

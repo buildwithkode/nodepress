@@ -2,7 +2,7 @@
   "name": "nodepress-backend",
   "version": "1.0.0",
   "license": "MIT",
-  "author": "Karthik Paulraj / BuildWithKode <https://buildwithkode.com>",
+  "author": "BuildWithKode <https://buildwithkode.com>",
   "scripts": {
     "build": "nest build",
     "start": "nest start",

@@ -11,7 +11,7 @@
     "self-hosted"
   ],
   "license": "MIT",
-  "author": "Karthik Paulraj <karthik@buildwithkode.com>",
+  "author": "BuildWithKode <https://buildwithkode.com>",
   "homepage": "https://nodepress.buildwithkode.com",
   "repository": {
     "type": "git",

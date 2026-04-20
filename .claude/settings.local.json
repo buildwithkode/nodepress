@@ -58,7 +58,10 @@
       "Bash(sed 's/.*it\\(//')",
       "Bash(sed \"s/', .*//\")",
       "Bash(grep -v \"^$\")",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(git -C D:/xampp/htdocs/nodepress add -A)",
+      "Bash(git -C D:/xampp/htdocs/nodepress commit -m 'remove Karthik Paulraj name, replace with BuildWithKode')",
+      "Bash(git -C D:/xampp/htdocs/nodepress push origin main)"
     ]
   }
 }

@@ -2,7 +2,7 @@
   "name": "nodepress-frontend",
   "version": "1.0.0",
   "license": "MIT",
-  "author": "Karthik Paulraj / BuildWithKode <https://buildwithkode.com>",
+  "author": "BuildWithKode <https://buildwithkode.com>",
   "scripts": {
     "dev": "next dev -p 5173",
     "build": "next build",
