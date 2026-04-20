@@ -538,7 +538,7 @@ NodePress is open source and contributions are welcome.
 
 ## Links
 
-- **Documentation:** `/docs` in your running admin panel, or [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
+- **Documentation:** `/docs` in your running admin panel, or [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com/)
 - **npm package:** [npmjs.com/package/create-nodepress-app](https://www.npmjs.com/package/create-nodepress-app)
 - **GitHub:** [github.com/buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)
 - **Issues:** [github.com/buildwithkode/nodepress/issues](https://github.com/buildwithkode/nodepress/issues)

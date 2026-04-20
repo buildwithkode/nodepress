@@ -142,7 +142,7 @@ That's it — NodePress is running!
 
 ## Links
 
-- Full docs: [buildwithkode.github.io/nodepress](https://buildwithkode.github.io/nodepress/)
+- Full docs: [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com/)
 - Website: [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com)
 - GitHub: [github.com/buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)
 - Issues: [github.com/buildwithkode/nodepress/issues](https://github.com/buildwithkode/nodepress/issues)
