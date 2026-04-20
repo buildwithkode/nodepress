@@ -190,7 +190,7 @@ cd my-project/backend
 Open `backend/.env` and set your PostgreSQL credentials:
 
 ```env
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/nodepress"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
 ```
 
 Then:
@@ -268,7 +268,7 @@ Create your production environment file:
 NODE_ENV=production
 
 DATABASE_URL=postgresql://postgres:your_password@localhost:5432/YOUR_NODEPRESS_DATABASE
-DIRECT_URL=postgresql://postgres:STRONG_PASSWORD@db:5432/nodepress
+DIRECT_URL=postgresql://postgres:STRONG_PASSWORD@db:5432/YOUR_NODEPRESS_DATABASE
 DB_PASSWORD=STRONG_PASSWORD
 
 JWT_SECRET=<run: openssl rand -hex 32>
@@ -503,7 +503,7 @@ In production: configure `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` 
 **`npx prisma migrate dev` fails with auth error**
 The password in `DATABASE_URL` doesn't match your PostgreSQL installation. Update `backend/.env`:
 ```env
-DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
+DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
 ```
 
 **Admin panel shows blank page or 401**

@@ -89,9 +89,9 @@ services:
         condition: service_healthy
     environment:
       # Route through PgBouncer for pooled connections
-      DATABASE_URL:  "postgresql://postgres:${DB_PASSWORD}@pgbouncer:5432/nodepress"
+      DATABASE_URL:  "postgresql://postgres:${DB_PASSWORD}@pgbouncer:5432/YOUR_NODEPRESS_DATABASE"
       # Use direct DB connection for migrations (PgBouncer transaction mode blocks DDL)
-      DIRECT_URL:    "postgresql://postgres:${DB_PASSWORD}@db:5432/nodepress"
+      DIRECT_URL:    "postgresql://postgres:${DB_PASSWORD}@db:5432/YOUR_NODEPRESS_DATABASE"
       PORT:          3000
       JWT_SECRET:    ${JWT_SECRET}
       JWT_EXPIRES_IN: 7d
