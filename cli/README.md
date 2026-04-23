@@ -46,7 +46,16 @@ Download from [postgresql.org/download](https://www.postgresql.org/download/).
 
 ## After running the command
 
-The CLI sets up everything automatically. Then choose one of the two options below:
+The CLI scaffolds the project and generates your secret keys. Then follow the steps below:
+
+---
+
+### Step 1 — Install dependencies
+
+```bash
+cd my-project/backend  && npm install
+cd ../frontend         && npm install
+```
 
 ---
 
@@ -74,17 +83,17 @@ npm run dev                      # admin panel on :5173
 
 ### Option B — Local PostgreSQL
 
-> **Important:** The CLI generates a random database password that won't match your local PostgreSQL. You must update it before running migrations or you'll get an authentication error.
+> **Important:** Open `my-project/backend/.env` and update `DATABASE_URL` with your PostgreSQL password before running migrations or you'll get an authentication error.
 
-**Step 1 — Update the database password**
+**Step 2 — Update the database password**
 
 Open `my-project/backend/.env` in any text editor and find:
 
 ```
-DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
 ```
 
-Replace `RANDOM_PASSWORD` with the password you set when installing PostgreSQL:
+Replace `YOUR_PASSWORD` with the password you set when installing PostgreSQL:
 
 ```
 DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
@@ -92,16 +101,16 @@ DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_N
 
 > **Didn't set a password?** Try: `postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE`
 
-**Step 2 — Create the database tables**
+**Step 3 — Create the database tables**
 
 ```bash
 cd my-project/backend
 npx prisma migrate dev
 ```
 
-> Still getting an authentication error? The password in `DATABASE_URL` doesn't match your PostgreSQL password. Double-check Step 1.
+> Still getting an authentication error? The password in `DATABASE_URL` doesn't match your PostgreSQL password. Double-check Step 2.
 
-**Step 3 — Start the backend**
+**Step 4 — Start the backend**
 
 ```bash
 npm run start:dev
@@ -109,7 +118,7 @@ npm run start:dev
 
 Backend runs at `http://localhost:3000`. Keep this terminal open.
 
-**Step 4 — Start the admin panel**
+**Step 5 — Start the admin panel**
 
 Open a **new terminal** and run:
 
@@ -136,7 +145,6 @@ That's it — NodePress is running!
 2. Removes dev-only files (`.claude`, `cli/`, `docs/`, `.github/`, etc.)
 3. Generates a fresh git repository
 4. Creates `backend/.env` and `frontend/.env.local` with random secret keys
-5. Runs `npm install` in both backend and frontend
 
 ---
 

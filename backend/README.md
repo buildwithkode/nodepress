@@ -38,7 +38,7 @@ CORS_ORIGIN=http://localhost:5173
 
 > **Didn't set a PostgreSQL password?** Try: `postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE`
 
-> **Using the CLI (`npx create-nodepress-app`)?** The `.env` is auto-generated but uses a random password. Update `DATABASE_URL` with your actual PostgreSQL password before running migrations.
+> **Using the CLI (`npx create-nodepress-app`)?** The `.env` is auto-generated with a `YOUR_PASSWORD` placeholder. Update `DATABASE_URL` with your actual PostgreSQL password before running migrations.
 
 ---
 

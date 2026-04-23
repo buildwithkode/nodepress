@@ -38,7 +38,7 @@ Open source · Free forever · Production ready in 10 minutes</p>
 npx create-nodepress-app my-project
 ```
 
-That's it. The CLI scaffolds the project, generates cryptographically secure secrets, installs all dependencies, and tells you exactly what to do next.
+That's it. The CLI scaffolds the project, generates cryptographically secure secrets, and tells you exactly what to do next.
 
 Open `http://localhost:5173` → fill in a form → you have a working CMS with a REST API, GraphQL API, admin panel, and real-time WebSocket events.
 
@@ -169,8 +169,16 @@ Docker manages the database and Redis for you.
 
 ```bash
 npx create-nodepress-app my-project
-cd my-project
-docker-compose up -d             # starts PostgreSQL + Redis
+
+# Install dependencies
+cd my-project/backend  && npm install
+cd ../frontend         && npm install
+
+# Start PostgreSQL + Redis
+cd ..
+docker-compose up -d
+
+# Run migrations and start backend
 cd backend
 npx prisma migrate dev           # creates all DB tables
 npm run start:dev                # backend on :3000
@@ -184,10 +192,13 @@ npm run dev                      # admin panel on :5173
 
 ```bash
 npx create-nodepress-app my-project
-cd my-project/backend
+
+# Install dependencies
+cd my-project/backend  && npm install
+cd ../frontend         && npm install
 ```
 
-Open `backend/.env` and set your PostgreSQL credentials:
+Open `my-project/backend/.env` and set your PostgreSQL credentials:
 
 ```env
 DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
@@ -196,11 +207,12 @@ DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_
 Then:
 
 ```bash
+cd my-project/backend
 npx prisma migrate dev    # creates all DB tables
 npm run start:dev         # backend on :3000
 
 # New terminal
-cd ../frontend
+cd my-project/frontend
 npm run dev               # admin panel on :5173
 ```
 

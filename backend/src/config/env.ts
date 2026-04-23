@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const EnvSchema = z.object({
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
+  DIRECT_URL:   z.string().url('DIRECT_URL must be a valid URL — set it to the same value as DATABASE_URL if not using a connection pooler'),
   JWT_SECRET:      z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN:  z.string().default('7d'),
   PORT:            z.coerce.number().default(3000),
