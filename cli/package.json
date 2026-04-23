@@ -1,6 +1,6 @@
 {
   "name": "create-nodepress-app",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "description": "Scaffold a self-hosted NodePress headless CMS in one command",
   "keywords": [
     "cms",

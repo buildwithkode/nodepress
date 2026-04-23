@@ -1,6 +1,6 @@
 'use strict';
 
-const { execSync, spawnSync } = require('child_process');
+const { spawnSync, spawn } = require('child_process');
 const { randomBytes } = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -28,15 +28,53 @@ function secret(bytes = 32) {
   return randomBytes(bytes).toString('hex');
 }
 
-function writeEnvFile(filePath, vars) {
-  const content = Object.entries(vars)
-    .map(([k, v]) => (v === '' ? `# ${k}=` : `${k}="${v}"`))
-    .join('\n');
-  fs.writeFileSync(filePath, content + '\n', 'utf8');
+function writeEnvFile(filePath, content) {
+  fs.writeFileSync(filePath, content.trimStart() + '\n', 'utf8');
 }
 
 function run(cmd, cwd, stdio = 'pipe') {
   return spawnSync(cmd, { shell: true, cwd, stdio, encoding: 'utf8' });
+}
+
+// Run two npm installs in parallel and stream both outputs to the terminal.
+// Returns a promise that resolves when both finish, or rejects if either fails.
+function installBoth(backendDir, frontendDir) {
+  return new Promise((resolve, reject) => {
+    let failed = false;
+
+    function spawnInstall(cwd, label) {
+      // Use npm ci when a lockfile exists (faster — skips resolution).
+      // Fall back to npm install when there is no lockfile.
+      const lockfile = path.join(cwd, 'package-lock.json');
+      const cmd = fs.existsSync(lockfile) ? 'npm ci' : 'npm install';
+      const child = spawn(cmd, { shell: true, cwd, stdio: 'pipe' });
+
+      child.stdout.on('data', (d) => process.stdout.write(`  [${label}] ${d}`));
+      child.stderr.on('data', (d) => {
+        const line = d.toString();
+        // suppress noisy deprecation warnings — only show real errors
+        if (!line.includes('npm warn deprecated') && !line.includes('npm warn old lockfile')) {
+          process.stderr.write(`  [${label}] ${line}`);
+        }
+      });
+
+      return new Promise((res, rej) => {
+        child.on('close', (code) => {
+          if (code !== 0 && !failed) {
+            failed = true;
+            rej(new Error(`${label} install failed (exit ${code})`));
+          } else {
+            res();
+          }
+        });
+      });
+    }
+
+    Promise.all([
+      spawnInstall(backendDir, 'backend'),
+      spawnInstall(frontendDir, 'frontend'),
+    ]).then(resolve).catch(reject);
+  });
 }
 
 module.exports = async function createProject(name) {
@@ -103,50 +141,72 @@ module.exports = async function createProject(name) {
   const jwtSecret  = secret(48);
 
   // ── Write backend .env ─────────────────────────────────────────────────────
-  const backendEnv = {
-    DATABASE_URL:  `postgresql://postgres:${dbPassword}@localhost:5432/nodepress`,
-    PORT:          '3000',
-    JWT_SECRET:    jwtSecret,
-    CORS_ORIGIN:   'http://localhost:5173',
-    APP_URL:       'http://localhost:3000',
-    SITE_URL:      'http://localhost:5173',
-    // Email — configure to enable password reset emails
-    SMTP_HOST:     '',
-    SMTP_PORT:     '587',
-    SMTP_SECURE:   'false',
-    SMTP_USER:     '',
-    SMTP_PASS:     '',
-    SMTP_FROM:     '',
-  };
-  writeEnvFile(path.join(projectDir, 'backend', '.env'), backendEnv);
+  writeEnvFile(path.join(projectDir, 'backend', '.env'), `
+# NodePress Backend — update DATABASE_URL with your PostgreSQL credentials before starting
+
+# ── Required ──────────────────────────────────────────────────────────────────
+
+# Replace YOUR_PASSWORD and YOUR_NODEPRESS_DATABASE before running migrations
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
+
+PORT="3000"
+
+# Auto-generated secure secret — do not share or commit this file
+JWT_SECRET="${jwtSecret}"
+
+# Admin panel origin (no trailing slash). Comma-separated for multiple origins.
+CORS_ORIGIN="http://localhost:5173"
+
+# ── Optional ──────────────────────────────────────────────────────────────────
+
+APP_URL="http://localhost:3000"
+SITE_URL="http://localhost:5173"
+
+# ── Email (SMTP) ───────────────────────────────────────────────────────────────
+# Required for password reset emails. Leave commented out to skip in development.
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_SECURE=false
+# SMTP_USER=you@gmail.com
+# SMTP_PASS=your_app_password
+# SMTP_FROM=NodePress <noreply@yourdomain.com>
+`);
   ok('backend/.env generated with random secrets');
 
   // ── Write frontend .env.local ──────────────────────────────────────────────
-  const frontendEnv = {
-    BACKEND_URL: 'http://localhost:3000',
-  };
-  writeEnvFile(path.join(projectDir, 'frontend', '.env.local'), frontendEnv);
+  writeEnvFile(path.join(projectDir, 'frontend', '.env.local'), `
+# NodePress Frontend — used only in Next.js server components (not exposed to the browser)
+
+# URL of the running backend (no trailing slash)
+BACKEND_URL="http://localhost:3000"
+`);
   ok('frontend/.env.local generated');
 
   // ── Write root .env (for Docker Compose) ──────────────────────────────────
-  const rootEnv = {
-    DB_PASSWORD:   dbPassword,
-    JWT_SECRET:    jwtSecret,
-    CORS_ORIGIN:   'http://localhost',
-    APP_URL:       'http://localhost:3000',
-    SITE_URL:      'http://localhost',
-  };
-  writeEnvFile(path.join(projectDir, '.env'), rootEnv);
+  writeEnvFile(path.join(projectDir, '.env'), `
+# Root .env — used by Docker Compose only (docker-compose.yml)
+# Do not use this file for backend or frontend configuration directly.
+
+DB_PASSWORD="${dbPassword}"
+JWT_SECRET="${jwtSecret}"
+CORS_ORIGIN="http://localhost"
+APP_URL="http://localhost:3000"
+SITE_URL="http://localhost"
+`);
   ok('.env generated for Docker Compose');
 
-  // ── Install dependencies ───────────────────────────────────────────────────
-  info('Installing backend dependencies …');
-  run('npm install', path.join(projectDir, 'backend'), 'inherit');
-  ok('Backend dependencies installed');
-
-  info('Installing frontend dependencies …');
-  run('npm install', path.join(projectDir, 'frontend'), 'inherit');
-  ok('Frontend dependencies installed');
+  // ── Install dependencies (parallel) ───────────────────────────────────────
+  info('Installing backend + frontend dependencies in parallel …');
+  try {
+    await installBoth(
+      path.join(projectDir, 'backend'),
+      path.join(projectDir, 'frontend'),
+    );
+    ok('Dependencies installed');
+  } catch (err) {
+    warn(`Dependency install failed: ${err.message}`);
+    warn('Run "npm install" manually inside backend/ and frontend/');
+  }
 
   // ── Done ───────────────────────────────────────────────────────────────────
   log('');
