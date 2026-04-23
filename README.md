@@ -32,7 +32,7 @@ Open source · Free forever · Production ready in 10 minutes</p>
 
 ---
 
-## Get running in 60 seconds
+## Get running in 5 minutes
 
 ```bash
 npx create-nodepress-app my-project
@@ -115,7 +115,7 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 |---|:---:|:---:|:---:|:---:|
 | **Price** | Free forever | Free / $499+/mo | $300+/mo | Free / $99+/mo |
 | **Self-hosted** | ✅ | ✅ | ❌ | ❌ |
-| **Setup time** | ~10 min | 2–4 hrs | 5 min | 30 min |
+| **Setup time** | ~5 min | 2–4 hrs | 5 min | 30 min |
 | **Docker required (dev)** | ❌ No | ✅ Yes | N/A | N/A |
 | **REST API** | ✅ | ✅ | ✅ | ✅ |
 | **GraphQL API** | ✅ | ✅ | ✅ | ✅ |
