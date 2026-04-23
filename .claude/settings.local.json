@@ -61,7 +61,10 @@
       "Bash(git stash *)",
       "Bash(git -C D:/xampp/htdocs/nodepress add -A)",
       "Bash(git -C D:/xampp/htdocs/nodepress commit -m 'remove Karthik Paulraj name, replace with BuildWithKode')",
-      "Bash(git -C D:/xampp/htdocs/nodepress push origin main)"
+      "Bash(git -C D:/xampp/htdocs/nodepress push origin main)",
+      "Bash(git -C /Volumes/PortableSSD/projects/nodepress add README.md)",
+      "Bash(git -C /Volumes/PortableSSD/projects/nodepress commit -m \"update setup time to ~5 min and fix header in README\")",
+      "Bash(git -C /Volumes/PortableSSD/projects/nodepress push origin main)"
     ]
   }
 }
