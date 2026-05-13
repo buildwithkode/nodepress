@@ -64,7 +64,23 @@
       "Bash(git -C D:/xampp/htdocs/nodepress push origin main)",
       "Bash(git -C /Volumes/PortableSSD/projects/nodepress add README.md)",
       "Bash(git -C /Volumes/PortableSSD/projects/nodepress commit -m \"update setup time to ~5 min and fix header in README\")",
-      "Bash(git -C /Volumes/PortableSSD/projects/nodepress push origin main)"
+      "Bash(git -C /Volumes/PortableSSD/projects/nodepress push origin main)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/prisma/schema.prisma /Volumes/PortableSSD/projects/mynodepress/backend/prisma/schema.prisma)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/src/forms/types/form-field.types.ts /Volumes/PortableSSD/projects/mynodepress/backend/src/forms/types/form-field.types.ts)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/src/mail/mail.service.ts /Volumes/PortableSSD/projects/mynodepress/backend/src/mail/mail.service.ts)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/src/forms/actions/email.action.ts /Volumes/PortableSSD/projects/mynodepress/backend/src/forms/actions/email.action.ts)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/src/forms/actions/actions.service.ts /Volumes/PortableSSD/projects/mynodepress/backend/src/forms/actions/actions.service.ts)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/frontend/app/\\\\\\(admin\\\\\\)/forms/_components/FormBuilder.tsx /Volumes/PortableSSD/projects/mynodepress/frontend/app/\\\\\\(admin\\\\\\)/forms/_components/FormBuilder.tsx)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/frontend/app/\\\\\\(admin\\\\\\)/forms/\\\\[id\\\\]/edit/page.tsx /Volumes/PortableSSD/projects/mynodepress/frontend/app/\\\\\\(admin\\\\\\)/forms/\\\\[id\\\\]/edit/page.tsx)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/frontend/app/\\\\\\(admin\\\\\\)/forms/\\\\[id\\\\]/submissions/page.tsx /Volumes/PortableSSD/projects/mynodepress/frontend/app/\\\\\\(admin\\\\\\)/forms/\\\\[id\\\\]/submissions/page.tsx)",
+      "Bash(git reset *)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/frontend/app/\\\\\\(docs\\\\\\)/docs/page.tsx /Volumes/PortableSSD/projects/mynodepress/frontend/app/\\\\\\(docs\\\\\\)/docs/page.tsx)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/CHANGELOG.md /Volumes/PortableSSD/projects/mynodepress/CHANGELOG.md)",
+      "Bash(mkdir -p /Volumes/PortableSSD/projects/mynodepress/backend/src/settings/dto)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/src/settings/dto/upsert-settings.dto.ts /Volumes/PortableSSD/projects/mynodepress/backend/src/settings/dto/upsert-settings.dto.ts)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/src/settings/settings.service.ts /Volumes/PortableSSD/projects/mynodepress/backend/src/settings/settings.service.ts)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/src/settings/settings.controller.ts /Volumes/PortableSSD/projects/mynodepress/backend/src/settings/settings.controller.ts)",
+      "Bash(cp /Volumes/PortableSSD/projects/nodepress/backend/src/settings/settings.module.ts /Volumes/PortableSSD/projects/mynodepress/backend/src/settings/settings.module.ts)"
     ]
   }
 }
