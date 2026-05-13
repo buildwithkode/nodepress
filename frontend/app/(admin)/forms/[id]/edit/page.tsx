@@ -47,6 +47,7 @@ export default function EditFormPage() {
       initialFields={fields}
       initialActions={form.actions as ActionDef[]}
       initialActive={form.isActive}
+      initialCaptchaEnabled={form.captchaEnabled ?? false}
     />
   );
 }

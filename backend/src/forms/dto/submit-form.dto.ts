@@ -1,23 +1,3 @@
-import { IsObject, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
-export class SubmitFormDto {
-  @ApiProperty({
-    example: { full_name: 'Jane Doe', email: 'jane@example.com', message: 'Hello!' },
-    description: "Key/value pairs matching the form's field names",
-  })
-  @IsObject()
-  @IsNotEmpty()
-  data: Record<string, unknown>;
-
-  @ApiPropertyOptional({
-    example: 'XXXX.DUMMY.TOKEN',
-    description:
-      'Captcha token from the client-side widget ' +
-      '(cf-turnstile-response / h-captcha-response / g-recaptcha-response). ' +
-      'Required when the form has captchaEnabled=true and CAPTCHA_PROVIDER is configured.',
-  })
-  @IsOptional()
-  @IsString()
-  captchaToken?: string;
-}
+// No DTO class needed — the submit endpoint accepts a flat JSON object of
+// arbitrary form fields. Captcha token is read from the X-Captcha-Token header.
+// Validation is handled inside SubmissionService against the form's field schema.

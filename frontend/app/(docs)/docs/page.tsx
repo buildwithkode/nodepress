@@ -1615,7 +1615,7 @@ X-RateLimit-Reset: 60       # seconds until window resets
                   {[
                     ['Step 1 — backend/.env', 'Set CAPTCHA_PROVIDER=turnstile and CAPTCHA_SECRET_KEY=your_server_secret'],
                     ['Step 2 — create/update form', 'Set captchaEnabled=true on the form via the API or admin panel'],
-                    ['Step 3 — frontend', 'Render the captcha widget and pass the token as captchaToken in the submit body'],
+                    ['Step 3 — frontend', 'Render the captcha widget and pass the token in the X-Captcha-Token request header'],
                   ].map(([step, desc]) => (
                     <div key={step} className="flex gap-3">
                       <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
@@ -1627,12 +1627,12 @@ X-RateLimit-Reset: 60       # seconds until window resets
 CAPTCHA_PROVIDER=turnstile
 CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_secret_here
 
-# Submit body — include captchaToken alongside your form data
+# Submit request — pass the widget token as a header, body stays flat
 POST /api/submit/contact-us
-{
-  "data":         { "full_name": "Jane", "email": "jane@example.com" },
-  "captchaToken": "XXXX.DUMMY.TOKEN.from.widget"
-}`} />
+X-Captcha-Token: XXXX.DUMMY.TOKEN.from.widget
+Content-Type: application/json
+
+{ "full_name": "Jane", "email": "jane@example.com" }`} />
               </div>
             </div>
 
@@ -1643,13 +1643,12 @@ POST /api/submit/contact-us
             </p>
             <CodeBlock code={`POST /api/submit/{slug}
 Content-Type: application/json
+X-Captcha-Token: <token>   ← only needed when captchaEnabled=true on the form
 
 {
-  "data": {
-    "full_name": "Jane Doe",
-    "email": "jane@example.com",
-    "message": "Hello!"
-  }
+  "full_name": "Jane Doe",
+  "email": "jane@example.com",
+  "message": "Hello!"
 }
 
 // Success response
@@ -1671,23 +1670,25 @@ Content-Type: application/json
               cURL: `curl -X POST ${baseUrl}/api/submit/contact-us \\
   -H "Content-Type: application/json" \\
   -d '{
-    "data": {
-      "full_name": "Jane Doe",
-      "email": "jane@example.com",
-      "subject": "Support",
-      "message": "Hello, I need help."
-    }
-  }'`,
+    "full_name": "Jane Doe",
+    "email": "jane@example.com",
+    "subject": "Support",
+    "message": "Hello, I need help."
+  }'
+
+# With captcha (only when captchaEnabled=true on the form):
+curl -X POST ${baseUrl}/api/submit/contact-us \\
+  -H "Content-Type: application/json" \\
+  -H "X-Captcha-Token: XXXX.TOKEN.from.widget" \\
+  -d '{ "full_name": "Jane Doe", "email": "jane@example.com" }'`,
               JavaScript: `const res = await fetch('${baseUrl}/api/submit/contact-us', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    data: {
-      full_name: 'Jane Doe',
-      email: 'jane@example.com',
-      subject: 'Support',
-      message: 'Hello, I need help.',
-    },
+    full_name: 'Jane Doe',
+    email: 'jane@example.com',
+    subject: 'Support',
+    message: 'Hello, I need help.',
   }),
 });
 
@@ -1712,7 +1713,7 @@ export default function ContactForm() {
     const res = await fetch('${baseUrl}/api/submit/contact-us', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: Object.fromEntries(form) }),
+      body: JSON.stringify(Object.fromEntries(form)),
     });
 
     setStatus(res.ok ? 'done' : 'error');
@@ -1736,11 +1737,9 @@ export default function ContactForm() {
 response = requests.post(
     '${baseUrl}/api/submit/contact-us',
     json={
-        'data': {
-            'full_name': 'Jane Doe',
-            'email': 'jane@example.com',
-            'message': 'Hello from Python!',
-        }
+        'full_name': 'Jane Doe',
+        'email': 'jane@example.com',
+        'message': 'Hello from Python!',
     }
 )
 
@@ -1751,11 +1750,9 @@ else:
     print('Errors:', result.get('errors'))`,
               PHP: `<?php
 $payload = json_encode([
-    'data' => [
-        'full_name' => 'Jane Doe',
-        'email'     => 'jane@example.com',
-        'message'   => 'Hello from PHP!',
-    ]
+    'full_name' => 'Jane Doe',
+    'email'     => 'jane@example.com',
+    'message'   => 'Hello from PHP!',
 ]);
 
 $ctx = stream_context_create([

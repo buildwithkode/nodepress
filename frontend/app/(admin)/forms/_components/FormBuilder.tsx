@@ -46,12 +46,13 @@ export type ActionDef = EmailAction | WebhookAction;
 
 export interface FormBuilderProps {
   mode: 'new' | 'edit';
-  initialName?:    string;
-  initialSlug?:    string;
-  initialFields?:  FormField[];
-  initialActions?: ActionDef[];
-  initialActive?:  boolean;
-  formId?:         number;
+  initialName?:           string;
+  initialSlug?:           string;
+  initialFields?:         FormField[];
+  initialActions?:        ActionDef[];
+  initialActive?:         boolean;
+  initialCaptchaEnabled?: boolean;
+  formId?:                number;
 }
 
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
@@ -74,19 +75,21 @@ const toFieldKey = (v: string) =>
 
 export default function FormBuilder({
   mode,
-  initialName    = '',
-  initialSlug    = '',
-  initialFields  = [{ name: '', type: 'text', label: '', required: false }],
-  initialActions = [],
-  initialActive  = true,
+  initialName           = '',
+  initialSlug           = '',
+  initialFields         = [{ name: '', type: 'text', label: '', required: false }],
+  initialActions        = [],
+  initialActive         = true,
+  initialCaptchaEnabled = false,
   formId,
 }: FormBuilderProps) {
   const router = useRouter();
 
-  const [name,     setName]     = useState(initialName);
-  const [slug,     setSlug]     = useState(initialSlug);
-  const [slugDirty,setSlugDirty]= useState(mode === 'edit');
-  const [isActive, setIsActive] = useState(initialActive);
+  const [name,            setName]           = useState(initialName);
+  const [slug,            setSlug]           = useState(initialSlug);
+  const [slugDirty,       setSlugDirty]      = useState(mode === 'edit');
+  const [isActive,        setIsActive]       = useState(initialActive);
+  const [captchaEnabled,  setCaptchaEnabled] = useState(initialCaptchaEnabled);
   const [fields,    setFields]    = useState<FormField[]>(initialFields);
   // Parallel array: true = user manually typed the key, stop auto-deriving from label
   const [keyDirty,  setKeyDirty]  = useState<boolean[]>(
@@ -184,6 +187,7 @@ export default function FormBuilder({
         return false;
       }),
       isActive,
+      captchaEnabled,
     };
 
     setSubmitting(true);
@@ -271,6 +275,28 @@ export default function FormBuilder({
                   onCheckedChange={setIsActive}
                   id="is-active"
                   className="data-checked:bg-emerald-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-md border px-4 py-3">
+              <div>
+                <p className="text-sm font-medium">Captcha Protection</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {captchaEnabled
+                    ? 'Requires X-Captcha-Token header on every submission'
+                    : 'No captcha required — anyone can submit'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className={`text-xs font-medium ${captchaEnabled ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                  {captchaEnabled ? 'On' : 'Off'}
+                </span>
+                <Switch
+                  checked={captchaEnabled}
+                  onCheckedChange={setCaptchaEnabled}
+                  id="captcha-enabled"
+                  className="data-checked:bg-amber-500"
                 />
               </div>
             </div>
