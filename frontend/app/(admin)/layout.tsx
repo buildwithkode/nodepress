@@ -26,6 +26,7 @@ import {
   Zap,
   Puzzle,
   Code2,
+  Settings2,
 } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
@@ -62,7 +63,8 @@ const ALL_NAV_GROUPS = [
     label: 'Team',
     adminOnly: true,
     items: [
-      { href: '/users', label: 'Users', icon: Users },
+      { href: '/users',    label: 'Users',    icon: Users    },
+      { href: '/settings', label: 'Settings', icon: Settings2 },
     ],
   },
   {

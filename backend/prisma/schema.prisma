@@ -260,3 +260,20 @@ model FormSubmission {
   @@index([formId, createdAt(sort: Desc)])
   @@map("form_submissions")
 }
+
+// ─── Site Settings ────────────────────────────────────────────────────────────
+
+model SiteSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique  // machine-readable key, e.g. "site_name"
+  value     String   @default("")
+  label     String   @default("")  // human-readable label shown in admin UI
+  type      String   @default("text")  // text | textarea | url | number | boolean
+  group     String   @default("General")
+  sort      Int      @default(0)  // display order within group
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+  @@map("site_settings")
+}

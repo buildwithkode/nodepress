@@ -30,6 +30,7 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { GraphqlModule } from './graphql/graphql.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { MailModule } from './mail/mail.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { MailModule } from './mail/mail.module';
     MediaModule,
     ApiKeysModule,
     FormsModule,
+    SettingsModule,
     HealthModule,
     SchedulerModule,    // Cron: auto-publishes entries when publishAt passes
     SeoModule,          // GET /sitemap.xml and GET /robots.txt
