@@ -10,6 +10,17 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [1.5.1] — 2026-05-13
+
+### Changed
+- **Form submit API — flat payload** — `POST /api/submit/:slug` now accepts form fields as a flat JSON object directly in the body (e.g. `{ "name": "Jane", "email": "..." }`) instead of wrapped in a `data` key. This is a **breaking change** for any client sending `{ "data": { ... } }`.
+- **Captcha token moved to header** — the captcha widget token is now passed via the `X-Captcha-Token` request header instead of a `captchaToken` body field, eliminating any risk of collision with form field names. Clients that don't use captcha are unaffected.
+- **Admin — captcha toggle** — the form builder now shows a **Captcha Protection** toggle (on/off) so admins can enable per-form captcha without touching the API.
+
+### No migration required
+
+---
+
 ## [1.5.0] — 2026-04-19
 
 ### Added
@@ -70,7 +81,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **Form spam protection** — 3-layer defence on every `POST /api/submit/:slug`:
   - Rate limiting (20 req/min per IP via `@nestjs/throttler`)
   - Honeypot field (`_honey`) — non-empty value silently drops submission; bots never notified
-  - Captcha verification — set `CAPTCHA_PROVIDER` (turnstile | hcaptcha | recaptcha) + `CAPTCHA_SECRET_KEY` in env; enable per-form with `captchaEnabled: true`; passes `captchaToken` from the client widget to the server for verification; fails open in dev if no provider is configured
+  - Captcha verification — set `CAPTCHA_PROVIDER` (turnstile | hcaptcha | recaptcha) + `CAPTCHA_SECRET_KEY` in env; enable per-form with `captchaEnabled: true`; pass the widget token via `X-Captcha-Token` request header; fails open in dev if no provider is configured
 - **Nested populate (dot-notation)** — `?populate=author,author.company,author.company.address` resolves relation chains up to 3 levels deep with one batched DB query per depth level; shared `populate.util.ts` used by both REST and admin APIs; caching bypassed when `?populate` is present
 - **Socket.io Redis adapter** — when `REDIS_URL` is set, `@socket.io/redis-adapter` is dynamically attached in `RealtimeGateway.afterInit()`; syncs rooms and events across all backend instances; fails open (falls back to in-memory adapter on error, logs a warning)
 - **Configurable audit log retention** — `AUDIT_LOG_RETENTION_DAYS` env var (default 90); scheduler reads the env at runtime; documented in `.env.example` and self-hosting table
