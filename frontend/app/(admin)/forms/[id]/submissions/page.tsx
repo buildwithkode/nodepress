@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronDown, ChevronRight, Inbox } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Inbox, Download, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { SearchInput } from '@/components/ui/search-input';
 import { Pagination } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
+  AlertDialogFooter, AlertDialogTitle, AlertDialogDescription,
+  AlertDialogAction, AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 interface Submission {
   id: number;
@@ -51,6 +56,32 @@ export default function SubmissionsPage() {
 
   useEffect(() => { setPage(1); }, [search]);
 
+  const handleDelete = async (submissionId: number) => {
+    try {
+      await api.delete(`/forms/${id}/submissions/${submissionId}`);
+      setRows((prev) => prev.filter((r) => r.id !== submissionId));
+      if (expanded === submissionId) setExpanded(null);
+      toast.success('Submission deleted');
+    } catch {
+      toast.error('Failed to delete submission');
+    }
+  };
+
+  const handleExport = () => {
+    const token = document.cookie.match(/np_token=([^;]+)/)?.[1];
+    const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+    api.get(`/forms/${id}/submissions/export`, { headers, responseType: 'blob' })
+      .then((res) => {
+        const url  = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `${form?.slug ?? id}-submissions.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => toast.error('Export failed'));
+  };
+
   const filtered = rows.filter((r) => {
     const values = Object.values(r.data).join(' ').toLowerCase();
     return values.includes(search.toLowerCase());
@@ -85,12 +116,17 @@ export default function SubmissionsPage() {
             <Badge variant="secondary" className="font-mono text-xs">{form.slug}</Badge>
           </>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
           <SearchInput
             placeholder="Search submissions…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {rows.length > 0 && (
+            <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5 shrink-0">
+              <Download className="h-3.5 w-3.5" /> Export CSV
+            </Button>
+          )}
         </div>
       </div>
 
@@ -124,7 +160,7 @@ export default function SubmissionsPage() {
         <div className="rounded-lg border overflow-hidden">
           {/* Header row */}
           <div className="grid bg-muted/50 border-b text-xs font-semibold uppercase tracking-wide text-muted-foreground px-4 py-2"
-            style={{ gridTemplateColumns: `1fr repeat(${Math.min(columns.length, 3)}, 1fr) 120px 32px` }}
+            style={{ gridTemplateColumns: `1fr repeat(${Math.min(columns.length, 3)}, 1fr) 120px 64px` }}
           >
             {columns.slice(0, 3).map((col) => (
               <span key={col}>{labelFor(col)}</span>
@@ -141,7 +177,7 @@ export default function SubmissionsPage() {
                 {/* Summary row */}
                 <div
                   className="grid items-center px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
-                  style={{ gridTemplateColumns: `1fr repeat(${Math.min(columns.length, 3)}, 1fr) 120px 32px` }}
+                  style={{ gridTemplateColumns: `1fr repeat(${Math.min(columns.length, 3)}, 1fr) 120px 64px` }}
                   onClick={() => setExpanded(isOpen ? null : row.id)}
                 >
                   {columns.slice(0, 3).map((col) => (
@@ -158,9 +194,28 @@ export default function SubmissionsPage() {
                   <span className="text-xs text-muted-foreground">
                     {new Date(row.createdAt).toLocaleString()}
                   </span>
-                  {isOpen
-                    ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                  <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                    <AlertDialog>
+                      <AlertDialogTrigger render={
+                        <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" />
+                      }>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete this submission?</AlertDialogTitle>
+                          <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction variant="destructive" onClick={() => handleDelete(row.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    {isOpen
+                      ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                  </div>
                 </div>
 
                 {/* Expanded detail */}

@@ -185,6 +185,52 @@ export class MailService implements OnModuleInit {
     await this.send({ to, subject, text: textLines, html, replyTo });
   }
 
+  async sendAutoReply(
+    to: string,
+    subject: string,
+    data: Record<string, unknown>,
+    customBody?: string,
+  ): Promise<void> {
+    if (!this.transporter) {
+      this.logger.warn(`[AutoReply] No SMTP configured — skipping auto-reply to ${to}`);
+      return;
+    }
+
+    const rows = Object.entries(data)
+      .map(([k, v]) =>
+        `<tr>
+          <td style="padding:6px 12px;font-weight:600;color:#555;white-space:nowrap;border-bottom:1px solid #f0f0f0">${k}</td>
+          <td style="padding:6px 12px;color:#1a1a1a;border-bottom:1px solid #f0f0f0">${String(v ?? '')}</td>
+         </tr>`,
+      )
+      .join('');
+
+    const bodyBlock = customBody
+      ? `<p style="color:#333;margin-bottom:16px">${customBody}</p>`
+      : '';
+
+    const html = `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+        <h2 style="color:#1a1a1a;margin-bottom:16px">${subject}</h2>
+        ${bodyBlock}
+        <p style="color:#555;margin-bottom:12px">Here is a copy of your submission:</p>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e5e5e5;border-radius:6px;overflow:hidden">
+          <tbody>${rows}</tbody>
+        </table>
+        <p style="color:#999;font-size:12px;margin-top:16px">
+          This is an automated confirmation from NodePress.
+        </p>
+      </div>`;
+
+    const textLines = [
+      customBody ?? '',
+      'Your submission:',
+      ...Object.entries(data).map(([k, v]) => `${k}: ${String(v ?? '')}`),
+    ].filter(Boolean).join('\n');
+
+    await this.send({ to, subject, text: textLines, html });
+  }
+
   /**
    * Generic low-level send. All public methods funnel through here.
    * Never throws — logs errors only.

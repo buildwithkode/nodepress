@@ -15,13 +15,20 @@ export interface FormField {
 // ---------------------------------------------------------------------------
 // Action definitions stored in Form.actions (JSON array)
 // ---------------------------------------------------------------------------
-export type ActionType = 'email' | 'webhook';
+export type ActionType = 'email' | 'webhook' | 'email-reply';
 
 export interface EmailAction {
   type: 'email';
   to: string;                // recipient address
   subject: string;           // supports {{field_name}} placeholders
   replyToField?: string;     // field name whose value becomes Reply-To header
+}
+
+export interface EmailReplyAction {
+  type: 'email-reply';
+  toField: string;           // form field name that holds the submitter's email address
+  subject: string;           // supports {{field_name}} placeholders
+  body?: string;             // optional custom message shown above the submission table
 }
 
 export interface WebhookAction {
@@ -31,4 +38,4 @@ export interface WebhookAction {
   headers?: Record<string, string>;
 }
 
-export type ActionDef = EmailAction | WebhookAction;
+export type ActionDef = EmailAction | EmailReplyAction | WebhookAction;

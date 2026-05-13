@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Param, Body, Query, ParseIntPipe, UseGuards,
+  Param, Body, Query, Res, ParseIntPipe, UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 import {
   ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags,
 } from '@nestjs/swagger';
@@ -92,11 +93,41 @@ export class FormsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    await this.forms.findOne(id); // validates form exists
+    await this.forms.findOne(id);
     return this.forms.findSubmissions(
       id,
       page  ? Math.max(1, parseInt(page, 10))                 : 1,
       limit ? Math.min(200, Math.max(1, parseInt(limit, 10))) : 50,
     );
+  }
+
+  @Delete(':id/submissions/:submissionId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Delete a single submission' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'submissionId', type: Number })
+  deleteSubmission(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('submissionId', ParseIntPipe) submissionId: number,
+  ) {
+    return this.forms.deleteSubmission(id, submissionId);
+  }
+
+  @Get(':id/submissions/export')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Export all submissions as CSV' })
+  @ApiParam({ name: 'id', type: Number })
+  async exportCsv(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    const form = await this.forms.findOne(id);
+    const csv  = await this.forms.exportSubmissionsCsv(id);
+    const filename = `${form.slug}-submissions.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
   }
 }

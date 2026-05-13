@@ -26,6 +26,8 @@ export class FormsService {
           actions:        (dto.actions ?? []) as Prisma.InputJsonValue,
           isActive:       dto.isActive       ?? true,
           captchaEnabled: dto.captchaEnabled ?? false,
+          successMessage: dto.successMessage ?? null,
+          redirectUrl:    dto.redirectUrl    ?? null,
         },
       });
     } catch (err: any) {
@@ -66,6 +68,8 @@ export class FormsService {
     if (dto.name           !== undefined) data.name           = dto.name;
     if (dto.isActive       !== undefined) data.isActive       = dto.isActive;
     if (dto.captchaEnabled !== undefined) data.captchaEnabled = dto.captchaEnabled;
+    if (dto.successMessage !== undefined) data.successMessage = dto.successMessage ?? null;
+    if (dto.redirectUrl    !== undefined) data.redirectUrl    = dto.redirectUrl    ?? null;
     if (dto.fields         !== undefined) data.fields         = dto.fields  as Prisma.InputJsonValue;
     if (dto.actions        !== undefined) data.actions        = dto.actions as Prisma.InputJsonValue;
     if (dto.slug           !== undefined) {
@@ -109,6 +113,44 @@ export class FormsService {
       }),
     ]);
     return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  async deleteSubmission(formId: number, submissionId: number) {
+    const sub = await this.prisma.formSubmission.findFirst({
+      where: { id: submissionId, formId },
+    });
+    if (!sub) throw new NotFoundException(`Submission #${submissionId} not found`);
+    return this.prisma.formSubmission.delete({ where: { id: submissionId } });
+  }
+
+  async exportSubmissionsCsv(formId: number): Promise<string> {
+    const form = await this.findOne(formId);
+    const fields = form.fields as unknown as { name: string; label: string }[];
+    const submissions = await this.prisma.formSubmission.findMany({
+      where:   { formId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const columns = fields.map((f) => f.name);
+    const headers = [...fields.map((f) => f.label || f.name), 'Submitted At', 'IP'];
+
+    const escape = (v: unknown) => {
+      const s = v === null || v === undefined ? '' : String(v);
+      return s.includes(',') || s.includes('"') || s.includes('\n')
+        ? `"${s.replace(/"/g, '""')}"`
+        : s;
+    };
+
+    const rows = submissions.map((sub) => {
+      const data = sub.data as Record<string, unknown>;
+      return [
+        ...columns.map((col) => escape(data[col])),
+        escape(new Date(sub.createdAt).toISOString()),
+        escape(sub.ip),
+      ].join(',');
+    });
+
+    return [headers.map(escape).join(','), ...rows].join('\n');
   }
 
   /** Recent submissions across all forms — used by the dashboard */

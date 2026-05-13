@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsArray, IsUrl } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateFormDto {
@@ -50,4 +50,20 @@ export class CreateFormDto {
   @IsOptional()
   @IsBoolean()
   captchaEnabled?: boolean;
+
+  @ApiPropertyOptional({
+    example: 'Thanks! We will get back to you within 24 hours.',
+    description: 'Message returned to the client after a successful submission. Defaults to "Your submission has been received."',
+  })
+  @IsOptional()
+  @IsString()
+  successMessage?: string;
+
+  @ApiPropertyOptional({
+    example: 'https://example.com/thank-you',
+    description: 'Optional URL returned to the client after a successful submission. The client is responsible for performing the redirect.',
+  })
+  @IsOptional()
+  @IsUrl({}, { message: 'redirectUrl must be a valid URL' })
+  redirectUrl?: string;
 }

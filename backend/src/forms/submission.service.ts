@@ -61,11 +61,13 @@ export class SubmissionService {
       // already logged inside ActionsService
     });
 
-    return {
-      success: true,
+    const response: Record<string, unknown> = {
+      success:      true,
       submissionId: submission.id,
-      message: 'Your submission has been received.',
+      message:      form.successMessage ?? 'Your submission has been received.',
     };
+    if (form.redirectUrl) response.redirectUrl = form.redirectUrl;
+    return response;
   }
 
   // ── Validation ────────────────────────────────────────────────────────────

@@ -48,6 +48,8 @@ export default function EditFormPage() {
       initialActions={form.actions as ActionDef[]}
       initialActive={form.isActive}
       initialCaptchaEnabled={form.captchaEnabled ?? false}
+      initialSuccessMessage={form.successMessage ?? ''}
+      initialRedirectUrl={form.redirectUrl ?? ''}
     />
   );
 }

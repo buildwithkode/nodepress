@@ -239,6 +239,8 @@ model Form {
   actions        Json             @default("[]") // ActionDef[] — email | webhook
   isActive       Boolean          @default(true)
   captchaEnabled Boolean          @default(false) // require captcha token on submit (needs CAPTCHA_PROVIDER env)
+  successMessage String?          // shown after successful submission (null = default message)
+  redirectUrl    String?          // optional URL returned to client after successful submission
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   submissions    FormSubmission[]
