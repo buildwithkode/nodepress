@@ -10,14 +10,23 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ---
 
-## [1.5.1] — 2026-05-13
+## [1.6.0] — 2026-05-13
+
+### Added
+- **Auto-reply email action** — new `email-reply` action type sends a confirmation email to the person who submitted the form. Admin picks which email field holds the submitter's address, sets a subject and optional custom message. Supports `{{field_name}}` placeholders in both subject and body.
+- **Custom success message per form** — `successMessage` field on `Form`. Returned as `message` in the submission response. Leave blank to use the default "Your submission has been received."
+- **Redirect URL per form** — `redirectUrl` field on `Form`. When set, returned as `redirectUrl` in the submission response. The client is responsible for performing the redirect.
+- **Delete individual submissions** — `DELETE /api/forms/:id/submissions/:submissionId` endpoint. Trash icon added to each submission row in the admin UI with a confirmation dialog.
+- **Export submissions as CSV** — `GET /api/forms/:id/submissions/export` returns a CSV file with one column per form field plus Submitted At and IP. "Export CSV" button added to the submissions page.
+- **Drag-and-drop field reordering** — form fields in the builder can be reordered by dragging the grip handle. Order is preserved on save.
 
 ### Changed
 - **Form submit API — flat payload** — `POST /api/submit/:slug` now accepts form fields as a flat JSON object directly in the body (e.g. `{ "name": "Jane", "email": "..." }`) instead of wrapped in a `data` key. This is a **breaking change** for any client sending `{ "data": { ... } }`.
 - **Captcha token moved to header** — the captcha widget token is now passed via the `X-Captcha-Token` request header instead of a `captchaToken` body field, eliminating any risk of collision with form field names. Clients that don't use captcha are unaffected.
 - **Admin — captcha toggle** — the form builder now shows a **Captcha Protection** toggle (on/off) so admins can enable per-form captcha without touching the API.
 
-### No migration required
+### Migration required
+Run `npx prisma migrate deploy` to apply the migration that adds `successMessage` and `redirectUrl` columns to the `forms` table.
 
 ---
 

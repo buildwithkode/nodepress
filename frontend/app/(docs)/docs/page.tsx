@@ -1514,7 +1514,8 @@ X-RateLimit-Reset: 60       # seconds until window resets
             <p className="text-muted-foreground leading-relaxed mb-4">
               The Forms module lets you build dynamic contact forms from the admin panel and collect
               submissions from any website, app, or platform — no backend code required.
-              Submissions are stored in the database and can trigger <strong className="text-foreground">email notifications</strong> or{' '}
+              Submissions are stored in the database and can trigger <strong className="text-foreground">email notifications</strong>,{' '}
+              <strong className="text-foreground">auto-reply emails</strong> to the submitter, or{' '}
               <strong className="text-foreground">webhook calls</strong> automatically.
             </p>
 
@@ -1523,10 +1524,11 @@ X-RateLimit-Reset: 60       # seconds until window resets
               <h4 className="font-semibold text-sm">How it works</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
                 {[
-                  ['1. Create a form', 'Go to Forms → New Form. Give it a name, a URL-safe slug, and add your fields.'],
-                  ['2. Configure actions', 'Optionally add an Email action (sends a notification on each submission) or a Webhook action (POSTs data to any URL).'],
-                  ['3. Call the submit API', 'Call POST /api/submit/:slug from any platform — React, React Native, curl, or any HTTP client.'],
-                  ['4. View submissions', 'Every submission is stored. Open Forms → click the submission count → expand any row to see full details.'],
+                  ['1. Create a form', 'Go to Forms → New Form. Give it a name, a URL-safe slug, and add your fields. Drag handles let you reorder fields.'],
+                  ['2. Configure actions', 'Optionally add a Notify Email (admin notification), Auto-reply (confirmation to submitter), or Webhook action.'],
+                  ['3. Set submission response', 'Optionally set a custom success message and redirect URL returned after each submission.'],
+                  ['4. Call the submit API', 'Call POST /api/submit/:slug from any platform — React, React Native, curl, or any HTTP client.'],
+                  ['5. View submissions', 'Every submission is stored. Open Forms → click the count → expand any row to see full details, delete individual submissions, or export all as CSV.'],
                 ].map(([step, desc]) => (
                   <div key={step} className="flex gap-3">
                     <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
@@ -1566,18 +1568,26 @@ X-RateLimit-Reset: 60       # seconds until window resets
             <h3 className="font-semibold mb-3">Actions</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <div className="rounded-xl border border-border p-4">
-                <p className="text-sm font-semibold mb-1 text-blue-400">Email Action</p>
+                <p className="text-sm font-semibold mb-1 text-blue-400">Notify Email</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Sends an email on every submission. Set the recipient address and subject.
+                  Sends a notification email to the admin on every submission. Set the recipient address and subject.
                   Use <IC>{'{{field_name}}'}</IC> in the subject to insert submitted values.
-                  Optionally set a Reply-To field (e.g. the user's email field) so you can reply directly.
+                  Optionally set a Reply-To field so you can reply directly to the submitter.
                 </p>
               </div>
               <div className="rounded-xl border border-border p-4">
+                <p className="text-sm font-semibold mb-1 text-cyan-400">Auto-reply</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Sends a confirmation email back to the person who submitted the form.
+                  Pick which email field holds their address, set a subject, and optionally add a custom message shown above their submission copy.
+                  Supports <IC>{'{{field_name}}'}</IC> in both subject and body.
+                </p>
+              </div>
+              <div className="rounded-xl border border-border p-4 sm:col-span-2">
                 <p className="text-sm font-semibold mb-1 text-purple-400">Webhook Action</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   POSTs the submission data as JSON to any URL — Slack, Zapier, Make, your own server.
-                  Body format: <IC>{'{ "data": { ...fields } }'}</IC>. Supports POST or PUT method.
+                  Body format: <IC>{'{ ...fields }'}</IC>. Supports POST or PUT method.
                 </p>
               </div>
             </div>
@@ -1655,7 +1665,8 @@ X-Captcha-Token: <token>   ← only needed when captchaEnabled=true on the form
 {
   "success": true,
   "submissionId": 42,
-  "message": "Your submission has been received."
+  "message": "Thanks! We will get back to you within 24 hours.",  // custom successMessage or default
+  "redirectUrl": "https://example.com/thank-you"                  // only present if set on the form
 }
 
 // Validation error response (400)
@@ -1699,6 +1710,8 @@ if (!res.ok) {
   console.error(result.errors);
 } else {
   console.log('Submitted! ID:', result.submissionId);
+  // Handle optional redirect
+  if (result.redirectUrl) window.location.href = result.redirectUrl;
 }`,
               React: `import { useState } from 'react';
 
@@ -2313,8 +2326,10 @@ X-API-Key: np_abc123...`} />
               <Endpoint method="GET"    path="/api/forms/:id"                  desc="Get a single form" auth />
               <Endpoint method="PUT"    path="/api/forms/:id"                  desc="Update a form" auth />
               <Endpoint method="DELETE" path="/api/forms/:id"                  desc="Delete a form and all its submissions" auth />
-              <Endpoint method="GET"    path="/api/forms/:id/submissions"      desc="List all submissions for a form — ?page, ?limit" auth />
-              <Endpoint method="GET"    path="/api/forms/submissions/recent"   desc="Last 6 submissions across all forms (dashboard)" auth />
+              <Endpoint method="GET"    path="/api/forms/:id/submissions"                desc="List all submissions for a form — ?page, ?limit" auth />
+              <Endpoint method="DELETE" path="/api/forms/:id/submissions/:submissionId"  desc="Delete a single submission" auth />
+              <Endpoint method="GET"    path="/api/forms/:id/submissions/export"          desc="Export all submissions as CSV download" auth />
+              <Endpoint method="GET"    path="/api/forms/submissions/recent"              desc="Last 6 submissions across all forms (dashboard)" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Response format</h3>
