@@ -69,6 +69,7 @@
           <li><a href="#media"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Media Library</a></li>
           <li><a href="#api-keys"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Keys</a></li>
           <li><a href="#forms"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Forms</a></li>
+          <li><a href="#settings"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Site Settings</a></li>
           <li><a href="#webhooks"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Webhooks</a></li>
           <li><a href="#graphql"       class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">GraphQL API</a></li>
           <li><a href="#realtime"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Real-time</a></li>
@@ -86,7 +87,7 @@
       <!-- Hero -->
       <div class="mb-14">
         <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">v1.4</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">v1.6</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Self-hosted</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">REST API</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">GraphQL</span>
@@ -442,14 +443,96 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
           </div>
           <h2 class="text-2xl font-bold text-white">Forms</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Build forms in the admin panel and embed them in your frontend. Submissions are stored in the database and can trigger email or webhook actions.</p>
-        <div class="code-block" data-code="// Submit a form from your frontend
+        <p class="text-zinc-400 leading-relaxed mb-6">Build forms in the admin panel and embed them in your frontend. Submissions are stored in the database and can trigger email notifications, auto-reply emails, or webhook actions — all configured per-form.</p>
+
+        <h3 class="font-semibold mb-3 text-white">Submit a form</h3>
+        <p class="text-sm text-zinc-400 mb-3">Send a flat JSON object — no wrapper needed. Each key is a form field name. Pass a captcha token in the <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-Captcha-Token</code> header if captcha is enabled on the form.</p>
+        <div class="code-block" data-code="// POST /api/submit/:slug  — no auth required
 fetch('https://your-domain.com/api/submit/contact', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ name: 'John', email: 'john@example.com', message: 'Hello!' })
-});"></div>
-        <p class="text-sm text-zinc-400 mt-4">Form field types: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">text</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">email</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">textarea</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">number</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">select</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">radio</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">checkbox</code></p>
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Captcha-Token': 'CAPTCHA_TOKEN_HERE'   // only if form has captcha enabled
+  },
+  body: JSON.stringify({
+    name: 'John',
+    email: 'john@example.com',
+    message: 'Hello!'
+  })
+});
+
+// Response
+// { success: true, submissionId: 42, message: 'Your submission has been received.' }
+// If a redirect URL is configured: { ..., redirectUrl: 'https://...' }"></div>
+
+        <h3 class="font-semibold mb-3 mt-6 text-white">Field types</h3>
+        <p class="text-sm text-zinc-400 mb-3">Form field types: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">text</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">email</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">textarea</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">number</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">select</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">radio</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">checkbox</code></p>
+
+        <h3 class="font-semibold mb-3 mt-6 text-white">Actions</h3>
+        <p class="text-sm text-zinc-400 mb-3">Each form can have multiple actions that fire when a submission arrives. Actions are configured per-form in the admin panel.</p>
+        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Email Notify</p>
+            <p class="text-xs text-zinc-400">Sends a notification email to a recipient address you specify per form. Supports <code class="text-pink-400 bg-zinc-800 px-1 rounded">&#123;&#123;field_name&#125;&#125;</code> in the subject. Set Reply-To from any form field.</p>
+          </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Auto-reply</p>
+            <p class="text-xs text-zinc-400">Sends a confirmation email to the submitter. Point it at any <code class="text-pink-400 bg-zinc-800 px-1 rounded">email</code> field in your form. Includes a copy of the submitted data.</p>
+          </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Webhook</p>
+            <p class="text-xs text-zinc-400">POSTs the submission JSON to any URL. Useful for Zapier, Make, Slack, or your own endpoint.</p>
+          </div>
+        </div>
+
+        <h3 class="font-semibold mb-3 mt-6 text-white">More options</h3>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Custom success message</p>
+            <p class="text-xs text-zinc-400">Override the default "Your submission has been received." text — returned in the API response <code class="text-pink-400 bg-zinc-800 px-1 rounded">message</code> field.</p>
+          </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Redirect URL</p>
+            <p class="text-xs text-zinc-400">Return a <code class="text-pink-400 bg-zinc-800 px-1 rounded">redirectUrl</code> in the response so your frontend can redirect after submission.</p>
+          </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Captcha</p>
+            <p class="text-xs text-zinc-400">Enable per-form. Token passed in <code class="text-pink-400 bg-zinc-800 px-1 rounded">X-Captcha-Token</code> header — keeps field names clean.</p>
+          </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">CSV Export</p>
+            <p class="text-xs text-zinc-400">Download all submissions as a CSV file from the Submissions view. Each row includes all field values, IP, and timestamp.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Site Settings -->
+      <section id="settings" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M4.93 4.93A10 10 0 0 0 19.07 19.07"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Site Settings</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">A global key-value store for site-wide config — think site name, contact email, social links, feature flags. Settings are managed in the admin panel under <strong class="text-zinc-200">Team → Settings</strong> and accessible publicly via a single endpoint.</p>
+
+        <div class="grid sm:grid-cols-2 gap-4 mb-6">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Field types</p>
+            <p class="text-xs text-zinc-400">Each setting has a type: <code class="text-pink-400 bg-zinc-800 px-1 rounded">text</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">textarea</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">url</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">number</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">boolean</code>. Rendered with the appropriate input in the admin UI.</p>
+          </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Groups</p>
+            <p class="text-xs text-zinc-400">Settings are organised into groups (General, SEO, Social, Contact, Appearance, or custom). Each group renders as a card in the admin panel.</p>
+          </div>
+        </div>
+
+        <div class="code-block" data-code="// Fetch all public settings — no auth required
+const res = await fetch('https://your-domain.com/api/settings/public');
+const settings = await res.json();
+// { site_name: 'My Blog', contact_email: 'hi@example.com', twitter_url: 'https://twitter.com/...' }
+
+console.log(settings.site_name);"></div>
       </section>
 
       <!-- Webhooks -->
@@ -657,9 +740,24 @@ docker-compose -f docker-compose.prod.yml up -d"></div>
           <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/media/:id</code><p class="text-xs text-zinc-500 mt-0.5">Delete a file by ID</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
         </div>
 
+        <h3 class="font-semibold mb-3 text-sm uppercase tracking-wide text-zinc-500">Forms</h3>
+        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800">
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/submit/:slug</code><p class="text-xs text-zinc-500 mt-0.5">Submit a form — flat JSON body, captcha token in <code class="bg-zinc-800 px-1 rounded text-xs">X-Captcha-Token</code> header (no auth)</p></div></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/forms/:id/submissions</code><p class="text-xs text-zinc-500 mt-0.5">List all submissions for a form</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/forms/:id/submissions/export</code><p class="text-xs text-zinc-500 mt-0.5">Download all submissions as a CSV file</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/forms/:id/submissions/:submissionId</code><p class="text-xs text-zinc-500 mt-0.5">Delete a single submission</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
+        </div>
+
+        <h3 class="font-semibold mb-3 text-sm uppercase tracking-wide text-zinc-500">Settings</h3>
+        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800">
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/settings/public</code><p class="text-xs text-zinc-500 mt-0.5">Returns all settings as a flat <code class="bg-zinc-800 px-1 rounded text-xs">&#123; key: value &#125;</code> map — no auth required</p></div></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/settings</code><p class="text-xs text-zinc-500 mt-0.5">List all settings with metadata (key, value, label, type, group)</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-violet-500/10 text-violet-400 border-violet-500/30">PUT</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/settings</code><p class="text-xs text-zinc-500 mt-0.5">Bulk create or update settings (upsert by key)</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
+          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/settings/:key</code><p class="text-xs text-zinc-500 mt-0.5">Delete a setting by key</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
+        </div>
+
         <h3 class="font-semibold mb-3 text-sm uppercase tracking-wide text-zinc-500">Other</h3>
         <div class="rounded-xl border border-zinc-800 divide-y divide-zinc-800">
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/submit/:slug</code><p class="text-xs text-zinc-500 mt-0.5">Submit a form (no auth required)</p></div></div>
           <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/health</code><p class="text-xs text-zinc-500 mt-0.5">Health check — DB connectivity</p></div></div>
           <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/sitemap.xml</code><p class="text-xs text-zinc-500 mt-0.5">Auto-generated sitemap with all published entries</p></div></div>
           <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/docs</code><p class="text-xs text-zinc-500 mt-0.5">Interactive Swagger UI</p></div></div>
