@@ -231,39 +231,31 @@ git --version  # any version?   → skip Step 2"></div>
             <h3 class="font-semibold text-white">Create the database tables</h3>
           </div>
           <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">This command sets up all the tables NodePress needs. You only run this once.</p>
-            <div class="code-block" data-code="cd my-project/backend
-npx prisma migrate dev"></div>
+            <p class="text-sm text-zinc-400 mb-3">Run this from your project root. It creates all the tables NodePress needs. You only run this once.</p>
+            <div class="code-block" data-code="cd my-project
+npm run migrate"></div>
+            <p class="text-xs text-zinc-500 mt-2">Using a cloud database (Neon, Supabase, Railway)? Use <code class="text-pink-400 bg-zinc-800 px-1 rounded">migrate deploy</code> instead: <code class="text-pink-400 bg-zinc-800 px-1 rounded">cd backend && npx prisma migrate deploy</code></p>
             <div class="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300 mt-3">
               <strong>Getting an authentication error?</strong> The password in DATABASE_URL doesn't match your PostgreSQL password. Go back to Step 5 and check it.
             </div>
           </div>
         </div>
 
-        <!-- Step 7: Backend -->
+        <!-- Step 7: Start everything -->
         <div class="mb-8">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">7</div>
-            <h3 class="font-semibold text-white">Start the backend</h3>
+            <h3 class="font-semibold text-white">Start the dev server</h3>
           </div>
           <div class="ml-10">
-            <div class="code-block" data-code="cd my-project/backend
-npm run start:dev"></div>
-            <p class="text-xs text-zinc-500 mt-2">The backend API is now running at <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:3000</code>. Keep this terminal open.</p>
-          </div>
-        </div>
-
-        <!-- Step 8: Frontend -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">8</div>
-            <h3 class="font-semibold text-white">Start the admin panel</h3>
-          </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">Open a <strong class="text-white">new terminal window</strong> (keep the backend one running) and run:</p>
-            <div class="code-block" data-code="cd my-project/frontend
+            <p class="text-sm text-zinc-400 mb-3">Run this from your project root — it starts both backend and frontend together in one terminal:</p>
+            <div class="code-block" data-code="cd my-project
 npm run dev"></div>
-            <p class="text-xs text-zinc-500 mt-2">Admin panel is now at <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:5173</code>. Keep this terminal open too.</p>
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs mt-3 space-y-1">
+              <p><span class="text-green-400 font-medium">Backend API</span> → <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:3000</code></p>
+              <p><span class="text-blue-400 font-medium">Admin panel</span> → <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:5173</code></p>
+            </div>
+            <p class="text-xs text-zinc-500 mt-2">Need to run them separately? Use <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run dev:backend</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run dev:frontend</code> in two terminal windows.</p>
           </div>
         </div>
 

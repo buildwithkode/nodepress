@@ -421,50 +421,34 @@ git --version  # any version?   → skip Step 2`} />
               </div>
               <div className="ml-10 space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  This command creates all the tables NodePress needs inside your PostgreSQL database. You only run this once.
+                  Run this from your project root. It creates all the tables NodePress needs. You only run this once.
                 </p>
-                <CodeBlock code={`cd my-project/backend
-
-# Local PostgreSQL (recommended for development)
-npx prisma migrate dev
-
-# Cloud database — Neon, Supabase, Railway, RDS (use deploy instead)
-npx prisma migrate deploy`} />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Both commands apply all existing migrations to a fresh database.
-                  Use <IC>migrate dev</IC> locally — it also generates new migration files when you change the schema.
-                  Use <IC>migrate deploy</IC> for cloud databases — it only applies existing files and never prompts.
+                <CodeBlock code={`cd my-project
+npm run migrate`} />
+                <p className="text-xs text-muted-foreground">
+                  Using a cloud database (Neon, Supabase, Railway)? Use <IC>migrate deploy</IC> instead: <IC>cd backend && npx prisma migrate deploy</IC>
                 </p>
-                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300 mt-2">
-                  <strong>Getting an authentication error?</strong> It means the password in <IC>DATABASE_URL</IC> doesn't match your PostgreSQL password. Go back to Step 5 and double-check the password.
+                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+                  <strong>Getting an authentication error?</strong> The password in <IC>DATABASE_URL</IC> doesn't match your PostgreSQL password. Go back to Step 5 and double-check it.
                 </div>
               </div>
             </div>
 
-            {/* Step 7 — Start backend */}
+            {/* Step 7 — Start everything */}
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">7</div>
-                <h3 className="font-semibold text-foreground">Start the backend</h3>
+                <h3 className="font-semibold text-foreground">Start the dev server</h3>
               </div>
-              <div className="ml-10">
-                <CodeBlock code={`cd my-cms/backend
-npm run start:dev`} />
-                <p className="text-xs text-muted-foreground mt-2">The backend API is now running at <IC>http://localhost:3000</IC>. Keep this terminal open.</p>
-              </div>
-            </div>
-
-            {/* Step 8 — Start frontend */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">8</div>
-                <h3 className="font-semibold text-foreground">Start the admin panel</h3>
-              </div>
-              <div className="ml-10">
-                <p className="text-sm text-muted-foreground mb-3">Open a <strong className="text-foreground">new terminal window</strong> (keep the backend one running) and run:</p>
-                <CodeBlock code={`cd my-cms/frontend
+              <div className="ml-10 space-y-3">
+                <p className="text-sm text-muted-foreground">Run this from your project root — it starts both backend and frontend together in one terminal:</p>
+                <CodeBlock code={`cd my-project
 npm run dev`} />
-                <p className="text-xs text-muted-foreground mt-2">The admin panel is now running at <IC>http://localhost:5173</IC>. Keep this terminal open too.</p>
+                <div className="rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground space-y-1">
+                  <p><span className="text-green-400 font-medium">Backend API</span> → <IC>http://localhost:3000</IC></p>
+                  <p><span className="text-blue-400 font-medium">Admin panel</span> → <IC>http://localhost:5173</IC></p>
+                </div>
+                <p className="text-xs text-muted-foreground">Need to run them separately? Use <IC>npm run dev:backend</IC> and <IC>npm run dev:frontend</IC> in two terminal windows.</p>
               </div>
             </div>
 
