@@ -267,6 +267,35 @@ npm run dev"></div>
           </div>
         </div>
 
+        <!-- Root scripts reference -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            </div>
+            <h3 class="font-semibold text-white">Root scripts (shortcut)</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">The root <code class="text-pink-400 bg-zinc-800 px-1 rounded">package.json</code> has convenience scripts so you can run everything from the project root without <code class="text-pink-400 bg-zinc-800 px-1 rounded">cd</code>-ing into subdirectories:</p>
+            <div class="rounded-xl border border-zinc-800 overflow-hidden">
+              <table class="w-full text-xs">
+                <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2 font-medium text-zinc-400">Script</th><th class="text-left px-4 py-2 font-medium text-zinc-400">What it does</th></tr></thead>
+                <tbody class="divide-y divide-zinc-800">
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run dev:backend</td><td class="px-4 py-2 text-zinc-400">Start backend dev server (port 3000)</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run dev:frontend</td><td class="px-4 py-2 text-zinc-400">Start frontend dev server (port 5173)</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run build</td><td class="px-4 py-2 text-zinc-400">Build both backend and frontend for production</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run migrate</td><td class="px-4 py-2 text-zinc-400">Run Prisma migrations (<code class="text-pink-400">prisma migrate dev</code>)</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run studio</td><td class="px-4 py-2 text-zinc-400">Open Prisma Studio — visual database browser</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run install:all</td><td class="px-4 py-2 text-zinc-400">Install dependencies for backend, frontend, and CLI in one command</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:dev</td><td class="px-4 py-2 text-zinc-400">Start Docker dev stack (docker-compose up)</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:prod</td><td class="px-4 py-2 text-zinc-400">Start Docker production stack with build</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:down</td><td class="px-4 py-2 text-zinc-400">Stop all Docker containers</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- Step 9: First login -->
         <div class="mb-4">
           <div class="flex items-center gap-3 mb-3">

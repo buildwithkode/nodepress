@@ -468,6 +468,47 @@ npm run dev`} />
               </div>
             </div>
 
+            {/* Root scripts */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-7 h-7 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-sm font-bold shrink-0">⚡</div>
+                <h3 className="font-semibold text-foreground">Root scripts (shortcut)</h3>
+              </div>
+              <div className="ml-10">
+                <p className="text-sm text-muted-foreground mb-3">
+                  The root <IC>package.json</IC> has convenience scripts so you can run everything from the project root without <IC>cd</IC>-ing into subdirectories:
+                </p>
+                <div className="rounded-xl border border-border overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-muted/50 border-b border-border">
+                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Script</th>
+                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">What it does</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {[
+                        ['npm run dev:backend',  'Start backend dev server (port 3000)'],
+                        ['npm run dev:frontend', 'Start frontend dev server (port 5173)'],
+                        ['npm run build',        'Build both backend and frontend for production'],
+                        ['npm run migrate',      'Run Prisma migrations (prisma migrate dev)'],
+                        ['npm run studio',       'Open Prisma Studio — visual database browser'],
+                        ['npm run install:all',  'Install dependencies for backend, frontend, and CLI in one command'],
+                        ['npm run docker:dev',   'Start Docker dev stack (docker-compose up)'],
+                        ['npm run docker:prod',  'Start Docker production stack with build'],
+                        ['npm run docker:down',  'Stop all Docker containers'],
+                      ].map(([script, desc]) => (
+                        <tr key={script}>
+                          <td className="px-4 py-2"><IC>{script}</IC></td>
+                          <td className="px-4 py-2 text-muted-foreground">{desc}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
             {/* Step 9 — First login */}
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-3">
