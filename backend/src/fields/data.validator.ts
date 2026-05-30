@@ -7,6 +7,7 @@ import {
   SelectFieldDef,
   RepeaterFieldDef,
   FlexibleFieldDef,
+  GroupFieldDef,
   ContentSchema,
 } from './field.types';
 
@@ -87,6 +88,9 @@ export class DataValidator {
           break;
         case 'flexible':
           this.validateFlexible(value, field as FlexibleFieldDef, path, errors, partial);
+          break;
+        case 'group':
+          this.validateGroup(value, field as GroupFieldDef, path, errors, partial);
           break;
       }
     }
@@ -258,6 +262,26 @@ export class DataValidator {
         partial,
       );
     });
+  }
+
+  private validateGroup(
+    value: unknown,
+    field: GroupFieldDef,
+    path: string,
+    errors: string[],
+    partial: boolean,
+  ): void {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      errors.push(`${path}: must be an object`);
+      return;
+    }
+    this.validateFields(
+      value as Record<string, unknown>,
+      field.options.subFields as FieldDef[],
+      path,
+      errors,
+      partial,
+    );
   }
 
   private validateFlexible(

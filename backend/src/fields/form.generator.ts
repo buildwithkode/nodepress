@@ -10,6 +10,7 @@ import {
   SelectFieldDef,
   RepeaterFieldDef,
   FlexibleFieldDef,
+  GroupFieldDef,
 } from './field.types';
 
 // ─── Output shape ──────────────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ export class FormGenerator {
     repeater:   'repeater',
     flexible:   'flexible-content',
     relation:   'relation-picker',
+    group:      'group-field',
   };
 
   // ─── Public entry point ──────────────────────────────────────────────────────
@@ -112,6 +114,12 @@ export class FormGenerator {
         label: this.toLabel(layout.label, layout.name),
         fields: layout.fields.map((f) => this.buildField(f as FieldDef)),
       }));
+    }
+
+    if (field.type === 'group') {
+      base.subFields = (field as GroupFieldDef).options.subFields.map((sf) =>
+        this.buildField(sf as FieldDef),
+      );
     }
 
     return base;

@@ -75,9 +75,9 @@ export class SchemaValidator {
       return; // can't validate options without knowing the type
     }
 
-    // Complex types are not allowed inside repeater/flexible sub-fields
-    if (isSubField && (field.type === 'repeater' || field.type === 'flexible')) {
-      errors.push(`${path}.type: nested repeater/flexible fields are not supported`);
+    // Complex types are not allowed inside repeater/flexible/group sub-fields
+    if (isSubField && (field.type === 'repeater' || field.type === 'flexible' || field.type === 'group')) {
+      errors.push(`${path}.type: nested repeater/flexible/group fields are not supported`);
       return;
     }
 
@@ -116,6 +116,9 @@ export class SchemaValidator {
         break;
       case 'flexible':
         this.validateFlexibleOptions(field.options, path, errors);
+        break;
+      case 'group':
+        this.validateGroupOptions(field.options, path, errors);
         break;
     }
   }
@@ -231,6 +234,21 @@ export class SchemaValidator {
       options.minItems > options.maxItems
     ) {
       errors.push(`${path}.options: minItems must not exceed maxItems`);
+    }
+  }
+
+  private validateGroupOptions(options: any, path: string, errors: string[]): void {
+    if (!options || typeof options !== 'object') {
+      errors.push(`${path}.options: required for group fields`);
+      return;
+    }
+    if (!Array.isArray(options.subFields) || options.subFields.length === 0) {
+      errors.push(`${path}.options.subFields: must be a non-empty array`);
+    } else {
+      const subNames = new Set<string>();
+      options.subFields.forEach((sf: any, i: number) => {
+        this.validateField(sf, `${path}.options.subFields[${i}]`, subNames, errors, true);
+      });
     }
   }
 

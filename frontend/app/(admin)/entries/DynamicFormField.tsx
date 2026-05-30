@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import RepeaterField from './RepeaterField';
 import FlexibleField from './FlexibleField';
+import GroupField from './GroupField';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
 import { RelationPicker } from '@/components/RelationPicker';
 
@@ -79,6 +80,28 @@ export default function DynamicFormField({
           fieldName={field.name}
           subFields={subFields}
           control={control}
+          register={register}
+          errors={errors}
+        />
+      </div>
+    );
+  }
+
+  // --- Group ---
+  if (field.type === 'group') {
+    const subFields =
+      (field.options as { subFields?: SubField[] })?.subFields?.filter((f) => f.name) || [];
+    return (
+      <div className="mb-5">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="text-sm font-medium">{label}</span>
+          <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[11px] font-medium text-violet-600">
+            group
+          </span>
+        </div>
+        <GroupField
+          fieldName={field.name}
+          subFields={subFields}
           register={register}
           errors={errors}
         />

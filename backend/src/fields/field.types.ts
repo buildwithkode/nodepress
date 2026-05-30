@@ -22,7 +22,7 @@ export const SIMPLE_FIELD_TYPES = [
   'relation',
 ] as const;
 
-export const COMPLEX_FIELD_TYPES = ['repeater', 'flexible'] as const;
+export const COMPLEX_FIELD_TYPES = ['repeater', 'flexible', 'group'] as const;
 
 export const ALL_FIELD_TYPES = [...SIMPLE_FIELD_TYPES, ...COMPLEX_FIELD_TYPES] as const;
 
@@ -146,13 +146,24 @@ export interface FlexibleFieldDef extends BaseField {
   };
 }
 
+export interface GroupFieldDef extends BaseField {
+  type: 'group';
+  options: {
+    /** The fields inside the group — simple types only (no nested complex) */
+    subFields: SimpleFieldDef[];
+  };
+}
+
 /** Union of all field definitions — what is stored in ContentType.schema */
-export type FieldDef = SimpleFieldDef | RepeaterFieldDef | FlexibleFieldDef;
+export type FieldDef = SimpleFieldDef | RepeaterFieldDef | FlexibleFieldDef | GroupFieldDef;
 
 /** A complete content type schema */
 export type ContentSchema = FieldDef[];
 
 // ─── Runtime value types ──────────────────────────────────────────────────────
+
+/** Value for a group field — a single nested object */
+export type GroupValue = Record<string, unknown>;
 
 /** Value for a single repeater row */
 export type RepeaterItem = Record<string, unknown>;
@@ -171,5 +182,6 @@ export type FieldValue =
   | undefined
   | ImageValue
   | RelationValue
+  | GroupValue
   | RepeaterItem[]
   | FlexibleItem[];

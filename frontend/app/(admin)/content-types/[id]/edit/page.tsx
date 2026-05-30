@@ -46,10 +46,11 @@ const FIELD_TYPES = [
   { value: 'relation', label: 'Relation' },
   { value: 'repeater', label: 'Repeater' },
   { value: 'flexible', label: 'Flexible Content' },
+  { value: 'group',    label: 'Group' },
 ];
 
 const SIMPLE_FIELD_TYPES = FIELD_TYPES.filter(
-  (t) => t.value !== 'repeater' && t.value !== 'flexible',
+  (t) => t.value !== 'repeater' && t.value !== 'flexible' && t.value !== 'group',
 );
 
 interface SubField { name: string; type: string }
@@ -184,6 +185,7 @@ export default function EditContentTypePage() {
       if (val === 'repeater') u[i].options = { subFields: [{ name: '', type: 'text' }] };
       if (val === 'flexible') u[i].options = { layouts: [{ name: 'section', label: 'Section', fields: [{ name: '', type: 'text' }] }] };
       if (val === 'relation') u[i].options = { relatedContentType: '', cardinality: 'one' };
+      if (val === 'group') u[i].options = { subFields: [{ name: '', type: 'text' }] };
     } else { (u[i] as any)[key] = val; }
     setFields(u);
   };
@@ -506,6 +508,46 @@ export default function EditContentTypePage() {
                           onClick={() => addSubField(fi)}
                         >
                           <Plus className="h-4 w-4 mr-1.5" /> Add Sub Field
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Group fields */}
+                  {field.type === 'group' && field.options?.subFields && (
+                    <div className="pl-7">
+                      <div className="border-l-2 border-violet-400 pl-3 space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Fields</p>
+                        {field.options.subFields.map((sf, si) => (
+                          <div key={si} className="flex items-center gap-2">
+                            <Input
+                              placeholder="field name"
+                              value={sf.name}
+                              onChange={(e) => updateSubField(fi, si, 'name', e.target.value)}
+                              className="flex-1"
+                            />
+                            <FieldTypeSelect
+                              value={sf.type}
+                              onChange={(val) => updateSubField(fi, si, 'type', val)}
+                              types={SIMPLE_FIELD_TYPES}
+                              className="w-32"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                              disabled={field.options!.subFields!.length === 1}
+                              onClick={() => removeSubField(fi, si)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          onClick={() => addSubField(fi)}
+                        >
+                          <Plus className="h-4 w-4 mr-1.5" /> Add Field
                         </Button>
                       </div>
                     </div>
