@@ -687,6 +687,30 @@ npm run dev`} />
   "description": "A short summary of my post.",
   "og_image": "/uploads/og-cover.jpg"
 }`} />
+
+            <h3 className="font-semibold mb-3 mt-6">Relation — example schema & output</h3>
+            <p className="text-muted-foreground text-sm mb-2">Links entries across content types using their <IC>publicId</IC> UUID. Use <IC>?populate=fieldName</IC> to inline the full related entry instead of just the UUID.</p>
+            <CodeBlock code={`// Schema definition
+{
+  "name": "author",
+  "type": "relation",
+  "options": {
+    "relatedContentType": "team",
+    "cardinality": "one"
+  }
+}
+
+// Default API output — returns the publicId UUID
+"author": "a1b2c3d4-e5f6-4abc-8def-000000000001"
+
+// With ?populate=author — returns the full entry inline
+"author": {
+  "slug": "jane-doe",
+  "data": { "name": "Jane Doe", "role": "Editor" }
+}
+
+// cardinality: "many" — array of UUIDs or populated entries
+"tags": ["uuid-1", "uuid-2"]`} />
           </Section>
 
           {/* ── Entries ───────────────────────────────────────────────────── */}
