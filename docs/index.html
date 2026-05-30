@@ -355,8 +355,31 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
               <tr><td class="px-4 py-2.5"><span class="bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded font-mono">image</span></td><td class="px-4 py-2.5 text-zinc-400">A URL string pointing to an image (from Media Library or external).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"/uploads/photo.jpg"</td></tr>
               <tr><td class="px-4 py-2.5"><span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded font-mono">repeater</span></td><td class="px-4 py-2.5 text-zinc-400">A list of items, each sharing the same sub-fields.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{"name":"Alice"}]</td></tr>
               <tr><td class="px-4 py-2.5"><span class="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded font-mono">flexible</span></td><td class="px-4 py-2.5 text-zinc-400">A list of blocks where each block can be a different layout.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{"_layout":"hero"}]</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded font-mono">group</span></td><td class="px-4 py-2.5 text-zinc-400">A single nested object with fixed sub-fields. Good for SEO metadata, address, social links.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">{"title":"My Post"}</td></tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="mt-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+          <p class="text-sm font-semibold text-white mb-1">Group — example schema &amp; output</p>
+          <p class="text-xs text-zinc-400 mb-3">A fixed set of sub-fields stored as a single nested object. Unlike repeater, there is no list — just one object. Perfect for SEO metadata, address blocks, or social links.</p>
+          <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
+{
+  "name": "seo",
+  "type": "group",
+  "subFields": [
+    { "name": "title",       "type": "text" },
+    { "name": "description", "type": "textarea" },
+    { "name": "og_image",    "type": "image" }
+  ]
+}
+
+// API output — a single nested object, not an array
+"seo": {
+  "title": "My Post",
+  "description": "A short summary of my post.",
+  "og_image": "/uploads/og-cover.jpg"
+}</code></pre>
         </div>
       </section>
 

@@ -143,8 +143,9 @@ const FIELD_TYPES = [
   { type: 'boolean',  label: 'Boolean',        color: 'bg-green-500/10 text-green-400',  desc: 'True/false toggle. Good for published, featured, active flags.',  example: 'true' },
   { type: 'select',   label: 'Select',         color: 'bg-yellow-500/10 text-yellow-400',desc: 'One value from a predefined list of choices.',                    example: '"tech"' },
   { type: 'image',    label: 'Image URL',      color: 'bg-pink-500/10 text-pink-400',    desc: 'A URL string pointing to an image (from Media Library or external).', example: '"/uploads/photo.jpg"' },
-  { type: 'repeater', label: 'Repeater',       color: 'bg-red-500/10 text-red-400',      desc: 'A list of items, each sharing the same sub-fields.',              example: '[{"name":"Kartik","role":"Dev"}]' },
+  { type: 'repeater', label: 'Repeater',       color: 'bg-red-500/10 text-red-400',      desc: 'A list of items, each sharing the same sub-fields.',              example: '[{"name":"Alice","role":"Dev"}]' },
   { type: 'flexible', label: 'Flexible',       color: 'bg-indigo-500/10 text-indigo-400',desc: 'A list of blocks where each block can be a different layout.',    example: '[{"_layout":"hero","heading":"Welcome"}]' },
+  { type: 'group',    label: 'Group',          color: 'bg-violet-500/10 text-violet-400',desc: 'A single nested object with fixed sub-fields. Good for SEO metadata, address, social links.', example: '{"title":"My Post","description":"..."}' },
   { type: 'relation', label: 'Relation',       color: 'bg-teal-500/10 text-teal-400',    desc: 'Link to one or many entries in another content type. Returns publicId UUID(s). Use ?populate= to inline the related data.', example: '"uuid-v4" or ["uuid1","uuid2"]' },
 ];
 
@@ -594,7 +595,7 @@ npm run dev`} />
           {/* ── Field Types ───────────────────────────────────────────────── */}
           <Section id="field-types" title="Field Types" icon={Box}>
             <p className="text-muted-foreground mb-6">
-              NodePress supports 9 field types. Each field name is normalized to{' '}
+              NodePress supports 10 field types. Each field name is normalized to{' '}
               <IC>snake_case</IC> in the API response.
             </p>
 
@@ -666,6 +667,26 @@ npm run dev`} />
   { "_layout": "hero",       "heading": "Welcome to NodePress" },
   { "_layout": "text_block", "body": "<p>Some content here</p>" }
 ]`} />
+
+            <h3 className="font-semibold mb-3 mt-6">Group — example schema & output</h3>
+            <p className="text-muted-foreground text-sm mb-2">A fixed set of sub-fields stored as a single nested object. Unlike repeater, there is no list — just one object. Perfect for SEO metadata, address blocks, or social links.</p>
+            <CodeBlock code={`// Schema definition
+{
+  "name": "seo",
+  "type": "group",
+  "subFields": [
+    { "name": "title",       "type": "text" },
+    { "name": "description", "type": "textarea" },
+    { "name": "og_image",    "type": "image" }
+  ]
+}
+
+// API output — a single nested object, not an array
+"seo": {
+  "title": "My Post",
+  "description": "A short summary of my post.",
+  "og_image": "/uploads/og-cover.jpg"
+}`} />
           </Section>
 
           {/* ── Entries ───────────────────────────────────────────────────── */}
