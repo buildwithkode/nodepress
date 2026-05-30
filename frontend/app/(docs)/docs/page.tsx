@@ -488,8 +488,9 @@ npm run dev`} />
                     </thead>
                     <tbody className="divide-y divide-border">
                       {[
-                        ['npm run dev:backend',  'Start backend dev server (port 3000)'],
-                        ['npm run dev:frontend', 'Start frontend dev server (port 5173)'],
+                        ['npm run dev',          'Start both backend and frontend together in one terminal'],
+                        ['npm run dev:backend',  'Start backend dev server only (port 3000)'],
+                        ['npm run dev:frontend', 'Start frontend dev server only (port 5173)'],
                         ['npm run build',        'Build both backend and frontend for production'],
                         ['npm run migrate',      'Run Prisma migrations (prisma migrate dev)'],
                         ['npm run studio',       'Open Prisma Studio — visual database browser'],
