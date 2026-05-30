@@ -362,6 +362,26 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
         </div>
 
         <div class="mt-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+          <p class="text-sm font-semibold text-white mb-1">Repeater — example schema &amp; output</p>
+          <p class="text-xs text-zinc-400 mb-3">Define sub-fields once, add unlimited rows in the editor. Each item shares the same structure.</p>
+          <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
+{
+  "name": "gallery",
+  "type": "repeater",
+  "subFields": [
+    { "name": "image",   "type": "image", "required": true },
+    { "name": "caption", "type": "text" }
+  ]
+}
+
+// API output — an array of objects
+"gallery": [
+  { "image": "/uploads/photo1.jpg", "caption": "First photo" },
+  { "image": "/uploads/photo2.jpg", "caption": "Second photo" }
+]</code></pre>
+        </div>
+
+        <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
           <p class="text-sm font-semibold text-white mb-1">Group — example schema &amp; output</p>
           <p class="text-xs text-zinc-400 mb-3">A fixed set of sub-fields stored as a single nested object. Unlike repeater, there is no list — just one object. Perfect for SEO metadata, address blocks, or social links.</p>
           <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
