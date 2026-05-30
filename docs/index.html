@@ -382,6 +382,34 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
         </div>
 
         <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+          <p class="text-sm font-semibold text-white mb-1">Flexible — example schema &amp; output</p>
+          <p class="text-xs text-zinc-400 mb-3">Each item in the list can be a different layout — perfect for page builders. The <code class="text-pink-400 bg-zinc-800 px-1 rounded">_layout</code> key tells you which block type it is.</p>
+          <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
+{
+  "name": "sections",
+  "type": "flexible",
+  "layouts": [
+    {
+      "name": "hero",
+      "label": "Hero Banner",
+      "fields": [{ "name": "heading", "type": "text" }]
+    },
+    {
+      "name": "text_block",
+      "label": "Text Block",
+      "fields": [{ "name": "body", "type": "richtext" }]
+    }
+  ]
+}
+
+// API output — _layout tells you which block type it is
+"sections": [
+  { "_layout": "hero",       "heading": "Welcome to NodePress" },
+  { "_layout": "text_block", "body": "&lt;p&gt;Some content here&lt;/p&gt;" }
+]</code></pre>
+        </div>
+
+        <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
           <p class="text-sm font-semibold text-white mb-1">Group — example schema &amp; output</p>
           <p class="text-xs text-zinc-400 mb-3">A fixed set of sub-fields stored as a single nested object. Unlike repeater, there is no list — just one object. Perfect for SEO metadata, address blocks, or social links.</p>
           <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
