@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/axios';
+import Cookies from 'js-cookie';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -75,6 +76,9 @@ export default function SetupPage() {
     try {
       const res = await api.post('/auth/register', { email, password });
       login(res.data.access_token, res.data.user);
+      // Mark setup as complete so the middleware routes future unauthenticated
+      // visits to /login instead of /setup (persists across reinstalls).
+      Cookies.set('np_initialized', '1', { expires: 3650, sameSite: 'lax' });
       if (siteName) localStorage.setItem('np_site_name', siteName);
       setSavedEmail(email);
       setDone(true);

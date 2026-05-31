@@ -103,6 +103,7 @@ export default function DynamicFormField({
           fieldName={field.name}
           subFields={subFields}
           register={register}
+          control={control}
           errors={errors}
         />
       </div>
@@ -266,6 +267,88 @@ export default function DynamicFormField({
           />
         );
       }
+
+      case 'color':
+        return (
+          <Controller
+            control={control}
+            name={field.name}
+            render={({ field: f }) => (
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={f.value || '#000000'}
+                  onChange={(e) => f.onChange(e.target.value)}
+                  className="h-9 w-12 shrink-0 cursor-pointer rounded-md border border-input bg-background p-0.5"
+                />
+                <Input
+                  placeholder="#000000"
+                  value={f.value || ''}
+                  onChange={(e) => f.onChange(e.target.value)}
+                  className={cn('flex-1 font-mono', error && 'border-destructive focus-visible:ring-destructive')}
+                />
+              </div>
+            )}
+          />
+        );
+
+      case 'date':
+        return (
+          <input
+            type="date"
+            {...register(field.name)}
+            className={cn(
+              'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+              error && 'border-destructive focus-visible:ring-destructive',
+            )}
+          />
+        );
+
+      case 'datetime':
+        return (
+          <input
+            type="datetime-local"
+            {...register(field.name)}
+            className={cn(
+              'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+              error && 'border-destructive focus-visible:ring-destructive',
+            )}
+          />
+        );
+
+      case 'json':
+        return (
+          <Controller
+            control={control}
+            name={field.name}
+            defaultValue={{}}
+            render={({ field: f }) => {
+              const display = typeof f.value === 'string'
+                ? f.value
+                : JSON.stringify(f.value ?? {}, null, 2);
+              return (
+                <textarea
+                  rows={6}
+                  value={display}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    try { f.onChange(JSON.parse(raw)); }
+                    catch { f.onChange(raw); }
+                  }}
+                  onBlur={(e) => {
+                    try { f.onChange(JSON.parse(e.target.value)); }
+                    catch { /* leave as-is until user fixes */ }
+                  }}
+                  placeholder="{}"
+                  className={cn(
+                    'flex w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y',
+                    error && 'border-destructive focus-visible:ring-destructive',
+                  )}
+                />
+              );
+            }}
+          />
+        );
 
       default:
         return (

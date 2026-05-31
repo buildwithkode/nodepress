@@ -20,6 +20,10 @@ export const SIMPLE_FIELD_TYPES = [
   'select',
   'image',
   'relation',
+  'color',
+  'date',
+  'datetime',
+  'json',
 ] as const;
 
 export const COMPLEX_FIELD_TYPES = ['repeater', 'flexible', 'group'] as const;
@@ -102,6 +106,24 @@ export interface RelationFieldDef extends BaseField {
   };
 }
 
+export interface ColorFieldDef extends BaseField {
+  type: 'color';
+  options?: Record<string, never>;
+}
+
+export interface DateFieldDef extends BaseField {
+  type: 'date' | 'datetime';
+  options?: {
+    min?: string;
+    max?: string;
+  };
+}
+
+export interface JsonFieldDef extends BaseField {
+  type: 'json';
+  options?: Record<string, never>;
+}
+
 /**
  * Runtime value for a relation field.
  * Stored as a publicId UUID string (cardinality=one) or UUID string[] (cardinality=many).
@@ -116,7 +138,10 @@ export type SimpleFieldDef =
   | BooleanFieldDef
   | SelectFieldDef
   | ImageFieldDef
-  | RelationFieldDef;
+  | RelationFieldDef
+  | ColorFieldDef
+  | DateFieldDef
+  | JsonFieldDef;
 
 // ─── Complex field defs ───────────────────────────────────────────────────────
 

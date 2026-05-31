@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -51,6 +51,28 @@ export default function EditEntryPage() {
   const [seoOpen, setSeoOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewCopied, setPreviewCopied] = useState(false);
+
+  // JSON preview split pane
+  const [jsonOpen, setJsonOpen] = useState(true);
+  const [jsonCopied, setJsonCopied] = useState(false);
+  const [leftPct, setLeftPct] = useState(58);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const onMove = (ev: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const pct = ((ev.clientX - rect.left) / rect.width) * 100;
+      setLeftPct(Math.min(Math.max(pct, 30), 75));
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, []);
 
   // Version history
   const [versionsOpen, setVersionsOpen] = useState(false);
@@ -263,16 +285,30 @@ export default function EditEntryPage() {
               <CardTitle>Edit Entry{contentType ? ` — ${contentType.name}` : ''}</CardTitle>
               <CardDescription>Slug is locked after creation. Change status to control visibility.</CardDescription>
             </div>
-            {autosaveStatus !== 'idle' && (
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 shrink-0">
-                <CloudIcon className="h-3.5 w-3.5" />
-                {autosaveStatus === 'saving' ? 'Saving…' : 'Saved'}
-              </span>
-            )}
+            <div className="flex items-center gap-2 shrink-0 mt-1">
+              {autosaveStatus !== 'idle' && (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CloudIcon className="h-3.5 w-3.5" />
+                  {autosaveStatus === 'saving' ? 'Saving…' : 'Saved'}
+                </span>
+              )}
+              <Button
+                type="button"
+                variant={jsonOpen ? 'secondary' : 'outline'}
+                size="sm"
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => setJsonOpen((v) => !v)}
+              >
+                <PanelRight className="h-3.5 w-3.5" />
+                {jsonOpen ? 'Hide JSON' : 'Show JSON'}
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
-        <CardContent>
+        <div ref={containerRef} className="flex items-start border-t border-border">
+          {/* Left pane: form */}
+          <div style={{ width: jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
           <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-1">
             {/* Slug (locked) */}
             <div className="mb-4">
@@ -433,7 +469,68 @@ export default function EditEntryPage() {
               )}
             </div>
           </form>
-        </CardContent>
+          </div>
+
+          {/* Drag handle */}
+          {jsonOpen && (
+            <div
+              onMouseDown={onDragStart}
+              className="relative w-px self-stretch shrink-0 cursor-col-resize group select-none bg-border hover:bg-primary/40 transition-colors"
+            >
+              <div className="absolute inset-y-0 -left-2 -right-2" />
+            </div>
+          )}
+
+          {/* Right pane: JSON preview */}
+          {jsonOpen && (() => {
+            const { slug, ...fieldData } = watchedValues;
+            const seo = {
+              title: seoTitle.trim() || undefined,
+              description: seoDescription.trim() || undefined,
+              image: seoImage.trim() || undefined,
+              noIndex: seoNoIndex || undefined,
+            };
+            const hasSeo = Object.values(seo).some((v) => v !== undefined);
+            const liveJson = {
+              id: entry?.id,
+              slug: slug ?? entry?.slug,
+              status,
+              locale,
+              contentTypeId: entry?.contentTypeId,
+              data: fieldData,
+              seo: hasSeo ? seo : null,
+              publishAt: publishAt ? new Date(publishAt).toISOString() : null,
+            };
+            const jsonStr = JSON.stringify(liveJson, null, 2);
+            return (
+              <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
+                <div className="sticky top-4 px-4 py-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Braces className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-xs font-medium">JSON Preview</span>
+                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(jsonStr);
+                        setJsonCopied(true);
+                        setTimeout(() => setJsonCopied(false), 2000);
+                      }}
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                      title="Copy JSON"
+                    >
+                      {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      {jsonCopied ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <pre className="overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono whitespace-pre">{jsonStr}</pre>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
 
         {/* Version History Panel */}
         <div className="border-t border-border px-6 py-4">
@@ -499,7 +596,7 @@ export default function EditEntryPage() {
           {previewUrl && (
             <div className="flex items-center gap-2 flex-1 min-w-0 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
               <span className="text-muted-foreground shrink-0">Preview API:</span>
-              <span className="truncate font-mono text-foreground flex-1">{previewUrl}</span>
+              <span className="truncate font-mono text-foreground flex-1 min-w-0">{previewUrl}</span>
               <button
                 type="button"
                 onClick={() => {

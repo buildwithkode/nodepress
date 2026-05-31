@@ -1,12 +1,13 @@
 'use client';
 
-import { useFieldArray } from 'react-hook-form';
+import { useFieldArray, Controller } from 'react-hook-form';
 import { Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { MediaPickerModal } from '@/components/MediaPickerModal';
 
 interface SubField {
   name: string;
@@ -50,19 +51,87 @@ function renderSubInput(
       );
     case 'image':
       return (
-        <Input
-          type="text"
-          placeholder="Image URL"
-          {...register(fieldPath)}
+        <Controller
+          control={control}
+          name={fieldPath}
+          render={({ field: f }) => (
+            <MediaPickerModal value={f.value ?? null} onChange={f.onChange} />
+          )}
         />
       );
     case 'boolean':
-      // Boolean in repeater items is handled inline via register as a checkbox
       return (
         <input
           type="checkbox"
           className="h-4 w-4 rounded border-gray-300"
           {...register(fieldPath)}
+        />
+      );
+    case 'color':
+      return (
+        <div className="flex items-center gap-2">
+          <Controller
+            control={control}
+            name={fieldPath}
+            render={({ field: f }) => (
+              <>
+                <input
+                  type="color"
+                  value={f.value || '#000000'}
+                  onChange={(e) => f.onChange(e.target.value)}
+                  className="h-8 w-10 shrink-0 cursor-pointer rounded border border-input bg-background p-0.5"
+                />
+                <Input
+                  placeholder="#000000"
+                  value={f.value || ''}
+                  onChange={(e) => f.onChange(e.target.value)}
+                  className="flex-1 font-mono text-xs"
+                />
+              </>
+            )}
+          />
+        </div>
+      );
+    case 'date':
+      return (
+        <input
+          type="date"
+          {...register(fieldPath)}
+          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+      );
+    case 'datetime':
+      return (
+        <input
+          type="datetime-local"
+          {...register(fieldPath)}
+          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+      );
+    case 'json':
+      return (
+        <Controller
+          control={control}
+          name={fieldPath}
+          defaultValue={{}}
+          render={({ field: f }) => {
+            const display = typeof f.value === 'string' ? f.value : JSON.stringify(f.value ?? {}, null, 2);
+            return (
+              <textarea
+                rows={3}
+                value={display}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  try { f.onChange(JSON.parse(raw)); } catch { f.onChange(raw); }
+                }}
+                onBlur={(e) => {
+                  try { f.onChange(JSON.parse(e.target.value)); } catch { /* leave as-is */ }
+                }}
+                placeholder="{}"
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
+              />
+            );
+          }}
         />
       );
     default:

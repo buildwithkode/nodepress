@@ -15,7 +15,7 @@ function loginErrorMessage(err: any): string {
 }
 
 function LoginForm() {
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const reason = searchParams?.get('reason');
@@ -25,6 +25,11 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Redirect away if the AuthContext silently restored the session via refresh token
+  useEffect(() => {
+    if (!authLoading && user) router.replace('/');
+  }, [authLoading, user]);
 
   useEffect(() => {
     const stored = localStorage.getItem('np_site_name');

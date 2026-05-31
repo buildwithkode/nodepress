@@ -24,24 +24,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount: if a valid access token cookie exists, fetch the canonical user
-  // from the server instead of trusting localStorage (which is XSS-readable).
+  // On mount: restore the session.
+  // 1. If np_token cookie exists → validate it with /auth/me (interceptor silently refreshes on 401).
+  // 2. If np_token is missing (browser expired it after 7 days) but np_refresh is still valid (30 days)
+  //    → silently exchange the HttpOnly refresh cookie for a new access token, then load the user.
+  //    This prevents forcing the user to manually re-login every 7 days.
   useEffect(() => {
     const token = Cookies.get('np_token');
-    if (!token) {
-      setLoading(false);
+
+    if (token) {
+      api
+        .get<User>('/auth/me')
+        .then((res) => setUser(res.data))
+        .catch(() => {
+          Cookies.remove('np_token');
+          setUser(null);
+        })
+        .finally(() => setLoading(false));
       return;
     }
 
+    // No access token — attempt a silent refresh. If np_refresh cookie is still
+    // valid the backend issues a new access token and we restore the session
+    // without any visible login prompt. If it fails (no cookie / expired), the
+    // user simply stays unauthenticated and is shown the login page.
     api
-      .get<User>('/auth/me')
-      .then((res) => setUser(res.data))
-      .catch(() => {
-        // Token is invalid or expired and refresh failed — clear auth state.
-        // The axios interceptor already handles the redirect to /login on 401.
-        Cookies.remove('np_token');
-        setUser(null);
+      .post<{ access_token: string }>('/auth/refresh', {})
+      .then((res) => {
+        Cookies.set('np_token', res.data.access_token, { expires: 7, sameSite: 'strict' });
+        return api.get<User>('/auth/me');
       })
+      .then((res) => setUser(res.data))
+      .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
 

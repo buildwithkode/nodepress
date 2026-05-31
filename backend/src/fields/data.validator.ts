@@ -83,6 +83,18 @@ export class DataValidator {
         case 'relation':
           this.validateRelation(value, path, errors);
           break;
+        case 'color':
+          this.validateColor(value, path, errors);
+          break;
+        case 'date':
+          this.validateDate(value, path, errors);
+          break;
+        case 'datetime':
+          this.validateDatetime(value, path, errors);
+          break;
+        case 'json':
+          this.validateJson(value, path, errors);
+          break;
         case 'repeater':
           this.validateRepeater(value, field as RepeaterFieldDef, path, errors, partial);
           break;
@@ -223,6 +235,42 @@ export class DataValidator {
       }
     } else {
       errors.push(`${path}: must be a UUID string or array of UUID strings`);
+    }
+  }
+
+  private validateColor(value: unknown, path: string, errors: string[]): void {
+    if (typeof value !== 'string') {
+      errors.push(`${path}: must be a string`);
+      return;
+    }
+    if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value)) {
+      errors.push(`${path}: must be a valid hex color (e.g. #ff0000 or #f00)`);
+    }
+  }
+
+  private validateDate(value: unknown, path: string, errors: string[]): void {
+    if (typeof value !== 'string') {
+      errors.push(`${path}: must be a string`);
+      return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || isNaN(Date.parse(value))) {
+      errors.push(`${path}: must be a valid ISO date (YYYY-MM-DD)`);
+    }
+  }
+
+  private validateDatetime(value: unknown, path: string, errors: string[]): void {
+    if (typeof value !== 'string') {
+      errors.push(`${path}: must be a string`);
+      return;
+    }
+    if (isNaN(new Date(value).getTime())) {
+      errors.push(`${path}: must be a valid ISO datetime`);
+    }
+  }
+
+  private validateJson(value: unknown, path: string, errors: string[]): void {
+    if (typeof value !== 'object' || value === null) {
+      errors.push(`${path}: must be a JSON object or array`);
     }
   }
 

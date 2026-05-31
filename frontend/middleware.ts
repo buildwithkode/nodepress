@@ -47,21 +47,32 @@ function isAdminOnlyPath(pathname: string): boolean {
 }
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('np_token')?.value;
-  const role  = request.cookies.get('np_role')?.value;
+  const token       = request.cookies.get('np_token')?.value;
+  const role        = request.cookies.get('np_role')?.value;
+  const initialized = request.cookies.get('np_initialized')?.value;
   const { pathname } = request.nextUrl;
 
   const isLoginPage = pathname === '/login';
   const isSetupPage = pathname === '/setup';
 
-  // Protect admin paths — redirect to login if no token
+  // Protect admin paths when unauthenticated
   if (!token && isAdminPath(pathname)) {
+    // np_initialized is set by the setup page on first registration.
+    // - Present  → setup already done, user just needs to sign in → /login
+    // - Missing  → could be fresh install OR existing user who cleared cookies.
+    //              Send to /login either way; the login page's useEffect calls
+    //              setup-status and bounces to /setup automatically if needed.
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Already logged in — redirect away from login/setup pages
   if (token && (isLoginPage || isSetupPage)) {
     return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // np_initialized present but no token — setup is done, just need to log in
+  if (!token && isSetupPage && initialized) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Role-based route protection (UX only — backend enforces real permissions)

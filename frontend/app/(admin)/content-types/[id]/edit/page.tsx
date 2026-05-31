@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown, Download } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown, Download, Braces, Copy, Check, PanelRight } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -43,6 +43,10 @@ const FIELD_TYPES = [
   { value: 'boolean',  label: 'Boolean' },
   { value: 'select',   label: 'Select' },
   { value: 'image',    label: 'Image' },
+  { value: 'color',    label: 'Color' },
+  { value: 'date',     label: 'Date' },
+  { value: 'datetime', label: 'Date & Time' },
+  { value: 'json',     label: 'JSON' },
   { value: 'relation', label: 'Relation' },
   { value: 'repeater', label: 'Repeater' },
   { value: 'flexible', label: 'Flexible Content' },
@@ -135,6 +139,26 @@ export default function EditContentTypePage() {
   const [allowedMethods, setAllowedMethods] = useState<string[]>(['list', 'read', 'create', 'update', 'delete']);
   const [openLayouts, setOpenLayouts] = useState<Record<string, boolean>>({});
   const [reorderMode, setReorderMode] = useState(false);
+  const [jsonOpen, setJsonOpen] = useState(true);
+  const [jsonCopied, setJsonCopied] = useState(false);
+  const [leftPct, setLeftPct] = useState(58);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const onMove = (ev: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const pct = ((ev.clientX - rect.left) / rect.width) * 100;
+      setLeftPct(Math.min(Math.max(pct, 30), 75));
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, []);
   const [allContentTypes, setAllContentTypes] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
@@ -312,13 +336,29 @@ export default function EditContentTypePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Edit Content Type</CardTitle>
-          <CardDescription>
-            Removing a field will not delete existing entry data.
-          </CardDescription>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <CardTitle>Edit Content Type</CardTitle>
+              <CardDescription>
+                Removing a field will not delete existing entry data.
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant={jsonOpen ? 'secondary' : 'outline'}
+              size="sm"
+              className="h-7 gap-1.5 text-xs shrink-0 mt-1"
+              onClick={() => setJsonOpen((v) => !v)}
+            >
+              <PanelRight className="h-3.5 w-3.5" />
+              {jsonOpen ? 'Hide JSON' : 'Show JSON'}
+            </Button>
+          </div>
         </CardHeader>
 
-        <CardContent>
+        <div ref={containerRef} className="flex items-start border-t border-border">
+          {/* Left pane: form */}
+          <div style={{ width: jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
           <form id="ct-form" onSubmit={onSubmit} className="space-y-6">
             {/* Name */}
             <div className="space-y-1.5">
@@ -653,7 +693,55 @@ export default function EditContentTypePage() {
               </DndContext>
             </div>
           </form>
-        </CardContent>
+          </div>
+
+          {/* Drag handle */}
+          {jsonOpen && (
+            <div
+              onMouseDown={onDragStart}
+              className="relative w-px self-stretch shrink-0 cursor-col-resize group select-none bg-border hover:bg-primary/40 transition-colors"
+            >
+              <div className="absolute inset-y-0 -left-2 -right-2" />
+            </div>
+          )}
+
+          {/* Right pane: JSON schema preview */}
+          {jsonOpen && (() => {
+            const liveJson = {
+              name: computedName || '(unnamed)',
+              schema: fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => rest),
+              allowedMethods,
+            };
+            const jsonStr = JSON.stringify(liveJson, null, 2);
+            return (
+              <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
+                <div className="sticky top-4 px-4 py-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Braces className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-xs font-medium">JSON Schema Preview</span>
+                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(jsonStr);
+                        setJsonCopied(true);
+                        setTimeout(() => setJsonCopied(false), 2000);
+                      }}
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                      title="Copy JSON"
+                    >
+                      {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      {jsonCopied ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <pre className="overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono whitespace-pre">{jsonStr}</pre>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
 
         <CardFooter className="justify-end gap-2">
           <Button variant="outline" onClick={() => router.push('/content-types')}>Cancel</Button>

@@ -26,6 +26,7 @@ import {
   Zap,
   Puzzle,
   Code2,
+  Loader2,
 } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
@@ -75,8 +76,24 @@ const ALL_NAV_GROUPS = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const { navItems: pluginNavItems } = usePlugins();
+
+  // Block the admin UI from rendering until auth is confirmed.
+  // This prevents two bad scenarios:
+  //   1. Stale np_token (passes middleware but fails /auth/me) briefly flashes the dashboard.
+  //   2. Silent refresh in flight — admin content appears before we know if the user is logged in.
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Auth resolved but no user — stale token that failed server validation.
+  // Interceptor already fired window.location but render one null frame to be safe.
+  if (!user) return null;
   const router = useRouter();
   const pathname = usePathname();
   const admin = canManageSettings(user?.role);
@@ -205,7 +222,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <h1 className="text-base font-semibold text-foreground">{pageTitle}</h1>
           <ThemeToggle />
         </div>
-        <div className="flex-1 bg-muted/20 p-4 md:p-6">
+        <div className="flex-1 bg-muted/20 p-4 md:p-6 min-w-0 overflow-x-auto">
           <ErrorBoundary label={pageTitle}>
             {children}
           </ErrorBoundary>
