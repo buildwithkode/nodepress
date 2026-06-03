@@ -382,6 +382,7 @@ git --version  # any version?   → skip Step 2`} />
               <div className="ml-10">
                 <CodeBlock code={`npx create-nodepress-app my-project`} />
                 <p className="text-xs text-muted-foreground mt-1">Replace <IC>my-project</IC> with whatever you want to call your project. This command downloads NodePress, generates secret keys, and installs all dependencies automatically. It takes 2–5 minutes.</p>
+                <p className="text-xs text-muted-foreground mt-1">Using Docker? Add the <IC>--docker</IC> flag (<IC>npx create-nodepress-app my-project --docker</IC>) to include <IC>docker-compose.yml</IC>, the nginx/monitoring configs, and the <IC>docker:*</IC> scripts. Without it, the project is set up for local PostgreSQL.</p>
               </div>
             </div>
 
@@ -464,7 +465,7 @@ npm run dev`} />
               </div>
               <div className="ml-10">
                 <p className="text-sm text-muted-foreground mb-3">
-                  The root <IC>package.json</IC> has convenience scripts so you can run everything from the project root without <IC>cd</IC>-ing into subdirectories:
+                  The root <IC>package.json</IC> has convenience scripts so you can run everything from the project root without <IC>cd</IC>-ing into subdirectories. The <IC>docker:*</IC> scripts are only generated when you scaffold with <IC>--docker</IC>:
                 </p>
                 <div className="rounded-xl border border-border overflow-hidden">
                   <table className="w-full text-xs">
@@ -482,7 +483,7 @@ npm run dev`} />
                         ['npm run build',        'Build both backend and frontend for production'],
                         ['npm run migrate',      'Run Prisma migrations (prisma migrate dev)'],
                         ['npm run studio',       'Open Prisma Studio — visual database browser'],
-                        ['npm run install:all',  'Install dependencies for backend, frontend, and CLI in one command'],
+                        ['npm run install:all',  'Install all dependencies (backend + frontend) — alias for npm install via workspaces'],
                         ['npm run docker:dev',   'Start Docker dev stack (docker-compose up)'],
                         ['npm run docker:prod',  'Start Docker production stack with build'],
                         ['npm run docker:down',  'Stop all Docker containers'],

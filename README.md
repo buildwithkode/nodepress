@@ -165,43 +165,34 @@ Download from [postgresql.org](https://www.postgresql.org/download/).
 
 ### Option A — Docker (easiest, no PostgreSQL needed)
 
-Docker manages the database and Redis for you.
+Pass `--docker` to include the Docker setup — it manages PostgreSQL and Redis for you.
+
+```bash
+npx create-nodepress-app my-project --docker
+cd my-project
+docker-compose up -d             # starts PostgreSQL + Redis
+npm run migrate                  # creates all DB tables
+npm run dev                      # backend :3000 + admin panel :5173 (one command)
+```
+
+### Option B — Local PostgreSQL (default)
 
 ```bash
 npx create-nodepress-app my-project
 cd my-project
-docker-compose up -d             # starts PostgreSQL + Redis
-cd backend
-npx prisma migrate dev           # creates all DB tables
-npm run start:dev                # backend on :3000
-
-# In a new terminal
-cd my-project/frontend
-npm run dev                      # admin panel on :5173
-```
-
-### Option B — Local PostgreSQL
-
-```bash
-npx create-nodepress-app my-project
-cd my-project/backend
 ```
 
 Open `backend/.env` and set your PostgreSQL credentials:
 
 ```env
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/nodepress"
 ```
 
-Then:
+Then, from the project root:
 
 ```bash
-npx prisma migrate dev    # creates all DB tables
-npm run start:dev         # backend on :3000
-
-# New terminal
-cd ../frontend
-npm run dev               # admin panel on :5173
+npm run migrate           # creates all DB tables
+npm run dev               # backend :3000 + admin panel :5173 (one command)
 ```
 
 ### Option C — Clone from GitHub
@@ -210,18 +201,16 @@ npm run dev               # admin panel on :5173
 git clone https://github.com/buildwithkode/nodepress.git
 cd nodepress
 
-# Backend
-cd backend
-cp .env.example .env
-# Edit .env — set DATABASE_URL, JWT_SECRET, CORS_ORIGIN
-npm install
-npx prisma migrate dev
-npm run start:dev
+# Configure environment
+cp backend/.env.example backend/.env
+# Edit backend/.env — set DATABASE_URL, JWT_SECRET, CORS_ORIGIN
+cp frontend/.env.local.example frontend/.env.local
 
-# Frontend (new terminal)
-cd ../frontend
-cp .env.local.example .env.local
+# Install everything (npm workspaces — one install for backend + frontend)
 npm install
+
+# Create DB tables, then start backend (:3000) + admin panel (:5173) together
+npm run migrate
 npm run dev
 ```
 
@@ -458,8 +447,8 @@ NodePress uses Prisma migrations — your data is safe. Pull and migrate:
 
 ```bash
 git pull
-cd backend && npm install && npx prisma migrate deploy
-cd ../frontend && npm install
+npm install                              # workspaces — backend + frontend
+cd backend && npx prisma migrate deploy && cd ..
 # Restart your server
 ```
 

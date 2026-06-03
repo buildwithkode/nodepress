@@ -194,6 +194,7 @@ git --version  # any version?   → skip Step 2"></div>
             <p class="text-sm text-zinc-400 mb-3">Open a terminal, navigate to the folder where you want your project, and run:</p>
             <div class="code-block" data-code="npx create-nodepress-app my-project"></div>
             <p class="text-xs text-zinc-500 mt-2">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded">my-project</code> with your project name. This downloads NodePress, generates secret keys, and installs all dependencies. Takes 2–5 minutes.</p>
+            <p class="text-xs text-zinc-500 mt-2">Using Docker? Add the <code class="text-pink-400 bg-zinc-800 px-1 rounded">--docker</code> flag — <code class="text-pink-400 bg-zinc-800 px-1 rounded">npx create-nodepress-app my-project --docker</code> — to include <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose.yml</code> plus the nginx/monitoring configs and <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker:*</code> scripts. Without it, the project is set up for local PostgreSQL.</p>
           </div>
         </div>
 
@@ -267,7 +268,7 @@ npm run dev"></div>
             <h3 class="font-semibold text-white">Root scripts (shortcut)</h3>
           </div>
           <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">The root <code class="text-pink-400 bg-zinc-800 px-1 rounded">package.json</code> has convenience scripts so you can run everything from the project root without <code class="text-pink-400 bg-zinc-800 px-1 rounded">cd</code>-ing into subdirectories:</p>
+            <p class="text-sm text-zinc-400 mb-3">The root <code class="text-pink-400 bg-zinc-800 px-1 rounded">package.json</code> has convenience scripts so you can run everything from the project root without <code class="text-pink-400 bg-zinc-800 px-1 rounded">cd</code>-ing into subdirectories. The <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker:*</code> scripts are only generated when you scaffold with <code class="text-pink-400 bg-zinc-800 px-1 rounded">--docker</code>:</p>
             <div class="rounded-xl border border-zinc-800 overflow-hidden">
               <table class="w-full text-xs">
                 <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2 font-medium text-zinc-400">Script</th><th class="text-left px-4 py-2 font-medium text-zinc-400">What it does</th></tr></thead>
@@ -278,7 +279,7 @@ npm run dev"></div>
                   <tr><td class="px-4 py-2 font-mono text-pink-400">npm run build</td><td class="px-4 py-2 text-zinc-400">Build both backend and frontend for production</td></tr>
                   <tr><td class="px-4 py-2 font-mono text-pink-400">npm run migrate</td><td class="px-4 py-2 text-zinc-400">Run Prisma migrations (<code class="text-pink-400">prisma migrate dev</code>)</td></tr>
                   <tr><td class="px-4 py-2 font-mono text-pink-400">npm run studio</td><td class="px-4 py-2 text-zinc-400">Open Prisma Studio — visual database browser</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run install:all</td><td class="px-4 py-2 text-zinc-400">Install dependencies for backend and frontend in one command</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run install:all</td><td class="px-4 py-2 text-zinc-400">Install all dependencies (backend + frontend) — alias for <code class="text-pink-400">npm install</code> via npm workspaces</td></tr>
                   <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:dev</td><td class="px-4 py-2 text-zinc-400">Start Docker dev stack (docker-compose up)</td></tr>
                   <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:prod</td><td class="px-4 py-2 text-zinc-400">Start Docker production stack with build</td></tr>
                   <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:down</td><td class="px-4 py-2 text-zinc-400">Stop all Docker containers</td></tr>

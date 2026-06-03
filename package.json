@@ -15,7 +15,7 @@
     "docker:down": "docker-compose down",
     "migrate": "cd backend && npx prisma migrate dev",
     "studio": "cd backend && npx prisma studio",
-    "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ../cli && npm install"
+    "install:all": "npm install"
   },
   "workspaces": [
     "backend",

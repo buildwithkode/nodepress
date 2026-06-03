@@ -39,10 +39,12 @@ function run(cmd, cwd, stdio = 'pipe') {
   return spawnSync(cmd, { shell: true, cwd, stdio, encoding: 'utf8' });
 }
 
-module.exports = async function createProject(name) {
+module.exports = async function createProject(name, opts = {}) {
+  const useDocker = opts.docker === true;
+
   // ── Validate name ──────────────────────────────────────────────────────────
   if (!name) {
-    log(`\n  ${c.bold}Usage:${c.reset} npx nodepress new <project-name>\n`);
+    log(`\n  ${c.bold}Usage:${c.reset} npx create-nodepress-app <project-name> [--docker]\n`);
     process.exit(1);
   }
 
@@ -97,13 +99,35 @@ module.exports = async function createProject(name) {
     fs.rmSync(path.join(projectDir, entry), { recursive: true, force: true });
   }
 
+  // ── Docker files — keep only when --docker is requested ────────────────────
+  if (!useDocker) {
+    const dockerOnly = [
+      'docker-compose.yml',
+      'docker-compose.prod.yml',
+      'nginx',         // reverse-proxy config (Docker production only)
+      'monitoring',    // Prometheus/Grafana stack (Docker only)
+    ];
+    for (const entry of dockerOnly) {
+      fs.rmSync(path.join(projectDir, entry), { recursive: true, force: true });
+    }
+  }
+
   // ── Generate secrets ───────────────────────────────────────────────────────
   const dbPassword = secret(24);
   const jwtSecret  = secret(48);
 
   // ── Write backend .env ─────────────────────────────────────────────────────
+  // Docker: the random password + `nodepress` db match the container Compose
+  // provisions, so DATABASE_URL works out of the box. Local: use clear
+  // placeholders the user fills in — a random password would just be misleading.
+  const databaseUrl = useDocker
+    ? `postgresql://postgres:${dbPassword}@localhost:5432/nodepress`
+    : 'postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE';
   const backendEnv = {
-    DATABASE_URL:  `postgresql://postgres:${dbPassword}@localhost:5432/nodepress`,
+    DATABASE_URL:  databaseUrl,
+    // Direct (non-pooled) connection — required by the Prisma schema's directUrl.
+    // For local Postgres / Docker (no pooler) it's the same as DATABASE_URL.
+    DIRECT_URL:    databaseUrl,
     PORT:          '3000',
     JWT_SECRET:    jwtSecret,
     CORS_ORIGIN:   'http://localhost:5173',
@@ -127,34 +151,40 @@ module.exports = async function createProject(name) {
   writeEnvFile(path.join(projectDir, 'frontend', '.env.local'), frontendEnv);
   ok('frontend/.env.local generated');
 
-  // ── Write root .env (for Docker Compose) ──────────────────────────────────
-  const rootEnv = {
-    DB_PASSWORD:   dbPassword,
-    JWT_SECRET:    jwtSecret,
-    CORS_ORIGIN:   'http://localhost',
-    APP_URL:       'http://localhost:3000',
-    SITE_URL:      'http://localhost',
-  };
-  writeEnvFile(path.join(projectDir, '.env'), rootEnv);
-  ok('.env generated for Docker Compose');
+  // ── Write root .env (for Docker Compose) — only in Docker mode ─────────────
+  if (useDocker) {
+    const rootEnv = {
+      DB_PASSWORD:   dbPassword,
+      JWT_SECRET:    jwtSecret,
+      CORS_ORIGIN:   'http://localhost',
+      APP_URL:       'http://localhost:3000',
+      SITE_URL:      'http://localhost',
+    };
+    writeEnvFile(path.join(projectDir, '.env'), rootEnv);
+    ok('.env generated for Docker Compose');
+  }
 
   // ── Write root package.json (convenience scripts) ──────────────────────────
+  const scripts = {
+    dev: 'concurrently "npm run dev:backend" "npm run dev:frontend"',
+    'dev:backend': 'cd backend && npm run start:dev',
+    'dev:frontend': 'cd frontend && npm run dev',
+    build: 'cd backend && npm run build && cd ../frontend && npm run build',
+    migrate: 'cd backend && npx prisma migrate dev',
+    studio: 'cd backend && npx prisma studio',
+    'install:all': 'npm install',
+  };
+  if (useDocker) {
+    scripts['docker:dev']  = 'docker-compose up -d';
+    scripts['docker:prod'] = 'docker-compose -f docker-compose.prod.yml up -d --build';
+    scripts['docker:down'] = 'docker-compose down';
+  }
   const rootPkg = {
     name: safeName,
     version: '1.0.0',
     private: true,
-    scripts: {
-      dev: 'concurrently "npm run dev:backend" "npm run dev:frontend"',
-      'dev:backend': 'cd backend && npm run start:dev',
-      'dev:frontend': 'cd frontend && npm run dev',
-      build: 'cd backend && npm run build && cd ../frontend && npm run build',
-      'docker:dev': 'docker-compose up -d',
-      'docker:prod': 'docker-compose -f docker-compose.prod.yml up -d --build',
-      'docker:down': 'docker-compose down',
-      migrate: 'cd backend && npx prisma migrate dev',
-      studio: 'cd backend && npx prisma studio',
-      'install:all': 'cd backend && npm install && cd ../frontend && npm install',
-    },
+    workspaces: ['backend', 'frontend'],
+    scripts,
     devDependencies: {
       concurrently: '^10.0.0',
     },
@@ -167,52 +197,40 @@ module.exports = async function createProject(name) {
   ok('package.json generated with dev/build scripts');
 
   // ── Install dependencies ───────────────────────────────────────────────────
-  info('Installing root dependencies …');
+  // npm workspaces: a single root `npm install` installs backend + frontend too.
+  info('Installing dependencies (backend + frontend) …');
   run('npm install', projectDir, 'inherit');
-  ok('Root dependencies installed');
-
-  info('Installing backend dependencies …');
-  run('npm install', path.join(projectDir, 'backend'), 'inherit');
-  ok('Backend dependencies installed');
-
-  info('Installing frontend dependencies …');
-  run('npm install', path.join(projectDir, 'frontend'), 'inherit');
-  ok('Frontend dependencies installed');
+  ok('Dependencies installed');
 
   // ── Done ───────────────────────────────────────────────────────────────────
   log('');
   log(`  ${c.green}${c.bold}✓ NodePress "${safeName}" is ready!${c.reset}`);
   log('');
 
-  if (hasDocker) {
-    log(`  ${c.bold}Next steps:${c.reset}`);
+  if (useDocker) {
+    if (!hasDocker) {
+      warn('Docker not found on your machine — install Docker Desktop to use the commands below.');
+      log('');
+    }
+    log(`  ${c.bold}Next steps (Docker — no local PostgreSQL needed):${c.reset}`);
     log('');
-    log(`  ${c.cyan}Option A — Docker (recommended, no PostgreSQL needed):${c.reset}`);
     log(`    cd ${safeName}`);
     log(`    docker-compose up -d             ${c.dim}# starts PostgreSQL + Redis${c.reset}`);
-    log(`    npm run migrate                  ${c.dim}# create DB tables${c.reset}`);
-    log(`    npm run dev                      ${c.dim}# backend :3000 + admin panel :5173${c.reset}`);
-    log('');
-    log(`  ${c.cyan}Option B — Local PostgreSQL:${c.reset}`);
-    log(`  ${c.yellow}⚠${c.reset}  Open ${c.bold}${safeName}/backend/.env${c.reset} and update DATABASE_URL with your PostgreSQL password:`);
-    log(`    ${c.dim}postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress${c.reset}`);
-    log('');
-    log(`    cd ${safeName}`);
     log(`    npm run migrate                  ${c.dim}# create DB tables${c.reset}`);
     log(`    npm run dev                      ${c.dim}# backend :3000 + admin panel :5173${c.reset}`);
   } else {
     log(`  ${c.bold}Next steps:${c.reset}`);
     log('');
-    warn(`Docker not found — using local PostgreSQL (port 5432)`);
-    log('');
-    log(`  ${c.yellow}1.${c.reset} Open ${c.bold}${safeName}/backend/.env${c.reset} and update DATABASE_URL with your PostgreSQL password:`);
-    log(`     ${c.dim}postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress${c.reset}`);
-    log(`     ${c.dim}(No password? Use: postgresql://postgres@localhost:5432/nodepress)${c.reset}`);
+    log(`  ${c.yellow}1.${c.reset} Open ${c.bold}${safeName}/backend/.env${c.reset} and set DATABASE_URL — replace YOUR_PASSWORD and YOUR_NODEPRESS_DATABASE:`);
+    log(`     ${c.dim}postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE${c.reset}`);
+    log(`     ${c.dim}(No password? Use: postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE — npm run migrate creates the database for you)${c.reset}`);
     log('');
     log(`  ${c.yellow}2.${c.reset} Run migrations and start both servers:`);
     log(`     cd ${safeName}`);
     log(`     npm run migrate                  ${c.dim}# create DB tables${c.reset}`);
     log(`     npm run dev                      ${c.dim}# backend :3000 + admin panel :5173${c.reset}`);
+    log('');
+    log(`  ${c.dim}Prefer Docker to run PostgreSQL for you? Re-scaffold with: npx create-nodepress-app <name> --docker${c.reset}`);
   }
 
   log('');

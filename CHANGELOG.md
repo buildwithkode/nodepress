@@ -10,6 +10,23 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [Unreleased]
+
+### Added
+- **`--docker` flag for the CLI** — `npx create-nodepress-app <name>` now scaffolds for **local PostgreSQL by default** (Docker files omitted); pass `--docker` to include `docker-compose*.yml`, the `nginx/` + `monitoring/` configs, the root Docker Compose `.env`, and the `docker:*` npm scripts.
+
+### Fixed
+- **Scaffolded `backend/.env` was missing `DIRECT_URL`** — the Prisma schema declares `directUrl = env("DIRECT_URL")`, so `npm run migrate` failed on a fresh project with `P1012: Environment variable not found: DIRECT_URL`. The CLI now writes `DIRECT_URL` (same value as `DATABASE_URL`, since local/Docker setups aren't pooled).
+
+### Changed
+- **One-command install via npm workspaces** — the project root is now an npm workspace covering `backend` and `frontend`. A single `npm install` at the root installs all dependencies (no more separate `cd backend && npm install` / `cd frontend && npm install`). `npm run install:all` is now just an alias for `npm install`.
+- **CLI scaffolding** — `npx create-nodepress-app <name>` now generates a workspace-enabled root `package.json` and runs a single root install instead of three separate installs.
+- **Generated `backend/.env` DATABASE_URL** — non-Docker scaffolds now write clear placeholders (`YOUR_PASSWORD` / `YOUR_NODEPRESS_DATABASE`) instead of a random password, so it's obvious the values must be filled in. Docker scaffolds keep the generated random password + `nodepress` db, which match the Compose-provisioned container and work out of the box.
+
+### No migration required
+
+---
+
 ## [1.5.0] — 2026-04-19
 
 ### Added

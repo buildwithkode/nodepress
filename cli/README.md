@@ -3,8 +3,14 @@
 Scaffold a self-hosted [NodePress](https://nodepress.buildwithkode.com) headless CMS in one command.
 
 ```bash
+# Local PostgreSQL (default)
 npx create-nodepress-app my-project
+
+# Or with Docker (bundles PostgreSQL + Redis + nginx)
+npx create-nodepress-app my-project --docker
 ```
+
+By default the project is scaffolded for a **local PostgreSQL** database — Docker files are left out. Add `--docker` to include `docker-compose.yml`, the `nginx/` + `monitoring/` configs, and the `docker:*` npm scripts.
 
 ---
 
@@ -46,33 +52,24 @@ Download from [postgresql.org/download](https://www.postgresql.org/download/).
 
 ## After running the command
 
-The CLI sets up everything automatically. Then choose one of the two options below:
+The CLI sets up everything automatically (a single `npm install` via npm workspaces installs both backend and frontend). Then follow the path that matches how you scaffolded.
 
 ---
 
-### Option A — With Docker (easiest, no PostgreSQL needed)
+### With Docker (`--docker`)
 
 Docker manages the database for you — no password changes required.
 
 ```bash
 cd my-project
 docker-compose up -d             # starts PostgreSQL + Redis
-
-cd backend
-npx prisma migrate dev           # create DB tables
-npm run start:dev                # backend on :3000
-```
-
-Open a **new terminal**:
-
-```bash
-cd my-project/frontend
-npm run dev                      # admin panel on :5173
+npm run migrate                  # create DB tables
+npm run dev                      # backend :3000 + admin panel :5173 (one command)
 ```
 
 ---
 
-### Option B — Local PostgreSQL
+### Local PostgreSQL (default)
 
 > **Important:** The CLI generates a random database password that won't match your local PostgreSQL. You must update it before running migrations or you'll get an authentication error.
 
@@ -81,44 +78,28 @@ npm run dev                      # admin panel on :5173
 Open `my-project/backend/.env` in any text editor and find:
 
 ```
-DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
+DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/nodepress"
 ```
 
 Replace `RANDOM_PASSWORD` with the password you set when installing PostgreSQL:
 
 ```
-DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"
+DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"
 ```
 
-> **Didn't set a password?** Try: `postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE`
+> **Didn't set a password?** Try: `postgresql://postgres@localhost:5432/nodepress`
 
-**Step 2 — Create the database tables**
+**Step 2 — Create the tables and start both servers**
 
 ```bash
-cd my-project/backend
-npx prisma migrate dev
+cd my-project
+npm run migrate                  # create DB tables
+npm run dev                      # backend :3000 + admin panel :5173 (one command)
 ```
 
-> Still getting an authentication error? The password in `DATABASE_URL` doesn't match your PostgreSQL password. Double-check Step 1.
+> Getting an authentication error during migrate? The password in `DATABASE_URL` doesn't match your PostgreSQL password. Double-check Step 1.
 
-**Step 3 — Start the backend**
-
-```bash
-npm run start:dev
-```
-
-Backend runs at `http://localhost:3000`. Keep this terminal open.
-
-**Step 4 — Start the admin panel**
-
-Open a **new terminal** and run:
-
-```bash
-cd my-project/frontend
-npm run dev
-```
-
-Admin panel runs at `http://localhost:5173`. Keep this terminal open too.
+Backend runs at `http://localhost:3000` and the admin panel at `http://localhost:5173`.
 
 ---
 
@@ -134,9 +115,10 @@ That's it — NodePress is running!
 
 1. Downloads NodePress from GitHub into a new folder
 2. Removes dev-only files (`.claude`, `cli/`, `docs/`, `.github/`, etc.)
-3. Generates a fresh git repository
-4. Creates `backend/.env` and `frontend/.env.local` with random secret keys
-5. Runs `npm install` in both backend and frontend
+3. Without `--docker`, also removes the Docker files (`docker-compose*.yml`, `nginx/`, `monitoring/`) and the `docker:*` scripts
+4. Generates a fresh git repository
+5. Creates `backend/.env` and `frontend/.env.local` with random secret keys (plus a root `.env` for Docker Compose when `--docker` is used)
+6. Generates a workspace-enabled root `package.json` and runs a single `npm install` (installs backend + frontend together via npm workspaces)
 
 ---
 
