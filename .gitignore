@@ -14,6 +14,9 @@ backend/dist/
 frontend/.next/
 frontend/out/
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # Prisma migrations are safe to commit — do NOT ignore them
 
 # Uploads (keep folder, ignore files)
