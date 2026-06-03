@@ -166,6 +166,12 @@ module.exports = async function createProject(name, opts = {}) {
 
   // ── Write root package.json (convenience scripts) ──────────────────────────
   const scripts = {
+    // Generate the Prisma client after install. With npm workspaces the
+    // hoisted @prisma/client postinstall can't locate backend/prisma/schema.prisma,
+    // so the client is generated here from the backend package instead. Without
+    // this the backend fails to compile (`Prisma.InputJsonValue` missing) until
+    // the first `prisma migrate`/`generate`.
+    postinstall: 'cd backend && npx prisma generate',
     dev: 'concurrently "npm run dev:backend" "npm run dev:frontend"',
     'dev:backend': 'cd backend && npm run start:dev',
     'dev:frontend': 'cd frontend && npm run dev',

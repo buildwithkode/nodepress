@@ -16,6 +16,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **`--docker` flag for the CLI** — `npx create-nodepress-app <name>` now scaffolds for **local PostgreSQL by default** (Docker files omitted); pass `--docker` to include `docker-compose*.yml`, the `nginx/` + `monitoring/` configs, the root Docker Compose `.env`, and the `docker:*` npm scripts.
 
 ### Fixed
+- **Prisma client not generated after a workspace install** — with npm workspaces, the hoisted `@prisma/client` postinstall can't find `backend/prisma/schema.prisma`, so a fresh `npm install` left the backend uncompilable (`Prisma.InputJsonValue` missing) and the dev server never booted ("backend not running") until the first migrate. The root `package.json` (this repo and scaffolded projects) now runs `cd backend && npx prisma generate` on `postinstall`. The backend `Dockerfile` is untouched, so production builds are unaffected.
 - **Scaffolded `backend/.env` was missing `DIRECT_URL`** — the Prisma schema declares `directUrl = env("DIRECT_URL")`, so `npm run migrate` failed on a fresh project with `P1012: Environment variable not found: DIRECT_URL`. The CLI now writes `DIRECT_URL` (same value as `DATABASE_URL`, since local/Docker setups aren't pooled).
 
 ### Changed
