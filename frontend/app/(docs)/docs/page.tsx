@@ -2056,7 +2056,7 @@ Sitemap: https://your-site.com/api/sitemap.xml`} />
                     ['CAPTCHA_PROVIDER',     'Captcha provider for form spam protection: turnstile | hcaptcha | recaptcha (optional)'],
                     ['CAPTCHA_SECRET_KEY',   'Server-side secret from your captcha provider dashboard (required when CAPTCHA_PROVIDER is set)'],
                     ['AUDIT_LOG_RETENTION_DAYS', 'How many days to keep audit log entries before pruning — default 90 (optional)'],
-                    ['SENTRY_DSN',           'Sentry DSN for backend error tracking (optional)'],
+                    ['SENTRY_DSN',           'Sentry DSN for backend error tracking (optional; requires scaffolding with --sentry, or installing the @sentry packages)'],
                   ].map(([key, desc]) => (
                     <tr key={key}>
                       <td className="px-4 py-2.5"><IC>{key}</IC></td>
@@ -2079,7 +2079,7 @@ Sitemap: https://your-site.com/api/sitemap.xml`} />
                 <tbody className="divide-y divide-border text-xs">
                   {[
                     ['BACKEND_URL',              'Backend URL used by Next.js server components (e.g. http://backend:3000 in Docker, http://localhost:3000 locally)'],
-                    ['NEXT_PUBLIC_SENTRY_DSN',   'Sentry DSN for frontend error tracking — enables Session Replay and client-side error capture (optional)'],
+                    ['NEXT_PUBLIC_SENTRY_DSN',   'Sentry DSN for frontend error tracking — enables Session Replay and client-side error capture (optional; requires scaffolding with --sentry, or installing @sentry/nextjs)'],
                   ].map(([key, desc]) => (
                     <tr key={key}>
                       <td className="px-4 py-2.5"><IC>{key}</IC></td>

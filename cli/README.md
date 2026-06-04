@@ -8,9 +8,21 @@ npx create-nodepress-app my-project
 
 # Or with Docker (bundles PostgreSQL + Redis + nginx)
 npx create-nodepress-app my-project --docker
+
+# Include Sentry error tracking (~100 MB; off by default)
+npx create-nodepress-app my-project --sentry
 ```
 
 By default the project is scaffolded for a **local PostgreSQL** database — Docker files are left out. Add `--docker` to include `docker-compose.yml`, the `nginx/` + `monitoring/` configs, and the `docker:*` npm scripts.
+
+### Flags
+
+| Flag | Effect |
+|---|---|
+| `--docker` | Include the Docker setup (`docker-compose*.yml`, `nginx/`, `monitoring/`, `docker:*` scripts). |
+| `--sentry` | Include [Sentry](https://sentry.io) error tracking (`@sentry/nestjs`, `@sentry/profiling-node`, `@sentry/nextjs` — ~100 MB). **Off by default**: scaffolds omit these packages and ship no error-tracking code, so the install is smaller. With the flag, set `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` to activate. |
+
+Flags can be combined: `npx create-nodepress-app my-project --docker --sentry`.
 
 ---
 
@@ -116,9 +128,10 @@ That's it — NodePress is running!
 1. Downloads NodePress from GitHub into a new folder
 2. Removes dev-only files (`.claude`, `cli/`, `docs/`, `.github/`, etc.)
 3. Without `--docker`, also removes the Docker files (`docker-compose*.yml`, `nginx/`, `monitoring/`) and the `docker:*` scripts
-4. Generates a fresh git repository
-5. Creates `backend/.env` and `frontend/.env.local` with random secret keys (plus a root `.env` for Docker Compose when `--docker` is used)
-6. Generates a workspace-enabled root `package.json` and runs a single `npm install` (installs backend + frontend together via npm workspaces)
+4. Without `--sentry`, removes the Sentry packages (`@sentry/*`) and config files, and swaps the client error reporter for a no-op (~100 MB lighter, no error-tracking code)
+5. Generates a fresh git repository
+6. Creates `backend/.env` and `frontend/.env.local` with random secret keys (plus a root `.env` for Docker Compose when `--docker` is used)
+7. Generates a workspace-enabled root `package.json` and runs a single `npm install` (installs backend + frontend together via npm workspaces)
 
 ---
 

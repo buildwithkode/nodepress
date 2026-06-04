@@ -39,8 +39,20 @@ function run(cmd, cwd, stdio = 'pipe') {
   return spawnSync(cmd, { shell: true, cwd, stdio, encoding: 'utf8' });
 }
 
+// Remove dependency entries (deps + devDeps) from a package.json, preserving formatting.
+function removeDeps(pkgPath, names) {
+  if (!fs.existsSync(pkgPath)) return;
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  for (const n of names) {
+    if (pkg.dependencies) delete pkg.dependencies[n];
+    if (pkg.devDependencies) delete pkg.devDependencies[n];
+  }
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+}
+
 module.exports = async function createProject(name, opts = {}) {
   const useDocker = opts.docker === true;
+  const useSentry = opts.sentry === true;
 
   // ── Validate name ──────────────────────────────────────────────────────────
   if (!name) {
@@ -112,6 +124,33 @@ module.exports = async function createProject(name, opts = {}) {
     }
   }
 
+  // ── Sentry error tracking — opt-in (saves ~100 MB of deps when omitted) ─────
+  // The source is written to tolerate the @sentry/* packages being absent
+  // (indirect requires + a swappable client reporter), so removing them here
+  // leaves a project that builds and runs cleanly with error tracking disabled.
+  if (!useSentry) {
+    // 1. Drop the pure-Sentry frontend config files (they statically import the SDK).
+    for (const f of [
+      'frontend/sentry.server.config.ts',
+      'frontend/sentry.client.config.ts',
+      'frontend/sentry.edge.config.ts',
+    ]) {
+      fs.rmSync(path.join(projectDir, f), { force: true });
+    }
+    // 2. Replace the client error reporter with a no-op — removes the last static
+    //    `@sentry/nextjs` reference so `next build` has nothing to resolve.
+    const noopReporter =
+      '// Error reporting is disabled (project scaffolded without --sentry).\n' +
+      '// To enable it, re-scaffold with --sentry, or install @sentry/nextjs and\n' +
+      '// restore the dynamic import in this file.\n' +
+      '// eslint-disable-next-line @typescript-eslint/no-unused-vars\n' +
+      'export function reportError(error: unknown, context?: Record<string, unknown>) {}\n';
+    fs.writeFileSync(path.join(projectDir, 'frontend', 'lib', 'report-error.ts'), noopReporter, 'utf8');
+    // 3. Remove the Sentry packages from both workspaces' dependencies.
+    removeDeps(path.join(projectDir, 'backend', 'package.json'), ['@sentry/nestjs', '@sentry/profiling-node']);
+    removeDeps(path.join(projectDir, 'frontend', 'package.json'), ['@sentry/nextjs']);
+  }
+
   // ── Generate secrets ───────────────────────────────────────────────────────
   const dbPassword = secret(24);
   const jwtSecret  = secret(48);
@@ -140,6 +179,8 @@ module.exports = async function createProject(name, opts = {}) {
     SMTP_USER:     '',
     SMTP_PASS:     '',
     SMTP_FROM:     '',
+    // Sentry error tracking — set a DSN to enable (only present with --sentry)
+    ...(useSentry ? { SENTRY_DSN: '' } : {}),
   };
   writeEnvFile(path.join(projectDir, 'backend', '.env'), backendEnv);
   ok('backend/.env generated with random secrets');
@@ -147,6 +188,8 @@ module.exports = async function createProject(name, opts = {}) {
   // ── Write frontend .env.local ──────────────────────────────────────────────
   const frontendEnv = {
     BACKEND_URL: 'http://localhost:3000',
+    // Sentry error tracking — set a DSN to enable (only present with --sentry)
+    ...(useSentry ? { NEXT_PUBLIC_SENTRY_DSN: '' } : {}),
   };
   writeEnvFile(path.join(projectDir, 'frontend', '.env.local'), frontendEnv);
   ok('frontend/.env.local generated');
@@ -201,6 +244,11 @@ module.exports = async function createProject(name, opts = {}) {
     'utf8',
   );
   ok('package.json generated with dev/build scripts');
+  if (useSentry) {
+    ok('Sentry error tracking included — set SENTRY_DSN / NEXT_PUBLIC_SENTRY_DSN to enable');
+  } else {
+    info('Sentry error tracking omitted (~100 MB lighter) — add it with --sentry');
+  }
 
   // ── Install dependencies ───────────────────────────────────────────────────
   // npm workspaces: a single root `npm install` installs backend + frontend too.

@@ -107,6 +107,13 @@ if [ "$RUN_SCAFFOLD" = "1" ]; then
     && pass "backend/.env has DIRECT_URL" || fail "backend/.env missing DIRECT_URL (migrate would P1012)"
   [ ! -f "$TMP_PROJECT/docker-compose.yml" ] \
     && pass "default scaffold omits Docker files" || fail "Docker files present without --docker"
+  if grep -q '@sentry/' "$TMP_PROJECT/backend/package.json" "$TMP_PROJECT/frontend/package.json" 2>/dev/null; then
+    fail "default scaffold still lists @sentry deps (should be omitted without --sentry)"
+  else
+    pass "default scaffold omits Sentry deps (~100 MB lighter)"
+  fi
+  [ ! -d "$TMP_PROJECT/node_modules/@sentry" ] \
+    && pass "Sentry not installed in default scaffold" || fail "@sentry present in node_modules without --sentry"
   [ ! -d "$TMP_PROJECT/backend/node_modules" ] \
     && pass "dependencies hoisted (single node_modules)" || fail "backend/node_modules not hoisted"
 

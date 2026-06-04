@@ -195,6 +195,17 @@ npm run migrate           # creates all DB tables
 npm run dev               # backend :3000 + admin panel :5173 (one command)
 ```
 
+### Optional flags
+
+| Flag | Effect |
+|---|---|
+| `--docker` | Include the Docker setup (`docker-compose*.yml`, `nginx/`, `monitoring/`, `docker:*` scripts). Manages PostgreSQL + Redis for you. |
+| `--sentry` | Include [Sentry](https://sentry.io) error tracking (`@sentry/*` packages, ~100 MB). **Off by default** — without it the scaffold is lighter and ships no error-tracking code. Enable later by re-scaffolding with `--sentry`, or set `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` once the packages are installed. |
+
+```bash
+npx create-nodepress-app my-project --docker --sentry   # both
+```
+
 ### Option C — Clone from GitHub
 
 ```bash

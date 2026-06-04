@@ -3,6 +3,7 @@
 import { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { reportError } from '@/lib/report-error';
 
 interface Props {
   children: ReactNode;
@@ -33,12 +34,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: { componentStack: string }) {
-    // If Sentry is loaded, report the error with component context
-    if (typeof window !== 'undefined' && (window as any).__SENTRY__) {
-      import('@sentry/nextjs').then(({ captureException }) => {
-        captureException(error, { extra: { componentStack: info.componentStack } });
-      });
-    }
+    // Reports to Sentry when it's installed + initialised; no-op otherwise.
+    reportError(error, { componentStack: info.componentStack });
     console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
