@@ -24,6 +24,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **One-command install via npm workspaces** — the project root is now an npm workspace covering `backend` and `frontend`. A single `npm install` at the root installs all dependencies (no more separate `cd backend && npm install` / `cd frontend && npm install`). `npm run install:all` is now just an alias for `npm install`.
 - **CLI scaffolding** — `npx create-nodepress-app <name>` now generates a workspace-enabled root `package.json` and runs a single root install instead of three separate installs.
 - **Generated `backend/.env` DATABASE_URL** — non-Docker scaffolds now write clear placeholders (`YOUR_PASSWORD` / `YOUR_NODEPRESS_DATABASE`) instead of a random password, so it's obvious the values must be filled in. Docker scaffolds keep the generated random password + `nodepress` db, which match the Compose-provisioned container and work out of the box.
+- **Faster scaffold install** (CLI 1.2.2) — the scaffold's `npm install` now runs with `--no-audit --no-fund`. The post-install registry audit was the slowest step and a common "stuck after install" hang on slow/filtered networks; skipping it (auditing belongs in CI, not scaffolding) speeds the install and removes the vulnerability-report noise. The progress message now states it takes 1–2 minutes so the silent install phase doesn't look frozen.
 
 ### No migration required
 

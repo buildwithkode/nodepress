@@ -204,8 +204,12 @@ module.exports = async function createProject(name, opts = {}) {
 
   // ── Install dependencies ───────────────────────────────────────────────────
   // npm workspaces: a single root `npm install` installs backend + frontend too.
-  info('Installing dependencies (backend + frontend) …');
-  run('npm install', projectDir, 'inherit');
+  // --no-audit skips the post-install registry audit round-trip (the slowest,
+  // and a common "stuck after install" hang on filtered/slow networks);
+  // --no-fund drops the funding scan. Both shave time and noise — security
+  // auditing belongs in CI, not the scaffold step.
+  info('Installing dependencies (backend + frontend) — this takes 1–2 min …');
+  run('npm install --no-audit --no-fund', projectDir, 'inherit');
   ok('Dependencies installed');
 
   // ── Done ───────────────────────────────────────────────────────────────────
