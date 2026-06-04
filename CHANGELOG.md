@@ -12,6 +12,9 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Fixed
+- **`?populate=` returned the raw (un-populated) entry after a normal read** — the public dynamic API cached single entries and lists under a key that ignored `populate`/`fields`, and read from that cache *before* checking for `populate`. So a plain `GET /api/blog/x` cached the raw entry, and a subsequent `GET /api/blog/x?populate=author` got the cached raw copy (relation left as a UUID). The `list` endpoint also only excluded `fields` (not `populate`) from caching. Fixed by skipping the cache read **and** write whenever `populate` or `fields` is present (matches the documented "caching is bypassed when populating" behaviour) in both `findOne` and `findAll`. `validate.sh` now seeds the cache with a raw read, then asserts `?populate` still resolves the relation.
+
 ---
 
 ## [1.3.0] — 2026-06-04

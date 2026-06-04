@@ -161,6 +161,22 @@ if [ "$RUN_SMOKE" = "1" ]; then
     curl -s "$B/vblog/v-hello" | grep -q '"slug":"v-hello"' \
       && pass "public API returns entry" || fail "public API failed"
 
+    # Relations + populate: a ?populate request must NOT be served a cached raw
+    # (un-populated) entry. Fetch raw FIRST to seed the cache, then populate.
+    curl -s -X POST "$B/content-types" -H "$A" -H 'Content-Type: application/json' \
+      -d '{"name":"vauthor","schema":[{"name":"name","type":"text","label":"Name"}]}' >/dev/null
+    APID=$(curl -s -X POST "$B/entries" -H "$A" -H 'Content-Type: application/json' \
+      -d '{"contentTypeId":2,"slug":"v-author","data":{"name":"Ann"}}' \
+      | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{process.stdout.write(JSON.parse(d).publicId||'')}catch(e){}})")
+    curl -s -X POST "$B/content-types" -H "$A" -H 'Content-Type: application/json' \
+      -d '{"name":"vpost","schema":[{"name":"title","type":"text","label":"Title"},{"name":"writer","type":"relation","label":"Writer","options":{"relatedContentType":"vauthor","cardinality":"one"}}]}' >/dev/null
+    curl -s -X POST "$B/entries" -H "$A" -H 'Content-Type: application/json' \
+      -d "{\"contentTypeId\":3,\"slug\":\"v-post\",\"data\":{\"title\":\"P\",\"writer\":\"$APID\"}}" >/dev/null
+    curl -s "$B/vpost/v-post" >/dev/null                         # raw first → seeds cache
+    curl -s "$B/vpost/v-post?populate=writer" | grep -q '"name":"Ann"' \
+      && pass "relation populate works after a raw read (cache not stale)" \
+      || fail "populate served a cached raw entry (relation/cache regression)"
+
     info "you must drop the smoke DATABASE_URL's database yourself (script does not touch it)"
   fi
 fi

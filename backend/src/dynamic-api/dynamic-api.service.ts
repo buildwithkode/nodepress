@@ -164,9 +164,15 @@ export class DynamicApiService {
     const orderBy = parseSortParam(query.sort);
 
     // ── Cache lookup ──────────────────────────────────────────────────────────
+    // populate/fields responses vary per request and aren't cached, so they must
+    // also skip the cache read (the key omits populate/fields) — otherwise a
+    // populated list could be served raw, or vice versa.
+    const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
     const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter, locale: query.locale })}`;
-    const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
-    if (cached) return cached;
+    if (cacheable) {
+      const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
+      if (cached) return cached;
+    }
 
     // Build where: only published + non-deleted entries visible publicly
     const dataFilters = query.filter ? buildDataFilters(query.filter) : [];
@@ -268,8 +274,8 @@ export class DynamicApiService {
         ...(searchMode ? { searchMode } : {}),
       },
     };
-    // Only cache un-projected responses (fields param varies per caller)
-    if (!query.fields || query.fields.length === 0) {
+    // Only cache un-projected, un-populated responses (matches the read guard above)
+    if (cacheable) {
       await this.cache.set(cacheKey, result, LIST_TTL);
     }
     return result;
@@ -280,9 +286,15 @@ export class DynamicApiService {
     const locale = query.locale ?? 'en';
 
     // ── Cache lookup ──────────────────────────────────────────────────────────
+    // populate/fields responses vary per request and are never written to cache,
+    // so they must also SKIP the cache read — otherwise a populated request would
+    // return a previously-cached raw (un-populated) entry under the same key.
+    const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
     const cacheKey = `${cachePrefix(typeName)}slug:${slug}:${locale}`;
-    const cached = await this.cache.get<any>(cacheKey);
-    if (cached) return cached;
+    if (cacheable) {
+      const cached = await this.cache.get<any>(cacheKey);
+      if (cached) return cached;
+    }
 
     const entry = await this.prisma.entry.findUnique({
       where: {
@@ -316,8 +328,8 @@ export class DynamicApiService {
     }
 
     const result = projectFields(this.toPublicEntry(entry, data), query.fields);
-    // Only cache un-projected, un-populated responses
-    if ((!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0)) {
+    // Only cache un-projected, un-populated responses (matches the read guard above)
+    if (cacheable) {
       await this.cache.set(cacheKey, result, ENTRY_TTL);
     }
     return result;
