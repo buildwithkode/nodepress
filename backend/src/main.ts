@@ -25,7 +25,7 @@ import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import helmet from 'helmet';
 import * as express from 'express';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { SentryExceptionFilter } from './common/sentry-exception.filter';
 

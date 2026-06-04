@@ -6,6 +6,10 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+    // Required so `import x from 'cjs-module'` emits the __importDefault helper.
+    // Without it, default imports of CommonJS libs (e.g. sanitize-html) compile to
+    // `mod.default` — which is undefined at runtime → "x is not a function".
+    "esModuleInterop": true,
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",

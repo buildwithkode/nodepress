@@ -149,12 +149,15 @@ if [ "$RUN_SMOKE" = "1" ]; then
       | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{process.stdout.write(JSON.parse(d).access_token||'')}catch(e){}})")
     [ -n "$TOK" ] && pass "register + token" || fail "register failed"
     A="Authorization: Bearer $TOK"
+    # Include a richtext field so the entry write path exercises sanitize-html
+    # (a default-import of a CJS lib — broke at runtime when esModuleInterop was off).
     curl -s -X POST "$B/content-types" -H "$A" -H 'Content-Type: application/json' \
-      -d '{"name":"vblog","schema":[{"name":"title","type":"text","label":"Title"}]}' \
+      -d '{"name":"vblog","schema":[{"name":"title","type":"text","label":"Title"},{"name":"body","type":"richtext","label":"Body"}]}' \
       | grep -q '"name":"vblog"' && pass "create content type" || fail "content type failed"
-    curl -s -X POST "$B/entries" -H "$A" -H 'Content-Type: application/json' \
-      -d '{"contentTypeId":1,"slug":"v-hello","data":{"title":"Hi"}}' \
-      | grep -q '"slug":"v-hello"' && pass "create entry" || fail "entry failed"
+    ENTRY=$(curl -s -X POST "$B/entries" -H "$A" -H 'Content-Type: application/json' \
+      -d '{"contentTypeId":1,"slug":"v-hello","data":{"title":"Hi","body":"<p>ok</p><script>alert(1)</script>"}}')
+    echo "$ENTRY" | grep -q '"slug":"v-hello"' && pass "create entry (richtext sanitize path)" || fail "entry failed: $ENTRY"
+    echo "$ENTRY" | grep -q '<script>' && fail "richtext NOT sanitized (script tag survived)" || pass "richtext sanitized (script stripped)"
     curl -s "$B/vblog/v-hello" | grep -q '"slug":"v-hello"' \
       && pass "public API returns entry" || fail "public API failed"
 
