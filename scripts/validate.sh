@@ -131,13 +131,13 @@ if [ "$RUN_SMOKE" = "1" ]; then
     APP="$TMP_PROJECT"
     [ -z "$APP" ] && APP="$ROOT"   # fall back to working tree if scaffold skipped
     export DATABASE_URL DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" PORT="$SMOKE_PORT"
-    printf 'DATABASE_URL="%s"\nDIRECT_URL="%s"\nPORT="%s"\nJWT_SECRET="validate-only-secret"\nCORS_ORIGIN="http://localhost:5173"\n' \
+    printf 'DATABASE_URL="%s"\nDIRECT_URL="%s"\nPORT="%s"\nJWT_SECRET="validate-only-secret-key-0123456789abcdef"\nCORS_ORIGIN="http://localhost:5173"\n' \
       "$DATABASE_URL" "$DIRECT_URL" "$SMOKE_PORT" > "$APP/backend/.env"
 
     info "prisma migrate deploy…"
     ( cd "$APP/backend" && npx prisma migrate deploy >/dev/null 2>&1 ) && pass "migrate" || fail "migrate failed"
 
-    info "booting backend on :$SMOKE_PORT…"
+    info "booting backend on :${SMOKE_PORT}…"
     ( cd "$APP/backend" && node dist/main.js >/tmp/np-validate-be.log 2>&1 ) &
     SMOKE_PID=$!
     B="http://localhost:$SMOKE_PORT/api"
