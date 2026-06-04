@@ -12,6 +12,10 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+---
+
+## [1.3.0] — 2026-06-04
+
 ### Added
 - **`--docker` flag for the CLI** — `npx create-nodepress-app <name>` now scaffolds for **local PostgreSQL by default** (Docker files omitted); pass `--docker` to include `docker-compose*.yml`, the `nginx/` + `monitoring/` configs, the root Docker Compose `.env`, and the `docker:*` npm scripts.
 - **`--sentry` flag for the CLI (1.3.0) — Sentry is now opt-in** — scaffolded projects **omit Sentry by default**, saving ~100 MB of dependencies (`@sentry/nestjs`, `@sentry/profiling-node`, `@sentry/nextjs` and most of `@opentelemetry`) and shipping no error-tracking code. Pass `--sentry` to include the packages and config, then set `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` to activate. The source was made resilient to the packages being absent — the backend loads `@sentry/*` via guarded indirect `require`s (`instrument.ts`, `SentryExceptionFilter`), `next.config.js` wraps `withSentryConfig` in a guarded `require`, and client error reporting now goes through `frontend/lib/report-error.ts` (which the CLI swaps for a no-op when Sentry is omitted, so `next build` has no static `@sentry/nextjs` reference). This dev repo keeps Sentry fully installed and wired.
