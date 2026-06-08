@@ -9,12 +9,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 NodePress is a self-hosted headless CMS (WordPress + ACF + Strapi inspired) with:
 - **Backend**: NestJS + PostgreSQL + Prisma ORM — `backend/`
 - **Frontend**: Next.js 14 App Router + Ant Design admin panel — `frontend/`
+- **CLI**: `create-nodepress-app` — the published scaffolding tool — `cli/`
 
-Both are separate npm projects. Always `cd` into the correct directory before running commands.
+This is an **npm-workspaces** monorepo (`backend`, `frontend`, `cli`). A single root `npm install` installs all three. Most build/test commands still run per-package, so `cd` into the right directory first.
 
 ---
 
 ## Commands
+
+### Root (monorepo)
+
+```bash
+npm install            # Installs all workspaces; postinstall runs `prisma generate`
+npm run dev            # Runs backend + frontend together (concurrently)
+npm run build          # Builds backend then frontend
+npm run docker:dev     # docker-compose up -d (Postgres for local dev)
+npm run docker:prod    # Production stack (Postgres + Redis + nginx)
+npm run migrate        # cd backend && prisma migrate dev
+npm run studio         # cd backend && prisma studio
+```
 
 ### Backend (`cd backend/`)
 
@@ -35,6 +48,32 @@ npm run dev            # Dev server (port 5173)
 npm run build          # Production build
 npx tsc --noEmit       # Type-check without building
 ```
+
+Frontend dev/prod server runs on **port 5173** (`next dev -p 5173`).
+
+### CLI (`cd cli/`)
+
+Published as `create-nodepress-app` (currently v1.3.0). It is a zero-dependency Node script (`bin/nodepress.js` → `src/new.js`) that scaffolds a new project by **cloning GitHub `main`**, generating `.env` files with random secrets, and running install.
+
+```bash
+node bin/nodepress.js <project-name>            # Scaffold (local Postgres)
+node bin/nodepress.js <project-name> --docker   # Scaffold with Docker (Postgres + Redis + nginx)
+node bin/nodepress.js <project-name> --sentry   # Include Sentry (off by default)
+```
+
+Because the CLI clones `main`, **changes to backend/frontend only reach scaffolded users after they are pushed to `main`** — not when published. Only `cli/` changes require an `npm publish`.
+
+### Pre-publish validation
+
+CI/GitHub Actions is **disabled on this account**, so `scripts/validate.sh` is the only stability gate. Run it before publishing the CLI and before pushing `main`:
+
+```bash
+./scripts/validate.sh                  # A: working-tree build + B: scaffold smoke (no DB)
+./scripts/validate.sh --no-scaffold    # A only (fast)
+DATABASE_URL="postgresql://…/np_validate" ./scripts/validate.sh --smoke   # A + B + C runtime smoke
+```
+
+Layer B clones GitHub `main`, so run it **after pushing** for a faithful check of what users receive. The `--smoke` runtime layer creates and drops its own throwaway database — never point `DATABASE_URL` at a real DB.
 
 ### Environment files
 
