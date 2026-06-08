@@ -16,16 +16,22 @@ export class SeoService {
       select: { name: true },
     });
 
-    // Fetch all published, non-deleted entries
-    const entries = await this.prisma.entry.findMany({
+    // Fetch all published, non-deleted entries. `seo` is pulled so we can drop
+    // entries the author flagged noIndex — listing them in the sitemap would
+    // contradict their "exclude from search engines" intent.
+    const allEntries = await this.prisma.entry.findMany({
       where: { status: 'published', deletedAt: null },
       select: {
         slug: true,
         updatedAt: true,
+        seo: true,
         contentType: { select: { name: true } },
       },
       orderBy: { updatedAt: 'desc' },
     });
+    const entries = allEntries.filter(
+      (e) => (e.seo as { noIndex?: boolean } | null)?.noIndex !== true,
+    );
 
     const now = new Date().toISOString().split('T')[0];
 
