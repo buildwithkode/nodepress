@@ -76,8 +76,20 @@ const ALL_NAV_GROUPS = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  // All hooks must run unconditionally and in the same order on every render —
+  // keep them above the early returns below. (Previously useRouter/usePathname/
+  // useState/useEffect sat after the `loading`/`!user` guards, so they were
+  // skipped on the loading render and ran on the next one, producing React's
+  // "change in the order of Hooks" error.)
   const { user, loading, logout } = useAuth();
   const { navItems: pluginNavItems } = usePlugins();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [siteName, setSiteName] = useState('NodePress');
+  useEffect(() => {
+    const stored = localStorage.getItem('np_site_name');
+    if (stored) setSiteName(stored);
+  }, []);
 
   // Block the admin UI from rendering until auth is confirmed.
   // This prevents two bad scenarios:
@@ -94,8 +106,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Auth resolved but no user — stale token that failed server validation.
   // Interceptor already fired window.location but render one null frame to be safe.
   if (!user) return null;
-  const router = useRouter();
-  const pathname = usePathname();
+
   const admin = canManageSettings(user?.role);
   const navGroups = ALL_NAV_GROUPS.filter((g) => !g.adminOnly || admin);
 
@@ -110,12 +121,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         },
       ]
     : navGroups;
-
-  const [siteName, setSiteName] = useState('NodePress');
-  useEffect(() => {
-    const stored = localStorage.getItem('np_site_name');
-    if (stored) setSiteName(stored);
-  }, []);
 
   const handleLogout = () => {
     logout();
