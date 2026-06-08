@@ -34,9 +34,13 @@ export async function generateMetadata({
     title: `${title} | NodePress`,
     description,
     robots: entry.seo?.noIndex ? 'noindex, nofollow' : 'index, follow',
+    // Relative canonical — resolved to an absolute URL against metadataBase
+    // (SITE_URL) set in the root layout.
+    alternates: { canonical: `/${params.type}/${params.slug}` },
     openGraph: {
       title,
       description,
+      url: `/${params.type}/${params.slug}`,
       ...(image ? { images: [{ url: image, width: 1200, height: 630 }] } : {}),
       type: 'article',
     },

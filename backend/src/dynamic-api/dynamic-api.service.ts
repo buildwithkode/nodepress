@@ -227,7 +227,7 @@ export class DynamicApiService {
         take: limit,
         select: {
           id: true, publicId: true, slug: true, locale: true,
-          status: true, deletedAt: true, data: true,
+          status: true, deletedAt: true, data: true, seo: true,
           createdAt: true, updatedAt: true,
         },
       }),
@@ -302,7 +302,7 @@ export class DynamicApiService {
       },
       select: {
         id: true, publicId: true, slug: true, locale: true,
-        status: true, deletedAt: true, data: true,
+        status: true, deletedAt: true, data: true, seo: true,
         createdAt: true, updatedAt: true,
       },
     });
@@ -357,7 +357,7 @@ export class DynamicApiService {
       },
       select: {
         id: true, publicId: true, slug: true, locale: true,
-        status: true, deletedAt: true, data: true,
+        status: true, deletedAt: true, data: true, seo: true,
         createdAt: true, updatedAt: true,
       },
     });
@@ -385,7 +385,7 @@ export class DynamicApiService {
       },
       select: {
         id: true, publicId: true, slug: true, locale: true,
-        status: true, deletedAt: true, data: true,
+        status: true, deletedAt: true, data: true, seo: true,
         createdAt: true, updatedAt: true,
       },
     });
@@ -439,7 +439,7 @@ export class DynamicApiService {
       where: { id: payload.entryId },
       select: {
         id: true, publicId: true, slug: true, locale: true,
-        status: true, deletedAt: true, data: true,
+        status: true, deletedAt: true, data: true, seo: true,
         createdAt: true, updatedAt: true, contentTypeId: true,
       },
     });
