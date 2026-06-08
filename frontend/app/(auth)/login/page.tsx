@@ -25,6 +25,9 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Gate the form until we know setup isn't required — otherwise the login
+  // form flashes before bouncing to /setup on a fresh install.
+  const [checking, setChecking] = useState(true);
 
   // Redirect away if the AuthContext silently restored the session via refresh token
   useEffect(() => {
@@ -35,9 +38,23 @@ function LoginForm() {
     const stored = localStorage.getItem('np_site_name');
     if (stored) setSiteName(`${stored} Admin`);
     api.get('/auth/setup-status').then((res) => {
-      if (res.data.required) router.replace('/setup');
-    }).catch(() => {});
+      if (res.data.required) {
+        router.replace('/setup');
+        return; // keep the loader up while navigating to /setup
+      }
+      setChecking(false);
+    }).catch(() => {
+      // If the check fails (e.g. backend unreachable), show the form anyway
+      // so the user isn't stuck on a blank loader.
+      setChecking(false);
+    });
   }, []);
+
+  // While checking — or while redirecting to /setup — render just the dark
+  // background so neither the login form nor a layout shift is visible.
+  if (checking) {
+    return <div className="min-h-screen bg-[#0d0d0d]" />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
