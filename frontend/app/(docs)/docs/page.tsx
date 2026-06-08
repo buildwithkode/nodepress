@@ -787,15 +787,18 @@ npm run dev`} />
 
             <h3 className="font-semibold mb-3">SEO fields</h3>
             <p className="text-muted-foreground text-sm mb-2">
-              Every entry has an optional SEO accordion on the edit page. These fields power the
-              public page's <IC>{`<head>`}</IC> meta tags via <IC>generateMetadata()</IC> in Next.js.
+              Every entry has an optional SEO accordion on both the <strong>create and edit</strong> pages.
+              The <IC>seo</IC> object is returned by the public API (<IC>GET /api/&#123;type&#125;/&#123;slug&#125;</IC>)
+              and powers the public page's <IC>{`<head>`}</IC> meta tags via <IC>generateMetadata()</IC> in
+              Next.js — title, description, Open Graph, Twitter card, a <IC>canonical</IC> link, and the
+              robots directive.
             </p>
             <div className="space-y-2 mb-6">
               {[
                 ['seo.title',       'Override the browser tab title and OG title.'],
                 ['seo.description', 'Meta description and OG description (recommended 120–160 chars).'],
                 ['seo.image',       'Open Graph image URL shown in link previews.'],
-                ['seo.noIndex',     'Add <meta name="robots" content="noindex"> to hide from search engines.'],
+                ['seo.noIndex',     'Adds <meta name="robots" content="noindex, nofollow"> and excludes the entry from sitemap.xml.'],
               ].map(([field, desc]) => (
                 <div key={field} className="flex gap-3 text-sm">
                   <IC>{field}</IC>
@@ -1968,8 +1971,11 @@ function verifySignature(body, secret, signatureHeader) {
             <h3 className="font-semibold mb-3">Sitemap</h3>
             <p className="text-muted-foreground text-sm mb-3">
               The sitemap includes all <IC>published</IC> entries across all content types, plus
-              one list-page URL per content type. Set <IC>SITE_URL</IC> in <IC>backend/.env</IC> to
-              control the domain used in the URLs.
+              one list-page URL per content type. Entries flagged <IC>seo.noIndex</IC> are
+              <strong> excluded</strong>, so they aren't submitted to search engines. Set{' '}
+              <IC>SITE_URL</IC> in <IC>backend/.env</IC> to control the domain used in the URLs
+              (set the same <IC>SITE_URL</IC> in the frontend env so public-page canonical and
+              OG image URLs resolve to that absolute domain).
             </p>
             <CodeBlock code={`# Fetch the sitemap
 GET /api/sitemap.xml

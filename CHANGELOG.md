@@ -12,7 +12,13 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Added
+- **Per-entry SEO on the create page** — the **SEO & Open Graph** accordion (SEO title, meta description, OG image URL, noindex) previously existed only on the entry *edit* page. It's now on the *create* page too, so SEO can be set while first authoring an entry instead of having to save and reopen it. The live JSON preview reflects the `seo` object as you type.
+- **Public API now returns the `seo` object** — `GET /api/{type}/{slug}` (plus the list + preview reads) now include each entry's `seo`. Previously it was stored but never read back, so per-entry SEO overrides never reached the rendered page. The public read still strips internal fields (`status`, `deletedAt`).
+- **Canonical + absolute metadata URLs on public pages** — entry detail pages now emit `<link rel="canonical">` and `og:url`, resolved to absolute URLs via a `metadataBase` derived from `SITE_URL` (which also makes relative `/uploads/…` OG images absolute). Set `SITE_URL` in the **frontend** env in production (documented in `frontend/.env.local.example`).
+
 ### Fixed
+- **`sitemap.xml` listed `noIndex` entries** — entries flagged "exclude from search engines" (`seo.noIndex`) were still included in the auto-generated sitemap, contradicting the setting and submitting them to crawlers anyway. They're now filtered out (published, non-noindex entries only).
 - **`?populate=` returned the raw (un-populated) entry after a normal read** — the public dynamic API cached single entries and lists under a key that ignored `populate`/`fields`, and read from that cache *before* checking for `populate`. So a plain `GET /api/blog/x` cached the raw entry, and a subsequent `GET /api/blog/x?populate=author` got the cached raw copy (relation left as a UUID). The `list` endpoint also only excluded `fields` (not `populate`) from caching. Fixed by skipping the cache read **and** write whenever `populate` or `fields` is present (matches the documented "caching is bypassed when populating" behaviour) in both `findOne` and `findAll`. `validate.sh` now seeds the cache with a raw read, then asserts `?populate` still resolves the relation.
 
 ---
