@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DynamicApiService } from './dynamic-api.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -61,6 +61,10 @@ describe('DynamicApiService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    // clearAllMocks only clears call history — it does NOT drain a queued
+    // mockResolvedValueOnce or a mockImplementation, which would otherwise leak
+    // into the next test's cache lookups. mockReset clears those.
+    mockCache.get.mockReset();
     mockCache.get.mockResolvedValue(undefined); // always cache miss
 
     const module: TestingModule = await Test.createTestingModule({
@@ -82,15 +86,13 @@ describe('DynamicApiService', () => {
     await expect(service.findAll('nonexistent')).rejects.toThrow(NotFoundException);
   });
 
-  it('throws NotFoundException when method not in allowedMethods', async () => {
+  it('throws ForbiddenException when method not in allowedMethods', async () => {
     mockPrisma.contentType.findUnique.mockResolvedValue({
       ...mockContentType,
       allowedMethods: ['read'],
     });
-    mockPrisma.entry.count.mockResolvedValue(0);
-    mockPrisma.entry.findMany.mockResolvedValue([]);
-    // 'list' is not in allowedMethods
-    await expect(service.findAll('blog')).rejects.toThrow(NotFoundException);
+    // findAll resolves the content type with method 'list'; it's not allowed here.
+    await expect(service.findAll('blog')).rejects.toThrow(ForbiddenException);
   });
 
   // ── findAll ────────────────────────────────────────────────────────────────
@@ -106,21 +108,24 @@ describe('DynamicApiService', () => {
       const result = await service.findAll('blog');
       expect(result.meta.total).toBe(1);
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].id).toBe(mockContentType.name === 'blog' ? expect.any(String) : undefined);
+      // id is the publicId UUID — an asymmetric matcher must use toEqual, not toBe.
+      expect(result.data[0].id).toEqual(expect.any(String));
     });
 
     it('uses cached result on cache hit', async () => {
       const cachedResult = { data: [{ id: 'cached' }], meta: { total: 1, page: 1, limit: 20, totalPages: 1 } };
-      mockCache.get.mockResolvedValueOnce(cachedResult); // first call is ct meta miss
-      mockCache.get.mockResolvedValueOnce(cachedResult); // second call is list cache hit
-
-      // First call populates ct cache, second returns list from cache
-      mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
+      // resolveContentType reads the content-type cache (key "ct:meta:…") first;
+      // findAll then reads the list cache (key "dyn:…:list:…"). Serve each its
+      // own shape so the list hit short-circuits the DB.
+      mockCache.get.mockImplementation(async (key: string) =>
+        key.includes(':list:') ? cachedResult : mockContentType,
+      );
 
       const result = await service.findAll('blog');
-      // DB count/findMany should not be called when cache hits
-      // (content type might still be fetched if not in cache)
-      expect(result).toBeDefined();
+
+      expect(result).toEqual(cachedResult);
+      // On a list cache hit the DB is not queried for entries.
+      expect(mockPrisma.entry.findMany).not.toHaveBeenCalled();
     });
 
     it('respects pagination limits — max 100', async () => {
@@ -175,6 +180,22 @@ describe('DynamicApiService', () => {
       mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
       mockPrisma.entry.findUnique.mockResolvedValue(makeEntry({ deletedAt: new Date() }));
       await expect(service.findOne('blog', 'hello')).rejects.toThrow(NotFoundException);
+    });
+
+    it('exposes the seo object in the public response (regression)', async () => {
+      const seo = { title: 'Custom', description: 'Desc', image: 'https://x/og.jpg', noIndex: true };
+      mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
+      mockPrisma.entry.findUnique.mockResolvedValue(makeEntry({ seo }));
+      const result = await service.findOne('blog', 'hello');
+      expect(result.seo).toEqual(seo);
+    });
+
+    it('still strips internal fields (status, deletedAt) from the public response', async () => {
+      mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
+      mockPrisma.entry.findUnique.mockResolvedValue(makeEntry({ seo: { title: 'x' } }));
+      const result = await service.findOne('blog', 'hello');
+      expect(result.status).toBeUndefined();
+      expect(result.deletedAt).toBeUndefined();
     });
   });
 
