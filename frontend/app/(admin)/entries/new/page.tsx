@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, Braces, Copy, Check, PanelRight } from 'lucide-react';
+import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,12 @@ export default function NewEntryPage() {
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<'published' | 'draft' | 'archived'>('published');
   const [locale, setLocale] = useState('en');
+  // SEO fields
+  const [seoOpen, setSeoOpen] = useState(false);
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+  const [seoImage, setSeoImage] = useState('');
+  const [seoNoIndex, setSeoNoIndex] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(true);
   const [jsonCopied, setJsonCopied] = useState(false);
   const [leftPct, setLeftPct] = useState(58);
@@ -96,7 +102,14 @@ export default function NewEntryPage() {
     setSubmitting(true);
     try {
       const { slug, ...rest } = values;
-      await api.post('/entries', { contentTypeId: selectedCT.id, slug, locale, status, data: rest });
+      const seo = {
+        title: seoTitle.trim() || undefined,
+        description: seoDescription.trim() || undefined,
+        image: seoImage.trim() || undefined,
+        noIndex: seoNoIndex || undefined,
+      };
+      const hasSeo = Object.values(seo).some((v) => v !== undefined);
+      await api.post('/entries', { contentTypeId: selectedCT.id, slug, locale, status, data: rest, seo: hasSeo ? seo : null });
       toast.success('Entry created');
       router.push('/entries');
     } catch (err: any) {
@@ -252,6 +265,80 @@ export default function NewEntryPage() {
                     </div>
                   </>
                 )}
+
+                {/* SEO Panel */}
+                <div className="mt-4">
+                  <div className="flex items-center gap-3 py-1 mb-1">
+                    <Separator className="flex-1" />
+                    <span className="text-xs text-muted-foreground">SEO</span>
+                    <Separator className="flex-1" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSeoOpen((v) => !v)}
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left px-1 py-1.5"
+                  >
+                    <Search className="h-3.5 w-3.5" />
+                    <span>SEO &amp; Open Graph</span>
+                    {(seoTitle || seoDescription || seoImage || seoNoIndex) && (
+                      <span className="ml-auto text-[10px] bg-blue-500/15 text-blue-400 rounded px-1.5 py-0.5">customized</span>
+                    )}
+                    {seoOpen
+                      ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
+                      : <ChevronRight className="h-3.5 w-3.5 ml-auto" />
+                    }
+                  </button>
+
+                  {seoOpen && (
+                    <div className="rounded-md border border-border bg-muted/20 p-4 space-y-3 mt-1">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="seo-title" className="text-xs">SEO Title</Label>
+                        <Input
+                          id="seo-title"
+                          placeholder="Overrides the page title in search results"
+                          value={seoTitle}
+                          onChange={(e) => setSeoTitle(e.target.value)}
+                          maxLength={70}
+                        />
+                        <p className="text-[10px] text-muted-foreground">{seoTitle.length}/70 characters</p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="seo-desc" className="text-xs">Meta Description</Label>
+                        <textarea
+                          id="seo-desc"
+                          placeholder="Short description shown in search results (120–160 chars recommended)"
+                          value={seoDescription}
+                          onChange={(e) => setSeoDescription(e.target.value)}
+                          maxLength={160}
+                          rows={2}
+                          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+                        />
+                        <p className="text-[10px] text-muted-foreground">{seoDescription.length}/160 characters</p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="seo-image" className="text-xs">OG Image URL</Label>
+                        <Input
+                          id="seo-image"
+                          placeholder="https://example.com/og-image.jpg (1200×630 recommended)"
+                          value={seoImage}
+                          onChange={(e) => setSeoImage(e.target.value)}
+                        />
+                      </div>
+
+                      <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={seoNoIndex}
+                          onChange={(e) => setSeoNoIndex(e.target.checked)}
+                          className="h-4 w-4 rounded border border-input"
+                        />
+                        <span className="text-xs text-foreground">Exclude from search engines (noindex)</span>
+                      </label>
+                    </div>
+                  )}
+                </div>
               </form>
             )}
 
@@ -273,13 +360,20 @@ export default function NewEntryPage() {
           {/* Right pane: JSON preview */}
           {selectedCT && jsonOpen && (() => {
             const { slug, ...fieldData } = watchedValues;
+            const previewSeo = {
+              title: seoTitle.trim() || undefined,
+              description: seoDescription.trim() || undefined,
+              image: seoImage.trim() || undefined,
+              noIndex: seoNoIndex || undefined,
+            };
+            const hasSeo = Object.values(previewSeo).some((v) => v !== undefined);
             const liveJson = {
               slug: slug ?? '',
               status,
               locale,
               contentTypeId: selectedCT.id,
               data: fieldData,
-              seo: null,
+              seo: hasSeo ? previewSeo : null,
               publishAt: null,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
