@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# NodePress pre-push gate.
+#
+# GitHub Actions is disabled on this account, so this local hook is the
+# automated check that runs before code leaves a machine. It type-checks both
+# workspaces — the fastest reliable signal that catches the class of regression
+# (bad refactors, wrong shapes, missing fields) that unit tests miss.
+#
+# Wired up automatically by the root `prepare` script (sets core.hooksPath).
+# Skip in an emergency with `git push --no-verify`.
+#
+# NOTE: backend `npm test` is intentionally NOT run here yet — the dynamic-api
+# spec is currently red (pre-existing mock rot). Add `npm test` once it's green.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "[pre-push] backend type-check…"
+( cd "$ROOT/backend" && npx tsc --noEmit )
+
+echo "[pre-push] frontend type-check…"
+( cd "$ROOT/frontend" && npx tsc --noEmit )
+
+echo "[pre-push] ✓ type-checks passed"

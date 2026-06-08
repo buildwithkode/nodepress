@@ -6,6 +6,7 @@
   "license": "MIT",
   "author": "BuildWithKode <https://buildwithkode.com>",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "postinstall": "cd backend && npx prisma generate",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run start:dev",
