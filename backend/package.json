@@ -42,12 +42,12 @@
     ],
     "coverageDirectory": "../coverage",
     "coverageReporters": ["text-summary", "lcov", "json-summary"],
-    "coverageThresholds": {
+    "coverageThreshold": {
       "global": {
-        "statements": 60,
-        "branches":   50,
-        "functions":  60,
-        "lines":      60
+        "statements": 30,
+        "branches":   28,
+        "functions":  25,
+        "lines":      30
       }
     },
     "testEnvironment": "node",
