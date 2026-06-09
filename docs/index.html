@@ -936,6 +936,14 @@ curl -X POST https://your-domain.com/api/blog \
       });
     });
 
+    // Highlight any hand-written <pre><code> blocks too (e.g. Field Types schema
+    // examples) that don't go through the .code-block renderer above.
+    if (window.hljs) {
+      document.querySelectorAll('pre code:not(.hljs)').forEach(c => {
+        try { hljs.highlightElement(c); } catch (_) { /* leave plain on failure */ }
+      });
+    }
+
     // Active TOC link via IntersectionObserver
     const sections = document.querySelectorAll('section[id]');
     const tocLinks = document.querySelectorAll('.toc-link');
