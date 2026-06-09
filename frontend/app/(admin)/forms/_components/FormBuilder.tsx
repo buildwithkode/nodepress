@@ -51,6 +51,7 @@ export interface FormBuilderProps {
   initialFields?:  FormField[];
   initialActions?: ActionDef[];
   initialActive?:  boolean;
+  initialCaptchaEnabled?: boolean;
   formId?:         number;
 }
 
@@ -79,6 +80,7 @@ export default function FormBuilder({
   initialFields  = [{ name: '', type: 'text', label: '', required: false }],
   initialActions = [],
   initialActive  = true,
+  initialCaptchaEnabled = false,
   formId,
 }: FormBuilderProps) {
   const router = useRouter();
@@ -87,6 +89,7 @@ export default function FormBuilder({
   const [slug,     setSlug]     = useState(initialSlug);
   const [slugDirty,setSlugDirty]= useState(mode === 'edit');
   const [isActive, setIsActive] = useState(initialActive);
+  const [captchaEnabled, setCaptchaEnabled] = useState(initialCaptchaEnabled);
   const [fields,    setFields]    = useState<FormField[]>(initialFields);
   // Parallel array: true = user manually typed the key, stop auto-deriving from label
   const [keyDirty,  setKeyDirty]  = useState<boolean[]>(
@@ -184,6 +187,7 @@ export default function FormBuilder({
         return false;
       }),
       isActive,
+      captchaEnabled,
     };
 
     setSubmitting(true);
@@ -273,6 +277,24 @@ export default function FormBuilder({
                   className="data-checked:bg-emerald-500"
                 />
               </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-md border px-4 py-3">
+              <div className="pr-4">
+                <p className="text-sm font-medium">Spam Protection (Captcha)</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {captchaEnabled
+                    ? 'Submissions must include a valid captcha token.'
+                    : 'Honeypot + rate limiting still apply. Turn on for captcha verification.'}
+                  {' '}Requires <code className="bg-muted px-1 py-0.5 rounded font-mono">CAPTCHA_PROVIDER</code> in the backend env.
+                </p>
+              </div>
+              <Switch
+                checked={captchaEnabled}
+                onCheckedChange={setCaptchaEnabled}
+                id="captcha-enabled"
+                className="data-checked:bg-emerald-500"
+              />
             </div>
           </CardContent>
         </Card>

@@ -1693,7 +1693,7 @@ X-RateLimit-Reset: 60       # seconds until window resets
                 <div className="space-y-2 text-xs text-muted-foreground mb-3">
                   {[
                     ['Step 1 — backend/.env', 'Set CAPTCHA_PROVIDER=turnstile and CAPTCHA_SECRET_KEY=your_server_secret'],
-                    ['Step 2 — create/update form', 'Set captchaEnabled=true on the form via the API or admin panel'],
+                    ['Step 2 — create/update form', 'Flip the "Spam Protection (Captcha)" switch in the form builder (or set captchaEnabled=true via the API)'],
                     ['Step 3 — frontend', 'Render the captcha widget and pass the token as captchaToken in the submit body'],
                   ].map(([step, desc]) => (
                     <div key={step} className="flex gap-3">

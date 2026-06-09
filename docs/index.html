@@ -549,14 +549,47 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
           </div>
           <h2 class="text-2xl font-bold text-white">Forms</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Build forms in the admin panel and embed them in your frontend. Submissions are stored in the database and can trigger email or webhook actions.</p>
+        <p class="text-zinc-400 leading-relaxed mb-6">Build forms in the admin panel and embed them in your frontend. Each form gets a public submission endpoint — no auth or API key required. Submissions are stored in the database and can trigger email or webhook actions.</p>
+
+        <h3 class="font-semibold text-white mb-2">Submit a form (public API)</h3>
+        <p class="text-sm text-zinc-400 mb-3"><code class="text-pink-400 bg-zinc-800 px-1 rounded">POST /api/submit/:slug</code> — the <code class="text-pink-400 bg-zinc-800 px-1 rounded">slug</code> is set when you create the form. Wrap your field values in a <code class="text-pink-400 bg-zinc-800 px-1 rounded">data</code> object whose keys match the form's field names:</p>
         <div class="code-block" data-code="// Submit a form from your frontend
 fetch('https://your-domain.com/api/submit/contact', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ name: 'John', email: 'john@example.com', message: 'Hello!' })
-});"></div>
+  body: JSON.stringify({
+    data: { full_name: 'Jane', email: 'jane@example.com', message: 'Hello!' },
+    // captchaToken: '...'  // only when the form has captcha enabled
+  })
+});
+
+// Response: { success: true, submissionId: 42, message: 'Your submission has been received.' }"></div>
         <p class="text-sm text-zinc-400 mt-4">Form field types: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">text</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">email</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">textarea</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">number</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">select</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">radio</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">checkbox</code></p>
+
+        <h3 class="font-semibold text-white mt-8 mb-2">Spam protection</h3>
+        <p class="text-sm text-zinc-400 mb-3">Every submission endpoint has three layers built in — they stack:</p>
+        <ul class="text-sm text-zinc-400 space-y-1.5 mb-4 list-disc pl-5">
+          <li><strong class="text-white">Rate limiting</strong> <span class="text-zinc-500">(always on)</span> — 20 submissions per minute per IP, then HTTP 429.</li>
+          <li><strong class="text-white">Honeypot</strong> <span class="text-zinc-500">(always on)</span> — add a hidden <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">_honey</code> field; bots that fill it are silently dropped.</li>
+          <li><strong class="text-white">Captcha</strong> <span class="text-zinc-500">(opt-in per form)</span> — Cloudflare Turnstile, hCaptcha, or Google reCAPTCHA v2/v3. Toggle the <strong class="text-white">&ldquo;Spam Protection (Captcha)&rdquo;</strong> switch in the form builder.</li>
+        </ul>
+
+        <h3 class="font-semibold text-white mt-6 mb-2">Enabling captcha — what to change in <code class="text-pink-400 bg-zinc-800 px-1 rounded">.env</code></h3>
+        <p class="text-sm text-zinc-400 mb-3">Captcha verification needs a provider configured in <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code>. Get a free key from Cloudflare Turnstile (recommended — no puzzle), hCaptcha, or Google reCAPTCHA, then:</p>
+        <div class="code-block" data-code="# backend/.env  — set the provider + its server secret
+CAPTCHA_PROVIDER=turnstile          # turnstile | hcaptcha | recaptcha
+CAPTCHA_SECRET_KEY=0x4AAAAAAA...    # server secret from the provider dashboard
+
+# Then, in the admin form builder, turn ON 'Spam Protection (Captcha)'
+# for the form (or set captchaEnabled: true via the API).
+
+# Finally, render the captcha widget on your frontend and send the token:
+POST /api/submit/contact
+{
+  &quot;data&quot;:         { &quot;full_name&quot;: &quot;Jane&quot;, &quot;email&quot;: &quot;jane@example.com&quot; },
+  &quot;captchaToken&quot;: &quot;TOKEN.from.the.widget&quot;
+}"></div>
+        <p class="text-xs text-zinc-500 mt-3">If <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_PROVIDER</code> is left unset, the captcha layer no-ops (fail-open) so forms keep working in development — rate limiting and the honeypot still apply.</p>
       </section>
 
       <!-- Webhooks -->
