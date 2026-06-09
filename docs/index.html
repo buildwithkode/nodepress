@@ -18,8 +18,8 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <!-- Syntax highlighting (VS Code "Dark+" look) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+  <!-- Syntax highlighting (Atom One Dark) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <style>
     * { font-family: 'Inter', sans-serif; }
@@ -28,7 +28,7 @@
     .toc-link.active { color: #3b82f6; background: rgba(59,130,246,0.08); font-weight: 500; }
     pre { tab-size: 2; }
     /* Let highlight.js color tokens while keeping our own window chrome/background */
-    pre code.hljs { background: transparent; padding: 0; color: #d4d4d4; }
+    pre code.hljs { background: transparent; padding: 0; color: #abb2bf; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #18181b; }
     ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
@@ -924,7 +924,7 @@ curl -X POST https://your-domain.com/api/blog \
           </div>
           <pre class="bg-zinc-950 p-4 text-xs font-mono overflow-x-auto leading-6"><code class="${lang ? 'language-' + lang : ''}">${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code></pre>
         </div>`;
-      // Syntax-highlight (VS Code "Dark+" theme). Honours data-lang, else auto-detects.
+      // Syntax-highlight (Atom One Dark theme). Honours data-lang, else auto-detects.
       const codeEl = el.querySelector('pre code');
       if (window.hljs && codeEl) {
         try { hljs.highlightElement(codeEl); } catch (_) { /* leave plain on failure */ }
