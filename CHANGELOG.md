@@ -22,6 +22,10 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **`sitemap.xml` listed `noIndex` entries** — entries flagged "exclude from search engines" (`seo.noIndex`) were still included in the auto-generated sitemap, contradicting the setting and submitting them to crawlers anyway. They're now filtered out (published, non-noindex entries only).
 - **`?populate=` returned the raw (un-populated) entry after a normal read** — the public dynamic API cached single entries and lists under a key that ignored `populate`/`fields`, and read from that cache *before* checking for `populate`. So a plain `GET /api/blog/x` cached the raw entry, and a subsequent `GET /api/blog/x?populate=author` got the cached raw copy (relation left as a UUID). The `list` endpoint also only excluded `fields` (not `populate`) from caching. Fixed by skipping the cache read **and** write whenever `populate` or `fields` is present (matches the documented "caching is bypassed when populating" behaviour) in both `findOne` and `findAll`. `validate.sh` now seeds the cache with a raw read, then asserts `?populate` still resolves the relation.
 
+### Docs
+- **Documented the `color`, `date`, `datetime`, and `json` field types on the website** — these four field types are fully supported in the app (content-type builder + entry form renderer) and were already in the in-app `/docs` table, but the public website docs (`docs/index.html`) Field Types table was missing them. Added rows with descriptions and JSON-value examples so the two docs surfaces match the product.
+- **Syntax-highlighted website code blocks** — `docs/index.html` code samples are now colour-highlighted via highlight.js (Atom One Dark theme) instead of flat white text, including the hand-written Field Types schema examples.
+
 ---
 
 ## [1.3.0] — 2026-06-04
