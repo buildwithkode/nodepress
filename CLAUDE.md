@@ -160,7 +160,7 @@ Entries use a schema-driven form. Field types and their renderers:
 | `number` | `InputNumber` |
 | `boolean` | `Switch` (uses `valuePropName="checked"`) |
 | `select` | `Select` with options from field config |
-| `image` | `Input` + live preview |
+| `image` | `MediaPickerModal` — upload (`POST /api/media/upload`) or pick from the media library; stores the selected URL |
 | `repeater` | `RepeaterField` — `Form.List` with sub-fields |
 | `flexible` | `FlexibleField` — `Form.List` + `useWatch` per item for layout switching |
 
