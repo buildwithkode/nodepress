@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Palette } from 'lucide-react';
 import AdminGuard from '@/components/AdminGuard';
@@ -28,9 +28,27 @@ export default function BrandPage() {
   const [inputColor, setInputColor]   = useState<string>(brand.inputColor ?? '');
   const [saving, setSaving] = useState(false);
 
+  // Sync the form to the loaded brand — runs on initial server load and after
+  // each save/refresh. Also re-baselines the dirty check so Save disables again.
+  useEffect(() => {
+    setName(brand.brandName);
+    setLogo(brand.brandLogoUrl ?? '');
+    setColor(brand.brandColor);
+    setButtonColor(brand.buttonColor ?? '');
+    setInputColor(brand.inputColor ?? '');
+  }, [brand]);
+
   const colorValid  = HEX_RE.test(color);
   const buttonValid = buttonColor === '' || HEX_RE.test(buttonColor);
   const inputValid  = inputColor === '' || HEX_RE.test(inputColor);
+
+  // Enable Save only when something actually changed from the saved brand.
+  const dirty =
+    name !== brand.brandName ||
+    logo !== (brand.brandLogoUrl ?? '') ||
+    color !== brand.brandColor ||
+    buttonColor !== (brand.buttonColor ?? '') ||
+    inputColor !== (brand.inputColor ?? '');
 
   const save = async () => {
     if (!name.trim()) { toast.error('Brand name is required'); return; }
@@ -230,8 +248,8 @@ export default function BrandPage() {
         </Card>
 
         <AlertDialog>
-          <AlertDialogTrigger render={<Button disabled={saving} />}>
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Saving…</> : 'Save changes'}
+          <AlertDialogTrigger render={<Button disabled={saving || !dirty} />}>
+            {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Saving…</> : (dirty ? 'Save changes' : 'No changes')}
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
