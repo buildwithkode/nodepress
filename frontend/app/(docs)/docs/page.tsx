@@ -1701,11 +1701,26 @@ SMTP_PASS=your_16_char_app_password   # the Gmail App Password — NOT your logi
 SMTP_FROM=Contact Form <you@gmail.com>`} />
             </div>
 
-            <p className="text-muted-foreground text-sm mb-8">
+            <p className="text-muted-foreground text-sm mb-4">
               <strong className="text-foreground">For production</strong>, a transactional email provider
               (Resend, Brevo, Mailgun, SendGrid, Postmark) gives far better deliverability than Gmail. They all
               provide an SMTP host, user, and password — drop those into the same five variables. Gmail also
               limits sending to ~500 messages/day, so it's best for testing only.
+            </p>
+
+            <p className="text-sm font-semibold text-foreground mb-1">Branding the notification email</p>
+            <p className="text-muted-foreground text-sm mb-3">
+              The email shows each field by its <strong className="text-foreground">label</strong> (not the raw
+              field name) and is styled with a header, the field table, and a footer. The sender name comes from{' '}
+              <IC>SMTP_FROM</IC>. Customize the look with these optional <IC>backend/.env</IC> variables (restart after changing):
+            </p>
+            <CodeBlock code={`# backend/.env — all optional
+MAIL_BRAND_NAME=Your Company                       # header + footer (default: NodePress)
+MAIL_BRAND_LOGO_URL=https://yourcdn.com/logo.png   # absolute https URL; replaces the name in the header
+MAIL_BRAND_COLOR=#4f46e5                            # header background colour (hex)`} />
+            <p className="text-muted-foreground text-xs mt-2 mb-8">
+              For deeper changes (full layout / extra sections) edit the template in{' '}
+              <IC>backend/src/mail/mail.service.ts</IC> (<IC>sendFormSubmission</IC>).
             </p>
 
             {/* Spam protection */}

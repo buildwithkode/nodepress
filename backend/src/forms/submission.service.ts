@@ -57,7 +57,7 @@ export class SubmissionService {
     });
 
     // 6. Trigger actions asynchronously (non-blocking for the response)
-    this.actions.run(actions, data).catch(() => {
+    this.actions.run(actions, data, fields).catch(() => {
       // already logged inside ActionsService
     });
 

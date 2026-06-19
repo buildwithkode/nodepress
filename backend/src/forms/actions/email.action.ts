@@ -12,12 +12,16 @@ import { EmailAction } from '../types/form-field.types';
 export class EmailActionHandler {
   constructor(private readonly mail: MailService) {}
 
-  async handle(action: EmailAction, data: Record<string, unknown>): Promise<void> {
+  async handle(
+    action: EmailAction,
+    data: Record<string, unknown>,
+    fields?: { name: string; label?: string }[],
+  ): Promise<void> {
     const subject = MailService.interpolate(action.subject, data);
     const replyTo = action.replyToField
       ? String(data[action.replyToField] ?? '')
       : undefined;
 
-    await this.mail.sendFormSubmission(action.to, subject, data, replyTo);
+    await this.mail.sendFormSubmission(action.to, subject, data, replyTo, fields);
   }
 }

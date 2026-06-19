@@ -3,6 +3,25 @@ import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { env } from '../config/env';
 
+/** Escape HTML so user-submitted form values can't break or inject markup in the email. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Turn a field key into a human label when the form didn't supply one. e.g. "full_name" → "Full Name". */
+function humanizeKey(key: string): string {
+  return key
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 /**
  * MailService — singleton email sender for the entire application.
  *
@@ -151,35 +170,52 @@ export class MailService implements OnModuleInit {
     subject: string,
     data: Record<string, unknown>,
     replyTo?: string,
+    fields?: { name: string; label?: string }[],
   ): Promise<void> {
     if (!this.transporter) {
       this.logger.warn(`[FormEmail] No SMTP configured — skipping email to ${to}`);
       return;
     }
 
+    // Map each data key to its form label (falling back to a humanized key).
+    const labelMap = new Map((fields ?? []).map((f) => [f.name, f.label]));
+    const labelFor = (key: string) => labelMap.get(key) || humanizeKey(key);
+
+    // Branding — configurable via env, with safe defaults.
+    const brandName  = env.MAIL_BRAND_NAME  || 'NodePress';
+    const brandColor = env.MAIL_BRAND_COLOR || '#4f46e5';
+    const logoUrl    = env.MAIL_BRAND_LOGO_URL;
+
     const rows = Object.entries(data)
       .map(
         ([k, v]) =>
           `<tr>
-            <td style="padding:6px 12px;font-weight:600;color:#555;white-space:nowrap;border-bottom:1px solid #f0f0f0">${k}</td>
-            <td style="padding:6px 12px;color:#1a1a1a;border-bottom:1px solid #f0f0f0">${String(v ?? '')}</td>
+            <td style="padding:10px 14px;font-weight:600;color:#555;white-space:nowrap;border-bottom:1px solid #f0f0f0;vertical-align:top">${escapeHtml(labelFor(k))}</td>
+            <td style="padding:10px 14px;color:#1a1a1a;border-bottom:1px solid #f0f0f0">${escapeHtml(String(v ?? ''))}</td>
            </tr>`,
       )
       .join('');
 
+    const header = logoUrl
+      ? `<img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brandName)}" style="max-height:40px;display:inline-block" />`
+      : `<span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.2px">${escapeHtml(brandName)}</span>`;
+
     const html = `
-      <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-        <h2 style="color:#1a1a1a;margin-bottom:16px">${subject}</h2>
-        <table style="width:100%;border-collapse:collapse;border:1px solid #e5e5e5;border-radius:6px;overflow:hidden">
-          <tbody>${rows}</tbody>
-        </table>
-        <p style="color:#999;font-size:12px;margin-top:16px">
-          Sent by NodePress form submission
-        </p>
+      <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden">
+        <div style="background:${escapeHtml(brandColor)};padding:20px 24px;text-align:center">${header}</div>
+        <div style="padding:24px">
+          <h2 style="color:#1a1a1a;margin:0 0 16px;font-size:18px">${escapeHtml(subject)}</h2>
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e5e5e5;border-radius:6px;overflow:hidden">
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div style="padding:14px 24px;background:#fafafa;border-top:1px solid #f0f0f0">
+          <p style="color:#999;font-size:12px;margin:0">Sent by ${escapeHtml(brandName)} form submission</p>
+        </div>
       </div>`;
 
     const textLines = Object.entries(data)
-      .map(([k, v]) => `${k}: ${String(v ?? '')}`)
+      .map(([k, v]) => `${labelFor(k)}: ${String(v ?? '')}`)
       .join('\n');
 
     await this.send({ to, subject, text: textLines, html, replyTo });

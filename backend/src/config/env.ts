@@ -38,6 +38,11 @@ const EnvSchema = z.object({
   SMTP_PASS:   z.string().optional(),
   SMTP_FROM:   z.string().optional(),
 
+  // Form-submission email branding — all optional (sensible defaults applied)
+  MAIL_BRAND_NAME:     z.string().optional(), // header + footer name (default: "NodePress")
+  MAIL_BRAND_LOGO_URL: z.string().optional(), // absolute https URL shown in the email header
+  MAIL_BRAND_COLOR:    z.string().optional(), // hex header colour (default: "#4f46e5")
+
   // Metrics endpoint bearer token — optional
   METRICS_TOKEN: z.string().optional(),
 
