@@ -65,7 +65,7 @@ export class MailService implements OnModuleInit {
   private readonly logger = new Logger(MailService.name);
   private transporter: Transporter | null = null;
 
-  constructor(private readonly brand: BrandService) {}
+  constructor(private readonly brand: BrandService) { }
 
   /** True when SMTP_HOST is configured and the transporter was created successfully */
   get isConfigured(): boolean {
@@ -83,10 +83,10 @@ export class MailService implements OnModuleInit {
     }
 
     this.transporter = nodemailer.createTransport({
-      host:   env.SMTP_HOST,
-      port:   env.SMTP_PORT,
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
       secure: env.SMTP_SECURE === 'true',
-      auth:   env.SMTP_USER
+      auth: env.SMTP_USER
         ? { user: env.SMTP_USER, pass: env.SMTP_PASS ?? '' }
         : undefined,
       // Pool connections — critical for high-volume form submissions
@@ -202,12 +202,12 @@ export class MailService implements OnModuleInit {
     const labelFor = (key: string) => labelMap.get(key) || humanizeKey(key);
 
     // Branding from the install's brand settings (managed at /brand).
-    const brand      = await this.brand.get();
-    const brandName  = brand.brandName || 'NodePress';
+    const brand = await this.brand.get();
+    const brandName = brand.brandName || 'NodePress';
     const brandColor = brand.brandColor || '#4f46e5';
     // A relative logo (/uploads/...) must be absolute in an email — prefix APP_URL.
-    const rawLogo    = brand.brandLogoUrl || undefined;
-    const logoUrl    = rawLogo && rawLogo.startsWith('/')
+    const rawLogo = brand.brandLogoUrl || undefined;
+    const logoUrl = rawLogo && rawLogo.startsWith('/')
       ? `${(env.APP_URL || '').replace(/\/$/, '')}${rawLogo}`
       : rawLogo;
 
@@ -215,7 +215,7 @@ export class MailService implements OnModuleInit {
       .map(
         ([k, v]) =>
           `<tr>
-            <td style="padding:10px 14px;font-weight:600;color:#555;white-space:nowrap;border-bottom:1px solid #f0f0f0;vertical-align:top">${escapeHtml(labelFor(k))}</td>
+            <td style="padding:10px 14px;font-weight:700;color:#555;white-space:nowrap;border-bottom:1px solid #f0f0f0;vertical-align:top">${escapeHtml(labelFor(k))}</td>
             <td style="padding:10px 14px;color:#1a1a1a;border-bottom:1px solid #f0f0f0">${escapeHtml(String(v ?? ''))}</td>
            </tr>`,
       )
@@ -223,10 +223,10 @@ export class MailService implements OnModuleInit {
 
     // Header text colour adapts to the brand colour so the name stays legible
     // (bold white on dark accents, bold dark on light accents).
-    const headerText = contrastText(brandColor);
+    // const headerText = contrastText(brandColor);
     const header = logoUrl
       ? `<img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brandName)}" style="max-height:40px;display:inline-block" />`
-      : `<span style="color:${headerText};font-size:18px;font-weight:700;letter-spacing:0.2px">${escapeHtml(brandName)}</span>`;
+      : `<span style="color: #e5e5e5;font-size:18px;font-weight:700;letter-spacing:0.2px">${escapeHtml(brandName)}</span>`;
 
     const html = `
       <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden">
@@ -269,10 +269,10 @@ export class MailService implements OnModuleInit {
     try {
       const info = await this.transporter.sendMail({
         from,
-        to:      options.to,
+        to: options.to,
         subject: options.subject,
-        text:    options.text,
-        html:    options.html,
+        text: options.text,
+        html: options.html,
         replyTo: options.replyTo,
       });
       this.logger.log(`Mail sent → ${options.to} | subject: "${options.subject}" | id: ${info.messageId}`);
