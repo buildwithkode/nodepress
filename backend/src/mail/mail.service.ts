@@ -13,23 +13,6 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;');
 }
 
-/**
- * Pick a legible header text colour (dark or white) for a given hex background.
- * Keeps the brand name readable when the accent colour is light (e.g. white,
- * yellow) instead of always-white. Uses perceptual luminance.
- */
-function contrastText(hex: string): string {
-  const m = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex || '');
-  if (!m) return '#ffffff';
-  let h = m[1];
-  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.6 ? '#1a1a1a' : '#ffffff';
-}
-
 /** Turn a field key into a human label when the form didn't supply one. e.g. "full_name" → "Full Name". */
 function humanizeKey(key: string): string {
   return key
@@ -221,9 +204,7 @@ export class MailService implements OnModuleInit {
       )
       .join('');
 
-    // Header text colour adapts to the brand colour so the name stays legible
-    // (bold white on dark accents, bold dark on light accents).
-    // const headerText = contrastText(brandColor);
+    // Logo if set; otherwise the brand name in light grey on the accent bar.
     const header = logoUrl
       ? `<img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brandName)}" style="max-height:40px;display:inline-block" />`
       : `<span style="color: #e5e5e5;font-size:18px;font-weight:700;letter-spacing:0.2px">${escapeHtml(brandName)}</span>`;
