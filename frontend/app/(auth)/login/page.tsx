@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../lib/axios';
+import Cookies from 'js-cookie';
 import { Button } from '@/components/ui/button';
 
 function loginErrorMessage(err: any): string {
@@ -39,6 +40,12 @@ function LoginForm() {
     if (stored) setSiteName(`${stored} Admin`);
     api.get('/auth/setup-status').then((res) => {
       if (res.data.required) {
+        // The server (DB) is the source of truth: setup IS required. A leftover
+        // np_initialized cookie (10y expiry, set on this host by a previous
+        // NodePress install — cookies are per-host, not per-port/project) would
+        // make middleware bounce /setup → /login, looping into a blank screen.
+        // It's provably stale here, so clear it before redirecting.
+        Cookies.remove('np_initialized');
         router.replace('/setup');
         return; // keep the loader up while navigating to /setup
       }
