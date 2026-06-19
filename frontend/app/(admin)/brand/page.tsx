@@ -18,25 +18,36 @@ export default function BrandPage() {
   const [name, setName]   = useState(brand.brandName);
   const [logo, setLogo]   = useState<string>(brand.brandLogoUrl ?? '');
   const [color, setColor] = useState(brand.brandColor);
+  // Theme overrides — '' means "use the built-in default".
+  const [buttonColor, setButtonColor] = useState<string>(brand.buttonColor ?? '');
+  const [inputColor, setInputColor]   = useState<string>(brand.inputColor ?? '');
   const [saving, setSaving] = useState(false);
 
-  const colorValid = HEX_RE.test(color);
+  const colorValid  = HEX_RE.test(color);
+  const buttonValid = buttonColor === '' || HEX_RE.test(buttonColor);
+  const inputValid  = inputColor === '' || HEX_RE.test(inputColor);
 
   const save = async () => {
     if (!name.trim()) { toast.error('Brand name is required'); return; }
-    if (!colorValid)  { toast.error('Enter a valid hex colour, e.g. #4f46e5'); return; }
+    if (!colorValid)  { toast.error('Enter a valid accent hex colour, e.g. #4f46e5'); return; }
+    if (!buttonValid) { toast.error('Button colour must be a valid hex (or empty)'); return; }
+    if (!inputValid)  { toast.error('Input colour must be a valid hex (or empty)'); return; }
     setSaving(true);
     try {
       const res = await api.put('/brand', {
         brandName: name.trim(),
         brandLogoUrl: logo,        // '' clears the logo server-side
         brandColor: color,
+        buttonColor,               // '' resets to the theme default
+        inputColor,                // '' resets to the theme default
       });
       // Reflect immediately, then re-sync from the server.
       setBrand({
         brandName: res.data.brandName,
         brandLogoUrl: res.data.brandLogoUrl ?? null,
         brandColor: res.data.brandColor,
+        buttonColor: res.data.buttonColor ?? null,
+        inputColor: res.data.inputColor ?? null,
       });
       await refresh();
       toast.success('Brand updated');
@@ -113,10 +124,88 @@ export default function BrandPage() {
                 {!colorValid && <span className="text-xs text-red-400">Invalid hex</span>}
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <Button onClick={save} disabled={saving}>
-              {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Saving…</> : 'Save brand'}
-            </Button>
+        {/* Theme — button + input colours */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Theme</CardTitle>
+            <CardDescription>Optional. Recolour primary buttons and input fields across the admin panel. Leave blank to use the default theme.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Button colour */}
+            <div className="space-y-1.5">
+              <label htmlFor="buttonColor" className="block text-sm font-medium">Button colour</label>
+              <p className="text-xs text-muted-foreground">Primary buttons. Text colour auto-adjusts for contrast.</p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  aria-label="Button colour picker"
+                  value={HEX_RE.test(buttonColor) ? buttonColor : '#4f46e5'}
+                  onChange={(e) => setButtonColor(e.target.value)}
+                  className="h-9 w-12 rounded border border-border bg-background p-1 cursor-pointer"
+                />
+                <input
+                  id="buttonColor"
+                  className={inputCls + ' max-w-[140px] font-mono'}
+                  value={buttonColor}
+                  onChange={(e) => setButtonColor(e.target.value)}
+                  placeholder="(default)"
+                />
+                {buttonColor && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setButtonColor('')}>Reset</Button>
+                )}
+                {!buttonValid && <span className="text-xs text-red-400">Invalid hex</span>}
+              </div>
+            </div>
+
+            {/* Input colour */}
+            <div className="space-y-1.5">
+              <label htmlFor="inputColor" className="block text-sm font-medium">Input colour</label>
+              <p className="text-xs text-muted-foreground">Input border and focus ring.</p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  aria-label="Input colour picker"
+                  value={HEX_RE.test(inputColor) ? inputColor : '#4f46e5'}
+                  onChange={(e) => setInputColor(e.target.value)}
+                  className="h-9 w-12 rounded border border-border bg-background p-1 cursor-pointer"
+                />
+                <input
+                  id="inputColor"
+                  className={inputCls + ' max-w-[140px] font-mono'}
+                  value={inputColor}
+                  onChange={(e) => setInputColor(e.target.value)}
+                  placeholder="(default)"
+                />
+                {inputColor && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setInputColor('')}>Reset</Button>
+                )}
+                {!inputValid && <span className="text-xs text-red-400">Invalid hex</span>}
+              </div>
+            </div>
+
+            {/* Live preview of button + input */}
+            <div className="rounded-lg border border-border p-4 space-y-3">
+              <p className="text-xs text-muted-foreground">Preview</p>
+              <button
+                type="button"
+                className="rounded-md px-4 py-2 text-sm font-medium"
+                style={{
+                  backgroundColor: HEX_RE.test(buttonColor) ? buttonColor : undefined,
+                  color: HEX_RE.test(buttonColor) ? '#fff' : undefined,
+                }}
+              >
+                Sample button
+              </button>
+              <input
+                className="w-full max-w-xs rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                style={{ borderColor: HEX_RE.test(inputColor) ? inputColor : undefined }}
+                placeholder="Sample input"
+                readOnly
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -138,6 +227,10 @@ export default function BrandPage() {
             </div>
           </CardContent>
         </Card>
+
+        <Button onClick={save} disabled={saving}>
+          {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Saving…</> : 'Save changes'}
+        </Button>
       </div>
     </AdminGuard>
   );

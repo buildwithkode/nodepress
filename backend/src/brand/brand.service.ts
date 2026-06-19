@@ -20,10 +20,18 @@ export class BrandService {
     return existing ?? this.prisma.setting.create({ data: { id: SINGLETON_ID } });
   }
 
-  async update(data: { brandName?: string; brandLogoUrl?: string | null; brandColor?: string }) {
-    // An empty logo string means "clear the logo" → store null.
-    const patch = { ...data };
+  async update(data: {
+    brandName?: string;
+    brandLogoUrl?: string | null;
+    brandColor?: string;
+    buttonColor?: string | null;
+    inputColor?: string | null;
+  }) {
+    // An empty string means "clear" → store null (revert to the theme default).
+    const patch: typeof data = { ...data };
     if (patch.brandLogoUrl === '') patch.brandLogoUrl = null;
+    if (patch.buttonColor === '')  patch.buttonColor = null;
+    if (patch.inputColor === '')   patch.inputColor = null;
 
     return this.prisma.setting.upsert({
       where:  { id: SINGLETON_ID },

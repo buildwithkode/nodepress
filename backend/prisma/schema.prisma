@@ -267,6 +267,9 @@ model Setting {
   brandName    String   @default("NodePress")
   brandLogoUrl String?
   brandColor   String   @default("#4f46e5")
+  // Optional admin-UI theme overrides (hex). null = use the built-in theme default.
+  buttonColor  String?  // overrides the primary button colour (--primary)
+  inputColor   String?  // overrides the input border + focus ring (--input / --ring)
   updatedAt    DateTime @updatedAt
 
   @@map("settings")

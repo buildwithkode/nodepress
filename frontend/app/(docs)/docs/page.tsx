@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -177,6 +177,7 @@ const TOC_ITEMS = [
   { id: 'graphql',        label: 'GraphQL API' },
   { id: 'realtime',       label: 'Real-time (WebSocket)' },
   { id: 'roles',          label: 'Roles & Permissions' },
+  { id: 'brand',          label: 'Brand & Theme' },
   { id: 'plugins',        label: 'Plugin System' },
   { id: 'media',          label: 'Media Library' },
   { id: 'api-keys',       label: 'API Keys' },
@@ -1392,6 +1393,42 @@ PUT /api/permissions/reset/all`} />
                 <li>If neither exists, deny by default</li>
               </ol>
             </div>
+          </Section>
+
+          {/* ── Brand & Theme ─────────────────────────────────────────────── */}
+          <Section id="brand" title="Brand & Theme" icon={Palette}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Set your install's identity at <IC>Settings → Brand</IC> (admin only). It is stored on the
+              server (shared across every browser and device) and applied everywhere automatically.
+            </p>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Setting</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Applies to</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border text-muted-foreground text-xs">
+                  <tr><td className="px-4 py-3 font-medium text-foreground">Name</td><td className="px-4 py-3">Sidebar, browser tab title, login &amp; setup pages, form-submission emails.</td></tr>
+                  <tr><td className="px-4 py-3 font-medium text-foreground">Logo</td><td className="px-4 py-3">Sidebar, login page, browser favicon, email header. Uploaded via the media library.</td></tr>
+                  <tr><td className="px-4 py-3 font-medium text-foreground">Accent colour</td><td className="px-4 py-3">Sidebar highlight and email header bar.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-2">Theme (optional)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              The <strong className="text-foreground">Theme</strong> card lets you recolour the admin UI:
+            </p>
+            <ul className="text-sm text-muted-foreground space-y-1.5 mb-3 list-disc pl-5">
+              <li><strong className="text-foreground">Button colour</strong> — primary buttons. Button text colour auto-adjusts (black/white) for readability.</li>
+              <li><strong className="text-foreground">Input colour</strong> — input field border and focus ring.</li>
+            </ul>
+            <p className="text-muted-foreground text-sm">
+              Both are optional — leave a field blank (or hit <IC>Reset</IC>) to use the built-in theme default.
+              One colour applies in both light and dark mode. Changes take effect immediately after saving.
+            </p>
           </Section>
 
           {/* ── Plugin System ─────────────────────────────────────────────── */}
