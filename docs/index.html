@@ -73,6 +73,8 @@
           <li><a href="#media"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Media Library</a></li>
           <li><a href="#api-keys"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Keys</a></li>
           <li><a href="#forms"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Forms</a></li>
+          <li><a href="#brand"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Brand & Theme</a></li>
+          <li><a href="#team"          class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Team & Roles</a></li>
           <li><a href="#webhooks"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Webhooks</a></li>
           <li><a href="#graphql"       class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">GraphQL API</a></li>
           <li><a href="#realtime"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Real-time</a></li>
@@ -684,6 +686,68 @@ CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here"></div>
     if (window.turnstile) window.turnstile.reset(); // tokens are single-use
   });
 &lt;/script&gt;'></div>
+      </section>
+
+      <!-- Brand & Theme -->
+      <section id="brand" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Brand & Theme</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">Set your install's identity at <code class="text-pink-400 bg-zinc-800 px-1 rounded">Settings → Brand</code> (admin only). It is stored on the server — shared across every browser and device — and applied automatically everywhere.</p>
+
+        <div class="overflow-x-auto rounded-lg border border-zinc-800 mb-6">
+          <table class="w-full text-sm">
+            <thead class="bg-zinc-800/60 text-left text-zinc-300">
+              <tr><th class="px-4 py-2.5 font-semibold">Setting</th><th class="px-4 py-2.5 font-semibold">Applies to</th></tr>
+            </thead>
+            <tbody class="text-zinc-400 divide-y divide-zinc-800">
+              <tr><td class="px-4 py-2.5 font-semibold text-white">Name</td><td class="px-4 py-2.5">Sidebar, browser tab title, login &amp; setup pages, form-submission emails.</td></tr>
+              <tr><td class="px-4 py-2.5 font-semibold text-white">Logo</td><td class="px-4 py-2.5">Sidebar, login page, browser favicon, email header. Uploaded via the media library.</td></tr>
+              <tr><td class="px-4 py-2.5 font-semibold text-white">Accent colour</td><td class="px-4 py-2.5">Sidebar highlight and the email header bar.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="font-semibold text-white mb-2">Theme (optional)</h3>
+        <p class="text-zinc-400 leading-relaxed mb-3">The <strong class="text-white">Theme</strong> card recolours the admin UI:</p>
+        <ul class="text-zinc-400 leading-relaxed space-y-1.5 mb-3 list-disc pl-5 text-sm">
+          <li><strong class="text-white">Button colour</strong> — primary buttons. Button text colour auto-adjusts (black/white) for readability.</li>
+          <li><strong class="text-white">Input colour</strong> — input field border and focus ring.</li>
+        </ul>
+        <p class="text-zinc-400 leading-relaxed text-sm">Both are optional — leave blank (or hit <strong class="text-white">Reset</strong>) to use the built-in theme default. One colour applies in both light and dark mode, and changes take effect immediately after saving.</p>
+      </section>
+
+      <!-- Team & Roles -->
+      <section id="team" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Team & Roles</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">Invite teammates from <code class="text-pink-400 bg-zinc-800 px-1 rounded">Users → Add User</code> (admin only). Onboarding is <strong class="text-white">invite-only</strong> — you never set a password for someone else.</p>
+
+        <h3 class="font-semibold text-white mb-2">Inviting a member</h3>
+        <p class="text-zinc-400 leading-relaxed mb-4">Enter just an <strong class="text-white">email + role</strong>. NodePress creates the account and emails the person a secure link to <strong class="text-white">set their own password</strong> (valid 7 days); admins never see or set it. Use <strong class="text-white">Resend invite</strong> if the link expires. If no SMTP server is configured, the invite link is shown so you can copy and send it manually (requires <code class="text-pink-400 bg-zinc-800 px-1 rounded">SMTP_*</code> in <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code> to email automatically — see the Forms section for Gmail setup).</p>
+
+        <h3 class="font-semibold text-white mb-2">Roles</h3>
+        <div class="overflow-x-auto rounded-lg border border-zinc-800 mb-2">
+          <table class="w-full text-sm">
+            <thead class="bg-zinc-800/60 text-left text-zinc-300">
+              <tr><th class="px-4 py-2.5 font-semibold">Role</th><th class="px-4 py-2.5 font-semibold">Can do</th></tr>
+            </thead>
+            <tbody class="text-zinc-400 divide-y divide-zinc-800">
+              <tr><td class="px-4 py-2.5 font-semibold text-white">admin</td><td class="px-4 py-2.5">Everything — users, content types, entries, media, settings.</td></tr>
+              <tr><td class="px-4 py-2.5 font-semibold text-white">editor</td><td class="px-4 py-2.5">Create, read, update, delete, publish any entry or media.</td></tr>
+              <tr><td class="px-4 py-2.5 font-semibold text-white">contributor</td><td class="px-4 py-2.5">Create and update entries (cannot delete or publish).</td></tr>
+              <tr><td class="px-4 py-2.5 font-semibold text-white">viewer</td><td class="px-4 py-2.5">Read-only access to the admin panel.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-zinc-500">Access is enforced server-side. Per-content-type overrides are available under Users → Permissions.</p>
       </section>
 
       <!-- Webhooks -->
