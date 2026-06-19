@@ -1830,7 +1830,9 @@ CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here`} />
             {/* Submit API */}
             <h3 className="font-semibold mb-3">Submit a form (public API)</h3>
             <p className="text-muted-foreground text-sm mb-3">
-              No authentication required. The slug is the one you set when creating the form.
+              No authentication required. The slug is the one you set when creating the form. Put your field
+              values inside <IC>data</IC>. Add <IC>captchaToken</IC> alongside <IC>data</IC> only if the form
+              has captcha enabled (see Spam Protection above); leave it out otherwise.
             </p>
             <CodeBlock code={`POST /api/submit/{slug}
 Content-Type: application/json
@@ -1840,7 +1842,8 @@ Content-Type: application/json
     "full_name": "Jane Doe",
     "email": "jane@example.com",
     "message": "Hello!"
-  }
+  },
+  "captchaToken": "..."   // optional — required only when the form has captcha enabled
 }
 
 // Success response
