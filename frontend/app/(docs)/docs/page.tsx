@@ -1,9 +1,24 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import hljs from 'highlight.js/lib/core';
+import typescript from 'highlight.js/lib/languages/typescript';
+import javascript from 'highlight.js/lib/languages/javascript';
+import bash from 'highlight.js/lib/languages/bash';
+import json from 'highlight.js/lib/languages/json';
+import xml from 'highlight.js/lib/languages/xml';
+import python from 'highlight.js/lib/languages/python';
+import php from 'highlight.js/lib/languages/php';
+import 'highlight.js/styles/atom-one-dark.css';
+
+// Register only the languages our snippets use (keeps the bundle small).
+// Auto-detection runs across this subset.
+const HLJS_LANGS = ['typescript', 'javascript', 'bash', 'json', 'xml', 'python', 'php'];
+[['typescript', typescript], ['javascript', javascript], ['bash', bash], ['json', json], ['xml', xml], ['python', python], ['php', php]]
+  .forEach(([name, lang]) => hljs.registerLanguage(name as string, lang as any));
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
 function useCopy(text: string) {
@@ -19,6 +34,14 @@ function useCopy(text: string) {
 // ─── Code block ──────────────────────────────────────────────────────────────
 function CodeBlock({ code, className }: { code: string; className?: string }) {
   const { copied, copy } = useCopy(code);
+  // Syntax-highlight via highlight.js (auto-detect across the registered subset).
+  // Atom One Dark token colours apply to the .hljs-* spans; the container keeps
+  // its dark background so it matches the rest of the docs.
+  const trimmed = code.trim();
+  const highlighted = useMemo(
+    () => hljs.highlightAuto(trimmed, HLJS_LANGS).value,
+    [trimmed],
+  );
   return (
     <div className={cn('relative group my-3 rounded-xl overflow-hidden border border-zinc-800', className)}>
       <div className="flex items-center justify-between bg-zinc-900 px-4 py-2 border-b border-zinc-800">
@@ -35,7 +58,7 @@ function CodeBlock({ code, className }: { code: string; className?: string }) {
         </button>
       </div>
       <pre className="bg-zinc-950 text-zinc-200 p-4 text-xs font-mono overflow-x-auto leading-6">
-        <code>{code.trim()}</code>
+        <code dangerouslySetInnerHTML={{ __html: highlighted }} />
       </pre>
     </div>
   );
