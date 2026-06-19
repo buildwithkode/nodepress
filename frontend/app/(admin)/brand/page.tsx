@@ -9,6 +9,11 @@ import { useBrand } from '../../../context/BrandContext';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
+  AlertDialogFooter, AlertDialogTitle, AlertDialogDescription,
+  AlertDialogAction, AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
@@ -224,9 +229,24 @@ export default function BrandPage() {
           </CardContent>
         </Card>
 
-        <Button onClick={save} disabled={saving}>
-          {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Saving…</> : 'Save changes'}
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger render={<Button disabled={saving} />}>
+            {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Saving…</> : 'Save changes'}
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Save brand changes?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This updates your brand and theme everywhere — the admin sidebar, browser tab &amp;
+                favicon, the login screen, and form-submission emails — for all users.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={save}>Save changes</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminGuard>
   );
