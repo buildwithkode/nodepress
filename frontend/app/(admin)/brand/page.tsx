@@ -124,6 +124,21 @@ export default function BrandPage() {
                 {!colorValid && <span className="text-xs text-red-400">Invalid hex</span>}
               </div>
             </div>
+
+            {/* Sidebar header preview */}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium">Preview</label>
+              <p className="text-xs text-muted-foreground">How the sidebar header will look.</p>
+              <div className="flex items-center gap-2 w-64 px-4 h-14 rounded-md border border-border bg-sidebar">
+                {logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logo} alt={name} className="h-6 w-6 rounded object-contain shrink-0" />
+                ) : (
+                  <span className="h-6 w-6 rounded shrink-0" style={{ backgroundColor: colorValid ? color : '#4f46e5' }} />
+                )}
+                <span className="font-semibold text-sm truncate">{name || 'NodePress'}</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -205,25 +220,6 @@ export default function BrandPage() {
                 placeholder="Sample input"
                 readOnly
               />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Live preview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Preview</CardTitle>
-            <CardDescription>How the sidebar header will look.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2 w-64 px-4 h-14 rounded-md border border-border bg-sidebar">
-              {logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logo} alt={name} className="h-6 w-6 rounded object-contain shrink-0" />
-              ) : (
-                <span className="h-6 w-6 rounded shrink-0" style={{ backgroundColor: colorValid ? color : '#4f46e5' }} />
-              )}
-              <span className="font-semibold text-sm truncate">{name || 'NodePress'}</span>
             </div>
           </CardContent>
         </Card>
