@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
+import { useBrand } from '../../../context/BrandContext';
 import api from '../../../lib/axios';
 import Cookies from 'js-cookie';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const reason = searchParams?.get('reason');
 
-  const [siteName, setSiteName] = useState('NodePress Admin');
+  const { brand } = useBrand();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -36,8 +37,6 @@ function LoginForm() {
   }, [authLoading, user]);
 
   useEffect(() => {
-    const stored = localStorage.getItem('np_site_name');
-    if (stored) setSiteName(`${stored} Admin`);
     api.get('/auth/setup-status').then((res) => {
       if (res.data.required) {
         // The server (DB) is the source of truth: setup IS required. A leftover
@@ -99,7 +98,11 @@ function LoginForm() {
 
           {/* Title */}
           <div className="text-center mb-8">
-            <h1 className="text-xl font-bold text-white">{siteName}</h1>
+            {brand.brandLogoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={brand.brandLogoUrl} alt={brand.brandName} className="h-10 mx-auto mb-3 object-contain" />
+            )}
+            <h1 className="text-xl font-bold text-white">{brand.brandName}</h1>
             <p className="text-sm text-white/40 mt-1">Sign in to your admin account</p>
           </div>
 

@@ -30,6 +30,7 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { GraphqlModule } from './graphql/graphql.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { MailModule } from './mail/mail.module';
+import { BrandModule } from './brand/brand.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { MailModule } from './mail/mail.module';
     ]),
 
     AppCacheModule,     // Global — AppCacheService available everywhere without re-importing
+    BrandModule,        // Global — BrandService (install brand) available everywhere; registered before MailModule which uses it
     MailModule,         // Global — MailService available everywhere without re-importing
     MetricsModule,      // Global — Prometheus metrics + GET /api/metrics endpoint
     PluginModule,       // Global — PluginRegistry + GET /api/plugins endpoint

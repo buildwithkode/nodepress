@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import { useBrand } from '../../../context/BrandContext';
 import api from '../../../lib/axios';
 import Cookies from 'js-cookie';
 import { cn } from '@/lib/utils';
@@ -34,6 +35,7 @@ const inputCls = (err: boolean) =>
 export default function SetupPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { refresh: refreshBrand } = useBrand();
 
   const [checking, setChecking] = useState(true);
   const [loading,  setLoading]  = useState(false);
@@ -79,7 +81,14 @@ export default function SetupPage() {
       // Mark setup as complete so the middleware routes future unauthenticated
       // visits to /login instead of /setup (persists across reinstalls).
       Cookies.set('np_initialized', '1', { expires: 3650, sameSite: 'lax' });
-      if (siteName) localStorage.setItem('np_site_name', siteName);
+      // Seed the install brand with the site name entered here (admin token is
+      // now set, so this PUT is authorized). Non-fatal if it fails.
+      if (siteName) {
+        try {
+          await api.put('/brand', { brandName: siteName });
+          await refreshBrand();
+        } catch { /* brand can still be set later from the Brand page */ }
+      }
       setSavedEmail(email);
       setDone(true);
     } catch (err: any) {

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthProvider } from '../context/AuthContext';
 import { PluginProvider } from '../context/PluginContext';
+import { BrandProvider } from '../context/BrandContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from 'sonner';
@@ -22,7 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <TooltipProvider>
             <PluginProvider>
-              <AuthProvider>{children}</AuthProvider>
+              <BrandProvider>
+                <AuthProvider>{children}</AuthProvider>
+              </BrandProvider>
             </PluginProvider>
             <Toaster richColors position="top-right" />
           </TooltipProvider>

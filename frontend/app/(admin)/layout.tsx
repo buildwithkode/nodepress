@@ -1,11 +1,11 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { usePlugins } from '../../context/PluginContext';
+import { useBrand } from '../../context/BrandContext';
 import { PluginInitializer } from '@/components/PluginInitializer';
 import { canManageSettings } from '@/lib/roles';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,7 @@ import {
   Puzzle,
   Code2,
   Loader2,
+  Palette,
 } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
@@ -67,6 +68,13 @@ const ALL_NAV_GROUPS = [
     ],
   },
   {
+    label: 'Settings',
+    adminOnly: true,
+    items: [
+      { href: '/brand', label: 'Brand', icon: Palette },
+    ],
+  },
+  {
     label: 'Help',
     adminOnly: false,
     items: [
@@ -83,13 +91,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // "change in the order of Hooks" error.)
   const { user, loading, logout } = useAuth();
   const { navItems: pluginNavItems } = usePlugins();
+  const { brand } = useBrand();
   const router = useRouter();
   const pathname = usePathname();
-  const [siteName, setSiteName] = useState('NodePress');
-  useEffect(() => {
-    const stored = localStorage.getItem('np_site_name');
-    if (stored) setSiteName(stored);
-  }, []);
 
   // Block the admin UI from rendering until auth is confirmed.
   // This prevents two bad scenarios:
@@ -140,9 +144,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* ── Sidebar ── */}
       <aside className="fixed inset-y-0 left-0 z-20 flex w-64 flex-col bg-sidebar border-r border-sidebar-border">
 
-        {/* App name */}
-        <div className="flex items-center px-4 h-14 border-b border-sidebar-border shrink-0">
-          <span className="font-semibold text-sm text-sidebar-foreground">{siteName}</span>
+        {/* Brand — logo (if set) + name */}
+        <div className="flex items-center gap-2 px-4 h-14 border-b border-sidebar-border shrink-0">
+          {brand.brandLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={brand.brandLogoUrl} alt={brand.brandName} className="h-6 w-6 rounded object-contain shrink-0" />
+          ) : (
+            <span className="h-6 w-6 rounded shrink-0" style={{ backgroundColor: 'var(--brand)' }} />
+          )}
+          <span className="font-semibold text-sm text-sidebar-foreground truncate">{brand.brandName}</span>
         </div>
 
         {/* Nav groups */}
@@ -160,10 +170,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link
                       key={href}
                       href={href}
+                      style={isActive ? { backgroundColor: 'var(--brand)' } : undefined}
                       className={cn(
                         isActive
                           ? buttonVariants({ variant: 'default', size: 'sm' }) +
-                            ' w-full justify-start bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90'
+                            ' w-full justify-start text-white hover:opacity-90'
                           : 'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors',
                       )}
                     >

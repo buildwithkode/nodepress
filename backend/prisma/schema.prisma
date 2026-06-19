@@ -258,3 +258,16 @@ model FormSubmission {
   @@index([formId, createdAt(sort: Desc)])
   @@map("form_submissions")
 }
+
+// Singleton (always row id=1) holding the install's brand identity.
+// Used across the admin UI (sidebar, favicon, title), auth pages, and the
+// form-submission email. Managed via GET/PUT /api/brand.
+model Setting {
+  id           Int      @id @default(1)
+  brandName    String   @default("NodePress")
+  brandLogoUrl String?
+  brandColor   String   @default("#4f46e5")
+  updatedAt    DateTime @updatedAt
+
+  @@map("settings")
+}

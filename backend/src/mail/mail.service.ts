@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { env } from '../config/env';
+import { BrandService } from '../brand/brand.service';
 
 /** Escape HTML so user-submitted form values can't break or inject markup in the email. */
 function escapeHtml(value: string): string {
@@ -46,6 +47,8 @@ function humanizeKey(key: string): string {
 export class MailService implements OnModuleInit {
   private readonly logger = new Logger(MailService.name);
   private transporter: Transporter | null = null;
+
+  constructor(private readonly brand: BrandService) {}
 
   /** True when SMTP_HOST is configured and the transporter was created successfully */
   get isConfigured(): boolean {
@@ -181,10 +184,15 @@ export class MailService implements OnModuleInit {
     const labelMap = new Map((fields ?? []).map((f) => [f.name, f.label]));
     const labelFor = (key: string) => labelMap.get(key) || humanizeKey(key);
 
-    // Branding — configurable via env, with safe defaults.
-    const brandName  = env.MAIL_BRAND_NAME  || 'NodePress';
-    const brandColor = env.MAIL_BRAND_COLOR || '#4f46e5';
-    const logoUrl    = env.MAIL_BRAND_LOGO_URL;
+    // Branding from the install's brand settings (managed at /brand).
+    const brand      = await this.brand.get();
+    const brandName  = brand.brandName || 'NodePress';
+    const brandColor = brand.brandColor || '#4f46e5';
+    // A relative logo (/uploads/...) must be absolute in an email — prefix APP_URL.
+    const rawLogo    = brand.brandLogoUrl || undefined;
+    const logoUrl    = rawLogo && rawLogo.startsWith('/')
+      ? `${(env.APP_URL || '').replace(/\/$/, '')}${rawLogo}`
+      : rawLogo;
 
     const rows = Object.entries(data)
       .map(

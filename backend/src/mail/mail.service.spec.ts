@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MailService } from './mail.service';
+import { BrandService } from '../brand/brand.service';
 
 // Stub the env module so tests don't need real env vars
 jest.mock('../config/env', () => ({
@@ -28,7 +29,19 @@ describe('MailService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MailService],
+      providers: [
+        MailService,
+        {
+          provide: BrandService,
+          useValue: {
+            get: jest.fn().mockResolvedValue({
+              brandName: 'NodePress',
+              brandLogoUrl: null,
+              brandColor: '#4f46e5',
+            }),
+          },
+        },
+      ],
     }).compile();
     service = module.get<MailService>(MailService);
     service.onModuleInit(); // trigger transporter creation
@@ -121,7 +134,22 @@ describe('MailService', () => {
       jest.resetModules();
       jest.doMock('../config/env', () => ({ env: { SMTP_HOST: undefined, SMTP_PORT: 587 } }));
       const { MailService: MailServiceNoSMTP } = await import('./mail.service');
-      const module = await Test.createTestingModule({ providers: [MailServiceNoSMTP] }).compile();
+      const { BrandService: BrandServiceFresh } = await import('../brand/brand.service');
+      const module = await Test.createTestingModule({
+        providers: [
+          MailServiceNoSMTP,
+          {
+            provide: BrandServiceFresh,
+            useValue: {
+              get: jest.fn().mockResolvedValue({
+                brandName: 'NodePress',
+                brandLogoUrl: null,
+                brandColor: '#4f46e5',
+              }),
+            },
+          },
+        ],
+      }).compile();
       service = module.get(MailServiceNoSMTP);
       service.onModuleInit();
     });

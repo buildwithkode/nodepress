@@ -105,7 +105,8 @@ src/
   cache/                   # AppCacheService — TTL cache (in-memory Map + optional Redis via ioredis)
   metrics/                 # Prometheus metrics — MetricsService (prom-client) + GET /api/metrics
   realtime/                # Socket.io gateway — live media/entry events (optional Redis adapter for multi-instance)
-  mail/                    # MailService — SMTP (nodemailer) for password reset, invites, form email actions
+  mail/                    # MailService — SMTP (nodemailer) for password reset, invites, form email actions; reads brand from BrandService
+  brand/                   # Install brand singleton (name/logo/color) — GET /api/brand (public) + PUT (admin only)
   permissions/             # Granular role/permission records (Permission model)
   plugin/ plugins/         # Plugin loader + bundled plugins
   common/                  # SentryExceptionFilter, normalize, sanitize, populate.util helpers
@@ -131,6 +132,7 @@ The core models:
 - `ApiKey` — `key` (unique, `np_` prefix + 48 hex chars), `permissions` (Json: `{access, contentTypes}`)
 - `Media` + `MediaFolder` — uploaded-file metadata (URLs, dimensions, WebP sibling) and the virtual folder tree
 - `Form` + `FormSubmission`, `Webhook` + `WebhookDelivery`, `AuditLog` — forms, webhook delivery queue, and audit trail
+- `Setting` — **singleton (always row id=1)** holding the install brand (`brandName`, `brandLogoUrl`, `brandColor`); managed via `GET/PUT /api/brand`
 
 Run `grep '^model' backend/prisma/schema.prisma` for the full list. Content type names are normalized via `normalizeName()` (lowercase + underscores). Reserved names (`auth`, `media`, `entries`, `content-types`, `uploads`) are blocked.
 
@@ -153,7 +155,7 @@ Relation fields store the target entry's `publicId` (UUID), not its numeric id. 
 
 Four route groups:
 - `(auth)` — `/login`, `/setup` — no layout wrapper
-- `(admin)` — protected by middleware + sidebar layout: `/` (dashboard), `/content-types`, `/entries`, `/media`, `/api-keys`, `/forms` (+ `/[id]/submissions`), `/webhooks` (+ `/deliveries`), `/users` (+ `/permissions`), `/audit-log`
+- `(admin)` — protected by middleware + sidebar layout: `/` (dashboard), `/content-types`, `/entries`, `/media`, `/api-keys`, `/forms` (+ `/[id]/submissions`), `/webhooks` (+ `/deliveries`), `/users` (+ `/permissions`), `/audit-log`, `/brand` (admin-only)
 - `(docs)` — `/docs` — the in-app documentation page
 - `(public)` — `/[type]`, `/[type]/[slug]` — server components, fetch from `BACKEND_URL` directly
 
@@ -235,4 +237,4 @@ The docs page also has a **"Your Endpoints"** live section that fetches real con
 - **`@IsOptional()` on DTO optional fields** — required because `ValidationPipe` runs with `forbidNonWhitelisted: true`. Any field without a decorator causes a 400 error.
 - **`DynamicApiModule` imports both `ApiKeysModule` and `AuthModule`** — needed because `JwtOrApiKeyGuard` (provided in `ApiKeysModule`) depends on `JwtService` which comes from `AuthModule`'s exported `JwtModule`.
 - **Frontend `tsconfig.json` excludes `src/` and `vite.config.ts`** — leftover Vite files that must not be compiled by Next.js.
-- **Site name** entered during setup is stored in `localStorage` as `np_site_name` and displayed in the admin sidebar.
+- **Brand** (name, logo, accent color) is a server-side singleton (`Setting` model, `GET/PUT /api/brand`), edited at `Settings → Brand` (`/brand`, admin-only) and shared app-wide via `BrandProvider` (`context/BrandContext.tsx`) — it drives the admin sidebar, browser title/favicon, login/setup pages, the accent color (`--brand` CSS var), and form-submission emails. The site name entered at setup seeds the brand (a PUT after first registration). (Legacy `np_site_name` localStorage was removed.)

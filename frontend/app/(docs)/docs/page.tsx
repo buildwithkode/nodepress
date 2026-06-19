@@ -1709,17 +1709,12 @@ SMTP_FROM=Contact Form <you@gmail.com>`} />
             </p>
 
             <p className="text-sm font-semibold text-foreground mb-1">Branding the notification email</p>
-            <p className="text-muted-foreground text-sm mb-3">
+            <p className="text-muted-foreground text-sm mb-8">
               The email shows each field by its <strong className="text-foreground">label</strong> (not the raw
-              field name) and is styled with a header, the field table, and a footer. The sender name comes from{' '}
-              <IC>SMTP_FROM</IC>. Customize the look with these optional <IC>backend/.env</IC> variables (restart after changing):
-            </p>
-            <CodeBlock code={`# backend/.env — all optional
-MAIL_BRAND_NAME=Your Company                       # header + footer (default: NodePress)
-MAIL_BRAND_LOGO_URL=https://yourcdn.com/logo.png   # absolute https URL; replaces the name in the header
-MAIL_BRAND_COLOR=#4f46e5                            # header background colour (hex)`} />
-            <p className="text-muted-foreground text-xs mt-2 mb-8">
-              For deeper changes (full layout / extra sections) edit the template in{' '}
+              field name) and is wrapped in a header + footer using your brand. Set your{' '}
+              <strong className="text-foreground">name, logo, and accent colour</strong> once on the{' '}
+              <IC>Settings → Brand</IC> page — it applies to these emails as well as the admin sidebar, favicon,
+              and login screen. The sender name comes from <IC>SMTP_FROM</IC>. For deeper layout changes, edit{' '}
               <IC>backend/src/mail/mail.service.ts</IC> (<IC>sendFormSubmission</IC>).
             </p>
 
