@@ -599,6 +599,26 @@ POST /api/submit/contact
   &quot;captchaToken&quot;: &quot;TOKEN.from.the.widget&quot;
 }"></div>
         <p class="text-xs text-zinc-500 mt-3">If <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_PROVIDER</code> is left unset, the captcha layer no-ops (fail-open) so forms keep working in development — rate limiting and the honeypot still apply.</p>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Email notifications (SMTP setup)</h3>
+        <p class="text-zinc-400 leading-relaxed mb-4">A form's <strong class="text-white">Email action</strong> only sends mail once SMTP is configured in <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code>. Until then, submissions are still saved but no email goes out (the backend logs a warning, never crashes). Restart the backend after editing <code class="text-pink-400 bg-zinc-800 px-1 rounded">.env</code> — the mail connection is created once at startup.</p>
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 mb-4">
+          <p class="text-sm font-semibold text-white mb-2">Gmail (quick start)</p>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-3">Gmail rejects your normal account password over SMTP. You need a 16-character <strong class="text-white">App Password</strong>, which requires 2-Step Verification first:</p>
+          <ol class="text-xs text-zinc-400 leading-relaxed space-y-1.5 mb-3 list-decimal pl-5">
+            <li>Enable 2-Step Verification: <a href="https://myaccount.google.com/signinoptions/two-step-verification" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">myaccount.google.com/signinoptions/two-step-verification</a></li>
+            <li>Create an App Password: <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">myaccount.google.com/apppasswords</a> — choose Mail / Other, name it "NodePress", copy the 16-char value.</li>
+            <li>Use that value (no spaces) as <code class="text-pink-400 bg-zinc-800 px-1 rounded">SMTP_PASS</code>, then restart the backend.</li>
+          </ol>
+          <div class="code-block" data-code="# backend/.env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false                  # false for 587 (STARTTLS), true for 465 (SSL)
+SMTP_USER=you@gmail.com
+SMTP_PASS=your_16_char_app_password   # Gmail App Password — NOT your login password
+SMTP_FROM=Contact Form <you@gmail.com>"></div>
+        </div>
+        <p class="text-xs text-zinc-500">For production, a transactional provider (Resend, Brevo, Mailgun, SendGrid, Postmark) gives better deliverability than Gmail (which caps at ~500 msgs/day) — same five variables, just different host/user/pass.</p>
       </section>
 
       <!-- Webhooks -->

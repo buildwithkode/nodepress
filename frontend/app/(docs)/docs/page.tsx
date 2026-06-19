@@ -1661,6 +1661,53 @@ X-RateLimit-Reset: 60       # seconds until window resets
               </div>
             </div>
 
+            {/* Email setup (SMTP) */}
+            <h3 className="font-semibold mb-3">Setting up email (SMTP)</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              The Email action only sends mail once SMTP is configured in <IC>backend/.env</IC>. Without it,
+              submissions are still saved but no email is sent (the backend logs a warning, never crashes).
+              Restart the backend after editing <IC>.env</IC> — the mail connection is created once at startup.
+            </p>
+
+            <div className="rounded-xl border border-border p-4 mb-4">
+              <p className="text-sm font-semibold mb-2">Gmail (quick start)</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                Gmail does <strong className="text-foreground">not</strong> accept your normal account password for SMTP.
+                You must create a 16-character <strong className="text-foreground">App Password</strong>, which requires
+                2-Step Verification to be enabled first:
+              </p>
+              <ol className="text-xs text-muted-foreground leading-relaxed space-y-1.5 mb-3 list-decimal pl-5">
+                <li>
+                  Enable 2-Step Verification:{' '}
+                  <a href="https://myaccount.google.com/signinoptions/two-step-verification" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+                    myaccount.google.com/signinoptions/two-step-verification
+                  </a>
+                </li>
+                <li>
+                  Create an App Password:{' '}
+                  <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+                    myaccount.google.com/apppasswords
+                  </a>{' '}
+                  — pick "Mail" / "Other", name it "NodePress", and copy the 16-character password it shows.
+                </li>
+                <li>Paste that value as <IC>SMTP_PASS</IC> below (remove the spaces), then restart the backend.</li>
+              </ol>
+              <CodeBlock code={`# backend/.env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false                  # false for port 587 (STARTTLS), true for 465 (SSL)
+SMTP_USER=you@gmail.com
+SMTP_PASS=your_16_char_app_password   # the Gmail App Password — NOT your login password
+SMTP_FROM=Contact Form <you@gmail.com>`} />
+            </div>
+
+            <p className="text-muted-foreground text-sm mb-8">
+              <strong className="text-foreground">For production</strong>, a transactional email provider
+              (Resend, Brevo, Mailgun, SendGrid, Postmark) gives far better deliverability than Gmail. They all
+              provide an SMTP host, user, and password — drop those into the same five variables. Gmail also
+              limits sending to ~500 messages/day, so it's best for testing only.
+            </p>
+
             {/* Spam protection */}
             <h3 className="font-semibold mb-3">Spam Protection</h3>
             <p className="text-muted-foreground text-sm mb-4">
