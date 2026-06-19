@@ -149,6 +149,7 @@ Relation fields store the target entry's `publicId` (UUID), not its numeric id. 
   - `JwtOrApiKeyGuard` — accepts either JWT or a write/all API key. Used on dynamic-api write routes.
 - **Per-key rate limiting** via `ApiKeyRateLimitInterceptor` (global): read=120 req/min, write=60 req/min, all=120 req/min. Returns `X-RateLimit-Limit/Remaining/Reset` headers. JWT requests are exempt.
 - **Setup flow**: `POST /api/auth/register` only works when zero users exist. After setup, it returns 409. Frontend `/setup` page checks `GET /api/auth/setup-status` on load.
+- **Team onboarding is invite-only**: `POST /api/users` (admin) takes **email + role, no password** — it creates the account with a random unusable password and emails a "Set your password" link (`UsersService.create` → `issueInviteToken`, 7-day token reusing `PasswordResetToken`). The user sets their own password at `/reset-password`. `POST /api/users/:id/invite` resends. When SMTP is not configured, both endpoints return `inviteUrl` in the response so the admin can deliver the link manually (the admin UI copies it to the clipboard).
 - Login page redirects to `/setup` if `{ required: true }`.
 
 ### Frontend routing (Next.js App Router)

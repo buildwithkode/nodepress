@@ -28,7 +28,7 @@ export class UsersController {
   @ApiResponse({ status: 201, description: 'User created' })
   @ApiResponse({ status: 409, description: 'Email already in use' })
   async create(@Body() dto: CreateUserDto, @Request() req: any) {
-    const user = await this.usersService.create(dto);
+    const user = await this.usersService.create(dto, req.user.email);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'created', 'user', String(user.id),

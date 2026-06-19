@@ -27,6 +27,7 @@ const mockPrisma = {
 
 const mockMail = {
   sendInvitation: jest.fn().mockResolvedValue(undefined),
+  isConfigured: true,
 };
 
 describe('UsersService', () => {
@@ -49,24 +50,26 @@ describe('UsersService', () => {
   // ── create ─────────────────────────────────────────────────────────────────
 
   describe('create()', () => {
-    it('creates a user with hashed password', async () => {
+    it('creates an invite-only user (random hashed password) and emails an invite', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.user.create.mockResolvedValue({ id: 2, email: 'new@test.com', role: 'editor', createdAt: new Date(), updatedAt: new Date() });
 
-      const result = await service.create({ email: 'new@test.com', password: 'Password123!', role: 'editor' });
+      const result = await service.create({ email: 'new@test.com', role: 'editor' }, 'admin@test.com');
 
       expect(result.email).toBe('new@test.com');
-      expect(mockPrisma.user.create).toHaveBeenCalledTimes(1);
-      // Password must be hashed — not plain text
+      expect(result.invited).toBe(true);
+      // No admin-set password — a random one is hashed (bcrypt $2b$ prefix).
       const callArg = mockPrisma.user.create.mock.calls[0][0].data;
-      expect(callArg.password).not.toBe('Password123!');
       expect(callArg.password.startsWith('$2b$')).toBe(true);
+      // An invitation link is issued + emailed.
+      expect(mockPrisma.passwordResetToken.create).toHaveBeenCalledTimes(1);
+      expect(mockMail.sendInvitation).toHaveBeenCalledTimes(1);
     });
 
     it('throws ConflictException when email already exists', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(mockEditor);
       await expect(
-        service.create({ email: 'editor@test.com', password: 'Password123!', role: 'editor' }),
+        service.create({ email: 'editor@test.com', role: 'editor' }, 'admin@test.com'),
       ).rejects.toThrow(ConflictException);
     });
   });

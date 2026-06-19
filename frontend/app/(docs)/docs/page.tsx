@@ -1365,6 +1365,16 @@ REDIS_URL=redis://localhost:6379
               </table>
             </div>
 
+            <h3 className="font-semibold mb-2">Adding team members (invite-only)</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Go to <strong className="text-foreground">Users → Add User</strong> and enter just an{' '}
+              <strong className="text-foreground">email + role</strong> — no password. NodePress creates the
+              account and emails the person a secure link to <strong className="text-foreground">set their own password</strong>{' '}
+              (valid 7 days); admins never see or set it. Use <strong className="text-foreground">Resend invite</strong> if
+              the link expires. If no SMTP server is configured, the invite link is shown so you can copy and
+              send it manually. (Requires <IC>SMTP_*</IC> in <IC>backend/.env</IC> to email automatically.)
+            </p>
+
             <h3 className="font-semibold mb-2">Per-content-type overrides</h3>
             <p className="text-muted-foreground text-sm mb-2">
               Go to <strong className="text-foreground">Users → Permissions</strong> to set which actions each role can perform on specific content types.

@@ -42,9 +42,8 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // New user form
+  // New user form (invite-only — no password; the user sets their own)
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState('editor');
   const [creating, setCreating] = useState(false);
 
@@ -70,9 +69,19 @@ export default function UsersPage() {
     e.preventDefault();
     setCreating(true);
     try {
-      await api.post('/users', { email, password, role });
-      toast.success(`User ${email} created`);
-      setEmail(''); setPassword(''); setRole('editor');
+      const res = await api.post('/users', { email, role });
+      // When SMTP isn't configured the backend returns the invite link so the
+      // admin can deliver it manually (and copies it to the clipboard).
+      if (res.data?.inviteUrl) {
+        try { await navigator.clipboard.writeText(res.data.inviteUrl); } catch { /* clipboard may be blocked */ }
+        toast.success(`User created — no email server configured`, {
+          description: `Invite link copied to clipboard. Send it to ${email}: ${res.data.inviteUrl}`,
+          duration: 20000,
+        });
+      } else {
+        toast.success(`Invitation sent to ${email}`);
+      }
+      setEmail(''); setRole('editor');
       load();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to create user');
@@ -104,8 +113,16 @@ export default function UsersPage() {
   const handleSendInvite = async (id: number, email: string) => {
     setInviting(id);
     try {
-      await api.post(`/users/${id}/invite`);
-      toast.success(`Invitation sent to ${email}`);
+      const res = await api.post(`/users/${id}/invite`);
+      if (res.data?.inviteUrl) {
+        try { await navigator.clipboard.writeText(res.data.inviteUrl); } catch { /* clipboard may be blocked */ }
+        toast.success(`No email server configured`, {
+          description: `Invite link copied. Send it to ${email}: ${res.data.inviteUrl}`,
+          duration: 20000,
+        });
+      } else {
+        toast.success(`Invitation sent to ${email}`);
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to send invitation');
     } finally {
@@ -259,17 +276,13 @@ export default function UsersPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Plus className="h-4 w-4" /> Add User</CardTitle>
-          <CardDescription>Create a new account with a specific role.</CardDescription>
+          <CardDescription>Invite a teammate by email — they'll get a link to set their own password. No password needed here.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+          <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
             <div className="sm:col-span-2 space-y-1">
               <Label>Email</Label>
               <Input type="email" placeholder="editor@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-1">
-              <Label>Password</Label>
-              <Input type="password" placeholder="Min 8 chars" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
             </div>
             <div className="space-y-1">
               <Label>Role</Label>
@@ -283,10 +296,10 @@ export default function UsersPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="sm:col-span-4 flex justify-end">
+            <div className="sm:col-span-3 flex justify-end">
               <Button type="submit" disabled={creating}>
                 <Plus className="h-4 w-4 mr-1.5" />
-                {creating ? 'Creating…' : 'Create User'}
+                {creating ? 'Sending invite…' : 'Send Invite'}
               </Button>
             </div>
           </form>
