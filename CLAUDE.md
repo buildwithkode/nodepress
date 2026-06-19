@@ -77,7 +77,7 @@ Layer B clones GitHub `main`, so run it **after pushing** for a faithful check o
 
 ### Environment files
 
-- `backend/.env` — `DATABASE_URL`, `DIRECT_URL`, `PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `APP_URL`, `SITE_URL`, `LOG_LEVEL`, `STORAGE_DRIVER`, `REDIS_URL` (optional), `METRICS_TOKEN` (optional), `SENTRY_DSN` (optional), `SMTP_*` (optional)
+- `backend/.env` — `DATABASE_URL`, `DIRECT_URL`, `PORT`, `JWT_SECRET` (**must be ≥32 chars** or env validation exits the process), `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `APP_URL`, `SITE_URL`, `LOG_LEVEL`, `STORAGE_DRIVER` (+ `STORAGE_S3_*` when `s3`), `REDIS_URL` (optional), `METRICS_TOKEN` (optional), `SENTRY_DSN` (optional), `SMTP_*` (optional), `CAPTCHA_PROVIDER`/`CAPTCHA_SECRET_KEY` (optional)
 - `frontend/.env.local` — `BACKEND_URL=http://localhost:3000` (used only in server components), `NEXT_PUBLIC_SENTRY_DSN` (optional)
 - See `backend/.env.example` and `frontend/.env.local.example` for full documentation of all variables.
 
@@ -92,19 +92,26 @@ src/
   main.ts                  # Entry point — dotenv loaded HERE, then instrument.ts (Sentry), then bootstrap
   instrument.ts            # Sentry init — imported first in main.ts before all other imports
   app.module.ts            # Root module — DynamicApiModule imported LAST (wildcard routing)
+  config/                  # Zod env validation — config/env.ts exits the process on invalid/missing env (e.g. JWT_SECRET < 32 chars)
   prisma/                  # PrismaService (OnModuleInit/OnModuleDestroy)
-  auth/                    # JWT auth: register, login, /me, setup-status, password reset
-  content-type/            # CRUD for content type schemas
+  auth/                    # JWT access tokens + HttpOnly refresh-cookie rotation, register, login, /me, setup-status, password reset
+  content-type/            # CRUD for content type schemas (+ schema versions)
   entries/                 # CRUD for content entries (by contentTypeId) + versions + soft delete
-  media/                   # File upload (Multer/diskStorage or S3) + Sharp optimization + list + delete
-  dynamic-api/             # Wildcard /:type and /:type/:slug routes (public GET, guarded write) + cache
+  fields/                  # FieldDef types + FIELD_TYPES registry (single source of truth for valid field types)
+  media/                   # File upload (Multer) → pluggable StorageAdapter (local disk or S3) + Sharp WebP optimization + folders
+  dynamic-api/             # Wildcard /:type and /:type/:slug routes (public GET, guarded write) + cache + relation ?populate=
+  graphql/                 # Auto-generated GraphQL schema over content types (Apollo)
   api-keys/                # API key CRUD + ApiKeyGuard + JwtOrApiKeyGuard + ApiKeyRateLimitInterceptor
   cache/                   # AppCacheService — TTL cache (in-memory Map + optional Redis via ioredis)
   metrics/                 # Prometheus metrics — MetricsService (prom-client) + GET /api/metrics
-  common/                  # SentryExceptionFilter, normalize, sanitize helpers
-  forms/                   # Form builder + submissions + email/webhook actions
+  realtime/                # Socket.io gateway — live media/entry events (optional Redis adapter for multi-instance)
+  mail/                    # MailService — SMTP (nodemailer) for password reset, invites, form email actions
+  permissions/             # Granular role/permission records (Permission model)
+  plugin/ plugins/         # Plugin loader + bundled plugins
+  common/                  # SentryExceptionFilter, normalize, sanitize, populate.util helpers
+  forms/                   # Form builder + submissions + email/webhook actions + captcha verification
   webhooks/                # Webhook CRUD + delivery queue + retry with exponential backoff
-  audit/                   # AuditLog write + list (resource, action, userId, ip)
+  audit/                   # AuditLog write + list (resource, action, userId, ip) + weekly retention prune
   users/                   # User CRUD (admin only)
   health/                  # GET /api/health — DB connectivity check
   seo/                     # GET /api/sitemap.xml + GET /api/robots.txt
@@ -117,17 +124,24 @@ src/
 
 ### Database schema (Prisma)
 
-Three models:
-- `ContentType` — `name` (unique, normalized to snake_case), `schema` (Json array of field definitions)
-- `Entry` — `slug` + `contentTypeId` (composite unique), `data` (Json, stores all field values)
-- `User` — `email` (unique), `password` (bcrypt), `role`
+The core models:
+- `ContentType` — `name` (unique, normalized to snake_case), `schema` (Json array of field definitions); `ContentTypeSchemaVersion` snapshots schema history
+- `Entry` — `slug` + `contentTypeId` (composite unique), `data` (Json, all field values), `publicId` (UUID — the stable id relations point to), soft-deleted via `deletedAt`; `EntryVersion` snapshots data history
+- `User` — `email` (unique), `password` (bcrypt), `role`; `Permission` holds granular grants; `RefreshToken` / `PasswordResetToken` back the auth flows
 - `ApiKey` — `key` (unique, `np_` prefix + 48 hex chars), `permissions` (Json: `{access, contentTypes}`)
+- `Media` + `MediaFolder` — uploaded-file metadata (URLs, dimensions, WebP sibling) and the virtual folder tree
+- `Form` + `FormSubmission`, `Webhook` + `WebhookDelivery`, `AuditLog` — forms, webhook delivery queue, and audit trail
 
-Content type names are normalized via `normalizeName()` (lowercase + underscores). Reserved names (`auth`, `media`, `entries`, `content-types`, `uploads`) are blocked.
+Run `grep '^model' backend/prisma/schema.prisma` for the full list. Content type names are normalized via `normalizeName()` (lowercase + underscores). Reserved names (`auth`, `media`, `entries`, `content-types`, `uploads`) are blocked.
+
+### Relations & `?populate=`
+
+Relation fields store the target entry's `publicId` (UUID), not its numeric id. A public GET resolves them only when asked: `GET /api/blog/my-post?populate=author`. `common/populate.util.ts` (`populateDeep`) supports comma-separated and dot-notation nested paths (`?populate=author,author.company`) up to `MAX_DEPTH=3`, batching one `findMany` per level. **Cache caveat**: requests with `populate` or `fields` must bypass the cache entirely (read *and* write) — the cache key ignores those params, so serving a cached raw entry to a `?populate` request returns un-resolved UUIDs. The dynamic-api service guards this with a `cacheable` check.
 
 ### Auth system
 
-- **JWT** via `@nestjs/passport` + `passport-jwt`. Token sent as `Authorization: Bearer <token>`.
+- **JWT access tokens** via `@nestjs/passport` + `passport-jwt`. Token sent as `Authorization: Bearer <token>`, lifetime `JWT_EXPIRES_IN` (default 7d).
+- **Refresh tokens**: login also sets an HttpOnly cookie `np_refresh` (30 days, `RefreshToken` model). `POST /api/auth/refresh` exchanges it for a new access token and **rotates** the refresh token (old one deleted); `POST /api/auth/logout` invalidates and clears it.
 - **API Keys** via `X-API-Key` header. Two guards:
   - `ApiKeyGuard` — API key only (used on `api-keys` management routes? No — those use JWT)
   - `JwtOrApiKeyGuard` — accepts either JWT or a write/all API key. Used on dynamic-api write routes.
@@ -137,12 +151,13 @@ Content type names are normalized via `normalizeName()` (lowercase + underscores
 
 ### Frontend routing (Next.js App Router)
 
-Three route groups:
+Four route groups:
 - `(auth)` — `/login`, `/setup` — no layout wrapper
-- `(admin)` — `/`, `/content-types`, `/entries`, `/media`, `/api-keys` — protected by middleware + sidebar layout
+- `(admin)` — protected by middleware + sidebar layout: `/` (dashboard), `/content-types`, `/entries`, `/media`, `/api-keys`, `/forms` (+ `/[id]/submissions`), `/webhooks` (+ `/deliveries`), `/users` (+ `/permissions`), `/audit-log`
+- `(docs)` — `/docs` — the in-app documentation page
 - `(public)` — `/[type]`, `/[type]/[slug]` — server components, fetch from `BACKEND_URL` directly
 
-**Middleware** (`middleware.ts`) protects `ADMIN_PATHS` list. Public routes and `/setup` pass through freely. Already-logged-in users are redirected away from `/login` and `/setup`.
+**Middleware** (`middleware.ts`) protects the `ADMIN_PATHS` list (keep it in sync when adding an admin page). `ADMIN_ONLY_PATHS` (e.g. `/users`, `/api-keys`, `/webhooks`, `/audit-log`, `/content-types/new`) further restrict to admin role. Public routes and `/setup` pass through freely; already-logged-in users are redirected away from `/login` and `/setup`.
 
 **API proxy**: `next.config.js` rewrites `/api/*` → `http://localhost:3000/api/*` and `/uploads/*` → `http://localhost:3000/uploads/*`. This only works client-side. Server components must use `BACKEND_URL` env var directly.
 
@@ -161,16 +176,29 @@ Entries use a schema-driven form. Field types and their renderers:
 | `boolean` | `Switch` (uses `valuePropName="checked"`) |
 | `select` | `Select` with options from field config |
 | `image` | `MediaPickerModal` — upload (`POST /api/media/upload`) or pick from the media library; stores the selected URL |
+| `relation` | picks a related entry; stores its `publicId` (UUID). `options: { relatedContentType, cardinality: 'one' \| 'many' }`. Resolve via `?populate=` |
+| `color` | color picker |
+| `date` / `datetime` | date / date-time picker |
+| `json` | raw JSON editor |
 | `repeater` | `RepeaterField` — `Form.List` with sub-fields |
 | `flexible` | `FlexibleField` — `Form.List` + `useWatch` per item for layout switching |
+| `group` | nested fixed group of sub-fields |
+
+The canonical list lives in `backend/src/fields/field.types.ts` (`SIMPLE_FIELD_TYPES` + `COMPLEX_FIELD_TYPES`) — add new types there first.
 
 Slug auto-generation: watches the first `text`/`textarea` field. Stops auto-generating once the user manually edits the slug field (`slugManualRef`). Slug is locked (disabled) when editing an existing entry.
 
-### Media uploads
+### Media uploads & storage
 
-Multer `diskStorage` saves files to `backend/uploads/`. Allowed types: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `application/pdf`, `video/mp4`. Max 10MB. Filenames: `{timestamp}-{8-random-hex}{ext}`.
+Multer saves the incoming file to `backend/uploads/` first. Allowed types: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `application/pdf`, `video/mp4`. Max 10MB. Filenames: `{timestamp}-{8-random-hex}{ext}`. Optimizable images are run through Sharp (resize + a **WebP sibling**), then a `Media` row records the URLs/dimensions.
 
-`MediaService.safeResolvePath()` guards against path traversal: strips directories with `basename()`, resolves to absolute path, checks it starts with `uploadsDir`.
+**Pluggable storage** (`media/adapters/`, selected in `media.module.ts` by `STORAGE_DRIVER`):
+- `local` (default) — bytes stay on disk in `backend/uploads/`; URL is `${APP_URL}/uploads/<file>` served by the backend.
+- `s3` — `S3StorageAdapter` streams to any S3-compatible endpoint (AWS, Cloudflare R2, DigitalOcean Spaces, MinIO, B2), deletes the local temp file, and returns the bucket/CDN URL. The constructor **throws at boot** if `STORAGE_S3_BUCKET`/`ACCESS_KEY`/`SECRET_KEY` are missing — no silent fallback. R2/MinIO need `STORAGE_S3_ENDPOINT`; `STORAGE_S3_PUBLIC_URL` overrides the public base. Note R2 ignores the `public-read` ACL the adapter sets — its bucket must be made public separately.
+
+**Production note**: `local` disk is ephemeral on PaaS (App Platform, containers without a volume) — a redeploy wipes `uploads/` while `Media` rows survive, breaking every image. Use `s3` or a persistent volume in production. (The Postgres DB is unaffected — it's an external managed service, not on the app filesystem.)
+
+Path-traversal is blocked: deletes reject filenames containing `/`, `\`, or `..` and reduce everything to `basename()`.
 
 ### API key permissions shape
 
