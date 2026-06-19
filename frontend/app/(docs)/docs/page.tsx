@@ -1562,10 +1562,52 @@ curl -X POST ${baseUrl}/api/media/upload \\
           {/* ── API Keys ──────────────────────────────────────────────────── */}
           <Section id="api-keys" title="API Keys" icon={Key}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              API Keys let external apps read or write content without a JWT token. They are prefixed
-              with <IC>np_</IC>. The full key is only shown once — save it somewhere safe.
+              NodePress is headless — your content is consumed by other apps. API Keys let those
+              apps read or write content <strong className="text-foreground">without a user login</strong>.
+              They are prefixed with <IC>np_</IC>, and the full key is shown only once — save it somewhere safe.
             </p>
 
+            {/* When to use one */}
+            <h3 className="font-semibold mb-3">When you'd use one</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {[
+                ['Public website / frontend', 'Your site fetches published content at runtime or build time. Use a read key scoped to the content types it displays.'],
+                ['Mobile app', 'A native/React Native app reads (and maybe writes) content. Use a read or write key.'],
+                ['Static-site build (Next.js, Gatsby, Astro)', 'CI pulls content during the build. A read key is enough.'],
+                ['Partner / server integration', 'Another backend syncs or pushes content. Use a write/all key, scoped to specific content types.'],
+              ].map(([title, desc]) => (
+                <div key={title} className="rounded-xl border border-border p-4">
+                  <p className="text-sm font-semibold mb-1">{title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground mb-6">
+              <strong className="text-foreground">You don't need a key for:</strong> the admin panel (it uses your login),
+              public form submissions (<IC>POST /api/submit/:slug</IC>), or already-public <IC>GET</IC> reads.
+              Keys matter for writes, and for read access you want to scope, rate-limit, or attribute.
+            </p>
+
+            {/* How to create one */}
+            <div className="rounded-xl border border-border p-5 mb-6 bg-muted/20 space-y-3">
+              <h4 className="font-semibold text-sm">How to create a key</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {[
+                  ['1. Open API Keys', 'Go to Developer → API Keys (admin only) and click New API Key.'],
+                  ['2. Name + access', 'Give it a recognisable name (e.g. "Website — read") and pick read / write / all.'],
+                  ['3. Scope content types', 'Restrict to specific content types (e.g. blog, pages) or allow all (*).'],
+                  ['4. Copy the key', 'The np_… key is shown ONCE. Copy it into your app\'s env/secret store now — you cannot view it again.'],
+                  ['5. Use it', 'Send it as the X-API-Key header on requests (see below). Watch the Last Used column to spot stale keys; delete a key to revoke it instantly.'],
+                ].map(([step, desc]) => (
+                  <div key={step} className="flex gap-3">
+                    <span className="font-medium text-foreground w-36 shrink-0">{step}</span>
+                    <span>{desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <h3 className="font-semibold mb-3">Access levels</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
               {[
                 { access: 'read', desc: 'GET requests only. Cannot create, update, or delete.' },
