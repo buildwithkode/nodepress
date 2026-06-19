@@ -1733,32 +1733,97 @@ SMTP_FROM=Contact Form <you@gmail.com>`} />
               <div className="rounded-xl border border-border p-4">
                 <p className="text-sm font-semibold mb-1">3 — Captcha <span className="text-xs font-normal text-muted-foreground ml-1">(opt-in per form)</span></p>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                  Supports <strong className="text-foreground">Cloudflare Turnstile</strong> (recommended — no user puzzle),{' '}
+                  Stops automated bots with a near-invisible challenge. Supports{' '}
+                  <strong className="text-foreground">Cloudflare Turnstile</strong> (recommended — free, no puzzle for users),{' '}
                   <strong className="text-foreground">hCaptcha</strong>, and <strong className="text-foreground">Google reCAPTCHA v2/v3</strong>.
-                  Set up in two steps:
+                  The full Cloudflare Turnstile walkthrough is below.
                 </p>
-                <div className="space-y-2 text-xs text-muted-foreground mb-3">
-                  {[
-                    ['Step 1 — backend/.env', 'Set CAPTCHA_PROVIDER=turnstile and CAPTCHA_SECRET_KEY=your_server_secret'],
-                    ['Step 2 — create/update form', 'Flip the "Spam Protection (Captcha)" switch in the form builder (or set captchaEnabled=true via the API)'],
-                    ['Step 3 — frontend', 'Render the captcha widget and pass the token as captchaToken in the submit body'],
-                  ].map(([step, desc]) => (
-                    <div key={step} className="flex gap-3">
-                      <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
-                      <span>{desc}</span>
-                    </div>
-                  ))}
-                </div>
-                <CodeBlock code={`# backend/.env
-CAPTCHA_PROVIDER=turnstile
-CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_secret_here
 
-# Submit body — include captchaToken alongside your form data
-POST /api/submit/contact-us
-{
-  "data":         { "full_name": "Jane", "email": "jane@example.com" },
-  "captchaToken": "XXXX.DUMMY.TOKEN.from.widget"
-}`} />
+                {/* The two keys — where each goes */}
+                <p className="text-xs font-semibold text-foreground mb-2">The two keys (this is the part people get wrong)</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-2">
+                  Every captcha provider gives you <strong className="text-foreground">two</strong> keys. They go in two
+                  different places and must never be swapped:
+                </p>
+                <div className="overflow-x-auto mb-4">
+                  <table className="w-full text-xs border border-border rounded-lg">
+                    <thead>
+                      <tr className="bg-muted/40 text-left">
+                        <th className="px-3 py-2 font-semibold">Key</th>
+                        <th className="px-3 py-2 font-semibold">Where you paste it</th>
+                        <th className="px-3 py-2 font-semibold">Public?</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-muted-foreground">
+                      <tr className="border-t border-border">
+                        <td className="px-3 py-2"><strong className="text-foreground">Site Key</strong></td>
+                        <td className="px-3 py-2">In your <strong className="text-foreground">website's form HTML</strong> — the <IC>data-sitekey</IC> attribute on the widget. <strong className="text-foreground">Not</strong> in <IC>.env</IC>.</td>
+                        <td className="px-3 py-2">Yes — safe to be visible</td>
+                      </tr>
+                      <tr className="border-t border-border">
+                        <td className="px-3 py-2"><strong className="text-foreground">Secret Key</strong></td>
+                        <td className="px-3 py-2">In <IC>backend/.env</IC> as <IC>CAPTCHA_SECRET_KEY</IC>. Never in website code or git.</td>
+                        <td className="px-3 py-2">No — keep private</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <p className="text-xs font-semibold text-foreground mb-2">Step-by-step (Cloudflare Turnstile)</p>
+                <ol className="text-xs text-muted-foreground leading-relaxed space-y-1.5 mb-3 list-decimal pl-5">
+                  <li>
+                    Open the Turnstile dashboard:{' '}
+                    <a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">dash.cloudflare.com → Turnstile</a>{' '}
+                    (free; you do not need to host your domain on Cloudflare).
+                  </li>
+                  <li>Click <strong className="text-foreground">Add site</strong>, name it, add your domain(s) — include <IC>localhost</IC> while testing — and choose widget type <strong className="text-foreground">Managed</strong>.</li>
+                  <li>Cloudflare shows your <strong className="text-foreground">Site Key</strong> and <strong className="text-foreground">Secret Key</strong>. Copy both.</li>
+                  <li>Paste the <strong className="text-foreground">Secret Key</strong> into <IC>backend/.env</IC> (see block below) and <strong className="text-foreground">restart the backend</strong>.</li>
+                  <li>In the admin, open your form → turn on the <strong className="text-foreground">Spam Protection (Captcha)</strong> switch → Save.</li>
+                  <li>Paste the <strong className="text-foreground">Site Key</strong> into the widget on your website form (see HTML block below).</li>
+                </ol>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Setting <IC>CAPTCHA_PROVIDER</IC> without <IC>CAPTCHA_SECRET_KEY</IC> stops the backend from starting — set both or neither.
+                  For local testing, Cloudflare's always-pass keys are Site Key <IC>1x00000000000000000000AA</IC> and Secret Key <IC>1x0000000000000000000000000000000AA</IC>.
+                </p>
+
+                <p className="text-xs font-semibold text-foreground mb-1">Backend — the Secret Key goes here</p>
+                <CodeBlock code={`# backend/.env  (then restart the backend)
+CAPTCHA_PROVIDER=turnstile
+CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here`} />
+
+                <p className="text-xs font-semibold text-foreground mb-1 mt-3">Website form — the Site Key goes here</p>
+                <CodeBlock code={`<!-- 1. Load the Turnstile script once -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<form id="contact">
+  <input name="fullname" required />
+  <input name="email" type="email" required />
+  <textarea name="message"></textarea>
+
+  <!-- 2. The widget — paste your SITE key here -->
+  <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY"></div>
+
+  <button type="submit">Send</button>
+</form>
+
+<script>
+  document.getElementById('contact').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    // 3. Turnstile drops the token into a hidden field — send it as captchaToken
+    const captchaToken = fd.get('cf-turnstile-response');
+    await fetch('https://YOUR_API/api/submit/contact-us', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: { fullname: fd.get('fullname'), email: fd.get('email'), message: fd.get('message') },
+        captchaToken,
+      }),
+    });
+    if (window.turnstile) window.turnstile.reset(); // tokens are single-use
+  });
+</script>`} />
               </div>
             </div>
 

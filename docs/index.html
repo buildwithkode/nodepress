@@ -619,6 +619,71 @@ SMTP_PASS=your_16_char_app_password   # Gmail App Password — NOT your login pa
 SMTP_FROM=Contact Form <you@gmail.com>"></div>
         </div>
         <p class="text-xs text-zinc-500">For production, a transactional provider (Resend, Brevo, Mailgun, SendGrid, Postmark) gives better deliverability than Gmail (which caps at ~500 msgs/day) — same five variables, just different host/user/pass.</p>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Spam protection — captcha (Cloudflare Turnstile)</h3>
+        <p class="text-zinc-400 leading-relaxed mb-4">Public forms attract bots. NodePress always applies rate limiting and an optional honeypot field; for stronger protection, enable a captcha. Cloudflare Turnstile is recommended — it's free and usually invisible to real visitors. It supports hCaptcha and Google reCAPTCHA too.</p>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 mb-4">
+          <p class="text-sm font-semibold text-white mb-2">The two keys — where each one goes</p>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-3">Cloudflare gives you <strong class="text-white">two</strong> keys. They live in two different places and must never be swapped:</p>
+          <table class="w-full text-xs border border-zinc-800 rounded-lg overflow-hidden mb-1">
+            <thead class="bg-zinc-800/60 text-left text-zinc-300">
+              <tr><th class="px-3 py-2 font-semibold">Key</th><th class="px-3 py-2 font-semibold">Where you paste it</th><th class="px-3 py-2 font-semibold">Public?</th></tr>
+            </thead>
+            <tbody class="text-zinc-400">
+              <tr class="border-t border-zinc-800"><td class="px-3 py-2"><strong class="text-white">Site Key</strong></td><td class="px-3 py-2">In your <strong class="text-white">website's form HTML</strong> — the <code class="text-pink-400 bg-zinc-800 px-1 rounded">data-sitekey</code> attribute. Not in <code class="text-pink-400 bg-zinc-800 px-1 rounded">.env</code>.</td><td class="px-3 py-2">Yes — safe to be visible</td></tr>
+              <tr class="border-t border-zinc-800"><td class="px-3 py-2"><strong class="text-white">Secret Key</strong></td><td class="px-3 py-2">In <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code> as <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_SECRET_KEY</code>. Never in website code or git.</td><td class="px-3 py-2">No — keep private</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="text-sm font-semibold text-white mb-2">Step-by-step</p>
+        <ol class="text-zinc-400 leading-relaxed space-y-1.5 mb-4 list-decimal pl-5 text-sm">
+          <li>Open <a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">dash.cloudflare.com → Turnstile</a> (free; your domain need not be on Cloudflare).</li>
+          <li>Click <strong class="text-white">Add site</strong>, name it, add your domain(s) — include <code class="text-pink-400 bg-zinc-800 px-1 rounded">localhost</code> while testing — widget type <strong class="text-white">Managed</strong>.</li>
+          <li>Copy the <strong class="text-white">Site Key</strong> and <strong class="text-white">Secret Key</strong> it shows.</li>
+          <li>Paste the <strong class="text-white">Secret Key</strong> into <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code> (below) and <strong class="text-white">restart the backend</strong>.</li>
+          <li>In the admin, open your form → turn on the <strong class="text-white">Spam Protection (Captcha)</strong> switch → Save.</li>
+          <li>Paste the <strong class="text-white">Site Key</strong> into the widget on your website form (below).</li>
+        </ol>
+        <p class="text-xs text-zinc-500 mb-4">Setting <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_PROVIDER</code> without <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_SECRET_KEY</code> stops the backend from starting — set both or neither. Local test keys: Site Key <code class="text-pink-400 bg-zinc-800 px-1 rounded">1x00000000000000000000AA</code>, Secret Key <code class="text-pink-400 bg-zinc-800 px-1 rounded">1x0000000000000000000000000000000AA</code>.</p>
+
+        <p class="text-sm font-semibold text-white mb-2">Backend — the Secret Key goes here</p>
+        <div class="code-block" data-code="# backend/.env  (then restart the backend)
+CAPTCHA_PROVIDER=turnstile
+CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here"></div>
+
+        <p class="text-sm font-semibold text-white mt-4 mb-2">Website form — the Site Key goes here</p>
+        <div class="code-block" data-code='&lt;!-- Load the Turnstile script once --&gt;
+&lt;script src=&quot;https://challenges.cloudflare.com/turnstile/v0/api.js&quot; async defer&gt;&lt;/script&gt;
+
+&lt;form id=&quot;contact&quot;&gt;
+  &lt;input name=&quot;fullname&quot; required /&gt;
+  &lt;input name=&quot;email&quot; type=&quot;email&quot; required /&gt;
+  &lt;textarea name=&quot;message&quot;&gt;&lt;/textarea&gt;
+
+  &lt;!-- paste your SITE key here --&gt;
+  &lt;div class=&quot;cf-turnstile&quot; data-sitekey=&quot;YOUR_SITE_KEY&quot;&gt;&lt;/div&gt;
+
+  &lt;button type=&quot;submit&quot;&gt;Send&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+  document.getElementById(&quot;contact&quot;).addEventListener(&quot;submit&quot;, async (e) =&gt; {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const captchaToken = fd.get(&quot;cf-turnstile-response&quot;); // Turnstile fills this
+    await fetch(&quot;https://YOUR_API/api/submit/contact-us&quot;, {
+      method: &quot;POST&quot;,
+      headers: { &quot;Content-Type&quot;: &quot;application/json&quot; },
+      body: JSON.stringify({
+        data: { fullname: fd.get(&quot;fullname&quot;), email: fd.get(&quot;email&quot;), message: fd.get(&quot;message&quot;) },
+        captchaToken,
+      }),
+    });
+    if (window.turnstile) window.turnstile.reset(); // tokens are single-use
+  });
+&lt;/script&gt;'></div>
       </section>
 
       <!-- Webhooks -->
