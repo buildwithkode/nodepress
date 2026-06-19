@@ -187,11 +187,11 @@ export default function BrandPage() {
             </div>
 
             {/* Live preview of button + input */}
-            <div className="rounded-lg border border-border p-4 space-y-3">
+            <div className="rounded-lg border border-border p-4 flex flex-col gap-4">
               <p className="text-xs text-muted-foreground">Preview</p>
               <button
                 type="button"
-                className="rounded-md px-4 py-2 text-sm font-medium"
+                className="self-start rounded-md px-4 py-2 text-sm font-medium"
                 style={{
                   backgroundColor: HEX_RE.test(buttonColor) ? buttonColor : undefined,
                   color: HEX_RE.test(buttonColor) ? '#fff' : undefined,
