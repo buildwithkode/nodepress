@@ -288,7 +288,7 @@ export default function NewContentTypePage() {
                     />
                     <span className={`text-xs font-mono font-semibold w-14 shrink-0 ${VERB_COLOR[verb]}`}>{verb}</span>
                     <code className="text-xs font-mono text-muted-foreground flex-1">
-                      /api/{computedName || ':type'}{path}
+                      /api/{(computedName || ':type').replace(/_/g, '-')}{path}
                     </code>
                     <span className="text-xs text-foreground shrink-0">{label}</span>
                   </label>
