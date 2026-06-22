@@ -2304,8 +2304,74 @@ Sitemap: https://your-site.com/api/sitemap.xml`} />
           {/* ── Self-hosting ───────────────────────────────────────────────── */}
           <Section id="self-hosting" title="Self-Hosting" icon={Server}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              NodePress ships with a production-ready <IC>docker-compose.prod.yml</IC> that runs
-              the full stack behind nginx.
+              NodePress runs anywhere Node.js does. There are two ways to go live —
+              pick whichever fits how much you want to manage. Either way you need a{' '}
+              <strong className="text-foreground">PostgreSQL database</strong> and, for production,{' '}
+              <strong className="text-foreground">S3-compatible storage</strong> for media (see below).
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-sm font-semibold mb-1">Path A — Docker on your own server</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  A VPS (DigitalOcean, Hetzner, Linode…) with the bundled{' '}
+                  <IC>docker-compose.prod.yml</IC> — Postgres, Redis, nginx, Prometheus + Grafana,
+                  and automated DB backups in one command. Most control, one machine to manage.
+                </p>
+              </div>
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-sm font-semibold mb-1">Path B — Any managed host (PaaS)</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Render, Railway, Fly.io, DigitalOcean App Platform, etc. Deploy the backend and
+                  frontend as two web services from GitHub + a managed Postgres. No server to patch.
+                </p>
+              </div>
+            </div>
+
+            {/* Path B — generic, works on ANY host */}
+            <h3 className="font-semibold mb-3">Deploy to any managed host (Path B)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              These steps are host-agnostic — only the dashboard differs between Render, Railway,
+              Fly, DigitalOcean App Platform, and the like.
+            </p>
+            <div className="rounded-xl border border-border p-5 mb-5 bg-muted/20 space-y-2 text-sm text-muted-foreground">
+              {[
+                ['1. Push to GitHub', 'Commit your project and push it to a GitHub repo — most hosts deploy from there. Keep .env out of git (the scaffold already gitignores it).'],
+                ['2. Provision Postgres + storage', 'Create a managed PostgreSQL (Neon, Supabase, or the host’s own add-on) and an S3-compatible bucket (Cloudflare R2 recommended). Copy the connection string + bucket keys.'],
+                ['3. Deploy the backend service', 'Root directory backend. Build: npm install && npx prisma generate && npm run build. Start: npx prisma migrate deploy && npm run start:prod. The host injects PORT automatically.'],
+                ['4. Deploy the frontend service', 'Root directory frontend. Build: npm install && npm run build. Start: npx next start -p $PORT.'],
+                ['5. Wire the URLs', 'Deploy the backend first, take its public URL, then set the frontend’s BACKEND_URL to it, and the backend’s APP_URL / SITE_URL / CORS_ORIGIN to the frontend’s URL. Redeploy.'],
+                ['6. Create the first admin', 'Open https://your-frontend-url/setup and register — it only works while the database has zero users.'],
+              ].map(([step, desc]) => (
+                <div key={step} className="flex gap-3">
+                  <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
+                  <span>{desc}</span>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-6 text-sm">
+              <strong className="text-amber-400">Three things that break a first launch</strong>
+              <ul className="text-muted-foreground mt-1 space-y-1 list-disc pl-4">
+                <li><IC>JWT_SECRET</IC> must be <strong className="text-foreground">≥32 characters</strong> — otherwise the backend exits on boot.</li>
+                <li>Use <IC>STORAGE_DRIVER=s3</IC> in production. On managed hosts the local disk is wiped on every redeploy, so local uploads disappear while the <IC>Media</IC> rows survive — broken images.</li>
+                <li>Replace every <IC>localhost</IC> URL (<IC>BACKEND_URL</IC>, <IC>APP_URL</IC>, <IC>CORS_ORIGIN</IC>, <IC>SITE_URL</IC>) with the real public URLs, or the live site can’t reach the API.</li>
+              </ul>
+            </div>
+
+            <h3 className="font-semibold mb-3">Deploy with Docker on a VPS (Path A)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Scaffold with <IC>--docker</IC> (or copy <IC>docker-compose.prod.yml</IC> + <IC>nginx/</IC>{' '}
+              from the repo), fill in <IC>backend/.env</IC>, then start the whole stack — Postgres, nginx,
+              and backups included — with one command:
+            </p>
+            <CodeBlock code={`# On your server (Docker installed)
+git clone <your-repo> && cd <your-project>
+# edit backend/.env  (set DATABASE_URL, JWT_SECRET, APP_URL, S3 keys…)
+npm run docker:prod        # docker-compose -f docker-compose.prod.yml up -d --build
+# then open https://yourdomain.com/setup`} />
+            <p className="text-muted-foreground text-sm mb-6">
+              Front it with HTTPS via your own certs in <IC>nginx/</IC>, Caddy, or Cloudflare (orange-cloud
+              the DNS record for automatic SSL).
             </p>
 
             <h3 className="font-semibold mb-3">Environment variables (backend/.env)</h3>
