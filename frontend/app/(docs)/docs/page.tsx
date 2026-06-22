@@ -590,9 +590,12 @@ npm run dev`} />
                 <IC>content</IC> (rich text).
               </Step>
               <Step n={2} title="Add Fields to Your Schema">
-                For each field, choose a name and a type. The field name becomes the key in the API
-                response. Names are automatically converted to <IC>snake_case</IC> — so "Blog Title"
-                becomes <IC>blog_title</IC> in the API output.
+                For each field, choose a name and a type. Whatever you type is kept as the field's
+                human <strong className="text-foreground">label</strong> (shown on the entry form and
+                list columns), while the <strong className="text-foreground">field key</strong> used in
+                the API is automatically derived in <IC>snake_case</IC> — so "Article Footer" displays
+                as <em>Article Footer</em> but becomes <IC>article_footer</IC> in the API output. The
+                field key is shown live under each field as you type.
               </Step>
               <Step n={3} title="Create an Entry">
                 Go to <strong>Entries → select your content type → New Entry</strong>. Fill in the

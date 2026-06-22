@@ -38,6 +38,7 @@ interface Layout {
 
 interface Field {
   name: string;
+  label?: string;
   type: string;
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
 }
@@ -61,7 +62,7 @@ export default function DynamicFormField({
   errors,
   watch,
 }: Props) {
-  const label = toLabel(field.name);
+  const label = field.label?.trim() || toLabel(field.name);
   const error = errors?.[field.name];
 
   // --- Repeater ---

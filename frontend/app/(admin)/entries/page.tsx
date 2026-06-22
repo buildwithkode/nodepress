@@ -56,7 +56,7 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   archived:       { label: 'Archived',       className: 'bg-muted text-muted-foreground' },
 };
 
-interface Field { name: string; type: string; options?: any }
+interface Field { name: string; label?: string; type: string; options?: any }
 interface ContentType { id: number; name: string; schema: Field[] }
 interface Entry {
   id: number; slug: string; status: string; contentTypeId: number;
@@ -550,7 +550,7 @@ export default function EntriesPage() {
             <TableHead>Status</TableHead>
             {schemaColumns.map((col) => (
               <TableHead key={col.name}>
-                {col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                {col.label?.trim() || col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </TableHead>
             ))}
             <TableHead>Updated</TableHead>

@@ -20,6 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
+import { humanizeName } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,6 +63,7 @@ interface Layout   { name: string; label: string; fields: SubField[] }
 interface Field {
   _id:      string;
   name:     string;
+  label?:   string;
   type:     string;
   required: boolean;
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
@@ -191,7 +193,7 @@ export default function EditContentTypePage() {
         setAllowedMethods(ct.allowedMethods ?? ['list', 'read', 'create', 'update', 'delete']);
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => ({ _id: uid(), ...f, required: f.required ?? false }))
+            ? ct.schema.map((f: any) => ({ _id: uid(), ...f, name: f.label ?? humanizeName(f.name), required: f.required ?? false }))
             : [{ _id: uid(), name: '', type: 'text', required: false }],
         );
       })
@@ -249,7 +251,7 @@ export default function EditContentTypePage() {
     e.preventDefault();
     if (!name.trim()) { setNameError('Name is required'); return; }
     setNameError('');
-    const validFields = fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => rest);
+    const validFields = fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => ({ ...rest, label: rest.name.trim() }));
     if (validFields.length === 0) { toast.error('Add at least one field'); return; }
     setSubmitting(true);
     try {
@@ -318,7 +320,7 @@ export default function EditContentTypePage() {
               const payload = {
                 nodepress: '1.0',
                 exportedAt: new Date().toISOString(),
-                contentType: { name, schema: fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => rest) },
+                contentType: { name, schema: fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => ({ ...rest, label: rest.name.trim() })) },
               };
               const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
@@ -709,7 +711,7 @@ export default function EditContentTypePage() {
           {jsonOpen && (() => {
             const liveJson = {
               name: computedName || '(unnamed)',
-              schema: fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => rest),
+              schema: fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => ({ ...rest, label: rest.name.trim() })),
               allowedMethods,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);

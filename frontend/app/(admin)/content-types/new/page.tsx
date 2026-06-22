@@ -201,7 +201,11 @@ export default function NewContentTypePage() {
     e.preventDefault();
     if (!name.trim()) { setNameError('Name is required'); return; }
     setNameError('');
-    const validFields = fields.filter((f) => f.name.trim());
+    // Keep the user's exact wording as the human label; the backend derives the
+    // snake_case field key from `name`.
+    const validFields = fields
+      .filter((f) => f.name.trim())
+      .map((f) => ({ ...f, label: f.name.trim() }));
     if (validFields.length === 0) { toast.error('Add at least one field'); return; }
     setSubmitting(true);
     try {
