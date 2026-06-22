@@ -866,6 +866,7 @@ npm run dev`} />
               {[
                 ['Edit',       'Update any field value. The slug is locked after creation.'],
                 ['Duplicate',  'Creates a copy with slug "-copy" appended.'],
+                ['Copy URL',   'Copies the entry\'s public API URL (e.g. /api/article-page/my-post) to the clipboard — available to all roles.'],
               ].map(([action, desc]) => (
                 <div key={action} className="flex gap-3 text-sm">
                   <span className="font-medium text-foreground w-20 shrink-0">{action}</span>

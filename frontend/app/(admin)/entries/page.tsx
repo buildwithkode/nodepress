@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers, Copy, Loader2, CheckSquare, Trash, RotateCcw, X, Download, Upload } from 'lucide-react';
+import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers, Copy, Loader2, CheckSquare, Trash, RotateCcw, X, Download, Upload, Link2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -278,6 +278,21 @@ export default function EntriesPage() {
     }
     toast.error('Could not find a unique slug for the duplicate');
     setDuplicating(null);
+  };
+
+  /* ── Copy public API URL ──────────────────────────────────────────────────── */
+  const handleCopyUrl = async (entry: Entry) => {
+    const typeName = selectedCT?.name;
+    if (!typeName) return;
+    // Content-type names are stored snake_cased; the API also accepts the
+    // hyphenated form (normalised back to underscores), which reads cleaner in a URL.
+    const url = `${window.location.origin}/api/${typeName.replace(/_/g, '-')}/${entry.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('API URL copied to clipboard');
+    } catch {
+      toast.error('Could not copy URL');
+    }
   };
 
   /* ── Cards view ─────────────────────────────────────────────────────────── */
@@ -683,6 +698,14 @@ export default function EntriesPage() {
                             : <Copy className="h-3.5 w-3.5" />}
                         </Button>
                       )}
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        title="Copy API URL"
+                        onClick={() => handleCopyUrl(entry)}
+                      >
+                        <Link2 className="h-3.5 w-3.5" />
+                      </Button>
                       {canEdit && (
                         <AlertDialog>
                           <AlertDialogTrigger render={
