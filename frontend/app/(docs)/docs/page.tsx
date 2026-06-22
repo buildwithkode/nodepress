@@ -2334,6 +2334,17 @@ Sitemap: https://your-site.com/api/sitemap.xml`} />
               These steps are host-agnostic — only the dashboard differs between Render, Railway,
               Fly, DigitalOcean App Platform, and the like.
             </p>
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-4 text-sm">
+              <strong className="text-blue-400">Why two services?</strong>
+              <p className="text-muted-foreground mt-1 leading-relaxed">
+                NodePress is two programs — a NestJS API and a Next.js frontend. Locally{' '}
+                <IC>npm run dev</IC> just launches both at once with <IC>concurrently</IC> (API on{' '}
+                <IC>:3000</IC>, frontend on <IC>:5173</IC>), so it <em>looks</em> like one command.
+                Managed hosts run one process per service, so each gets its own service from the same
+                repo. Prefer a single command on one box? Use the Docker path below — nginx serves both
+                behind one URL.
+              </p>
+            </div>
             <div className="rounded-xl border border-border p-5 mb-5 bg-muted/20 space-y-2 text-sm text-muted-foreground">
               {[
                 ['1. Push to GitHub', 'Commit your project and push it to a GitHub repo — most hosts deploy from there. Keep .env out of git (the scaffold already gitignores it).'],

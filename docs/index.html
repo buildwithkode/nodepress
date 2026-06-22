@@ -920,6 +920,10 @@ socket.on('error', ({ message }) => console.error('Auth failed:', message));"></
 
         <h3 class="font-semibold mb-3 text-white">Deploy to any managed host (Path B)</h3>
         <p class="text-zinc-400 text-sm mb-3 leading-relaxed">Host-agnostic — only the dashboard differs between providers.</p>
+        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-4 text-sm">
+          <strong class="text-blue-400">Why two services?</strong>
+          <p class="text-zinc-400 mt-1 leading-relaxed">NodePress is two programs — a NestJS API and a Next.js frontend. Locally <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run dev</code> just launches both at once with <code class="text-pink-400 bg-zinc-800 px-1 rounded">concurrently</code> (API on <code class="text-pink-400 bg-zinc-800 px-1 rounded">:3000</code>, frontend on <code class="text-pink-400 bg-zinc-800 px-1 rounded">:5173</code>), so it <em>looks</em> like one command. Managed hosts run one process per service, so each gets its own service from the same repo. Prefer a single command on one box? Use the Docker path below — nginx serves both behind one URL.</p>
+        </div>
         <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 mb-5 space-y-2 text-sm text-zinc-400">
           <p><span class="font-medium text-zinc-200">1. Push to GitHub</span> — most hosts deploy from a repo. Keep <code class="text-pink-400 bg-zinc-800 px-1 rounded">.env</code> out of git (the scaffold already gitignores it).</p>
           <p><span class="font-medium text-zinc-200">2. Provision Postgres + storage</span> — a managed PostgreSQL (Neon, Supabase, or the host’s add-on) and an S3-compatible bucket (Cloudflare R2 recommended).</p>
