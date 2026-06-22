@@ -245,17 +245,21 @@ export default function DocsPage() {
       <header className="sticky top-0 z-20 bg-background/90 backdrop-blur border-b border-border">
         <div className="w-full px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-xs font-extrabold">N</span>
-            </div>
-            <span className="font-semibold text-sm">NodePress</span>
+            <a
+              href="https://nodepress.buildwithkode.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 group"
+            >
+              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground text-xs font-extrabold">N</span>
+              </div>
+              <span className="font-semibold text-sm group-hover:text-primary transition-colors">NodePress</span>
+            </a>
             <span className="text-muted-foreground/40">/</span>
             <span className="text-muted-foreground text-sm">Documentation</span>
           </div>
           <div className="flex items-center gap-4">
-            <a href="https://nodepress.buildwithkode.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              nodepress.buildwithkode.com
-            </a>
             <Link href="/" className="text-sm text-primary hover:underline flex items-center gap-1">
               Admin Panel <ExternalLink className="h-3.5 w-3.5" />
             </Link>
