@@ -2103,8 +2103,51 @@ echo $result['submissionId'];`,
           <Section id="webhooks" title="Webhooks" icon={Webhook}>
             <p className="text-muted-foreground leading-relaxed mb-4">
               Webhooks let external systems react in real time when content changes in NodePress.
-              Register a URL and NodePress will POST a JSON payload to it on every matching event.
+              Think of it as a <strong className="text-foreground">reverse API call</strong>: instead of another app
+              polling NodePress asking "anything new yet?", NodePress automatically POSTs a JSON payload
+              to a URL you register the moment a matching event happens.
             </p>
+
+            {/* When to use one */}
+            <h3 className="font-semibold mb-3">What you'd use them for</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {[
+                ['Rebuild a static site', 'A post is published → ping your Vercel / Netlify deploy hook → your live site rebuilds with the new content automatically.'],
+                ['Team notifications', 'New entry or media upload → POST to a Slack / Discord incoming webhook → your team sees it in a channel.'],
+                ['Sync to another system', 'Entry created or updated → push to a search index (Algolia), a CRM, an email list, or an analytics tool.'],
+                ['Clear a CDN cache', 'Entry updated → tell Cloudflare / Fastly to purge the cached page so visitors get fresh content.'],
+              ].map(([title, desc]) => (
+                <div key={title} className="rounded-xl border border-border p-4">
+                  <p className="text-sm font-semibold mb-1">{title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground mb-6">
+              <strong className="text-foreground">Webhooks vs. the other "notify" features:</strong> webhooks tell
+              <em> other systems</em> about content &amp; media events (this page); a form's
+              <strong className="text-foreground"> Email action</strong> emails a <em>human</em> on submission; and
+              <strong className="text-foreground"> API Keys</strong> let other systems <em>pull</em> data on demand.
+            </p>
+
+            {/* How to create one */}
+            <div className="rounded-xl border border-border p-5 mb-6 bg-muted/20 space-y-3">
+              <h4 className="font-semibold text-sm">How to set one up</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {[
+                  ['1. Open Webhooks', 'Go to Developer → Webhooks (admin only) and click New Webhook.'],
+                  ['2. Set the target URL', 'Paste the URL NodePress should POST to — e.g. your Vercel deploy hook or a Slack incoming webhook URL.'],
+                  ['3. Pick events', 'Choose which events fire it (entry.created, entry.updated, …) or select * for all of them.'],
+                  ['4. Add a secret (recommended)', 'Set a secret so each delivery is HMAC-SHA256 signed — your receiver can verify the request genuinely came from NodePress (see below).'],
+                  ['5. Test Ping', 'Click Test Ping to send a sample event and confirm your endpoint is reachable before relying on it. Watch the Delivery Log for the result.'],
+                ].map(([step, desc]) => (
+                  <div key={step} className="flex gap-3">
+                    <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
+                    <span>{desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             <h3 className="font-semibold mb-3">Events</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">

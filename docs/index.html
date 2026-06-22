@@ -758,7 +758,25 @@ CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here"></div>
           </div>
           <h2 class="text-2xl font-bold text-white">Webhooks</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Webhooks fire HTTP requests to external URLs when content events happen. Useful for triggering rebuilds, sending notifications, or syncing with other services.</p>
+        <p class="text-zinc-400 leading-relaxed mb-6">Webhooks let external systems react in real time when content changes — a <strong class="text-zinc-200">reverse API call</strong>. Instead of another app polling NodePress asking "anything new yet?", NodePress automatically POSTs a JSON payload to a URL you register the moment a matching event happens.</p>
+
+        <h3 class="font-semibold mb-3 text-white">What you'd use them for</h3>
+        <div class="grid sm:grid-cols-2 gap-4 mb-6">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Rebuild a static site</p><p class="text-xs text-zinc-400 leading-relaxed">A post is published → ping your Vercel / Netlify deploy hook → your live site rebuilds with the new content automatically.</p></div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Team notifications</p><p class="text-xs text-zinc-400 leading-relaxed">New entry or media upload → POST to a Slack / Discord incoming webhook → your team sees it in a channel.</p></div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Sync to another system</p><p class="text-xs text-zinc-400 leading-relaxed">Entry created or updated → push to a search index (Algolia), a CRM, an email list, or an analytics tool.</p></div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Clear a CDN cache</p><p class="text-xs text-zinc-400 leading-relaxed">Entry updated → tell Cloudflare / Fastly to purge the cached page so visitors get fresh content.</p></div>
+        </div>
+
+        <h3 class="font-semibold mb-3 text-white">How to set one up</h3>
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 mb-6 space-y-2 text-sm text-zinc-400">
+          <p><span class="font-medium text-zinc-200">1. Open Webhooks</span> — Developer → Webhooks (admin only), click New Webhook.</p>
+          <p><span class="font-medium text-zinc-200">2. Set the target URL</span> — paste the URL NodePress should POST to (e.g. your Vercel deploy hook or a Slack incoming webhook URL).</p>
+          <p><span class="font-medium text-zinc-200">3. Pick events</span> — choose which events fire it, or select <code class="text-pink-400 bg-zinc-800 px-1 rounded">*</code> for all.</p>
+          <p><span class="font-medium text-zinc-200">4. Add a secret (recommended)</span> — every delivery is then HMAC-SHA256 signed so your receiver can verify it genuinely came from NodePress.</p>
+          <p><span class="font-medium text-zinc-200">5. Test Ping</span> — send a sample event to confirm your endpoint is reachable, then check the Delivery Log for the result.</p>
+        </div>
+
         <div class="grid sm:grid-cols-2 gap-4 mb-6">
           <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-2 text-sm">Events</p><div class="space-y-1 text-xs text-zinc-400"><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.created</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.updated</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.restored</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.purged</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.uploaded</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">*</code> (all events)</p></div></div>
           <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Retry logic</p><p class="text-xs text-zinc-400">Failed deliveries are retried up to 3 times: immediately, after 5 min, after 30 min. HMAC-SHA256 signature in <code class="text-pink-400 bg-zinc-800 px-1 rounded">X-NodePress-Signature</code> header.</p></div>
