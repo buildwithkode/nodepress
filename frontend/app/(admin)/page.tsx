@@ -257,7 +257,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Inbox className="h-4 w-4 text-muted-foreground" /> Recent Submissions
             </CardTitle>
-            <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/forms')}>
+            <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push(recentSubs[0] ? `/forms/${recentSubs[0].form.id}/submissions` : '/forms')}>
               View all <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
