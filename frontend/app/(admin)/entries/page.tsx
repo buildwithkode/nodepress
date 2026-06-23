@@ -217,7 +217,12 @@ export default function EntriesPage() {
       const entries = JSON.parse(text);
       const payload = Array.isArray(entries) ? entries : entries.data ?? entries.entries ?? [];
       const res = await api.post('/entries/import', { contentTypeId: selectedCT.id, entries: payload });
-      toast.success(`Imported ${res.data.imported} entries${res.data.errors?.length ? `, ${res.data.errors.length} skipped` : ''}`);
+      const { created = 0, updated = 0, errors = [] } = res.data ?? {};
+      const parts: string[] = [];
+      if (created) parts.push(`created ${created}`);
+      if (updated) parts.push(`updated ${updated}`);
+      const summary = parts.length ? parts.join(', ') : 'no changes';
+      toast.success(`Import complete — ${summary}${errors.length ? `, ${errors.length} skipped` : ''}`);
       await refreshEntries();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Import failed — check file format');
