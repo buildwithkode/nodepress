@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { canManageSettings } from '@/lib/roles';
-import { cn } from '@/lib/utils';
+import { cn, ctLabel } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -62,7 +62,7 @@ interface Field {
   required: boolean;
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string };
 }
-interface ContentType { id: number; name: string; schema: Field[]; allowedMethods: string[] | null; createdAt: string }
+interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[]; allowedMethods: string[] | null; createdAt: string }
 
 const METHOD_BADGES = [
   { key: 'list',   short: 'LIST',   cls: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
@@ -79,7 +79,7 @@ function exportContentType(ct: ContentType) {
   const payload = {
     nodepress: '1.0',
     exportedAt: new Date().toISOString(),
-    contentType: { name: ct.name, schema: ct.schema },
+    contentType: { name: ct.name, displayName: ct.displayName ?? null, schema: ct.schema },
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -221,7 +221,7 @@ export default function ContentTypesPage() {
               <TableCell>
                 <span className="flex items-center gap-2 font-medium">
                   <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-                  {ct.name.replace(/_/g, ' ')}
+                  {ctLabel(ct)}
                 </span>
               </TableCell>
               <TableCell>
@@ -296,7 +296,7 @@ export default function ContentTypesPage() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete content type?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            All entries under <strong>{ct.name.replace(/_/g, ' ')}</strong> will also be deleted. This action cannot be undone.
+                            All entries under <strong>{ctLabel(ct)}</strong> will also be deleted. This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

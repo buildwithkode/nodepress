@@ -11,6 +11,14 @@ export class UpdateContentTypeDto {
   @IsString()
   name?: string;
 
+  @ApiPropertyOptional({
+    example: 'Articles',
+    description: 'Human-readable label shown in the admin UI. The snake_case key is still derived from `name`.',
+  })
+  @IsOptional()
+  @IsString()
+  displayName?: string;
+
   @ApiPropertyOptional({ type: [FieldDto] })
   @IsOptional()
   @IsArray()

@@ -146,10 +146,10 @@ export default function NewContentTypePage() {
           toast.error('Invalid file: missing contentType.name or contentType.schema');
           return;
         }
-        setName(ct.name);
+        setName(ct.displayName || ct.name);
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => ({ name: f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, options: f.options }))
+            ? ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, options: f.options }))
             : [{ name: '', type: 'text', required: false }],
         );
         setOpenLayouts({});
@@ -219,7 +219,7 @@ export default function NewContentTypePage() {
     if (validFields.length === 0) { toast.error('Add at least one field'); return; }
     setSubmitting(true);
     try {
-      await api.post('/content-types', { name: computedName, schema: validFields, allowedMethods });
+      await api.post('/content-types', { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods });
       toast.success('Content type created');
       router.push('/content-types');
     } catch (err: any) {
@@ -488,6 +488,7 @@ export default function NewContentTypePage() {
           {jsonOpen && (() => {
             const liveJson = {
               name: computedName || '(unnamed)',
+              displayName: name.trim() || '(unnamed)',
               schema: fields.filter((f) => f.name.trim()).map(buildSchemaField),
               allowedMethods,
             };

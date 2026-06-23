@@ -11,6 +11,7 @@ datasource db {
 model ContentType {
   id             Int      @id @default(autoincrement())
   name           String   @unique
+  displayName    String?  // human-readable label shown in the admin UI; snake_case key derives from `name`
   schema         Json
   allowedMethods Json?    // null = all enabled. e.g. ["list","read","create","update","delete"]
   createdAt      DateTime @default(now())

@@ -624,9 +624,12 @@ npm run dev`} />
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-6 text-sm">
               <strong className="text-amber-400">Name normalization</strong>
               <p className="text-muted-foreground mt-1">
-                Content type names are stored as <IC>snake_case</IC> internally.
-                "My Blog Posts" → stored as <IC>my_blog_posts</IC>, but the API URL uses hyphens:{' '}
-                <IC>GET /api/my-blog-posts</IC>. The API endpoint is shown as you type on the Create page.
+                The exact name you type is kept as the content type's{' '}
+                <strong className="text-foreground">display name</strong> (shown in the admin — sidebar
+                lists, entry headers, dropdowns), while the API key is derived in <IC>snake_case</IC>.
+                "My Blog Posts" → displays as <em>My Blog Posts</em>, stored as <IC>my_blog_posts</IC>,
+                and the API URL uses hyphens: <IC>GET /api/my-blog-posts</IC>. The API endpoint is shown
+                as you type on the Create page.
               </p>
             </div>
 

@@ -202,7 +202,7 @@ export default function EditContentTypePage() {
     api.get(`/content-types/${id}`)
       .then((res) => {
         const ct = res.data;
-        setName(ct.name.replace(/_/g, ' '));
+        setName(ct.displayName || humanizeName(ct.name));
         setAllowedMethods(ct.allowedMethods ?? ['list', 'read', 'create', 'update', 'delete']);
         setFields(
           ct.schema.length > 0
@@ -264,11 +264,11 @@ export default function EditContentTypePage() {
     e.preventDefault();
     if (!name.trim()) { setNameError('Name is required'); return; }
     setNameError('');
-    const validFields = fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => ({ ...rest, label: rest.name.trim() }));
+    const validFields = fields.filter((f) => f.name.trim()).map(buildSchemaField);
     if (validFields.length === 0) { toast.error('Add at least one field'); return; }
     setSubmitting(true);
     try {
-      await api.put(`/content-types/${id}`, { name: computedName, schema: validFields, allowedMethods });
+      await api.put(`/content-types/${id}`, { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods });
       toast.success('Content type updated');
       router.push('/content-types');
     } catch (err: any) {
@@ -333,7 +333,7 @@ export default function EditContentTypePage() {
               const payload = {
                 nodepress: '1.0',
                 exportedAt: new Date().toISOString(),
-                contentType: { name, schema: fields.filter((f) => f.name.trim()).map(buildSchemaField) },
+                contentType: { name, displayName: name.trim(), schema: fields.filter((f) => f.name.trim()).map(buildSchemaField) },
               };
               const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
@@ -724,6 +724,7 @@ export default function EditContentTypePage() {
           {jsonOpen && (() => {
             const liveJson = {
               name: computedName || '(unnamed)',
+              displayName: name.trim() || '(unnamed)',
               schema: fields.filter((f) => f.name.trim()).map(buildSchemaField),
               allowedMethods,
             };

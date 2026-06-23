@@ -25,6 +25,7 @@ import {
   AlertDialogAction, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import api from '@/lib/axios';
+import { ctLabel } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { canManageContent } from '@/lib/roles';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
@@ -57,7 +58,7 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
 };
 
 interface Field { name: string; label?: string; type: string; options?: any }
-interface ContentType { id: number; name: string; schema: Field[] }
+interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 interface Entry {
   id: number; slug: string; status: string; contentTypeId: number;
   data: Record<string, any>; createdAt: string; updatedAt: string;
@@ -340,8 +341,8 @@ export default function EntriesPage() {
             <Card key={ct.id} className="flex flex-col">
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base capitalize">
-                    {ct.name.replace(/_/g, ' ')}
+                  <CardTitle className="text-base">
+                    {ctLabel(ct)}
                   </CardTitle>
                   <Badge variant="secondary" className="shrink-0 tabular-nums">
                     {count === undefined ? '…' : `${count} ${count === 1 ? 'entry' : 'entries'}`}

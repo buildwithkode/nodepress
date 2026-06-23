@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn, humanizeName } from '@/lib/utils';
+import { cn, ctLabel } from '@/lib/utils';
 import DynamicFormField from '../../DynamicFormField';
 import {
   Select,
@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 
 interface Field { name: string; type: string; options?: any }
-interface ContentType { id: number; name: string; schema: Field[] }
+interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 interface Entry {
   id: number;
   slug: string;
@@ -282,7 +282,7 @@ export default function EditEntryPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div>
-              <CardTitle>Edit Entry{contentType ? ` — ${humanizeName(contentType.name)}` : ''}</CardTitle>
+              <CardTitle>Edit Entry{contentType ? ` — ${ctLabel(contentType)}` : ''}</CardTitle>
               <CardDescription>Slug is locked after creation. Change status to control visibility.</CardDescription>
             </div>
             <div className="flex items-center gap-2 shrink-0 mt-1">

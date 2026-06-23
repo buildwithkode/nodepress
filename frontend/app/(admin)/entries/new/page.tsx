@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn, humanizeName } from '@/lib/utils';
+import { cn, ctLabel } from '@/lib/utils';
 import DynamicFormField from '../DynamicFormField';
 import {
   Select,
@@ -27,7 +27,7 @@ function toSlug(str: string) {
 }
 
 interface Field { name: string; type: string; options?: any }
-interface ContentType { id: number; name: string; schema: Field[] }
+interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 
 export default function NewEntryPage() {
   const router = useRouter();
@@ -141,7 +141,7 @@ export default function NewEntryPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div>
-              <CardTitle>New Entry{selectedCT ? ` — ${humanizeName(selectedCT.name)}` : ''}</CardTitle>
+              <CardTitle>New Entry{selectedCT ? ` — ${ctLabel(selectedCT)}` : ''}</CardTitle>
               <CardDescription>Fill in the fields below to create a new entry.</CardDescription>
             </div>
             {selectedCT && (
@@ -180,7 +180,7 @@ export default function NewEntryPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {contentTypes.map((ct) => (
-                      <SelectItem key={ct.id} value={String(ct.id)}>{humanizeName(ct.name)}</SelectItem>
+                      <SelectItem key={ct.id} value={String(ct.id)}>{ctLabel(ct)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -80,6 +80,7 @@ export class ContentTypeService {
     return this.prisma.contentType.create({
       data: {
         name,
+        displayName: dto.displayName?.trim() || null,
         schema: validatedSchema as any,
         allowedMethods: dto.allowedMethods ?? null,
       },
@@ -107,7 +108,11 @@ export class ContentTypeService {
   async update(id: number, dto: UpdateContentTypeDto, actorId?: number) {
     const current = await this.findOne(id);
 
-    const updateData: Partial<{ name: string; schema: any; allowedMethods: any }> = {};
+    const updateData: Partial<{ name: string; displayName: string | null; schema: any; allowedMethods: any }> = {};
+
+    if ('displayName' in dto) {
+      updateData.displayName = dto.displayName?.trim() || null;
+    }
 
     if (dto.name !== undefined) {
       const name = normalizeName(dto.name);

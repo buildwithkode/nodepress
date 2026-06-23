@@ -47,6 +47,14 @@ export class CreateContentTypeDto {
   @IsNotEmpty()
   name: string;
 
+  @ApiPropertyOptional({
+    example: 'Blog Posts',
+    description: 'Human-readable label shown in the admin UI. The snake_case key is still derived from `name`.',
+  })
+  @IsOptional()
+  @IsString()
+  displayName?: string;
+
   @ApiProperty({
     type: [FieldDto],
     example: [
