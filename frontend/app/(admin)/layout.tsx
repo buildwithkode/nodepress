@@ -232,7 +232,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* ── Main content ── */}
-      <main className="flex-1 ml-64 flex flex-col min-h-screen">
+      <main className="flex-1 ml-64 flex flex-col min-h-screen min-w-0">
         {/* Top bar */}
         <div className="sticky top-0 z-10 h-14 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-6">
           <h1 className="text-base font-semibold text-foreground">{pageTitle}</h1>

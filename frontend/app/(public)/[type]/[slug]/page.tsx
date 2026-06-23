@@ -131,7 +131,7 @@ function FieldValue({ name, value }: { name: string; value: any }) {
     if (typeof value === 'string' && /<[a-z][\s\S]*>/i.test(value)) {
       return (
         <div
-          className="leading-relaxed text-gray-700 prose prose-sm max-w-none"
+          className="leading-relaxed text-gray-700 max-w-none np-rich"
           dangerouslySetInnerHTML={{ __html: value }}
         />
       );

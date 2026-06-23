@@ -93,6 +93,21 @@
 .tiptap-content em     { @apply italic; }
 .tiptap-content u      { @apply underline; }
 .tiptap-content s      { @apply line-through; }
+/* Keep rich-text content inside its box so wide media/code/long words never
+   break the page layout (no horizontal overflow). */
+.tiptap-content { overflow-wrap: anywhere; }
+.tiptap-content img        { @apply max-w-full h-auto rounded-md; }
+.tiptap-content pre        { @apply max-w-full overflow-x-auto rounded-md bg-muted p-3 my-2 text-sm; }
+.tiptap-content blockquote { @apply border-l-2 border-border pl-3 italic text-muted-foreground my-2; }
+.tiptap-content table      { @apply block max-w-full overflow-x-auto; }
+.tiptap-content hr         { @apply my-3 border-border; }
+
+/* Public-facing rendered rich text (dangerouslySetInnerHTML): keep media, code
+   and long words inside the column so they never break the page layout. */
+.np-rich       { overflow-wrap: anywhere; }
+.np-rich img   { max-width: 100%; height: auto; }
+.np-rich pre   { max-width: 100%; overflow-x: auto; }
+.np-rich table { display: block; max-width: 100%; overflow-x: auto; }
 .tiptap-content p.is-editor-empty:first-child::before {
   @apply text-muted-foreground;
   content: attr(data-placeholder);

@@ -65,7 +65,7 @@ export default function WebhookDeliveriesPage() {
           No deliveries yet. Webhook events will appear here once fired.
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="rounded-xl border border-border overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-muted/40 border-b border-border">
