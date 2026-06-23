@@ -72,6 +72,19 @@ interface Field {
 let _counter = 0;
 function uid() { return `f-${Date.now()}-${_counter++}`; }
 
+const toSnakeCase = (name: string) =>
+  name.trim().toLowerCase().replace(/[\s-]+/g, '_');
+
+// Turn an editor field into the saved schema object: `name` is the snake_case
+// field key, `label` preserves the human wording the user typed.
+const buildSchemaField = (f: { name: string; type: string; required: boolean; options?: any }) => ({
+  name: toSnakeCase(f.name),
+  type: f.type,
+  label: f.name.trim(),
+  required: f.required,
+  ...(f.options ? { options: f.options } : {}),
+});
+
 function FieldTypeSelect({
   value, onChange, types = FIELD_TYPES, className,
 }: {
@@ -320,7 +333,7 @@ export default function EditContentTypePage() {
               const payload = {
                 nodepress: '1.0',
                 exportedAt: new Date().toISOString(),
-                contentType: { name, schema: fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => ({ ...rest, label: rest.name.trim() })) },
+                contentType: { name, schema: fields.filter((f) => f.name.trim()).map(buildSchemaField) },
               };
               const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
@@ -711,7 +724,7 @@ export default function EditContentTypePage() {
           {jsonOpen && (() => {
             const liveJson = {
               name: computedName || '(unnamed)',
-              schema: fields.filter((f) => f.name.trim()).map(({ _id, ...rest }) => ({ ...rest, label: rest.name.trim() })),
+              schema: fields.filter((f) => f.name.trim()).map(buildSchemaField),
               allowedMethods,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);

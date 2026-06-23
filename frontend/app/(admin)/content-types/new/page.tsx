@@ -53,6 +53,16 @@ interface Field {
 const toSnakeCase = (name: string) =>
   name.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
+// Turn an editor field into the saved schema object: `name` is the snake_case
+// field key, `label` preserves the human wording the user typed.
+const buildSchemaField = (f: { name: string; type: string; required: boolean; options?: any }) => ({
+  name: toSnakeCase(f.name),
+  type: f.type,
+  label: f.name.trim(),
+  required: f.required,
+  ...(f.options ? { options: f.options } : {}),
+});
+
 function FieldTypeSelect({
   value, onChange, types = FIELD_TYPES, className,
 }: {
@@ -205,7 +215,7 @@ export default function NewContentTypePage() {
     // snake_case field key from `name`.
     const validFields = fields
       .filter((f) => f.name.trim())
-      .map((f) => ({ ...f, label: f.name.trim() }));
+      .map(buildSchemaField);
     if (validFields.length === 0) { toast.error('Add at least one field'); return; }
     setSubmitting(true);
     try {
@@ -478,7 +488,7 @@ export default function NewContentTypePage() {
           {jsonOpen && (() => {
             const liveJson = {
               name: computedName || '(unnamed)',
-              schema: fields.filter((f) => f.name.trim()),
+              schema: fields.filter((f) => f.name.trim()).map(buildSchemaField),
               allowedMethods,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
