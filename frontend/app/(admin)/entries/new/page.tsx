@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight, WrapText } from 'lucide-react';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +48,7 @@ export default function NewEntryPage() {
   const [seoNoIndex, setSeoNoIndex] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(true);
   const [jsonCopied, setJsonCopied] = useState(false);
+  const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
   const containerRef = useRef<HTMLDivElement>(null);
   const slugManualRef = useRef(false);
@@ -213,11 +214,11 @@ export default function NewEntryPage() {
                 </div>
 
                 {/* Status + Locale */}
-                <div className="mb-4 flex items-start gap-4 flex-wrap">
+                <div className="mb-4 grid grid-cols-2 gap-4 items-start">
                   <div>
                     <Label className="mb-1.5 block">Status</Label>
                     <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                      <SelectTrigger className="w-40">
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -232,7 +233,7 @@ export default function NewEntryPage() {
                   <div>
                     <Label className="mb-1.5 block">Locale</Label>
                     <Select value={locale} onValueChange={(v) => { if (v !== null) setLocale(v); }}>
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -253,10 +254,9 @@ export default function NewEntryPage() {
 
                 {selectedCT.schema.length > 0 && (
                   <>
-                    <div className="flex items-center gap-3 py-1">
-                      <Separator className="flex-1" />
-                      <span className="text-xs text-muted-foreground">Fields</span>
-                      <Separator className="flex-1" />
+                    <div className="pt-6 pb-2">
+                      <span className="text-base font-semibold text-foreground">Fields</span>
+                      <Separator className="mt-2 bg-foreground/15" />
                     </div>
                     <div className="pt-1">
                       {selectedCT.schema.map((field) => (
@@ -267,11 +267,10 @@ export default function NewEntryPage() {
                 )}
 
                 {/* SEO Panel */}
-                <div className="mt-4">
-                  <div className="flex items-center gap-3 py-1 mb-1">
-                    <Separator className="flex-1" />
-                    <span className="text-xs text-muted-foreground">SEO</span>
-                    <Separator className="flex-1" />
+                <div className="mt-6">
+                  <div className="pt-3 pb-2 mb-1">
+                    <span className="text-base font-semibold text-foreground">SEO</span>
+                    <Separator className="mt-2 bg-foreground/15" />
                   </div>
                   <button
                     type="button"
@@ -386,21 +385,32 @@ export default function NewEntryPage() {
                       <span className="text-xs font-medium">JSON Preview</span>
                       <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(jsonStr);
-                        setJsonCopied(true);
-                        setTimeout(() => setJsonCopied(false), 2000);
-                      }}
-                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                      title="Copy JSON"
-                    >
-                      {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                      {jsonCopied ? 'Copied' : 'Copy'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setJsonWrap((w) => !w)}
+                        className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                        title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                      >
+                        <WrapText className="h-3.5 w-3.5" />
+                        Wrap
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(jsonStr);
+                          setJsonCopied(true);
+                          setTimeout(() => setJsonCopied(false), 2000);
+                        }}
+                        className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                        title="Copy JSON"
+                      >
+                        {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                        {jsonCopied ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
                   </div>
-                  <pre className="overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono whitespace-pre">{jsonStr}</pre>
+                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}>{jsonStr}</pre>
                 </div>
               </div>
             );

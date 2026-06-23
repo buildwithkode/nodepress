@@ -189,7 +189,7 @@ Entries use a schema-driven form. Field types and their renderers:
 
 The canonical list lives in `backend/src/fields/field.types.ts` (`SIMPLE_FIELD_TYPES` + `COMPLEX_FIELD_TYPES`) — add new types there first.
 
-Slug auto-generation: watches the first `text`/`textarea` field. Stops auto-generating once the user manually edits the slug field (`slugManualRef`). Slug is locked (disabled) when editing an existing entry.
+Slug auto-generation: watches the first `text`/`textarea` field. Stops auto-generating once the user manually edits the slug field (`slugManualRef`). The slug is editable when editing an existing entry (with a warning that changing it breaks existing links/SEO); the backend (`PUT /entries/:id`) accepts a new slug and validates uniqueness per content type + locale.
 
 ### Media uploads & storage
 

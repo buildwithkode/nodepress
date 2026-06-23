@@ -792,7 +792,7 @@ npm run dev`} />
                 <li>Auto-generated from the first <IC>text</IC> or <IC>textarea</IC> field as you type</li>
                 <li>Converted to lowercase kebab-case — "My Blog Post" → <IC>my-blog-post</IC></li>
                 <li>You can override the slug manually before saving</li>
-                <li>Once an entry is created, the slug is <strong className="text-foreground">locked</strong> (to keep URLs stable)</li>
+                <li>You can still edit the slug after creation, but <strong className="text-foreground">changing it breaks existing links &amp; SEO</strong> pointing to the old URL</li>
                 <li>The slug becomes the second URL segment: <IC>/api/blog/my-blog-post</IC></li>
               </ul>
             </div>
@@ -870,7 +870,7 @@ npm run dev`} />
             <h3 className="font-semibold mb-3">Other actions</h3>
             <div className="space-y-2 mb-6">
               {[
-                ['Edit',       'Update any field value. The slug is locked after creation.'],
+                ['Edit',       'Update any field value, including the slug (changing it breaks existing links/SEO).'],
                 ['Duplicate',  'Creates a copy with slug "-copy" appended.'],
                 ['Copy URL',   'Copies the entry\'s public API URL (e.g. /api/article-page/my-post) to the clipboard — available to all roles.'],
               ].map(([action, desc]) => (

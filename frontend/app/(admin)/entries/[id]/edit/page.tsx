@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -55,6 +55,7 @@ export default function EditEntryPage() {
   // JSON preview split pane
   const [jsonOpen, setJsonOpen] = useState(true);
   const [jsonCopied, setJsonCopied] = useState(false);
+  const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -283,7 +284,7 @@ export default function EditEntryPage() {
           <div className="flex items-start justify-between gap-2">
             <div>
               <CardTitle>Edit Entry{contentType ? ` — ${ctLabel(contentType)}` : ''}</CardTitle>
-              <CardDescription>Slug is locked after creation. Change status to control visibility.</CardDescription>
+              <CardDescription>Editing the slug changes the entry's public URL. Change status to control visibility.</CardDescription>
             </div>
             <div className="flex items-center gap-2 shrink-0 mt-1">
               {autosaveStatus !== 'idle' && (
@@ -310,24 +311,28 @@ export default function EditEntryPage() {
           {/* Left pane: form */}
           <div style={{ width: jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
           <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-1">
-            {/* Slug (locked) */}
+            {/* Slug (editable — changing it breaks existing links/SEO) */}
             <div className="mb-4">
               <Label htmlFor="slug" className="mb-1.5 block">Slug</Label>
               <Input
                 id="slug"
-                disabled
-                {...register('slug')}
-                className="cursor-not-allowed opacity-60"
+                {...register('slug', {
+                  required: 'Slug is required',
+                  pattern: { value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'Lowercase, numbers and hyphens only' },
+                })}
+                className={cn(errors.slug && 'border-destructive focus-visible:ring-destructive')}
               />
-              <p className="mt-1 text-xs text-muted-foreground">Slug cannot be changed after creation</p>
+              {errors.slug
+                ? <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
+                : <p className="mt-1 text-xs text-amber-500">Changing the slug breaks existing links and SEO pointing to the old URL.</p>}
             </div>
 
             {/* Status + Locale */}
-            <div className="mb-4 flex items-start gap-4 flex-wrap">
+            <div className="mb-4 grid grid-cols-2 gap-4 items-start">
               <div>
                 <Label className="mb-1.5 block">Status</Label>
                 <Select value={status} onValueChange={(v: string | null) => v && setStatus(v)}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -342,7 +347,7 @@ export default function EditEntryPage() {
               <div>
                 <Label className="mb-1.5 block">Locale</Label>
                 <Select value={locale} onValueChange={(v) => { if (v !== null) setLocale(v); }}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -382,10 +387,9 @@ export default function EditEntryPage() {
 
             {contentType && contentType.schema.length > 0 && (
               <>
-                <div className="flex items-center gap-3 py-1">
-                  <Separator className="flex-1" />
-                  <span className="text-xs text-muted-foreground">Fields</span>
-                  <Separator className="flex-1" />
+                <div className="pt-6 pb-2">
+                  <span className="text-base font-semibold text-foreground">Fields</span>
+                  <Separator className="mt-2 bg-foreground/15" />
                 </div>
                 <div className="pt-1">
                   {contentType.schema.map((field) => (
@@ -396,11 +400,10 @@ export default function EditEntryPage() {
             )}
 
             {/* SEO Panel */}
-            <div className="mt-4">
-              <div className="flex items-center gap-3 py-1 mb-1">
-                <Separator className="flex-1" />
-                <span className="text-xs text-muted-foreground">SEO</span>
-                <Separator className="flex-1" />
+            <div className="mt-6">
+              <div className="pt-3 pb-2 mb-1">
+                <span className="text-base font-semibold text-foreground">SEO</span>
+                <Separator className="mt-2 bg-foreground/15" />
               </div>
               <button
                 type="button"
@@ -511,21 +514,32 @@ export default function EditEntryPage() {
                       <span className="text-xs font-medium">JSON Preview</span>
                       <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(jsonStr);
-                        setJsonCopied(true);
-                        setTimeout(() => setJsonCopied(false), 2000);
-                      }}
-                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                      title="Copy JSON"
-                    >
-                      {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                      {jsonCopied ? 'Copied' : 'Copy'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setJsonWrap((w) => !w)}
+                        className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                        title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                      >
+                        <WrapText className="h-3.5 w-3.5" />
+                        Wrap
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(jsonStr);
+                          setJsonCopied(true);
+                          setTimeout(() => setJsonCopied(false), 2000);
+                        }}
+                        className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                        title="Copy JSON"
+                      >
+                        {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                        {jsonCopied ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
                   </div>
-                  <pre className="overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono whitespace-pre">{jsonStr}</pre>
+                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}>{jsonStr}</pre>
                 </div>
               </div>
             );
