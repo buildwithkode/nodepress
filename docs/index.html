@@ -782,6 +782,11 @@ CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here"></div>
           <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-2 text-sm">Events</p><div class="space-y-1 text-xs text-zinc-400"><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.created</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.updated</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.restored</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.purged</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.uploaded</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">*</code> (all events)</p></div></div>
           <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Retry logic</p><p class="text-xs text-zinc-400">Failed deliveries are retried up to 3 times: immediately, after 5 min, after 30 min. HMAC-SHA256 signature in <code class="text-pink-400 bg-zinc-800 px-1 rounded">X-NodePress-Signature</code> header.</p></div>
         </div>
+
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mb-6">
+          <strong class="text-amber-400">The payload is a summary, not the full entry.</strong>
+          <p class="text-zinc-400 mt-1 text-xs">The POST body's <code class="text-pink-400 bg-zinc-800 px-1 rounded">data</code> contains only <code class="text-pink-400 bg-zinc-800 px-1 rounded">id</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">slug</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">status</code>, and <code class="text-pink-400 bg-zinc-800 px-1 rounded">contentType</code> — not your field values. If your receiver needs the complete content, fetch it back with <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/{contentType}/{slug}</code> using the slug from the payload.</p>
+        </div>
       </section>
 
       <!-- GraphQL -->

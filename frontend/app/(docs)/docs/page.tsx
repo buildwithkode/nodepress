@@ -2201,6 +2201,13 @@ echo $result['submissionId'];`,
     "contentType": "blog"
   }
 }`} />
+            <p className="text-muted-foreground text-sm mt-3">
+              <strong className="text-foreground">The <code className="text-xs">data</code> is a summary, not the full entry.</strong>{' '}
+              It contains only <code className="text-xs">id</code>, <code className="text-xs">slug</code>,{' '}
+              <code className="text-xs">status</code>, and <code className="text-xs">contentType</code> — not your field values.
+              If your receiver needs the complete content, fetch it back with{' '}
+              <code className="text-xs">GET /api/{'{contentType}'}/{'{slug}'}</code> using the slug from the payload.
+            </p>
 
             <h3 className="font-semibold mb-3 mt-2">HMAC-SHA256 signing</h3>
             <p className="text-muted-foreground text-sm mb-3">
