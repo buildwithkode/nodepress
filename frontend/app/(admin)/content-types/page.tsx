@@ -79,7 +79,7 @@ function exportContentType(ct: ContentType) {
   const payload = {
     nodepress: '1.0',
     exportedAt: new Date().toISOString(),
-    contentType: { name: ct.name, displayName: ct.displayName ?? null, schema: ct.schema },
+    contentType: { name: ct.name, displayName: ct.displayName ?? null, schema: ct.schema, allowedMethods: ct.allowedMethods ?? null },
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);

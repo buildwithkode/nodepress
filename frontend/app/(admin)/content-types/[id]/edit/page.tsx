@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown, Download, Braces, Copy, Check, PanelRight } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown, Download, Braces, Copy, Check, PanelRight, WrapText } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -156,6 +156,7 @@ export default function EditContentTypePage() {
   const [reorderMode, setReorderMode] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(true);
   const [jsonCopied, setJsonCopied] = useState(false);
+  const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -333,7 +334,7 @@ export default function EditContentTypePage() {
               const payload = {
                 nodepress: '1.0',
                 exportedAt: new Date().toISOString(),
-                contentType: { name, displayName: name.trim(), schema: fields.filter((f) => f.name.trim()).map(buildSchemaField) },
+                contentType: { name, displayName: name.trim(), schema: fields.filter((f) => f.name.trim()).map(buildSchemaField), allowedMethods },
               };
               const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
@@ -738,21 +739,32 @@ export default function EditContentTypePage() {
                       <span className="text-xs font-medium">JSON Schema Preview</span>
                       <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(jsonStr);
-                        setJsonCopied(true);
-                        setTimeout(() => setJsonCopied(false), 2000);
-                      }}
-                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                      title="Copy JSON"
-                    >
-                      {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                      {jsonCopied ? 'Copied' : 'Copy'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setJsonWrap((w) => !w)}
+                        className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                        title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                      >
+                        <WrapText className="h-3.5 w-3.5" />
+                        Wrap
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(jsonStr);
+                          setJsonCopied(true);
+                          setTimeout(() => setJsonCopied(false), 2000);
+                        }}
+                        className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                        title="Copy JSON"
+                      >
+                        {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                        {jsonCopied ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
                   </div>
-                  <pre className="overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono whitespace-pre">{jsonStr}</pre>
+                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}>{jsonStr}</pre>
                 </div>
               </div>
             );
