@@ -7,7 +7,7 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
 import bash from 'highlight.js/lib/languages/bash';
 import xml from 'highlight.js/lib/languages/xml';
-import 'highlight.js/styles/atom-one-dark.css';
+import 'highlight.js/styles/night-owl.css';
 
 const LANGS: Record<string, unknown> = { json, javascript, typescript, bash, xml };
 

@@ -12,7 +12,7 @@ import json from 'highlight.js/lib/languages/json';
 import xml from 'highlight.js/lib/languages/xml';
 import python from 'highlight.js/lib/languages/python';
 import php from 'highlight.js/lib/languages/php';
-import 'highlight.js/styles/atom-one-dark.css';
+import 'highlight.js/styles/night-owl.css';
 
 // Register only the languages our snippets use (keeps the bundle small).
 // Auto-detection runs across this subset.
