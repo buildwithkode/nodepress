@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Braces, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,32 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import FieldEditor from './FieldEditor';
-import { FormField, blankField, isFieldValid, normalizeField } from './field-types';
+import { FormField, blankField, isFieldValid, normalizeField, buildExamplePayload } from './field-types';
+import { highlightCode } from '@/lib/highlight';
+
+// Small labeled code box with a copy button + syntax highlighting — used by the payload preview.
+function CodeSnippet({ title, code, lang }: { title: string; code: string; lang?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</span>
+        <Button type="button" variant="ghost" size="icon-sm" onClick={copy} title="Copy">
+          {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+        </Button>
+      </div>
+      <pre className="overflow-auto rounded-md border bg-muted/30 p-3 text-xs font-mono leading-relaxed whitespace-pre">
+        <code dangerouslySetInnerHTML={{ __html: highlightCode(code, lang) }} />
+      </pre>
+    </div>
+  );
+}
 
 // Re-exported for consumers (e.g. the edit page) that import the field model.
 export type { FormField } from './field-types';
@@ -71,6 +96,7 @@ export default function FormBuilder({
   const [fields,    setFields]    = useState<FormField[]>(initialFields);
   const [actions,  setActions]  = useState<ActionDef[]>(initialActions);
   const [submitting, setSubmitting] = useState(false);
+  const [showPayload, setShowPayload] = useState(false);
 
   // ── Slug auto-gen ─────────────────────────────────────────────────────────
   const handleNameChange = (v: string) => {
@@ -160,6 +186,22 @@ export default function FormBuilder({
       setSubmitting(false);
     }
   };
+
+  // ── Payload preview (example submission body for API consumers) ────────────
+  const previewFields = fields.filter(isFieldValid);
+  const examplePayload = buildExamplePayload(previewFields);
+  const previewSlug = slug || 'your-form-slug';
+  const jsonBody = JSON.stringify(examplePayload, null, 2);
+  const curlSnippet =
+    `curl -X POST https://your-api.com/api/submit/${previewSlug} \\\n` +
+    `  -H 'Content-Type: application/json' \\\n` +
+    `  -d '${JSON.stringify(examplePayload)}'`;
+  const fetchSnippet =
+    `await fetch('/api/submit/${previewSlug}', {\n` +
+    `  method: 'POST',\n` +
+    `  headers: { 'Content-Type': 'application/json' },\n` +
+    `  body: JSON.stringify(${JSON.stringify(examplePayload, null, 2).replace(/\n/g, '\n  ')}),\n` +
+    `});`;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -286,6 +328,49 @@ export default function FormBuilder({
               </Button>
             </div>
           </CardContent>
+        </Card>
+
+        {/* ── Submission Payload preview ── */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Braces className="h-4 w-4 text-muted-foreground" /> Submission Payload
+              </CardTitle>
+              <CardDescription className="text-xs mt-0.5">
+                Example request body for this form — share it with whoever calls the API.
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant={showPayload ? 'secondary' : 'outline'}
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setShowPayload((v) => !v)}
+            >
+              {showPayload ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {showPayload ? 'Hide payload' : 'Show payload'}
+            </Button>
+          </CardHeader>
+          {showPayload && (
+            <CardContent className="space-y-4">
+              {previewFields.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Add at least one field (with a key and label) to generate an example payload.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Endpoint: <code className="bg-muted px-1 py-0.5 rounded font-mono">POST /api/submit/{previewSlug}</code>
+                    {' '}— values are examples by field type; arrays &amp; nested objects show the exact shape to send.
+                  </p>
+                  <CodeSnippet title="JSON body" code={jsonBody} lang="json" />
+                  <CodeSnippet title="curl" code={curlSnippet} lang="bash" />
+                  <CodeSnippet title="fetch (JavaScript)" code={fetchSnippet} lang="javascript" />
+                </>
+              )}
+            </CardContent>
+          )}
         </Card>
 
         {/* ── Actions ── */}

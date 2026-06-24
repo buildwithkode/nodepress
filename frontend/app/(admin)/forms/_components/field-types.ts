@@ -123,6 +123,43 @@ export function isFieldValid(f: FormField): boolean {
   return !!f.name.trim() && !!f.label.trim();
 }
 
+/** An example value for a field, by type — used to build a sample submission payload. */
+export function exampleValue(field: FormField): unknown {
+  const opts = (field.options ?? '').split(',').map((o) => o.trim()).filter(Boolean);
+  switch (field.type) {
+    case 'text':
+    case 'textarea':    return 'Sample text';
+    case 'number':      return 123;
+    case 'email':       return 'user@example.com';
+    case 'url':         return 'https://example.com';
+    case 'phone':       return '+15551234567';
+    case 'date':        return new Date().toISOString().slice(0, 10);
+    case 'datetime':    return new Date().toISOString();
+    case 'boolean':     return true;
+    case 'select':
+    case 'radio':       return opts[0] ?? 'Option A';
+    case 'multiselect': return opts.length ? opts.slice(0, 2) : ['Option A', 'Option B'];
+    case 'tags':        return ['tag-1', 'tag-2'];
+    case 'group':       return buildExampleObject(field.fields ?? []);
+    case 'repeater':    return [buildExampleObject(field.fields ?? [])];
+    default:            return 'Sample text';
+  }
+}
+
+function buildExampleObject(fields: FormField[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const f of fields) {
+    if (!f.name.trim()) continue;
+    out[toFieldKey(f.name)] = exampleValue(f);
+  }
+  return out;
+}
+
+/** Build the example POST body `{ data: { ... } }` from the current fields. */
+export function buildExamplePayload(fields: FormField[]): { data: Record<string, unknown> } {
+  return { data: buildExampleObject(fields.filter((f) => f.name.trim())) };
+}
+
 /** Builder field → API shape: options string → array, strip transient flags, recurse. */
 export function normalizeField(f: FormField): Record<string, unknown> {
   const out: Record<string, unknown> = {
