@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/lib/axios';
-import FormBuilder, { FormField, ActionDef } from '../../_components/FormBuilder';
+import FormBuilder, { ActionDef } from '../../_components/FormBuilder';
+import { FormField, hydrateField } from '../../_components/field-types';
 
 export default function EditFormPage() {
   const params = useParams();
@@ -32,11 +33,8 @@ export default function EditFormPage() {
     return <p className="text-muted-foreground">Form not found.</p>;
   }
 
-  // Convert stored select options (string[]) back to comma-separated string for the builder
-  const fields: FormField[] = (form.fields as any[]).map((f) => ({
-    ...f,
-    options: Array.isArray(f.options) ? f.options.join(', ') : (f.options ?? ''),
-  }));
+  // Convert stored fields back to the builder shape (options array → string, recursively)
+  const fields: FormField[] = (form.fields as any[]).map(hydrateField);
 
   return (
     <FormBuilder

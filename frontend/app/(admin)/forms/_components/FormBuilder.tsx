@@ -8,27 +8,18 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import FieldEditor from './FieldEditor';
+import { FormField, blankField, isFieldValid, normalizeField } from './field-types';
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// Re-exported for consumers (e.g. the edit page) that import the field model.
+export type { FormField } from './field-types';
 
-export type FieldType = 'text' | 'email' | 'textarea' | 'number' | 'select' | 'radio' | 'checkbox';
-
-export interface FormField {
-  name: string;
-  type: FieldType;
-  label: string;
-  required: boolean;
-  options?: string;     // comma-separated, for select | radio
-  placeholder?: string;
-}
-
+// ── Action types ──────────────────────────────────────────────────────────────
 export interface EmailAction {
   type: 'email';
   to: string;
@@ -55,21 +46,8 @@ export interface FormBuilderProps {
   formId?:         number;
 }
 
-const FIELD_TYPES: { value: FieldType; label: string }[] = [
-  { value: 'text',     label: 'Text' },
-  { value: 'email',    label: 'Email' },
-  { value: 'textarea', label: 'Textarea' },
-  { value: 'number',   label: 'Number' },
-  { value: 'select',   label: 'Select (dropdown)' },
-  { value: 'radio',    label: 'Radio (single pick)' },
-  { value: 'checkbox', label: 'Checkbox (yes/no)' },
-];
-
 const toSlug = (v: string) =>
   v.trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '');
-
-const toFieldKey = (v: string) =>
-  v.trim().toLowerCase().replace(/[\s-]+/g, '_').replace(/[^a-z0-9_]/g, '');
 
 // ── Builder ──────────────────────────────────────────────────────────────────
 
@@ -77,7 +55,7 @@ export default function FormBuilder({
   mode,
   initialName    = '',
   initialSlug    = '',
-  initialFields  = [{ name: '', type: 'text', label: '', required: false }],
+  initialFields  = [blankField()],
   initialActions = [],
   initialActive  = true,
   initialCaptchaEnabled = false,
@@ -91,10 +69,6 @@ export default function FormBuilder({
   const [isActive, setIsActive] = useState(initialActive);
   const [captchaEnabled, setCaptchaEnabled] = useState(initialCaptchaEnabled);
   const [fields,    setFields]    = useState<FormField[]>(initialFields);
-  // Parallel array: true = user manually typed the key, stop auto-deriving from label
-  const [keyDirty,  setKeyDirty]  = useState<boolean[]>(
-    () => initialFields.map((f) => !!f.name.trim()),
-  );
   const [actions,  setActions]  = useState<ActionDef[]>(initialActions);
   const [submitting, setSubmitting] = useState(false);
 
@@ -109,9 +83,8 @@ export default function FormBuilder({
   const focusNewFieldRef = useRef(false);
 
   const addField = () => {
-    focusNewFieldRef.current = true; // scroll to + focus the new field once rendered
-    setFields([...fields, { name: '', type: 'text', label: '', required: false }]);
-    setKeyDirty([...keyDirty, false]); // new field: auto-derive enabled
+    focusNewFieldRef.current = true;
+    setFields([...fields, blankField()]);
   };
 
   // After a field is appended, bring it into view and focus its first input
@@ -124,35 +97,11 @@ export default function FormBuilder({
     el.querySelector('input')?.focus();
   }, [fields.length]);
 
-  const removeField = (i: number) => {
+  const updateFieldAt = (i: number, next: FormField) =>
+    setFields(fields.map((f, idx) => (idx === i ? next : f)));
+
+  const removeFieldAt = (i: number) =>
     setFields(fields.filter((_, idx) => idx !== i));
-    setKeyDirty(keyDirty.filter((_, idx) => idx !== i));
-  };
-
-  const updateField = <K extends keyof FormField>(i: number, key: K, val: FormField[K]) => {
-    const next = [...fields];
-    next[i] = { ...next[i], [key]: val };
-
-    if (key === 'label' && !keyDirty[i]) {
-      // Auto-derive field key from label as long as user hasn't manually edited it
-      next[i].name = toFieldKey(val as string);
-    }
-
-    if (key === 'type' && val !== 'select' && val !== 'radio') delete next[i].options;
-    setFields(next);
-  };
-
-  const updateFieldKey = (i: number, val: string) => {
-    // User is manually editing the key — lock it and stop auto-deriving
-    const next = [...fields];
-    next[i] = { ...next[i], name: toFieldKey(val) };
-    setFields(next);
-    if (!keyDirty[i]) {
-      const nextDirty = [...keyDirty];
-      nextDirty[i] = true;
-      setKeyDirty(nextDirty);
-    }
-  };
 
   // ── Action helpers ────────────────────────────────────────────────────────
   const addEmailAction = () =>
@@ -176,25 +125,16 @@ export default function FormBuilder({
     if (!name.trim()) { toast.error('Form name is required'); return; }
     if (!slug.trim()) { toast.error('Slug is required'); return; }
 
-    const validFields = fields.filter((f) => f.name.trim() && f.label.trim());
+    const validFields = fields.filter(isFieldValid);
     if (validFields.length === 0) {
       toast.error('Add at least one field with a name and label');
       return;
     }
 
-    // Normalise field names
-    const normalizedFields = validFields.map((f) => ({
-      ...f,
-      name:    toFieldKey(f.name),
-      options: (f.type === 'select' || f.type === 'radio') && f.options
-        ? f.options.split(',').map((o) => o.trim()).filter(Boolean)
-        : undefined,
-    }));
-
     const payload = {
       name: name.trim(),
       slug,
-      fields:   normalizedFields,
+      fields:   validFields.map(normalizeField),
       actions:  actions.filter((a) => {
         if (a.type === 'email')   return a.to.trim() && a.subject.trim();
         if (a.type === 'webhook') return a.url.trim();
@@ -319,7 +259,7 @@ export default function FormBuilder({
             <div>
               <CardTitle className="text-base">Fields</CardTitle>
               <CardDescription className="text-xs mt-0.5">
-                Define the inputs users will fill in.
+                Define the inputs users will fill in. Use Group / Repeater for nested data.
               </CardDescription>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={addField}>
@@ -328,99 +268,15 @@ export default function FormBuilder({
           </CardHeader>
           <CardContent className="space-y-3">
             {fields.map((field, fi) => (
-              <div
+              <FieldEditor
                 key={fi}
-                ref={fi === fields.length - 1 ? lastFieldRef : undefined}
-                className="rounded-md border bg-muted/30 p-4 space-y-3"
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-sm font-semibold text-muted-foreground w-5 shrink-0 text-right select-none mt-2.5">
-                    {fi + 1}
-                  </span>
-
-                  {/* Label + Field Key */}
-                  <div className="flex-1 space-y-2">
-                    {/* Label */}
-                    <Input
-                      placeholder="Label shown to user"
-                      value={field.label}
-                      onChange={(e) => updateField(fi, 'label', e.target.value)}
-                    />
-
-                    {/* Field Key */}
-                    <div className="relative">
-                      <Input
-                        placeholder="field_key"
-                        value={field.name}
-                        onChange={(e) => updateFieldKey(fi, e.target.value)}
-                        className="font-mono text-xs pr-14"
-                      />
-                      {field.name && (
-                        <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium border rounded px-1.5 py-0.5 pointer-events-none ${
-                          keyDirty[fi]
-                            ? 'bg-muted text-muted-foreground border-border'
-                            : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                        }`}>
-                          {keyDirty[fi] ? 'custom' : 'auto'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Type */}
-                  <Select
-                    value={field.type}
-                    onValueChange={(v) => updateField(fi, 'type', v as FieldType)}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FIELD_TYPES.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Required */}
-                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer mt-2.5">
-                    <Checkbox
-                      checked={field.required}
-                      onCheckedChange={(c) => updateField(fi, 'required', c === true)}
-                    />
-                    Required
-                  </label>
-
-                  {/* Remove */}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 mt-1"
-                    disabled={fields.length === 1}
-                    onClick={() => removeField(fi)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-
-                {/* Options (select / radio) */}
-                {(field.type === 'select' || field.type === 'radio') && (
-                  <div className="pl-7 space-y-1">
-                    <Label className="text-xs text-muted-foreground">
-                      Options (comma-separated)
-                      <span className="ml-1 text-muted-foreground/50">
-                        — shown as {field.type === 'radio' ? 'radio buttons' : 'dropdown'}
-                      </span>
-                    </Label>
-                    <Input
-                      placeholder="Option A, Option B, Option C"
-                      value={field.options ?? ''}
-                      onChange={(e) => updateField(fi, 'options', e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
+                field={field}
+                depth={1}
+                canRemove={fields.length > 1}
+                onChange={(next) => updateFieldAt(fi, next)}
+                onRemove={() => removeFieldAt(fi)}
+                innerRef={fi === fields.length - 1 ? lastFieldRef : undefined}
+              />
             ))}
 
             {/* Append a field without scrolling back up to the header button */}

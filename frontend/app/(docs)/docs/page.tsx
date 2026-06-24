@@ -178,13 +178,21 @@ const FIELD_TYPES = [
 
 // ─── Form field types ─────────────────────────────────────────────────────────
 const FORM_FIELD_TYPES = [
-  { type: 'text',     label: 'Text',     color: 'bg-blue-500/10 text-blue-400',     desc: 'Single-line text input. Good for names, subjects, short answers.' },
-  { type: 'email',    label: 'Email',    color: 'bg-cyan-500/10 text-cyan-400',     desc: 'Email address input. Validated server-side — must be a valid address.' },
-  { type: 'textarea', label: 'Textarea', color: 'bg-purple-500/10 text-purple-400', desc: 'Multi-line text. Good for messages, comments, longer answers.' },
-  { type: 'number',   label: 'Number',   color: 'bg-orange-500/10 text-orange-400', desc: 'Numeric value — integer or decimal. Validated to be a number.' },
-  { type: 'select',   label: 'Select',   color: 'bg-yellow-500/10 text-yellow-400', desc: 'Dropdown — pick one from a predefined list. Options set in admin.' },
-  { type: 'radio',    label: 'Radio',    color: 'bg-pink-500/10 text-pink-400',     desc: 'Radio buttons — pick one option. Displayed inline. Options set in admin.' },
-  { type: 'checkbox', label: 'Checkbox', color: 'bg-green-500/10 text-green-400',   desc: 'Yes/No toggle. Good for newsletter consent, terms agreement.' },
+  { type: 'text',        label: 'Text',        color: 'bg-blue-500/10 text-blue-400',     desc: 'Single-line text input. Good for names, subjects, short answers.' },
+  { type: 'textarea',    label: 'Textarea',    color: 'bg-purple-500/10 text-purple-400', desc: 'Multi-line text. Good for messages, comments, longer answers.' },
+  { type: 'number',      label: 'Number',      color: 'bg-orange-500/10 text-orange-400', desc: 'Numeric value — integer or decimal. Validated to be a number.' },
+  { type: 'email',       label: 'Email',       color: 'bg-cyan-500/10 text-cyan-400',     desc: 'Email address input. Validated server-side — must be a valid address.' },
+  { type: 'url',         label: 'URL',         color: 'bg-sky-500/10 text-sky-400',       desc: 'Web address. Validated to be a well-formed URL.' },
+  { type: 'phone',       label: 'Phone',       color: 'bg-teal-500/10 text-teal-400',     desc: 'Phone number. Validated against a default or custom pattern.' },
+  { type: 'date',        label: 'Date',        color: 'bg-amber-500/10 text-amber-400',   desc: 'Calendar date. Stored normalized as YYYY-MM-DD.' },
+  { type: 'datetime',    label: 'Date & Time', color: 'bg-amber-500/10 text-amber-400',   desc: 'Date with time. Stored normalized as ISO 8601.' },
+  { type: 'boolean',     label: 'Boolean',     color: 'bg-green-500/10 text-green-400',   desc: 'Yes/No toggle. Good for consent, terms agreement.' },
+  { type: 'select',      label: 'Select',      color: 'bg-yellow-500/10 text-yellow-400', desc: 'Dropdown — pick one from a predefined list. Options set in admin.' },
+  { type: 'radio',       label: 'Radio',       color: 'bg-pink-500/10 text-pink-400',     desc: 'Radio buttons — pick one option. Options set in admin.' },
+  { type: 'multiselect', label: 'Multi-select',color: 'bg-yellow-500/10 text-yellow-400', desc: 'Pick many from a predefined list. Stored as an array.' },
+  { type: 'tags',        label: 'Tags',        color: 'bg-lime-500/10 text-lime-400',     desc: 'Freeform array of strings — user adds their own values.' },
+  { type: 'group',       label: 'Group',       color: 'bg-indigo-500/10 text-indigo-400', desc: 'Nested object — bundle related sub-fields together.' },
+  { type: 'repeater',    label: 'Repeater',    color: 'bg-violet-500/10 text-violet-400', desc: 'Repeatable list of objects (array-of-objects) with shared sub-fields.' },
 ];
 
 // ─── TOC ─────────────────────────────────────────────────────────────────────
@@ -1741,7 +1749,10 @@ X-RateLimit-Reset: 60       # seconds until window resets
             {/* Form field types */}
             <h3 className="font-semibold mb-3">Form Field Types</h3>
             <p className="text-muted-foreground text-sm mb-3">
-              All fields are validated server-side on submission. Required fields return a clear error message if missing.
+              All fields are validated server-side on submission. Each field can carry optional
+              declarative rules (min/max, length, regex pattern, item counts) and required fields
+              return a clear error with a dot-path (e.g. <IC>address.pincode</IC>, <IC>documents[0].url</IC>).
+              Use <IC>group</IC> and <IC>repeater</IC> for nested objects and arrays-of-objects.
             </p>
             <div className="rounded-xl border border-border overflow-hidden mb-8">
               <table className="w-full text-sm">

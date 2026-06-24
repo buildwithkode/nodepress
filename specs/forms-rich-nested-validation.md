@@ -207,7 +207,12 @@ Enforced before/within validation. Configured globally via env vars (no per-form
   18 unit tests in `submission-validator.spec.ts` cover the §2 payload, every rule,
   and every guardrail. *Outcome:* a form defined via API/seed validates the full
   nested payload at `POST /api/submit/:slug`.
-- **Phase 2 — Builder UI (admin).** New types + nested editor + validation panel.
+- **Phase 2 — Builder UI (admin). ✅ DONE.** Shared field model/helpers
+  (`field-types.ts`), a recursive `FieldEditor.tsx` (new types in the dropdown,
+  group/repeater nested sub-field editor capped at `MAX_BUILDER_DEPTH`, and a
+  per-field collapsible validation panel), `FormBuilder.tsx` refactored to use it
+  with recursive normalize, and the edit page hydrating nested fields. Docs (in-app
+  Form Field Types table + website) updated.
 - **Phase 3 — Ripples.** Email templating, submissions viewer, CSV export.
 
 ## 8. Backward compatibility & migration
