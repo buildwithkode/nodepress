@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
+import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -539,7 +540,7 @@ export default function EditEntryPage() {
                       </button>
                     </div>
                   </div>
-                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}>{jsonStr}</pre>
+                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
                 </div>
               </div>
             );

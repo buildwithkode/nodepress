@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, Upload, Braces, Copy, Check, PanelRight, WrapText } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
+import { highlightCode } from '@/lib/highlight';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -529,7 +530,7 @@ export default function NewContentTypePage() {
                       </button>
                     </div>
                   </div>
-                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}>{jsonStr}</pre>
+                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
                 </div>
               </div>
             );
