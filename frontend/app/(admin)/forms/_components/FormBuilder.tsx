@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -105,10 +105,24 @@ export default function FormBuilder({
   };
 
   // ── Field helpers ─────────────────────────────────────────────────────────
+  const lastFieldRef = useRef<HTMLDivElement | null>(null);
+  const focusNewFieldRef = useRef(false);
+
   const addField = () => {
+    focusNewFieldRef.current = true; // scroll to + focus the new field once rendered
     setFields([...fields, { name: '', type: 'text', label: '', required: false }]);
     setKeyDirty([...keyDirty, false]); // new field: auto-derive enabled
   };
+
+  // After a field is appended, bring it into view and focus its first input
+  useEffect(() => {
+    if (!focusNewFieldRef.current) return;
+    focusNewFieldRef.current = false;
+    const el = lastFieldRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.querySelector('input')?.focus();
+  }, [fields.length]);
 
   const removeField = (i: number) => {
     setFields(fields.filter((_, idx) => idx !== i));
@@ -314,7 +328,11 @@ export default function FormBuilder({
           </CardHeader>
           <CardContent className="space-y-3">
             {fields.map((field, fi) => (
-              <div key={fi} className="rounded-md border bg-muted/30 p-4 space-y-3">
+              <div
+                key={fi}
+                ref={fi === fields.length - 1 ? lastFieldRef : undefined}
+                className="rounded-md border bg-muted/30 p-4 space-y-3"
+              >
                 <div className="flex items-start gap-2">
                   <span className="text-sm font-semibold text-muted-foreground w-5 shrink-0 text-right select-none mt-2.5">
                     {fi + 1}
@@ -404,6 +422,13 @@ export default function FormBuilder({
                 )}
               </div>
             ))}
+
+            {/* Append a field without scrolling back up to the header button */}
+            <div className="flex justify-end pt-1">
+              <Button type="button" variant="outline" size="sm" onClick={addField}>
+                <Plus className="h-4 w-4 mr-1.5" /> Add Field
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
