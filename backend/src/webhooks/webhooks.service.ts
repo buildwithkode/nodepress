@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createHmac, randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWebhookDto } from './dto/create-webhook.dto';
+import { UpdateWebhookDto } from './dto/update-webhook.dto';
 
 export type WebhookEvent =
   | 'entry.created'
@@ -42,6 +43,11 @@ export class WebhooksService {
     const hook = await this.prisma.webhook.findUnique({ where: { id } });
     if (!hook) throw new NotFoundException(`Webhook #${id} not found`);
     return hook;
+  }
+
+  async update(id: number, dto: UpdateWebhookDto) {
+    await this.findOne(id);
+    return this.prisma.webhook.update({ where: { id }, data: dto });
   }
 
   async remove(id: number) {

@@ -8,6 +8,7 @@ import {
 import { SkipThrottle } from '@nestjs/throttler';
 import { WebhooksService } from './webhooks.service';
 import { CreateWebhookDto } from './dto/create-webhook.dto';
+import { UpdateWebhookDto } from './dto/update-webhook.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -63,6 +64,13 @@ export class WebhooksController {
   @ApiParam({ name: 'id', type: Number })
   ping(@Param('id', ParseIntPipe) id: number) {
     return this.webhooksService.ping(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a webhook (admin)' })
+  @ApiParam({ name: 'id', type: Number })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateWebhookDto) {
+    return this.webhooksService.update(id, dto);
   }
 
   @Delete(':id')

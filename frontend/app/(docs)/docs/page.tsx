@@ -2151,6 +2151,7 @@ echo $result['submissionId'];`,
                   ['3. Pick events', 'Choose which events fire it (entry.created, entry.updated, …) or select * for all of them.'],
                   ['4. Add a secret (recommended)', 'Set a secret so each delivery is HMAC-SHA256 signed — your receiver can verify the request genuinely came from NodePress (see below).'],
                   ['5. Test Ping', 'Click Test Ping to send a sample event and confirm your endpoint is reachable before relying on it. Watch the Delivery Log for the result.'],
+                  ['6. Edit or remove', 'Each webhook card has Edit (change name, URL, secret, or events), enable/disable, Test Ping, and Delete actions.'],
                 ].map(([step, desc]) => (
                   <div key={step} className="flex gap-3">
                     <span className="font-medium text-foreground w-44 shrink-0">{step}</span>

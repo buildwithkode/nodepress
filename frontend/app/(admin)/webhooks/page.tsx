@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Zap, RefreshCw, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Trash2, Zap, RefreshCw, Loader2, ToggleLeft, ToggleRight, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminGuard from '@/components/AdminGuard';
 import { Button } from '@/components/ui/button';
@@ -55,7 +55,25 @@ export default function WebhooksPage() {
   // Form state
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: '', url: '', secret: '', events: [] as string[] });
+
+  const resetForm = () => {
+    setForm({ name: '', url: '', secret: '', events: [] });
+    setEditingId(null);
+  };
+
+  const openCreate = () => {
+    if (showForm && editingId === null) { setShowForm(false); return; }
+    resetForm();
+    setShowForm(true);
+  };
+
+  const openEdit = (hook: Webhook) => {
+    setForm({ name: hook.name, url: hook.url, secret: hook.secret ?? '', events: hook.events });
+    setEditingId(hook.id);
+    setShowForm(true);
+  };
 
   const fetchWebhooks = async () => {
     setLoading(true);
@@ -78,7 +96,7 @@ export default function WebhooksPage() {
     }));
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return toast.error('Name is required');
     if (!form.url.trim()) return toast.error('URL is required');
@@ -86,18 +104,29 @@ export default function WebhooksPage() {
 
     setSaving(true);
     try {
-      await api.post('/webhooks', {
-        name: form.name.trim(),
-        url: form.url.trim(),
-        secret: form.secret.trim() || undefined,
-        events: form.events,
-      });
-      toast.success('Webhook registered');
-      setForm({ name: '', url: '', secret: '', events: [] });
+      if (editingId !== null) {
+        // On edit, send null (not undefined) when secret is cleared so it's removed
+        await api.patch(`/webhooks/${editingId}`, {
+          name: form.name.trim(),
+          url: form.url.trim(),
+          secret: form.secret.trim() || null,
+          events: form.events,
+        });
+        toast.success('Webhook updated');
+      } else {
+        await api.post('/webhooks', {
+          name: form.name.trim(),
+          url: form.url.trim(),
+          secret: form.secret.trim() || undefined,
+          events: form.events,
+        });
+        toast.success('Webhook registered');
+      }
+      resetForm();
       setShowForm(false);
       fetchWebhooks();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to create webhook');
+      toast.error(err.response?.data?.message || 'Failed to save webhook');
     } finally {
       setSaving(false);
     }
@@ -150,7 +179,7 @@ export default function WebhooksPage() {
             <RefreshCw className="h-4 w-4 mr-1.5" />
             Refresh
           </Button>
-          <Button onClick={() => setShowForm((v) => !v)}>
+          <Button onClick={openCreate}>
             <Plus className="h-4 w-4 mr-1.5" />
             Add Webhook
           </Button>
@@ -160,10 +189,10 @@ export default function WebhooksPage() {
       {/* Add form */}
       {showForm && (
         <form
-          onSubmit={handleCreate}
+          onSubmit={handleSubmit}
           className="mb-8 rounded-lg border border-border bg-card p-5 space-y-4"
         >
-          <p className="text-sm font-semibold">New Webhook</p>
+          <p className="text-sm font-semibold">{editingId !== null ? 'Edit Webhook' : 'New Webhook'}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -239,12 +268,12 @@ export default function WebhooksPage() {
           </div>
 
           <div className="flex justify-end gap-2 pt-1">
-            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+            <Button type="button" variant="outline" onClick={() => { setShowForm(false); resetForm(); }}>
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
-              Register Webhook
+              {editingId !== null ? 'Save Changes' : 'Register Webhook'}
             </Button>
           </div>
         </form>
@@ -326,6 +355,17 @@ export default function WebhooksPage() {
                       ? <ToggleRight className="h-4 w-4 text-green-400" />
                       : <ToggleLeft className="h-4 w-4" />
                     }
+                  </Button>
+
+                  {/* Edit */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openEdit(hook)}
+                    title="Edit webhook"
+                    className="h-8 text-muted-foreground"
+                  >
+                    <Pencil className="h-4 w-4" />
                   </Button>
 
                   {/* Ping */}

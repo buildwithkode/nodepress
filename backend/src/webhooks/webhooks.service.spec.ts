@@ -82,6 +82,22 @@ describe('WebhooksService', () => {
     });
   });
 
+  describe('update()', () => {
+    it('updates an existing webhook', async () => {
+      mockPrisma.webhook.findUnique.mockResolvedValue(mockHook);
+      mockPrisma.webhook.update.mockResolvedValue({ ...mockHook, name: 'Renamed' });
+
+      const result = await service.update(1, { name: 'Renamed' });
+      expect(mockPrisma.webhook.update).toHaveBeenCalledWith({ where: { id: 1 }, data: { name: 'Renamed' } });
+      expect(result.name).toBe('Renamed');
+    });
+
+    it('throws NotFoundException for unknown id', async () => {
+      mockPrisma.webhook.findUnique.mockResolvedValue(null);
+      await expect(service.update(999, { name: 'x' })).rejects.toThrow(NotFoundException);
+    });
+  });
+
   // ── toggle ─────────────────────────────────────────────────────────────────
 
   describe('toggle()', () => {
