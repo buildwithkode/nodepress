@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ArrowLeft, Braces, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Braces, Copy, Check, PanelRight, WrapText } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -96,7 +96,11 @@ export default function FormBuilder({
   const [fields,    setFields]    = useState<FormField[]>(initialFields);
   const [actions,  setActions]  = useState<ActionDef[]>(initialActions);
   const [submitting, setSubmitting] = useState(false);
-  const [showPayload, setShowPayload] = useState(false);
+
+  // Side-by-side payload preview box
+  const [jsonOpen,  setJsonOpen]  = useState(true);
+  const [jsonWrap,  setJsonWrap]  = useState(true);
+  const [jsonCopied,setJsonCopied]= useState(false);
 
   // ── Slug auto-gen ─────────────────────────────────────────────────────────
   const handleNameChange = (v: string) => {
@@ -215,295 +219,325 @@ export default function FormBuilder({
         <ArrowLeft className="h-4 w-4" /> Back to Forms
       </Button>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-
-        {/* ── Meta ── */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{mode === 'new' ? 'New Form' : 'Edit Form'}</CardTitle>
-            <CardDescription>
-              {mode === 'new'
-                ? 'Define your form fields and configure notification actions.'
-                : 'Update form settings, fields, and actions.'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Form Name <span className="text-destructive">*</span></Label>
-                <Input
-                  placeholder="e.g. Contact Us"
-                  value={name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Slug <span className="text-destructive">*</span></Label>
-                <Input
-                  placeholder="e.g. contact-us"
-                  value={slug}
-                  onChange={(e) => { setSlug(toSlug(e.target.value)); setSlugDirty(true); }}
-                />
-                {slug && (
-                  <p className="text-xs text-muted-foreground">
-                    Submit endpoint:{' '}
-                    <code className="bg-muted px-1 py-0.5 rounded font-mono">
-                      POST /api/submit/<strong>{slug}</strong>
-                    </code>
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between rounded-md border px-4 py-3">
-              <div>
-                <p className="text-sm font-medium">Form Status</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {isActive ? 'Accepting submissions' : 'Submissions are blocked'}
-                </p>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className={`text-xs font-medium ${isActive ? 'text-emerald-500' : 'text-muted-foreground'}`}>
-                  {isActive ? 'Active' : 'Inactive'}
-                </span>
-                <Switch
-                  checked={isActive}
-                  onCheckedChange={setIsActive}
-                  id="is-active"
-                  className="data-checked:bg-emerald-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between rounded-md border px-4 py-3">
-              <div className="pr-4">
-                <p className="text-sm font-medium">Spam Protection (Captcha)</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {captchaEnabled
-                    ? 'Submissions must include a valid captcha token.'
-                    : 'Honeypot + rate limiting still apply. Turn on for captcha verification.'}
-                  {' '}Requires <code className="bg-muted px-1 py-0.5 rounded font-mono">CAPTCHA_PROVIDER</code> in the backend env.
-                </p>
-              </div>
-              <Switch
-                checked={captchaEnabled}
-                onCheckedChange={setCaptchaEnabled}
-                id="captcha-enabled"
-                className="data-checked:bg-emerald-500"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ── Fields ── */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-2">
             <div>
-              <CardTitle className="text-base">Fields</CardTitle>
-              <CardDescription className="text-xs mt-0.5">
-                Define the inputs users will fill in. Use Group / Repeater for nested data.
-              </CardDescription>
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={addField}>
-              <Plus className="h-4 w-4 mr-1.5" /> Add Field
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {fields.map((field, fi) => (
-              <FieldEditor
-                key={fi}
-                field={field}
-                depth={1}
-                canRemove={fields.length > 1}
-                onChange={(next) => updateFieldAt(fi, next)}
-                onRemove={() => removeFieldAt(fi)}
-                innerRef={fi === fields.length - 1 ? lastFieldRef : undefined}
-              />
-            ))}
-
-            {/* Append a field without scrolling back up to the header button */}
-            <div className="flex justify-end pt-1">
-              <Button type="button" variant="outline" size="sm" onClick={addField}>
-                <Plus className="h-4 w-4 mr-1.5" /> Add Field
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ── Submission Payload preview ── */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Braces className="h-4 w-4 text-muted-foreground" /> Submission Payload
-              </CardTitle>
-              <CardDescription className="text-xs mt-0.5">
-                Example request body for this form — share it with whoever calls the API.
+              <CardTitle>{mode === 'new' ? 'New Form' : 'Edit Form'}</CardTitle>
+              <CardDescription>
+                {mode === 'new'
+                  ? 'Define your form fields and configure notification actions.'
+                  : 'Update form settings, fields, and actions.'}
               </CardDescription>
             </div>
             <Button
               type="button"
-              variant={showPayload ? 'secondary' : 'outline'}
+              variant={jsonOpen ? 'secondary' : 'outline'}
               size="sm"
-              className="gap-1.5"
-              onClick={() => setShowPayload((v) => !v)}
+              className="h-7 gap-1.5 text-xs shrink-0"
+              onClick={() => setJsonOpen((v) => !v)}
             >
-              {showPayload ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              {showPayload ? 'Hide payload' : 'Show payload'}
+              <PanelRight className="h-3.5 w-3.5" />
+              {jsonOpen ? 'Hide payload' : 'Show payload'}
             </Button>
-          </CardHeader>
-          {showPayload && (
-            <CardContent className="space-y-4">
-              {previewFields.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Add at least one field (with a key and label) to generate an example payload.
-                </p>
-              ) : (
-                <>
-                  <p className="text-xs text-muted-foreground">
-                    Endpoint: <code className="bg-muted px-1 py-0.5 rounded font-mono">POST /api/submit/{previewSlug}</code>
-                    {' '}— values are examples by field type; arrays &amp; nested objects show the exact shape to send.
-                  </p>
-                  <CodeSnippet title="JSON body" code={jsonBody} lang="json" />
-                  <CodeSnippet title="curl" code={curlSnippet} lang="bash" />
-                  <CodeSnippet title="fetch (JavaScript)" code={fetchSnippet} lang="javascript" />
-                </>
-              )}
-            </CardContent>
-          )}
-        </Card>
+          </div>
+        </CardHeader>
 
-        {/* ── Actions ── */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div>
-              <CardTitle className="text-base">Actions</CardTitle>
-              <CardDescription className="text-xs mt-0.5">
-                What happens after a successful submission. Use <code className="font-mono bg-muted px-1 rounded">{'{{field_name}}'}</code> in subject to insert values.
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={addEmailAction}>
-                <Plus className="h-4 w-4 mr-1" /> Email
-              </Button>
-              <Button type="button" variant="outline" size="sm" onClick={addWebhookAction}>
-                <Plus className="h-4 w-4 mr-1" /> Webhook
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {actions.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No actions configured. Submissions will only be stored in the database.
-              </p>
-            )}
-            {actions.map((action, ai) => (
-              <div key={ai} className="rounded-md border bg-muted/30 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded ${
-                    action.type === 'email' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'
-                  }`}>
-                    {action.type}
+        <form onSubmit={handleSubmit}>
+          {/* Meta — full width */}
+          <div className="border-t border-border px-6 py-5 space-y-6">
+
+              {/* Form Name + Slug */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Form Name <span className="text-destructive">*</span></Label>
+                  <Input
+                    placeholder="e.g. Contact Us"
+                    value={name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Slug <span className="text-destructive">*</span></Label>
+                  <Input
+                    placeholder="e.g. contact-us"
+                    value={slug}
+                    onChange={(e) => { setSlug(toSlug(e.target.value)); setSlugDirty(true); }}
+                  />
+                  {slug && (
+                    <p className="text-xs text-muted-foreground">
+                      Submit endpoint:{' '}
+                      <code className="bg-muted px-1 py-0.5 rounded font-mono">
+                        POST /api/submit/<strong>{slug}</strong>
+                      </code>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Form Status */}
+              <div className="flex items-center justify-between rounded-md border px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">Form Status</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {isActive ? 'Accepting submissions' : 'Submissions are blocked'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className={`text-xs font-medium ${isActive ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                    {isActive ? 'Active' : 'Inactive'}
                   </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => removeAction(ai)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
+                  <Switch
+                    checked={isActive}
+                    onCheckedChange={setIsActive}
+                    id="is-active"
+                    className="data-checked:bg-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Spam Protection */}
+              <div className="flex items-center justify-between rounded-md border px-4 py-3">
+                <div className="pr-4">
+                  <p className="text-sm font-medium">Spam Protection (Captcha)</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {captchaEnabled
+                      ? 'Submissions must include a valid captcha token.'
+                      : 'Honeypot + rate limiting still apply. Turn on for captcha verification.'}
+                    {' '}Requires <code className="bg-muted px-1 py-0.5 rounded font-mono">CAPTCHA_PROVIDER</code> in the backend env.
+                  </p>
+                </div>
+                <Switch
+                  checked={captchaEnabled}
+                  onCheckedChange={setCaptchaEnabled}
+                  id="captcha-enabled"
+                  className="data-checked:bg-emerald-500"
+                />
+              </div>
+
+          </div>
+
+          {/* Split: Fields / Actions + live payload preview */}
+          <div className="flex items-start border-t border-border">
+            <div style={{ width: jsonOpen ? '60%' : '100%' }} className="min-w-0 px-6 py-5 space-y-6">
+
+              {/* Fields */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-border pb-2">
+                  <div>
+                    <h3 className="text-base font-semibold">Fields</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Define the inputs users will fill in. Use Group / Repeater for nested data.
+                    </p>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={addField}>
+                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
                   </Button>
                 </div>
+                {fields.map((field, fi) => (
+                  <FieldEditor
+                    key={fi}
+                    field={field}
+                    depth={1}
+                    canRemove={fields.length > 1}
+                    onChange={(next) => updateFieldAt(fi, next)}
+                    onRemove={() => removeFieldAt(fi)}
+                    innerRef={fi === fields.length - 1 ? lastFieldRef : undefined}
+                  />
+                ))}
+                <div className="flex justify-end pt-1">
+                  <Button type="button" variant="outline" size="sm" onClick={addField}>
+                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                  </Button>
+                </div>
+              </div>
 
-                {action.type === 'email' && (
-                  <div className="space-y-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Send To</Label>
-                      <Input
-                        type="email"
-                        placeholder="admin@example.com"
-                        value={action.to}
-                        onChange={(e) => updateAction(ai, { to: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Subject</Label>
-                      <Input
-                        placeholder="New submission from {{full_name}}"
-                        value={action.subject}
-                        onChange={(e) => updateAction(ai, { subject: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Reply-To Field (optional)</Label>
-                      <Select
-                        value={(action as EmailAction).replyToField ?? '__none__'}
-                        onValueChange={(v) =>
-                          updateAction(ai, { replyToField: v === '__none__' ? undefined : (v || undefined) })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="None" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">None</SelectItem>
-                          {fields
-                            .filter((f) => f.type === 'email' && f.name)
-                            .map((f) => (
-                              <SelectItem key={f.name} value={f.name}>{f.label || f.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+              {/* Actions */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-border pb-2">
+                  <div>
+                    <h3 className="text-base font-semibold">Actions</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      What happens after a successful submission. Use <code className="font-mono bg-muted px-1 rounded">{'{{field_name}}'}</code> in subject to insert values.
+                    </p>
                   </div>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={addEmailAction}>
+                      <Plus className="h-4 w-4 mr-1" /> Email
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={addWebhookAction}>
+                      <Plus className="h-4 w-4 mr-1" /> Webhook
+                    </Button>
+                  </div>
+                </div>
+                {actions.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No actions configured. Submissions will only be stored in the database.
+                  </p>
                 )}
-
-                {action.type === 'webhook' && (
-                  <div className="space-y-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Webhook URL</Label>
-                      <Input
-                        placeholder="https://hooks.slack.com/…"
-                        value={action.url}
-                        onChange={(e) => updateAction(ai, { url: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Method</Label>
-                      <Select
-                        value={(action as WebhookAction).method}
-                        onValueChange={(v) => updateAction(ai, { method: v as 'POST' | 'PUT' })}
+                {actions.map((action, ai) => (
+                  <div key={ai} className="rounded-md border bg-muted/30 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded ${
+                        action.type === 'email' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'
+                      }`}>
+                        {action.type}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => removeAction(ai)}
                       >
-                        <SelectTrigger className="w-28">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="POST">POST</SelectItem>
-                          <SelectItem value="PUT">PUT</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
+
+                    {action.type === 'email' && (
+                      <div className="space-y-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Send To</Label>
+                          <Input
+                            type="email"
+                            placeholder="admin@example.com"
+                            value={action.to}
+                            onChange={(e) => updateAction(ai, { to: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Subject</Label>
+                          <Input
+                            placeholder="New submission from {{full_name}}"
+                            value={action.subject}
+                            onChange={(e) => updateAction(ai, { subject: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Reply-To Field (optional)</Label>
+                          <Select
+                            value={(action as EmailAction).replyToField ?? '__none__'}
+                            onValueChange={(v) =>
+                              updateAction(ai, { replyToField: v === '__none__' ? undefined : (v || undefined) })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="None" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none__">None</SelectItem>
+                              {fields
+                                .filter((f) => f.type === 'email' && f.name)
+                                .map((f) => (
+                                  <SelectItem key={f.name} value={f.name}>{f.label || f.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    {action.type === 'webhook' && (
+                      <div className="space-y-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Webhook URL</Label>
+                          <Input
+                            placeholder="https://hooks.slack.com/…"
+                            value={action.url}
+                            onChange={(e) => updateAction(ai, { url: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Method</Label>
+                          <Select
+                            value={(action as WebhookAction).method}
+                            onValueChange={(v) => updateAction(ai, { method: v as 'POST' | 'PUT' })}
+                          >
+                            <SelectTrigger className="w-28">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="POST">POST</SelectItem>
+                              <SelectItem value="PUT">PUT</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
                   </div>
+                ))}
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => router.push('/forms')}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting
+                    ? (mode === 'new' ? 'Creating…' : 'Saving…')
+                    : (mode === 'new' ? 'Create Form' : 'Save Changes')}
+                </Button>
+              </div>
+            </div>
+
+          {/* Right: live payload preview, full height */}
+          {jsonOpen && (
+            <div style={{ width: '40%' }} className="min-w-0 border-l border-border">
+              <div className="sticky top-4 px-4 py-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Braces className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium">Payload Preview</span>
+                    <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setJsonWrap((w) => !w)}
+                      className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                      title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                    >
+                      <WrapText className="h-3.5 w-3.5" /> Wrap
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(jsonBody);
+                        setJsonCopied(true);
+                        setTimeout(() => setJsonCopied(false), 2000);
+                      }}
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                      title="Copy JSON body"
+                    >
+                      {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      {jsonCopied ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {previewFields.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8 border rounded-md border-dashed">
+                    Add a field (with a key and label) to generate an example payload.
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      <code className="bg-muted px-1 py-0.5 rounded font-mono">POST /api/submit/{previewSlug}</code>
+                    </p>
+                    <pre className={`overflow-auto max-h-[70vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}>
+                      <code dangerouslySetInnerHTML={{ __html: highlightCode(jsonBody, 'json') }} />
+                    </pre>
+                    <CodeSnippet title="curl" code={curlSnippet} lang="bash" />
+                    <CodeSnippet title="fetch (JavaScript)" code={fetchSnippet} lang="javascript" />
+                  </>
                 )}
               </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* ── Footer ── */}
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => router.push('/forms')}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={submitting}>
-            {submitting
-              ? (mode === 'new' ? 'Creating…' : 'Saving…')
-              : (mode === 'new' ? 'Create Form' : 'Save Changes')}
-          </Button>
-        </div>
-
-      </form>
+            </div>
+          )}
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }
