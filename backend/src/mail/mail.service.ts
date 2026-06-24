@@ -23,6 +23,52 @@ function humanizeKey(key: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** Resolve a dot/bracket path (e.g. "address.city", "documents[0].url") against an object. */
+function getByPath(obj: unknown, path: string): unknown {
+  const parts = path.replace(/\[(\w+)\]/g, '.$1').split('.').filter(Boolean);
+  let cur: any = obj;
+  for (const p of parts) {
+    if (cur == null) return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
+/** Flatten any value to a readable single string (for plain-text email + interpolation). */
+function formatValuePlain(v: unknown): string {
+  if (v === null || v === undefined) return '';
+  if (Array.isArray(v)) {
+    const allScalar = v.every((x) => x === null || typeof x !== 'object');
+    return allScalar
+      ? v.map((x) => String(x ?? '')).join(', ')
+      : v.map((x, i) => `#${i + 1} { ${formatValuePlain(x)} }`).join('; ');
+  }
+  if (typeof v === 'object') {
+    return Object.entries(v as Record<string, unknown>)
+      .map(([k, val]) => `${humanizeKey(k)}: ${formatValuePlain(val)}`)
+      .join(', ');
+  }
+  return String(v);
+}
+
+/** Render any value as safe HTML for the email table (nested objects/arrays included). */
+function renderValueHtml(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '<span style="color:#bbb">—</span>';
+  if (Array.isArray(v)) {
+    const allScalar = v.every((x) => x === null || typeof x !== 'object');
+    if (allScalar) return escapeHtml(v.map((x) => String(x ?? '')).join(', '));
+    return v
+      .map((x) => `<div style="margin:3px 0;padding-left:8px;border-left:2px solid #eee">${renderValueHtml(x)}</div>`)
+      .join('');
+  }
+  if (typeof v === 'object') {
+    return Object.entries(v as Record<string, unknown>)
+      .map(([k, val]) => `<div><span style="color:#888">${escapeHtml(humanizeKey(k))}:</span> ${renderValueHtml(val)}</div>`)
+      .join('');
+  }
+  return escapeHtml(String(v));
+}
+
 /**
  * MailService — singleton email sender for the entire application.
  *
@@ -199,7 +245,7 @@ export class MailService implements OnModuleInit {
         ([k, v]) =>
           `<tr>
             <td style="padding:10px 14px;font-weight:700;color:#555;white-space:nowrap;border-bottom:1px solid #f0f0f0;vertical-align:top">${escapeHtml(labelFor(k))}</td>
-            <td style="padding:10px 14px;color:#1a1a1a;border-bottom:1px solid #f0f0f0">${escapeHtml(String(v ?? ''))}</td>
+            <td style="padding:10px 14px;color:#1a1a1a;border-bottom:1px solid #f0f0f0">${renderValueHtml(v)}</td>
            </tr>`,
       )
       .join('');
@@ -224,7 +270,7 @@ export class MailService implements OnModuleInit {
       </div>`;
 
     const textLines = Object.entries(data)
-      .map(([k, v]) => `${labelFor(k)}: ${String(v ?? '')}`)
+      .map(([k, v]) => `${labelFor(k)}: ${formatValuePlain(v)}`)
       .join('\n');
 
     await this.send({ to, subject, text: textLines, html, replyTo });
@@ -263,10 +309,15 @@ export class MailService implements OnModuleInit {
     }
   }
 
-  /** Interpolate {{field_name}} tokens in a template string with submission data */
+  /**
+   * Interpolate {{field}} tokens in a template string with submission data.
+   * Supports nested dot/bracket paths, e.g. {{address.city}} or {{documents[0].url}}.
+   * Arrays/objects are flattened to a readable string; unknown tokens are left intact.
+   */
   static interpolate(template: string, data: Record<string, unknown>): string {
-    return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
-      data[key] !== undefined ? String(data[key]) : `{{${key}}}`,
-    );
+    return template.replace(/\{\{\s*([\w.[\]]+)\s*\}\}/g, (_, path) => {
+      const val = getByPath(data, path);
+      return val === undefined ? `{{${path}}}` : formatValuePlain(val);
+    });
   }
 }

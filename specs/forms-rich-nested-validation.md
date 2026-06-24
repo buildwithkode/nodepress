@@ -213,7 +213,12 @@ Enforced before/within validation. Configured globally via env vars (no per-form
   per-field collapsible validation panel), `FormBuilder.tsx` refactored to use it
   with recursive normalize, and the edit page hydrating nested fields. Docs (in-app
   Form Field Types table + website) updated.
-- **Phase 3 — Ripples.** Email templating, submissions viewer, CSV export.
+- **Phase 3 — Ripples. ✅ DONE.** Email action now renders nested values readably
+  (`mail.service.ts`: `renderValueHtml`/`formatValuePlain`) and `interpolate` resolves
+  dot/bracket paths (`{{address.city}}`, `{{documents[0].url}}`). Submissions viewer
+  renders nested/array values (recursive `SubmissionValue`) and gained **CSV export**
+  (`submission-format.ts`: group → dot columns, repeater → JSON column, per resolved
+  decision §9.4) — note CSV export was net-new, not previously present. Docs updated.
 
 ## 8. Backward compatibility & migration
 

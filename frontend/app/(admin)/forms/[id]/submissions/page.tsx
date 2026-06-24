@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronDown, ChevronRight, Inbox } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Inbox, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { SearchInput } from '@/components/ui/search-input';
 import { Pagination } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
+import { summarize, toCsv, downloadCsv, CsvField } from '../../_components/submission-format';
 
 interface Submission {
   id: number;
@@ -22,7 +23,50 @@ interface FormMeta {
   id: number;
   name: string;
   slug: string;
-  fields: { name: string; label: string; type: string }[];
+  fields: CsvField[];
+}
+
+/** Render a submission value that may be nested (object / array / array-of-objects). */
+function SubmissionValue({ value }: { value: unknown }) {
+  if (value === null || value === undefined || value === '') {
+    return <span className="text-muted-foreground/40 italic">empty</span>;
+  }
+  if (typeof value === 'boolean') {
+    return <Badge variant={value ? 'default' : 'outline'} className="text-xs">{value ? 'Yes' : 'No'}</Badge>;
+  }
+  if (Array.isArray(value)) {
+    const allScalar = value.every((x) => x === null || typeof x !== 'object');
+    if (allScalar) {
+      return (
+        <span className="flex flex-wrap gap-1">
+          {value.map((x, i) => <Badge key={i} variant="secondary" className="text-xs font-normal">{String(x)}</Badge>)}
+        </span>
+      );
+    }
+    return (
+      <div className="space-y-1.5">
+        {value.map((item, i) => (
+          <div key={i} className="rounded border bg-background/60 p-2">
+            <p className="text-[10px] text-muted-foreground mb-1">#{i + 1}</p>
+            <SubmissionValue value={item} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (typeof value === 'object') {
+    return (
+      <div className="space-y-1 pl-2 border-l-2 border-border/60">
+        {Object.entries(value as Record<string, unknown>).map(([k, v]) => (
+          <div key={k} className="text-sm">
+            <span className="text-xs text-muted-foreground">{k}: </span>
+            <SubmissionValue value={v} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return <span className="text-sm break-words">{String(value)}</span>;
 }
 
 const PAGE_SIZE = 15;
@@ -66,6 +110,12 @@ export default function SubmissionsPage() {
     return f?.label ?? key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
+  const handleExport = () => {
+    if (filtered.length === 0) { toast.error('No submissions to export'); return; }
+    const csv = toCsv(form?.fields, filtered);
+    downloadCsv(`${form?.slug ?? 'submissions'}-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -85,12 +135,15 @@ export default function SubmissionsPage() {
             <Badge variant="secondary" className="font-mono text-xs">{form.slug}</Badge>
           </>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
           <SearchInput
             placeholder="Search submissions…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExport} disabled={loading || rows.length === 0}>
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
         </div>
       </div>
 
@@ -144,17 +197,19 @@ export default function SubmissionsPage() {
                   style={{ gridTemplateColumns: `1fr repeat(${Math.min(columns.length, 3)}, 1fr) 120px 32px` }}
                   onClick={() => setExpanded(isOpen ? null : row.id)}
                 >
-                  {columns.slice(0, 3).map((col) => (
-                    <span key={col} className="text-sm truncate pr-4">
-                      {row.data[col] === null || row.data[col] === undefined
-                        ? <span className="text-muted-foreground/40">—</span>
-                        : typeof row.data[col] === 'boolean'
-                          ? <Badge variant={row.data[col] ? 'default' : 'outline'} className="text-xs">{row.data[col] ? 'Yes' : 'No'}</Badge>
-                          : String(row.data[col]).length > 50
-                            ? String(row.data[col]).slice(0, 50) + '…'
-                            : String(row.data[col])}
-                    </span>
-                  ))}
+                  {columns.slice(0, 3).map((col) => {
+                    const v = row.data[col];
+                    const text = summarize(v);
+                    return (
+                      <span key={col} className="text-sm truncate pr-4">
+                        {v === null || v === undefined || text === ''
+                          ? <span className="text-muted-foreground/40">—</span>
+                          : typeof v === 'boolean'
+                            ? <Badge variant={v ? 'default' : 'outline'} className="text-xs">{v ? 'Yes' : 'No'}</Badge>
+                            : text.length > 50 ? text.slice(0, 50) + '…' : text}
+                      </span>
+                    );
+                  })}
                   <span className="text-xs text-muted-foreground">
                     {new Date(row.createdAt).toLocaleString()}
                   </span>
@@ -172,13 +227,9 @@ export default function SubmissionsPage() {
                           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                             {labelFor(key)}
                           </p>
-                          <p className="text-sm break-words">
-                            {val === null || val === undefined
-                              ? <span className="text-muted-foreground/40 italic">empty</span>
-                              : typeof val === 'boolean'
-                                ? <Badge variant={val ? 'default' : 'outline'} className="text-xs">{val ? 'Yes' : 'No'}</Badge>
-                                : String(val)}
-                          </p>
+                          <div className="text-sm break-words">
+                            <SubmissionValue value={val} />
+                          </div>
                         </div>
                       ))}
                       {row.ip && (

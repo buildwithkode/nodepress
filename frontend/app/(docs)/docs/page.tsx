@@ -1736,7 +1736,7 @@ X-RateLimit-Reset: 60       # seconds until window resets
                   ['1. Create a form', 'Go to Forms → New Form. Give it a name, a URL-safe slug, and add your fields.'],
                   ['2. Configure actions', 'Optionally add an Email action (sends a notification on each submission) or a Webhook action (POSTs data to any URL).'],
                   ['3. Call the submit API', 'Call POST /api/submit/:slug from any platform — React, React Native, curl, or any HTTP client.'],
-                  ['4. View submissions', 'Every submission is stored. Open Forms → click the submission count → expand any row to see full details.'],
+                  ['4. View submissions', 'Every submission is stored. Open Forms → click the submission count → expand any row to see full details (nested groups/arrays included). Use Export CSV to download them.'],
                 ].map(([step, desc]) => (
                   <div key={step} className="flex gap-3">
                     <span className="font-medium text-foreground w-44 shrink-0">{step}</span>

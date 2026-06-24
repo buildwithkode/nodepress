@@ -561,7 +561,7 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
           </div>
           <h2 class="text-2xl font-bold text-white">Forms</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Build forms in the admin panel and embed them in your frontend. Each form gets a public submission endpoint — no auth or API key required. Submissions are stored in the database and can trigger email or webhook actions.</p>
+        <p class="text-zinc-400 leading-relaxed mb-6">Build forms in the admin panel and embed them in your frontend. Each form gets a public submission endpoint — no auth or API key required. Submissions are stored in the database and can trigger email or webhook actions. Forms support rich nested fields (groups + repeaters), typed scalars and arrays, and optional per-field validation; submissions can be browsed (nested values expanded) and exported to CSV from the admin.</p>
 
         <h3 class="font-semibold text-white mb-2">Submit a form (public API)</h3>
         <p class="text-sm text-zinc-400 mb-3"><code class="text-pink-400 bg-zinc-800 px-1 rounded">POST /api/submit/:slug</code> — the <code class="text-pink-400 bg-zinc-800 px-1 rounded">slug</code> is set when you create the form. Wrap your field values in a <code class="text-pink-400 bg-zinc-800 px-1 rounded">data</code> object whose keys match the form's field names:</p>

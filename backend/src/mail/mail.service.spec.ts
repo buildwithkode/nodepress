@@ -183,5 +183,17 @@ describe('MailService', () => {
         MailService.interpolate('{{greeting}} {{name}}', { greeting: 'Hi', name: 'Eve' }),
       ).toBe('Hi Eve');
     });
+
+    it('resolves nested dot/bracket paths', () => {
+      const data = { address: { city: 'Mumbai' }, documents: [{ url: 'a.pdf' }] };
+      expect(MailService.interpolate('{{address.city}}', data)).toBe('Mumbai');
+      expect(MailService.interpolate('{{documents[0].url}}', data)).toBe('a.pdf');
+    });
+
+    it('flattens arrays and objects to a readable string', () => {
+      expect(MailService.interpolate('{{skills}}', { skills: ['React', 'Next'] })).toBe('React, Next');
+      expect(MailService.interpolate('{{addr}}', { addr: { city: 'Mumbai', pincode: 400001 } }))
+        .toBe('City: Mumbai, Pincode: 400001');
+    });
   });
 });
