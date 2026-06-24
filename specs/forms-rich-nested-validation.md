@@ -1,6 +1,6 @@
 # Spec: Headless Forms — Rich Nested Types + Declarative Validation
 
-Status: **Draft** · Owner: TBD · Last updated: 2026-06-24
+Status: **Approved (decisions locked)** · Owner: TBD · Last updated: 2026-06-24
 
 ## 1. Summary
 
@@ -175,7 +175,7 @@ Paths use dot notation for objects and `[i]` for array items.
 
 ## 5. Guardrails (public abuse protection)
 
-Enforced before/within validation. Configurable via env or form settings; defaults:
+Enforced before/within validation. Configured globally via env vars (no per-form override in v1); defaults:
 
 | Guardrail | Default | Action on breach |
 |---|---|---|
@@ -192,7 +192,8 @@ Enforced before/within validation. Configurable via env or form settings; defaul
    (e.g. JSON or joined list), never `[object Object]`.
 2. **Submissions viewer** (admin `forms/[id]/submissions`): render nested/array values
    as collapsible JSON or a nested list.
-3. **CSV export**: flatten nested paths into columns (`address.city`, `documents[0].url`).
+3. **CSV export**: `group` objects flatten to dot-path columns (`address.city`); `repeater`
+   arrays-of-objects go into a **single JSON-string column** (per resolved decision §9.4).
 4. **Builder UI** (`FormBuilder.tsx`): add new type options, a nested sub-field editor
    for `group`/`repeater` (borrow patterns from the content-type builder), and a
    collapsible "Validation" panel per field. (Builder is admin-only; not the public form.)
@@ -213,9 +214,11 @@ Enforced before/within validation. Configurable via env or form settings; defaul
   new shape.
 - New field types are additive; no DB schema change (fields/submissions are JSON).
 
-## 9. Open questions
+## 9. Resolved decisions (2026-06-24)
 
-1. `multiselect` vs `tags`: ship both, or just `tags` (freeform) + `select` for v1?
-2. Should guardrail limits be global (env) or per-form (a settings field)?
-3. Date storage: normalize to ISO strings (proposed) or keep raw author input?
-4. CSV export of `repeater` arrays: one flattened column set, or a JSON column?
+1. **Array-of-strings types:** ship **both** `multiselect` (fixed `options`) and `tags` (freeform).
+2. **Guardrails:** **global, via env vars** only (no per-form override in v1). See §5.
+3. **Date storage:** **normalize to canonical ISO** (`date` → `YYYY-MM-DD`, `datetime` → ISO 8601);
+   reject input that isn't a real date. See §4.1.
+4. **CSV export of `repeater`:** **single JSON column** holding the array as a JSON string
+   (not flattened per-index columns). See §6.
