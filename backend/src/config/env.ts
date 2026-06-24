@@ -49,6 +49,13 @@ const EnvSchema = z.object({
 
   // Audit log retention in days — default 90
   AUDIT_LOG_RETENTION_DAYS: z.coerce.number().int().positive().default(90),
+
+  // Public form submission guardrails — abuse protection for nested payloads.
+  // Applied to every POST /api/submit/:slug before validation.
+  FORM_MAX_DEPTH:         z.coerce.number().int().positive().default(3),      // max object/array nesting
+  FORM_MAX_ARRAY_ITEMS:   z.coerce.number().int().positive().default(100),    // max items in any array field
+  FORM_MAX_FIELDS:        z.coerce.number().int().positive().default(200),    // max total fields after flattening
+  FORM_MAX_PAYLOAD_BYTES: z.coerce.number().int().positive().default(102400), // max JSON body size (~100 KB)
 });
 
 function validateEnv(raw: NodeJS.ProcessEnv) {

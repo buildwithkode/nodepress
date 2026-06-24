@@ -4,6 +4,15 @@ import { FormsService } from './forms.service';
 import { ActionsService } from './actions/actions.service';
 import { CaptchaService } from './captcha.service';
 import { FormField, ActionDef } from './types/form-field.types';
+import { validateSubmission, FormLimits } from './submission-validator';
+import { env } from '../config/env';
+
+const FORM_LIMITS: FormLimits = {
+  maxDepth:        env.FORM_MAX_DEPTH,
+  maxArrayItems:   env.FORM_MAX_ARRAY_ITEMS,
+  maxFields:       env.FORM_MAX_FIELDS,
+  maxPayloadBytes: env.FORM_MAX_PAYLOAD_BYTES,
+};
 
 @Injectable()
 export class SubmissionService {
@@ -48,8 +57,10 @@ export class SubmissionService {
       }
     }
 
-    // 4. Validate submission data against the form schema
-    const data = this.validate(fields, rawData);
+    // 4. Validate + coerce submission data against the form schema
+    //    (recursive engine: typed scalars, arrays, nested groups/repeaters,
+    //     declarative rules, and public-endpoint guardrails)
+    const data = validateSubmission(fields, rawData, FORM_LIMITS);
 
     // 5. Persist submission
     const submission = await this.prisma.formSubmission.create({
@@ -66,73 +77,5 @@ export class SubmissionService {
       submissionId: submission.id,
       message: 'Your submission has been received.',
     };
-  }
-
-  // ── Validation ────────────────────────────────────────────────────────────
-
-  private validate(
-    fields: FormField[],
-    raw: Record<string, unknown>,
-  ): Record<string, unknown> {
-    const errors: string[] = [];
-    const clean: Record<string, unknown> = {};
-
-    for (const field of fields) {
-      const value = raw[field.name];
-      const isEmpty = value === undefined || value === null || String(value).trim() === '';
-
-      if (field.required && isEmpty) {
-        errors.push(`"${field.label ?? field.name}" is required`);
-        continue;
-      }
-
-      if (isEmpty) {
-        clean[field.name] = null;
-        continue;
-      }
-
-      clean[field.name] = this.coerce(field, value);
-    }
-
-    if (errors.length > 0) {
-      throw new BadRequestException({ message: 'Validation failed', errors });
-    }
-
-    return clean;
-  }
-
-  private coerce(field: FormField, value: unknown): unknown {
-    const str = String(value).trim();
-
-    switch (field.type) {
-      case 'email':
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)) {
-          throw new BadRequestException(`"${field.label ?? field.name}" must be a valid email address`);
-        }
-        return str.toLowerCase();
-
-      case 'number': {
-        const n = Number(value);
-        if (isNaN(n)) {
-          throw new BadRequestException(`"${field.label ?? field.name}" must be a number`);
-        }
-        return n;
-      }
-
-      case 'checkbox':
-        return value === true || value === 'true' || value === 1 || value === '1';
-
-      case 'select':
-      case 'radio':
-        if (field.options && !field.options.includes(str)) {
-          throw new BadRequestException(
-            `"${field.label ?? field.name}" must be one of: ${field.options.join(', ')}`,
-          );
-        }
-        return str;
-
-      default:
-        return str;
-    }
   }
 }

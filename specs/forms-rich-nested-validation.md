@@ -200,10 +200,13 @@ Enforced before/within validation. Configured globally via env vars (no per-form
 
 ## 7. Phasing
 
-- **Phase 1 — Engine + schema (backend).** Evolve `FormField`, write recursive
-  validate/coerce, guardrails, error paths, normalizer for legacy `required`.
-  Unit tests against the §2 payload (happy path + each rule + each guardrail).
-  *Outcome:* a form defined via API/seed validates the full nested payload.
+- **Phase 1 — Engine + schema (backend). ✅ DONE.** Evolved `FormField`
+  (`form-field.types.ts`), recursive validate/coerce engine (`submission-validator.ts`)
+  wired into `submission.service.ts`, env guardrails (`FORM_MAX_*` in `config/env.ts` +
+  `.env.example`), dot/[i] error paths, legacy `required` + `checkbox` back-compat.
+  18 unit tests in `submission-validator.spec.ts` cover the §2 payload, every rule,
+  and every guardrail. *Outcome:* a form defined via API/seed validates the full
+  nested payload at `POST /api/submit/:slug`.
 - **Phase 2 — Builder UI (admin).** New types + nested editor + validation panel.
 - **Phase 3 — Ripples.** Email templating, submissions viewer, CSV export.
 
