@@ -708,6 +708,20 @@ export default function EditContentTypePage() {
                   </div>
                 </SortableContext>
               </DndContext>
+
+              {/* Bottom controls — duplicate of the header buttons */}
+              <div className="flex items-center justify-end gap-2 mt-3">
+                <Button
+                  variant={reorderMode ? 'secondary' : 'outline'}
+                  onClick={() => setReorderMode((v) => !v)}
+                >
+                  <ArrowUpDown className="h-4 w-4 mr-1.5" />
+                  {reorderMode ? 'Done' : 'Reorder'}
+                </Button>
+                <Button variant="outline" onClick={addField} disabled={reorderMode}>
+                  <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                </Button>
+              </div>
             </div>
           </form>
           </div>
