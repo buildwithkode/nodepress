@@ -114,10 +114,10 @@ export default async function EntryListPage({
         <p className="text-xs text-gray-500 m-0">
           <strong>API endpoint:</strong>{' '}
           <code className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs">
-            GET {BACKEND}/api/{params.type}
+            GET {BACKEND}/api/{params.type.replace(/_/g, '-')}
           </code>
           {' · '}
-          <Link href={`/api/${params.type}`} className="text-blue-500 text-xs hover:underline">
+          <Link href={`/api/${params.type.replace(/_/g, '-')}`} className="text-blue-500 text-xs hover:underline">
             View JSON ↗
           </Link>
         </p>
