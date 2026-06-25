@@ -178,21 +178,21 @@ const FIELD_TYPES = [
 
 // ─── Form field types ─────────────────────────────────────────────────────────
 const FORM_FIELD_TYPES = [
-  { type: 'text',        label: 'Text',        color: 'bg-blue-500/10 text-blue-400',     desc: 'Single-line text input. Good for names, subjects, short answers.' },
-  { type: 'textarea',    label: 'Textarea',    color: 'bg-purple-500/10 text-purple-400', desc: 'Multi-line text. Good for messages, comments, longer answers.' },
-  { type: 'number',      label: 'Number',      color: 'bg-orange-500/10 text-orange-400', desc: 'Numeric value — integer or decimal. Validated to be a number.' },
-  { type: 'email',       label: 'Email',       color: 'bg-cyan-500/10 text-cyan-400',     desc: 'Email address input. Validated server-side — must be a valid address.' },
-  { type: 'url',         label: 'URL',         color: 'bg-sky-500/10 text-sky-400',       desc: 'Web address. Validated to be a well-formed URL.' },
-  { type: 'phone',       label: 'Phone',       color: 'bg-teal-500/10 text-teal-400',     desc: 'Phone number. Validated against a default or custom pattern.' },
-  { type: 'date',        label: 'Date',        color: 'bg-amber-500/10 text-amber-400',   desc: 'Calendar date. Stored normalized as YYYY-MM-DD.' },
-  { type: 'datetime',    label: 'Date & Time', color: 'bg-amber-500/10 text-amber-400',   desc: 'Date with time. Stored normalized as ISO 8601.' },
-  { type: 'boolean',     label: 'Boolean',     color: 'bg-green-500/10 text-green-400',   desc: 'Yes/No toggle. Good for consent, terms agreement.' },
-  { type: 'select',      label: 'Select',      color: 'bg-yellow-500/10 text-yellow-400', desc: 'Dropdown — pick one from a predefined list. Options set in admin.' },
-  { type: 'radio',       label: 'Radio',       color: 'bg-pink-500/10 text-pink-400',     desc: 'Radio buttons — pick one option. Options set in admin.' },
-  { type: 'multiselect', label: 'Multi-select',color: 'bg-yellow-500/10 text-yellow-400', desc: 'Pick many from a predefined list. Stored as an array.' },
-  { type: 'tags',        label: 'Tags',        color: 'bg-lime-500/10 text-lime-400',     desc: 'Freeform array of strings — user adds their own values.' },
-  { type: 'group',       label: 'Group',       color: 'bg-indigo-500/10 text-indigo-400', desc: 'Nested object — bundle related sub-fields together.' },
-  { type: 'repeater',    label: 'Repeater',    color: 'bg-violet-500/10 text-violet-400', desc: 'Repeatable list of objects (array-of-objects) with shared sub-fields.' },
+  { type: 'text',        label: 'Text',        color: 'bg-blue-500/10 text-blue-400',     desc: 'Single-line text input. Good for names, subjects, short answers.',          example: '"Acme Inc"' },
+  { type: 'textarea',    label: 'Textarea',    color: 'bg-purple-500/10 text-purple-400', desc: 'Multi-line text. Good for messages, comments, longer answers.',             example: '"Line one\\nLine two"' },
+  { type: 'number',      label: 'Number',      color: 'bg-orange-500/10 text-orange-400', desc: 'Numeric value — integer or decimal. Validated to be a number.',             example: '42' },
+  { type: 'email',       label: 'Email',       color: 'bg-cyan-500/10 text-cyan-400',     desc: 'Email address input. Validated server-side — must be a valid address.',     example: '"jane@example.com"' },
+  { type: 'url',         label: 'URL',         color: 'bg-sky-500/10 text-sky-400',       desc: 'Web address. Validated to be a well-formed URL.',                           example: '"https://example.com"' },
+  { type: 'phone',       label: 'Phone',       color: 'bg-teal-500/10 text-teal-400',     desc: 'Phone number. Validated against a default or custom pattern.',              example: '"+1 555 123 4567"' },
+  { type: 'date',        label: 'Date',        color: 'bg-amber-500/10 text-amber-400',   desc: 'Calendar date. Stored normalized as YYYY-MM-DD.',                           example: '"2026-06-25"' },
+  { type: 'datetime',    label: 'Date & Time', color: 'bg-amber-500/10 text-amber-400',   desc: 'Date with time. Stored normalized as ISO 8601.',                            example: '"2026-06-25T14:30:00Z"' },
+  { type: 'boolean',     label: 'Boolean',     color: 'bg-green-500/10 text-green-400',   desc: 'Yes/No toggle. Good for consent, terms agreement.',                         example: 'true' },
+  { type: 'select',      label: 'Select',      color: 'bg-yellow-500/10 text-yellow-400', desc: 'Dropdown — pick one from a predefined list. Options set in admin.',         example: '"premium"' },
+  { type: 'radio',       label: 'Radio',       color: 'bg-pink-500/10 text-pink-400',     desc: 'Radio buttons — pick one option. Options set in admin.',                    example: '"yes"' },
+  { type: 'multiselect', label: 'Multi-select',color: 'bg-yellow-500/10 text-yellow-400', desc: 'Pick many from a predefined list. Stored as an array.',                     example: '["sms", "email"]' },
+  { type: 'tags',        label: 'Tags',        color: 'bg-lime-500/10 text-lime-400',     desc: 'Freeform array of strings — user adds their own values.',                   example: '["urgent", "vip"]' },
+  { type: 'group',       label: 'Group',       color: 'bg-indigo-500/10 text-indigo-400', desc: 'Nested object — bundle related sub-fields together.',                       example: '{ "city": "Pune", "pincode": "411001" }' },
+  { type: 'repeater',    label: 'Repeater',    color: 'bg-violet-500/10 text-violet-400', desc: 'Repeatable list of objects (array-of-objects) with shared sub-fields.',     example: '[{ "url": "https://…", "type": "pdf" }]' },
 ];
 
 // ─── TOC ─────────────────────────────────────────────────────────────────────
@@ -1760,15 +1760,19 @@ X-RateLimit-Reset: 60       # seconds until window resets
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Type</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Description</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Example value</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {FORM_FIELD_TYPES.map(({ type, label, color, desc }) => (
+                  {FORM_FIELD_TYPES.map(({ type, label, color, desc, example }) => (
                     <tr key={type}>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap align-top">
                         <span className={cn('inline-flex px-2 py-0.5 rounded text-xs font-medium', color)}>{label}</span>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs leading-relaxed">{desc}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs leading-relaxed align-top">{desc}</td>
+                      <td className="px-4 py-3 align-top">
+                        <IC>{example}</IC>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
