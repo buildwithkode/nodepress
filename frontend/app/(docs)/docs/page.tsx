@@ -1678,15 +1678,9 @@ curl -X POST ${baseUrl}/api/media/upload \\
               <IC>contentTypes: ["blog"]</IC> cannot access <IC>/api/product</IC>.
             </p>
 
-            <CodeBlock code={`# Use the key in the X-API-Key header
+            <CodeBlock code={`# Use the key in the X-API-Key header (read example)
 curl ${baseUrl}/api/blog \\
-  -H "X-API-Key: np_your_key_here"
-
-# Or for write operations
-curl -X POST ${baseUrl}/api/blog \\
-  -H "X-API-Key: np_your_key_here" \\
-  -H "Content-Type: application/json" \\
-  -d '{"slug":"new-post","data":{"title":"Hello"}}'`} />
+  -H "X-API-Key: np_your_key_here"`} />
 
             <h3 className="font-semibold mb-3 mt-8">Changing data with an API key — step by step</h3>
             <p className="text-muted-foreground text-sm mb-3">
