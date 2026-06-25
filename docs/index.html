@@ -551,6 +551,42 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
         </div>
         <div class="code-block" data-code="curl https://your-domain.com/api/blog \
   -H 'X-API-Key: np_your_key_here'"></div>
+
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mt-6">
+          <p class="text-amber-400 font-medium mb-2">⚠ Keep write keys server-side</p>
+          <p class="text-zinc-400">A <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">write</code>/<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> key can modify your content, so it must <strong class="text-zinc-200">never ship to the browser</strong>. Don't put it in client-side JavaScript or a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">NEXT_PUBLIC_</code> variable — anything in the browser is readable by every visitor.</p>
+          <p class="text-zinc-400 mt-2">To write from a public website, proxy through your own server: the browser calls <em>your</em> route, and your route (holding the key in a server-only env var) forwards the write to NodePress. The API key bypasses role checks, so your route is the gatekeeper — validate and authorize before forwarding.</p>
+        </div>
+
+        <h3 class="font-semibold text-white mt-6 mb-2">Browser → your server → NodePress</h3>
+        <p class="text-sm text-zinc-400 mb-3">Example using a Next.js route handler — the key stays on the server, the browser never sees it:</p>
+        <div class="code-block" data-code="// .env  (server-only — never NEXT_PUBLIC_)
+// NODEPRESS_API_KEY=np_your_write_key
+// BACKEND_URL=https://your-domain.com
+
+// app/api/comments/route.ts  — runs on the server
+export async function POST(req) {
+  const body = await req.json();
+  // validate / authorize the request here before trusting it
+
+  const res = await fetch(`${process.env.BACKEND_URL}/api/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': process.env.NODEPRESS_API_KEY,   // secret stays on the server
+    },
+    body: JSON.stringify({ slug: body.slug, data: body.data }),
+  });
+  return Response.json(await res.json(), { status: res.status });
+}
+
+// client-side — no token anywhere:
+await fetch('/api/comments', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ slug: 'hello', data: { author: 'Jane', text: 'Nice!' } }),
+});"></div>
+        <p class="text-sm text-zinc-400 mt-3">For visitor-generated content (comments, contact, reviews), prefer the public <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST /api/submit/:slug</code> Forms endpoint — it needs no key and has rate limiting, honeypot, and optional captcha built in.</p>
       </section>
 
       <!-- Forms -->
