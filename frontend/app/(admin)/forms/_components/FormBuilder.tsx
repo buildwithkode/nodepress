@@ -221,26 +221,12 @@ export default function FormBuilder({
 
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <CardTitle>{mode === 'new' ? 'New Form' : 'Edit Form'}</CardTitle>
-              <CardDescription>
-                {mode === 'new'
-                  ? 'Define your form fields and configure notification actions.'
-                  : 'Update form settings, fields, and actions.'}
-              </CardDescription>
-            </div>
-            <Button
-              type="button"
-              variant={jsonOpen ? 'secondary' : 'outline'}
-              size="sm"
-              className="h-7 gap-1.5 text-xs shrink-0"
-              onClick={() => setJsonOpen((v) => !v)}
-            >
-              <PanelRight className="h-3.5 w-3.5" />
-              {jsonOpen ? 'Hide payload' : 'Show payload'}
-            </Button>
-          </div>
+          <CardTitle>{mode === 'new' ? 'New Form' : 'Edit Form'}</CardTitle>
+          <CardDescription>
+            {mode === 'new'
+              ? 'Define your form fields and configure notification actions.'
+              : 'Update form settings, fields, and actions.'}
+          </CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -330,9 +316,22 @@ export default function FormBuilder({
                       Define the inputs users will fill in. Use Group / Repeater for nested data.
                     </p>
                   </div>
-                  <Button type="button" variant="outline" size="sm" onClick={addField}>
-                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {!jsonOpen && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setJsonOpen(true)}
+                      >
+                        <PanelRight className="h-3.5 w-3.5" /> Show payload
+                      </Button>
+                    )}
+                    <Button type="button" variant="outline" size="sm" onClick={addField}>
+                      <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                    </Button>
+                  </div>
                 </div>
                 {fields.map((field, fi) => (
                   <FieldEditor
@@ -485,6 +484,18 @@ export default function FormBuilder({
           {jsonOpen && (
             <div style={{ width: '40%' }} className="min-w-0 border-l border-border">
               <div className="sticky top-4 px-4 py-4 space-y-3">
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1.5 text-xs"
+                    onClick={() => setJsonOpen(false)}
+                  >
+                    <PanelRight className="h-3.5 w-3.5" />
+                    Hide payload
+                  </Button>
+                </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Braces className="h-3.5 w-3.5 text-muted-foreground" />
