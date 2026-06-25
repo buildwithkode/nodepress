@@ -86,7 +86,7 @@ export default function BrandPage() {
 
   return (
     <AdminGuard>
-      <div className="max-w-3xl space-y-6">
+      <div className="w-full space-y-6">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Palette className="h-5 w-5" /> Brand
@@ -97,6 +97,7 @@ export default function BrandPage() {
           </p>
         </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <Card>
           <CardHeader>
             <CardTitle>Identity</CardTitle>
@@ -246,6 +247,7 @@ export default function BrandPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
 
         <AlertDialog>
           <AlertDialogTrigger render={<Button disabled={saving || !dirty} />}>
