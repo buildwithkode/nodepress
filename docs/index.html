@@ -552,6 +552,35 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
         <div class="code-block" data-code="curl https://your-domain.com/api/blog \
   -H 'X-API-Key: np_your_key_here'"></div>
 
+        <h3 class="font-semibold text-white mt-8 mb-2">Changing data with an API key — step by step</h3>
+        <p class="text-sm text-zinc-400 mb-3">Create the key <strong class="text-zinc-200">once</strong> (admin), then every change uses only the <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-API-Key</code> header — no login. Content-type URLs use hyphens (a name like <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blog_posts</code> is reached at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/blog-posts</code>).</p>
+        <ol class="text-sm text-zinc-400 space-y-1.5 mb-4 list-decimal pl-5">
+          <li><strong class="text-zinc-200">Create a key</strong> in <strong class="text-zinc-200">Developer → API Keys</strong> (admin only): access <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">write</code> (POST/PUT) or <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> (also DELETE), scoped to your content type. The <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">np_…</code> key shows once — copy it into your server's env.</li>
+          <li><strong class="text-zinc-200">Create</strong> — <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST /api/&lt;type&gt;</code> with a top-level <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">slug</code> and a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">data</code> object.</li>
+          <li><strong class="text-zinc-200">Update</strong> — <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">PUT /api/&lt;type&gt;/&lt;slug&gt;</code> — slug in the URL, body has only <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">data</code>.</li>
+          <li><strong class="text-zinc-200">Read back</strong> — <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/&lt;type&gt;/&lt;slug&gt;</code> — public, no key.</li>
+          <li><strong class="text-zinc-200">Delete</strong> — <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">DELETE /api/&lt;type&gt;/&lt;slug&gt;</code> — requires an <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> key.</li>
+        </ol>
+        <div class="code-block" data-code="# 2. CREATE — POST /api/<type>
+curl -X POST https://your-domain.com/api/blog \
+  -H 'X-API-Key: np_your_key_here' \
+  -H 'Content-Type: application/json' \
+  -d '{&quot;slug&quot;:&quot;my-post&quot;,&quot;data&quot;:{&quot;title&quot;:&quot;Hello&quot;,&quot;body&quot;:&quot;World&quot;}}'
+
+# 3. UPDATE — PUT /api/<type>/<slug>  (slug in URL, data only in body)
+curl -X PUT https://your-domain.com/api/blog/my-post \
+  -H 'X-API-Key: np_your_key_here' \
+  -H 'Content-Type: application/json' \
+  -d '{&quot;data&quot;:{&quot;title&quot;:&quot;Hello (edited)&quot;}}'
+
+# 4. READ BACK — GET (public, no key)
+curl https://your-domain.com/api/blog/my-post
+
+# 5. DELETE — needs an 'all' key
+curl -X DELETE https://your-domain.com/api/blog/my-post \
+  -H 'X-API-Key: np_your_key_here'"></div>
+        <p class="text-sm text-zinc-400 mt-3">A <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">401</code> means the key is missing or mistyped; a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">403</code> means the key is valid but not allowed (wrong access level, or not scoped to that content type).</p>
+
         <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mt-6">
           <p class="text-amber-400 font-medium mb-2">⚠ Keep write keys server-side</p>
           <p class="text-zinc-400">A <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">write</code>/<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> key can modify your content, so it must <strong class="text-zinc-200">never ship to the browser</strong>. Don't put it in client-side JavaScript or a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">NEXT_PUBLIC_</code> variable — anything in the browser is readable by every visitor.</p>

@@ -1688,6 +1688,49 @@ curl -X POST ${baseUrl}/api/blog \\
   -H "Content-Type: application/json" \\
   -d '{"slug":"new-post","data":{"title":"Hello"}}'`} />
 
+            <h3 className="font-semibold mb-3 mt-8">Changing data with an API key — step by step</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Create the key <strong className="text-foreground">once</strong> (admin), then every change uses
+              only the <IC>X-API-Key</IC> header — no login. The content type below is shown with hyphens
+              (<IC>/api/blog</IC>); a name like <IC>blog_posts</IC> is reached at <IC>/api/blog-posts</IC>.
+            </p>
+            <div className="rounded-xl border border-border p-5 mb-4 bg-muted/20 space-y-2 text-sm">
+              {[
+                ['1. Create a key', <>In <strong className="text-foreground">Developer → API Keys</strong> (admin only), make a key with access <IC>write</IC> (POST/PUT) or <IC>all</IC> (also DELETE), scoped to your content type. The <IC>np_…</IC> key shows once — copy it into your server\'s env.</>],
+                ['2. Create data', <><IC>POST /api/&lt;type&gt;</IC> with a top-level <IC>slug</IC> and a <IC>data</IC> object.</>],
+                ['3. Update data', <><IC>PUT /api/&lt;type&gt;/&lt;slug&gt;</IC> — the slug is in the URL, the body has only <IC>data</IC>.</>],
+                ['4. Read back', <><IC>GET /api/&lt;type&gt;/&lt;slug&gt;</IC> — public, needs no key.</>],
+                ['5. Delete data', <><IC>DELETE /api/&lt;type&gt;/&lt;slug&gt;</IC> — requires an <IC>all</IC> key.</>],
+              ].map(([step, desc], i) => (
+                <div key={i} className="flex gap-3">
+                  <span className="font-medium text-foreground w-28 shrink-0">{step}</span>
+                  <span className="text-muted-foreground">{desc}</span>
+                </div>
+              ))}
+            </div>
+            <CodeBlock code={`# 2. CREATE — POST /api/<type>
+curl -X POST ${baseUrl}/api/blog \\
+  -H "X-API-Key: np_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{"slug":"my-post","data":{"title":"Hello","body":"World"}}'
+
+# 3. UPDATE — PUT /api/<type>/<slug>  (slug in URL, data only in body)
+curl -X PUT ${baseUrl}/api/blog/my-post \\
+  -H "X-API-Key: np_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{"data":{"title":"Hello (edited)"}}'
+
+# 4. READ BACK — GET (public, no key)
+curl ${baseUrl}/api/blog/my-post
+
+# 5. DELETE — needs an "all" key
+curl -X DELETE ${baseUrl}/api/blog/my-post \\
+  -H "X-API-Key: np_your_key_here"`} />
+            <p className="text-muted-foreground text-sm mt-3 mb-2">
+              A <IC>401</IC> means the key is missing or mistyped; a <IC>403</IC> means the key is valid but
+              not allowed (wrong access level, or not scoped to that content type).
+            </p>
+
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mt-6 mb-6 text-sm">
               <strong className="text-amber-400">Keep write keys server-side</strong>
               <p className="text-muted-foreground mt-1">
