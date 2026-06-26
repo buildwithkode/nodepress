@@ -344,11 +344,13 @@ export default function FormBuilder({
                     innerRef={fi === fields.length - 1 ? lastFieldRef : undefined}
                   />
                 ))}
-                <div className="flex justify-end pt-1">
-                  <Button type="button" variant="outline" size="sm" onClick={addField}>
-                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
-                  </Button>
-                </div>
+                {fields.length >= 4 && (
+                  <div className="flex justify-end pt-1">
+                    <Button type="button" variant="outline" size="sm" onClick={addField}>
+                      <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Actions */}

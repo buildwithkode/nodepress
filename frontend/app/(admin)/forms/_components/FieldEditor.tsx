@@ -207,7 +207,7 @@ export default function FieldEditor({ field, depth, canRemove, onChange, onRemov
 
       {/* Nested sub-fields (group / repeater) */}
       {NESTED_TYPES.includes(field.type) && (
-        <div className="space-y-2 border-l-2 border-border/60 pl-3 ml-1">
+        <div className="space-y-2 border-l-2 border-orange-400 pl-3 ml-1">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
             {field.type === 'repeater' ? 'Item fields (repeats)' : 'Sub-fields'}
           </p>

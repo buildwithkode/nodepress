@@ -473,6 +473,16 @@ export default function NewContentTypePage() {
                   </div>
                 ))}
               </div>
+
+              {/* Bottom control — duplicate of the header button, only once
+                  the list is long enough that the header has scrolled away */}
+              {fields.length >= 4 && (
+                <div className="flex items-center justify-end mt-3">
+                  <Button variant="outline" onClick={addField}>
+                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                  </Button>
+                </div>
+              )}
             </div>
           </form>
           </div>
