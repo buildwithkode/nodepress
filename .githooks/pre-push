@@ -2,10 +2,15 @@
 #
 # NodePress pre-push gate.
 #
-# GitHub Actions is disabled on this account, so this local hook is the
-# automated check that runs before code leaves a machine: it type-checks both
-# workspaces and runs the backend unit tests. e2e tests need a real Postgres,
-# so they stay in CI / validate.sh — not here.
+# GitHub Actions is disabled on this account (no run has executed since
+# 2026-03-25), so this local hook is the only automated check that runs before
+# code leaves a machine. It type-checks both workspaces, runs the backend unit
+# tests, audits production dependencies, and verifies version consistency.
+#
+# Not here, because both need a real Postgres: the e2e suite and the runtime
+# smoke test. Run those with `./scripts/validate.sh --no-scaffold --smoke`
+# before publishing — the smoke layer is what catches an app that builds and
+# type-checks but dies on boot.
 #
 # Wired up automatically by the root `prepare` script (sets core.hooksPath).
 # Skip in an emergency with `git push --no-verify`.
@@ -31,4 +36,14 @@ echo "[pre-push] backend unit tests…"
   NODE_ENV="test" \
   npm test --silent )
 
-echo "[pre-push] ✓ type-checks + unit tests passed"
+echo "[pre-push] production dependency audit…"
+# Runtime deps only. A critical tar RCE and 17 highs sat on main for months
+# because nothing checked; dev-only advisories are noise for a self-hosted CMS.
+( cd "$ROOT/backend" && npm audit --omit=dev --audit-level=high )
+
+echo "[pre-push] version consistency…"
+# Catches manifests disagreeing, a version listed twice in CHANGELOG.md, or
+# entries out of order — how 1.3.0 shipped twice, after 1.4.0 and 1.5.0.
+node "$ROOT/scripts/check-versions.js"
+
+echo "[pre-push] ✓ type-checks · unit tests · audit · versions passed"
