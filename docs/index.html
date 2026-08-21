@@ -229,6 +229,20 @@ git --version  # any version?   → skip Step 2"></div>
               <strong class="text-zinc-200">Didn't set a password?</strong> Try leaving it out:<br/>
               <code class="text-pink-400">DATABASE_URL="postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE"</code>
             </div>
+            <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm">
+              <p class="text-emerald-400 font-medium mb-2">Using Supabase or another hosted PostgreSQL?</p>
+              <p class="text-zinc-400 text-xs mb-2">No code changes needed. In Supabase open <strong>Connect</strong> and take <em>two different</em> strings — which one goes where matters:</p>
+              <div class="code-block" data-code='DATABASE_URL="postgresql://postgres.&lt;ref&gt;:&lt;PASSWORD&gt;@aws-0-&lt;region&gt;.pooler.supabase.com:6543/postgres?pgbouncer=true&amp;connection_limit=1"
+DIRECT_URL="postgresql://postgres.&lt;ref&gt;:&lt;PASSWORD&gt;@aws-0-&lt;region&gt;.pooler.supabase.com:5432/postgres"'></div>
+              <p class="text-zinc-400 text-xs mt-2"><strong class="text-zinc-200">Transaction pooler</strong> (port 6543) is for runtime queries; <strong class="text-zinc-200">Session pooler</strong> (port 5432) is for migrations, because DDL can't run through a transaction pooler.</p>
+              <ul class="list-disc list-inside text-zinc-400 text-xs mt-2 space-y-1">
+                <li>Do <strong class="text-zinc-200">not</strong> use the "Direct connection" string (<code class="text-pink-400 bg-zinc-800 px-1 rounded">db.&lt;ref&gt;.supabase.co</code>). It is IPv6-only unless you have the IPv4 add-on, so on most networks it fails with <code class="text-pink-400 bg-zinc-800 px-1 rounded">P1001: Can't reach database server</code> — which looks like an outage but is really an unroutable address. Check with <code class="text-pink-400 bg-zinc-800 px-1 rounded">dig +short A db.&lt;ref&gt;.supabase.co</code>; no output means IPv6-only.</li>
+                <li>Keep <code class="text-pink-400 bg-zinc-800 px-1 rounded">?pgbouncer=true&amp;connection_limit=1</code> on <code class="text-pink-400 bg-zinc-800 px-1 rounded">DATABASE_URL</code>, or Prisma intermittently throws <code class="text-pink-400 bg-zinc-800 px-1 rounded">prepared statement "s0" already exists</code> under load.</li>
+                <li>In Step 6 run <code class="text-pink-400 bg-zinc-800 px-1 rounded">npx prisma migrate deploy</code> instead of <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run migrate</code> — the latter needs a shadow database the pooler user can't create.</li>
+                <li>Percent-encode special characters in the password (<code class="text-pink-400 bg-zinc-800 px-1 rounded">@</code> becomes <code class="text-pink-400 bg-zinc-800 px-1 rounded">%40</code>) or the URL won't parse.</li>
+              </ul>
+              <p class="text-zinc-400 text-xs mt-2">Steps 3 and 4 (installing PostgreSQL locally) can be skipped entirely — there's no local database to start after a reboot.</p>
+            </div>
           </div>
         </div>
 

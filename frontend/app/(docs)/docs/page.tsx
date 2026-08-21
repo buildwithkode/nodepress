@@ -451,6 +451,28 @@ git --version  # any version?   → skip Step 2`} />
                   <strong className="text-foreground">Didn't set a password?</strong> If you clicked through the PostgreSQL installer without setting a password, try leaving it out entirely:<br />
                   <IC>DATABASE_URL="postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE"</IC>
                 </div>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm">
+                  <strong className="text-emerald-400">Using Supabase or another hosted PostgreSQL?</strong>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    No code changes needed. In Supabase open <strong className="text-foreground">Connect</strong> and take <em>two different</em> strings — which one goes where matters. The <strong className="text-foreground">Transaction pooler</strong> (port 6543) handles runtime queries; the <strong className="text-foreground">Session pooler</strong> (port 5432) is for migrations, because DDL cannot run through a transaction pooler.
+                  </p>
+                  <CodeBlock code={`DATABASE_URL="postgresql://postgres.<ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres.<ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres"`} />
+                  <ul className="list-disc list-inside text-muted-foreground text-xs mt-2 space-y-1">
+                    <li>
+                      Do <strong className="text-foreground">not</strong> use the &quot;Direct connection&quot; string (<IC>{'db.<ref>.supabase.co'}</IC>). It is IPv6-only unless you have the IPv4 add-on, so on most networks it fails with <IC>P1001: Can&apos;t reach database server</IC> — which looks like an outage but is really an unroutable address. Check with <IC>{'dig +short A db.<ref>.supabase.co'}</IC>; no output means IPv6-only.
+                    </li>
+                    <li>
+                      Keep <IC>?pgbouncer=true&amp;connection_limit=1</IC> on <IC>DATABASE_URL</IC>, or Prisma intermittently throws <IC>prepared statement &quot;s0&quot; already exists</IC> under load.
+                    </li>
+                    <li>
+                      Percent-encode special characters in the password (<IC>@</IC> becomes <IC>%40</IC>) or the URL will not parse.
+                    </li>
+                  </ul>
+                  <p className="text-muted-foreground mt-2 text-xs">
+                    Steps 3 and 4 (installing PostgreSQL locally) can be skipped entirely — there is no local database to start after a reboot.
+                  </p>
+                </div>
               </div>
             </div>
 
