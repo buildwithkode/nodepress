@@ -158,3 +158,84 @@ jobs:
 
       - name: Version check
         run: node cli/bin/nodepress.js --version
+
+  # ── Repo hygiene ───────────────────────────────────────────────────────────
+  # Two classes of problem that no test catches and no diff makes obvious:
+  # a vulnerable production dependency, and the repo disagreeing with itself
+  # about its own version. Both reached `main` before and sat there for months.
+  hygiene:
+    name: Hygiene (prod audit · version consistency)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      # Runtime dependencies only — dev-only advisories are noise for a CMS
+      # people self-host. Fails the build on high or critical.
+      - name: Production dependency audit
+        working-directory: backend
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Version consistency
+        run: node scripts/check-versions.js
+
+  # ── Runtime smoke ──────────────────────────────────────────────────────────
+  # Boots the built backend against a real database and exercises the API.
+  # Unit tests and tsc both pass over an application that cannot start — that
+  # happened on the NestJS 11 upgrade, where a missing Apollo/Express 5 adapter
+  # killed the app during bootstrap while all 245 tests stayed green.
+  smoke:
+    name: Runtime smoke (boots the app, hits the real API)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER:     postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB:       nodepress_smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/nodepress_smoke
+      DIRECT_URL:   postgresql://postgres:testpassword@localhost:5432/nodepress_smoke
+      SMOKE_PORT:   "3999"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      # --no-scaffold skips the CLI/GitHub-clone layer (slow, network-bound and
+      # already covered by the cli job); --smoke runs the build + runtime layers.
+      - name: Build and smoke test
+        run: ./scripts/validate.sh --no-scaffold --smoke
+
+      - name: Backend log on failure
+        if: failure()
+        run: cat /tmp/np-validate-be.log || true
