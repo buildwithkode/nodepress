@@ -195,6 +195,38 @@ npm run migrate           # creates all DB tables
 npm run dev               # backend :3000 + admin panel :5173 (one command)
 ```
 
+### Option B2 — Supabase (or any hosted PostgreSQL)
+
+Works with no code changes: `prisma/schema.prisma` already declares both a pooled `url` and a `directUrl`, which is exactly the split Supabase needs.
+
+In your Supabase project open **Connect**. You'll see several connection strings — **which one goes where matters**:
+
+| Supabase mode | Port | Goes in | Used for |
+|---|---|---|---|
+| **Transaction pooler** | 6543 | `DATABASE_URL` | Runtime queries (PgBouncer-pooled) |
+| **Session pooler** | 5432 | `DIRECT_URL` | Migrations (DDL can't run through a transaction pooler) |
+
+```env
+DATABASE_URL="postgresql://postgres.<ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres.<ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres"
+```
+
+Then create the tables — note this is **not** `npm run migrate`:
+
+```bash
+cd backend && npx prisma migrate deploy
+```
+
+Three things that will bite you otherwise:
+
+- **Don't use the "Direct connection" string** (`db.<ref>.supabase.co`). It is IPv6-only unless you've bought the IPv4 add-on, so on most home and office networks it fails with `P1001: Can't reach database server` — which reads like Supabase is down when it's actually unroutable from your machine. Use the **Session pooler** for `DIRECT_URL` instead; it's the same database over IPv4. To check: `dig +short A db.<ref>.supabase.co` returning nothing means IPv6-only.
+- **Keep `?pgbouncer=true&connection_limit=1` on `DATABASE_URL`.** Without it Prisma eventually throws `prepared statement "s0" already exists`, and only under concurrency — so it looks intermittent and unrelated to configuration.
+- **Use `npx prisma migrate deploy`, not `npm run migrate`.** That script runs `prisma migrate dev`, which wants a shadow database and `CREATE DATABASE` rights the pooler user doesn't have. `migrate dev` is for *authoring* new migrations locally; `migrate deploy` applies existing ones.
+
+If your password contains characters like `@`, `:` or `/`, percent-encode them (`@` becomes `%40`) or the URL won't parse.
+
+Everything else — `JWT_SECRET`, `CORS_ORIGIN`, `PORT` — is unchanged. Since there's no local database daemon, nothing needs starting after a reboot.
+
 ### Optional flags
 
 | Flag | Effect |

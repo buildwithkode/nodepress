@@ -28,12 +28,16 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **Form builder nested sub-fields get an orange accent border** — the recursive sub-field group in the form builder now uses the same orange left border as the content-type repeater/group editors, so nested structures are visually consistent across the two builders.
 
 ### Fixed
+- **Version numbers now agree across the repo** — `package.json`, `backend/`, and `frontend/` all said `1.0.0` while `cli/` said `1.3.0`, and the changelog listed `1.3.0` twice: once on 2026-04-19 and again on 2026-06-04, the latter *after* 1.4.0 and 1.5.0 had already shipped. So the June release went backwards and reused a version number, and nothing in the repo agreed on what the current version was. The June entry is renumbered **1.6.0** (every version now appears once, in descending order) and all four manifests are set to `1.6.0`. Published artifacts are left alone — npm still has `create-nodepress-app@1.3.0` and the `v1.3.0` tag still exists — with a note in the 1.6.0 entry recording the discrepancy. Versioning resumes from 1.6.0.
+
 - **GraphQL crashed the backend on boot under NestJS 11** — `@nestjs/apollo@13` on Express 5 needs `@as-integrations/express5`, which was not installed; the app logged `The "@as-integrations/express5" package is missing` and exited before `Nest application successfully started`. Type-checking and the unit suite both passed regardless, so this was only reachable by actually booting the app. Added the adapter, plus `overrides` pinning `@apollo/server` to ^5 and `express` to ^5 in **both** the workspace root and `backend/package.json` — the legacy `@apollo/server-plugin-landing-page-graphql-playground` (a dependency of `@nestjs/apollo`, used by `playground: true`) drags in Apollo Server 4 and Express 4, which npm hoists to the root where they shadow the v5 packages the backend requires. The backend needs the override in its own manifest too, because CI and Docker install it standalone rather than through the workspace.
 
 - **`sitemap.xml` listed `noIndex` entries** — entries flagged "exclude from search engines" (`seo.noIndex`) were still included in the auto-generated sitemap, contradicting the setting and submitting them to crawlers anyway. They're now filtered out (published, non-noindex entries only).
 - **`?populate=` returned the raw (un-populated) entry after a normal read** — the public dynamic API cached single entries and lists under a key that ignored `populate`/`fields`, and read from that cache *before* checking for `populate`. So a plain `GET /api/blog/x` cached the raw entry, and a subsequent `GET /api/blog/x?populate=author` got the cached raw copy (relation left as a UUID). The `list` endpoint also only excluded `fields` (not `populate`) from caching. Fixed by skipping the cache read **and** write whenever `populate` or `fields` is present (matches the documented "caching is bypassed when populating" behaviour) in both `findOne` and `findAll`. `validate.sh` now seeds the cache with a raw read, then asserts `?populate` still resolves the relation.
 
 ### Docs
+- **Documented running against Supabase or another hosted PostgreSQL** — no code changes are needed (`schema.prisma` already declares both `url` and `directUrl`), but the setup has three non-obvious traps. Supabase's **Direct connection** host (`db.<ref>.supabase.co`) is IPv6-only without the IPv4 add-on, so it fails with `P1001: Can't reach database server` on most networks and looks like an outage rather than an unroutable address — the **Session pooler** is the IPv4 path for `DIRECT_URL`. `DATABASE_URL` needs `?pgbouncer=true&connection_limit=1` or Prisma throws `prepared statement "s0" already exists` intermittently under load. And `npm run migrate` (`prisma migrate dev`) can't work through the pooler because it needs a shadow database — `npx prisma migrate deploy` is the correct command. Added as **Option B2** under Installation.
+
 - **Documented why PostgreSQL doesn't auto-start on macOS Ventura or newer** — macOS Background Task Management gates launch daemons independently of `launchctl`, so a daemon can be enabled, have a valid plist and `RunAtLoad`, and still never start at boot (`disposition=[enabled, disallowed]`). `launchctl bootstrap` masks it, because a manual start isn't gated — so it looks fixed until the next reboot. Added a Troubleshooting entry with the `log show` command that confirms it and the System Settings toggle that actually fixes it, alongside an entry for the `ECONNREFUSED ... port 3000` error that a stopped database produces.
 
 - **Documented the `color`, `date`, `datetime`, and `json` field types on the website** — these four field types are fully supported in the app (content-type builder + entry form renderer) and were already in the in-app `/docs` table, but the public website docs (`docs/index.html`) Field Types table was missing them. Added rows with descriptions and JSON-value examples so the two docs surfaces match the product.
@@ -41,7 +45,12 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ---
 
-## [1.3.0] — 2026-06-04
+## [1.6.0] — 2026-06-04
+
+> Released to npm as `create-nodepress-app@1.3.0` and tagged `v1.3.0`. That number was a
+> mistake — 1.4.0 and 1.5.0 had already shipped, so this release went backwards and reused
+> 1.3.0. It is renumbered 1.6.0 here so the history reads in order; the published artifacts
+> keep their original numbers and are not being rewritten. Versioning resumes from 1.6.0.
 
 ### Added
 - **`--docker` flag for the CLI** — `npx create-nodepress-app <name>` now scaffolds for **local PostgreSQL by default** (Docker files omitted); pass `--docker` to include `docker-compose*.yml`, the `nginx/` + `monitoring/` configs, the root Docker Compose `.env`, and the `docker:*` npm scripts.
