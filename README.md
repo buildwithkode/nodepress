@@ -490,6 +490,18 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
 **"Cannot connect to the server" on login**
 The backend isn't running. In the `backend/` folder run `npm run start:dev`, then check `http://localhost:3000/api/health`.
 
+**`AggregateError [ECONNREFUSED] ... port 3000`, or the login page just fails**
+PostgreSQL isn't running, so the backend exited during startup while the frontend kept going. The error names the *frontend's* port and never mentions the database, which makes it look like a broken login page. `npm run dev` checks for this before starting and tells you which command to run; set `SKIP_DB_CHECK=1` to bypass it.
+
+**PostgreSQL doesn't start automatically after a reboot (macOS Ventura or newer)**
+macOS **Background Task Management** blocks launch daemons independently of `launchctl`, so the daemon can be enabled, have a valid plist and `RunAtLoad`, and still never start at boot. `launchctl bootstrap` appears to fix it because a manual start isn't gated — but the next reboot leaves the database down again.
+
+Confirm it with:
+```bash
+log show --last 1h --predicate 'eventMessage CONTAINS "postgresql"' | grep disposition
+```
+`disposition=[enabled, disallowed, ...]` means Background Task Management is blocking it. `launchctl` cannot override this — fix it in **System Settings → General → Login Items & Extensions → Allow in the Background**, and enable the `postgres` entry (it points at `/Library/LaunchDaemons/postgresql-*.plist`). Then reboot and confirm with `lsof -nP -iTCP:5432 -sTCP:LISTEN`.
+
 **Login fails with correct credentials**
 You may have hit the rate limit (10 attempts/min in production). Restart the backend to clear it. If the problem persists, check `http://localhost:3000/api/auth/setup-status` — if `required: true`, setup wasn't completed.
 
