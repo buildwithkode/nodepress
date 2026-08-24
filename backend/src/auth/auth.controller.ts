@@ -72,6 +72,53 @@ export class AuthController {
     return req.user;
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Post('2fa/verify-login')
+  @ApiOperation({ summary: 'Complete login using a 6-digit TOTP code or emergency backup recovery code' })
+  @ApiResponse({ status: 200, description: '2FA verified, returns access_token + sets np_refresh cookie' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired 2FA verification code' })
+  verify2faLogin(
+    @Body() body: { tempToken: string; code: string },
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    return this.authService.verify2faLogin(body.tempToken, body.code, res);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('2fa/status')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get 2FA status for the logged-in user' })
+  get2faStatus(@Request() req) {
+    return this.authService.get2faStatus(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('2fa/setup')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Generate a new TOTP secret, QR code, and backup recovery codes for setup' })
+  setup2fa(@Request() req) {
+    return this.authService.setup2fa(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa/enable')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Verify code and enable 2FA on user account' })
+  enable2fa(
+    @Request() req,
+    @Body() body: { secret: string; code: string; recoveryCodes: string[] },
+  ) {
+    return this.authService.enable2fa(req.user.id, body.secret, body.code, body.recoveryCodes);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa/disable')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Disable 2FA on user account using TOTP verification code' })
+  disable2fa(@Request() req, @Body() body: { code: string }) {
+    return this.authService.disable2fa(req.user.id, body.code);
+  }
+
   @Throttle({ default: { ttl: 60_000, limit: process.env.NODE_ENV === 'production' ? 5 : 50 } })
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request a password reset email (always returns 200)' })

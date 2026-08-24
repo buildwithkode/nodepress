@@ -7,10 +7,11 @@ import { useBrand } from '../../../context/BrandContext';
 import api from '../../../lib/axios';
 import Cookies from 'js-cookie';
 import { Button } from '@/components/ui/button';
+import { Shield, KeyRound, ArrowLeft } from 'lucide-react';
 
 function loginErrorMessage(err: any): string {
   if (!err.response) return 'Cannot connect to the server. Is the backend running?';
-  if (err.response.status === 401) return 'Invalid email or password.';
+  if (err.response.status === 401) return err.response?.data?.message || 'Invalid email or password.';
   if (err.response.status === 429) return 'Too many attempts. Please wait a minute and try again.';
   if (err.response.status >= 500) return 'Server error. Please try again later.';
   return err.response?.data?.message || 'Something went wrong. Please try again.';
@@ -27,9 +28,13 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // Gate the form until we know setup isn't required — otherwise the login
-  // form flashes before bouncing to /setup on a fresh install.
   const [checking, setChecking] = useState(true);
+
+  // 2FA state
+  const [requires2fa, setRequires2fa] = useState(false);
+  const [tempToken, setTempToken] = useState('');
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
   // Redirect away if the AuthContext silently restored the session via refresh token
   useEffect(() => {
@@ -39,30 +44,21 @@ function LoginForm() {
   useEffect(() => {
     api.get('/auth/setup-status').then((res) => {
       if (res.data.required) {
-        // The server (DB) is the source of truth: setup IS required. A leftover
-        // np_initialized cookie (10y expiry, set on this host by a previous
-        // NodePress install — cookies are per-host, not per-port/project) would
-        // make middleware bounce /setup → /login, looping into a blank screen.
-        // It's provably stale here, so clear it before redirecting.
         Cookies.remove('np_initialized');
         router.replace('/setup');
-        return; // keep the loader up while navigating to /setup
+        return;
       }
       setChecking(false);
     }).catch(() => {
-      // If the check fails (e.g. backend unreachable), show the form anyway
-      // so the user isn't stuck on a blank loader.
       setChecking(false);
     });
   }, []);
 
-  // While checking — or while redirecting to /setup — render just the dark
-  // background so neither the login form nor a layout shift is visible.
   if (checking) {
     return <div className="min-h-screen bg-[#0d0d0d]" />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!email.trim() || !password) {
@@ -72,6 +68,34 @@ function LoginForm() {
     setLoading(true);
     try {
       const res = await api.post('/auth/login', { email, password });
+      if (res.data.requires2fa) {
+        setRequires2fa(true);
+        setTempToken(res.data.tempToken);
+        setTwoFactorCode('');
+      } else {
+        login(res.data.access_token, res.data.user);
+        router.push('/');
+      }
+    } catch (err: any) {
+      setError(loginErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handle2faSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!twoFactorCode.trim()) {
+      setError(useRecoveryCode ? 'Please enter a backup recovery code.' : 'Please enter your 6-digit code.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/2fa/verify-login', {
+        tempToken,
+        code: twoFactorCode.trim(),
+      });
       login(res.data.access_token, res.data.user);
       router.push('/');
     } catch (err: any) {
@@ -83,7 +107,6 @@ function LoginForm() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-[#0d0d0d] px-4">
-
       {/* Docs link */}
       <a
         href="/docs"
@@ -95,7 +118,6 @@ function LoginForm() {
 
       <div className="w-full max-w-sm">
         <div className="rounded-xl border border-white/10 bg-[#1a1a1a] px-8 py-10 shadow-2xl">
-
           {/* Title */}
           <div className="text-center mb-8">
             {brand.brandLogoUrl && (
@@ -103,63 +125,128 @@ function LoginForm() {
               <img src={brand.brandLogoUrl} alt={brand.brandName} className="h-10 mx-auto mb-3 object-contain" />
             )}
             <h1 className="text-xl font-bold text-white">{brand.brandName}</h1>
-            <p className="text-sm text-white/40 mt-1">Sign in to your admin account</p>
+            <p className="text-sm text-white/40 mt-1">
+              {requires2fa ? 'Two-Factor Authentication' : 'Sign in to your admin account'}
+            </p>
           </div>
 
           {/* Session expired banner */}
-          {reason === 'expired' && (
+          {!requires2fa && reason === 'expired' && (
             <div className="mb-5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-300 text-center">
               Your session expired. Please sign in again.
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            <div className="space-y-1.5">
-              <label htmlFor="email" className="block text-sm font-medium text-white/80">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                autoFocus
-                className="w-full rounded-lg bg-[#2a2a2a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors"
-              />
-            </div>
+          {!requires2fa ? (
+            /* Standard Login Form */
+            <form onSubmit={handlePasswordSubmit} noValidate className="space-y-5">
+              <div className="space-y-1.5">
+                <label htmlFor="email" className="block text-sm font-medium text-white/80">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="admin@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  autoFocus
+                  className="w-full rounded-lg bg-[#2a2a2a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors"
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <label htmlFor="password" className="block text-sm font-medium text-white/80">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                className="w-full rounded-lg bg-[#2a2a2a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors"
-              />
-            </div>
+              <div className="space-y-1.5">
+                <label htmlFor="password" className="block text-sm font-medium text-white/80">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  className="w-full rounded-lg bg-[#2a2a2a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors"
+                />
+              </div>
 
-            {error && (
-              <p className="text-sm text-red-400 text-center">{error}</p>
-            )}
+              {error && <p className="text-sm text-red-400 text-center">{error}</p>}
 
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Signing in…' : 'Sign in'}
+              </Button>
+            </form>
+          ) : (
+            /* 2FA Verification Form */
+            <form onSubmit={handle2faSubmit} noValidate className="space-y-5">
+              <div className="flex items-center justify-center p-3 rounded-full bg-blue-500/10 text-blue-400 w-12 h-12 mx-auto mb-2">
+                {useRecoveryCode ? <KeyRound className="w-6 h-6" /> : <Shield className="w-6 h-6" />}
+              </div>
 
-          <p className="mt-5 text-center text-xs text-white/30">
-            <a href="/forgot-password" className="hover:text-white/60 transition-colors">
-              Forgot password?
-            </a>
-          </p>
+              <p className="text-xs text-white/60 text-center">
+                {useRecoveryCode
+                  ? 'Enter one of your 8-character backup recovery codes.'
+                  : 'Enter the 6-digit code from your authenticator app (Google Authenticator, 1Password, Authy).'
+                }
+              </p>
+
+              <div className="space-y-1.5">
+                <label htmlFor="2fa-code" className="block text-xs font-medium text-white/80 text-center">
+                  {useRecoveryCode ? 'Recovery Code' : '6-Digit Verification Code'}
+                </label>
+                <input
+                  id="2fa-code"
+                  type="text"
+                  placeholder={useRecoveryCode ? 'XXXX-XXXX' : '123456'}
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value)}
+                  autoFocus
+                  maxLength={useRecoveryCode ? 12 : 6}
+                  className="w-full text-center tracking-widest text-lg font-mono rounded-lg bg-[#2a2a2a] border border-white/10 px-3 py-2.5 text-white placeholder:text-white/25 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors"
+                />
+              </div>
+
+              {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Verifying…' : 'Verify & Sign In'}
+              </Button>
+
+              <div className="flex items-center justify-between text-xs pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequires2fa(false);
+                    setError('');
+                  }}
+                  className="inline-flex items-center gap-1 text-white/40 hover:text-white/80 transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseRecoveryCode(!useRecoveryCode);
+                    setTwoFactorCode('');
+                    setError('');
+                  }}
+                  className="text-blue-400 hover:underline"
+                >
+                  {useRecoveryCode ? 'Use Authenticator App' : 'Use Recovery Code'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {!requires2fa && (
+            <p className="mt-5 text-center text-xs text-white/30">
+              <a href="/forgot-password" className="hover:text-white/60 transition-colors">
+                Forgot password?
+              </a>
+            </p>
+          )}
         </div>
       </div>
     </div>

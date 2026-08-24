@@ -62,10 +62,136 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // If Two-Factor Authentication is enabled, return a 5-minute temporary token
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      const tempToken = this.jwtService.sign(
+        { sub: user.id, email: user.email, purpose: '2fa_pending' },
+        { expiresIn: '5m' },
+      );
+      return { requires2fa: true, tempToken };
+    }
+
     const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
     await this.issueRefreshCookie(user.id, res);
 
     return { access_token, user: { id: user.id, email: user.email, role: user.role } };
+  }
+
+  // ── Two-Factor Authentication (2FA / TOTP) ──────────────────────────────────
+
+  async verify2faLogin(tempToken: string, code: string, res: Response) {
+    let payload: any;
+    try {
+      payload = this.jwtService.verify(tempToken);
+    } catch {
+      throw new UnauthorizedException('Two-factor session expired or invalid. Please log in again.');
+    }
+
+    if (payload.purpose !== '2fa_pending') {
+      throw new UnauthorizedException('Invalid token purpose');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!user || !user.twoFactorSecret) {
+      throw new UnauthorizedException('User not found or 2FA not configured');
+    }
+
+    const { verifyTotp, verifyAndConsumeRecoveryCode } = require('./totp.util');
+    const isTotpValid = verifyTotp(code, user.twoFactorSecret);
+
+    if (isTotpValid) {
+      const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+      await this.issueRefreshCookie(user.id, res);
+      return { access_token, user: { id: user.id, email: user.email, role: user.role } };
+    }
+
+    // Check backup recovery codes
+    const recoveryList = Array.isArray(user.twoFactorRecovery) ? (user.twoFactorRecovery as string[]) : [];
+    const recoveryResult = verifyAndConsumeRecoveryCode(code, recoveryList);
+
+    if (recoveryResult.valid) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { twoFactorRecovery: recoveryResult.remainingHashes },
+      });
+
+      const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+      await this.issueRefreshCookie(user.id, res);
+      return {
+        access_token,
+        user: { id: user.id, email: user.email, role: user.role },
+        recoveryUsed: true,
+        remainingRecoveryCodes: recoveryResult.remainingHashes.length,
+      };
+    }
+
+    throw new UnauthorizedException('Invalid verification code or recovery code');
+  }
+
+  async setup2fa(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const { generateSecret, generateRecoveryCodes } = require('./totp.util');
+    const { secret, otpauthUrl } = generateSecret(user.email, 'NodePress');
+    const { codes, hashedCodes } = generateRecoveryCodes(8);
+
+    return {
+      secret,
+      otpauthUrl,
+      recoveryCodes: codes,
+      hashedRecoveryCodes: hashedCodes,
+    };
+  }
+
+  async enable2fa(userId: number, secret: string, code: string, hashedRecoveryCodes: string[]) {
+    const { verifyTotp } = require('./totp.util');
+    if (!verifyTotp(code, secret)) {
+      throw new BadRequestException('Invalid verification code. Please check your authenticator app.');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        twoFactorEnabled: true,
+        twoFactorSecret: secret,
+        twoFactorRecovery: hashedRecoveryCodes,
+      },
+    });
+
+    return { success: true, message: 'Two-Factor Authentication enabled successfully' };
+  }
+
+  async disable2fa(userId: number, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.twoFactorEnabled) {
+      return { success: true, message: '2FA is already disabled' };
+    }
+
+    const { verifyTotp, verifyAndConsumeRecoveryCode } = require('./totp.util');
+    const isTotpValid = user.twoFactorSecret && verifyTotp(code, user.twoFactorSecret);
+    const recoveryList = Array.isArray(user.twoFactorRecovery) ? (user.twoFactorRecovery as string[]) : [];
+    const isRecoveryValid = verifyAndConsumeRecoveryCode(code, recoveryList).valid;
+
+    if (!isTotpValid && !isRecoveryValid) {
+      throw new BadRequestException('Invalid 2FA code or recovery code');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        twoFactorRecovery: null,
+      },
+    });
+
+    return { success: true, message: 'Two-Factor Authentication disabled successfully' };
+  }
+
+  async get2faStatus(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    return { enabled: user?.twoFactorEnabled ?? false };
   }
 
   /**
