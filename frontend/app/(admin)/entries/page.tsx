@@ -24,6 +24,9 @@ import {
   CheckCircle2,
   AlertCircle,
   FileCode,
+  Rocket,
+  Globe,
+  Send,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -77,10 +80,11 @@ function truncate(val: any, max = 60): string {
 }
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  published:      { label: 'Published',      className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' },
-  draft:          { label: 'Draft',          className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' },
-  pending_review: { label: 'Pending Review', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' },
-  archived:       { label: 'Archived',       className: 'bg-muted text-muted-foreground' },
+  published:      { label: 'Production',     className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' },
+  staging:        { label: 'Staging (QA)',   className: 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800' },
+  pending_review: { label: 'Pending Review', className: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300 dark:border-blue-800' },
+  draft:          { label: 'Draft',          className: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800' },
+  archived:       { label: 'Archived',       className: 'bg-muted text-muted-foreground border border-border' },
 };
 
 interface Field { name: string; label?: string; type: string; options?: any }
@@ -207,6 +211,20 @@ export default function EntriesPage() {
       await refreshEntries();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Purge failed');
+    }
+  };
+
+  /* ── Promote Environment Stage ────────────────────────────────────────── */
+  const handlePromote = async (entryId: number, targetStatus: string) => {
+    try {
+      await api.post(`/entries/${entryId}/promote`, { status: targetStatus });
+      const stageName = targetStatus === 'published' ? 'Production' : targetStatus === 'staging' ? 'Staging (QA)' : targetStatus;
+      toast.success(`Entry promoted to ${stageName}`);
+      setEntries((prev) =>
+        prev.map((e) => (e.id === entryId ? { ...e, status: targetStatus } : e)),
+      );
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to promote entry');
     }
   };
 
@@ -542,7 +560,8 @@ export default function EntriesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="published">Production (Published)</SelectItem>
+                <SelectItem value="staging">Staging (QA)</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="pending_review">Pending Review</SelectItem>
                 <SelectItem value="archived">Archived</SelectItem>
@@ -630,11 +649,21 @@ export default function EntriesPage() {
             <Button
               size="sm"
               variant="outline"
+              className="text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+              disabled={bulkLoading}
+              onClick={() => handleBulkAction('bulk-stage')}
+            >
+              <Rocket className="h-3.5 w-3.5 mr-1" />
+              Stage (QA)
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
               disabled={bulkLoading}
               onClick={() => handleBulkAction('bulk-publish')}
             >
               {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
-              Publish
+              Publish (Prod)
             </Button>
             <Button
               size="sm"
@@ -825,6 +854,28 @@ export default function EntriesPage() {
                     </>
                   ) : (
                     <>
+                      {canEdit && (entry.status === 'draft' || entry.status === 'pending_review') && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title="Promote to Staging (QA)"
+                          className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-950/30"
+                          onClick={() => handlePromote(entry.id, 'staging')}
+                        >
+                          <Rocket className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      {canEdit && entry.status === 'staging' && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title="Publish to Production"
+                          className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                          onClick={() => handlePromote(entry.id, 'published')}
+                        >
+                          <Globe className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       {canEdit && (
                         <Button
                           variant="ghost"

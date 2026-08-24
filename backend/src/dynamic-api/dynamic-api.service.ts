@@ -29,12 +29,14 @@ export interface PublicListQuery {
   where?: Record<string, any>;      // advanced where query e.g. { price: { gte: 100 }, category: { in: ["tech", "news"] } }
   search?: string;                  // full-text search on slug + data
   locale?: string;                  // filter by locale (e.g. "en", "fr")
+  stage?: 'published' | 'staging' | 'draft' | 'all'; // Environment stage targeting
   populate?: string[];              // relation field names to inline-populate
   fields?: string[];                // field projection — only return listed data keys
 }
 
 export interface PublicSingleQuery {
   locale?: string;   // default: "en"
+  stage?: 'published' | 'staging' | 'draft' | 'all';
   populate?: string[];
   fields?: string[];                // field projection — only return listed data keys
 }
@@ -171,17 +173,26 @@ export class DynamicApiService {
     // also skip the cache read (the key omits populate/fields) — otherwise a
     // populated list could be served raw, or vice versa.
     const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
-    const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale })}`;
+    const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale, stage: query.stage })}`;
     if (cacheable) {
       const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
       if (cached) return cached;
     }
 
-    // Build where: only published + non-deleted entries visible publicly
+    // Build status condition based on environment stage targeting
+    const statusFilter = query.stage === 'staging'
+      ? { in: ['staging', 'published'] }
+      : query.stage === 'draft'
+        ? { in: ['draft', 'pending_review', 'staging', 'published'] }
+        : query.stage === 'all'
+          ? undefined
+          : 'published';
+
+    // Build where: filtered by stage + non-deleted entries
     const advancedWhere = buildAdvancedWhere(query.where, query.filter);
     const where: any = {
       contentTypeId: contentType.id,
-      status: 'published',
+      ...(statusFilter ? { status: statusFilter } : {}),
       deletedAt: null,
       ...(query.locale ? { locale: query.locale } : {}),
       ...(advancedWhere.length > 0 ? { AND: advancedWhere } : {}),
@@ -335,7 +346,7 @@ export class DynamicApiService {
     // so they must also SKIP the cache read — otherwise a populated request would
     // return a previously-cached raw (un-populated) entry under the same key.
     const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
-    const cacheKey = `${cachePrefix(typeName)}slug:${slug}:${locale}`;
+    const cacheKey = `${cachePrefix(typeName)}slug:${slug}:${locale}:${query.stage || 'published'}`;
     if (cacheable) {
       const cached = await this.cache.get<any>(cacheKey);
       if (cached) return cached;
@@ -352,7 +363,15 @@ export class DynamicApiService {
       },
     });
 
-    if (!entry || entry.status !== 'published' || entry.deletedAt !== null) {
+    const allowedStatuses = query.stage === 'staging'
+      ? ['staging', 'published']
+      : query.stage === 'draft'
+        ? ['draft', 'pending_review', 'staging', 'published']
+        : query.stage === 'all'
+          ? ['draft', 'pending_review', 'staging', 'published', 'archived']
+          : ['published'];
+
+    if (!entry || !allowedStatuses.includes(entry.status) || entry.deletedAt !== null) {
       throw new NotFoundException(
         `Entry with slug "${slug}" not found in "${typeName}" (locale: ${locale})`,
       );

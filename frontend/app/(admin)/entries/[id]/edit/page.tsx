@@ -4,12 +4,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText, ExternalLink, Rocket, Globe, Sparkles } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -311,7 +312,105 @@ export default function EditEntryPage() {
         <div ref={containerRef} className="flex items-start border-t border-border">
           {/* Left pane: form */}
           <div style={{ width: jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
-          <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-1">
+          <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Publishing & Environment Promotion Pipeline */}
+            <div className="rounded-xl border border-border bg-card/60 p-3.5 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center justify-between gap-2 mb-2.5">
+                <div className="flex items-center gap-1.5">
+                  <Rocket className="h-4 w-4 text-purple-400" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Content Pipeline & Environment
+                  </span>
+                </div>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-[11px] font-mono px-2 py-0.5',
+                    status === 'published' && 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400',
+                    status === 'staging' && 'border-purple-500/50 bg-purple-500/10 text-purple-400',
+                    status === 'pending_review' && 'border-blue-500/50 bg-blue-500/10 text-blue-400',
+                    status === 'draft' && 'border-amber-500/50 bg-amber-500/10 text-amber-400',
+                    status === 'archived' && 'border-muted text-muted-foreground',
+                  )}
+                >
+                  Current: {status === 'published' ? 'Production' : status === 'staging' ? 'Staging (QA)' : status === 'pending_review' ? 'Pending Review' : status === 'draft' ? 'Draft' : 'Archived'}
+                </Badge>
+              </div>
+
+              {/* Progress Steps */}
+              <div className="grid grid-cols-4 gap-1.5 mb-2.5">
+                {[
+                  { key: 'draft', label: '1. Draft', color: 'amber' },
+                  { key: 'pending_review', label: '2. Review', color: 'blue' },
+                  { key: 'staging', label: '3. Staging', color: 'purple' },
+                  { key: 'published', label: '4. Production', color: 'emerald' },
+                ].map((step) => {
+                  const isActive = status === step.key;
+                  return (
+                    <button
+                      key={step.key}
+                      type="button"
+                      onClick={() => setStatus(step.key)}
+                      className={cn(
+                        'flex flex-col items-center justify-center p-2 rounded-lg border text-xs font-medium transition-all text-center',
+                        isActive
+                          ? step.color === 'emerald'
+                            ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300 shadow-sm shadow-emerald-900/20'
+                            : step.color === 'purple'
+                            ? 'bg-purple-500/15 border-purple-500/50 text-purple-300 shadow-sm shadow-purple-900/20'
+                            : step.color === 'blue'
+                            ? 'bg-blue-500/15 border-blue-500/50 text-blue-300 shadow-sm shadow-blue-900/20'
+                            : 'bg-amber-500/15 border-amber-500/50 text-amber-300 shadow-sm shadow-amber-900/20'
+                          : 'bg-background/50 border-border/50 text-muted-foreground hover:bg-accent/40 hover:text-foreground',
+                      )}
+                    >
+                      <span>{step.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons for Promotion */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-border/40">
+                <Button
+                  type="button"
+                  variant={status === 'draft' ? 'secondary' : 'outline'}
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setStatus('draft')}
+                >
+                  Save Draft
+                </Button>
+                <Button
+                  type="button"
+                  variant={status === 'pending_review' ? 'secondary' : 'outline'}
+                  size="sm"
+                  className="h-7 text-xs text-blue-400"
+                  onClick={() => setStatus('pending_review')}
+                >
+                  Submit for Review
+                </Button>
+                <Button
+                  type="button"
+                  variant={status === 'staging' ? 'secondary' : 'outline'}
+                  size="sm"
+                  className="h-7 text-xs text-purple-400 border-purple-500/30 hover:bg-purple-950/30"
+                  onClick={() => setStatus('staging')}
+                >
+                  <Rocket className="h-3 w-3 mr-1" /> Deploy to Staging
+                </Button>
+                <Button
+                  type="button"
+                  variant={status === 'published' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-7 text-xs text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/30 ml-auto"
+                  onClick={() => setStatus('published')}
+                >
+                  <Globe className="h-3 w-3 mr-1" /> Publish to Production
+                </Button>
+              </div>
+            </div>
+
             {/* Slug (editable — changing it breaks existing links/SEO) */}
             <div className="mb-4">
               <Label htmlFor="slug" className="mb-1.5 block">Slug</Label>
@@ -337,13 +436,14 @@ export default function EditEntryPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="published">Production (Published)</SelectItem>
+                    <SelectItem value="staging">Staging (QA)</SelectItem>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="pending_review">Pending Review</SelectItem>
                     <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="mt-1 text-xs text-muted-foreground">Only published entries appear in the public API</p>
+                <p className="mt-1 text-xs text-muted-foreground">Staging and Published entries are accessible via their respective environment targets</p>
               </div>
               <div>
                 <Label className="mb-1.5 block">Locale</Label>

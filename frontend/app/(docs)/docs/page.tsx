@@ -827,19 +827,37 @@ npm run dev`} />
               </ul>
             </div>
 
-            <h3 className="font-semibold mb-3">Status</h3>
+            <h3 className="font-semibold mb-3">Publishing Pipeline &amp; Environments</h3>
             <div className="space-y-2 mb-6">
               {[
-                ['draft',          'Not visible on the public API. Editable in the admin panel.'],
-                ['published',      'Visible on the public API. Default for new entries.'],
-                ['pending_review', 'Waiting for approval before publishing. Not visible on the public API. Use the status filter in the admin entries list to see these entries.'],
-                ['archived',       'Hidden from both the public API and the default admin list.'],
+                ['draft',          'Draft state. Only visible within Admin Workspace.'],
+                ['pending_review', 'Submitted for editorial review. Awaiting approval.'],
+                ['staging',        'Deployed to Staging / QA Environment. Visible on preview websites and via ?stage=staging or X-NodePress-Environment: staging header.'],
+                ['published',      'Live in Production. Default for public website and headless clients.'],
+                ['archived',       'Hidden from public APIs and default admin views.'],
               ].map(([status, desc]) => (
                 <div key={status} className="flex gap-3 text-sm">
                   <IC>{status}</IC>
                   <span className="text-muted-foreground">{desc}</span>
                 </div>
               ))}
+            </div>
+
+            <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-4 mb-6">
+              <h4 className="font-semibold text-sm text-purple-400 mb-2">Querying Staging Environments via API</h4>
+              <p className="text-xs text-muted-foreground mb-3">
+                Headless frontends (such as Staging / QA preview builds or Vercel preview branches) can query staging entries by passing <IC>?stage=staging</IC> or the <IC>X-NodePress-Environment: staging</IC> header:
+              </p>
+              <CodeBlock code={`# 1. Using Query Parameter (returns staging + published entries)
+curl http://localhost:4000/api/articles?stage=staging
+
+# 2. Using Environment Header
+curl -H "X-NodePress-Environment: staging" http://localhost:4000/api/articles/my-post
+
+# 3. 1-Click Promotion Endpoints (Admin / Editor)
+POST /api/entries/:id/promote   # Body: { "status": "staging" | "published" | "draft" }
+POST /api/entries/bulk-stage    # Body: { "ids": [1, 2, 3] }
+POST /api/entries/bulk-promote  # Body: { "ids": [1, 2, 3], "status": "published" }`} />
             </div>
 
             <h3 className="font-semibold mb-3">Scheduled publishing</h3>

@@ -5,7 +5,7 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export const ENTRY_STATUSES = ['draft', 'published', 'archived', 'pending_review'] as const;
+export const ENTRY_STATUSES = ['draft', 'pending_review', 'staging', 'published', 'archived'] as const;
 export type EntryStatus = (typeof ENTRY_STATUSES)[number];
 
 export class SeoDto {

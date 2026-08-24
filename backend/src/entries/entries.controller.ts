@@ -173,6 +173,28 @@ export class EntriesController {
     return this.entriesService.bulkSetPendingReview(dto.ids);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('bulk-stage')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk promote entries to staging environment' })
+  bulkStage(@Body() dto: BulkActionDto) {
+    return this.entriesService.bulkStage(dto.ids);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Post('bulk-promote')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Bulk promote entries to a target environment stage' })
+  bulkPromote(@Body() dto: { ids: number[]; status: EntryStatus }, @Request() req: any) {
+    if (!dto.ids || !Array.isArray(dto.ids) || dto.ids.length === 0) {
+      throw new BadRequestException('ids must be a non-empty array of numbers');
+    }
+    if (!dto.status) throw new BadRequestException('status is required');
+    return this.entriesService.bulkPromote(dto.ids, dto.status, req.user?.id);
+  }
+
   // ─── Single entry by ID (wildcard — must come after all static GET paths) ──
 
   @UseGuards(JwtAuthGuard)
@@ -281,6 +303,31 @@ export class EntriesController {
   @ApiParam({ name: 'id', type: Number })
   generatePreviewUrl(@Param('id', ParseIntPipe) id: number) {
     return this.entriesService.generatePreviewToken(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor', 'contributor')
+  @Post(':id/promote')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Promote an entry across workflow/environment stages (draft -> pending_review -> staging -> published)' })
+  @ApiParam({ name: 'id', type: Number })
+  async promote(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: { status: any },
+    @Request() req: any,
+  ) {
+    if (!dto.status) throw new BadRequestException('status is required');
+    const userRole = req.user?.role || 'contributor';
+    if (userRole === 'contributor' && dto.status !== 'pending_review' && dto.status !== 'draft') {
+      throw new ForbiddenException('Contributors can only submit entries for review or save as draft');
+    }
+    const updated = await this.entriesService.promote(id, dto.status, req.user?.id);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'updated', 'entry', updated.slug,
+      { targetStatus: dto.status },
+    );
+    return updated;
   }
 
   // ─── Version history ───────────────────────────────────────────────────────

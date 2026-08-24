@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Param, Body, Query, BadRequestException, UseGuards, UseInterceptors,
+  Param, Body, Query, Headers, BadRequestException, UseGuards, UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -19,17 +19,13 @@ export class DynamicApiController {
   @Get(':type')
   @UseInterceptors(new TimeoutInterceptor(10_000), new HttpCacheInterceptor())
   @ApiOperation({
-    summary: 'List published entries for a content type (public)',
-    description:
-      'Returns only `published` entries. Supports pagination, sorting, advanced operator filtering, and relation population.\n\n' +
-      '**Advanced Filtering:** `?where[price][gte]=100` · `?where[category][in]=tech,news` · `?where[title][contains]=guide` · `?filters[price][$gte]=100`\n\n' +
-      '**Sorting:** `?sort=createdAt:desc` · `?sort=slug:asc` · `?sort=updatedAt:asc`\n\n' +
-      '**Pagination:** `?page=2&limit=10` (max 100 per page)',
+    summary: 'List published (or staged) entries for a content type with pagination, filtering, search, and relations',
   })
-  @ApiParam({ name: 'type', example: 'blog', description: 'Content type name' })
+  @ApiParam({ name: 'type', example: 'blog', description: 'Content type name (e.g. blog, article, product)' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   @ApiQuery({ name: 'sort', required: false, example: 'createdAt:desc', description: 'field:direction' })
+  @ApiQuery({ name: 'stage', required: false, enum: ['published', 'staging', 'draft', 'all'], description: 'Environment stage. Defaults to "published". Set to "staging" for staging previews.' })
   @ApiQuery({ name: 'where', required: false, description: 'where[field][operator]=value — supports eq, ne, gt, gte, lt, lte, in, notIn, contains, startsWith, endsWith, null, notNull' })
   @ApiQuery({ name: 'filters', required: false, description: 'Strapi-compatible alias for where parameter' })
   @ApiQuery({ name: 'filter', required: false, description: 'Legacy filter[fieldName]=value — partial match on data field' })
@@ -37,6 +33,7 @@ export class DynamicApiController {
   @ApiQuery({ name: 'locale', required: false, type: String, description: 'Filter by locale (e.g. en, fr, de). Default: all locales.' })
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiQuery({ name: 'fields', required: false, type: String, description: 'Comma-separated data field names to include (projection). Omit for all fields.' })
+  @ApiHeader({ name: 'x-nodepress-environment', required: false, description: 'Target environment: "staging" or "production"' })
   @ApiResponse({ status: 200, description: '{ data: Entry[], meta: { total, page, limit, totalPages } }' })
   @ApiResponse({ status: 404, description: 'Content type not found or method disabled' })
   findAll(
@@ -44,6 +41,7 @@ export class DynamicApiController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
+    @Query('stage') stage?: any,
     @Query('where') where?: Record<string, any>,
     @Query('filters') filters?: Record<string, any>,
     @Query('filter') filter?: Record<string, string>,
@@ -51,11 +49,14 @@ export class DynamicApiController {
     @Query('locale') locale?: string,
     @Query('populate') populate?: string,
     @Query('fields') fields?: string,
+    @Headers('x-nodepress-environment') envHeader?: string,
   ) {
+    const effectiveStage = stage || (envHeader === 'staging' ? 'staging' : undefined);
     return this.dynamicApiService.findAll(type, {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       sort,
+      stage: effectiveStage,
       where: where || filters || undefined,
       filter: filter && typeof filter === 'object' ? filter : undefined,
       search: search?.trim() || undefined,
@@ -71,19 +72,25 @@ export class DynamicApiController {
   @ApiParam({ name: 'type', example: 'blog' })
   @ApiParam({ name: 'slug', example: 'my-first-post' })
   @ApiQuery({ name: 'locale', required: false, type: String, description: 'Locale of the entry to fetch. Default: en.' })
+  @ApiQuery({ name: 'stage', required: false, enum: ['published', 'staging', 'draft', 'all'], description: 'Environment stage targeting.' })
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiQuery({ name: 'fields', required: false, type: String, description: 'Comma-separated data field names to include (projection). Omit for all fields.' })
+  @ApiHeader({ name: 'x-nodepress-environment', required: false, description: 'Target environment: "staging" or "production"' })
   @ApiResponse({ status: 200, description: 'Entry found' })
   @ApiResponse({ status: 404, description: 'Entry not found or not published' })
   findOne(
     @Param('type') type: string,
     @Param('slug') slug: string,
     @Query('locale') locale?: string,
+    @Query('stage') stage?: any,
     @Query('populate') populate?: string,
     @Query('fields') fields?: string,
+    @Headers('x-nodepress-environment') envHeader?: string,
   ) {
+    const effectiveStage = stage || (envHeader === 'staging' ? 'staging' : undefined);
     return this.dynamicApiService.findOne(type, slug, {
       locale: locale?.trim() || undefined,
+      stage: effectiveStage,
       populate: populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
       fields: fields ? fields.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
     });

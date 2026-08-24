@@ -10,7 +10,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
-import { CreateEntryDto } from './dto/create-entry.dto';
+import { CreateEntryDto, EntryStatus } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
 import { DataValidator } from '../fields/data.validator';
 import { FieldDef } from '../fields/field.types';
@@ -522,6 +522,91 @@ export class EntriesService {
       data: { status: 'pending_review' },
     });
     return { affected: result.count };
+  }
+
+  async bulkStage(ids: number[]) {
+    const result = await this.prisma.entry.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { status: 'staging' },
+    });
+    return { affected: result.count };
+  }
+
+  /**
+   * Promote an entry across pipeline stages (draft -> pending_review -> staging -> published).
+   * Automatically snapshots the state in `EntryVersion` and dispatches stage-specific webhooks.
+   */
+  async promote(entryId: number, targetStatus: EntryStatus, actorId?: number) {
+    const entry = await this.findOne(entryId);
+
+    // Snapshot version before promotion
+    await this.prisma.entryVersion.create({
+      data: {
+        entryId: entry.id,
+        slug: entry.slug,
+        data: entry.data as any,
+        status: entry.status,
+        createdBy: actorId ?? null,
+      },
+    });
+
+    const updated = await this.prisma.entry.update({
+      where: { id: entryId },
+      data: { status: targetStatus },
+      include: { contentType: true },
+    });
+
+    // Fire stage-specific webhooks
+    if (targetStatus === 'staging') {
+      this.webhooks.fire('entry.staged', {
+        id: updated.id,
+        slug: updated.slug,
+        status: updated.status,
+        contentType: updated.contentType?.name,
+        locale: updated.locale,
+      });
+    } else if (targetStatus === 'published') {
+      this.webhooks.fire('entry.published', {
+        id: updated.id,
+        slug: updated.slug,
+        status: updated.status,
+        contentType: updated.contentType?.name,
+        locale: updated.locale,
+      });
+    }
+
+    this.webhooks.fire('entry.promoted', {
+      id: updated.id,
+      slug: updated.slug,
+      previousStatus: entry.status,
+      status: updated.status,
+      contentType: updated.contentType?.name,
+      locale: updated.locale,
+    });
+
+    this.realtime.notifyEntryUpdated({
+      id: updated.id,
+      slug: updated.slug,
+      contentType: updated.contentType?.name ?? '',
+      locale: updated.locale,
+      status: updated.status,
+    });
+
+    return updated;
+  }
+
+  /**
+   * Bulk promote multiple entries to a target status with snapshots and notifications.
+   */
+  async bulkPromote(ids: number[], targetStatus: EntryStatus, actorId?: number) {
+    let affected = 0;
+    for (const id of ids) {
+      try {
+        await this.promote(id, targetStatus, actorId);
+        affected++;
+      } catch {}
+    }
+    return { affected };
   }
 
   // ── Content versioning ────────────────────────────────────────────────────

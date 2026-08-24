@@ -10,6 +10,9 @@ export type WebhookEvent =
   | 'entry.deleted'
   | 'entry.restored'
   | 'entry.purged'
+  | 'entry.staged'
+  | 'entry.published'
+  | 'entry.promoted'
   | 'media.uploaded'
   | 'media.deleted'
   | '*';
