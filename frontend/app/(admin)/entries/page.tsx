@@ -368,12 +368,12 @@ export default function EntriesPage() {
   };
 
   /* ── Bulk actions ───────────────────────────────────────────────────────── */
-  const handleBulkAction = async (action: 'bulk-delete' | 'bulk-publish' | 'bulk-archive' | 'bulk-pending-review') => {
+  const handleBulkAction = async (action: 'bulk-delete' | 'bulk-publish' | 'bulk-archive' | 'bulk-pending-review' | 'bulk-stage') => {
     if (selected.size === 0) return;
     setBulkLoading(true);
     try {
       const res = await api.post(`/entries/${action}`, { ids: Array.from(selected) });
-      const label = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published' : action === 'bulk-pending-review' ? 'submitted for review' : 'archived';
+      const label = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published to production' : action === 'bulk-stage' ? 'promoted to staging' : action === 'bulk-pending-review' ? 'submitted for review' : 'archived';
       toast.success(`${res.data.affected} ${res.data.affected === 1 ? 'entry' : 'entries'} ${label}`);
       await refreshEntries();
     } catch (err: any) {

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { EntriesService } from './entries.service';
-import { CreateEntryDto } from './dto/create-entry.dto';
+import { CreateEntryDto, EntryStatus } from './dto/create-entry.dto';
 import { UpdateEntryDto } from './dto/update-entry.dto';
 import { BulkActionDto } from './dto/bulk-action.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
