@@ -2437,61 +2437,148 @@ function verifySignature(body, secret, signatureHeader) {
           {/* ── SEO & Sitemap ─────────────────────────────────────────────── */}
           <Section id="seo" title="SEO & Sitemap" icon={Globe}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              NodePress generates a <IC>sitemap.xml</IC> and <IC>robots.txt</IC> automatically.
-              Both are served at <IC>/api/sitemap.xml</IC> and <IC>/api/robots.txt</IC>.
+              NodePress is engineered from the ground up for maximum search engine visibility, high CTR social cards,
+              and automated Google Rich Snippets.
             </p>
 
-            <h3 className="font-semibold mb-3">Sitemap</h3>
+            <h3 className="font-semibold mb-3">1. Content Creator Workflow (Admin UI)</h3>
             <p className="text-muted-foreground text-sm mb-3">
-              The sitemap includes all <IC>published</IC> entries across all content types, plus
-              one list-page URL per content type. Entries flagged <IC>seo.noIndex</IC> are
-              <strong> excluded</strong>, so they aren't submitted to search engines. Set{' '}
-              <IC>SITE_URL</IC> in <IC>backend/.env</IC> to control the domain used in the URLs
-              (set the same <IC>SITE_URL</IC> in the frontend env so public-page canonical and
-              OG image URLs resolve to that absolute domain).
+              Every entry editor has an <strong>SEO &amp; Open Graph</strong> drawer with real-time feedback:
             </p>
-            <CodeBlock code={`# Fetch the sitemap
-GET /api/sitemap.xml
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs font-semibold text-foreground">SEO Title &amp; Description</p>
+                <p className="text-xs text-muted-foreground mt-1">Live 70-character title counter and 160-character description counter to prevent Google truncation.</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs font-semibold text-foreground">Social OG Image</p>
+                <p className="text-xs text-muted-foreground mt-1">Pick an image from the Media Library (1200x630px recommended) for Facebook, LinkedIn, and Twitter cards.</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs font-semibold text-foreground">Live SERP &amp; Social Preview</p>
+                <p className="text-xs text-muted-foreground mt-1">Real-time preview of how your page appears on Google search results and Twitter/Facebook feed cards.</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs font-semibold text-foreground">noIndex / noFollow Toggle</p>
+                <p className="text-xs text-muted-foreground mt-1">Hide staging, internal, or private pages from search engines with one click (also excludes from sitemap).</p>
+              </div>
+            </div>
 
-# Response (XML)
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://your-site.com/blog</loc>
-    <lastmod>2026-03-24</lastmod>
-  </url>
-  <url>
-    <loc>https://your-site.com/blog/my-first-post</loc>
-    <lastmod>2026-03-24</lastmod>
-  </url>
-</urlset>`} />
-
-            <h3 className="font-semibold mb-3 mt-4">robots.txt</h3>
-            <p className="text-muted-foreground text-sm mb-2">
-              Default output allows all crawlers and links to the sitemap. Set{' '}
-              <IC>ROBOTS_DISALLOW</IC> in <IC>backend/.env</IC> to block specific paths:
+            <h3 className="font-semibold mb-3 mt-6">2. Frontend Developer Integration (Next.js App Router)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              In your Next.js 14/15 page (<IC>app/[type]/[slug]/page.tsx</IC>), integrate dynamic metadata and Schema.org JSON-LD:
             </p>
-            <CodeBlock code={`# backend/.env
-ROBOTS_DISALLOW=/admin,/api/private
+            <CodeBlock code={`import type { Metadata } from 'next';
 
-# Output at /api/robots.txt
-User-agent: *
-Disallow: /admin
-Disallow: /api/private
-Sitemap: https://your-site.com/api/sitemap.xml`} />
+// 1. Fetch entry payload from NodePress
+async function getEntry(type: string, slug: string) {
+  const res = await fetch(\`\${process.env.BACKEND_URL}/api/\${type}/\${slug}\`, { next: { revalidate: 60 } });
+  return res.ok ? res.json() : null;
+}
 
-            <h3 className="font-semibold mb-3 mt-4">Per-entry SEO meta tags</h3>
-            <p className="text-muted-foreground text-sm mb-2">
-              The built-in public pages (at <IC>/[type]/[slug]</IC>) use Next.js{' '}
-              <IC>generateMetadata()</IC> to output full OG + Twitter card tags from the entry's
-              SEO fields. No extra configuration needed.
+// 2. Next.js dynamic metadata for OpenGraph & Twitter
+export async function generateMetadata({ params }: { params: { type: string; slug: string } }): Promise<Metadata> {
+  const entry = await getEntry(params.type, params.slug);
+  if (!entry) return { title: 'Not Found' };
+
+  const title = entry.seo?.title || entry.data?.title || params.slug;
+  const description = entry.seo?.description || entry.data?.description || entry.data?.excerpt;
+  const image = entry.seo?.image || entry.data?.image;
+
+  return {
+    title: \`\${title} | My Website\`,
+    description,
+    robots: entry.seo?.noIndex ? 'noindex, nofollow' : 'index, follow',
+    alternates: { canonical: \`/\${params.type}/\${params.slug}\` },
+    openGraph: {
+      title,
+      description,
+      url: \`/\${params.type}/\${params.slug}\`,
+      type: 'article',
+      ...(image ? { images: [{ url: image, width: 1200, height: 630 }] } : {}),
+    },
+    twitter: {
+      card: image ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+  };
+}
+
+// 3. Page component with Schema.org JSON-LD Structured Data
+export default async function Page({ params }: { params: { type: string; slug: string } }) {
+  const entry = await getEntry(params.type, params.slug);
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: entry.seo?.title || entry.data?.title,
+    description: entry.seo?.description || entry.data?.description,
+    image: entry.seo?.image ? [entry.seo.image] : undefined,
+    datePublished: entry.createdAt,
+    dateModified: entry.updatedAt,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': \`https://yourdomain.com/\${params.type}/\${params.slug}\`,
+    },
+  };
+
+  return (
+    <article>
+      {/* Search Engine Rich Snippet */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <h1>{entry.data?.title}</h1>
+      <div dangerouslySetInnerHTML={{ __html: entry.data?.content }} />
+    </article>
+  );
+}`} />
+
+            <h3 className="font-semibold mb-3 mt-6">3. Other Frameworks (Astro, Remix, SvelteKit, HTML)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              The REST API automatically delivers the <IC>seo</IC> object on <IC>GET /api/:type/:slug</IC>:
             </p>
+            <CodeBlock code={`<head>
+  <title>{entry.seo?.title || entry.data.title}</title>
+  <meta name="description" content={entry.seo?.description} />
+  <link rel="canonical" href={\`https://yourdomain.com/\${type}/\${entry.slug}\`} />
+  <meta name="robots" content={entry.seo?.noIndex ? 'noindex, nofollow' : 'index, follow'} />
 
-            <h3 className="font-semibold mb-3 mt-4">Health check</h3>
-            <p className="text-muted-foreground text-sm">
-              <IC>GET /api/health</IC> returns database connectivity status. Useful for uptime
-              monitors and Docker health checks. No auth required.
+  <!-- Open Graph -->
+  <meta property="og:title" content={entry.seo?.title || entry.data.title} />
+  <meta property="og:description" content={entry.seo?.description} />
+  <meta property="og:image" content={entry.seo?.image} />
+  <meta property="og:url" content={\`https://yourdomain.com/\${type}/\${entry.slug}\`} />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={entry.seo?.title || entry.data.title} />
+  <meta name="twitter:description" content={entry.seo?.description} />
+  <meta name="twitter:image" content={entry.seo?.image} />
+</head>`} />
+
+            <h3 className="font-semibold mb-3 mt-6">4. Dynamic Sitemap &amp; robots.txt</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              NodePress dynamically generates an updated XML sitemap at <IC>/api/sitemap.xml</IC> and
+              crawl directives at <IC>/api/robots.txt</IC>.
             </p>
+            <CodeBlock code={`# In your Next.js next.config.js, proxy sitemap & robots:
+module.exports = {
+  async rewrites() {
+    return [
+      { source: '/sitemap.xml', destination: \`\${process.env.BACKEND_URL}/api/sitemap.xml\` },
+      { source: '/robots.txt', destination: \`\${process.env.BACKEND_URL}/api/robots.txt\` },
+    ];
+  },
+};`} />
+
+            <div className="mt-4 rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-sm">
+              <strong className="text-green-400">Google Search Console Submission:</strong>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Submit <IC>https://yourdomain.com/sitemap.xml</IC> in Google Search Console under <em>Sitemaps</em>.
+                Whenever editors publish or edit content, Google crawls and indexes the changes automatically.
+              </p>
+            </div>
           </Section>
 
           {/* ── Self-hosting ───────────────────────────────────────────────── */}

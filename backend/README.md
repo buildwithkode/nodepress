@@ -222,6 +222,29 @@ STORAGE_S3_ENDPOINT=https://nyc3.digitaloceanspaces.com
 STORAGE_S3_PUBLIC_URL=https://my-space-name.nyc3.cdn.digitaloceanspaces.com
 ```
 
+---
+
+## Automated SEO & Structured Data (JSON-LD)
+
+NodePress delivers automatic SEO metadata, dynamic sitemaps, and Schema.org rich snippets:
+
+- **Dynamic Sitemap**: `GET /api/sitemap.xml` (excludes entries flagged `seo.noIndex`)
+- **Dynamic Robots**: `GET /api/robots.txt` (configured via `ROBOTS_DISALLOW`)
+- **Per-Entry SEO Payload**: `GET /api/:type/:slug` returns:
+  ```json
+  {
+    "seo": {
+      "title": "Article Title",
+      "description": "Meta description (160 char max)",
+      "image": "https://assets.yourdomain.com/og-cover.webp",
+      "noIndex": false
+    }
+  }
+  ```
+- **Next.js Integration**: Automatically mapped to `generateMetadata()` and Schema.org `<script type="application/ld+json">` for `Article` and `BreadcrumbList` rich snippets.
+
+---
+
 ## Field-Level Security (RBAC/PBAC)
 
 Fields support granular access policies:
