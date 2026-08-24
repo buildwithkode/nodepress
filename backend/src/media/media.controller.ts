@@ -1,6 +1,6 @@
 import {
   Controller, Post, Get, Put, Delete, Param, Query, Body,
-  UseInterceptors, UploadedFile, UseGuards, BadRequestException, ParseIntPipe, Request,
+  UseInterceptors, UploadedFile, UseGuards, BadRequestException, ParseIntPipe, Request, Res,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse, ApiBearerAuth,
@@ -11,7 +11,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { randomBytes } from 'crypto';
-import { readFileSync, unlinkSync } from 'fs';
+import { readFileSync, unlinkSync, createReadStream } from 'fs';
 import { MediaService } from './media.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -156,6 +156,65 @@ export class MediaController {
     @Body('folderId') folderId: number | null,
   ) {
     return this.mediaService.moveToFolder(filename, folderId ?? null);
+  }
+
+  // ── Dynamic Image Resizing & WebP/Avif Transformation Pipeline ───────────
+
+  @SkipThrottle()
+  @Get(':filename/transform')
+  @ApiOperation({
+    summary: 'Dynamically transform and resize an image on-the-fly with disk caching',
+    description: 'Supports width (w), height (h), quality (q: 1-100), format (webp, avif, jpeg, png), and fit (cover, contain, fill, inside, outside).',
+  })
+  @ApiParam({ name: 'filename', example: '1234567890-abc123.jpg' })
+  @ApiQuery({ name: 'w', required: false, type: Number, description: 'Target width (px)' })
+  @ApiQuery({ name: 'h', required: false, type: Number, description: 'Target height (px)' })
+  @ApiQuery({ name: 'q', required: false, type: Number, description: 'Quality 1-100 (default: 80)' })
+  @ApiQuery({ name: 'format', required: false, enum: ['webp', 'avif', 'jpeg', 'png'] })
+  @ApiQuery({ name: 'fit', required: false, enum: ['cover', 'contain', 'fill', 'inside', 'outside'] })
+  async transform(
+    @Param('filename') filename: string,
+    @Query('w') w: string | undefined,
+    @Query('h') h: string | undefined,
+    @Query('q') q: string | undefined,
+    @Query('format') format: any,
+    @Query('fit') fit: any,
+    @Res() res: any,
+  ) {
+    const width = w ? parseInt(w, 10) : undefined;
+    const height = h ? parseInt(h, 10) : undefined;
+    const quality = q ? parseInt(q, 10) : undefined;
+
+    const { filePath, contentType, size } = await this.mediaService.getTransformedImage(filename, {
+      width: !isNaN(width!) ? width : undefined,
+      height: !isNaN(height!) ? height : undefined,
+      quality: !isNaN(quality!) ? quality : undefined,
+      format,
+      fit,
+    });
+
+    res.set({
+      'Content-Type': contentType,
+      'Content-Length': size,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    });
+
+    createReadStream(filePath).pipe(res);
+  }
+
+  @SkipThrottle()
+  @Get(':filename/resize')
+  @ApiOperation({ summary: 'Alias for :filename/transform' })
+  resize(
+    @Param('filename') filename: string,
+    @Query('w') w: string | undefined,
+    @Query('h') h: string | undefined,
+    @Query('q') q: string | undefined,
+    @Query('format') format: any,
+    @Query('fit') fit: any,
+    @Res() res: any,
+  ) {
+    return this.transform(filename, w, h, q, format, fit, res);
   }
 
   // ── File delete — must come after all static /folders/* routes ─────────────

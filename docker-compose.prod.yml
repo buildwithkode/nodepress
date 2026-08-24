@@ -12,8 +12,8 @@ services:
     image: postgres:16-alpine
     container_name: nodepress_db
     environment:
-      POSTGRES_DB:       nodepress
-      POSTGRES_USER:     postgres
+      POSTGRES_DB:       ${POSTGRES_DB:-nodepress}
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -57,9 +57,9 @@ services:
     environment:
       DB_HOST:     db
       DB_PORT:     5432
-      DB_USER:     postgres
+      DB_USER:     ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME:     nodepress
+      DB_NAME:     ${POSTGRES_DB:-nodepress}
       POOL_MODE:   transaction
       MAX_CLIENT_CONN: 200
       DEFAULT_POOL_SIZE: 20
@@ -89,9 +89,9 @@ services:
         condition: service_healthy
     environment:
       # Route through PgBouncer for pooled connections
-      DATABASE_URL:  "postgresql://postgres:${DB_PASSWORD}@pgbouncer:5432/YOUR_NODEPRESS_DATABASE"
+      DATABASE_URL:  "postgresql://${POSTGRES_USER:-postgres}:${DB_PASSWORD}@pgbouncer:5432/${POSTGRES_DB:-nodepress}"
       # Use direct DB connection for migrations (PgBouncer transaction mode blocks DDL)
-      DIRECT_URL:    "postgresql://postgres:${DB_PASSWORD}@db:5432/YOUR_NODEPRESS_DATABASE"
+      DIRECT_URL:    "postgresql://${POSTGRES_USER:-postgres}:${DB_PASSWORD}@db:5432/${POSTGRES_DB:-nodepress}"
       PORT:          3000
       JWT_SECRET:    ${JWT_SECRET}
       JWT_EXPIRES_IN: 7d
@@ -228,9 +228,9 @@ services:
         condition: service_healthy
     environment:
       PGPASSWORD:   ${DB_PASSWORD}
-      POSTGRES_USER: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_HOST: db
-      POSTGRES_DB:   nodepress
+      POSTGRES_DB:   ${POSTGRES_DB:-nodepress}
       # Optional: set to upload backups to S3
       # BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET}
       # AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}

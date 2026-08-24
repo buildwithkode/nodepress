@@ -199,4 +199,17 @@ describe('MediaService', () => {
       expect(mockPrisma.mediaFolder.findUnique).not.toHaveBeenCalled();
     });
   });
+
+  // ── getTransformedImage ───────────────────────────────────────────────────
+
+  describe('getTransformedImage()', () => {
+    it('rejects path traversal attempts', async () => {
+      await expect(service.getTransformedImage('../secret.jpg', {})).rejects.toThrow(BadRequestException);
+      await expect(service.getTransformedImage('foo/bar.jpg', {})).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws NotFoundException if source file does not exist', async () => {
+      await expect(service.getTransformedImage('nonexistent-file-xyz.jpg', {})).rejects.toThrow(NotFoundException);
+    });
+  });
 });

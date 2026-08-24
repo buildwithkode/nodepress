@@ -12,7 +12,9 @@ import { AppCacheService } from '../cache/app-cache.service';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 import { sanitizeEntryData } from '../common/sanitize';
 import { FieldDef } from '../fields/field.types';
-import { populateDeep } from '../common/populate.util';
+import { populateDeep, populateManyDeep } from '../common/populate.util';
+import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
+import { buildAdvancedWhere } from '../common/filter-query.util';
 
 type MethodKey = 'list' | 'read' | 'create' | 'update' | 'delete';
 
@@ -23,7 +25,8 @@ export interface PublicListQuery {
   page?: number;
   limit?: number;
   sort?: string;                    // e.g. "createdAt:desc" or "slug:asc"
-  filter?: Record<string, string>;  // e.g. { category: "tech", author: "john" }
+  filter?: Record<string, string>;  // legacy simple filter e.g. { category: "tech" }
+  where?: Record<string, any>;      // advanced where query e.g. { price: { gte: 100 }, category: { in: ["tech", "news"] } }
   search?: string;                  // full-text search on slug + data
   locale?: string;                  // filter by locale (e.g. "en", "fr")
   populate?: string[];              // relation field names to inline-populate
@@ -168,103 +171,145 @@ export class DynamicApiService {
     // also skip the cache read (the key omits populate/fields) — otherwise a
     // populated list could be served raw, or vice versa.
     const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
-    const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter, locale: query.locale })}`;
+    const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale })}`;
     if (cacheable) {
       const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
       if (cached) return cached;
     }
 
     // Build where: only published + non-deleted entries visible publicly
-    const dataFilters = query.filter ? buildDataFilters(query.filter) : [];
+    const advancedWhere = buildAdvancedWhere(query.where, query.filter);
     const where: any = {
       contentTypeId: contentType.id,
       status: 'published',
       deletedAt: null,
       ...(query.locale ? { locale: query.locale } : {}),
-      ...(dataFilters.length > 0 ? { AND: dataFilters } : {}),
+      ...(advancedWhere.length > 0 ? { AND: advancedWhere } : {}),
     };
 
     // ── Full-text search ──────────────────────────────────────────────────────
-    // Uses the entries_fts_idx GIN index for performance.
+    // Uses the entries_fts_idx GIN index with DB-level pagination (LIMIT/OFFSET)
+    // to prevent memory exhaustion and Postgres parameter overflow on large datasets.
     // Falls back to LIKE for short/special-char queries tsquery rejects.
-    // Adds searchMode to meta so clients know which path was taken.
     let searchMode: 'fulltext' | 'fallback' | undefined;
+    let total = 0;
+    let entries: any[] = [];
 
     if (query.search && query.search.trim()) {
       const term = query.search.trim();
-      let matches: { id: number }[];
+      let matches: { id: number }[] = [];
       try {
-        matches = await this.prisma.$queryRaw<{ id: number }[]>`
-          SELECT id FROM entries
+        const countResult = await this.prisma.$queryRaw<any[]>`
+          SELECT count(*)::int AS count FROM entries
           WHERE "contentTypeId" = ${contentType.id}
             AND status = 'published'
             AND "deletedAt" IS NULL
-            AND to_tsvector('english', slug || ' ' || data::text) @@ websearch_to_tsquery('english', ${term})
+            ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
+            AND to_tsvector('english', slug || ' ' || COALESCE(data::text, '')) @@ websearch_to_tsquery('english', ${term})
         `;
+        total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
+
+        if (total > 0) {
+          const res = await this.prisma.$queryRaw<{ id: number }[]>`
+            SELECT id FROM entries
+            WHERE "contentTypeId" = ${contentType.id}
+              AND status = 'published'
+              AND "deletedAt" IS NULL
+              ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
+              AND to_tsvector('english', slug || ' ' || COALESCE(data::text, '')) @@ websearch_to_tsquery('english', ${term})
+            ORDER BY "createdAt" DESC
+            LIMIT ${limit} OFFSET ${skip}
+          `;
+          matches = Array.isArray(res) ? res : (countResult[0]?.id != null ? countResult : []);
+        }
         searchMode = 'fulltext';
       } catch {
         // Fallback: plain LIKE for short/special-char queries that tsquery can't parse
         const like = `%${term}%`;
-        matches = await this.prisma.$queryRaw<{ id: number }[]>`
-          SELECT id FROM entries
+        const countResult = await this.prisma.$queryRaw<any[]>`
+          SELECT count(*)::int AS count FROM entries
           WHERE "contentTypeId" = ${contentType.id}
             AND status = 'published'
             AND "deletedAt" IS NULL
-            AND (LOWER(slug) LIKE LOWER(${like}) OR LOWER(data::text) LIKE LOWER(${like}))
+            ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
+            AND (LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))
         `;
+        total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
+
+        if (total > 0) {
+          const res = await this.prisma.$queryRaw<{ id: number }[]>`
+            SELECT id FROM entries
+            WHERE "contentTypeId" = ${contentType.id}
+              AND status = 'published'
+              AND "deletedAt" IS NULL
+              ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
+              AND (LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))
+            ORDER BY "createdAt" DESC
+            LIMIT ${limit} OFFSET ${skip}
+          `;
+          matches = Array.isArray(res) ? res : (countResult[0]?.id != null ? countResult : []);
+        }
         searchMode = 'fallback';
       }
-      // Use [-1] sentinel so Prisma returns 0 rows rather than ignoring the clause
-      where.id = { in: matches.length > 0 ? matches.map((m) => m.id) : [-1] };
+
+      if (matches && matches.length > 0) {
+        const pageIds = matches.map((m) => m.id);
+        const rawEntries = await this.prisma.entry.findMany({
+          where: { id: { in: pageIds } },
+          select: {
+            id: true, publicId: true, slug: true, locale: true,
+            status: true, deletedAt: true, data: true, seo: true,
+            createdAt: true, updatedAt: true,
+          },
+        });
+        const entryMap = new Map(rawEntries.map((e) => [e.id, e]));
+        entries = pageIds.map((id) => entryMap.get(id)).filter(Boolean);
+      } else {
+        entries = [];
+      }
+    } else {
+      const [countedTotal, fetchedEntries] = await Promise.all([
+        this.prisma.entry.count({ where }),
+        this.prisma.entry.findMany({
+          where,
+          orderBy,
+          skip,
+          take: limit,
+          select: {
+            id: true, publicId: true, slug: true, locale: true,
+            status: true, deletedAt: true, data: true, seo: true,
+            createdAt: true, updatedAt: true,
+          },
+        }),
+      ]);
+      total = countedTotal;
+      entries = fetchedEntries;
     }
 
-    const [total, entries] = await Promise.all([
-      this.prisma.entry.count({ where }),
-      this.prisma.entry.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-        select: {
-          id: true, publicId: true, slug: true, locale: true,
-          status: true, deletedAt: true, data: true, seo: true,
-          createdAt: true, updatedAt: true,
-        },
-      }),
-    ]);
-
-    // Process repeater IDs in memory; batch DB updates in one transaction
+    // Process repeater IDs in memory for response (pure read-only)
     const processed = entries.map((e) => {
       let entryData = normalizeDataKeys(e.data as Record<string, any>);
       if (needsRepeaterIds(entryData)) {
         entryData = injectRepeaterIds(entryData);
-        return { e, entryData, needsUpdate: true };
       }
-      return { e, entryData, needsUpdate: false };
+      return { e, entryData };
     });
 
-    const toUpdate = processed.filter((p) => p.needsUpdate);
-    if (toUpdate.length > 0) {
-      await this.prisma.$transaction(
-        toUpdate.map((p) =>
-          this.prisma.entry.update({
-            where: { id: p.e.id },
-            data: { data: p.entryData as Prisma.InputJsonValue },
-          }),
-        ),
-      );
+    const schema = contentType.schema as unknown as FieldDef[];
+    let populatedDataList: Record<string, any>[];
+
+    if (query.populate?.length) {
+      const dataList = processed.map((p) => p.entryData);
+      populatedDataList = await populateManyDeep(dataList, schema, query.populate, this.prisma);
+    } else {
+      populatedDataList = processed.map((p) => p.entryData);
     }
 
-    const schema = contentType.schema as unknown as FieldDef[];
-    const populated = await Promise.all(
-      processed.map(async ({ e, entryData }) => {
-        const resolvedData = query.populate?.length
-          ? await populateDeep(entryData, schema, query.populate, this.prisma)
-          : entryData;
-        return this.toPublicEntry(e, resolvedData);
-      }),
-    );
-    const data = populated.map((entry) => projectFields(entry, query.fields));
+    const data = populatedDataList.map((resolvedData, index) => {
+      const sanitizedData = filterUnauthorizedReadFields(resolvedData, schema, undefined);
+      const entry = this.toPublicEntry(processed[index].e, sanitizedData);
+      return projectFields(entry, query.fields);
+    });
 
     const result: PaginatedResult<any> = {
       data,
@@ -316,16 +361,14 @@ export class DynamicApiService {
     let data = normalizeDataKeys(entry.data as Record<string, any>);
     if (needsRepeaterIds(data)) {
       data = injectRepeaterIds(data);
-      await this.prisma.entry.update({
-        where: { id: entry.id },
-        data: { data: data as Prisma.InputJsonValue },
-      });
     }
 
+    const schema = contentType.schema as unknown as FieldDef[];
     if (query.populate?.length) {
-      const schema = contentType.schema as unknown as FieldDef[];
       data = await populateDeep(data, schema, query.populate, this.prisma);
     }
+
+    data = filterUnauthorizedReadFields(data, schema, undefined);
 
     const result = projectFields(this.toPublicEntry(entry, data), query.fields);
     // Only cache un-projected, un-populated responses (matches the read guard above)
@@ -337,6 +380,8 @@ export class DynamicApiService {
 
   async create(typeName: string, slug: string, data: Record<string, any>, locale = 'en') {
     const contentType = await this.resolveContentType(typeName, 'create');
+    const schema = contentType.schema as unknown as FieldDef[];
+    validateFieldWritePermissions(data, undefined, schema, undefined);
 
     const existing = await this.prisma.entry.findUnique({
       where: { contentTypeId_slug_locale: { contentTypeId: contentType.id, slug, locale } },
@@ -351,7 +396,7 @@ export class DynamicApiService {
         locale,
         status: 'published',
         data: normalizeDataKeys(
-          sanitizeEntryData(injectRepeaterIds(data), contentType.schema as unknown as FieldDef[]),
+          sanitizeEntryData(injectRepeaterIds(data), schema),
         ) as Prisma.InputJsonValue,
         contentTypeId: contentType.id,
       },
@@ -363,11 +408,12 @@ export class DynamicApiService {
     });
 
     await this.invalidate(typeName);
-    return this.toPublicEntry(created, created.data as Record<string, any>);
+    return this.toPublicEntry(created, filterUnauthorizedReadFields(created.data as Record<string, any>, schema, undefined));
   }
 
   async update(typeName: string, slug: string, data: Record<string, any>, locale = 'en') {
     const contentType = await this.resolveContentType(typeName, 'update');
+    const schema = contentType.schema as unknown as FieldDef[];
 
     const entry = await this.prisma.entry.findUnique({
       where: { contentTypeId_slug_locale: { contentTypeId: contentType.id, slug, locale } },
@@ -376,11 +422,13 @@ export class DynamicApiService {
       throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}" (locale: ${locale})`);
     }
 
+    validateFieldWritePermissions(data, entry.data as Record<string, any>, schema, undefined);
+
     const updated = await this.prisma.entry.update({
       where: { id: entry.id },
       data: {
         data: normalizeDataKeys(
-          sanitizeEntryData(injectRepeaterIds(data), contentType.schema as unknown as FieldDef[]),
+          sanitizeEntryData(injectRepeaterIds(data), schema),
         ) as Prisma.InputJsonValue,
       },
       select: {
@@ -391,7 +439,7 @@ export class DynamicApiService {
     });
 
     await this.invalidate(typeName);
-    return this.toPublicEntry(updated, updated.data as Record<string, any>);
+    return this.toPublicEntry(updated, filterUnauthorizedReadFields(updated.data as Record<string, any>, schema, undefined));
   }
 
   async remove(typeName: string, slug: string, locale = 'en') {

@@ -21,16 +21,18 @@ export class DynamicApiController {
   @ApiOperation({
     summary: 'List published entries for a content type (public)',
     description:
-      'Returns only `published` entries. Supports pagination, sorting, and field filtering.\n\n' +
+      'Returns only `published` entries. Supports pagination, sorting, advanced operator filtering, and relation population.\n\n' +
+      '**Advanced Filtering:** `?where[price][gte]=100` · `?where[category][in]=tech,news` · `?where[title][contains]=guide` · `?filters[price][$gte]=100`\n\n' +
       '**Sorting:** `?sort=createdAt:desc` · `?sort=slug:asc` · `?sort=updatedAt:asc`\n\n' +
-      '**Filtering:** `?filter[category]=tech` · `?filter[author]=john` (partial match on any data field)\n\n' +
       '**Pagination:** `?page=2&limit=10` (max 100 per page)',
   })
   @ApiParam({ name: 'type', example: 'blog', description: 'Content type name' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   @ApiQuery({ name: 'sort', required: false, example: 'createdAt:desc', description: 'field:direction' })
-  @ApiQuery({ name: 'filter', required: false, description: 'filter[fieldName]=value — partial match on data field' })
+  @ApiQuery({ name: 'where', required: false, description: 'where[field][operator]=value — supports eq, ne, gt, gte, lt, lte, in, notIn, contains, startsWith, endsWith, null, notNull' })
+  @ApiQuery({ name: 'filters', required: false, description: 'Strapi-compatible alias for where parameter' })
+  @ApiQuery({ name: 'filter', required: false, description: 'Legacy filter[fieldName]=value — partial match on data field' })
   @ApiQuery({ name: 'search', required: false, type: String, description: 'Full-text search on slug and all data fields' })
   @ApiQuery({ name: 'locale', required: false, type: String, description: 'Filter by locale (e.g. en, fr, de). Default: all locales.' })
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
@@ -42,6 +44,8 @@ export class DynamicApiController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
+    @Query('where') where?: Record<string, any>,
+    @Query('filters') filters?: Record<string, any>,
     @Query('filter') filter?: Record<string, string>,
     @Query('search') search?: string,
     @Query('locale') locale?: string,
@@ -52,6 +56,7 @@ export class DynamicApiController {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       sort,
+      where: where || filters || undefined,
       filter: filter && typeof filter === 'object' ? filter : undefined,
       search: search?.trim() || undefined,
       locale: locale?.trim() || undefined,

@@ -59,7 +59,14 @@ const EnvSchema = z.object({
 });
 
 function validateEnv(raw: NodeJS.ProcessEnv) {
-  const result = EnvSchema.safeParse(raw);
+  const envToValidate = { ...raw };
+  if (envToValidate.NODE_ENV === 'test' || process.env.NODE_ENV === 'test') {
+    envToValidate.DATABASE_URL = envToValidate.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nodepress_test';
+    envToValidate.JWT_SECRET = envToValidate.JWT_SECRET || 'test-jwt-secret-must-be-at-least-32-chars-long-12345';
+    envToValidate.CORS_ORIGIN = envToValidate.CORS_ORIGIN || 'http://localhost:3000';
+  }
+
+  const result = EnvSchema.safeParse(envToValidate);
 
   if (!result.success) {
     console.error('\n❌  Invalid environment variables — fix these before starting:\n');

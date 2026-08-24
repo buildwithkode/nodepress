@@ -37,7 +37,15 @@ export class EntriesController {
   @ApiResponse({ status: 201, description: 'Entry created' })
   @ApiResponse({ status: 409, description: 'Slug already exists in this content type' })
   async create(@Body() dto: CreateEntryDto, @Request() req: any) {
-    const entry = await this.entriesService.create(dto, req.user.id) as any;
+    if (req.user.role !== 'admin') {
+      const allowed = await this.permissionsService.can(req.user.role, '*', 'create');
+      if (!allowed) throw new ForbiddenException('You do not have permission to create entries');
+      if (dto.status === 'published') {
+        const canPublish = await this.permissionsService.can(req.user.role, '*', 'publish');
+        if (!canPublish) throw new ForbiddenException('You do not have permission to publish entries');
+      }
+    }
+    const entry = await this.entriesService.create(dto, req.user.id, req.user.role) as any;
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'created', 'entry', entry.slug,
@@ -68,6 +76,7 @@ export class EntriesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('locale') locale?: string,
+    @Request() req?: any,
   ) {
     const ctId = contentTypeId ? parseInt(contentTypeId, 10) : undefined;
     return this.entriesService.findAll({
@@ -78,6 +87,7 @@ export class EntriesController {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       locale: locale?.trim() || undefined,
+      role: req?.user?.role,
     });
   }
 
@@ -108,24 +118,18 @@ export class EntriesController {
   @ApiBearerAuth('JWT')
   @ApiOperation({
     summary: 'Import entries into a content type from a JSON array (editor, admin)',
-    description:
-      'Upserts entries by slug + locale. Existing (non-deleted) entries are updated; new entries are created. ' +
-      'Returns `{ created, updated, errors }`. Rows with missing slugs are skipped and listed in `errors`.',
+    description: 'Accepts a JSON array of entry objects (same shape as export). Skips slugs that already exist.',
   })
-  async importEntries(
-    @Body('contentTypeId') contentTypeId: number,
-    @Body('entries') entries: any[],
+  @ApiQuery({ name: 'contentTypeId', required: true, type: Number })
+  importEntries(
+    @Query('contentTypeId') contentTypeId: string,
+    @Body() entries: any[],
     @Request() req: any,
   ) {
-    if (!contentTypeId) throw new BadRequestException('contentTypeId is required');
-    if (!Array.isArray(entries)) throw new BadRequestException('entries must be an array');
-    const result = await this.entriesService.importEntries(contentTypeId, entries, req.user.id);
-    await this.auditService.log(
-      { id: req.user.id, email: req.user.email, ip: req.ip },
-      'created', 'entry', `import:contentType:${contentTypeId}`,
-      { created: result.created, updated: result.updated, errors: result.errors.length },
-    );
-    return result;
+    const id = parseInt(contentTypeId, 10);
+    if (isNaN(id)) throw new BadRequestException('contentTypeId must be a number');
+    if (!Array.isArray(entries)) throw new BadRequestException('Body must be a JSON array of entries');
+    return this.entriesService.importEntries(id, entries, req.user.id);
   }
 
   // ─── Bulk operations — also static paths, must precede :id wildcards ───────
@@ -177,9 +181,10 @@ export class EntriesController {
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Query('populate') populate?: string,
+    @Request() req?: any,
   ) {
     const fields = populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : [];
-    return this.entriesService.findOne(id, fields);
+    return this.entriesService.findOne(id, fields, req?.user?.role);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -193,7 +198,17 @@ export class EntriesController {
     @Body() dto: UpdateEntryDto,
     @Request() req: any,
   ) {
-    const entry = await this.entriesService.update(id, dto, req.user.id);
+    if (req.user.role !== 'admin') {
+      const entry = await this.entriesService.findOne(id);
+      const ctName = (entry as any).contentType?.name || '*';
+      const allowed = await this.permissionsService.can(req.user.role, ctName, 'update');
+      if (!allowed) throw new ForbiddenException('You do not have permission to update entries of this content type');
+      if (dto.status === 'published' && entry.status !== 'published') {
+        const canPublish = await this.permissionsService.can(req.user.role, ctName, 'publish');
+        if (!canPublish) throw new ForbiddenException('You do not have permission to publish entries of this content type');
+      }
+    }
+    const entry = await this.entriesService.update(id, dto, req.user.id, req.user.role);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'updated', 'entry', entry.slug,

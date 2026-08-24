@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText, ExternalLink } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
@@ -610,17 +610,28 @@ export default function EditEntryPage() {
           {/* Preview URL panel */}
           {previewUrl && (
             <div className="flex items-center gap-2 flex-1 min-w-0 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
-              <span className="text-muted-foreground shrink-0">Preview API:</span>
+              <span className="text-muted-foreground shrink-0 font-medium">Draft View:</span>
               <span className="truncate font-mono text-foreground flex-1 min-w-0">{previewUrl}</span>
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText(previewUrl);
+                  window.open(previewUrl, '_blank');
+                }}
+                className="shrink-0 text-primary hover:underline flex items-center gap-1 font-medium px-1.5 py-0.5 rounded hover:bg-primary/10 transition-colors"
+                title="Open in new tab"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span>Open</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.origin + previewUrl);
                   setPreviewCopied(true);
                   setTimeout(() => setPreviewCopied(false), 2000);
                 }}
-                className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                title="Copy URL"
+                className="shrink-0 text-muted-foreground hover:text-foreground transition-colors p-1"
+                title="Copy Preview URL"
               >
                 {previewCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
@@ -637,17 +648,17 @@ export default function EditEntryPage() {
                 if (!entry || !contentType) return;
                 try {
                   const res = await api.post(`/entries/${entry.id}/preview-url`);
-                  const base = window.location.origin;
-                  const url = `${base}/api/${contentType.name}/${entry.slug}/preview?token=${res.data.token}`;
-                  setPreviewUrl(url);
-                  toast.success('Preview URL generated — valid for 1 hour');
+                  const draftUrl = `/api/draft?secret=${encodeURIComponent(res.data.token)}&slug=${encodeURIComponent(entry.slug)}&type=${encodeURIComponent(contentType.name)}`;
+                  setPreviewUrl(draftUrl);
+                  window.open(draftUrl, '_blank');
+                  toast.success('Live preview mode launched in new tab');
                 } catch {
                   toast.error('Failed to generate preview URL');
                 }
               }}
             >
               <Eye className="h-3.5 w-3.5" />
-              Preview
+              Live Preview
             </Button>
             <Button variant="outline" onClick={() => router.push('/entries')}>Cancel</Button>
             <Button type="submit" form="entry-form" disabled={submitting}>

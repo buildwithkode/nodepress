@@ -37,6 +37,16 @@ export class FieldDto {
   })
   @IsOptional()
   options?: any;
+
+  @ApiPropertyOptional({ example: ['admin', 'editor'] })
+  @IsOptional()
+  @IsArray()
+  readRoles?: string[];
+
+  @ApiPropertyOptional({ example: ['admin'] })
+  @IsOptional()
+  @IsArray()
+  writeRoles?: string[];
 }
 
 const ALLOWED_METHODS = ['list', 'read', 'create', 'update', 'delete'] as const;

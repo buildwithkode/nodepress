@@ -140,3 +140,60 @@ export async function optimizeImage(
     activeOptimizations--;
   }
 }
+
+export interface TransformOptions {
+  width?: number;
+  height?: number;
+  quality?: number;
+  format?: 'webp' | 'avif' | 'jpeg' | 'jpg' | 'png';
+  fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside';
+}
+
+/**
+ * On-the-fly image transformer using Sharp.
+ * Converts and resizes images dynamically with quality controls and disk caching.
+ */
+export async function transformImage(
+  sourcePath: string,
+  outputPath: string,
+  options: TransformOptions,
+): Promise<{ format: string; width: number; height: number; size: number }> {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const sharp = require('sharp');
+  const targetFormat = options.format === 'jpg' ? 'jpeg' : (options.format || 'webp');
+  const quality = Math.min(100, Math.max(1, options.quality || 80));
+  const fit = options.fit || 'inside';
+
+  const w = options.width && options.width > 0 ? Math.min(3840, options.width) : undefined;
+  const h = options.height && options.height > 0 ? Math.min(3840, options.height) : undefined;
+
+  let pipeline = sharp(sourcePath).rotate();
+
+  if (w || h) {
+    pipeline = pipeline.resize(w, h, { fit, withoutEnlargement: true });
+  }
+
+  if (targetFormat === 'webp') {
+    pipeline = pipeline.webp({ quality });
+  } else if (targetFormat === 'avif') {
+    pipeline = pipeline.avif({ quality });
+  } else if (targetFormat === 'jpeg') {
+    pipeline = pipeline.jpeg({ quality, progressive: true, mozjpeg: true });
+  } else if (targetFormat === 'png') {
+    pipeline = pipeline.png({ compressionLevel: 8, adaptiveFiltering: true });
+  }
+
+  const tmpOutput = `${outputPath}.tmp-${Date.now()}`;
+  const info = await pipeline.toFile(tmpOutput);
+
+  // Atomically move to cached output destination
+  const { renameSync } = require('fs');
+  renameSync(tmpOutput, outputPath);
+
+  return {
+    format: targetFormat,
+    width: info.width,
+    height: info.height,
+    size: info.size,
+  };
+}

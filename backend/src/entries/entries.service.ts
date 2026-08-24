@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Optional,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
@@ -16,6 +17,9 @@ import { FieldDef } from '../fields/field.types';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 import { sanitizeEntryData } from '../common/sanitize';
 import { populateDeep } from '../common/populate.util';
+import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
+import { PluginHookBus } from '../plugin/plugin-hook-bus';
+import { PluginEvents } from '../plugin/plugin.events';
 
 export interface AdminListQuery {
   contentTypeId?: number;
@@ -25,6 +29,7 @@ export interface AdminListQuery {
   locale?: string;          // filter by locale (e.g. 'en', 'fr')
   page?: number;
   limit?: number;
+  role?: string;            // requesting user role for field-level security
 }
 
 export interface PaginatedResult<T> {
@@ -45,9 +50,10 @@ export class EntriesService {
     private webhooks: WebhooksService,
     private realtime: RealtimeGateway,
     private jwtService: JwtService,
+    @Optional() private hookBus?: PluginHookBus,
   ) {}
 
-  async create(dto: CreateEntryDto, actorId?: number) {
+  async create(dto: CreateEntryDto, actorId?: number, role?: string) {
     const contentType = await this.prisma.contentType.findUnique({
       where: { id: dto.contentTypeId },
     });
@@ -56,9 +62,21 @@ export class EntriesService {
       throw new BadRequestException(`Content type #${dto.contentTypeId} not found`);
     }
 
+    if (this.hookBus) {
+      await this.hookBus.emit(PluginEvents.ENTRY_BEFORE_CREATE, {
+        dto,
+        actorId,
+        role,
+        contentType: contentType.name,
+      });
+    }
+
+    const schema = contentType.schema as unknown as FieldDef[];
+    validateFieldWritePermissions(dto.data as Record<string, any>, undefined, schema, role);
+
     this.dataValidator.validate(
       dto.data as Record<string, unknown>,
-      contentType.schema as unknown as FieldDef[],
+      schema,
     );
 
     const locale = dto.locale ?? 'en';
@@ -78,7 +96,7 @@ export class EntriesService {
         data: normalizeDataKeys(
           sanitizeEntryData(
             injectRepeaterIds(dto.data as Record<string, any>),
-            contentType.schema as unknown as FieldDef[],
+            schema,
           ),
         ),
         contentTypeId: dto.contentTypeId,
@@ -102,6 +120,16 @@ export class EntriesService {
       locale: entry.locale,
     });
 
+    if (this.hookBus) {
+      await this.hookBus.emit(PluginEvents.ENTRY_AFTER_CREATE, {
+        id: entry.id,
+        slug: entry.slug,
+        status: entry.status,
+        contentType: contentType.name,
+        data: entry.data as Record<string, any>,
+      });
+    }
+
     return entry;
   }
 
@@ -110,67 +138,140 @@ export class EntriesService {
     const limit = Math.min(100, Math.max(1, query.limit ?? 20));
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.EntryWhereInput = {
+      deletedAt: query.deleted ? { not: null } : null,
+    };
 
     if (query.contentTypeId) where.contentTypeId = query.contentTypeId;
     if (query.status) where.status = query.status;
     if (query.locale) where.locale = query.locale;
 
-    if (query.deleted) {
-      where.deletedAt = { not: null };
-    } else {
-      where.deletedAt = null;
-    }
+    let entries: any[] = [];
+    let total = 0;
 
-    // Full-text search using PostgreSQL GIN index (tsvector + websearch_to_tsquery).
-    // Replaces the previous LIKE table-scan — uses the entries_fts_idx GIN index.
-    if (query.search && query.search.trim()) {
+    if (query.search?.trim()) {
       const term = query.search.trim();
-      try {
-        const matches = await this.prisma.$queryRaw<{ id: number }[]>`
-          SELECT id FROM entries
-          WHERE to_tsvector('simple', slug || ' ' || COALESCE(data::text, ''))
-                @@ websearch_to_tsquery('simple', ${term})
-        `;
-        where.id = { in: matches.length > 0 ? matches.map((m) => m.id) : [-1] };
-      } catch {
-        // Invalid query syntax — return empty result rather than crashing
-        where.id = { in: [-1] };
+
+      // Escape special LIKE pattern characters (% and _)
+      const escapedTerm = term.replace(/[%_]/g, '\\$&');
+      const like = `%${escapedTerm}%`;
+
+      // Build extra WHERE conditions for contentTypeId, status, locale, deletedAt
+      const whereConditions: Prisma.Sql[] = [];
+      if (query.contentTypeId) {
+        whereConditions.push(Prisma.sql`AND "contentTypeId" = ${query.contentTypeId}`);
       }
+      if (query.status) {
+        whereConditions.push(Prisma.sql`AND status = ${query.status}`);
+      }
+      if (query.locale) {
+        whereConditions.push(Prisma.sql`AND locale = ${query.locale}`);
+      }
+      if (query.deleted) {
+        whereConditions.push(Prisma.sql`AND "deletedAt" IS NOT NULL`);
+      } else {
+        whereConditions.push(Prisma.sql`AND "deletedAt" IS NULL`);
+      }
+
+      // Try PostgreSQL full-text search with plainto_tsquery
+      try {
+        const countResult = await this.prisma.$queryRaw<{ count: number }[]>`
+          SELECT count(*)::int as count
+          FROM entries
+          WHERE to_tsvector('english', slug || ' ' || COALESCE(data::text, '')) @@ plainto_tsquery('english', ${term})
+            ${Prisma.join(whereConditions, ' ')}
+        `;
+        total = countResult[0]?.count != null ? Number(countResult[0].count) : 0;
+
+        if (total > 0) {
+          const res = await this.prisma.$queryRaw<{ id: number }[]>`
+            SELECT id
+            FROM entries
+            WHERE to_tsvector('english', slug || ' ' || COALESCE(data::text, '')) @@ plainto_tsquery('english', ${term})
+              ${Prisma.join(whereConditions, ' ')}
+            ORDER BY "createdAt" DESC
+            LIMIT ${limit} OFFSET ${skip}
+          `;
+          const pageMatches = Array.isArray(res) ? res : (countResult[0]?.count != null ? countResult : []);
+          const pageIds = pageMatches.map((m) => m.id);
+          if (pageIds.length > 0) {
+            const rawEntries = await this.prisma.entry.findMany({
+              where: { id: { in: pageIds } },
+              include: { contentType: true },
+            });
+            const entryMap = new Map(rawEntries.map((e) => [e.id, e]));
+            entries = pageIds.map((id) => entryMap.get(id)).filter(Boolean);
+          } else {
+            entries = [];
+          }
+        } else {
+          entries = [];
+        }
+      } catch {
+        // Fallback: ILIKE search with pushed limit and count query
+        const countResult = await this.prisma.$queryRaw<{ count: number }[]>`
+          SELECT count(*)::int as count
+          FROM entries
+          WHERE (LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))
+            ${Prisma.join(whereConditions, ' ')}
+        `;
+        total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
+
+        if (total > 0) {
+          const res = await this.prisma.$queryRaw<{ id: number }[]>`
+            SELECT id
+            FROM entries
+            WHERE (LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))
+              ${Prisma.join(whereConditions, ' ')}
+            ORDER BY "createdAt" DESC
+            LIMIT ${limit} OFFSET ${skip}
+          `;
+          const pageMatches = Array.isArray(res) ? res : (countResult[0]?.count != null ? countResult : []);
+          const pageIds = pageMatches.map((m) => m.id);
+          if (pageIds.length > 0) {
+            const rawEntries = await this.prisma.entry.findMany({
+              where: { id: { in: pageIds } },
+              include: { contentType: true },
+            });
+            const entryMap = new Map(rawEntries.map((e) => [e.id, e]));
+            entries = pageIds.map((id) => entryMap.get(id)).filter(Boolean);
+          } else {
+            entries = [];
+          }
+        } else {
+          entries = [];
+        }
+      }
+    } else {
+      const [countedTotal, fetchedEntries] = await Promise.all([
+        this.prisma.entry.count({ where }),
+        this.prisma.entry.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+          include: { contentType: true },
+        }),
+      ]);
+      total = countedTotal;
+      entries = fetchedEntries;
     }
 
-    const [total, entries] = await Promise.all([
-      this.prisma.entry.count({ where }),
-      this.prisma.entry.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        include: { contentType: true },
-      }),
-    ]);
-
-    // Process repeater IDs: inject missing IDs and collect entries that need saving
-    const processed = entries.map((e) => {
+    // Process repeater IDs in-memory and filter read fields by role
+    const data = entries.map((e) => {
       let entryData = e.data as Record<string, any>;
       if (needsRepeaterIds(entryData)) {
         entryData = injectRepeaterIds(entryData);
-        return { entry: e, data: entryData, needsUpdate: true };
       }
-      return { entry: e, data: entryData, needsUpdate: false };
+      if (e.contentType?.schema) {
+        entryData = filterUnauthorizedReadFields(
+          entryData,
+          e.contentType.schema as unknown as FieldDef[],
+          query.role,
+        );
+      }
+      return { ...e, data: entryData };
     });
-
-    // Batch all updates in a single transaction instead of N individual queries
-    const toUpdate = processed.filter((p) => p.needsUpdate);
-    if (toUpdate.length > 0) {
-      await this.prisma.$transaction(
-        toUpdate.map((p) =>
-          this.prisma.entry.update({ where: { id: p.entry.id }, data: { data: p.data as Prisma.InputJsonValue } }),
-        ),
-      );
-    }
-
-    const data = processed.map(({ entry: e, data: entryData }) => ({ ...e, data: entryData }));
 
     return {
       data,
@@ -178,7 +279,7 @@ export class EntriesService {
     };
   }
 
-  async findOne(id: number, populate: string[] = []) {
+  async findOne(id: number, populate: string[] = [], role?: string) {
     const entry = await this.prisma.entry.findUnique({
       where: { id },
       include: { contentType: true },
@@ -191,7 +292,6 @@ export class EntriesService {
     let data = entry.data as Record<string, any>;
     if (needsRepeaterIds(data)) {
       data = injectRepeaterIds(data);
-      await this.prisma.entry.update({ where: { id: entry.id }, data: { data: data as Prisma.InputJsonValue } });
     }
 
     if (populate.length && entry.contentType) {
@@ -199,11 +299,38 @@ export class EntriesService {
       data = await populateDeep(data, schema, populate, this.prisma);
     }
 
+    if (entry.contentType?.schema) {
+      data = filterUnauthorizedReadFields(
+        data,
+        entry.contentType.schema as unknown as FieldDef[],
+        role,
+      );
+    }
+
     return { ...entry, data };
   }
 
-  async update(id: number, dto: UpdateEntryDto, actorId?: number) {
+  async update(id: number, dto: UpdateEntryDto, actorId?: number, role?: string) {
     const entry = await this.findOne(id);
+    const schema = entry.contentType.schema as unknown as FieldDef[];
+
+    if (this.hookBus) {
+      await this.hookBus.emit(PluginEvents.ENTRY_BEFORE_UPDATE, {
+        id,
+        dto,
+        actorId,
+        role,
+        currentEntry: entry,
+      });
+
+      if (dto.status === 'published' && entry.status !== 'published') {
+        await this.hookBus.emit(PluginEvents.ENTRY_BEFORE_PUBLISH, { id, entry });
+      }
+    }
+
+    if (dto.data !== undefined) {
+      validateFieldWritePermissions(dto.data as Record<string, any>, entry.data as Record<string, any>, schema, role);
+    }
 
     // Snapshot current state as a version before applying changes
     await this.prisma.entryVersion.create({
@@ -277,12 +404,36 @@ export class EntriesService {
       status: updated.status,
     });
 
+    if (this.hookBus) {
+      await this.hookBus.emit(PluginEvents.ENTRY_AFTER_UPDATE, {
+        id: updated.id,
+        slug: updated.slug,
+        status: updated.status,
+        contentType: updated.contentType?.name,
+        data: updated.data as Record<string, any>,
+      });
+
+      if (updated.status === 'published' && entry.status !== 'published') {
+        await this.hookBus.emit(PluginEvents.ENTRY_AFTER_PUBLISH, {
+          id: updated.id,
+          slug: updated.slug,
+          status: updated.status,
+          contentType: updated.contentType?.name,
+        });
+      }
+    }
+
     return updated;
   }
 
   /** Soft delete — sets deletedAt timestamp. */
   async remove(id: number) {
     const entry = await this.findOne(id);
+
+    if (this.hookBus) {
+      await this.hookBus.emit(PluginEvents.ENTRY_BEFORE_DELETE, { id, entry });
+    }
+
     await this.prisma.entry.update({ where: { id }, data: { deletedAt: new Date() } });
 
     this.webhooks.fire('entry.deleted', { id: entry.id, slug: entry.slug });
@@ -292,6 +443,14 @@ export class EntriesService {
       slug: entry.slug,
       contentType: (entry as { contentType?: { name: string } }).contentType?.name,
     });
+
+    if (this.hookBus) {
+      await this.hookBus.emit(PluginEvents.ENTRY_AFTER_DELETE, {
+        id: entry.id,
+        slug: entry.slug,
+        contentType: (entry as { contentType?: { name: string } }).contentType?.name,
+      });
+    }
 
     return { message: `Entry #${id} moved to trash` };
   }

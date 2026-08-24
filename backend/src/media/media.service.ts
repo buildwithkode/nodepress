@@ -219,4 +219,71 @@ export class MediaService {
 
     return { message: `File "${filename}" deleted` };
   }
+
+  /**
+   * Get or generate a transformed version of an image (resized, format-converted, compressed).
+   * Cached to disk in `uploads/.cache/variants/` to avoid repeated re-compression.
+   */
+  async getTransformedImage(
+    filename: string,
+    options: {
+      width?: number;
+      height?: number;
+      quality?: number;
+      format?: 'webp' | 'avif' | 'jpeg' | 'jpg' | 'png';
+      fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside';
+    },
+  ): Promise<{ filePath: string; contentType: string; size: number }> {
+    if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      throw new BadRequestException('Invalid filename');
+    }
+    const safe = basename(filename);
+    const sourcePath = join(this.uploadsDir, safe);
+
+    if (!existsSync(sourcePath)) {
+      throw new NotFoundException(`Image "${filename}" not found`);
+    }
+
+    const { mkdirSync } = require('fs');
+    const cacheDir = join(this.uploadsDir, '.cache', 'variants');
+    if (!existsSync(cacheDir)) {
+      mkdirSync(cacheDir, { recursive: true });
+    }
+
+    const w = options.width ?? 'orig';
+    const h = options.height ?? 'orig';
+    const q = options.quality ?? 80;
+    const fmt = options.format ?? 'webp';
+    const fit = options.fit ?? 'inside';
+
+    const baseName = safe.replace(/\.[^.]+$/, '');
+    const variantFilename = `${baseName}_w${w}_h${h}_q${q}_${fit}.${fmt}`;
+    const variantPath = join(cacheDir, variantFilename);
+
+    const MIME_TYPES: Record<string, string> = {
+      webp: 'image/webp',
+      avif: 'image/avif',
+      jpeg: 'image/jpeg',
+      jpg: 'image/jpeg',
+      png: 'image/png',
+    };
+
+    if (existsSync(variantPath)) {
+      const stats = statSync(variantPath);
+      return {
+        filePath: variantPath,
+        contentType: MIME_TYPES[fmt] || 'image/webp',
+        size: stats.size,
+      };
+    }
+
+    const { transformImage } = require('./image-optimizer');
+    const result = await transformImage(sourcePath, variantPath, options);
+
+    return {
+      filePath: variantPath,
+      contentType: MIME_TYPES[result.format] || 'image/webp',
+      size: result.size,
+    };
+  }
 }
