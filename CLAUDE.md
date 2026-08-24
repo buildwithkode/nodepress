@@ -108,8 +108,8 @@ src/
   mail/                    # MailService — SMTP (nodemailer) for password reset, invites, form email actions; reads brand from BrandService
   brand/                   # Install brand singleton (name/logo/color) — GET /api/brand (public) + PUT (admin only)
   permissions/             # Granular role/permission records (Permission model)
-  plugin/ plugins/         # Plugin loader + bundled plugins
-  common/                  # SentryExceptionFilter, normalize, sanitize, populate.util helpers
+  plugin/ plugins/         # Plugin loader + bundled plugins + PluginHookBus (lifecycle actions & data filters)
+  common/                  # SentryExceptionFilter, normalize, sanitize, populate.util (O(depth) batch), field-security.util, filter-query.util (nested where), type-generator
   forms/                   # Form builder + submissions + email/webhook actions + captcha verification
   webhooks/                # Webhook CRUD + delivery queue + retry with exponential backoff
   audit/                   # AuditLog write + list (resource, action, userId, ip) + weekly retention prune
@@ -138,7 +138,33 @@ Run `grep '^model' backend/prisma/schema.prisma` for the full list. Content type
 
 ### Relations & `?populate=`
 
-Relation fields store the target entry's `publicId` (UUID), not its numeric id. A public GET resolves them only when asked: `GET /api/blog/my-post?populate=author`. `common/populate.util.ts` (`populateDeep`) supports comma-separated and dot-notation nested paths (`?populate=author,author.company`) up to `MAX_DEPTH=3`, batching one `findMany` per level. **Cache caveat**: requests with `populate` or `fields` must bypass the cache entirely (read *and* write) — the cache key ignores those params, so serving a cached raw entry to a `?populate` request returns un-resolved UUIDs. The dynamic-api service guards this with a `cacheable` check.
+Relation fields store the target entry's `publicId` (UUID), not its numeric id. A public GET resolves them only when asked: `GET /api/blog/my-post?populate=author`. `common/populate.util.ts` (`populateManyDeep` / `populateDeep`) supports comma-separated and dot-notation nested paths (`?populate=author,author.company`) up to `MAX_DEPTH=3`, batching into a single `findMany` per relation depth ($O(\text{depth})$ complexity). **Cache caveat**: requests with `populate` or `fields` must bypass the cache entirely (read *and* write) — the cache key ignores those params, so serving a cached raw entry to a `?populate` request returns un-resolved UUIDs. The dynamic-api service guards this with a `cacheable` check.
+
+### Advanced REST Query Engine & Filtering
+
+`common/filter-query.util.ts` (`buildAdvancedWhere`) parses nested URL query parameters:
+`?where[field][operator]=value` with full support for:
+- Comparisons: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`
+- Pattern matching: `contains`, `startsWith`, `endsWith`
+- Set operations: `in`, `notIn`
+- Nullability: `null`, `notNull`
+- Combinators: `OR`, `AND` logical branches
+- PostgreSQL indexed full-text search (`?search=term`) with database-pushed `LIMIT ${limit} OFFSET ${skip}` pagination.
+
+### Field-Level Security (RBAC/PBAC)
+
+`common/field-security.util.ts` enforces:
+- `filterUnauthorizedReadFields(schema, data, userRole)`: Strips non-authorized fields from public & authenticated API responses.
+- `validateFieldWritePermissions(schema, incomingData, userRole)`: Throws `ForbiddenException` if a non-authorized role attempts to mutate protected fields.
+
+### Modular Plugin Hook & Filter Bus
+
+`plugin/plugin-hook-bus.ts` provides a global priority-ordered event and filter pipeline (`hookBus.on()`, `hookBus.emit()`, `hookBus.addFilter()`, `hookBus.applyFilters()`). Handler failures are caught and logged without aborting core database transactions. Exposed at `GET /api/plugins/hooks`.
+
+### TypeScript Codegen & Next.js Live Preview
+
+- CLI: `npx nodepress generate:types` outputs strongly-typed schemas in `frontend/types/nodepress.d.ts`.
+- Next.js Draft Mode: `/api/draft` and `/api/disable-draft` handlers allow real-time live preview of drafts with HMAC-signed tokens.
 
 ### Auth system
 

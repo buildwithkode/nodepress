@@ -46,44 +46,49 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 
 ## Everything you need. Nothing you don't.
 
-### Content Management
+### Content Management & APIs
 | Feature | What it does |
 |---|---|
 | **Visual content type builder** | Define your schema in the UI — no code, no config files |
 | **Auto-generated REST API** | Every content type instantly gets `GET`, `POST`, `PUT`, `DELETE` endpoints |
+| **Advanced REST Filter Engine** | Nested filtering with operators: `where[price][gte]=100`, `where[tag][in]=a,b`, `OR` & `AND` logic |
 | **GraphQL API** | Apollo Server with full queries + mutations — entries, content types, webhooks, media |
 | **Multi-locale (i18n)** | Per-entry locale field with `?locale=` filtering on all endpoints |
-| **Content relations** | Link entries across types — `?populate=author,author.company` (3 levels deep) |
-| **Draft / Publish workflow** | Save as draft, publish when ready, or schedule with `publishAt` |
-| **Draft preview tokens** | Share a signed URL to preview unpublished content on your frontend |
+| **Content relations** | Link entries across types — `?populate=author,author.company` ($O(\text{depth})$ batched lookups) |
+| **Next.js Live Draft Mode** | Built-in Next.js App Router Draft Mode integration, signed HMAC tokens & preview banner |
+| **Field-Level Security (RBAC/PBAC)** | Granular `readRoles` (strip fields from public responses) & `writeRoles` (protect fields from edits) |
 | **Bulk operations** | Publish, archive, or delete hundreds of entries in one click |
 | **Export / Import** | Download all entries as JSON, re-import to seed or migrate |
 | **Version history** | Every entry save is versioned — restore any previous state in one click |
 | **Schema versioning** | Content type changes are tracked — see exactly what changed and when |
 
-### Developer Experience
+### Developer Experience & Tooling
 | Feature | What it does |
 |---|---|
+| **TypeScript Codegen** | Run `npx nodepress generate:types` to generate 100% type-safe TypeScript interfaces |
+| **Frontend SDK** | Pre-built `@/lib/nodepress` client helpers for Next.js App Router & React |
 | **Real-time WebSocket** | Socket.io gateway — subscribe to `entry:created`, `entry:updated`, `media:uploaded`, and more |
+| **Plugin Hook & Filter Bus** | `PluginHookBus` with priority lifecycle actions (`beforeCreate`, `afterUpdate`) and data filters |
 | **API keys** | Scoped keys with per-key rate limiting (read / write / all · per content type) |
 | **Webhooks** | HTTP callbacks on any event — HMAC signed, with retry + exponential backoff |
 | **Swagger UI** | Interactive API docs at `/api/docs` — test every endpoint in the browser |
-| **GraphQL Playground** | Apollo Sandbox at `/graphql` — explore your full schema and run mutations interactively in any environment |
-| **Plugin system** | Drop in custom NestJS modules — add routes, services, and nav items |
+| **GraphQL Playground** | Apollo Sandbox at `/graphql` — explore your full schema and run mutations interactively |
 | **Audit log** | Every admin action is logged with user, IP, resource, and timestamp |
 
-### Media
+### Media & Asset Pipeline
 | Feature | What it does |
 |---|---|
-| **File uploads** | Images, PDFs, videos — up to 10MB per file |
-| **Auto WebP optimisation** | Sharp converts images to WebP on upload — smaller files, faster sites |
+| **Dynamic Image Resizing** | On-the-fly Sharp transformations: `GET /api/media/:file/transform?w=800&h=600&q=80&format=webp` |
+| **Persistent Variant Cache** | Automatically saves resized WebP/Avif variants to disk for instant subsequent serving |
+| **File uploads** | Images, PDFs, videos — up to 10MB per file with magic bytes validation |
 | **Folder organisation** | Group media into folders in the admin panel |
-| **S3 compatible** | Switch from local disk to any S3-compatible bucket with one env var |
+| **S3 compatible** | Switch from local disk to any S3-compatible bucket (AWS, Cloudflare R2, MinIO) with one env var |
 
 ### Security & Access Control
 | Feature | What it does |
 |---|---|
-| **4 roles** | Admin · Editor · Contributor · Viewer — each with a distinct permission set |
+| **Field-Level Access (RBAC)** | Restrict read and write access per field to specific roles |
+| **4 Built-in Roles** | Admin · Editor · Contributor · Viewer — each with granular capability sets |
 | **Per-content-type overrides** | Give Editor full access to `blog` but read-only on `legal` |
 | **JWT + refresh tokens** | 7-day access tokens, 30-day silent refresh (HttpOnly cookie) |
 | **Helmet + CORS** | Security headers on every response, strict origin enforcement |
@@ -100,6 +105,7 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 ### Production Infrastructure
 | Feature | What it does |
 |---|---|
+| **PostgreSQL Full-Text Search** | Indexed GIN full-text search with database-pushed `LIMIT / OFFSET` pagination |
 | **Docker Compose stack** | One command deploys the full stack — backend, frontend, Nginx, Redis, PgBouncer |
 | **PgBouncer** | Connection pooling — handles traffic spikes without exhausting PostgreSQL |
 | **Redis** | Query-result cache + Socket.io multi-instance sync |
@@ -111,23 +117,19 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 
 ## How NodePress compares
 
-|  | **NodePress** | Strapi | Contentful | Sanity |
-|---|:---:|:---:|:---:|:---:|
-| **Price** | Free forever | Free / $499+/mo | $300+/mo | Free / $99+/mo |
-| **Self-hosted** | ✅ | ✅ | ❌ | ❌ |
-| **Setup time** | ~10 min | 2–4 hrs | 5 min | 30 min |
-| **Docker required (dev)** | ❌ No | ✅ Yes | N/A | N/A |
-| **REST API** | ✅ | ✅ | ✅ | ✅ |
-| **GraphQL API** | ✅ | ✅ | ✅ | ✅ |
-| **Real-time WebSocket** | ✅ Free | ❌ Paid | ❌ | ❌ |
-| **Multi-locale (i18n)** | ✅ | ✅ Paid | ✅ | ✅ |
-| **Content relations** | ✅ | ✅ | ✅ | ✅ |
-| **Draft preview tokens** | ✅ | ✅ | ✅ | ✅ |
-| **Webhooks + retry** | ✅ | ✅ Basic | ✅ | ✅ |
-| **Form builder** | ✅ | ❌ | ❌ | ❌ |
-| **Audit log** | ✅ | ❌ Paid | ✅ | ❌ |
-| **Plugin system** | ✅ | ✅ | ❌ | ✅ |
-| **Prometheus + Grafana** | ✅ Built-in | ❌ | ❌ | ❌ |
+| Feature | **NodePress** | Strapi v4/v5 | WordPress Headless | Payload CMS | Directus |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Price** | **Free forever** | Free / $499+/mo | Free / Plugin fees | Free / Enterprise | Free / $99+/mo |
+| **Self-hosted** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Setup time** | **~10 min** | 2–4 hrs | 1–2 hrs | 30 min | 30 min |
+| **Advanced Nested Filters** | ✅ `where[x][op]` | ✅ | 🟡 Plugin req. | ✅ | ✅ |
+| **TypeScript Codegen** | ✅ Built-in CLI | 🟡 Manual | ❌ | ✅ | 🟡 Export |
+| **Next.js Live Draft Mode** | ✅ Integrated | 🟡 Plugin | 🟡 Plugin | ✅ | 🟡 Preview URL |
+| **Field-Level Security** | ✅ Built-in | ✅ Enterprise | 🟡 Plugin | ✅ Hooks | ✅ Permissions |
+| **Dynamic Image Resizing** | ✅ On-the-fly WebP | 🟡 Plugin/CDN | 🔴 Static only | 🟡 Config | ✅ Asset API |
+| **Plugin / Hook Bus** | ✅ Actions & Filters | ✅ Lifecycles | ✅ Hooks | ✅ Hooks | ✅ Flows |
+| **Real-time WebSocket** | ✅ Built-in | ❌ Paid | ❌ | ❌ | ✅ |
+| **Audit log** | ✅ Built-in | ❌ Paid | 🟡 Plugin | ✅ | ✅ |
 | **Automated backups** | ✅ Built-in | ❌ | ❌ | ❌ |
 | **PgBouncer pooling** | ✅ Built-in | ❌ | N/A | N/A |
 | **Export / Import** | ✅ | ✅ | ✅ | ✅ |

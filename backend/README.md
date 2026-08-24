@@ -134,10 +134,91 @@ See `.env.example` for all available variables.
 
 ---
 
+## Dynamic REST API & Advanced Filtering
+
+Every content type created in NodePress gets high-performance REST endpoints under `/api/:typeName`:
+
+### Filtering & Query Parameters
+
+| Parameter | Example | Description |
+|---|---|---|
+| `where` | `?where[price][gte]=100` | Advanced nested filtering on schema fields |
+| `where[x][operator]` | `?where[category][in]=tech,news` | Supported operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`, `startsWith`, `endsWith`, `in`, `notIn`, `null`, `notNull` |
+| `OR` / `AND` | `?where[OR][0][price][lt]=50&where[OR][1][featured][eq]=true` | Logical combinators for complex matching |
+| `fields` | `?fields=title,slug,thumbnail` | Field projection — returns only listed payload keys |
+| `populate` | `?populate=author,author.company` | $O(\text{depth})$ batched relation hydration (dot-notation up to 3 levels deep) |
+| `sort` | `?sort=createdAt:desc` | Sort field & direction (`createdAt`, `updatedAt`, `slug`) |
+| `search` | `?search=keyword` | PostgreSQL indexed GIN full-text search with DB-level limit pagination |
+| `locale` | `?locale=es` | Multi-locale language filter |
+| `page` / `limit` | `?page=1&limit=20` | Pagination controls (max limit: 100) |
+
+---
+
+## Dynamic Image Optimization Pipeline
+
+NodePress includes on-the-fly Sharp image processing with disk caching:
+
+```http
+GET /api/media/:filename/transform?w=800&h=600&q=80&format=webp&fit=cover
+GET /api/media/:filename/resize?w=400
+```
+
+- **Query Parameters**:
+  - `w`: Target width in pixels (1–3840)
+  - `h`: Target height in pixels (1–3840)
+  - `q`: Quality level 1–100 (default: 80)
+  - `format`: Output format (`webp`, `avif`, `jpeg`, `png`)
+  - `fit`: Crop mode (`cover`, `contain`, `fill`, `inside`, `outside`)
+- **Caching**: Generated variants are cached to `uploads/.cache/variants/` and served with `Cache-Control: public, max-age=31536000, immutable`.
+
+---
+
+## Field-Level Security (RBAC/PBAC)
+
+Fields support granular access policies:
+- `readRoles: ['admin', 'editor']`: Automatically strips the field from public Dynamic API responses and hides it from unauthorized roles.
+- `writeRoles: ['admin']`: Prevents non-authorized roles from modifying the field, throwing `403 Forbidden` if an edit is attempted.
+
+---
+
+## Modular Plugin Hook & Filter Bus
+
+Plugins can subscribe to lifecycle actions and data pipelines via `PluginHookBus`:
+
+```typescript
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PluginHookBus, PluginEvents } from '../plugin/plugin-sdk';
+
+@Injectable()
+export class MyPluginService implements OnModuleInit {
+  constructor(private hookBus: PluginHookBus) {}
+
+  onModuleInit() {
+    // 1. Listen to lifecycle actions in priority order
+    this.hookBus.on(PluginEvents.ENTRY_AFTER_CREATE, async (payload) => {
+      console.log('New entry created:', payload.slug);
+    }, 10, 'my-plugin');
+
+    // 2. Register data filter transformers
+    this.hookBus.addFilter('entry.title', (title: string) => {
+      return title.trim().toUpperCase();
+    }, 10, 'my-plugin');
+  }
+}
+```
+
+### Supported Lifecycle Events
+- `entry.beforeCreate` / `entry.afterCreate`
+- `entry.beforeUpdate` / `entry.afterUpdate`
+- `entry.beforeDelete` / `entry.afterDelete`
+- `entry.beforePublish` / `entry.afterPublish`
+
+---
+
 ## Testing
 
 ```bash
-# Unit tests
+# Unit tests (24 test suites)
 npm test
 
 # E2E tests (requires running PostgreSQL + Redis)
@@ -146,12 +227,3 @@ npm run test:e2e
 # Type-check only
 npx tsc --noEmit
 ```
-
----
-
-## Adding a plugin
-
-1. Create `src/plugins/<name>/` with `manifest.ts`, `<name>.service.ts`, `<name>.module.ts`, `index.ts`
-2. Register in `src/plugin/plugins.config.ts`
-
-See `src/plugins/word-count/` for a complete example and `src/plugin/plugin-sdk.ts` for all available types.
