@@ -173,6 +173,55 @@ GET /api/media/:filename/resize?w=400
 
 ---
 
+## Cloud Storage Setup (S3 / Cloudflare R2 / MinIO)
+
+To switch from local disk storage to cloud object storage, set `STORAGE_DRIVER=s3` in `backend/.env`:
+
+### 1. Cloudflare R2 (Recommended — Zero Egress Fees)
+```env
+STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-r2-bucket
+STORAGE_S3_REGION=auto
+STORAGE_S3_ACCESS_KEY=your_r2_access_key_id
+STORAGE_S3_SECRET_KEY=your_r2_secret_access_key
+STORAGE_S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+# Custom domain or public R2 URL (enable 'Public Access' in Cloudflare R2 dashboard):
+STORAGE_S3_PUBLIC_URL=https://assets.yourdomain.com
+```
+
+### 2. AWS S3
+```env
+STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-s3-bucket
+STORAGE_S3_REGION=us-east-1
+STORAGE_S3_ACCESS_KEY=AKIAXXXXXXXXXXXXXXXX
+STORAGE_S3_SECRET_KEY=your_aws_secret_access_key
+# Optional: CloudFront CDN distribution domain
+STORAGE_S3_PUBLIC_URL=https://d111111abcdef8.cloudfront.net
+```
+
+### 3. MinIO (Self-Hosted / Local Docker)
+```env
+STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=nodepress-uploads
+STORAGE_S3_REGION=us-east-1
+STORAGE_S3_ACCESS_KEY=minioadmin
+STORAGE_S3_SECRET_KEY=minioadmin
+STORAGE_S3_ENDPOINT=http://localhost:9000
+STORAGE_S3_PUBLIC_URL=http://localhost:9000/nodepress-uploads
+```
+
+### 4. DigitalOcean Spaces
+```env
+STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-space-name
+STORAGE_S3_REGION=nyc3
+STORAGE_S3_ACCESS_KEY=your_spaces_key
+STORAGE_S3_SECRET_KEY=your_spaces_secret
+STORAGE_S3_ENDPOINT=https://nyc3.digitaloceanspaces.com
+STORAGE_S3_PUBLIC_URL=https://my-space-name.nyc3.cdn.digitaloceanspaces.com
+```
+
 ## Field-Level Security (RBAC/PBAC)
 
 Fields support granular access policies:

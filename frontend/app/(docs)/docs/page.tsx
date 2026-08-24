@@ -1631,6 +1631,55 @@ curl -X POST ${baseUrl}/api/media/upload \\
               <Endpoint method="PUT"    path="/api/media/:filename/folder"   desc="Move a file into a folder — body: { folderId } (null = root)" auth />
               <Endpoint method="GET"    path="/api/media?folderId=:id"       desc="List files in a specific folder — use folderId=null for unfiled files" />
             </div>
+
+            <h3 className="font-semibold mb-3 mt-6">Dynamic On-Demand Transformations</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Transform and resize any media file on-the-fly with native Sharp libvips performance and automatic persistent disk caching:
+            </p>
+            <CodeBlock code={`# Resize to 800x600, convert to WebP, quality 80:
+GET ${baseUrl}/api/media/1712345678-abc123.jpg/transform?w=800&h=600&q=80&format=webp&fit=cover
+
+# Quick width resize:
+GET ${baseUrl}/api/media/1712345678-abc123.jpg/resize?w=400`} />
+
+            <h3 className="font-semibold mb-3 mt-6">Cloud Storage Configuration (S3 / Cloudflare R2 / MinIO)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Switch from local disk storage to any S3-compatible cloud object store with <IC>STORAGE_DRIVER=s3</IC>:
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-semibold text-foreground mb-1">⚡ Cloudflare R2 (Zero Egress Fees — Recommended)</p>
+                <CodeBlock code={`STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-r2-bucket
+STORAGE_S3_REGION=auto
+STORAGE_S3_ACCESS_KEY=your_r2_access_key_id
+STORAGE_S3_SECRET_KEY=your_r2_secret_access_key
+STORAGE_S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+STORAGE_S3_PUBLIC_URL=https://assets.yourdomain.com`} />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-foreground mb-1">📦 AWS S3</p>
+                <CodeBlock code={`STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-s3-bucket
+STORAGE_S3_REGION=us-east-1
+STORAGE_S3_ACCESS_KEY=AKIAXXXXXXXXXXXXXXXX
+STORAGE_S3_SECRET_KEY=your_aws_secret_access_key
+STORAGE_S3_PUBLIC_URL=https://d111111abcdef8.cloudfront.net`} />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-foreground mb-1">🏢 MinIO (Self-Hosted S3 / Docker)</p>
+                <CodeBlock code={`STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=nodepress-uploads
+STORAGE_S3_REGION=us-east-1
+STORAGE_S3_ACCESS_KEY=minioadmin
+STORAGE_S3_SECRET_KEY=minioadmin
+STORAGE_S3_ENDPOINT=http://localhost:9000
+STORAGE_S3_PUBLIC_URL=http://localhost:9000/nodepress-uploads`} />
+              </div>
+            </div>
           </Section>
 
           {/* ── API Keys ──────────────────────────────────────────────────── */}
@@ -2599,23 +2648,56 @@ npm run docker:prod        # docker-compose -f docker-compose.prod.yml up -d --b
 
             <h3 className="font-semibold mb-3">Cloud media storage (S3-compatible)</h3>
             <p className="text-muted-foreground text-sm mb-3">
-              Set <IC>STORAGE_DRIVER=s3</IC> to store uploads in AWS S3, Cloudflare R2, MinIO, or
-              Backblaze B2. Files are served from the bucket's public URL or a CDN domain.
+              Set <IC>STORAGE_DRIVER=s3</IC> to store uploads in AWS S3, Cloudflare R2, MinIO, DigitalOcean Spaces, or
+              Backblaze B2. Files are streamed directly and served from the bucket's public URL or a custom CDN domain.
             </p>
-            <CodeBlock code={`# Cloudflare R2 example
-STORAGE_DRIVER=s3
-STORAGE_S3_BUCKET=my-bucket
+
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">1. Cloudflare R2 (Recommended — Zero Egress Fees)</h4>
+            <CodeBlock code={`STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-r2-bucket
 STORAGE_S3_REGION=auto
-STORAGE_S3_ACCESS_KEY=xxx
-STORAGE_S3_SECRET_KEY=xxx
-STORAGE_S3_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+STORAGE_S3_ACCESS_KEY=your_r2_access_key_id
+STORAGE_S3_SECRET_KEY=your_r2_secret_access_key
+STORAGE_S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+# Custom domain or R2 public dev URL (enable 'Public Access' in R2 dashboard):
 STORAGE_S3_PUBLIC_URL=https://assets.yourdomain.com`} />
 
-            <h3 className="font-semibold mb-3 mt-4">Image optimization</h3>
-            <p className="text-muted-foreground text-sm">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 mt-4">2. AWS S3</h4>
+            <CodeBlock code={`STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-s3-bucket
+STORAGE_S3_REGION=us-east-1
+STORAGE_S3_ACCESS_KEY=AKIAXXXXXXXXXXXXXXXX
+STORAGE_S3_SECRET_KEY=your_aws_secret_access_key
+# Optional: CloudFront CDN or custom domain (defaults to https://bucket.s3.region.amazonaws.com)
+STORAGE_S3_PUBLIC_URL=https://d111111abcdef8.cloudfront.net`} />
+
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 mt-4">3. MinIO (Self-Hosted S3)</h4>
+            <CodeBlock code={`STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=nodepress-uploads
+STORAGE_S3_REGION=us-east-1
+STORAGE_S3_ACCESS_KEY=minioadmin
+STORAGE_S3_SECRET_KEY=minioadmin
+STORAGE_S3_ENDPOINT=http://localhost:9000
+STORAGE_S3_PUBLIC_URL=http://localhost:9000/nodepress-uploads`} />
+
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 mt-4">4. DigitalOcean Spaces</h4>
+            <CodeBlock code={`STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-space-name
+STORAGE_S3_REGION=nyc3
+STORAGE_S3_ACCESS_KEY=your_do_spaces_key
+STORAGE_S3_SECRET_KEY=your_do_spaces_secret
+STORAGE_S3_ENDPOINT=https://nyc3.digitaloceanspaces.com
+STORAGE_S3_PUBLIC_URL=https://my-space-name.nyc3.cdn.digitaloceanspaces.com`} />
+
+            <h3 className="font-semibold mb-3 mt-6">Image optimization &amp; Dynamic Transforms</h3>
+            <p className="text-muted-foreground text-sm mb-3">
               Uploaded images are automatically resized to a max dimension of 2400 px, EXIF-rotated,
-              and saved at JPEG quality 85. A <IC>.webp</IC> sibling is generated at quality 82 and
-              stored alongside the original. Both URLs are returned in the media API response.
+              and saved at JPEG quality 85. An optimized <IC>.webp</IC> sibling is generated automatically.
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Use the dynamic image transform endpoint for on-demand transformations with persistent disk caching:
+              <br/>
+              <IC>GET /api/media/:filename/transform?w=800&amp;h=600&amp;q=80&amp;format=webp&amp;fit=cover</IC>
             </p>
           </Section>
 
