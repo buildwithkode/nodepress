@@ -244,4 +244,157 @@ export class ContentTypeService {
     await this.cache.invalidatePrefix(ctCacheKey(ct.name));
     return ct;
   }
+
+  // ─── Schema Export / Import (Migrations) ───────────────────────────────────
+
+  /** Export schemas for one or all content types */
+  async exportSchemas(id?: number) {
+    if (id) {
+      const ct = await this.findOne(id);
+      return {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        contentTypes: [
+          {
+            name: ct.name,
+            displayName: ct.displayName,
+            schema: ct.schema,
+            allowedMethods: ct.allowedMethods,
+          },
+        ],
+      };
+    }
+    const all = await this.prisma.contentType.findMany({
+      orderBy: { name: 'asc' },
+    });
+    return {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      contentTypes: all.map((ct) => ({
+        name: ct.name,
+        displayName: ct.displayName,
+        schema: ct.schema,
+        allowedMethods: ct.allowedMethods,
+      })),
+    };
+  }
+
+  /** Import schemas with Dry-Run Validation and Duplicate Overwrite options */
+  async importSchemas(
+    dto: {
+      contentTypes?: Array<{ name: string; displayName?: string; schema: any[]; allowedMethods?: string[] }>;
+      dryRun?: boolean;
+      overwrite?: boolean;
+    },
+    actorId?: number,
+  ) {
+    const list = dto.contentTypes ?? [];
+    if (!Array.isArray(list) || list.length === 0) {
+      throw new BadRequestException('No contentTypes array provided in import payload');
+    }
+
+    const dryRun = !!dto.dryRun;
+    const overwrite = dto.overwrite !== false;
+
+    const existingList = await this.prisma.contentType.findMany({ select: { id: true, name: true } });
+    const existingMap = new Map(existingList.map((c) => [c.name, c.id]));
+
+    const errors: string[] = [];
+    const preview: any[] = [];
+    let toCreate = 0;
+    let toUpdate = 0;
+
+    for (let i = 0; i < list.length; i++) {
+      const ct = list[i];
+      const rawName = ct.name || '';
+      const name = normalizeName(rawName);
+      let valid = true;
+      let errorMsg: string | undefined;
+
+      if (!name) {
+        errorMsg = `Content type #${i + 1} missing name`;
+        errors.push(errorMsg);
+        valid = false;
+      } else if (RESERVED_NAMES.includes(name)) {
+        errorMsg = `"${name}" is a reserved system route name`;
+        errors.push(errorMsg);
+        valid = false;
+      }
+
+      if (valid && (!ct.schema || !Array.isArray(ct.schema))) {
+        errorMsg = `"${name}": schema must be an array of fields`;
+        errors.push(errorMsg);
+        valid = false;
+      }
+
+      const isExisting = existingMap.has(name);
+      if (valid) {
+        if (isExisting) toUpdate++;
+        else toCreate++;
+      }
+
+      preview.push({
+        name,
+        displayName: ct.displayName || name,
+        fieldCount: Array.isArray(ct.schema) ? ct.schema.length : 0,
+        isExisting,
+        valid,
+        error: errorMsg,
+      });
+    }
+
+    if (dryRun) {
+      return {
+        dryRun: true,
+        valid: errors.length === 0,
+        total: list.length,
+        toCreate,
+        toUpdate,
+        errors,
+        preview,
+      };
+    }
+
+    let created = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const ct of list) {
+      const name = normalizeName(ct.name);
+      if (!name || RESERVED_NAMES.includes(name) || !Array.isArray(ct.schema)) continue;
+
+      const validatedSchema = this.schemaValidator.validate(normalizeSchema(ct.schema));
+      const existingId = existingMap.get(name);
+
+      if (existingId) {
+        if (!overwrite) {
+          skipped++;
+          continue;
+        }
+        await this.update(existingId, {
+          displayName: ct.displayName,
+          schema: validatedSchema as any,
+          allowedMethods: ct.allowedMethods,
+        }, actorId);
+        updated++;
+      } else {
+        await this.create({
+          name,
+          displayName: ct.displayName,
+          schema: validatedSchema as any,
+          allowedMethods: ct.allowedMethods,
+        });
+        created++;
+      }
+    }
+
+    return {
+      success: true,
+      total: list.length,
+      created,
+      updated,
+      skipped,
+      errors,
+    };
+  }
 }

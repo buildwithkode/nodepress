@@ -3,7 +3,28 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Plus, ArrowRight, Pencil, Trash2, ArrowLeft, Layers, Copy, Loader2, CheckSquare, Trash, RotateCcw, X, Download, Upload, Link2 } from 'lucide-react';
+import {
+  Plus,
+  ArrowRight,
+  Pencil,
+  Trash2,
+  ArrowLeft,
+  Layers,
+  Copy,
+  Loader2,
+  CheckSquare,
+  Trash,
+  RotateCcw,
+  X,
+  Download,
+  Upload,
+  Link2,
+  FileSpreadsheet,
+  FileJson,
+  CheckCircle2,
+  AlertCircle,
+  FileCode,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,8 +45,13 @@ import {
   AlertDialogFooter, AlertDialogTitle, AlertDialogDescription,
   AlertDialogAction, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import api from '@/lib/axios';
-import { ctLabel } from '@/lib/utils';
+import { cn, ctLabel } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { canManageContent } from '@/lib/roles';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
@@ -185,50 +211,141 @@ export default function EntriesPage() {
   };
 
   /* ── Export / Import ───────────────────────────────────────────────────── */
-  const [exporting, setExporting] = useState(false);
-  const [importing, setImporting] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<'json' | 'csv' | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importFormat, setImportFormat] = useState<'json' | 'csv'>('json');
+  const [importPayloadText, setImportPayloadText] = useState('');
+  const [importUpdateDuplicates, setImportUpdateDuplicates] = useState(true);
+  const [importPreflight, setImportPreflight] = useState<any>(null);
+  const [preflightLoading, setPreflightLoading] = useState(false);
+  const [importExecuting, setImportExecuting] = useState(false);
 
-  const handleExport = async () => {
+  const handleExport = async (format: 'json' | 'csv' = 'json') => {
     if (!selectedCT) return;
-    setExporting(true);
+    setExportingFormat(format);
     try {
-      const res = await api.get('/entries/export', { params: { contentTypeId: selectedCT.id } });
-      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      const res = await api.get('/entries/export', {
+        params: { contentTypeId: selectedCT.id, format },
+      });
+
+      let blob: Blob;
+      let filename = `${selectedCT.name}-export.${format}`;
+
+      if (format === 'csv') {
+        const csvData = typeof res.data === 'string' ? res.data : res.data.data;
+        blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+        if (res.data.filename) filename = res.data.filename;
+      } else {
+        blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      }
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${selectedCT.name}-export.json`;
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Export downloaded');
+      toast.success(`${format.toUpperCase()} export downloaded`);
     } catch {
       toast.error('Export failed');
     } finally {
-      setExporting(false);
+      setExportingFormat(null);
     }
   };
 
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const runPreflightImport = async (text: string, format: 'json' | 'csv', updateDups: boolean) => {
+    if (!selectedCT || !text.trim()) {
+      setImportPreflight(null);
+      return;
+    }
+    setPreflightLoading(true);
+    try {
+      let body: any;
+      if (format === 'csv') {
+        body = {
+          csvContent: text,
+          dryRun: true,
+          updateDuplicates: updateDups,
+        };
+      } else {
+        const parsed = JSON.parse(text);
+        const entries = Array.isArray(parsed) ? parsed : parsed.data ?? parsed.entries ?? [];
+        body = {
+          entries,
+          dryRun: true,
+          updateDuplicates: updateDups,
+        };
+      }
+
+      const res = await api.post('/entries/import', body, {
+        params: { contentTypeId: selectedCT.id },
+      });
+      setImportPreflight(res.data);
+    } catch (err: any) {
+      setImportPreflight({
+        valid: false,
+        errors: [err.response?.data?.message || err.message || 'Invalid format'],
+      });
+    } finally {
+      setPreflightLoading(false);
+    }
+  };
+
+  const handleImportFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedCT) return;
-    setImporting(true);
     try {
       const text = await file.text();
-      const entries = JSON.parse(text);
-      const payload = Array.isArray(entries) ? entries : entries.data ?? entries.entries ?? [];
-      const res = await api.post('/entries/import', { contentTypeId: selectedCT.id, entries: payload });
+      const detectedFormat = file.name.endsWith('.csv') ? 'csv' : 'json';
+      setImportFormat(detectedFormat);
+      setImportPayloadText(text);
+      await runPreflightImport(text, detectedFormat, importUpdateDuplicates);
+    } catch {
+      toast.error('Failed to read file');
+    }
+    e.target.value = '';
+  };
+
+  const handleExecuteImport = async () => {
+    if (!selectedCT || !importPayloadText.trim()) return;
+    setImportExecuting(true);
+    try {
+      let body: any;
+      if (importFormat === 'csv') {
+        body = {
+          csvContent: importPayloadText,
+          dryRun: false,
+          updateDuplicates: importUpdateDuplicates,
+        };
+      } else {
+        const parsed = JSON.parse(importPayloadText);
+        const entries = Array.isArray(parsed) ? parsed : parsed.data ?? parsed.entries ?? [];
+        body = {
+          entries,
+          dryRun: false,
+          updateDuplicates: importUpdateDuplicates,
+        };
+      }
+
+      const res = await api.post('/entries/import', body, {
+        params: { contentTypeId: selectedCT.id },
+      });
+
       const { created = 0, updated = 0, errors = [] } = res.data ?? {};
       const parts: string[] = [];
       if (created) parts.push(`created ${created}`);
       if (updated) parts.push(`updated ${updated}`);
       const summary = parts.length ? parts.join(', ') : 'no changes';
-      toast.success(`Import complete — ${summary}${errors.length ? `, ${errors.length} skipped` : ''}`);
+      toast.success(`Import complete: ${summary}${errors.length ? ` (${errors.length} skipped)` : ''}`);
+
+      setImportDialogOpen(false);
+      setImportPayloadText('');
+      setImportPreflight(null);
       await refreshEntries();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Import failed — check file format');
+      toast.error(err.response?.data?.message || 'Import execution failed');
     } finally {
-      setImporting(false);
-      e.target.value = '';
+      setImportExecuting(false);
     }
   };
 
@@ -439,23 +556,50 @@ export default function EntriesPage() {
           />
           {!showTrash && (
             <>
-              <Button variant="outline" size="sm" className="gap-1.5" disabled={exporting} onClick={handleExport}>
-                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                Export
+              {/* Export Split / Buttons */}
+              <div className="inline-flex items-center rounded-md border border-input bg-background p-0.5 shadow-sm">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs gap-1"
+                  disabled={exportingFormat !== null}
+                  onClick={() => handleExport('json')}
+                  title="Export non-deleted entries as JSON"
+                >
+                  {exportingFormat === 'json' ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <FileJson className="h-3.5 w-3.5 text-amber-400" />
+                  )}
+                  JSON
+                </Button>
+                <div className="w-[1px] h-4 bg-border/60" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs gap-1"
+                  disabled={exportingFormat !== null}
+                  onClick={() => handleExport('csv')}
+                  title="Export non-deleted entries as CSV spreadsheet"
+                >
+                  {exportingFormat === 'csv' ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
+                  )}
+                  CSV
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 h-8 text-xs"
+                onClick={() => setImportDialogOpen(true)}
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Import
               </Button>
-              <label className="inline-flex cursor-pointer">
-                <span className="inline-flex items-center gap-1.5 h-9 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors select-none">
-                  {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  Import
-                </span>
-                <input
-                  type="file"
-                  accept=".json,application/json"
-                  className="sr-only"
-                  disabled={importing}
-                  onChange={handleImport}
-                />
-              </label>
             </>
           )}
           <Button
@@ -755,6 +899,196 @@ export default function EntriesPage() {
         pageSize={PAGE_SIZE}
         onPage={setPage}
       />
+
+      {/* Bulk Import Dialog with Dry-Run Validation */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-blue-500" />
+              Import Entries — {selectedCT?.displayName || selectedCT?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Upload a .JSON or .CSV file, or paste data directly. Real-time dry-run validation checks slugs, locales, and fields against the schema before saving.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Format toggle & file input */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <label className="inline-flex cursor-pointer">
+                  <span className="inline-flex items-center gap-1.5 h-8 rounded-md border border-input bg-background px-3 text-xs font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
+                    <Upload className="h-3.5 w-3.5" /> Select File (.csv / .json)
+                  </span>
+                  <input
+                    type="file"
+                    accept=".json,.csv,text/csv,application/json"
+                    className="sr-only"
+                    onChange={handleImportFileUpload}
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center gap-1 bg-muted/50 p-0.5 rounded-lg border">
+                <Button
+                  variant={importFormat === 'json' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="h-7 text-xs px-2.5"
+                  onClick={() => {
+                    setImportFormat('json');
+                    runPreflightImport(importPayloadText, 'json', importUpdateDuplicates);
+                  }}
+                >
+                  <FileJson className="h-3.5 w-3.5 mr-1 text-amber-400" /> JSON
+                </Button>
+                <Button
+                  variant={importFormat === 'csv' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="h-7 text-xs px-2.5"
+                  onClick={() => {
+                    setImportFormat('csv');
+                    runPreflightImport(importPayloadText, 'csv', importUpdateDuplicates);
+                  }}
+                >
+                  <FileSpreadsheet className="h-3.5 w-3.5 mr-1 text-emerald-400" /> CSV
+                </Button>
+              </div>
+            </div>
+
+            <Textarea
+              placeholder={importFormat === 'json'
+                ? `[\n  {\n    "slug": "sample-entry",\n    "locale": "en",\n    "status": "published",\n    "data": { "title": "Sample Title" }\n  }\n]`
+                : `slug,locale,status,title\nsample-entry,en,published,"Sample Title"`
+              }
+              value={importPayloadText}
+              onChange={(e) => {
+                setImportPayloadText(e.target.value);
+                runPreflightImport(e.target.value, importFormat, importUpdateDuplicates);
+              }}
+              rows={6}
+              className="font-mono text-xs"
+            />
+
+            {/* Conflict resolution option */}
+            <div className="flex items-center justify-between rounded-lg border p-2.5 bg-muted/20">
+              <div className="space-y-0.5">
+                <div className="text-xs font-medium">Update duplicate entries</div>
+                <div className="text-[11px] text-muted-foreground">
+                  If an entry with matching (slug + locale) exists, update its content instead of skipping it.
+                </div>
+              </div>
+              <Switch
+                checked={importUpdateDuplicates}
+                onCheckedChange={(checked) => {
+                  setImportUpdateDuplicates(checked);
+                  runPreflightImport(importPayloadText, importFormat, checked);
+                }}
+              />
+            </div>
+
+            {/* Dry-Run Preflight Feedback */}
+            {preflightLoading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Running pre-flight dry-run validation…
+              </div>
+            )}
+
+            {importPreflight && !preflightLoading && (
+              <div className={cn(
+                'rounded-lg border p-3 text-xs space-y-2',
+                importPreflight.valid
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                  : 'bg-destructive/10 border-destructive/30 text-destructive',
+              )}>
+                <div className="flex items-center gap-2 font-semibold">
+                  {importPreflight.valid ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  )}
+                  {importPreflight.valid
+                    ? `Pre-flight passed: ${importPreflight.total} rows ready (${importPreflight.toCreate} new, ${importPreflight.toUpdate} updates)`
+                    : `Pre-flight errors detected (${importPreflight.errors?.length || 1})`}
+                </div>
+
+                {importPreflight.errors && importPreflight.errors.length > 0 && (
+                  <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-destructive">
+                    {importPreflight.errors.slice(0, 5).map((err: string, idx: number) => (
+                      <li key={idx}>{err}</li>
+                    ))}
+                    {importPreflight.errors.length > 5 && (
+                      <li>...and {importPreflight.errors.length - 5} more</li>
+                    )}
+                  </ul>
+                )}
+
+                {importPreflight.preview && importPreflight.preview.length > 0 && (
+                  <div className="overflow-x-auto mt-2 max-h-36 rounded border bg-background/50">
+                    <table className="w-full text-left text-[10px]">
+                      <thead className="border-b bg-muted/40 font-mono text-muted-foreground">
+                        <tr>
+                          <th className="p-1.5">Row</th>
+                          <th className="p-1.5">Slug</th>
+                          <th className="p-1.5">Locale</th>
+                          <th className="p-1.5">Status</th>
+                          <th className="p-1.5">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/40 font-mono">
+                        {importPreflight.preview.map((p: any) => (
+                          <tr key={p.row} className="hover:bg-muted/20">
+                            <td className="p-1.5">#{p.row}</td>
+                            <td className="p-1.5 font-medium">{p.slug}</td>
+                            <td className="p-1.5 text-muted-foreground">{p.locale}</td>
+                            <td className="p-1.5">{p.status}</td>
+                            <td className="p-1.5">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  'text-[9px] px-1 py-0 font-mono',
+                                  p.isExisting
+                                    ? 'border-blue-500/40 text-blue-400'
+                                    : 'border-emerald-500/40 text-emerald-400',
+                                )}
+                              >
+                                {p.isExisting ? 'Update' : 'Create'}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setImportDialogOpen(false);
+                setImportPayloadText('');
+                setImportPreflight(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              disabled={!importPreflight?.valid || importExecuting || !importPayloadText.trim()}
+              onClick={handleExecuteImport}
+              className="gap-1.5"
+            >
+              {importExecuting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+              Import {importPreflight?.total ? `${importPreflight.total} Entries` : 'Entries'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

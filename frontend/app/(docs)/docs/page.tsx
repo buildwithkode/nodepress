@@ -3002,6 +3002,8 @@ X-API-Key: np_abc123...`} />
             <h3 className="font-semibold mb-3">Content Types</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/content-types"              desc="List all content types" auth />
+              <Endpoint method="GET"    path="/api/content-types/export"       desc="Export all content type schemas as a JSON bundle" auth />
+              <Endpoint method="POST"   path="/api/content-types/import"       desc="Import content type schemas with dryRun pre-flight validation" auth />
               <Endpoint method="POST"   path="/api/content-types"              desc="Create a content type (supports field-level readRoles & writeRoles)" auth />
               <Endpoint method="PUT"    path="/api/content-types/:id"          desc="Update a content type schema" auth />
               <Endpoint method="DELETE" path="/api/content-types/:id"          desc="Delete a content type and all its entries" auth />
@@ -3019,8 +3021,8 @@ X-API-Key: np_abc123...`} />
               <Endpoint method="GET"    path="/api/entries/:id/versions"              desc="List all version snapshots for an entry" auth />
               <Endpoint method="POST"   path="/api/entries/:id/versions/:vid/restore" desc="Restore entry to a specific version" auth />
               <Endpoint method="POST"   path="/api/entries/:id/preview-url"           desc="Generate a 1-hour signed preview token for any entry status (draft, archived, published)" auth />
-              <Endpoint method="GET"    path="/api/entries/export?contentTypeId=X"    desc="Export all entries as a JSON array (for backup or migration)" auth />
-              <Endpoint method="POST"   path="/api/entries/import"                    desc="Import entries from a JSON array — upserts by slug+locale. Body: { contentTypeId, entries[] }" auth />
+              <Endpoint method="GET"    path="/api/entries/export?contentTypeId=X&format=json|csv" desc="Export all entries as JSON array or RFC 4180 CSV spreadsheet" auth />
+              <Endpoint method="POST"   path="/api/entries/import"                    desc="Import entries (JSON or CSV) with pre-flight dryRun validation & duplicate resolution" auth />
               <Endpoint method="POST"   path="/api/entries/bulk-publish"              desc="Bulk publish entries — body: { ids: number[] }" auth />
               <Endpoint method="POST"   path="/api/entries/bulk-archive"              desc="Bulk archive entries — body: { ids: number[] }" auth />
               <Endpoint method="POST"   path="/api/entries/bulk-pending-review"       desc="Bulk submit entries for review — body: { ids: number[] }" auth />

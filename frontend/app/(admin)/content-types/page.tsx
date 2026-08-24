@@ -2,7 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Trash2, LayoutGrid, Download, Copy, Loader2 } from 'lucide-react';
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  LayoutGrid,
+  Download,
+  Upload,
+  Copy,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  FileCode,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -21,6 +33,14 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Pagination } from '@/components/ui/data-table';
 import {
   Table,
@@ -32,6 +52,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SearchInput } from '@/components/ui/search-input';
+import { Textarea } from '@/components/ui/textarea';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -90,9 +111,6 @@ function exportContentType(ct: ContentType) {
   URL.revokeObjectURL(url);
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 export default function ContentTypesPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -103,6 +121,14 @@ export default function ContentTypesPage() {
   const [search, setSearch]             = useState('');
   const [page, setPage]                 = useState(1);
   const PAGE_SIZE = 10;
+
+  // Schema Export / Import state
+  const [exportingAll, setExportingAll] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importJsonText, setImportJsonText] = useState('');
+  const [importPreflight, setImportPreflight] = useState<any>(null);
+  const [preflightLoading, setPreflightLoading] = useState(false);
+  const [importExecuting, setImportExecuting] = useState(false);
 
   // ---- data ----
   const fetchContentTypes = async () => {
@@ -118,8 +144,101 @@ export default function ContentTypesPage() {
   };
 
   useEffect(() => { fetchContentTypes(); }, []);
-
   useEffect(() => { setPage(1); }, [search]);
+
+  const handleExportAll = async () => {
+    setExportingAll(true);
+    try {
+      const res = await api.get('/content-types/export');
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nodepress-schemas-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('All content type schemas exported');
+    } catch {
+      toast.error('Failed to export schemas');
+    } finally {
+      setExportingAll(false);
+    }
+  };
+
+  const handlePreflightImport = async (textToValidate?: string) => {
+    const raw = textToValidate ?? importJsonText;
+    if (!raw.trim()) {
+      setImportPreflight(null);
+      return;
+    }
+
+    setPreflightLoading(true);
+    try {
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed)
+        ? parsed
+        : parsed.contentTypes || (parsed.contentType ? [parsed.contentType] : []);
+
+      if (list.length === 0) {
+        setImportPreflight({ valid: false, errors: ['No contentTypes array found in JSON'] });
+        return;
+      }
+
+      const res = await api.post('/content-types/import', {
+        contentTypes: list,
+        dryRun: true,
+      });
+      setImportPreflight(res.data);
+    } catch (err: any) {
+      setImportPreflight({
+        valid: false,
+        errors: [err.response?.data?.message || err.message || 'Invalid JSON format'],
+      });
+    } finally {
+      setPreflightLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setImportJsonText(text);
+      await handlePreflightImport(text);
+    } catch {
+      toast.error('Failed to read file');
+    }
+    e.target.value = '';
+  };
+
+  const handleExecuteImport = async () => {
+    if (!importJsonText.trim()) return;
+    setImportExecuting(true);
+    try {
+      const parsed = JSON.parse(importJsonText);
+      const list = Array.isArray(parsed)
+        ? parsed
+        : parsed.contentTypes || (parsed.contentType ? [parsed.contentType] : []);
+
+      const res = await api.post('/content-types/import', {
+        contentTypes: list,
+        dryRun: false,
+        overwrite: true,
+      });
+
+      const { created = 0, updated = 0 } = res.data;
+      toast.success(`Schema migration complete: ${created} created, ${updated} updated`);
+      setImportDialogOpen(false);
+      setImportJsonText('');
+      setImportPreflight(null);
+      await fetchContentTypes();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Schema import failed');
+    } finally {
+      setImportExecuting(false);
+    }
+  };
 
   const handleDuplicate = async (ct: ContentType) => {
     setDuplicating(ct.id);
@@ -141,32 +260,31 @@ export default function ContentTypesPage() {
         }
       }
     }
-    toast.error('Could not find a unique name for the duplicate');
+    toast.error('Too many duplicates — delete some first');
     setDuplicating(null);
   };
 
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/content-types/${id}`);
-      toast.success('Deleted');
-      fetchContentTypes();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Delete failed');
+      toast.success('Content type deleted');
+      await fetchContentTypes();
+    } catch {
+      toast.error('Failed to delete content type');
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
-  const filtered = contentTypes.filter((ct) =>
-    ct.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = contentTypes.filter((ct) => {
+    const q = search.toLowerCase();
+    return ct.name.toLowerCase().includes(q) || (ct.displayName ?? '').toLowerCase().includes(q);
+  });
+
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div>
-      {/* Toolbar */}
-      <div className="flex items-center gap-2 mb-6">
+    <div className="space-y-6 max-w-5xl">
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex-1 max-w-xs">
           <SearchInput
             placeholder="Search content types..."
@@ -174,14 +292,37 @@ export default function ContentTypesPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        {isAdmin && (
-          <div className="ml-auto">
-            <Button onClick={() => router.push('/content-types/new')}>
+        <div className="flex items-center gap-2 ml-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={exportingAll}
+            onClick={handleExportAll}
+          >
+            {exportingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Export Schemas
+          </Button>
+
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setImportDialogOpen(true)}
+            >
+              <Upload className="h-4 w-4" />
+              Import Schemas
+            </Button>
+          )}
+
+          {isAdmin && (
+            <Button onClick={() => router.push('/content-types/new')} size="sm">
               <Plus className="h-4 w-4 mr-1.5" />
               New Content Type
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Table */}
@@ -219,23 +360,24 @@ export default function ContentTypesPage() {
           {paginated.map((ct) => (
             <TableRow key={ct.id}>
               <TableCell>
-                <span className="flex items-center gap-2 font-medium">
-                  <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                <div className="font-semibold text-foreground text-sm flex items-center gap-1.5">
+                  <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
                   {ctLabel(ct)}
-                </span>
+                </div>
+                <div className="text-xs text-muted-foreground font-mono mt-0.5">/{ct.name}</div>
               </TableCell>
               <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {ct.schema.map((f, i) => (
+                <div className="flex flex-wrap gap-1 max-w-sm">
+                  {ct.schema.map((f) => (
                     <span
-                      key={i}
+                      key={f.name}
                       className={cn(
-                        'inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium',
-                        FIELD_TYPE_BADGE[f.type] ?? 'bg-muted text-muted-foreground border border-border',
+                        'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-mono font-medium',
+                        FIELD_TYPE_BADGE[f.type] ?? 'bg-muted text-muted-foreground',
                       )}
                     >
                       {f.name}
-                      <span className="ml-1 opacity-60">({f.type})</span>
+                      {f.required && <span className="text-destructive font-bold">*</span>}
                     </span>
                   ))}
                 </div>
@@ -315,6 +457,124 @@ export default function ContentTypesPage() {
         </TableBody>
       </Table>
       <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
+
+      {/* Schema Import Dialog with Dry-Run Preflight */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileCode className="h-5 w-5 text-blue-500" />
+              Import Content Type Schemas
+            </DialogTitle>
+            <DialogDescription>
+              Upload or paste a JSON schema definition to create or update content types. Automatic dry-run validation checks for syntax, reserved names, and field rules.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center gap-2">
+              <label className="inline-flex cursor-pointer">
+                <span className="inline-flex items-center gap-1.5 h-8 rounded-md border border-input bg-background px-3 text-xs font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <Upload className="h-3.5 w-3.5" /> Select Schema .JSON File
+                </span>
+                <input
+                  type="file"
+                  accept=".json,application/json"
+                  className="sr-only"
+                  onChange={handleFileUpload}
+                />
+              </label>
+              <span className="text-xs text-muted-foreground">or paste JSON payload below:</span>
+            </div>
+
+            <Textarea
+              placeholder={`{\n  "contentTypes": [\n    {\n      "name": "article",\n      "schema": [{ "name": "title", "type": "text", "required": true }]\n    }\n  ]\n}`}
+              value={importJsonText}
+              onChange={(e) => {
+                setImportJsonText(e.target.value);
+                handlePreflightImport(e.target.value);
+              }}
+              rows={8}
+              className="font-mono text-xs"
+            />
+
+            {/* Dry-Run Preflight Feedback */}
+            {preflightLoading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Running pre-flight dry-run validation…
+              </div>
+            )}
+
+            {importPreflight && !preflightLoading && (
+              <div className={cn(
+                'rounded-lg border p-3 text-xs space-y-2',
+                importPreflight.valid
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                  : 'bg-destructive/10 border-destructive/30 text-destructive',
+              )}>
+                <div className="flex items-center gap-2 font-semibold">
+                  {importPreflight.valid ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  )}
+                  {importPreflight.valid
+                    ? `Pre-flight passed: ${importPreflight.total} schemas ready (${importPreflight.toCreate} new, ${importPreflight.toUpdate} updates)`
+                    : `Validation failed: ${importPreflight.errors?.length || 1} error(s)`}
+                </div>
+
+                {importPreflight.errors && importPreflight.errors.length > 0 && (
+                  <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-destructive">
+                    {importPreflight.errors.map((err: string, idx: number) => (
+                      <li key={idx}>{err}</li>
+                    ))}
+                  </ul>
+                )}
+
+                {importPreflight.preview && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {importPreflight.preview.map((p: any) => (
+                      <Badge
+                        key={p.name}
+                        variant="outline"
+                        className={cn(
+                          'text-[10px] font-mono',
+                          p.isExisting ? 'border-blue-500/40 text-blue-400' : 'border-emerald-500/40 text-emerald-400',
+                        )}
+                      >
+                        {p.name} ({p.fieldCount} fields) — {p.isExisting ? 'Update' : 'Create'}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setImportDialogOpen(false);
+                setImportJsonText('');
+                setImportPreflight(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              disabled={!importPreflight?.valid || importExecuting}
+              onClick={handleExecuteImport}
+              className="gap-1.5"
+            >
+              {importExecuting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+              Import Schemas
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

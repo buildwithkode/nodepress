@@ -49,6 +49,33 @@ export class ContentTypeController {
     return this.contentTypeService.findAll();
   }
 
+  // ─── Schema Export / Import — MUST be before @Get(':id') to avoid route shadowing ─
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Get('export')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Export content type schemas as JSON (admin, editor)' })
+  exportSchemas(@Request() req: any) {
+    return this.contentTypeService.exportSchemas();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post('import')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Import content type schemas with Dry-Run support (admin only)' })
+  async importSchemas(@Body() dto: any, @Request() req: any) {
+    const result = await this.contentTypeService.importSchemas(dto, req.user?.id);
+    if (!dto.dryRun) {
+      await this.auditService.log(
+        { id: req.user.id, email: req.user.email, ip: req.ip },
+        'created', 'content_type', `Imported schemas: ${result.created || 0} created, ${result.updated || 0} updated`,
+      );
+    }
+    return result;
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a single content type by ID' })
   @ApiParam({ name: 'id', type: Number })

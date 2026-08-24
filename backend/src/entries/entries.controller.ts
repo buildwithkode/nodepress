@@ -102,14 +102,18 @@ export class EntriesController {
   @Get('export')
   @ApiBearerAuth('JWT')
   @ApiOperation({
-    summary: 'Export all entries for a content type as JSON (editor, admin)',
-    description: 'Returns a flat JSON array of all non-deleted entries. Use the response to seed, back up, or migrate content.',
+    summary: 'Export all entries for a content type as JSON or CSV (editor, admin)',
+    description: 'Returns all non-deleted entries as JSON or formatted RFC 4180 CSV.',
   })
   @ApiQuery({ name: 'contentTypeId', required: true, type: Number })
-  exportEntries(@Query('contentTypeId') contentTypeId: string) {
+  @ApiQuery({ name: 'format', required: false, enum: ['json', 'csv'] })
+  exportEntries(
+    @Query('contentTypeId') contentTypeId: string,
+    @Query('format') format?: 'json' | 'csv',
+  ) {
     const id = parseInt(contentTypeId, 10);
     if (isNaN(id)) throw new BadRequestException('contentTypeId must be a number');
-    return this.entriesService.exportEntries(id);
+    return this.entriesService.exportEntries(id, format || 'json');
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -117,19 +121,18 @@ export class EntriesController {
   @Post('import')
   @ApiBearerAuth('JWT')
   @ApiOperation({
-    summary: 'Import entries into a content type from a JSON array (editor, admin)',
-    description: 'Accepts a JSON array of entry objects (same shape as export). Skips slugs that already exist.',
+    summary: 'Import entries into a content type (JSON or CSV) with Dry-Run support (editor, admin)',
+    description: 'Accepts an array of entries or an object containing { entries, csvContent, dryRun, updateDuplicates }.',
   })
   @ApiQuery({ name: 'contentTypeId', required: true, type: Number })
   importEntries(
     @Query('contentTypeId') contentTypeId: string,
-    @Body() entries: any[],
+    @Body() payload: any,
     @Request() req: any,
   ) {
     const id = parseInt(contentTypeId, 10);
     if (isNaN(id)) throw new BadRequestException('contentTypeId must be a number');
-    if (!Array.isArray(entries)) throw new BadRequestException('Body must be a JSON array of entries');
-    return this.entriesService.importEntries(id, entries, req.user.id);
+    return this.entriesService.importEntries(id, payload, req.user.id);
   }
 
   // ─── Bulk operations — also static paths, must precede :id wildcards ───────

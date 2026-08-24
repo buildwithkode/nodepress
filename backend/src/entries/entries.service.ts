@@ -18,6 +18,7 @@ import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../commo
 import { sanitizeEntryData } from '../common/sanitize';
 import { populateDeep } from '../common/populate.util';
 import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
+import { entriesToCsv, parseCsvToEntries } from '../common/csv.util';
 import { PluginHookBus } from '../plugin/plugin-hook-bus';
 import { PluginEvents } from '../plugin/plugin.events';
 
@@ -535,13 +536,15 @@ export class EntriesService {
     return versions;
   }
 
-  // ── Import / Export ────────────────────────────────────────────────────���──
+  // ── Import / Export ─────────────────────────────────────────────────────────
 
   /**
-   * Export all non-deleted entries for a content type as a plain JSON array.
-   * Suitable for backup, migration, or seeding another NodePress instance.
+   * Export all non-deleted entries for a content type as JSON array or RFC 4180 CSV.
    */
-  async exportEntries(contentTypeId: number): Promise<any[]> {
+  async exportEntries(
+    contentTypeId: number,
+    format: 'json' | 'csv' = 'json',
+  ): Promise<{ data: any; format: string; filename: string; contentType: string } | any[]> {
     const contentType = await this.prisma.contentType.findUnique({ where: { id: contentTypeId } });
     if (!contentType) throw new BadRequestException(`Content type #${contentTypeId} not found`);
 
@@ -554,30 +557,146 @@ export class EntriesService {
       },
     });
 
+    if (format === 'csv') {
+      const csv = entriesToCsv(entries, (contentType.schema as any[]) || []);
+      return {
+        data: csv,
+        format: 'csv',
+        filename: `${contentType.name}-export.csv`,
+        contentType: contentType.name,
+      };
+    }
+
     return entries;
   }
 
   /**
-   * Import entries from an array (e.g. a previous exportEntries result).
-   * - Existing entries (matched by slug + locale) are updated in-place.
-   * - New entries are created.
-   * - Returns counts of created / updated / skipped.
+   * Import entries with support for JSON array, raw CSV, Dry-Run Preflight, and Duplicate Resolution.
    */
   async importEntries(
     contentTypeId: number,
-    rows: Array<{ slug: string; locale?: string; status?: string; data?: Record<string, any>; seo?: any; publishAt?: string }>,
+    payload: any,
     actorId?: number,
-  ): Promise<{ created: number; updated: number; errors: string[] }> {
+  ): Promise<{
+    dryRun?: boolean;
+    valid?: boolean;
+    total: number;
+    toCreate: number;
+    toUpdate: number;
+    created?: number;
+    updated?: number;
+    skipped?: number;
+    errors: string[];
+    preview?: any[];
+  }> {
     const contentType = await this.prisma.contentType.findUnique({ where: { id: contentTypeId } });
     if (!contentType) throw new BadRequestException(`Content type #${contentTypeId} not found`);
 
+    let rows: Array<{ slug: string; locale?: string; status?: string; data?: Record<string, any>; seo?: any; publishAt?: string }> = [];
+    let dryRun = false;
+    let updateDuplicates = true;
+
+    if (Array.isArray(payload)) {
+      rows = payload;
+    } else if (payload && typeof payload === 'object') {
+      dryRun = !!payload.dryRun;
+      updateDuplicates = payload.updateDuplicates !== false;
+      if (payload.csvContent) {
+        rows = parseCsvToEntries(payload.csvContent);
+      } else if (Array.isArray(payload.entries)) {
+        rows = payload.entries;
+      }
+    }
+
+    if (rows.length === 0) {
+      return {
+        dryRun,
+        valid: true,
+        total: 0,
+        toCreate: 0,
+        toUpdate: 0,
+        created: 0,
+        updated: 0,
+        skipped: 0,
+        errors: ['No valid rows found in payload'],
+        preview: [],
+      };
+    }
+
+    // Identify which entries already exist
+    const existingEntries = await this.prisma.entry.findMany({
+      where: {
+        contentTypeId,
+        deletedAt: null,
+      },
+      select: { id: true, slug: true, locale: true },
+    });
+    const existingSet = new Set(existingEntries.map((e) => `${e.slug}::${e.locale}`));
+
+    const errors: string[] = [];
+    const preview: any[] = [];
+    let toCreate = 0;
+    let toUpdate = 0;
+
+    // Validate rows
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const locale = row.locale ?? 'en';
+      const rowNum = i + 1;
+      let rowValid = true;
+      let rowError: string | undefined;
+
+      if (!row.slug) {
+        rowError = `Row #${rowNum}: missing slug`;
+        errors.push(rowError);
+        rowValid = false;
+      }
+
+      const key = `${row.slug}::${locale}`;
+      const isExisting = existingSet.has(key);
+
+      if (rowValid) {
+        if (isExisting) {
+          toUpdate++;
+        } else {
+          toCreate++;
+        }
+      }
+
+      preview.push({
+        row: rowNum,
+        slug: row.slug,
+        locale,
+        status: row.status || 'draft',
+        isExisting,
+        valid: rowValid,
+        error: rowError,
+        data: row.data || {},
+      });
+    }
+
+    // If dryRun, return the validation report immediately without writing to DB
+    if (dryRun) {
+      return {
+        dryRun: true,
+        valid: errors.length === 0,
+        total: rows.length,
+        toCreate,
+        toUpdate,
+        errors,
+        preview: preview.slice(0, 10),
+      };
+    }
+
+    // Execute actual import
     let created = 0;
     let updated = 0;
-    const errors: string[] = [];
+    let skipped = 0;
 
     for (const row of rows) {
       const locale = row.locale ?? 'en';
-      if (!row.slug) { errors.push(`Row missing slug — skipped`); continue; }
+      if (!row.slug) continue;
+
       try {
         const existing = await this.prisma.entry.findUnique({
           where: { contentTypeId_slug_locale: { contentTypeId, slug: row.slug, locale } },
@@ -588,6 +707,10 @@ export class EntriesService {
         );
 
         if (existing && existing.deletedAt === null) {
+          if (!updateDuplicates) {
+            skipped++;
+            continue;
+          }
           await this.prisma.entry.update({
             where: { id: existing.id },
             data: {
@@ -617,7 +740,15 @@ export class EntriesService {
       }
     }
 
-    return { created, updated, errors };
+    return {
+      total: rows.length,
+      toCreate,
+      toUpdate,
+      created,
+      updated,
+      skipped,
+      errors,
+    };
   }
 
   /**
