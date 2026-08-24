@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 const mockHook = {
   id: 1,
+  name: 'Test Webhook',
   url: 'https://example.com/hook',
   events: ['entry.created', 'entry.updated'],
   secret: 'mysecret',
@@ -24,10 +25,11 @@ const mockPrisma = {
     count:      jest.fn(),
   },
   webhookDelivery: {
-    create:   jest.fn(),
-    findMany: jest.fn(),
-    update:   jest.fn(),
-    count:    jest.fn(),
+    create:     jest.fn(),
+    findUnique: jest.fn(),
+    findMany:   jest.fn(),
+    update:     jest.fn(),
+    count:      jest.fn(),
   },
 };
 
@@ -122,28 +124,23 @@ describe('WebhooksService', () => {
 
   describe('fire()', () => {
     beforeEach(() => {
-      // fire() calls findMany to get active hooks, then enqueues deliveries
       mockPrisma.webhook.findMany.mockResolvedValue([mockHook]);
       mockPrisma.webhookDelivery.create.mockResolvedValue({ id: 1 });
     });
 
     it('enqueues delivery for a matching event', async () => {
-      // entry.created matches mockHook events
       service.fire('entry.created', { id: 1 });
-      // fire is async internally; give it a tick
       await new Promise((r) => setImmediate(r));
       expect(mockPrisma.webhook.findMany).toHaveBeenCalled();
     });
 
     it('skips delivery for non-matching event', async () => {
-      // mockHook listens to entry.created + entry.updated, not media.uploaded
       mockPrisma.webhook.findMany.mockResolvedValue([
         { ...mockHook, events: ['entry.created'] },
       ]);
 
       service.fire('media.uploaded', { filename: 'photo.jpg' });
       await new Promise((r) => setImmediate(r));
-      // webhookDelivery.create should not be called for non-matching hook
       expect(mockPrisma.webhookDelivery.create).not.toHaveBeenCalled();
     });
 
@@ -159,8 +156,6 @@ describe('WebhooksService', () => {
     });
 
     it('skips disabled hooks (DB filters enabled:true, returns empty)', async () => {
-      // enqueueAll queries with where: { enabled: true }, so disabled hooks are
-      // never returned — simulate that by returning an empty array
       mockPrisma.webhook.findMany.mockResolvedValue([]);
 
       service.fire('entry.created', { id: 1 });
@@ -192,15 +187,116 @@ describe('WebhooksService', () => {
   // ── findDeliveries ─────────────────────────────────────────────────────────
 
   describe('findDeliveries()', () => {
-    it('returns paginated delivery log', async () => {
+    it('returns paginated delivery log enriched with webhook details', async () => {
       mockPrisma.webhookDelivery.count.mockResolvedValue(5);
       mockPrisma.webhookDelivery.findMany.mockResolvedValue([
         { id: 1, webhookId: 1, event: 'entry.created', status: 'delivered', attempts: 1 },
       ]);
+      mockPrisma.webhook.findMany.mockResolvedValue([
+        { id: 1, name: 'Test Webhook', url: 'https://example.com/hook', enabled: true },
+      ]);
 
-      const result = await service.findDeliveries(1, 10);
+      const result = await service.findDeliveries(1, 'delivered', 1, 10);
       expect(result.data).toHaveLength(1);
+      expect(result.data[0].webhook.name).toBe('Test Webhook');
       expect(result.meta.total).toBe(5);
+    });
+  });
+
+  // ── 1-Click Re-Delivery ─────────────────────────────────────────────────────
+
+  describe('redeliver()', () => {
+    const mockDelivery = {
+      id: 42,
+      webhookId: 1,
+      event: 'entry.created',
+      payload: { id: 100, title: 'Hello World' },
+      status: 'failed',
+      attempts: 3,
+      responseStatus: 500,
+    };
+
+    it('throws NotFoundException when delivery does not exist', async () => {
+      mockPrisma.webhookDelivery.findUnique.mockResolvedValue(null);
+      await expect(service.redeliver(999)).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException when associated webhook is missing', async () => {
+      mockPrisma.webhookDelivery.findUnique.mockResolvedValue(mockDelivery);
+      mockPrisma.webhook.findUnique.mockResolvedValue(null);
+      await expect(service.redeliver(42)).rejects.toThrow(NotFoundException);
+    });
+
+    it('re-delivers successfully and updates status to delivered', async () => {
+      mockPrisma.webhookDelivery.findUnique.mockResolvedValue(mockDelivery);
+      mockPrisma.webhook.findUnique.mockResolvedValue(mockHook);
+      mockPrisma.webhookDelivery.update.mockResolvedValue({});
+
+      // Mock global fetch
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      } as any);
+
+      const result = await service.redeliver(42);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        mockHook.url,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'X-NodePress-Event': 'entry.created',
+            'X-NodePress-Redelivery': 'true',
+          }),
+        }),
+      );
+
+      expect(mockPrisma.webhookDelivery.update).toHaveBeenCalledWith({
+        where: { id: 42 },
+        data: {
+          status: 'delivered',
+          attempts: 4,
+          responseStatus: 200,
+          errorMessage: null,
+          nextRetryAt: null,
+        },
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.status).toBe(200);
+
+      global.fetch = originalFetch;
+    });
+
+    it('handles remote server failure on re-delivery', async () => {
+      mockPrisma.webhookDelivery.findUnique.mockResolvedValue(mockDelivery);
+      mockPrisma.webhook.findUnique.mockResolvedValue(mockHook);
+      mockPrisma.webhookDelivery.update.mockResolvedValue({});
+
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 502,
+      } as any);
+
+      const result = await service.redeliver(42);
+
+      expect(mockPrisma.webhookDelivery.update).toHaveBeenCalledWith({
+        where: { id: 42 },
+        data: {
+          status: 'failed',
+          attempts: 4,
+          responseStatus: 502,
+          errorMessage: 'HTTP 502',
+          nextRetryAt: null,
+        },
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.status).toBe(502);
+
+      global.fetch = originalFetch;
     });
   });
 });

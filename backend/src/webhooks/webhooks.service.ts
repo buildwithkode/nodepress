@@ -73,14 +73,15 @@ export class WebhooksService {
     return { message: 'Ping sent to ' + hook.url };
   }
 
-  // ── Delivery log (admin UI) ───────────────────────────────────────────────────
+  // ── Delivery log & Dead-Letter Queue (admin UI) ───────────────────────────────
 
-  async findDeliveries(webhookId?: number, page = 1, limit = 50) {
+  async findDeliveries(webhookId?: number, status?: string, page = 1, limit = 50) {
     const skip = (page - 1) * limit;
     const where: any = {};
     if (webhookId) where.webhookId = webhookId;
+    if (status && status !== 'all') where.status = status;
 
-    const [total, data] = await Promise.all([
+    const [total, rawData] = await Promise.all([
       (this.prisma as any).webhookDelivery.count({ where }),
       (this.prisma as any).webhookDelivery.findMany({
         where,
@@ -89,7 +90,119 @@ export class WebhooksService {
         take: limit,
       }),
     ]);
+
+    // Attach webhook details (name, url) for richer UI rendering
+    const webhookIds = [...new Set(rawData.map((d: any) => d.webhookId))] as number[];
+    const webhooks = await this.prisma.webhook.findMany({
+      where: { id: { in: webhookIds } },
+      select: { id: true, name: true, url: true, enabled: true },
+    });
+    const webhookMap = new Map(webhooks.map((h) => [h.id, h]));
+
+    const data = rawData.map((d: any) => ({
+      ...d,
+      webhook: webhookMap.get(d.webhookId) || null,
+    }));
+
     return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  // ── 1-Click UI Re-Delivery ──────────────────────────────────────────────────
+
+  async redeliver(deliveryId: number) {
+    const delivery = await (this.prisma as any).webhookDelivery.findUnique({
+      where: { id: deliveryId },
+    });
+    if (!delivery) {
+      throw new NotFoundException(`Webhook delivery #${deliveryId} not found`);
+    }
+
+    const hook = await this.prisma.webhook.findUnique({
+      where: { id: delivery.webhookId },
+    });
+    if (!hook) {
+      throw new NotFoundException(`Associated webhook #${delivery.webhookId} was deleted`);
+    }
+
+    const body = JSON.stringify({
+      event: delivery.event,
+      timestamp: new Date().toISOString(),
+      data: delivery.payload,
+    });
+
+    const attempt = delivery.attempts + 1;
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-NodePress-Event': delivery.event,
+        'X-NodePress-Delivery': randomBytes(8).toString('hex'),
+        'X-NodePress-Attempt': String(attempt),
+        'X-NodePress-Redelivery': 'true',
+      };
+      if (hook.secret) {
+        const sig = createHmac('sha256', hook.secret).update(body).digest('hex');
+        headers['X-NodePress-Signature'] = `sha256=${sig}`;
+      }
+
+      const res = await fetch(hook.url, {
+        method: 'POST',
+        headers,
+        body,
+        signal: AbortSignal.timeout(10_000),
+      });
+
+      if (res.ok) {
+        await (this.prisma as any).webhookDelivery.update({
+          where: { id: deliveryId },
+          data: {
+            status: 'delivered',
+            attempts: attempt,
+            responseStatus: res.status,
+            errorMessage: null,
+            nextRetryAt: null,
+          },
+        });
+        return {
+          success: true,
+          status: res.status,
+          message: `Re-delivered successfully (HTTP ${res.status})`,
+        };
+      } else {
+        const errMsg = `HTTP ${res.status}`;
+        await (this.prisma as any).webhookDelivery.update({
+          where: { id: deliveryId },
+          data: {
+            status: 'failed',
+            attempts: attempt,
+            responseStatus: res.status,
+            errorMessage: errMsg,
+            nextRetryAt: null,
+          },
+        });
+        return {
+          success: false,
+          status: res.status,
+          message: `Re-delivery failed (HTTP ${res.status})`,
+        };
+      }
+    } catch (err: any) {
+      await (this.prisma as any).webhookDelivery.update({
+        where: { id: deliveryId },
+        data: {
+          status: 'failed',
+          attempts: attempt,
+          responseStatus: null,
+          errorMessage: err.message,
+          nextRetryAt: null,
+        },
+      });
+      return {
+        success: false,
+        status: 0,
+        message: `Re-delivery failed: ${err.message}`,
+      };
+    }
   }
 
   // ── Fire (public API — non-blocking) ─────────────────────────────────────────
@@ -142,10 +255,12 @@ export class WebhooksService {
     // Load the webhook if not preloaded
     const hook = delivery._hook ?? await this.prisma.webhook.findUnique({ where: { id: delivery.webhookId } });
     if (!hook || !hook.enabled) {
-      await (this.prisma as any).webhookDelivery.update({
-        where: { id: delivery.id },
-        data: { status: 'failed', errorMessage: 'Webhook disabled or deleted' },
-      });
+      if (delivery.id > 0) {
+        await (this.prisma as any).webhookDelivery.update({
+          where: { id: delivery.id },
+          data: { status: 'failed', errorMessage: 'Webhook disabled or deleted' },
+        });
+      }
       return;
     }
 
@@ -178,17 +293,23 @@ export class WebhooksService {
 
       if (res.ok) {
         this.logger.debug(`Webhook #${hook.id} delivered [${delivery.event}] (attempt ${attempt})`);
-        await (this.prisma as any).webhookDelivery.update({
-          where: { id: delivery.id },
-          data: { status: 'delivered', attempts: attempt, responseStatus: res.status, nextRetryAt: null },
-        });
+        if (delivery.id > 0) {
+          await (this.prisma as any).webhookDelivery.update({
+            where: { id: delivery.id },
+            data: { status: 'delivered', attempts: attempt, responseStatus: res.status, nextRetryAt: null },
+          });
+        }
       } else {
         this.logger.warn(`Webhook #${hook.id} → HTTP ${res.status} (attempt ${attempt})`);
-        await this.scheduleRetry(delivery.id, attempt, `HTTP ${res.status}`, res.status);
+        if (delivery.id > 0) {
+          await this.scheduleRetry(delivery.id, attempt, `HTTP ${res.status}`, res.status);
+        }
       }
     } catch (err: any) {
       this.logger.warn(`Webhook #${hook.id} error: ${err.message} (attempt ${attempt})`);
-      await this.scheduleRetry(delivery.id, attempt, err.message, null);
+      if (delivery.id > 0) {
+        await this.scheduleRetry(delivery.id, attempt, err.message, null);
+      }
     }
   }
 
@@ -198,6 +319,8 @@ export class WebhooksService {
     errorMessage: string,
     responseStatus: number | null,
   ): Promise<void> {
+    if (deliveryId <= 0) return;
+
     if (attempt >= MAX_ATTEMPTS) {
       // Exhausted — mark as permanently failed
       await (this.prisma as any).webhookDelivery.update({

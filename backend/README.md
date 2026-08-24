@@ -287,10 +287,31 @@ export class MyPluginService implements OnModuleInit {
 
 ---
 
+## Two-Factor Authentication (2FA / TOTP)
+
+NodePress supports RFC 6238 Time-based One-Time Passwords compatible with Google Authenticator, 1Password, Microsoft Authenticator, and Authy:
+
+- **Setup**: `GET /api/auth/2fa/setup` generates a Base32 secret, `otpauth://` URI, and 8 single-use emergency backup recovery codes (`XXXX-XXXX`).
+- **Activation**: `POST /api/auth/2fa/enable` verifies a 6-digit TOTP code before activating.
+- **Login Challenge**: When active, `POST /api/auth/login` returns `{ requires2fa: true, tempToken }`. Verification via `POST /api/auth/2fa/verify-login` with either a 6-digit code or emergency recovery code issues the full access token.
+
+---
+
+## Webhooks Dead-Letter Queue (DLQ) & 1-Click Re-Delivery
+
+Webhooks notify external consumers on content changes with HMAC-SHA256 request signing:
+
+- **Auto-Retries**: 3 automatic attempts with exponential backoff (0s, 5m, 30m).
+- **Dead-Letter Queue**: Exhausted or failed deliveries are moved to DLQ (`status: failed`).
+- **1-Click UI Re-Delivery**: Dispatches recorded payload immediately via `POST /api/webhooks/deliveries/:id/retry`.
+- **Signed Headers**: `X-NodePress-Signature` (HMAC-SHA256), `X-NodePress-Event`, `X-NodePress-Delivery`, and `X-NodePress-Redelivery: true`.
+
+---
+
 ## Testing
 
 ```bash
-# Unit tests (24 test suites)
+# Unit tests (25 test suites, 288+ tests)
 npm test
 
 # E2E tests (requires running PostgreSQL + Redis)
@@ -299,3 +320,4 @@ npm run test:e2e
 # Type-check only
 npx tsc --noEmit
 ```
+

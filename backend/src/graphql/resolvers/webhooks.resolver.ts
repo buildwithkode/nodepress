@@ -36,9 +36,10 @@ export class WebhooksResolver {
   @Query(() => [WebhookDeliveryModel], { name: 'webhookDeliveries', description: 'Delivery log for a webhook. Admin only.' })
   deliveries(
     @Args('webhookId', { type: () => Int }) webhookId: number,
-    @Args('limit', { type: () => Int, nullable: true, defaultValue: 50 }) limit: number,
+    @Args('status', { type: () => String, nullable: true }) status?: string,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 50 }) limit?: number,
   ) {
-    return this.webhooksService.findDeliveries(webhookId, 1, limit).then((r) => r.data);
+    return this.webhooksService.findDeliveries(webhookId, status, 1, limit ?? 50).then((r) => r.data);
   }
 
   // ─── Mutations ────────────────────────────────────────────────────────────────

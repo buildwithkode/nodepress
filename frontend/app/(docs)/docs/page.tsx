@@ -2419,16 +2419,23 @@ function verifySignature(body, secret, signatureHeader) {
                 </div>
               ))}
             </div>
-            <p className="text-muted-foreground text-sm mb-4">
-              View the full delivery log — event name, HTTP status, error message, attempt count, and next retry time — at{' '}
-              <strong className="text-foreground">Webhooks → Delivery Log</strong> in the admin panel.
+
+            <h3 className="font-semibold mb-2">Dead-Letter Queue (DLQ) & 1-Click UI Re-Delivery</h3>
+            <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
+              When all 3 automatic attempts fail (or if an external server was temporarily unavailable), the delivery is moved to the <strong className="text-foreground">Dead-Letter Queue (DLQ)</strong>. 
+              Under <strong className="text-foreground">Developer → Webhooks → Delivery Logs & DLQ</strong>, administrators can:
             </p>
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-4">
+              <li><strong className="text-foreground">Filter by Status:</strong> View All, Failed (DLQ), Delivered, or Pending dispatches.</li>
+              <li><strong className="text-foreground">Inspect Payload & Error:</strong> View the exact JSON payload sent, recipient HTTP status codes, and error traces.</li>
+              <li><strong className="text-foreground">1-Click Re-Delivery:</strong> Click the <IC>Re-deliver</IC> button to immediately re-dispatch the recorded payload. You can also trigger re-delivery programmatically via <IC>POST /api/webhooks/deliveries/:id/retry</IC>.</li>
+            </ul>
 
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mt-4 text-sm">
               <strong className="text-amber-400">Delivery notes</strong>
               <ul className="text-muted-foreground mt-1 space-y-1 list-disc pl-4">
                 <li>Timeout per delivery: 10 seconds.</li>
-                <li>After 3 failed attempts the delivery is marked <IC>failed</IC> and will not be retried again.</li>
+                <li>Signed headers include <IC>X-NodePress-Signature</IC> (HMAC-SHA256), <IC>X-NodePress-Event</IC>, <IC>X-NodePress-Delivery</IC>, and <IC>X-NodePress-Redelivery</IC>.</li>
                 <li>Use the <strong className="text-foreground">Test Ping</strong> button in the admin panel to verify your endpoint is reachable.</li>
               </ul>
             </div>
@@ -3035,7 +3042,8 @@ X-API-Key: np_abc123...`} />
               <Endpoint method="DELETE" path="/api/webhooks/:id"               desc="Delete a webhook" auth />
               <Endpoint method="PATCH"  path="/api/webhooks/:id/toggle"        desc="Enable or disable a webhook" auth />
               <Endpoint method="POST"   path="/api/webhooks/:id/ping"          desc="Send a test ping to the webhook URL" auth />
-              <Endpoint method="GET"    path="/api/webhooks/deliveries"        desc="List delivery log — ?page, ?limit (25 per page)" auth />
+              <Endpoint method="GET"    path="/api/webhooks/deliveries"        desc="List delivery log & DLQ — ?status, ?webhookId, ?page, ?limit" auth />
+              <Endpoint method="POST"   path="/api/webhooks/deliveries/:id/retry" desc="1-Click immediate re-delivery of a delivery payload" auth />
             </div>
 
             <h3 className="font-semibold mb-3">API Keys</h3>

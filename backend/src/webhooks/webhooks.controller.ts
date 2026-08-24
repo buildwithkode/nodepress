@@ -41,15 +41,30 @@ export class WebhooksController {
 
   @SkipThrottle()
   @Get('deliveries')
-  @ApiOperation({ summary: 'List webhook delivery log (admin)' })
+  @ApiOperation({ summary: 'List webhook delivery log & Dead-Letter Queue (admin)' })
+  @ApiQuery({ name: 'webhookId', required: false, type: Number })
+  @ApiQuery({ name: 'status', required: false, type: String, description: 'all | delivered | failed | pending' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  findDeliveries(@Query('page') page?: string, @Query('limit') limit?: string) {
+  findDeliveries(
+    @Query('webhookId') webhookId?: string,
+    @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     return this.webhooksService.findDeliveries(
-      undefined,
+      webhookId ? parseInt(webhookId, 10) : undefined,
+      status,
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 25,
     );
+  }
+
+  @Post('deliveries/:id/retry')
+  @ApiOperation({ summary: '1-Click re-delivery of a past or failed webhook payload (admin)' })
+  @ApiParam({ name: 'id', type: Number })
+  redeliver(@Param('id', ParseIntPipe) id: number) {
+    return this.webhooksService.redeliver(id);
   }
 
   @Patch(':id/toggle')
