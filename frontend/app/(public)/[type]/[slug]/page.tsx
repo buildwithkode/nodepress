@@ -189,9 +189,56 @@ export default async function EntryDetailPage({
   const typeLabel = params.type
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
+  const siteUrl = process.env.SITE_URL || 'http://localhost:5173';
+  const canonicalUrl = `${siteUrl}/${params.type}/${params.slug}`;
+  const description = entry.seo?.description || entry.data?.description || entry.data?.excerpt || undefined;
+  const image = entry.seo?.image || entry.data?.image || undefined;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: title,
+    description,
+    image: image ? [image] : undefined,
+    datePublished: entry.createdAt,
+    dateModified: entry.updatedAt,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': canonicalUrl,
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: typeLabel,
+        item: `${siteUrl}/${params.type}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: title,
+        item: canonicalUrl,
+      },
+    ],
+  };
 
   return (
     <div>
+      {/* Schema.org Structured Data (JSON-LD) for Search Engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       {/* Breadcrumb */}
       <div className="mb-6 text-sm text-gray-400">
         <Link href={`/${params.type}`} className="text-blue-500 hover:underline no-underline">
