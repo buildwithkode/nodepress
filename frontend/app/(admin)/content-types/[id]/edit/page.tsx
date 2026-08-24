@@ -78,11 +78,13 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; options?: any }) => ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any }) => ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
   required: f.required,
+  ...(f.readRoles ? { readRoles: f.readRoles } : {}),
+  ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}),
   ...(f.options ? { options: f.options } : {}),
 });
 

@@ -1459,11 +1459,22 @@ PUT /api/permissions/editor/article
 # Reset all permissions to defaults
 PUT /api/permissions/reset/all`} />
 
+            <h3 className="font-semibold mb-2 mt-6">Granular Field-Level Permissions Matrix</h3>
+            <p className="text-muted-foreground text-sm mb-2 leading-relaxed">
+              In addition to content-type actions, NodePress supports granular field-level access control. 
+              Under <strong className="text-foreground">Users → Permissions → Field-Level Permissions Matrix</strong>, administrators can select any content type and configure exact per-field permissions:
+            </p>
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-4">
+              <li><strong className="text-foreground">Read Visibility (<IC>readRoles</IC>):</strong> Choose which roles can see a specific attribute. Unauthorized roles will receive sanitized payloads with the restricted fields automatically stripped.</li>
+              <li><strong className="text-foreground">Write / Mutation Access (<IC>writeRoles</IC>):</strong> Restrict who can edit or create values for specific fields (e.g., locking internal pricing, editorial notes, or approval flags to Admins only). Attempted edits by unauthorized roles are rejected with HTTP 403 Forbidden.</li>
+            </ul>
+
             <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
               <strong className="text-blue-400">How permissions are checked:</strong>
               <ol className="text-muted-foreground mt-1 text-xs space-y-1 list-decimal list-inside">
-                <li>Check for an exact <IC>role + contentType</IC> row</li>
+                <li>Check for an exact <IC>role + contentType</IC> row in the permission table</li>
                 <li>Fall back to the wildcard <IC>role + *</IC> row</li>
+                <li>Enforce schema-level <IC>readRoles</IC> and <IC>writeRoles</IC> on every field</li>
                 <li>If neither exists, deny by default</li>
               </ol>
             </div>
