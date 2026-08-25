@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-version="1.4.0">
+<html lang="en" data-version="1.6.0">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NodePress — Documentation</title>
-  <meta name="description" content="NodePress headless CMS documentation. Self-hosted, REST API, no Docker required." />
+  <meta name="description" content="NodePress headless CMS documentation. Self-hosted, REST API, GraphQL, Real-time WebSockets, Multi-stage workflows, no Docker required." />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,7 +27,6 @@
     html { scroll-behavior: smooth; }
     .toc-link.active { color: #3b82f6; background: rgba(59,130,246,0.08); font-weight: 500; }
     pre { tab-size: 2; }
-    /* Let highlight.js color tokens while keeping our own window chrome/background */
     pre code.hljs { background: transparent; padding: 0; color: #abb2bf; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #18181b; }
@@ -41,7 +40,7 @@
     <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <a href="https://nodepress.buildwithkode.com" target="_blank" class="flex items-center gap-3 group">
-          <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+          <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <span class="text-white text-xs font-extrabold">N</span>
           </div>
           <span class="font-semibold text-sm text-white group-hover:text-blue-400 transition-colors">NodePress</span>
@@ -50,6 +49,7 @@
         <span class="text-zinc-400 text-sm">Documentation</span>
       </div>
       <div class="flex items-center gap-4">
+        <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">v1.6.0</span>
         <a href="https://github.com/buildwithkode/nodepress" target="_blank" class="text-zinc-400 hover:text-white text-sm transition-colors flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
           GitHub
@@ -61,27 +61,31 @@
   <div class="max-w-7xl mx-auto px-6 py-10 flex gap-10">
 
     <!-- Sidebar TOC -->
-    <aside class="hidden lg:block w-52 shrink-0">
-      <div class="sticky top-24">
+    <aside class="hidden lg:block w-56 shrink-0">
+      <div class="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2">
         <p class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">On this page</p>
-        <ul class="space-y-0.5" id="toc">
-          <li><a href="#installation"  class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Installation</a></li>
-          <li><a href="#quick-start"   class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Quick Start</a></li>
-          <li><a href="#content-types" class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Content Types</a></li>
-          <li><a href="#field-types"   class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Field Types</a></li>
-          <li><a href="#entries"       class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Entries & Slugs</a></li>
-          <li><a href="#media"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Media Library</a></li>
-          <li><a href="#api-keys"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Keys</a></li>
-          <li><a href="#forms"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Forms</a></li>
-          <li><a href="#brand"         class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Brand & Theme</a></li>
-          <li><a href="#team"          class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Team & Roles</a></li>
-          <li><a href="#webhooks"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Webhooks</a></li>
-          <li><a href="#graphql"       class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">GraphQL API</a></li>
-          <li><a href="#realtime"      class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Real-time</a></li>
-          <li><a href="#seo"           class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">SEO & Sitemap</a></li>
-          <li><a href="#self-hosting"  class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Self-Hosting</a></li>
-          <li><a href="#api-reference" class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Reference</a></li>
-          <li><a href="#code-examples" class="toc-link block text-sm py-1 px-2 rounded text-zinc-400 hover:text-white transition-colors">Code Examples</a></li>
+        <ul class="space-y-0.5 text-xs" id="toc">
+          <li><a href="#installation"     class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Installation</a></li>
+          <li><a href="#quick-start"      class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Quick Start</a></li>
+          <li><a href="#content-types"    class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Content Types Builder</a></li>
+          <li><a href="#field-types"      class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Field Types (14+ Types)</a></li>
+          <li><a href="#entries"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Entries & Workflows</a></li>
+          <li><a href="#media"            class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Media Library & Crop</a></li>
+          <li><a href="#api-keys"         class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Keys</a></li>
+          <li><a href="#forms"            class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Forms & Spam Shield</a></li>
+          <li><a href="#brand"            class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Brand & Custom CSS</a></li>
+          <li><a href="#team"             class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Team, RBAC & 2FA</a></li>
+          <li><a href="#permissions"      class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Field Permissions</a></li>
+          <li><a href="#audit-log"        class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Audit Logging</a></li>
+          <li><a href="#webhooks"         class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Webhooks & DLQ</a></li>
+          <li><a href="#webhook-recipes"  class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Top 5 Webhook Recipes</a></li>
+          <li><a href="#plugins"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Plugin Architecture</a></li>
+          <li><a href="#graphql"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">GraphQL API</a></li>
+          <li><a href="#realtime"         class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Real-time WebSockets</a></li>
+          <li><a href="#seo"              class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">SEO & Sitemap XML</a></li>
+          <li><a href="#self-hosting"     class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Self-Hosting</a></li>
+          <li><a href="#api-reference"    class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Reference</a></li>
+          <li><a href="#code-examples"    class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Frontend Examples</a></li>
         </ul>
       </div>
     </aside>
@@ -92,17 +96,16 @@
       <!-- Hero -->
       <div class="mb-14">
         <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">v1.4</span>
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">v1.6.0</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Self-hosted</span>
-          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">REST API</span>
-          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">GraphQL</span>
-          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Real-time</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">REST + GraphQL</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Real-time WebSockets</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Staging Pipeline</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">MIT License</span>
         </div>
-        <h1 class="text-4xl font-extrabold mb-3 text-white">NodePress CMS</h1>
+        <h1 class="text-4xl font-extrabold mb-3 text-white tracking-tight">NodePress Headless CMS</h1>
         <p class="text-lg text-zinc-400 leading-relaxed max-w-2xl">
-          A self-hosted headless CMS. Define your content structure, fill it with data through the
-          admin panel, then consume it via REST API, GraphQL, or real-time WebSocket from any website, app, or platform.
+          An enterprise-grade, self-hosted headless content management system. Design flexible schemas, manage multi-environment workflows, upload assets, and consume content through auto-generated REST APIs, GraphQL, and real-time WebSockets.
         </p>
       </div>
 
@@ -112,217 +115,26 @@
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Installation — Step by Step</h2>
+          <h2 class="text-2xl font-bold text-white">Installation & Prerequisites</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Follow these steps in order. Each step takes only a few minutes. No prior coding experience required.</p>
+        <p class="text-zinc-400 leading-relaxed mb-6">NodePress runs locally on your machine or on any server with Node.js 18+ and PostgreSQL or SQLite.</p>
 
-        <!-- Quick check -->
-        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-8">
-          <p class="text-sm font-medium text-blue-400 mb-1">Already have some tools installed?</p>
-          <p class="text-xs text-zinc-400 mb-3">Run these commands in your terminal to check. If you see a version number, you can skip that step.</p>
-          <div class="code-block" data-code="node -v        # v18 or higher? → skip Step 1
-git --version  # any version?   → skip Step 2"></div>
-        </div>
-
-        <!-- Step 1: Node.js -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">1</div>
-            <h3 class="font-semibold text-white">Install Node.js</h3>
-          </div>
-          <div class="ml-10 space-y-3">
-            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
-              <strong>Already installed?</strong> Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> — if it shows <code class="text-pink-400 bg-zinc-800 px-1 rounded">v18</code> or higher, skip to Step 2.
-            </div>
-            <p class="text-sm text-zinc-400">Node.js is the engine that runs NodePress. Download and install version 18 or newer.</p>
-            <a href="https://nodejs.org" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              Download Node.js from nodejs.org
-            </a>
-            <p class="text-xs text-zinc-500">After installing, verify: <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> should print something like <code class="text-pink-400 bg-zinc-800 px-1 rounded">v22.0.0</code></p>
-          </div>
+        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-6">
+          <p class="text-sm font-medium text-blue-400 mb-1">Check your environment</p>
+          <div class="code-block" data-code="node -v    # v18.0.0 or higher required
+git --version  # required for cloning
+npm -v     # v9.0.0 or higher"></div>
         </div>
 
-        <!-- Step 2: Git -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">2</div>
-            <h3 class="font-semibold text-white">Install Git</h3>
-          </div>
-          <div class="ml-10 space-y-3">
-            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
-              <strong>Already installed?</strong> Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">git --version</code> — if it shows a version number, skip to Step 3.
-            </div>
-            <p class="text-sm text-zinc-400">Git is used to download the NodePress source code. You only need to install it — no need to learn how to use it.</p>
-            <a href="https://git-scm.com/downloads" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              Download Git from git-scm.com
-            </a>
-            <p class="text-xs text-zinc-500">On Windows: click Next through all the options — the defaults are fine.</p>
-          </div>
-        </div>
+        <div class="space-y-4">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+            <h3 class="text-sm font-semibold text-white mb-1">Clone & Install Dependencies</h3>
+            <div class="code-block" data-code="# 1. Clone repository
+git clone https://github.com/buildwithkode/nodepress.git
+cd nodepress
 
-        <!-- Step 3: PostgreSQL -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">3</div>
-            <h3 class="font-semibold text-white">Install PostgreSQL</h3>
-          </div>
-          <div class="ml-10 space-y-3">
-            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
-              <strong>Have Docker?</strong> Skip this step and Step 5 — Docker will manage the database for you. Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose up -d</code> inside your project folder after Step 4.
-            </div>
-            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
-              <strong>Already installed?</strong> Make sure you remember the password you set for the <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> user — you'll need it in Step 5. Then skip to Step 4.
-            </div>
-            <p class="text-sm text-zinc-400">PostgreSQL is the database where all your content is stored. Think of it as the filing cabinet behind the scenes.</p>
-            <a href="https://www.postgresql.org/download/" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              Download PostgreSQL from postgresql.org
-            </a>
-            <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm">
-              <p class="text-amber-400 font-medium mb-2">⚠ Important during installation:</p>
-              <ul class="text-zinc-400 text-xs space-y-1 list-disc list-inside">
-                <li>When asked to set a <strong class="text-zinc-200">password for the postgres user</strong>, write it down — you will need it in Step 5.</li>
-                <li>Leave the port as <strong class="text-zinc-200">5432</strong> (the default).</li>
-                <li>PostgreSQL will run automatically in the background after installation.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 4: Scaffold -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">4</div>
-            <h3 class="font-semibold text-white">Create your NodePress project</h3>
-          </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">Open a terminal, navigate to the folder where you want your project, and run:</p>
-            <div class="code-block" data-code="npx create-nodepress-app my-project"></div>
-            <p class="text-xs text-zinc-500 mt-2">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded">my-project</code> with your project name. This downloads NodePress, generates secret keys, and installs all dependencies. Takes 2–5 minutes.</p>
-            <p class="text-xs text-zinc-500 mt-2">Using Docker? Add the <code class="text-pink-400 bg-zinc-800 px-1 rounded">--docker</code> flag — <code class="text-pink-400 bg-zinc-800 px-1 rounded">npx create-nodepress-app my-project --docker</code> — to include <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose.yml</code> plus the nginx/monitoring configs and <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker:*</code> scripts. Without it, the project is set up for local PostgreSQL.</p>
-            <p class="text-xs text-zinc-500 mt-2">Want error tracking? Add the <code class="text-pink-400 bg-zinc-800 px-1 rounded">--sentry</code> flag to include <a href="https://sentry.io" class="text-pink-400 hover:underline">Sentry</a> (the <code class="text-pink-400 bg-zinc-800 px-1 rounded">@sentry/*</code> packages, ~100 MB). It is <strong>off by default</strong> — without it the scaffold is lighter and ships no error-tracking code. Set <code class="text-pink-400 bg-zinc-800 px-1 rounded">SENTRY_DSN</code> / <code class="text-pink-400 bg-zinc-800 px-1 rounded">NEXT_PUBLIC_SENTRY_DSN</code> to activate.</p>
-          </div>
-        </div>
-
-        <!-- Step 5: DATABASE_URL -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">5</div>
-            <h3 class="font-semibold text-white">Connect NodePress to your database</h3>
-          </div>
-          <div class="ml-10 space-y-3">
-            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
-              <strong>Using Docker?</strong> Skip this step. Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose up -d</code> in your project folder instead — Docker manages the database password automatically.
-            </div>
-            <p class="text-sm text-zinc-400">The CLI generates a random database password, but NodePress needs to connect to <em>your</em> PostgreSQL using the password you set in Step 3.</p>
-            <p class="text-sm text-zinc-400">Open <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">my-project/backend/.env</code> in any text editor (Notepad is fine) and find this line:</p>
-            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:RANDOM_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"'></div>
-            <p class="text-sm text-zinc-400">Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">RANDOM_PASSWORD</code> with the password you set when installing PostgreSQL:</p>
-            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/YOUR_NODEPRESS_DATABASE"'></div>
-            <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
-              <p class="text-blue-400 font-medium mb-1">What is DATABASE_URL?</p>
-              <p class="text-zinc-400 text-xs">It's the address NodePress uses to find and log into your database. <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> is the username, the part after <code class="text-pink-400 bg-zinc-800 px-1 rounded">:</code> is your password, <code class="text-pink-400 bg-zinc-800 px-1 rounded">localhost:5432</code> is where the database lives on your computer, and <code class="text-pink-400 bg-zinc-800 px-1 rounded">YOUR_NODEPRESS_DATABASE</code> is the database name — you can name it anything you like.</p>
-            </div>
-            <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs text-zinc-400">
-              <strong class="text-zinc-200">Didn't set a password?</strong> Try leaving it out:<br/>
-              <code class="text-pink-400">DATABASE_URL="postgresql://postgres@localhost:5432/YOUR_NODEPRESS_DATABASE"</code>
-            </div>
-            <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm">
-              <p class="text-emerald-400 font-medium mb-2">Using Supabase or another hosted PostgreSQL?</p>
-              <p class="text-zinc-400 text-xs mb-2">No code changes needed. In Supabase open <strong>Connect</strong> and take <em>two different</em> strings — which one goes where matters:</p>
-              <div class="code-block" data-code='DATABASE_URL="postgresql://postgres.&lt;ref&gt;:&lt;PASSWORD&gt;@aws-0-&lt;region&gt;.pooler.supabase.com:6543/postgres?pgbouncer=true&amp;connection_limit=1"
-DIRECT_URL="postgresql://postgres.&lt;ref&gt;:&lt;PASSWORD&gt;@aws-0-&lt;region&gt;.pooler.supabase.com:5432/postgres"'></div>
-              <p class="text-zinc-400 text-xs mt-2"><strong class="text-zinc-200">Transaction pooler</strong> (port 6543) is for runtime queries; <strong class="text-zinc-200">Session pooler</strong> (port 5432) is for migrations, because DDL can't run through a transaction pooler.</p>
-              <ul class="list-disc list-inside text-zinc-400 text-xs mt-2 space-y-1">
-                <li>Do <strong class="text-zinc-200">not</strong> use the "Direct connection" string (<code class="text-pink-400 bg-zinc-800 px-1 rounded">db.&lt;ref&gt;.supabase.co</code>). It is IPv6-only unless you have the IPv4 add-on, so on most networks it fails with <code class="text-pink-400 bg-zinc-800 px-1 rounded">P1001: Can't reach database server</code> — which looks like an outage but is really an unroutable address. Check with <code class="text-pink-400 bg-zinc-800 px-1 rounded">dig +short A db.&lt;ref&gt;.supabase.co</code>; no output means IPv6-only.</li>
-                <li>Keep <code class="text-pink-400 bg-zinc-800 px-1 rounded">?pgbouncer=true&amp;connection_limit=1</code> on <code class="text-pink-400 bg-zinc-800 px-1 rounded">DATABASE_URL</code>, or Prisma intermittently throws <code class="text-pink-400 bg-zinc-800 px-1 rounded">prepared statement "s0" already exists</code> under load.</li>
-                <li>In Step 6 run <code class="text-pink-400 bg-zinc-800 px-1 rounded">npx prisma migrate deploy</code> instead of <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run migrate</code> — the latter needs a shadow database the pooler user can't create.</li>
-                <li>Percent-encode special characters in the password (<code class="text-pink-400 bg-zinc-800 px-1 rounded">@</code> becomes <code class="text-pink-400 bg-zinc-800 px-1 rounded">%40</code>) or the URL won't parse.</li>
-              </ul>
-              <p class="text-zinc-400 text-xs mt-2">Steps 3 and 4 (installing PostgreSQL locally) can be skipped entirely — there's no local database to start after a reboot.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 6: Migrate -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">6</div>
-            <h3 class="font-semibold text-white">Create the database tables</h3>
-          </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">Run this from your project root. It creates all the tables NodePress needs. You only run this once.</p>
-            <div class="code-block" data-code="cd my-project
-npm run migrate"></div>
-            <p class="text-xs text-zinc-500 mt-2">Using a cloud database (Neon, Supabase, Railway)? Use <code class="text-pink-400 bg-zinc-800 px-1 rounded">migrate deploy</code> instead: <code class="text-pink-400 bg-zinc-800 px-1 rounded">cd backend && npx prisma migrate deploy</code></p>
-            <div class="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300 mt-3">
-              <strong>Getting an authentication error?</strong> The password in DATABASE_URL doesn't match your PostgreSQL password. Go back to Step 5 and check it.
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 7: Start everything -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">7</div>
-            <h3 class="font-semibold text-white">Start the dev server</h3>
-          </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">Run this from your project root — it starts both backend and frontend together in one terminal:</p>
-            <div class="code-block" data-code="cd my-project
-npm run dev"></div>
-            <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs mt-3 space-y-1">
-              <p><span class="text-green-400 font-medium">Backend API</span> → <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:3000</code></p>
-              <p><span class="text-blue-400 font-medium">Admin panel</span> → <code class="text-pink-400 bg-zinc-800 px-1 rounded">http://localhost:5173</code></p>
-            </div>
-            <p class="text-xs text-zinc-500 mt-2">Need to run them separately? Use <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run dev:backend</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run dev:frontend</code> in two terminal windows.</p>
-          </div>
-        </div>
-
-        <!-- Root scripts reference -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center shrink-0">
-              <svg class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-            </div>
-            <h3 class="font-semibold text-white">Root scripts (shortcut)</h3>
-          </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">The root <code class="text-pink-400 bg-zinc-800 px-1 rounded">package.json</code> has convenience scripts so you can run everything from the project root without <code class="text-pink-400 bg-zinc-800 px-1 rounded">cd</code>-ing into subdirectories. The <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker:*</code> scripts are only generated when you scaffold with <code class="text-pink-400 bg-zinc-800 px-1 rounded">--docker</code>:</p>
-            <div class="rounded-xl border border-zinc-800 overflow-hidden">
-              <table class="w-full text-xs">
-                <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2 font-medium text-zinc-400">Script</th><th class="text-left px-4 py-2 font-medium text-zinc-400">What it does</th></tr></thead>
-                <tbody class="divide-y divide-zinc-800">
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run dev</td><td class="px-4 py-2 text-zinc-400">Start both backend and frontend together in one terminal</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run dev:backend</td><td class="px-4 py-2 text-zinc-400">Start backend dev server only (port 3000)</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run dev:frontend</td><td class="px-4 py-2 text-zinc-400">Start frontend dev server only (port 5173)</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run build</td><td class="px-4 py-2 text-zinc-400">Build both backend and frontend for production</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run migrate</td><td class="px-4 py-2 text-zinc-400">Run Prisma migrations (<code class="text-pink-400">prisma migrate dev</code>)</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run studio</td><td class="px-4 py-2 text-zinc-400">Open Prisma Studio — visual database browser</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run install:all</td><td class="px-4 py-2 text-zinc-400">Install all dependencies (backend + frontend) — alias for <code class="text-pink-400">npm install</code> via npm workspaces</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:dev</td><td class="px-4 py-2 text-zinc-400">Start Docker dev stack (docker-compose up)</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:prod</td><td class="px-4 py-2 text-zinc-400">Start Docker production stack with build</td></tr>
-                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:down</td><td class="px-4 py-2 text-zinc-400">Stop all Docker containers</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 9: First login -->
-        <div class="mb-4">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">9</div>
-            <h3 class="font-semibold text-white">Create your admin account</h3>
-          </div>
-          <div class="ml-10">
-            <p class="text-sm text-zinc-400 mb-3">Open your browser and go to <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">http://localhost:5173</code>. You will be taken to the setup page automatically. Enter your site name, email, and a password.</p>
-            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-sm">
-              <p class="text-green-400 font-medium">🎉 You're done!</p>
-              <p class="text-zinc-400 text-xs mt-1">NodePress is running. You can now create content types, add entries, upload media, and start using the API. The setup page only appears once — it's disabled permanently after the first account is created.</p>
-            </div>
+# 2. Install all root, backend, and frontend dependencies
+npm install"></div>
           </div>
         </div>
       </section>
@@ -331,28 +143,23 @@ npm run dev"></div>
       <section id="quick-start" class="mb-16 scroll-mt-24">
         <div class="flex items-center gap-2.5 mb-5">
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </div>
           <h2 class="text-2xl font-bold text-white">Quick Start</h2>
         </div>
-        <div class="space-y-8">
-          <div class="flex gap-4">
-            <div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">1</div><div class="w-px flex-1 bg-zinc-800 mt-2"></div></div>
-            <div class="flex-1 pb-8"><h3 class="font-semibold text-white mb-2">Create a content type</h3><p class="text-sm text-zinc-400">Go to <strong class="text-zinc-200">Content Types → New</strong>. Give it a name like <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blog</code> and add fields: title (text), body (richtext), published (boolean).</p></div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Start the development server with a single command:</p>
+        <div class="code-block" data-code="# Start NestJS API (port 3000) & Next.js Admin UI (port 5173)
+npm run dev"></div>
+        <div class="grid sm:grid-cols-2 gap-4 mt-6">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Admin Panel</p>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-2">Open the visual control center in your browser.</p>
+            <a href="http://localhost:5173" target="_blank" class="text-xs text-blue-400 underline font-mono">http://localhost:5173</a>
           </div>
-          <div class="flex gap-4">
-            <div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">2</div><div class="w-px flex-1 bg-zinc-800 mt-2"></div></div>
-            <div class="flex-1 pb-8"><h3 class="font-semibold text-white mb-2">Add an entry</h3><p class="text-sm text-zinc-400">Go to <strong class="text-zinc-200">Entries → blog → New Entry</strong>. Fill in the fields. A URL-friendly slug is auto-generated from the title.</p></div>
-          </div>
-          <div class="flex gap-4">
-            <div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">3</div></div>
-            <div class="flex-1 pb-8"><h3 class="font-semibold text-white mb-2">Fetch via API</h3>
-              <div class="code-block" data-code="# List all blog posts
-GET https://your-domain.com/api/blog
-
-# Get a single post by slug
-GET https://your-domain.com/api/blog/my-first-post"></div>
-            </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">API Backend & Swagger</p>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-2">Explore live REST documentation & GraphQL playground.</p>
+            <a href="http://localhost:3000/api/docs" target="_blank" class="text-xs text-blue-400 underline font-mono">http://localhost:3000/api/docs</a>
           </div>
         </div>
       </section>
@@ -361,20 +168,17 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
       <section id="content-types" class="mb-16 scroll-mt-24">
         <div class="flex items-center gap-2.5 mb-5">
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Content Types</h2>
+          <h2 class="text-2xl font-bold text-white">Content Types Builder</h2>
         </div>
         <p class="text-zinc-400 leading-relaxed mb-6">
-          Content types define the shape of your data. Each content type has a name and a schema — a list of fields with types and options. Think of them as database tables with a visual builder.
+          Content Types are the data blueprints (schemas) for your content (e.g., Blog Posts, Products, Authors, Pages). NodePress automatically provisions REST endpoints and GraphQL queries for every content type you build.
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Naming</p><p class="text-xs text-zinc-400">The name you type is kept as the <strong class="text-zinc-200">display name</strong> (shown in the admin); the API key is derived in snake_case. <code class="text-pink-400 bg-zinc-800 px-1 rounded">Blog Posts</code> → <code class="text-pink-400 bg-zinc-800 px-1 rounded">blog_posts</code></p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Field label vs key</p><p class="text-xs text-zinc-400">What you type is kept as the field's <strong class="text-zinc-200">label</strong> (shown on forms &amp; list columns); the API <strong class="text-zinc-200">key</strong> is derived in snake_case — <code class="text-pink-400 bg-zinc-800 px-1 rounded">Article Footer</code> → <code class="text-pink-400 bg-zinc-800 px-1 rounded">article_footer</code>.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">API</p><p class="text-xs text-zinc-400">Creating a type instantly generates <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/{type}</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/{type}/{slug}</code>.</p></div>
-        </div>
-        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-300">
-          <strong>Reserved names:</strong> <code class="bg-zinc-800 px-1 rounded text-xs">auth</code>, <code class="bg-zinc-800 px-1 rounded text-xs">media</code>, <code class="bg-zinc-800 px-1 rounded text-xs">entries</code>, <code class="bg-zinc-800 px-1 rounded text-xs">content-types</code>, <code class="bg-zinc-800 px-1 rounded text-xs">uploads</code> — these are blocked to avoid route conflicts.
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-300 mb-6 space-y-2">
+          <p>• <strong>Display Names & Slugs:</strong> Automatically formats snake_case database identifiers into human-friendly titles.</p>
+          <p>• <strong>Dynamic Endpoints:</strong> Creating <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blog_posts</code> creates <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/blog-posts</code> instantly.</p>
+          <p>• <strong>Method Locks:</strong> Choose which HTTP methods (GET, POST, PUT, DELETE) are exposed per collection.</p>
         </div>
       </section>
 
@@ -384,163 +188,123 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Field Types</h2>
+          <h2 class="text-2xl font-bold text-white">Field Types (14+ Types)</h2>
         </div>
-        <div class="rounded-xl border border-zinc-800 overflow-hidden">
+        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
           <table class="w-full text-sm">
-            <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Type</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Description</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">JSON value</th></tr></thead>
+            <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Type</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Description</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">JSON Value</th></tr></thead>
             <tbody class="divide-y divide-zinc-800 text-xs">
-              <tr><td class="px-4 py-2.5"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded font-mono">text</span></td><td class="px-4 py-2.5 text-zinc-400">Short single-line text. Good for titles, names, labels.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"My Blog Post"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded font-mono">textarea</span></td><td class="px-4 py-2.5 text-zinc-400">Multi-line plain text. Good for short descriptions.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"A short summary..."</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded font-mono">richtext</span></td><td class="px-4 py-2.5 text-zinc-400">HTML from WYSIWYG editor. Supports headings, images, links.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"&lt;p&gt;Hello&lt;/p&gt;"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded font-mono">number</span></td><td class="px-4 py-2.5 text-zinc-400">Integer or decimal number.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">42</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-green-500/10 text-green-400 px-2 py-0.5 rounded font-mono">boolean</span></td><td class="px-4 py-2.5 text-zinc-400">True/false toggle. Good for published, featured flags.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">true</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded font-mono">select</span></td><td class="px-4 py-2.5 text-zinc-400">One value from a predefined list of choices.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"tech"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded font-mono">image</span></td><td class="px-4 py-2.5 text-zinc-400">A URL string pointing to an image (from Media Library or external).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"/uploads/photo.jpg"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-mono">color</span></td><td class="px-4 py-2.5 text-zinc-400">Hex color value picked from a color-swatch widget.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"#ff6b35"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded font-mono">date</span></td><td class="px-4 py-2.5 text-zinc-400">Calendar date (no time). Stored as an ISO 8601 date string.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2024-12-25"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono">datetime</span></td><td class="px-4 py-2.5 text-zinc-400">Full timestamp with time. Stored as an ISO 8601 datetime string.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2024-12-25T10:30:00.000Z"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono">json</span></td><td class="px-4 py-2.5 text-zinc-400">Arbitrary JSON object or array. Edited via a monospace textarea with live parse.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">{"key":"value","tags":["a","b"]}</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded font-mono">repeater</span></td><td class="px-4 py-2.5 text-zinc-400">A list of items, each sharing the same sub-fields.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{"name":"Alice"}]</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded font-mono">flexible</span></td><td class="px-4 py-2.5 text-zinc-400">A list of blocks where each block can be a different layout.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{"_layout":"hero"}]</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded font-mono">group</span></td><td class="px-4 py-2.5 text-zinc-400">A single nested object with fixed sub-fields. Good for SEO metadata, address, social links.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">{"title":"My Post"}</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-teal-500/10 text-teal-400 px-2 py-0.5 rounded font-mono">relation</span></td><td class="px-4 py-2.5 text-zinc-400">Link to one or many entries in another content type. Stored as publicId UUID(s). Use ?populate= to inline the related data.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"uuid-v4" or ["uuid1","uuid2"]</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded font-mono">text</span></td><td class="px-4 py-2.5 text-zinc-400">Single-line text for titles, names, headers.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"My Article"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded font-mono">textarea</span></td><td class="px-4 py-2.5 text-zinc-400">Multi-line plain text for excerpts and summaries.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"Summary line..."</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded font-mono">richtext</span></td><td class="px-4 py-2.5 text-zinc-400">WYSIWYG HTML with images, links, formatting.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"&lt;p&gt;Content...&lt;/p&gt;"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded font-mono">markdown</span></td><td class="px-4 py-2.5 text-zinc-400">Raw markdown editor with live side-by-side preview.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"## Heading\n\nText"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded font-mono">image</span></td><td class="px-4 py-2.5 text-zinc-400">Image object with URL, alt text, and dimensions.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">{"url":"...","alt":"..."}</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded font-mono">number</span></td><td class="px-4 py-2.5 text-zinc-400">Integers, decimals, prices, or counts.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">99.50</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-green-500/10 text-green-400 px-2 py-0.5 rounded font-mono">boolean</span></td><td class="px-4 py-2.5 text-zinc-400">Toggle switch for flags (featured, sponsored).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">true</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded font-mono">select</span></td><td class="px-4 py-2.5 text-zinc-400">Dropdown select from predefined options.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"tech"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded font-mono">date</span></td><td class="px-4 py-2.5 text-zinc-400">Calendar date (YYYY-MM-DD).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2026-08-25"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono">datetime</span></td><td class="px-4 py-2.5 text-zinc-400">ISO 8601 full timestamp with timezone.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2026-08-25T12:00:00Z"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-mono">color</span></td><td class="px-4 py-2.5 text-zinc-400">Hex color picker swatch.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"#3b82f6"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded font-mono">repeater</span></td><td class="px-4 py-2.5 text-zinc-400">Array of objects sharing sub-fields (e.g. FAQ list).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{"q":"..","a":".."}]</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded font-mono">flexible</span></td><td class="px-4 py-2.5 text-zinc-400">Page builder blocks with custom <code class="text-pink-400 font-mono">_layout</code> types.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{"_layout":"hero"}]</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-teal-500/10 text-teal-400 px-2 py-0.5 rounded font-mono">relation</span></td><td class="px-4 py-2.5 text-zinc-400">One-to-one or one-to-many relationship (inlined via <code class="text-pink-400 font-mono">?populate=</code>).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"uuid" / ["uuid1"]</td></tr>
             </tbody>
           </table>
         </div>
-
-        <div class="mt-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <p class="text-sm font-semibold text-white mb-1">Repeater — example schema &amp; output</p>
-          <p class="text-xs text-zinc-400 mb-3">Define sub-fields once, add unlimited rows in the editor. Each item shares the same structure.</p>
-          <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
-{
-  "name": "gallery",
-  "type": "repeater",
-  "subFields": [
-    { "name": "image",   "type": "image", "required": true },
-    { "name": "caption", "type": "text" }
-  ]
-}
-
-// API output — an array of objects
-"gallery": [
-  { "image": "/uploads/photo1.jpg", "caption": "First photo" },
-  { "image": "/uploads/photo2.jpg", "caption": "Second photo" }
-]</code></pre>
-        </div>
-
-        <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <p class="text-sm font-semibold text-white mb-1">Flexible — example schema &amp; output</p>
-          <p class="text-xs text-zinc-400 mb-3">Each item in the list can be a different layout — perfect for page builders. The <code class="text-pink-400 bg-zinc-800 px-1 rounded">_layout</code> key tells you which block type it is.</p>
-          <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
-{
-  "name": "sections",
-  "type": "flexible",
-  "layouts": [
-    {
-      "name": "hero",
-      "label": "Hero Banner",
-      "fields": [{ "name": "heading", "type": "text" }]
-    },
-    {
-      "name": "text_block",
-      "label": "Text Block",
-      "fields": [{ "name": "body", "type": "richtext" }]
-    }
-  ]
-}
-
-// API output — _layout tells you which block type it is
-"sections": [
-  { "_layout": "hero",       "heading": "Welcome to NodePress" },
-  { "_layout": "text_block", "body": "&lt;p&gt;Some content here&lt;/p&gt;" }
-]</code></pre>
-        </div>
-
-        <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <p class="text-sm font-semibold text-white mb-1">Group — example schema &amp; output</p>
-          <p class="text-xs text-zinc-400 mb-3">A fixed set of sub-fields stored as a single nested object. Unlike repeater, there is no list — just one object. Perfect for SEO metadata, address blocks, or social links.</p>
-          <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
-{
-  "name": "seo",
-  "type": "group",
-  "subFields": [
-    { "name": "title",       "type": "text" },
-    { "name": "description", "type": "textarea" },
-    { "name": "og_image",    "type": "image" }
-  ]
-}
-
-// API output — a single nested object, not an array
-"seo": {
-  "title": "My Post",
-  "description": "A short summary of my post.",
-  "og_image": "/uploads/og-cover.jpg"
-}</code></pre>
-        </div>
-
-        <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <p class="text-sm font-semibold text-white mb-1">Relation — example schema &amp; output</p>
-          <p class="text-xs text-zinc-400 mb-3">Links entries across content types using their <code class="text-pink-400 bg-zinc-800 px-1 rounded">publicId</code> UUID. Use <code class="text-pink-400 bg-zinc-800 px-1 rounded">?populate=fieldName</code> to inline the full related entry instead of just the UUID.</p>
-          <pre class="text-xs text-zinc-300 overflow-x-auto"><code>// Schema definition
-{
-  "name": "author",
-  "type": "relation",
-  "options": {
-    "relatedContentType": "team",
-    "cardinality": "one"
-  }
-}
-
-// Default API output — returns the publicId UUID
-"author": "a1b2c3d4-e5f6-4abc-8def-000000000001"
-
-// With ?populate=author — returns the full entry inline
-"author": {
-  "slug": "jane-doe",
-  "data": { "name": "Jane Doe", "role": "Editor" }
-}
-
-// cardinality: "many" — array of UUIDs or populated entries
-"tags": ["uuid-1", "uuid-2"]</code></pre>
-        </div>
       </section>
 
-      <!-- Entries -->
+      <!-- Entries & Workflows -->
       <section id="entries" class="mb-16 scroll-mt-24">
         <div class="flex items-center gap-2.5 mb-5">
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Entries & Slugs</h2>
+          <h2 class="text-2xl font-bold text-white">Entries, Workflows & Pipeline</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Entries are the data records for a content type. Each entry has a slug, a status, and a data object containing all field values.</p>
-        <div class="grid sm:grid-cols-2 gap-4 mb-6">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Slugs</p><p class="text-xs text-zinc-400">Auto-generated from the first text field. Editable later, but changing it breaks existing links/SEO. Must be unique per content type.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Status</p><p class="text-xs text-zinc-400"><code class="text-pink-400 bg-zinc-800 px-1 rounded">published</code> entries are public. <code class="text-pink-400 bg-zinc-800 px-1 rounded">draft</code> entries are hidden from the public API.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Scheduling</p><p class="text-xs text-zinc-400">Set a <code class="text-pink-400 bg-zinc-800 px-1 rounded">publishAt</code> date to automatically publish an entry in the future.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Versions</p><p class="text-xs text-zinc-400">Every save creates a version snapshot. Restore any previous version from the entry editor.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Soft delete</p><p class="text-xs text-zinc-400">Deleted entries are soft-deleted (hidden, not removed). Restore from the admin panel if needed.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">SEO</p><p class="text-xs text-zinc-400">Each entry has optional SEO fields: title, description, image, and noIndex toggle.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Row actions</p><p class="text-xs text-zinc-400">Each row has Edit, Duplicate, <strong class="text-zinc-200">Copy URL</strong> (copies the entry's public API URL, e.g. <code class="text-pink-400 bg-zinc-800 px-1 rounded">/api/article-page/my-post</code>), and Delete.</p></div>
+        <p class="text-zinc-400 leading-relaxed mb-6">
+          Entries support advanced lifecycle environments, version history, recycle bin safety, signed preview tokens, and bulk data operations.
+        </p>
+
+        <!-- Multi-stage Publishing -->
+        <h3 class="font-semibold text-white mb-2">1. Multi-Stage Publishing Pipeline</h3>
+        <p class="text-sm text-zinc-400 mb-3">Promote content through staged environments:</p>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6 text-center text-xs">
+          <div class="p-2.5 rounded-lg border border-zinc-800 bg-zinc-900"><span class="font-bold text-zinc-400 block mb-1">Draft</span>WIP content</div>
+          <div class="p-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10"><span class="font-bold text-amber-400 block mb-1">⏳ Review</span>Pending QA</div>
+          <div class="p-2.5 rounded-lg border border-purple-500/30 bg-purple-500/10"><span class="font-bold text-purple-400 block mb-1">🚀 Staging</span>Testing deploy</div>
+          <div class="p-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10"><span class="font-bold text-emerald-400 block mb-1">🌐 Production</span>Live public API</div>
+          <div class="p-2.5 rounded-lg border border-zinc-800 bg-zinc-900/40"><span class="font-bold text-zinc-500 block mb-1">Archived</span>Hidden/retired</div>
         </div>
+
+        <!-- Pending Review Markings -->
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-6 text-xs text-zinc-300 space-y-1.5">
+          <p class="font-semibold text-amber-400 text-sm">Visual Markings for Items Pending Review</p>
+          <p>• <strong>Overview Grid:</strong> Collections with pending reviews show glowing amber card borders, live pulsing indicators, and a <code class="bg-zinc-800 px-1 rounded text-amber-400 font-mono">⏳ X Pending Review</code> direct-filter badge.</p>
+          <p>• <strong>Collection Table:</strong> Real-time banner alert with 1-click filter button <code class="bg-zinc-800 px-1 rounded font-mono">Show Pending Reviews (X) →</code>.</p>
+        </div>
+
+        <!-- Version Snapshots & Diff Restore -->
+        <h3 class="font-semibold text-white mb-2">2. Version Snapshots & 1-Click Rollbacks</h3>
+        <p class="text-sm text-zinc-400 mb-3">Every save snapshots a timestamped version. View side-by-side diffs and restore any revision:</p>
+        <div class="code-block" data-code="# Get all versions of an entry
+GET /api/entries/:id/versions
+
+# Restore entry to a specific historical version
+POST /api/entries/:id/versions/:versionId/restore"></div>
+
+        <!-- Recycle Bin / Soft Delete -->
+        <h3 class="font-semibold text-white mt-6 mb-2">3. Recycle Bin & Soft Deletion Safeguards</h3>
+        <p class="text-sm text-zinc-400 mb-3">Deleted entries enter the Recycle Bin. Trashed entries can be restored or purged permanently:</p>
+        <div class="code-block" data-code="# Move entry to Recycle Bin (soft delete)
+DELETE /api/entries/:id
+
+# Restore from Recycle Bin
+POST /api/entries/:id/restore
+
+# Permanently erase from database (Admin only)
+DELETE /api/entries/:id/purge"></div>
+
+        <!-- Bulk JSON & CSV Export / Import -->
+        <h3 class="font-semibold text-white mt-6 mb-2">4. Bulk JSON & CSV Export / Import with Dry-Run</h3>
+        <p class="text-sm text-zinc-400 mb-3">Export collections to JSON or RFC 4180 CSV, or import data with pre-flight dry-run validation:</p>
+        <div class="code-block" data-code="# Export collection
+GET /api/entries/export?contentTypeId=1&format=csv
+
+# Dry-run validation before import
+POST /api/entries/import?contentTypeId=1
+{
+  &quot;dryRun&quot;: true,
+  &quot;updateDuplicates&quot;: true,
+  &quot;entries&quot;: [{ &quot;slug&quot;: &quot;demo&quot;, &quot;data&quot;: { &quot;title&quot;: &quot;Demo&quot; } }]
+}"></div>
+
+        <!-- Signed Preview URLs -->
+        <h3 class="font-semibold text-white mt-6 mb-2">5. Signed Preview URLs</h3>
+        <p class="text-sm text-zinc-400 mb-3">Generate secure 1-hour signed tokens to preview unpublished or draft content:</p>
+        <div class="code-block" data-code="# Generate signed preview token
+POST /api/entries/:id/preview-url
+
+# Response: { &quot;previewUrl&quot;: &quot;https://site.com/preview?token=jwt_signed_token&quot; }"></div>
       </section>
 
-      <!-- Media -->
+      <!-- Media & Image Crop -->
       <section id="media" class="mb-16 scroll-mt-24">
         <div class="flex items-center gap-2.5 mb-5">
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Media Library</h2>
+          <h2 class="text-2xl font-bold text-white">Media Library & In-Browser Cropper</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Upload and manage files through the admin panel. Images are automatically optimised and converted to WebP.</p>
+        <p class="text-zinc-400 leading-relaxed mb-6">Centralized media management with built-in asset manipulation and WebP optimization.</p>
         <div class="grid sm:grid-cols-2 gap-4 mb-6">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-2 text-sm">Allowed types</p><div class="flex flex-wrap gap-1.5"><span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">JPEG</span><span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">PNG</span><span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">GIF</span><span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">WebP</span><span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">PDF</span><span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">MP4</span></div></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Limits</p><p class="text-xs text-zinc-400">Max file size: <strong class="text-zinc-200">10MB</strong>. Images are resized to a max of 2400px and converted to WebP automatically.</p></div>
-        </div>
-        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-sm text-zinc-400">
-          <strong class="text-zinc-200">Storage:</strong> Files are saved locally to <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">backend/uploads/</code> by default. Set <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">STORAGE_DRIVER=s3</code> to use S3, Cloudflare R2, or any S3-compatible service.
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">In-Browser Image Cropper</p>
+            <p class="text-xs text-zinc-400 leading-relaxed">Crop, rotate, and lock aspect ratios (1:1, 16:9, 4:3, 3:2, 2:3, 9:16) directly in the CMS before saving.</p>
+          </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Automated WebP Conversion</p>
+            <p class="text-xs text-zinc-400 leading-relaxed">Uploaded JPEG/PNG files are automatically converted to compressed WebP format and resized to maximum 2400px.</p>
+          </div>
         </div>
       </section>
 
@@ -550,86 +314,11 @@ GET https://your-domain.com/api/blog/my-first-post"></div>
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">API Keys</h2>
+          <h2 class="text-2xl font-bold text-white">API Keys & Scoped Access</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">API keys let external apps read or write content without a user login. Send the key in the <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-API-Key</code> header.</p>
-        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
-          <table class="w-full text-sm">
-            <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Access level</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Can do</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Rate limit</th></tr></thead>
-            <tbody class="divide-y divide-zinc-800 text-xs">
-              <tr><td class="px-4 py-2.5"><span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono">read</span></td><td class="px-4 py-2.5 text-zinc-400">GET requests only</td><td class="px-4 py-2.5 text-zinc-400">120 req/min</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded font-mono">write</span></td><td class="px-4 py-2.5 text-zinc-400">POST / PUT / PATCH / DELETE</td><td class="px-4 py-2.5 text-zinc-400">60 req/min</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded font-mono">all</span></td><td class="px-4 py-2.5 text-zinc-400">Read + Write combined</td><td class="px-4 py-2.5 text-zinc-400">120 req/min</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">Generate secret keys with scoped permissions, rate limits, and expiration dates. Pass via <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-API-Key</code>.</p>
         <div class="code-block" data-code="curl https://your-domain.com/api/blog \
-  -H 'X-API-Key: np_your_key_here'"></div>
-
-        <h3 class="font-semibold text-white mt-8 mb-2">Changing data with an API key — step by step</h3>
-        <p class="text-sm text-zinc-400 mb-3">Create the key <strong class="text-zinc-200">once</strong> (admin), then every change uses only the <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-API-Key</code> header — no login. Content-type URLs use hyphens (a name like <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blog_posts</code> is reached at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/blog-posts</code>).</p>
-        <ol class="text-sm text-zinc-400 space-y-1.5 mb-4 list-decimal pl-5">
-          <li><strong class="text-zinc-200">Create a key</strong> in <strong class="text-zinc-200">Developer → API Keys</strong> (admin only): access <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">write</code> (POST/PUT) or <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> (also DELETE), scoped to your content type. The <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">np_…</code> key shows once — copy it into your server's env.</li>
-          <li><strong class="text-zinc-200">Create</strong> — <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST /api/&lt;type&gt;</code> with a top-level <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">slug</code> and a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">data</code> object.</li>
-          <li><strong class="text-zinc-200">Update</strong> — <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">PUT /api/&lt;type&gt;/&lt;slug&gt;</code> — slug in the URL, body has only <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">data</code>.</li>
-          <li><strong class="text-zinc-200">Read back</strong> — <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/&lt;type&gt;/&lt;slug&gt;</code> — public, no key.</li>
-          <li><strong class="text-zinc-200">Delete</strong> — <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">DELETE /api/&lt;type&gt;/&lt;slug&gt;</code> — requires an <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> key.</li>
-        </ol>
-        <div class="code-block" data-code="# 2. CREATE — POST /api/<type>
-curl -X POST https://your-domain.com/api/blog \
-  -H 'X-API-Key: np_your_key_here' \
-  -H 'Content-Type: application/json' \
-  -d '{&quot;slug&quot;:&quot;my-post&quot;,&quot;data&quot;:{&quot;title&quot;:&quot;Hello&quot;,&quot;body&quot;:&quot;World&quot;}}'
-
-# 3. UPDATE — PUT /api/<type>/<slug>  (slug in URL, data only in body)
-curl -X PUT https://your-domain.com/api/blog/my-post \
-  -H 'X-API-Key: np_your_key_here' \
-  -H 'Content-Type: application/json' \
-  -d '{&quot;data&quot;:{&quot;title&quot;:&quot;Hello (edited)&quot;}}'
-
-# 4. READ BACK — GET (public, no key)
-curl https://your-domain.com/api/blog/my-post
-
-# 5. DELETE — needs an 'all' key
-curl -X DELETE https://your-domain.com/api/blog/my-post \
-  -H 'X-API-Key: np_your_key_here'"></div>
-        <p class="text-sm text-zinc-400 mt-3">A <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">401</code> means the key is missing or mistyped; a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">403</code> means the key is valid but not allowed (wrong access level, or not scoped to that content type).</p>
-
-        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mt-6">
-          <p class="text-amber-400 font-medium mb-2">⚠ Keep write keys server-side</p>
-          <p class="text-zinc-400">A <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">write</code>/<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> key can modify your content, so it must <strong class="text-zinc-200">never ship to the browser</strong>. Don't put it in client-side JavaScript or a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">NEXT_PUBLIC_</code> variable — anything in the browser is readable by every visitor.</p>
-          <p class="text-zinc-400 mt-2">To write from a public website, proxy through your own server: the browser calls <em>your</em> route, and your route (holding the key in a server-only env var) forwards the write to NodePress. The API key bypasses role checks, so your route is the gatekeeper — validate and authorize before forwarding.</p>
-        </div>
-
-        <h3 class="font-semibold text-white mt-6 mb-2">Browser → your server → NodePress</h3>
-        <p class="text-sm text-zinc-400 mb-3">Example using a Next.js route handler — the key stays on the server, the browser never sees it:</p>
-        <div class="code-block" data-code="// .env  (server-only — never NEXT_PUBLIC_)
-// NODEPRESS_API_KEY=np_your_write_key
-// BACKEND_URL=https://your-domain.com
-
-// app/api/comments/route.ts  — runs on the server
-export async function POST(req) {
-  const body = await req.json();
-  // validate / authorize the request here before trusting it
-
-  const res = await fetch(`${process.env.BACKEND_URL}/api/comments`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': process.env.NODEPRESS_API_KEY,   // secret stays on the server
-    },
-    body: JSON.stringify({ slug: body.slug, data: body.data }),
-  });
-  return Response.json(await res.json(), { status: res.status });
-}
-
-// client-side — no token anywhere:
-await fetch('/api/comments', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ slug: 'hello', data: { author: 'Jane', text: 'Nice!' } }),
-});"></div>
-        <p class="text-sm text-zinc-400 mt-3">For visitor-generated content (comments, contact, reviews), prefer the public <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST /api/submit/:slug</code> Forms endpoint — it needs no key and has rate limiting, honeypot, and optional captcha built in.</p>
+  -H 'X-API-Key: np_live_secret_key'"></div>
       </section>
 
       <!-- Forms -->
@@ -638,219 +327,87 @@ await fetch('/api/comments', {
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Forms</h2>
+          <h2 class="text-2xl font-bold text-white">Forms & Spam Shield</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Build forms in the admin panel and embed them in your frontend. Each form gets a public submission endpoint — no auth or API key required. Submissions are stored in the database and can trigger email or webhook actions. Forms support rich nested fields (groups + repeaters), typed scalars and arrays, and optional per-field validation; submissions can be browsed (nested values expanded) and exported to CSV from the admin.</p>
-
-        <h3 class="font-semibold text-white mb-2">Submit a form (public API)</h3>
-        <p class="text-sm text-zinc-400 mb-3"><code class="text-pink-400 bg-zinc-800 px-1 rounded">POST /api/submit/:slug</code> — the <code class="text-pink-400 bg-zinc-800 px-1 rounded">slug</code> is set when you create the form. Wrap your field values in a <code class="text-pink-400 bg-zinc-800 px-1 rounded">data</code> object whose keys match the form's field names:</p>
-        <div class="code-block" data-code="// Submit a form from your frontend
-fetch('https://your-domain.com/api/submit/contact', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    data: { full_name: 'Jane', email: 'jane@example.com', message: 'Hello!' },
-    // captchaToken: '...'  // only when the form has captcha enabled
-  })
-});
-
-// Response: { success: true, submissionId: 42, message: 'Your submission has been received.' }"></div>
-        <h3 class="font-semibold text-white mt-8 mb-2">Form field types</h3>
-        <p class="text-sm text-zinc-400 mb-3">Each field supports optional declarative validation (min/max, length, pattern, item counts). Use <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">group</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">repeater</code> to nest objects and arrays-of-objects.</p>
-        <div class="rounded-xl border border-zinc-800 overflow-hidden">
-          <table class="w-full text-sm">
-            <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Type</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Description</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Example value</th></tr></thead>
-            <tbody class="divide-y divide-zinc-800 text-xs">
-              <tr><td class="px-4 py-2.5"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded font-mono">text</span></td><td class="px-4 py-2.5 text-zinc-400">Single-line text. Good for names, subjects, short answers.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"Acme Inc"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded font-mono">textarea</span></td><td class="px-4 py-2.5 text-zinc-400">Multi-line text. Good for messages, comments, longer answers.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"Line one\nLine two"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded font-mono">number</span></td><td class="px-4 py-2.5 text-zinc-400">Numeric value — integer or decimal. Validated to be a number.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">42</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded font-mono">email</span></td><td class="px-4 py-2.5 text-zinc-400">Email address. Validated server-side — must be a valid address.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"jane@example.com"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded font-mono">url</span></td><td class="px-4 py-2.5 text-zinc-400">Web address. Validated to be a well-formed URL.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"https://example.com"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-teal-500/10 text-teal-400 px-2 py-0.5 rounded font-mono">phone</span></td><td class="px-4 py-2.5 text-zinc-400">Phone number. Validated against a default or custom pattern.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"+1 555 123 4567"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono">date</span></td><td class="px-4 py-2.5 text-zinc-400">Calendar date. Stored normalized as YYYY-MM-DD.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2026-06-25"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono">datetime</span></td><td class="px-4 py-2.5 text-zinc-400">Date with time. Stored normalized as ISO 8601.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2026-06-25T14:30:00Z"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-green-500/10 text-green-400 px-2 py-0.5 rounded font-mono">boolean</span></td><td class="px-4 py-2.5 text-zinc-400">Yes/No toggle. Good for consent, terms agreement.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">true</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded font-mono">select</span></td><td class="px-4 py-2.5 text-zinc-400">Dropdown — pick one from a predefined list. Options set in admin.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"premium"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded font-mono">radio</span></td><td class="px-4 py-2.5 text-zinc-400">Radio buttons — pick one option. Options set in admin.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"yes"</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded font-mono">multiselect</span></td><td class="px-4 py-2.5 text-zinc-400">Pick many from a predefined list. Stored as an array.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">["sms", "email"]</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-lime-500/10 text-lime-400 px-2 py-0.5 rounded font-mono">tags</span></td><td class="px-4 py-2.5 text-zinc-400">Freeform array of strings — user adds their own values.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">["urgent", "vip"]</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded font-mono">group</span></td><td class="px-4 py-2.5 text-zinc-400">Nested object — bundle related sub-fields together.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">{ "city": "Pune", "pincode": "411001" }</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded font-mono">repeater</span></td><td class="px-4 py-2.5 text-zinc-400">Repeatable list of objects (array-of-objects) with shared sub-fields.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{ "url": "https://…", "type": "pdf" }]</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3 class="font-semibold text-white mt-8 mb-2">Spam protection</h3>
-        <p class="text-sm text-zinc-400 mb-3">Every submission endpoint has three layers built in — they stack:</p>
-        <ul class="text-sm text-zinc-400 space-y-1.5 mb-4 list-disc pl-5">
-          <li><strong class="text-white">Rate limiting</strong> <span class="text-zinc-500">(always on)</span> — 20 submissions per minute per IP, then HTTP 429.</li>
-          <li><strong class="text-white">Honeypot</strong> <span class="text-zinc-500">(always on)</span> — add a hidden <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">_honey</code> field; bots that fill it are silently dropped.</li>
-          <li><strong class="text-white">Captcha</strong> <span class="text-zinc-500">(opt-in per form)</span> — Cloudflare Turnstile, hCaptcha, or Google reCAPTCHA v2/v3. Toggle the <strong class="text-white">&ldquo;Spam Protection (Captcha)&rdquo;</strong> switch in the form builder.</li>
-        </ul>
-
-        <h3 class="font-semibold text-white mt-6 mb-2">Enabling captcha — what to change in <code class="text-pink-400 bg-zinc-800 px-1 rounded">.env</code></h3>
-        <p class="text-sm text-zinc-400 mb-3">Captcha verification needs a provider configured in <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code>. Get a free key from Cloudflare Turnstile (recommended — no puzzle), hCaptcha, or Google reCAPTCHA, then:</p>
-        <div class="code-block" data-code="# backend/.env  — set the provider + its server secret
-CAPTCHA_PROVIDER=turnstile          # turnstile | hcaptcha | recaptcha
-CAPTCHA_SECRET_KEY=0x4AAAAAAA...    # server secret from the provider dashboard
-
-# Then, in the admin form builder, turn ON 'Spam Protection (Captcha)'
-# for the form (or set captchaEnabled: true via the API).
-
-# Finally, render the captcha widget on your frontend and send the token:
-POST /api/submit/contact
+        <p class="text-zinc-400 leading-relaxed mb-4">Visual form builder with built-in spam protection and automated actions.</p>
+        <div class="code-block" data-code="// Public submission endpoint (no API key required)
+POST /api/submit/contact-us
 {
-  &quot;data&quot;:         { &quot;full_name&quot;: &quot;Jane&quot;, &quot;email&quot;: &quot;jane@example.com&quot; },
-  &quot;captchaToken&quot;: &quot;TOKEN.from.the.widget&quot;
+  &quot;data&quot;: {
+    &quot;name&quot;: &quot;Alex Smith&quot;,
+    &quot;email&quot;: &quot;alex@example.com&quot;,
+    &quot;message&quot;: &quot;I would like a demo.&quot;
+  }
 }"></div>
-        <p class="text-xs text-zinc-500 mt-3">If <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_PROVIDER</code> is left unset, the captcha layer no-ops (fail-open) so forms keep working in development — rate limiting and the honeypot still apply.</p>
-
-        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Email notifications (SMTP setup)</h3>
-        <p class="text-zinc-400 leading-relaxed mb-4">A form's <strong class="text-white">Email action</strong> only sends mail once SMTP is configured in <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code>. Until then, submissions are still saved but no email goes out (the backend logs a warning, never crashes). Restart the backend after editing <code class="text-pink-400 bg-zinc-800 px-1 rounded">.env</code> — the mail connection is created once at startup.</p>
-        <div class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 mb-4">
-          <p class="text-sm font-semibold text-white mb-2">Gmail (quick start)</p>
-          <p class="text-xs text-zinc-400 leading-relaxed mb-3">Gmail rejects your normal account password over SMTP. You need a 16-character <strong class="text-white">App Password</strong>, which requires 2-Step Verification first:</p>
-          <ol class="text-xs text-zinc-400 leading-relaxed space-y-1.5 mb-3 list-decimal pl-5">
-            <li>Enable 2-Step Verification: <a href="https://myaccount.google.com/signinoptions/two-step-verification" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">myaccount.google.com/signinoptions/two-step-verification</a></li>
-            <li>Create an App Password: <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">myaccount.google.com/apppasswords</a> — choose Mail / Other, name it "NodePress", copy the 16-char value.</li>
-            <li>Use that value (no spaces) as <code class="text-pink-400 bg-zinc-800 px-1 rounded">SMTP_PASS</code>, then restart the backend.</li>
-          </ol>
-          <div class="code-block" data-code="# backend/.env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false                  # false for 587 (STARTTLS), true for 465 (SSL)
-SMTP_USER=you@gmail.com
-SMTP_PASS=your_16_char_app_password   # Gmail App Password — NOT your login password
-SMTP_FROM=Contact Form <you@gmail.com>"></div>
-        </div>
-        <p class="text-xs text-zinc-500">For production, a transactional provider (Resend, Brevo, Mailgun, SendGrid, Postmark) gives better deliverability than Gmail (which caps at ~500 msgs/day) — same five variables, just different host/user/pass.</p>
-
-        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Spam protection — captcha (Cloudflare Turnstile)</h3>
-        <p class="text-zinc-400 leading-relaxed mb-4">Public forms attract bots. NodePress always applies rate limiting and an optional honeypot field; for stronger protection, enable a captcha. Cloudflare Turnstile is recommended — it's free and usually invisible to real visitors. It supports hCaptcha and Google reCAPTCHA too.</p>
-
-        <div class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 mb-4">
-          <p class="text-sm font-semibold text-white mb-2">The two keys — where each one goes</p>
-          <p class="text-xs text-zinc-400 leading-relaxed mb-3">Cloudflare gives you <strong class="text-white">two</strong> keys. They live in two different places and must never be swapped:</p>
-          <table class="w-full text-xs border border-zinc-800 rounded-lg overflow-hidden mb-1">
-            <thead class="bg-zinc-800/60 text-left text-zinc-300">
-              <tr><th class="px-3 py-2 font-semibold">Key</th><th class="px-3 py-2 font-semibold">Where you paste it</th><th class="px-3 py-2 font-semibold">Public?</th></tr>
-            </thead>
-            <tbody class="text-zinc-400">
-              <tr class="border-t border-zinc-800"><td class="px-3 py-2"><strong class="text-white">Site Key</strong></td><td class="px-3 py-2">In your <strong class="text-white">website's form HTML</strong> — the <code class="text-pink-400 bg-zinc-800 px-1 rounded">data-sitekey</code> attribute. Not in <code class="text-pink-400 bg-zinc-800 px-1 rounded">.env</code>.</td><td class="px-3 py-2">Yes — safe to be visible</td></tr>
-              <tr class="border-t border-zinc-800"><td class="px-3 py-2"><strong class="text-white">Secret Key</strong></td><td class="px-3 py-2">In <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code> as <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_SECRET_KEY</code>. Never in website code or git.</td><td class="px-3 py-2">No — keep private</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <p class="text-sm font-semibold text-white mb-2">Step-by-step</p>
-        <ol class="text-zinc-400 leading-relaxed space-y-1.5 mb-4 list-decimal pl-5 text-sm">
-          <li>Open <a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">dash.cloudflare.com → Turnstile</a> (free; your domain need not be on Cloudflare).</li>
-          <li>Click <strong class="text-white">Add site</strong>, name it, add your domain(s) — include <code class="text-pink-400 bg-zinc-800 px-1 rounded">localhost</code> while testing — widget type <strong class="text-white">Managed</strong>.</li>
-          <li>Copy the <strong class="text-white">Site Key</strong> and <strong class="text-white">Secret Key</strong> it shows.</li>
-          <li>Paste the <strong class="text-white">Secret Key</strong> into <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code> (below) and <strong class="text-white">restart the backend</strong>.</li>
-          <li>In the admin, open your form → turn on the <strong class="text-white">Spam Protection (Captcha)</strong> switch → Save.</li>
-          <li>Paste the <strong class="text-white">Site Key</strong> into the widget on your website form (below).</li>
-        </ol>
-        <p class="text-xs text-zinc-500 mb-4">Setting <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_PROVIDER</code> without <code class="text-pink-400 bg-zinc-800 px-1 rounded">CAPTCHA_SECRET_KEY</code> stops the backend from starting — set both or neither. Local test keys: Site Key <code class="text-pink-400 bg-zinc-800 px-1 rounded">1x00000000000000000000AA</code>, Secret Key <code class="text-pink-400 bg-zinc-800 px-1 rounded">1x0000000000000000000000000000000AA</code>.</p>
-
-        <p class="text-sm font-semibold text-white mb-2">Backend — the Secret Key goes here</p>
-        <div class="code-block" data-code="# backend/.env  (then restart the backend)
-CAPTCHA_PROVIDER=turnstile
-CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here"></div>
-
-        <p class="text-sm font-semibold text-white mt-4 mb-2">Website form — the Site Key goes here</p>
-        <div class="code-block" data-code='&lt;!-- Load the Turnstile script once --&gt;
-&lt;script src=&quot;https://challenges.cloudflare.com/turnstile/v0/api.js&quot; async defer&gt;&lt;/script&gt;
-
-&lt;form id=&quot;contact&quot;&gt;
-  &lt;input name=&quot;fullname&quot; required /&gt;
-  &lt;input name=&quot;email&quot; type=&quot;email&quot; required /&gt;
-  &lt;textarea name=&quot;message&quot;&gt;&lt;/textarea&gt;
-
-  &lt;!-- paste your SITE key here --&gt;
-  &lt;div class=&quot;cf-turnstile&quot; data-sitekey=&quot;YOUR_SITE_KEY&quot;&gt;&lt;/div&gt;
-
-  &lt;button type=&quot;submit&quot;&gt;Send&lt;/button&gt;
-&lt;/form&gt;
-
-&lt;script&gt;
-  document.getElementById(&quot;contact&quot;).addEventListener(&quot;submit&quot;, async (e) =&gt; {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const captchaToken = fd.get(&quot;cf-turnstile-response&quot;); // Turnstile fills this
-    await fetch(&quot;https://YOUR_API/api/submit/contact-us&quot;, {
-      method: &quot;POST&quot;,
-      headers: { &quot;Content-Type&quot;: &quot;application/json&quot; },
-      body: JSON.stringify({
-        data: { fullname: fd.get(&quot;fullname&quot;), email: fd.get(&quot;email&quot;), message: fd.get(&quot;message&quot;) },
-        captchaToken,
-      }),
-    });
-    if (window.turnstile) window.turnstile.reset(); // tokens are single-use
-  });
-&lt;/script&gt;'></div>
       </section>
 
-      <!-- Brand & Theme -->
+      <!-- Brand -->
       <section id="brand" class="mb-16 scroll-mt-24">
         <div class="flex items-center gap-2.5 mb-5">
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Brand & Theme</h2>
+          <h2 class="text-2xl font-bold text-white">Brand & Custom CSS</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Set your install's identity at <code class="text-pink-400 bg-zinc-800 px-1 rounded">Settings → Brand</code> (admin only). It is stored on the server — shared across every browser and device — and applied automatically everywhere.</p>
-
-        <div class="overflow-x-auto rounded-lg border border-zinc-800 mb-6">
-          <table class="w-full text-sm">
-            <thead class="bg-zinc-800/60 text-left text-zinc-300">
-              <tr><th class="px-4 py-2.5 font-semibold">Setting</th><th class="px-4 py-2.5 font-semibold">Applies to</th></tr>
-            </thead>
-            <tbody class="text-zinc-400 divide-y divide-zinc-800">
-              <tr><td class="px-4 py-2.5 font-semibold text-white">Name</td><td class="px-4 py-2.5">Sidebar, browser tab title, login &amp; setup pages, form-submission emails.</td></tr>
-              <tr><td class="px-4 py-2.5 font-semibold text-white">Logo</td><td class="px-4 py-2.5">Sidebar, login page, browser favicon, email header. Uploaded via the media library.</td></tr>
-              <tr><td class="px-4 py-2.5 font-semibold text-white">Accent colour</td><td class="px-4 py-2.5">Sidebar highlight and the email header bar.</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3 class="font-semibold text-white mb-2">Theme (optional)</h3>
-        <p class="text-zinc-400 leading-relaxed mb-3">The <strong class="text-white">Theme</strong> card recolours the admin UI:</p>
-        <ul class="text-zinc-400 leading-relaxed space-y-1.5 mb-3 list-disc pl-5 text-sm">
-          <li><strong class="text-white">Button colour</strong> — primary buttons. Button text colour auto-adjusts (black/white) for readability.</li>
-          <li><strong class="text-white">Input colour</strong> — input field border and focus ring.</li>
-        </ul>
-        <p class="text-zinc-400 leading-relaxed text-sm">Both are optional — leave blank (or hit <strong class="text-white">Reset</strong>) to use the built-in theme default. One colour applies in both light and dark mode, and changes take effect immediately after saving.</p>
+        <p class="text-zinc-400 leading-relaxed mb-4">Under <code class="text-pink-400 bg-zinc-800 px-1 rounded">Settings → Brand</code>, customize the logo, browser favicon, platform title, primary theme accents, and inject custom CSS rules.</p>
       </section>
 
-      <!-- Team & Roles -->
+      <!-- Team, RBAC & 2FA -->
       <section id="team" class="mb-16 scroll-mt-24">
         <div class="flex items-center gap-2.5 mb-5">
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Team & Roles</h2>
+          <h2 class="text-2xl font-bold text-white">Team, RBAC & Two-Factor Auth (2FA)</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Invite teammates from <code class="text-pink-400 bg-zinc-800 px-1 rounded">Users → Add User</code> (admin only). Onboarding is <strong class="text-white">invite-only</strong> — you never set a password for someone else.</p>
-
-        <h3 class="font-semibold text-white mb-2">Inviting a member</h3>
-        <p class="text-zinc-400 leading-relaxed mb-4">Enter just an <strong class="text-white">email + role</strong>. NodePress creates the account and emails the person a secure link to <strong class="text-white">set their own password</strong> (valid 7 days); admins never see or set it. Use <strong class="text-white">Resend invite</strong> if the link expires. If no SMTP server is configured, the invite link is shown so you can copy and send it manually (requires <code class="text-pink-400 bg-zinc-800 px-1 rounded">SMTP_*</code> in <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code> to email automatically — see the Forms section for Gmail setup).</p>
-
-        <h3 class="font-semibold text-white mb-2">Roles</h3>
-        <div class="overflow-x-auto rounded-lg border border-zinc-800 mb-2">
+        <p class="text-zinc-400 leading-relaxed mb-4">Manage multi-user access with strict server-side role enforcement:</p>
+        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
           <table class="w-full text-sm">
-            <thead class="bg-zinc-800/60 text-left text-zinc-300">
-              <tr><th class="px-4 py-2.5 font-semibold">Role</th><th class="px-4 py-2.5 font-semibold">Can do</th></tr>
-            </thead>
-            <tbody class="text-zinc-400 divide-y divide-zinc-800">
-              <tr><td class="px-4 py-2.5 font-semibold text-white">admin</td><td class="px-4 py-2.5">Everything — users, content types, entries, media, settings.</td></tr>
-              <tr><td class="px-4 py-2.5 font-semibold text-white">editor</td><td class="px-4 py-2.5">Create, read, update, delete, publish any entry or media.</td></tr>
-              <tr><td class="px-4 py-2.5 font-semibold text-white">contributor</td><td class="px-4 py-2.5">Create and update entries (cannot delete or publish).</td></tr>
-              <tr><td class="px-4 py-2.5 font-semibold text-white">viewer</td><td class="px-4 py-2.5">Read-only access to the admin panel.</td></tr>
+            <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-xs font-semibold text-zinc-300"><th class="px-4 py-2.5">Role</th><th class="px-4 py-2.5">Permissions</th></tr></thead>
+            <tbody class="divide-y divide-zinc-800 text-xs text-zinc-400">
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">superadmin</td><td class="px-4 py-2.5">Full system control, database migration, API keys, brand settings.</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">admin</td><td class="px-4 py-2.5">Manage users, permissions, content types, entries, media, webhooks.</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">editor</td><td class="px-4 py-2.5">Create, edit, stage, and publish all entries and media assets.</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">author</td><td class="px-4 py-2.5">Create and edit own entries; submit for review.</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">contributor</td><td class="px-4 py-2.5">Create draft entries only (cannot publish or delete).</td></tr>
             </tbody>
           </table>
         </div>
-        <p class="text-xs text-zinc-500">Access is enforced server-side. Per-content-type overrides are available under Users → Permissions.</p>
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-xs text-zinc-300 space-y-1.5">
+          <p class="font-semibold text-white">Two-Factor Authentication (2FA / TOTP)</p>
+          <p>Every team member can activate TOTP-based 2FA (Google Authenticator, Authy) from their user profile with backup recovery codes.</p>
+        </div>
+      </section>
+
+      <!-- Field Permissions -->
+      <section id="permissions" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Field-Level Permissions</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          Under <code class="text-pink-400 bg-zinc-800 px-1 rounded">Users → Permissions → Field Permissions</code>, lock down individual fields per role:
+        </p>
+        <div class="grid sm:grid-cols-2 gap-3 text-xs text-zinc-300">
+          <div class="p-3 rounded-xl border border-zinc-800 bg-zinc-900"><strong class="text-white block mb-1">Read Access</strong>Hide sensitive fields (internal margins, SEO overrides, admin notes) from specific roles.</div>
+          <div class="p-3 rounded-xl border border-zinc-800 bg-zinc-900"><strong class="text-white block mb-1">Write Access</strong>Prevent non-admins from modifying protected fields (e.g. author verification badges).</div>
+        </div>
+      </section>
+
+      <!-- Audit Log -->
+      <section id="audit-log" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Audit Logging</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          All administrative actions (entry modifications, schema updates, logins, role changes) are recorded immutably with timestamp, actor email, IP address, and before/after state diffs.
+        </p>
+        <div class="code-block" data-code="GET /api/audit-logs?page=1&limit=50&action=entry.update"></div>
       </section>
 
       <!-- Webhooks -->
@@ -859,37 +416,125 @@ CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here"></div>
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Webhooks</h2>
+          <h2 class="text-2xl font-bold text-white">Webhooks & Dead-Letter Queue (DLQ)</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">Webhooks let external systems react in real time when content changes — a <strong class="text-zinc-200">reverse API call</strong>. Instead of another app polling NodePress asking "anything new yet?", NodePress automatically POSTs a JSON payload to a URL you register the moment a matching event happens.</p>
+        <p class="text-zinc-400 leading-relaxed mb-6">
+          Webhooks automatically POST JSON events to external services whenever content or media changes. Signed with HMAC-SHA256 (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-NodePress-Signature</code>).
+        </p>
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-xs text-zinc-300 space-y-2 mb-6">
+          <p>• <strong>Automatic Retries:</strong> 3 attempts with exponential backoff (Immediate, +5m, +30m).</p>
+          <p>• <strong>Dead-Letter Queue (DLQ):</strong> Failed deliveries are archived in the DLQ with full payload & error headers.</p>
+          <p>• <strong>1-Click Re-Delivery:</strong> Re-dispatch any failed delivery directly from the admin UI or via <code class="text-pink-400 font-mono">POST /api/webhooks/deliveries/:id/retry</code>.</p>
+        </div>
+      </section>
 
-        <h3 class="font-semibold mb-3 text-white">What you'd use them for</h3>
-        <div class="grid sm:grid-cols-2 gap-4 mb-6">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Rebuild a static site</p><p class="text-xs text-zinc-400 leading-relaxed">A post is published → ping your Vercel / Netlify deploy hook → your live site rebuilds with the new content automatically.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Team notifications</p><p class="text-xs text-zinc-400 leading-relaxed">New entry or media upload → POST to a Slack / Discord incoming webhook → your team sees it in a channel.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Sync to another system</p><p class="text-xs text-zinc-400 leading-relaxed">Entry created or updated → push to a search index (Algolia), a CRM, an email list, or an analytics tool.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Clear a CDN cache</p><p class="text-xs text-zinc-400 leading-relaxed">Entry updated → tell Cloudflare / Fastly to purge the cached page so visitors get fresh content.</p></div>
+      <!-- Top 5 Webhook Recipes -->
+      <section id="webhook-recipes" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Top 5 Real-World Webhook Recipes</h2>
         </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">Step-by-step production recipes for connecting NodePress to external platforms:</p>
 
-        <h3 class="font-semibold mb-3 text-white">How to set one up</h3>
-        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 mb-6 space-y-2 text-sm text-zinc-400">
-          <p><span class="font-medium text-zinc-200">1. Open Webhooks</span> — Developer → Webhooks (admin only), click New Webhook.</p>
-          <p><span class="font-medium text-zinc-200">2. Set the target URL</span> — paste the URL NodePress should POST to (e.g. your Vercel deploy hook or a Slack incoming webhook URL).</p>
-          <p><span class="font-medium text-zinc-200">3. Pick events</span> — choose which events fire it, or select <code class="text-pink-400 bg-zinc-800 px-1 rounded">*</code> for all.</p>
-          <p><span class="font-medium text-zinc-200">4. Add a secret (recommended)</span> — every delivery is then HMAC-SHA256 signed so your receiver can verify it genuinely came from NodePress.</p>
-          <p><span class="font-medium text-zinc-200">5. Test Ping</span> — send a sample event to confirm your endpoint is reachable, then check the Delivery Log for the result.</p>
-          <p><span class="font-medium text-zinc-200">6. Edit or remove</span> — each webhook card has Edit (change name, URL, secret, or events), enable/disable, Test Ping, and Delete actions.</p>
-        </div>
+        <div class="space-y-4">
+          <!-- Recipe 1 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">1. Next.js On-Demand Cache Invalidation (ISR)</h3>
+              <span class="text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">Next.js App Router</span>
+            </div>
+            <p class="text-xs text-zinc-400">Instantly revalidate cached pages when content is created or edited, without rebuilding the whole site.</p>
+            <div class="code-block" data-code="// app/api/revalidate/route.ts (Next.js)
+import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+import crypto from 'crypto';
 
-        <div class="grid sm:grid-cols-2 gap-4 mb-6">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-2 text-sm">Events</p><div class="space-y-1 text-xs text-zinc-400"><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.created</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.updated</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.restored</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry.purged</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.uploaded</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media.deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">*</code> (all events)</p></div></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Retry logic</p><p class="text-xs text-zinc-400">Failed deliveries are retried up to 3 times: immediately, after 5 min, after 30 min. HMAC-SHA256 signature in <code class="text-pink-400 bg-zinc-800 px-1 rounded">X-NodePress-Signature</code> header.</p></div>
-        </div>
+export async function POST(req: NextRequest) {
+  const bodyText = await req.text();
+  const signature = req.headers.get('x-nodepress-signature');
+  const secret = process.env.NODEPRESS_WEBHOOK_SECRET!;
 
-        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mb-6">
-          <strong class="text-amber-400">The payload is a summary, not the full entry.</strong>
-          <p class="text-zinc-400 mt-1 text-xs">The POST body's <code class="text-pink-400 bg-zinc-800 px-1 rounded">data</code> contains only <code class="text-pink-400 bg-zinc-800 px-1 rounded">id</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">slug</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">status</code>, and <code class="text-pink-400 bg-zinc-800 px-1 rounded">contentType</code> — not your field values. If your receiver needs the complete content, fetch it back with <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/{contentType}/{slug}</code> using the slug from the payload.</p>
+  // 1. Verify HMAC-SHA256 signature
+  const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(bodyText).digest('hex');
+  if (signature !== expected) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { event, data } = JSON.parse(bodyText);
+
+  // 2. Revalidate affected paths
+  if (data?.slug && data?.contentType) {
+    revalidatePath(`/${data.contentType}/${data.slug}`);
+    revalidatePath('/'); // refresh homepage
+  }
+
+  return NextResponse.json({ revalidated: true, event, now: Date.now() });
+}"></div>
+          </div>
+
+          <!-- Recipe 2 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">2. Vercel & Netlify Production Deploy Hooks</h3>
+              <span class="text-[10px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full">CI / CD</span>
+            </div>
+            <p class="text-xs text-zinc-400">Trigger static site generation builds automatically when articles are published.</p>
+            <p class="text-xs text-zinc-400 pl-2 border-l-2 border-zinc-700">In Vercel / Netlify Settings → <em>Deploy Hooks</em> → copy the hook URL and paste into NodePress Webhooks for <code class="text-pink-400">entry.created</code> / <code class="text-pink-400">entry.updated</code>.</p>
+          </div>
+
+          <!-- Recipe 3 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">3. Editorial Team Alerts (Slack & Discord)</h3>
+              <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">Team Channels</span>
+            </div>
+            <p class="text-xs text-zinc-400">Send real-time alerts when content is submitted for review or when forms receive new leads.</p>
+            <p class="text-xs text-zinc-400 pl-2 border-l-2 border-zinc-700">Paste your Slack Incoming Webhook URL into NodePress. For Discord, append <code class="text-pink-400">/slack</code> to your Discord webhook URL to accept standard Slack payload format!</p>
+          </div>
+
+          <!-- Recipe 4 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">4. Algolia / Meilisearch Search Index Sync</h3>
+              <span class="text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full">Search Engines</span>
+            </div>
+            <div class="code-block" data-code="// Handler for search synchronization
+export async function syncSearch(payload) {
+  const { event, data } = payload;
+  if (event === 'entry.created' || event === 'entry.updated') {
+    if (data.status === 'published') {
+      await searchIndex.saveObject({ objectID: String(data.id), ...data });
+    } else {
+      await searchIndex.deleteObject(String(data.id));
+    }
+  } else if (event === 'entry.deleted' || event === 'entry.purged') {
+    await searchIndex.deleteObject(String(data.id));
+  }
+}"></div>
+          </div>
+
+          <!-- Recipe 5 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">5. CRM & Automation (HubSpot, Salesforce, Zapier, Make)</h3>
+              <span class="text-[10px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full">Integrations</span>
+            </div>
+            <p class="text-xs text-zinc-400">Forward contact form submissions and leads directly to your CRM via Zapier or Make Catch Hook URLs.</p>
+          </div>
         </div>
+      </section>
+
+      <!-- Plugins -->
+      <section id="plugins" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"/><path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Plugin Architecture & Hooks</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          NodePress includes an extensible plugin engine with an internal lifecycle hook bus (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">PluginHookBus</code>) enabling custom logic on <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">entry.beforeCreate</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">entry.afterUpdate</code>, and custom API endpoints.
+        </p>
       </section>
 
       <!-- GraphQL -->
@@ -898,49 +543,22 @@ CAPTCHA_SECRET_KEY=0x4AAAAAAA...your_SECRET_key_here"></div>
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">GraphQL API</h2>
+          <h2 class="text-2xl font-bold text-white">GraphQL API & Playground</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-4">NodePress exposes a full GraphQL API at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/graphql</code> alongside REST. Apollo Sandbox (interactive playground) is available in all environments — click <strong class="text-zinc-200">GraphQL Playground</strong> in the Developer section of the admin sidebar.</p>
-
-        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mb-5">
-          <strong class="text-amber-400">Playground shows a blank page?</strong>
-          <p class="text-zinc-400 mt-1 text-xs">This is a browser cache issue — the browser cached a response with old security headers. Fix: open an <strong>Incognito window</strong> (works immediately) or press <strong>Ctrl+Shift+Delete</strong> → clear <em>Cached images and files</em> → refresh. Happens only once after a server restart.</p>
-        </div>
-
-        <h3 class="font-semibold mb-2 text-white">Queries</h3>
-        <div class="code-block" data-code="query { entries(contentTypeId: 1, status: &quot;published&quot;) { total data { id slug data } } }
-query { entry(id: 1) { id slug status data createdAt } }
-query { contentTypes { id name schema } }
-query { mediaFiles(page: 1, limit: 20) { total data { id filename url mimetype } } }
-query { webhooks { id name url events enabled } }   # admin only"></div>
-
-        <h3 class="font-semibold mb-2 mt-5 text-white">Entry mutations</h3>
-        <div class="code-block" data-code='mutation { createEntry(contentTypeId: 1, slug: "hello", locale: "en", status: "draft", data: "{\"title\":\"Hello\"}") { id slug } }
-mutation { updateEntry(id: 1, status: "published") { id updatedAt } }
-mutation { deleteEntry(id: 1) { message } }           # soft delete
-mutation { restoreEntry(id: 1) { id slug } }
-mutation { purgeEntry(id: 1) { message } }            # permanent, admin only
-mutation { restoreEntryVersion(entryId: 1, versionId: 3) { id updatedAt } }
-mutation { bulkPublishEntries(ids: [1,2,3]) { affected } }
-mutation { bulkArchiveEntries(ids: [4,5]) { affected } }
-mutation { bulkDeleteEntries(ids: [6,7]) { affected } }
-mutation { bulkSetPendingReviewEntries(ids: [8,9]) { affected } }'></div>
-
-        <h3 class="font-semibold mb-2 mt-5 text-white">Content type mutations <span class="text-xs font-normal text-zinc-500">(admin only)</span></h3>
-        <div class="code-block" data-code='mutation { createContentType(name: "blog", schema: "[{\"name\":\"title\",\"type\":\"text\"}]") { id name } }
-mutation { updateContentType(id: 1, schema: "[{\"name\":\"title\",\"type\":\"text\"},{\"name\":\"body\",\"type\":\"richtext\"}]") { id } }
-mutation { deleteContentType(id: 1) { id name } }'></div>
-
-        <h3 class="font-semibold mb-2 mt-5 text-white">Webhook mutations <span class="text-xs font-normal text-zinc-500">(admin only)</span></h3>
-        <div class="code-block" data-code='mutation { createWebhook(name: "Deploy", url: "https://example.com/hook", events: ["entry.created"]) { id } }
-mutation { toggleWebhook(id: 1, enabled: false) { id enabled } }
-mutation { pingWebhook(id: 1) { message } }
-mutation { deleteWebhook(id: 1) { message } }'></div>
-
-        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 mt-5 text-sm">
-          <p class="font-medium text-white mb-1">Authentication</p>
-          <p class="text-xs text-zinc-400">Public queries (<code class="text-pink-400 bg-zinc-800 px-1 rounded">entries</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded">contentTypes</code>) work without auth and return only published entries. Add <code class="text-pink-400 bg-zinc-800 px-1 rounded">Authorization: Bearer YOUR_JWT_TOKEN</code> header for mutations and protected queries. Query depth is limited to 6 levels to prevent abuse.</p>
-        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          Full GraphQL endpoint available at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/graphql</code> with Apollo Sandbox playground.
+        </p>
+        <div class="code-block" data-code="query GetPublishedArticles {
+  entries(contentTypeId: 1, status: &quot;published&quot;, limit: 10) {
+    total
+    data {
+      id
+      slug
+      data
+      createdAt
+    }
+  }
+}"></div>
       </section>
 
       <!-- Real-time -->
@@ -949,52 +567,19 @@ mutation { deleteWebhook(id: 1) { message } }'></div>
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Real-time (WebSocket)</h2>
+          <h2 class="text-2xl font-bold text-white">Real-time WebSockets (Socket.io)</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-4">NodePress broadcasts content changes over WebSocket using Socket.io at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/realtime</code>. Subscribe from your frontend to receive live updates without polling.</p>
-        <div class="grid sm:grid-cols-2 gap-4 mb-5">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-2 text-sm">Events received</p><div class="space-y-1 text-xs text-zinc-400"><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry:created</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry:updated</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry:deleted</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">entry:restored</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media:uploaded</code></p><p><code class="text-pink-400 bg-zinc-800 px-1 rounded">media:deleted</code></p></div></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Rooms</p><p class="text-xs text-zinc-400 mb-2">All connections join the <code class="text-pink-400 bg-zinc-800 px-1 rounded">global</code> room automatically. Subscribe to a specific content type room to filter events:</p><code class="text-xs text-pink-400 bg-zinc-800 px-1.5 py-0.5 rounded">ct:blog</code>, <code class="text-xs text-pink-400 bg-zinc-800 px-1.5 py-0.5 rounded">ct:products</code></div>
-        </div>
-        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300 mb-4">
-          <strong>Authentication required.</strong> Every connection must send a JWT token or API key. Unauthenticated connections are immediately disconnected.
-        </div>
-
-        <p class="text-sm font-semibold text-white mb-2">How to get your Bearer token</p>
-        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-xs text-zinc-400 space-y-2 mb-4">
-          <p><strong class="text-zinc-200">Option A — Login API:</strong> call <code class="text-pink-400 bg-zinc-800 px-1 rounded">POST /api/auth/login</code> with your email + password. The response contains <code class="text-pink-400 bg-zinc-800 px-1 rounded">access_token</code>. Use it as <code class="text-pink-400 bg-zinc-800 px-1 rounded">Bearer &lt;access_token&gt;</code>.</p>
-          <p><strong class="text-zinc-200">Option B — Browser cookie:</strong> log into the admin panel, open DevTools → Application → Cookies → find <code class="text-pink-400 bg-zinc-800 px-1 rounded">np_token</code>. That value is your Bearer token (valid for 7 days).</p>
-          <p><strong class="text-zinc-200">Option C — API key:</strong> create one in Admin → API Keys. Pass it as <code class="text-pink-400 bg-zinc-800 px-1 rounded">auth.apiKey</code> — no expiry.</p>
-        </div>
-        <div class="code-block" data-code="# Step 1: get your token via login
-curl -X POST https://your-api.com/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{&quot;email&quot;:&quot;you@example.com&quot;,&quot;password&quot;:&quot;yourpassword&quot;}'
-
-# Response: { &quot;access_token&quot;: &quot;eyJhbGci...&quot; }"></div>
-
+        <p class="text-zinc-400 leading-relaxed mb-4">Connect via Socket.io at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/realtime</code> to receive live entry and media update broadcasts:</p>
         <div class="code-block" data-code="import { io } from 'socket.io-client';
 
-// JWT token (from POST /api/auth/login or np_token cookie)
-const socket = io('http://localhost:3000', {
+const socket = io('https://your-api.com', {
   path: '/api/realtime',
-  auth: { token: 'Bearer eyJhbGci...' },
+  auth: { apiKey: 'np_your_api_key' },
 });
 
-// Or with an API key (server-to-server, no expiry)
-const socket = io('http://localhost:3000', {
-  path: '/api/realtime',
-  auth: { apiKey: 'np_your_api_key_here' },
-});
-
-// Subscribe to a specific content type room
-socket.emit('subscribe', { contentType: 'blog' });
-
-// Listen for events
-socket.on('entry:created', (data) => console.log('New entry:', data));
-socket.on('entry:updated', (data) => console.log('Updated:', data));
-socket.on('media:uploaded', (data) => console.log('New file:', data));
-socket.on('error', ({ message }) => console.error('Auth failed:', message));"></div>
+socket.on('entry:updated', (event) => {
+  console.log('Live entry update received:', event);
+});"></div>
       </section>
 
       <!-- SEO -->
@@ -1003,11 +588,11 @@ socket.on('error', ({ message }) => console.error('Auth failed:', message));"></
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">SEO & Sitemap</h2>
+          <h2 class="text-2xl font-bold text-white">SEO & Sitemap XML</h2>
         </div>
         <div class="grid sm:grid-cols-2 gap-4">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Sitemap</p><p class="text-xs text-zinc-400">Auto-generated at <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/sitemap.xml</code>. Includes all published entries except those flagged <code class="text-pink-400 bg-zinc-800 px-1 rounded">noIndex</code>. Set <code class="text-pink-400 bg-zinc-800 px-1 rounded">SITE_URL</code> in your env.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Robots.txt</p><p class="text-xs text-zinc-400">Served at <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/robots.txt</code>. Configure blocked paths via <code class="text-pink-400 bg-zinc-800 px-1 rounded">ROBOTS_DISALLOW</code> env var.</p></div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Dynamic Sitemap</p><p class="text-xs text-zinc-400">Generated automatically at <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/sitemap.xml</code> with canonical URLs, last modified dates, and noIndex filters.</p></div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Robots & Meta</p><p class="text-xs text-zinc-400">Configurable robots directives served at <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/robots.txt</code>.</p></div>
         </div>
       </section>
 
@@ -1017,67 +602,10 @@ socket.on('error', ({ message }) => console.error('Auth failed:', message));"></
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Self-Hosting</h2>
+          <h2 class="text-2xl font-bold text-white">Self-Hosting & Production</h2>
         </div>
-
-        <p class="text-zinc-400 leading-relaxed mb-6">NodePress runs anywhere Node.js does. Two paths to go live — either way you need a <strong class="text-zinc-200">PostgreSQL database</strong> and, for production, <strong class="text-zinc-200">S3-compatible storage</strong> for media.</p>
-
-        <div class="grid sm:grid-cols-2 gap-4 mb-6">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Path A — Docker on your own server</p><p class="text-xs text-zinc-400 leading-relaxed">A VPS with the bundled <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose.prod.yml</code> — Postgres, Redis, nginx, Prometheus + Grafana, and DB backups in one command. Most control.</p></div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Path B — Any managed host (PaaS)</p><p class="text-xs text-zinc-400 leading-relaxed">Render, Railway, Fly.io, DigitalOcean App Platform, etc. Deploy backend + frontend as two web services from GitHub, plus a managed Postgres. No server to patch.</p></div>
-        </div>
-
-        <h3 class="font-semibold mb-3 text-white">Deploy to any managed host (Path B)</h3>
-        <p class="text-zinc-400 text-sm mb-3 leading-relaxed">Host-agnostic — only the dashboard differs between providers.</p>
-        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-4 text-sm">
-          <strong class="text-blue-400">Why two services?</strong>
-          <p class="text-zinc-400 mt-1 leading-relaxed">NodePress is two programs — a NestJS API and a Next.js frontend. Locally <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run dev</code> just launches both at once with <code class="text-pink-400 bg-zinc-800 px-1 rounded">concurrently</code> (API on <code class="text-pink-400 bg-zinc-800 px-1 rounded">:3000</code>, frontend on <code class="text-pink-400 bg-zinc-800 px-1 rounded">:5173</code>), so it <em>looks</em> like one command. Managed hosts run one process per service, so each gets its own service from the same repo. Prefer a single command on one box? Use the Docker path below — nginx serves both behind one URL.</p>
-        </div>
-        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 mb-5 space-y-2 text-sm text-zinc-400">
-          <p><span class="font-medium text-zinc-200">1. Push to GitHub</span> — most hosts deploy from a repo. Keep <code class="text-pink-400 bg-zinc-800 px-1 rounded">.env</code> out of git (the scaffold already gitignores it).</p>
-          <p><span class="font-medium text-zinc-200">2. Provision Postgres + storage</span> — a managed PostgreSQL (Neon, Supabase, or the host’s add-on) and an S3-compatible bucket (Cloudflare R2 recommended).</p>
-          <p><span class="font-medium text-zinc-200">3. Backend service</span> — root dir <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend</code>; build <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm install &amp;&amp; npx prisma generate &amp;&amp; npm run build</code>; start <code class="text-pink-400 bg-zinc-800 px-1 rounded">npx prisma migrate deploy &amp;&amp; npm run start:prod</code>. The host injects <code class="text-pink-400 bg-zinc-800 px-1 rounded">PORT</code>.</p>
-          <p><span class="font-medium text-zinc-200">4. Frontend service</span> — root dir <code class="text-pink-400 bg-zinc-800 px-1 rounded">frontend</code>; build <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm install &amp;&amp; npm run build</code>; start <code class="text-pink-400 bg-zinc-800 px-1 rounded">npx next start -p $PORT</code>.</p>
-          <p><span class="font-medium text-zinc-200">5. Wire the URLs</span> — deploy backend first, then set the frontend’s <code class="text-pink-400 bg-zinc-800 px-1 rounded">BACKEND_URL</code> to it, and the backend’s <code class="text-pink-400 bg-zinc-800 px-1 rounded">APP_URL</code> / <code class="text-pink-400 bg-zinc-800 px-1 rounded">SITE_URL</code> / <code class="text-pink-400 bg-zinc-800 px-1 rounded">CORS_ORIGIN</code> to the frontend URL. Redeploy.</p>
-          <p><span class="font-medium text-zinc-200">6. Create the first admin</span> — open <code class="text-pink-400 bg-zinc-800 px-1 rounded">https://your-frontend-url/setup</code> (works only while the DB has zero users).</p>
-        </div>
-        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-6 text-sm">
-          <strong class="text-amber-400">Three things that break a first launch</strong>
-          <ul class="text-zinc-400 mt-1 space-y-1 list-disc pl-4">
-            <li><code class="text-pink-400 bg-zinc-800 px-1 rounded">JWT_SECRET</code> must be <strong class="text-zinc-200">≥32 characters</strong> — otherwise the backend exits on boot.</li>
-            <li>Use <code class="text-pink-400 bg-zinc-800 px-1 rounded">STORAGE_DRIVER=s3</code> in production. On managed hosts the local disk is wiped on every redeploy, so local uploads vanish while the <code class="text-pink-400 bg-zinc-800 px-1 rounded">Media</code> rows survive — broken images.</li>
-            <li>Replace every <code class="text-pink-400 bg-zinc-800 px-1 rounded">localhost</code> URL with the real public URLs, or the live site can’t reach the API.</li>
-          </ul>
-        </div>
-
-        <h3 class="font-semibold mb-3 text-white">Deploy with Docker on a VPS (Path A)</h3>
-        <p class="text-zinc-400 text-sm mb-3 leading-relaxed">Scaffold with <code class="text-pink-400 bg-zinc-800 px-1 rounded">--docker</code> (or copy <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose.prod.yml</code> + <code class="text-pink-400 bg-zinc-800 px-1 rounded">nginx/</code> from the repo), fill in <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code>, then start the whole stack with one command.</p>
-
-        <h3 class="font-semibold mb-3 text-white">Environment variables</h3>
-        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
-          <table class="w-full text-sm">
-            <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2 font-medium text-zinc-400 text-xs">Variable</th><th class="text-left px-4 py-2 font-medium text-zinc-400 text-xs">Description</th></tr></thead>
-            <tbody class="divide-y divide-zinc-800 text-xs">
-              <tr class="bg-zinc-900/30"><td class="px-4 py-2.5"><code class="text-pink-400">DATABASE_URL</code></td><td class="px-4 py-2.5 text-zinc-400">PostgreSQL connection string <span class="text-red-400 font-medium">required</span></td></tr>
-              <tr class="bg-zinc-900/30"><td class="px-4 py-2.5"><code class="text-pink-400">JWT_SECRET</code></td><td class="px-4 py-2.5 text-zinc-400">64+ char random secret for auth tokens <span class="text-red-400 font-medium">required</span></td></tr>
-              <tr class="bg-zinc-900/30"><td class="px-4 py-2.5"><code class="text-pink-400">CORS_ORIGIN</code></td><td class="px-4 py-2.5 text-zinc-400">Allowed frontend origin (comma-separated for multiple) <span class="text-red-400 font-medium">required</span></td></tr>
-              <tr><td class="px-4 py-2.5"><code class="text-pink-400">PORT</code></td><td class="px-4 py-2.5 text-zinc-400">API port (default 3000)</td></tr>
-              <tr><td class="px-4 py-2.5"><code class="text-pink-400">APP_URL</code></td><td class="px-4 py-2.5 text-zinc-400">Backend URL — used in API responses</td></tr>
-              <tr><td class="px-4 py-2.5"><code class="text-pink-400">SITE_URL</code></td><td class="px-4 py-2.5 text-zinc-400">Public site URL — used in sitemap.xml</td></tr>
-              <tr><td class="px-4 py-2.5"><code class="text-pink-400">REDIS_URL</code></td><td class="px-4 py-2.5 text-zinc-400">Redis URL — enables shared cache (optional)</td></tr>
-              <tr><td class="px-4 py-2.5"><code class="text-pink-400">STORAGE_DRIVER</code></td><td class="px-4 py-2.5 text-zinc-400"><code class="bg-zinc-800 px-1 rounded">local</code> (default) or <code class="bg-zinc-800 px-1 rounded">s3</code></td></tr>
-              <tr><td class="px-4 py-2.5"><code class="text-pink-400">STORAGE_S3_BUCKET</code></td><td class="px-4 py-2.5 text-zinc-400">S3/R2/MinIO bucket name (if STORAGE_DRIVER=s3)</td></tr>
-              <tr><td class="px-4 py-2.5"><code class="text-pink-400">SMTP_HOST</code></td><td class="px-4 py-2.5 text-zinc-400">SMTP server for password reset emails</td></tr>
-              <tr><td class="px-4 py-2.5"><code class="text-pink-400">METRICS_TOKEN</code></td><td class="px-4 py-2.5 text-zinc-400">Bearer token to protect GET /api/metrics</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3 class="font-semibold mb-3 text-white">Docker (production)</h3>
-        <div class="code-block" data-code="# Copy and fill in your values
-cp .env.example .env
-
-# Start everything (PostgreSQL + Redis + Backend + Frontend + Nginx)
+        <p class="text-zinc-400 leading-relaxed mb-4">Deploy with Docker or any Node.js host:</p>
+        <div class="code-block" data-code="# Production launch with Docker Compose
 docker-compose -f docker-compose.prod.yml up -d"></div>
       </section>
 
@@ -1087,130 +615,71 @@ docker-compose -f docker-compose.prod.yml up -d"></div>
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">API Reference</h2>
+          <h2 class="text-2xl font-bold text-white">Complete REST API Reference</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">All endpoints are prefixed with <code class="text-pink-400 bg-zinc-800 px-1.5 py-0.5 rounded text-xs">/api</code>. Public <code class="text-emerald-400 bg-zinc-800 px-1.5 py-0.5 rounded text-xs">GET</code> endpoints require no auth. Write endpoints require <code class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded text-xs">Authorization: Bearer &lt;token&gt;</code> or <code class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded text-xs">X-API-Key</code>.</p>
-
-        <h3 class="font-semibold mb-3 text-white text-sm uppercase tracking-wide text-zinc-500">Auth</h3>
-        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800">
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/login</code><p class="text-xs text-zinc-500 mt-0.5">Email + password → returns JWT access token (7d) + sets refresh cookie (30d)</p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/me</code><p class="text-xs text-zinc-500 mt-0.5">Returns current user from token</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/refresh</code><p class="text-xs text-zinc-500 mt-0.5">Exchange refresh token for new access token (silent rotation)</p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/auth/forgot-password</code><p class="text-xs text-zinc-500 mt-0.5">Request password reset email. In dev without SMTP, returns <code class="bg-zinc-800 px-1 rounded">devResetUrl</code> in response.</p></div></div>
-        </div>
-
-        <h3 class="font-semibold mb-3 text-sm uppercase tracking-wide text-zinc-500">Content (Public)</h3>
-        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800">
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/:type</code><p class="text-xs text-zinc-500 mt-0.5">List all published entries for a content type. Supports <code class="bg-zinc-800 px-1 rounded text-xs">?page</code>, <code class="bg-zinc-800 px-1 rounded text-xs">?limit</code>, <code class="bg-zinc-800 px-1 rounded text-xs">?status</code></p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/:type/:slug</code><p class="text-xs text-zinc-500 mt-0.5">Get a single published entry by slug</p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/:type</code><p class="text-xs text-zinc-500 mt-0.5">Create a new entry</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-violet-500/10 text-violet-400 border-violet-500/30">PATCH</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/:type/:slug</code><p class="text-xs text-zinc-500 mt-0.5">Update an entry</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/:type/:slug</code><p class="text-xs text-zinc-500 mt-0.5">Soft-delete an entry</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
-        </div>
-
-        <h3 class="font-semibold mb-3 text-sm uppercase tracking-wide text-zinc-500">Media</h3>
-        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800">
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/media</code><p class="text-xs text-zinc-500 mt-0.5">List all uploaded files</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/media/upload</code><p class="text-xs text-zinc-500 mt-0.5">Upload a file (multipart/form-data, field: <code class="bg-zinc-800 px-1 rounded text-xs">file</code>)</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/media/:id</code><p class="text-xs text-zinc-500 mt-0.5">Delete a file by ID</p></div><span class="text-[10px] border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 shrink-0">Auth</span></div>
+        
+        <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Entries & Workflows</h3>
+        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/entries</code><span class="text-zinc-500">List entries with filters (?contentTypeId, ?status, ?search, ?deleted)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries</code><span class="text-zinc-500">Create a new entry</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/entries/:id</code><span class="text-zinc-500">Get a single entry by ID</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-purple-500/10 text-purple-400 border border-purple-500/30">PUT</span><code class="text-white font-mono flex-1">/api/entries/:id</code><span class="text-zinc-500">Update an entry (creates version snapshot)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/:id/promote</code><span class="text-zinc-500">Promote stage (draft → staging → published)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/:id/preview-url</code><span class="text-zinc-500">Generate 1-hour signed preview token</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/entries/:id/versions</code><span class="text-zinc-500">List version revision history</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/:id/versions/:vid/restore</code><span class="text-zinc-500">Restore to historical version snapshot</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/entries/export</code><span class="text-zinc-500">Export collection as JSON array or RFC 4180 CSV</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/import</code><span class="text-zinc-500">Import entries with pre-flight dryRun validation</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-red-500/10 text-red-400 border border-red-500/30">DELETE</span><code class="text-white font-mono flex-1">/api/entries/:id</code><span class="text-zinc-500">Soft delete to Recycle Bin</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/:id/restore</code><span class="text-zinc-500">Restore from Recycle Bin</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-red-500/10 text-red-400 border border-red-500/30">DELETE</span><code class="text-white font-mono flex-1">/api/entries/:id/purge</code><span class="text-zinc-500">Permanently purge entry from database</span></div>
         </div>
 
-        <h3 class="font-semibold mb-3 text-sm uppercase tracking-wide text-zinc-500">Other</h3>
-        <div class="rounded-xl border border-zinc-800 divide-y divide-zinc-800">
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/submit/:slug</code><p class="text-xs text-zinc-500 mt-0.5">Submit a form (no auth required)</p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/health</code><p class="text-xs text-zinc-500 mt-0.5">Health check — DB connectivity</p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/sitemap.xml</code><p class="text-xs text-zinc-500 mt-0.5">Auto-generated sitemap with all published entries</p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/docs</code><p class="text-xs text-zinc-500 mt-0.5">Interactive Swagger UI</p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/graphql</code><p class="text-xs text-zinc-500 mt-0.5">GraphQL endpoint — Apollo Sandbox playground (GET) + API (POST). All environments.</p></div></div>
-          <div class="flex items-start gap-3 px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border font-mono shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><div class="flex-1"><code class="text-sm font-mono text-white">/api/metrics</code><p class="text-xs text-zinc-500 mt-0.5">Prometheus metrics (optional <code class="bg-zinc-800 px-1 rounded">METRICS_TOKEN</code> bearer auth)</p></div></div>
+        <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Webhooks & Deliveries</h3>
+        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/webhooks</code><span class="text-zinc-500">List configured webhooks</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/webhooks</code><span class="text-zinc-500">Create a new webhook</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/webhooks/deliveries</code><span class="text-zinc-500">List delivery log & Dead-Letter Queue (DLQ)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/webhooks/deliveries/:id/retry</code><span class="text-zinc-500">1-Click re-delivery of a webhook payload</span></div>
         </div>
       </section>
 
-      <!-- Code Examples -->
+      <!-- Frontend Examples -->
       <section id="code-examples" class="mb-16 scroll-mt-24">
         <div class="flex items-center gap-2.5 mb-5">
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Code Examples</h2>
+          <h2 class="text-2xl font-bold text-white">Frontend Consumption Examples</h2>
         </div>
 
-        <h3 class="font-semibold mb-2 text-white">Fetch blog posts (JavaScript)</h3>
-        <div class="code-block" data-code="const res = await fetch('https://your-domain.com/api/blog');
-const { data, total, page } = await res.json();
+        <h3 class="font-semibold text-white mb-2 text-sm">Next.js App Router (React Server Component)</h3>
+        <div class="code-block" data-code="// app/blog/page.tsx
+export default async function BlogPage() {
+  const res = await fetch('https://your-api.com/api/blog-posts', {
+    next: { tags: ['blog-posts'] }, // auto-revalidated by webhook!
+  });
+  const { data: posts } = await res.json();
 
-data.forEach(post => {
-  console.log(post.slug, post.data.title);
-});"></div>
-
-        <h3 class="font-semibold mb-2 mt-6 text-white">React hook</h3>
-        <div class="code-block" data-code="function usePosts() {
-  const [posts, setPosts] = useState([]);
-
-  useEffect(() => {
-    fetch('/api/blog')
-      .then(r => r.json())
-      .then(({ data }) => setPosts(data));
-  }, []);
-
-  return posts;
+  return (
+    <div className=&quot;grid gap-4&quot;>
+      {posts.map((post) => (
+        <article key={post.id}>
+          <h2>{post.data.title}</h2>
+          <div dangerouslySetInnerHTML={{ __html: post.data.content }} />
+        </article>
+      ))}
+    </div>
+  );
 }"></div>
-
-        <h3 class="font-semibold mb-2 mt-6 text-white">Create an entry (with API key)</h3>
-        <div class="code-block" data-code="await fetch('https://your-domain.com/api/blog', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-API-Key': 'np_your_key_here',
-  },
-  body: JSON.stringify({
-    slug: 'my-new-post',
-    data: { title: 'My New Post', body: '<p>Hello world</p>', published: true },
-  }),
-});"></div>
-
-        <h3 class="font-semibold mb-2 mt-6 text-white">GraphQL query (JavaScript)</h3>
-        <div class="code-block" data-code="const res = await fetch('/graphql', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer YOUR_JWT_TOKEN',
-  },
-  body: JSON.stringify({
-    query: `
-      query {
-        entries(contentTypeId: 1, status: &quot;published&quot;) {
-          total
-          data { id slug data createdAt }
-        }
-      }
-    `
-  }),
-});
-const { data } = await res.json();
-console.log(data.entries);"></div>
-
-        <h3 class="font-semibold mb-2 mt-6 text-white">cURL</h3>
-        <div class="code-block" data-code="# List entries
-curl https://your-domain.com/api/blog
-
-# Get single entry
-curl https://your-domain.com/api/blog/my-post
-
-# Create entry (with API key)
-curl -X POST https://your-domain.com/api/blog \
-  -H 'Content-Type: application/json' \
-  -H 'X-API-Key: np_your_key' \
-  -d '{\"slug\":\"hello\",\"data\":{\"title\":\"Hello\"}}'"></div>
       </section>
 
       <!-- Footer -->
       <footer class="border-t border-zinc-800 pt-8 pb-16 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-500">
-        <span>Copyright &copy; 2026-present BuildWithKode. &mdash; <a href="https://github.com/buildwithkode/nodepress/blob/main/LICENSE" target="_blank" class="underline hover:text-white transition-colors">MIT License</a></span>
-        <div class="flex gap-6">
-          <a href="https://ko-fi.com/buildwithkode" target="_blank" class="hover:text-white transition-colors">☕ Ko-fi</a>
+        <span>Copyright &copy; 2026-present BuildWithKode &mdash; MIT License</span>
+        <div class="flex gap-6 text-xs">
           <a href="https://github.com/buildwithkode/nodepress" target="_blank" class="hover:text-white transition-colors">GitHub</a>
-          <a href="https://nodepress.buildwithkode.com" target="_blank" class="hover:text-white transition-colors">Website</a>
+          <a href="https://nodepress.buildwithkode.com" target="_blank" class="hover:text-white transition-colors">Official Site</a>
         </div>
       </footer>
 
@@ -1221,7 +690,7 @@ curl -X POST https://your-domain.com/api/blog \
     // Code blocks with copy button
     document.querySelectorAll('.code-block').forEach(el => {
       const code = el.dataset.code || '';
-      const lang = el.dataset.lang || ''; // optional hint, e.g. data-lang="json" — otherwise auto-detect
+      const lang = el.dataset.lang || '';
       el.innerHTML = `
         <div class="relative group my-3 rounded-xl overflow-hidden border border-zinc-800">
           <div class="flex items-center justify-between bg-zinc-900 px-4 py-2 border-b border-zinc-800">
@@ -1237,10 +706,9 @@ curl -X POST https://your-domain.com/api/blog \
           </div>
           <pre class="bg-zinc-950 p-4 text-xs font-mono overflow-x-auto leading-6"><code class="${lang ? 'language-' + lang : ''}">${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code></pre>
         </div>`;
-      // Syntax-highlight (Atom One Dark theme). Honours data-lang, else auto-detects.
       const codeEl = el.querySelector('pre code');
       if (window.hljs && codeEl) {
-        try { hljs.highlightElement(codeEl); } catch (_) { /* leave plain on failure */ }
+        try { hljs.highlightElement(codeEl); } catch (_) {}
       }
       el.querySelector('.copy-btn').addEventListener('click', function() {
         navigator.clipboard.writeText(code);
@@ -1249,11 +717,9 @@ curl -X POST https://your-domain.com/api/blog \
       });
     });
 
-    // Highlight any hand-written <pre><code> blocks too (e.g. Field Types schema
-    // examples) that don't go through the .code-block renderer above.
     if (window.hljs) {
       document.querySelectorAll('pre code:not(.hljs)').forEach(c => {
-        try { hljs.highlightElement(c); } catch (_) { /* leave plain on failure */ }
+        try { hljs.highlightElement(c); } catch (_) {}
       });
     }
 
