@@ -27,6 +27,8 @@ import {
   Rocket,
   Globe,
   Send,
+  Shield,
+  Settings,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -56,7 +58,7 @@ import { Switch } from '@/components/ui/switch';
 import api from '@/lib/axios';
 import { cn, ctLabel } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { canManageContent } from '@/lib/roles';
+import { canManageContent, canManageSettings } from '@/lib/roles';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
 
 function formatDate(iso: string) {
@@ -99,6 +101,7 @@ export default function EntriesPage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canEdit = canManageContent(user?.role);
+  const isAdmin = canManageSettings(user?.role);
   const ctParam     = searchParams?.get('ct')     ?? '';
   const statusParam = searchParams?.get('status') ?? '';
 
@@ -552,6 +555,31 @@ export default function EntriesPage() {
         </Button>
         <span className="text-muted-foreground/40 text-sm">/</span>
         <span className="text-sm font-medium capitalize">{ctParam.replace(/_/g, ' ')}</span>
+
+        {selectedCT && isAdmin && (
+          <div className="flex items-center gap-1 ml-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+              onClick={() => router.push(`/content-types/${selectedCT.id}/edit`)}
+              title="Edit Content Type Schema"
+            >
+              <Settings className="h-3.5 w-3.5 text-indigo-400" />
+              Edit Schema
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+              onClick={() => router.push(`/users/permissions?tab=fields&ct=${selectedCT.name}`)}
+              title="Configure Field-Level Permissions"
+            >
+              <Shield className="h-3.5 w-3.5 text-amber-400" />
+              Permissions
+            </Button>
+          </div>
+        )}
         <div className="ml-auto flex items-center gap-2">
           {!showTrash && (
             <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setPage(1); } }}>

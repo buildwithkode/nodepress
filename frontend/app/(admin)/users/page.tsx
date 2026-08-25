@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   Plus,
@@ -61,6 +62,7 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export default function UsersPage() {
+  const router = useRouter();
   const { user: me } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -328,40 +330,50 @@ export default function UsersPage() {
                     {new Date(u.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    {u.id !== me?.id && (
-                      <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        title="Send invitation email"
-                        disabled={inviting === u.id}
-                        onClick={() => handleSendInvite(u.id, u.email)}
+                        title={`View ${u.role} Permissions Matrix`}
+                        onClick={() => router.push('/users/permissions?tab=content-types')}
                       >
-                        <Mail className="h-3.5 w-3.5" />
+                        <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
                       </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger render={
-                          <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" />
-                        }>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete {u.email}?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently remove their access. This cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction variant="destructive" onClick={() => handleDelete(u.id)}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                      </div>
-                    )}
+                      {u.id !== me?.id && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            title="Send invitation email"
+                            disabled={inviting === u.id}
+                            onClick={() => handleSendInvite(u.id, u.email)}
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger render={
+                              <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" />
+                            }>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete {u.email}?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently remove their access. This cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction variant="destructive" onClick={() => handleDelete(u.id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

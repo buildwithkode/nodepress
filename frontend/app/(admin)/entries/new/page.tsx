@@ -4,9 +4,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight, WrapText, Rocket, Globe } from 'lucide-react';
+import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight, WrapText, Rocket, Globe, Shield, Settings } from 'lucide-react';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
+import { useAuth } from '@/context/AuthContext';
+import { canManageSettings } from '@/lib/roles';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -34,6 +36,8 @@ interface ContentType { id: number; name: string; displayName?: string | null; s
 export default function NewEntryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user: me } = useAuth();
+  const isAdmin = canManageSettings(me?.role);
   const ctId = Number(searchParams?.get('ct') ?? 0);
 
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
@@ -136,9 +140,35 @@ export default function NewEntryPage() {
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/entries')}>
-        <ArrowLeft className="h-4 w-4" /> Back to Entries
-      </Button>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(selectedCT ? `/entries?ct=${selectedCT.name}` : '/entries')}>
+          <ArrowLeft className="h-4 w-4" /> Back to {selectedCT ? ctLabel(selectedCT) : 'Entries'}
+        </Button>
+        {selectedCT && isAdmin && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => router.push(`/content-types/${selectedCT.id}/edit`)}
+              title="Edit Content Type Schema"
+            >
+              <Settings className="h-3.5 w-3.5 text-indigo-400" />
+              Edit Schema
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => router.push(`/users/permissions?tab=fields&ct=${selectedCT.name}`)}
+              title="Configure Field-Level Permissions"
+            >
+              <Shield className="h-3.5 w-3.5 text-amber-400" />
+              Field Permissions
+            </Button>
+          </div>
+        )}
+      </div>
 
       <Card>
         <CardHeader>

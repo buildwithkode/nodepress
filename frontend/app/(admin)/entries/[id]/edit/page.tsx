@@ -4,11 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText, ExternalLink, Rocket, Globe, Sparkles } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText, ExternalLink, Rocket, Globe, Sparkles, Shield, Settings } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
+import { canManageSettings } from '@/lib/roles';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -257,9 +258,35 @@ export default function EditEntryPage() {
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/entries')}>
-        <ArrowLeft className="h-4 w-4" /> Back to Entries
-      </Button>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(contentType ? `/entries?ct=${contentType.name}` : '/entries')}>
+          <ArrowLeft className="h-4 w-4" /> Back to {contentType ? ctLabel(contentType) : 'Entries'}
+        </Button>
+        {contentType && canManageSettings(me?.role) && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => router.push(`/content-types/${contentType.id}/edit`)}
+              title="Edit Content Type Schema"
+            >
+              <Settings className="h-3.5 w-3.5 text-indigo-400" />
+              Edit Schema
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => router.push(`/users/permissions?tab=fields&ct=${contentType.name}`)}
+              title="Configure Field-Level Permissions"
+            >
+              <Shield className="h-3.5 w-3.5 text-amber-400" />
+              Field Permissions
+            </Button>
+          </div>
+        )}
+      </div>
 
       {/* Pending review approval banner — shown to admins and editors only */}
       {status === 'pending_review' && canApprove && (

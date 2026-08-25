@@ -106,6 +106,7 @@ export default function WebhooksPage() {
   const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([]);
   const [deliveriesLoading, setDeliveriesLoading] = useState(false);
   const [deliveryStatusFilter, setDeliveryStatusFilter] = useState<'all' | 'failed' | 'delivered' | 'pending'>('all');
+  const [selectedWebhookFilter, setSelectedWebhookFilter] = useState<number | null>(null);
   const [retryingDeliveryId, setRetryingDeliveryId] = useState<number | null>(null);
   const [inspectDelivery, setInspectDelivery] = useState<WebhookDelivery | null>(null);
 
@@ -138,11 +139,13 @@ export default function WebhooksPage() {
     }
   };
 
-  const fetchDeliveries = async (status = deliveryStatusFilter) => {
+  const fetchDeliveries = async (status = deliveryStatusFilter, webhookId?: number | null) => {
     setDeliveriesLoading(true);
     try {
       const params: any = { limit: 50 };
       if (status !== 'all') params.status = status;
+      const targetWh = webhookId !== undefined ? webhookId : selectedWebhookFilter;
+      if (targetWh !== null) params.webhookId = targetWh;
       const res = await api.get('/webhooks/deliveries', { params });
       setDeliveries(res.data.data ?? []);
     } catch {
@@ -470,6 +473,19 @@ export default function WebhooksPage() {
                       <Button
                         variant="ghost"
                         size="icon-sm"
+                        onClick={() => {
+                          setSelectedWebhookFilter(hook.id);
+                          setActiveTab('deliveries');
+                          fetchDeliveries(deliveryStatusFilter, hook.id);
+                        }}
+                        title="View Delivery Logs & DLQ for this webhook"
+                      >
+                        <FileCode2 className="h-3.5 w-3.5 text-indigo-400" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
                         onClick={() => handleToggle(hook)}
                         title={hook.enabled ? 'Disable Webhook' : 'Enable Webhook'}
                       >
@@ -528,18 +544,37 @@ export default function WebhooksPage() {
         {/* ── Tab 2: Delivery Logs & Dead-Letter Queue (DLQ) ────────────────── */}
         <TabsContent value="deliveries" className="space-y-4 pt-4">
           {/* Status Filter Bar */}
-          <div className="flex items-center gap-2">
-            {(['all', 'failed', 'delivered', 'pending'] as const).map((st) => (
-              <Button
-                key={st}
-                variant={deliveryStatusFilter === st ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleStatusFilterChange(st)}
-                className="capitalize text-xs h-7"
-              >
-                {st === 'failed' ? 'Failed (DLQ)' : st}
-              </Button>
-            ))}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              {(['all', 'failed', 'delivered', 'pending'] as const).map((st) => (
+                <Button
+                  key={st}
+                  variant={deliveryStatusFilter === st ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleStatusFilterChange(st)}
+                  className="capitalize text-xs h-7"
+                >
+                  {st === 'failed' ? 'Failed (DLQ)' : st}
+                </Button>
+              ))}
+            </div>
+
+            {selectedWebhookFilter !== null && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/30 text-xs text-indigo-400">
+                <span>Filter: <strong>{webhooks.find(w => w.id === selectedWebhookFilter)?.name || `Webhook #${selectedWebhookFilter}`}</strong></span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedWebhookFilter(null);
+                    fetchDeliveries(deliveryStatusFilter, null);
+                  }}
+                  className="ml-1 hover:text-foreground font-bold"
+                  title="Clear endpoint filter"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Deliveries Table */}
