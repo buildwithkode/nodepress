@@ -520,7 +520,7 @@ export default function EditContentTypePage() {
                           title="Configure field-level access control & permissions"
                           onClick={() => router.push(`/users/permissions?tab=fields&ct=${computedName}`)}
                         >
-                          <Shield className="h-3.5 w-3.5" />
+                          <Shield className="h-4 w-4" />
                         </Button>
                       )}
                       <Button
@@ -532,7 +532,7 @@ export default function EditContentTypePage() {
                         onClick={() => removeField(fi)}
                         title="Delete field"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
