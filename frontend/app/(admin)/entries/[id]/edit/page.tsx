@@ -225,19 +225,6 @@ export default function EditEntryPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-32" />
-        <Card><CardContent className="space-y-4 pt-4">
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-        </CardContent></Card>
-      </div>
-    );
-  }
-
   const canApprove = me?.role === 'admin' || me?.role === 'editor';
 
   const handleApprove = async () => {
@@ -335,6 +322,19 @@ export default function EditEntryPage() {
     reset(updated);
     toast.success(`Copied ${copiedCount} field(s) from ${baseLocale.toUpperCase()} reference`);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-32" />
+        <Card><CardContent className="space-y-4 pt-4">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+        </CardContent></Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
