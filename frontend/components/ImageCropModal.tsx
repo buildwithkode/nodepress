@@ -58,6 +58,10 @@ export function ImageCropModal({
   const imageRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  // Active width & height
+  const currentW = targetWidth > 0 ? targetWidth : naturalDim.width;
+  const currentH = targetHeight > 0 ? targetHeight : naturalDim.height;
+
   // Load natural dimensions when image changes or modal opens
   useEffect(() => {
     if (!open || !imageUrl) return;
@@ -286,14 +290,13 @@ export function ImageCropModal({
                 Drag to Reposition
               </span>
               <span className="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                Output: {targetWidth || naturalDim.width} × {targetHeight || naturalDim.height} px
+                Output: {currentW} × {currentH} px
               </span>
             </div>
 
-            {/* Crop Window Container */}
+            {/* Dark Stage Canvas */}
             <div
-              ref={containerRef}
-              className="relative w-full h-72 sm:h-80 rounded-lg border border-border bg-black/60 overflow-hidden select-none cursor-grab active:cursor-grabbing flex items-center justify-center"
+              className="relative w-full h-72 sm:h-80 rounded-lg border border-border/80 bg-zinc-950/90 overflow-hidden select-none cursor-grab active:cursor-grabbing flex items-center justify-center p-3"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -302,36 +305,53 @@ export function ImageCropModal({
               onTouchMove={handleTouchMove}
               onTouchEnd={handleMouseUp}
             >
-              {/* Grid overlay for framing guide */}
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none z-10 opacity-30 border border-white/40">
-                <div className="border-r border-b border-white/40" />
-                <div className="border-r border-b border-white/40" />
-                <div className="border-b border-white/40" />
-                <div className="border-r border-b border-white/40" />
-                <div className="border-r border-b border-white/40" />
-                <div className="border-b border-white/40" />
-                <div className="border-r border-white/40" />
-                <div className="border-r border-white/40" />
-                <div />
-              </div>
+              {/* Dynamic Resizing Crop Frame that matches custom Width x Height */}
+              <div
+                ref={containerRef}
+                style={{
+                  aspectRatio: `${currentW} / ${currentH}`,
+                  maxHeight: '100%',
+                  maxWidth: '100%',
+                }}
+                className="relative h-full max-w-full rounded border-2 border-indigo-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] overflow-hidden flex items-center justify-center bg-black/40 transition-[aspect-ratio] duration-150"
+              >
+                {/* 3x3 Grid Framing Overlay */}
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none z-10 opacity-30 border border-white/50">
+                  <div className="border-r border-b border-white/50" />
+                  <div className="border-r border-b border-white/50" />
+                  <div className="border-b border-white/50" />
+                  <div className="border-r border-b border-white/50" />
+                  <div className="border-r border-b border-white/50" />
+                  <div className="border-b border-white/50" />
+                  <div className="border-r border-white/50" />
+                  <div className="border-r border-white/50" />
+                  <div />
+                </div>
 
-              {/* Transformed Image */}
-              {imageUrl ? (
-                <img
-                  ref={imageRef}
-                  src={imageUrl}
-                  alt="Crop preview"
-                  draggable={false}
-                  style={{
-                    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
-                    transformOrigin: 'center center',
-                    transition: isDragging ? 'none' : 'transform 0.08s ease-out',
-                  }}
-                  className="max-h-full max-w-full object-contain pointer-events-none"
-                />
-              ) : (
-                <div className="text-xs text-muted-foreground">No image loaded</div>
-              )}
+                {/* Corner Bracket Accents */}
+                <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white z-20 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white z-20 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white z-20 pointer-events-none" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white z-20 pointer-events-none" />
+
+                {/* Transformed Image */}
+                {imageUrl ? (
+                  <img
+                    ref={imageRef}
+                    src={imageUrl}
+                    alt="Crop preview"
+                    draggable={false}
+                    style={{
+                      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+                      transformOrigin: 'center center',
+                      transition: isDragging ? 'none' : 'transform 0.08s ease-out',
+                    }}
+                    className="max-h-none max-w-none object-contain pointer-events-none"
+                  />
+                ) : (
+                  <div className="text-xs text-muted-foreground">No image loaded</div>
+                )}
+              </div>
             </div>
 
             {/* Zoom Slider Bar */}
