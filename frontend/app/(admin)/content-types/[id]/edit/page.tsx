@@ -512,7 +512,7 @@ export default function EditContentTypePage() {
                           variant="ghost"
                           size="icon-sm"
                           className={cn(
-                            'h-8 w-8',
+                            'h-4 w-8',
                             (field.readRoles && field.readRoles.length > 0) || (field.writeRoles && field.writeRoles.length > 0)
                               ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
                               : 'text-muted-foreground hover:text-foreground'
@@ -527,7 +527,7 @@ export default function EditContentTypePage() {
                         type="button"
                         variant="ghost"
                         size="icon-sm"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="h-4 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                         disabled={fields.length === 1}
                         onClick={() => removeField(fi)}
                         title="Delete field"
