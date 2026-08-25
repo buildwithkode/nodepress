@@ -208,7 +208,9 @@ export default function PermissionsPage() {
     const updated = [...fieldsState];
     const field = updated[fieldIndex];
     // If readRoles is empty/undefined, all roles currently have read access
-    let currentRoles: string[] = field.readRoles ?? ['editor', 'contributor', 'viewer'];
+    let currentRoles: string[] = field.readRoles && field.readRoles.length > 0
+      ? [...field.readRoles]
+      : ['admin', 'editor', 'contributor', 'viewer'];
 
     if (currentRoles.includes(role)) {
       currentRoles = currentRoles.filter((r) => r !== role);
@@ -216,8 +218,13 @@ export default function PermissionsPage() {
       currentRoles = [...currentRoles, role];
     }
 
+    // Admin always has read access
+    if (!currentRoles.includes('admin')) {
+      currentRoles = ['admin', ...currentRoles];
+    }
+
     // If all roles are enabled, set to undefined/empty (universal access)
-    if (['editor', 'contributor', 'viewer'].every((r) => currentRoles.includes(r))) {
+    if (['admin', 'editor', 'contributor', 'viewer'].every((r) => currentRoles.includes(r))) {
       field.readRoles = undefined;
     } else {
       field.readRoles = currentRoles;
@@ -230,8 +237,10 @@ export default function PermissionsPage() {
   const toggleFieldWriteRole = (fieldIndex: number, role: string) => {
     const updated = [...fieldsState];
     const field = updated[fieldIndex];
-    // If writeRoles is empty/undefined, editors and contributors have write access
-    let currentRoles: string[] = field.writeRoles ?? ['editor', 'contributor'];
+    // If writeRoles is empty/undefined, admin, editors and contributors have write access
+    let currentRoles: string[] = field.writeRoles && field.writeRoles.length > 0
+      ? [...field.writeRoles]
+      : ['admin', 'editor', 'contributor'];
 
     if (currentRoles.includes(role)) {
       currentRoles = currentRoles.filter((r) => r !== role);
@@ -239,8 +248,13 @@ export default function PermissionsPage() {
       currentRoles = [...currentRoles, role];
     }
 
-    // If both editor and contributor are enabled, set to undefined (universal write access)
-    if (['editor', 'contributor'].every((r) => currentRoles.includes(r))) {
+    // Admin always has write access
+    if (!currentRoles.includes('admin')) {
+      currentRoles = ['admin', ...currentRoles];
+    }
+
+    // If all write roles are enabled, set to undefined (universal write access)
+    if (['admin', 'editor', 'contributor'].every((r) => currentRoles.includes(r))) {
       field.writeRoles = undefined;
     } else {
       field.writeRoles = currentRoles;
@@ -568,10 +582,10 @@ export default function PermissionsPage() {
                       </thead>
                       <tbody>
                         {fieldsState.map((field, idx) => {
-                          const readRoles = field.readRoles ?? ['editor', 'contributor', 'viewer'];
-                          const writeRoles = field.writeRoles ?? ['editor', 'contributor'];
-                          const isRestrictedRead = !!field.readRoles && field.readRoles.length < 3;
-                          const isRestrictedWrite = !!field.writeRoles && field.writeRoles.length < 2;
+                          const readRoles = field.readRoles ?? ['admin', 'editor', 'contributor', 'viewer'];
+                          const writeRoles = field.writeRoles ?? ['admin', 'editor', 'contributor'];
+                          const isRestrictedRead = !!field.readRoles && !['editor', 'contributor', 'viewer'].every((r) => field.readRoles!.includes(r));
+                          const isRestrictedWrite = !!field.writeRoles && !['editor', 'contributor'].every((r) => field.writeRoles!.includes(r));
 
                           return (
                             <tr key={field.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
