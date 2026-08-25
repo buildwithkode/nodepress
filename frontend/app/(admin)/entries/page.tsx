@@ -29,6 +29,7 @@ import {
   Send,
   Shield,
   Settings,
+  Clock,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -84,8 +85,8 @@ function truncate(val: any, max = 60): string {
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   published:      { label: 'Production',     className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' },
   staging:        { label: 'Staging (QA)',   className: 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800' },
-  pending_review: { label: 'Pending Review', className: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300 dark:border-blue-800' },
-  draft:          { label: 'Draft',          className: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800' },
+  pending_review: { label: 'Pending Review', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40 font-medium' },
+  draft:          { label: 'Draft',          className: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700' },
   archived:       { label: 'Archived',       className: 'bg-muted text-muted-foreground border border-border' },
 };
 
@@ -107,6 +108,8 @@ export default function EntriesPage() {
 
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
   const [entryCounts, setEntryCounts] = useState<Record<number, number>>({});
+  const [pendingCounts, setPendingCounts] = useState<Record<number, number>>({});
+  const [selectedCTPendingCount, setSelectedCTPendingCount] = useState<number>(0);
   const [loadingCTs, setLoadingCTs] = useState(true);
 
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -137,6 +140,16 @@ export default function EntriesPage() {
     }
   };
 
+  const fetchPendingCount = async () => {
+    if (!selectedCT) { setSelectedCTPendingCount(0); return; }
+    try {
+      const res = await api.get('/entries', { params: { contentTypeId: selectedCT.id, status: 'pending_review', limit: 1 } });
+      setSelectedCTPendingCount(res.data.meta?.total ?? (Array.isArray(res.data) ? res.data.length : 0));
+    } catch {
+      setSelectedCTPendingCount(0);
+    }
+  };
+
   /* ── Load content types + counts ───────────────────────────────────────── */
   useEffect(() => {
     setLoadingCTs(true);
@@ -145,13 +158,20 @@ export default function EntriesPage() {
         const cts: ContentType[] = res.data;
         setContentTypes(cts);
         const counts = await Promise.all(
-          cts.map((ct) =>
-            api.get('/entries', { params: { contentTypeId: ct.id, limit: 1 } })
-              .then((r) => ({ id: ct.id, count: r.data.meta?.total ?? 0 }))
-              .catch(() => ({ id: ct.id, count: 0 })),
-          ),
+          cts.map(async (ct) => {
+            const [totalRes, pendingRes] = await Promise.all([
+              api.get('/entries', { params: { contentTypeId: ct.id, limit: 1 } }).catch(() => ({ data: { meta: { total: 0 } } })),
+              api.get('/entries', { params: { contentTypeId: ct.id, status: 'pending_review', limit: 1 } }).catch(() => ({ data: { meta: { total: 0 } } })),
+            ]);
+            return {
+              id: ct.id,
+              count: totalRes.data?.meta?.total ?? (Array.isArray(totalRes.data) ? totalRes.data.length : 0),
+              pendingCount: pendingRes.data?.meta?.total ?? (Array.isArray(pendingRes.data) ? pendingRes.data.length : 0),
+            };
+          }),
         );
         setEntryCounts(Object.fromEntries(counts.map((c) => [c.id, c.count])));
+        setPendingCounts(Object.fromEntries(counts.map((c) => [c.id, c.pendingCount])));
       })
       .catch(() => toast.error('Failed to load content types'))
       .finally(() => setLoadingCTs(false));
@@ -159,11 +179,12 @@ export default function EntriesPage() {
 
   /* ── Load entries when CT is selected ──────────────────────────────────── */
   useEffect(() => {
-    if (!selectedCT) { setEntries([]); setDeletedCount(0); return; }
+    if (!selectedCT) { setEntries([]); setDeletedCount(0); setSelectedCTPendingCount(0); return; }
     setEntries([]);
     setLoadingEntries(true);
     setSelected(new Set());
     fetchDeletedCount();
+    fetchPendingCount();
     const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
     if (showTrash) {
       params.deleted = true;
@@ -182,6 +203,7 @@ export default function EntriesPage() {
   const refreshEntries = async (trashState = showTrash) => {
     if (!selectedCT) return;
     fetchDeletedCount();
+    fetchPendingCount();
     const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
     if (trashState) {
       params.deleted = true;
@@ -202,7 +224,7 @@ export default function EntriesPage() {
     {
       onEntryCreated: () => { if (selectedCT && !showTrash) refreshEntries(false); },
       onEntryUpdated: () => { if (selectedCT && !showTrash) refreshEntries(false); },
-      onEntryDeleted: () => { if (selectedCT) { fetchDeletedCount(); refreshEntries(showTrash); } },
+      onEntryDeleted: () => { if (selectedCT) { fetchDeletedCount(); fetchPendingCount(); refreshEntries(showTrash); } },
     },
     selectedCT ? [selectedCT.name] : [],
   );
@@ -501,17 +523,45 @@ export default function EntriesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {contentTypes.map((ct) => {
           const count = entryCounts[ct.id];
+          const pendingCount = pendingCounts[ct.id] ?? 0;
           const fields = ct.schema.slice(0, 3).map((f) => f.name);
           return (
-            <Card key={ct.id} className="flex flex-col">
+            <Card
+              key={ct.id}
+              className={cn(
+                'flex flex-col transition-all duration-200 hover:shadow-md',
+                pendingCount > 0 && 'border-amber-500/40 bg-amber-500/[0.02] shadow-[0_0_12px_-3px_rgba(245,158,11,0.12)]',
+              )}
+            >
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base">
-                    {ctLabel(ct)}
-                  </CardTitle>
-                  <Badge variant="secondary" className="shrink-0 tabular-nums">
-                    {count === undefined ? '…' : `${count} ${count === 1 ? 'entry' : 'entries'}`}
-                  </Badge>
+                  <div className="space-y-1">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      {ctLabel(ct)}
+                      {pendingCount > 0 && (
+                        <span className="relative flex h-2 w-2" title={`${pendingCount} ${pendingCount === 1 ? 'entry' : 'entries'} pending review`}>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                        </span>
+                      )}
+                    </CardTitle>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                    {pendingCount > 0 && (
+                      <Badge
+                        variant="outline"
+                        className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 gap-1 text-[11px] font-semibold py-0.5 px-2 cursor-pointer hover:bg-amber-500/25 transition-colors"
+                        onClick={() => router.push(`/entries?ct=${ct.name}&status=pending_review`)}
+                        title="Click to view entries awaiting review"
+                      >
+                        <Clock className="h-3 w-3" />
+                        {pendingCount} Pending Review
+                      </Badge>
+                    )}
+                    <Badge variant="secondary" className="shrink-0 tabular-nums">
+                      {count === undefined ? '…' : `${count} ${count === 1 ? 'entry' : 'entries'}`}
+                    </Badge>
+                  </div>
                 </div>
                 <CardDescription className="text-xs truncate">
                   {fields.length > 0
@@ -624,7 +674,7 @@ export default function EntriesPage() {
         <div className="ml-auto flex items-center gap-2">
           {!showTrash && (
             <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setPage(1); } }}>
-              <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectTrigger className="h-8 w-44 text-xs">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -632,7 +682,9 @@ export default function EntriesPage() {
                 <SelectItem value="published">Production (Published)</SelectItem>
                 <SelectItem value="staging">Staging (QA)</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="pending_review">Pending Review</SelectItem>
+                <SelectItem value="pending_review">
+                  Pending Review {selectedCTPendingCount > 0 ? `(${selectedCTPendingCount})` : ''}
+                </SelectItem>
                 <SelectItem value="archived">Archived</SelectItem>
               </SelectContent>
             </Select>
@@ -708,6 +760,29 @@ export default function EntriesPage() {
           )}
         </div>
       </div>
+
+      {/* Pending Review Notice Banner */}
+      {!showTrash && selectedCTPendingCount > 0 && statusFilter !== 'pending_review' && (
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+            <span>
+              <strong>{selectedCTPendingCount}</strong> {selectedCTPendingCount === 1 ? 'entry is' : 'entries are'} pending review in this collection.
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 gap-1"
+            onClick={() => { setStatusFilter('pending_review'); setPage(1); }}
+          >
+            <Clock className="h-3 w-3" /> Show Pending Reviews ({selectedCTPendingCount}) →
+          </Button>
+        </div>
+      )}
 
       {/* Recycle Bin Notice Banner */}
       {showTrash && (
@@ -868,7 +943,12 @@ export default function EntriesPage() {
                 <p className="font-medium text-foreground">{entry.slug}</p>
               </TableCell>
               <TableCell>
-                {(() => {
+                {entry.status === 'pending_review' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+                    <Clock className="h-3 w-3" />
+                    Pending Review
+                  </span>
+                ) : (() => {
                   const s = STATUS_LABELS[entry.status] ?? STATUS_LABELS.published;
                   return (
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.className}`}>

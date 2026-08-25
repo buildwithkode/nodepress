@@ -2490,6 +2490,125 @@ function verifySignature(body, secret, signatureHeader) {
               <li><strong className="text-foreground">1-Click Re-Delivery:</strong> Click the <IC>Re-deliver</IC> button to immediately re-dispatch the recorded payload. You can also trigger re-delivery programmatically via <IC>POST /api/webhooks/deliveries/:id/retry</IC>.</li>
             </ul>
 
+            {/* Real-World Use Cases & Recipes */}
+            <h3 className="font-semibold mb-3 mt-6">Top 5 Real-World Webhook Recipes & How to Use Them</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Here is how to connect NodePress webhooks to popular production tools, frameworks, and workflows:
+            </p>
+
+            <div className="space-y-4 mb-6">
+              {/* Recipe 1: Next.js On-Demand Revalidation (ISR) */}
+              <div className="rounded-xl border border-border p-4 bg-muted/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">1. Next.js On-Demand Cache Revalidation (ISR)</p>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Next.js App Router</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Instantly refresh cached pages when an entry is created or updated, without rebuilding the whole website.
+                </p>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p><strong>Webhook Configuration:</strong> Target URL: <IC>https://your-frontend.com/api/revalidate</IC> | Events: <IC>entry.created, entry.updated, entry.deleted</IC></p>
+                </div>
+                <CodeBlock code={`// app/api/revalidate/route.ts (Next.js)
+import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+import crypto from 'crypto';
+
+export async function POST(req: NextRequest) {
+  const bodyText = await req.text();
+  const signature = req.headers.get('x-nodepress-signature');
+  const secret = process.env.NODEPRESS_WEBHOOK_SECRET!;
+
+  // 1. Verify HMAC-SHA256 signature
+  const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(bodyText).digest('hex');
+  if (signature !== expected) {
+    return NextResponse.json({ message: 'Invalid signature' }, { status: 401 });
+  }
+
+  const payload = JSON.parse(bodyText);
+  const { event, data } = payload;
+
+  // 2. Revalidate specific paths
+  if (data?.slug && data?.contentType) {
+    revalidatePath(\`/\${data.contentType}/\${data.slug}\`);
+    revalidatePath('/'); // refresh homepage
+  }
+
+  return NextResponse.json({ revalidated: true, event, timestamp: Date.now() });
+}`} />
+              </div>
+
+              {/* Recipe 2: Vercel / Netlify Deploy Hook */}
+              <div className="rounded-xl border border-border p-4 bg-muted/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">2. Vercel & Netlify Automated Production Deployments</p>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">CI / CD & SSG</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Trigger an automated build and deployment on Vercel, Netlify, or Cloudflare Pages whenever content is published or updated.
+                </p>
+                <div className="text-xs text-muted-foreground space-y-1.5 pl-1">
+                  <p>• <strong>Step 1:</strong> In your Vercel/Netlify Dashboard → <em>Settings → Git / Deploy Hooks</em> → create a hook URL (e.g. <IC>https://api.vercel.com/v1/integrations/deploy/prj_.../hook_...</IC>).</p>
+                  <p>• <strong>Step 2:</strong> In NodePress → <em>Developer → Webhooks</em> → Add New Webhook with that URL and select <IC>entry.updated</IC> and <IC>entry.created</IC>.</p>
+                </div>
+              </div>
+
+              {/* Recipe 3: Team Alerts (Slack / Discord) */}
+              <div className="rounded-xl border border-border p-4 bg-muted/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">3. Editorial Team Alerts (Slack & Discord Incoming Webhooks)</p>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Team Channels</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Post real-time alerts to Slack or Discord channels whenever content is submitted for review or a new form submission arrives.
+                </p>
+                <div className="text-xs text-muted-foreground space-y-1.5 pl-1">
+                  <p>• <strong>Slack:</strong> Create an Incoming Webhook in Slack App Directory → paste URL in NodePress webhooks.</p>
+                  <p>• <strong>Discord:</strong> Channel Settings → Integrations → Webhooks → append <IC>/slack</IC> to the Discord webhook URL to accept standard Slack-compatible JSON payloads directly!</p>
+                </div>
+              </div>
+
+              {/* Recipe 4: Algolia / Meilisearch Sync */}
+              <div className="rounded-xl border border-border p-4 bg-muted/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">4. Algolia / Meilisearch Instant Search Indexing</p>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Search Sync</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Automatically index new articles or remove unpublished items from search engines in real time.
+                </p>
+                <CodeBlock code={`// serverless handler (e.g. /api/sync-search)
+export async function handleSearchSync(payload) {
+  const { event, data } = payload;
+  
+  if (event === 'entry.created' || event === 'entry.updated') {
+    if (data.status === 'published') {
+      await algoliaIndex.saveObject({ objectID: String(data.id), ...data });
+    } else {
+      await algoliaIndex.deleteObject(String(data.id));
+    }
+  } else if (event === 'entry.deleted' || event === 'entry.purged') {
+    await algoliaIndex.deleteObject(String(data.id));
+  }
+}`} />
+              </div>
+
+              {/* Recipe 5: CRM & Zapier / Make.com Automation */}
+              <div className="rounded-xl border border-border p-4 bg-muted/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">5. CRM & Lead Forwarding (HubSpot, Salesforce, Zapier, Make)</p>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">Automations</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Push contact leads and customer submissions directly into HubSpot, Salesforce, or multi-step Zapier automations.
+                </p>
+                <div className="text-xs text-muted-foreground space-y-1.5 pl-1">
+                  <p>• In Zapier / Make, choose <em>Webhooks by Zapier (Catch Hook)</em>.</p>
+                  <p>• Copy the webhook URL and paste it into NodePress under <em>Forms → Actions → Webhook Action</em> or <em>Developer → Webhooks</em>.</p>
+                </div>
+              </div>
+            </div>
+
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mt-4 text-sm">
               <strong className="text-amber-400">Delivery notes</strong>
               <ul className="text-muted-foreground mt-1 space-y-1 list-disc pl-4">

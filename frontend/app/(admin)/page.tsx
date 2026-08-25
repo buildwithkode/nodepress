@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Layers, FileText, Image, Key, ArrowRight, LayoutGrid,
+  Layers, FileText, Image, Key, ArrowRight, LayoutGrid, Plus,
   Clock, Globe, Copy, Check, ClipboardList, Inbox, ToggleRight, ToggleLeft,
 } from 'lucide-react';
 import { useFetch } from '../../lib/useFetch';
@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ContentType { id: number; name: string; schema: any[]; allowedMethods: string[] | null }
-interface Entry       { id: number; slug: string; contentTypeId: number; createdAt: string }
+interface Entry       { id: number; slug: string; status?: string; contentTypeId: number; createdAt: string }
 interface MediaFile   { id: number; filename: string; url: string; mimetype: string; createdAt: string }
 interface FormRow     { id: number; name: string; slug: string; isActive: boolean; fields: any[]; _count: { submissions: number } }
 interface RecentSub   { id: number; createdAt: string; data: Record<string, unknown>; form: { id: number; name: string; slug: string } }
@@ -62,13 +62,18 @@ export default function DashboardPage() {
 
   const loading = loadingCT || loadingEnt || loadingMed || loadingKeys || loadingForms || loadingSubs;
 
-  // Select first content type by default once loaded
   if (contentTypes.length > 0 && !selectedCT) {
     setSelectedCT(contentTypes[0]);
   }
 
   const ctEntryCounts: Record<number, number> = {};
-  entries.forEach((e) => { ctEntryCounts[e.contentTypeId] = (ctEntryCounts[e.contentTypeId] ?? 0) + 1; });
+  const ctPendingCounts: Record<number, number> = {};
+  entries.forEach((e) => {
+    ctEntryCounts[e.contentTypeId] = (ctEntryCounts[e.contentTypeId] ?? 0) + 1;
+    if (e.status === 'pending_review') {
+      ctPendingCounts[e.contentTypeId] = (ctPendingCounts[e.contentTypeId] ?? 0) + 1;
+    }
+  });
 
   const recentMedia = [...media]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -86,7 +91,6 @@ export default function DashboardPage() {
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
-  // first field value of a submission (preview)
   const subPreview = (data: Record<string, unknown>) => {
     const first = Object.values(data)[0];
     if (first === null || first === undefined) return '—';
@@ -96,6 +100,21 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Here&apos;s what&apos;s happening with your content.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => router.push('/entries/new')}>
+            <Plus className="h-4 w-4 mr-1.5" /> New Entry
+          </Button>
+        </div>
+      </div>
 
       {/* ── Stat cards (6) ── */}
       <div>
@@ -113,13 +132,19 @@ export default function DashboardPage() {
       {/* ── Pending review alert ── */}
       {pendingReviewCount > 0 && (
         <div
-          className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 cursor-pointer hover:bg-blue-100 transition-colors dark:border-blue-800 dark:bg-blue-950/40 dark:hover:bg-blue-950/60"
+          className="flex items-center justify-between gap-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 cursor-pointer hover:bg-amber-500/15 transition-colors dark:border-amber-500/40 dark:bg-amber-500/10 dark:hover:bg-amber-500/20"
           onClick={() => router.push('/entries?status=pending_review')}
         >
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            <span className="font-semibold">{pendingReviewCount}</span> {pendingReviewCount === 1 ? 'entry is' : 'entries are'} awaiting review
-          </p>
-          <span className="text-xs text-blue-600 dark:text-blue-400 underline underline-offset-2 shrink-0">Review now →</span>
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+              <span className="font-bold">{pendingReviewCount}</span> {pendingReviewCount === 1 ? 'entry is' : 'entries are'} awaiting review
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 underline underline-offset-2 shrink-0">Review now →</span>
         </div>
       )}
 
@@ -154,9 +179,22 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2.5">
                       <div className="size-2 rounded-full bg-primary/60" />
                       <span className="text-sm font-medium">{ct.name.replace(/_/g, ' ')}</span>
+                      {ctPendingCounts[ct.id] > 0 && (
+                        <span className="relative flex h-2 w-2" title={`${ctPendingCounts[ct.id]} pending review`}>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                        </span>
+                      )}
                       <span className="text-xs text-muted-foreground">{ct.schema.length} field{ct.schema.length !== 1 ? 's' : ''}</span>
                     </div>
-                    <Badge variant="secondary">{ctEntryCounts[ct.id] ?? 0} entries</Badge>
+                    <div className="flex items-center gap-2">
+                      {ctPendingCounts[ct.id] > 0 && (
+                        <Badge variant="outline" className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 gap-1 text-[10px] font-semibold py-0.5">
+                          <Clock className="h-2.5 w-2.5" /> {ctPendingCounts[ct.id]} Pending
+                        </Badge>
+                      )}
+                      <Badge variant="secondary">{ctEntryCounts[ct.id] ?? 0} entries</Badge>
+                    </div>
                   </div>
                 ))}
               </div>
