@@ -70,53 +70,62 @@ export function ImageCropModal({
       const h = img.naturalHeight || 600;
       setNaturalDim({ width: w, height: h });
 
-      // Default target width & height (capped at reasonable bounds)
-      const initW = Math.min(w, 800);
-      const initH = Math.round((initW / w) * h);
-      setTargetWidth(initW);
-      setTargetHeight(initH);
-      setAspectRatio(initW / initH);
+      // Default target width & height to exact natural dimensions
+      setTargetWidth(w);
+      setTargetHeight(h);
+      setAspectRatio(w / (h || 1));
+      setAspectLocked(false);
       setZoom(1);
       setPosition({ x: 0, y: 0 });
     };
   }, [open, imageUrl]);
 
-  // Handle Width change with optional aspect lock
-  const handleWidthChange = (val: number) => {
-    const w = Math.max(50, Math.min(val || 100, 4000));
-    setTargetWidth(w);
+  // Handle Width change with custom value support
+  const handleWidthChange = (valStr: string) => {
+    const val = parseInt(valStr, 10);
+    if (isNaN(val)) {
+      setTargetWidth(0);
+      return;
+    }
+    setTargetWidth(val);
     if (aspectLocked && aspectRatio > 0) {
-      setTargetHeight(Math.round(w / aspectRatio));
+      setTargetHeight(Math.round(val / aspectRatio));
     }
   };
 
-  // Handle Height change with optional aspect lock
-  const handleHeightChange = (val: number) => {
-    const h = Math.max(50, Math.min(val || 100, 4000));
-    setTargetHeight(h);
+  // Handle Height change with custom value support
+  const handleHeightChange = (valStr: string) => {
+    const val = parseInt(valStr, 10);
+    if (isNaN(val)) {
+      setTargetHeight(0);
+      return;
+    }
+    setTargetHeight(val);
     if (aspectLocked && aspectRatio > 0) {
-      setTargetWidth(Math.round(h * aspectRatio));
+      setTargetWidth(Math.round(val * aspectRatio));
     }
   };
 
   const toggleAspectLock = () => {
     if (!aspectLocked) {
-      setAspectRatio(targetWidth / (targetHeight || 1));
+      const w = targetWidth > 0 ? targetWidth : naturalDim.width;
+      const h = targetHeight > 0 ? targetHeight : naturalDim.height;
+      setAspectRatio(w / (h || 1));
       setAspectLocked(true);
     } else {
       setAspectLocked(false);
     }
   };
 
-  // Reset to original / defaults
+  // Reset to original exact dimensions & center framing
   const handleReset = () => {
     setZoom(1);
     setPosition({ x: 0, y: 0 });
-    const initW = Math.min(naturalDim.width, 800);
-    const initH = Math.round((initW / (naturalDim.width || 1)) * naturalDim.height);
-    setTargetWidth(initW);
-    setTargetHeight(initH);
-    toast.info('Crop settings reset');
+    setTargetWidth(naturalDim.width);
+    setTargetHeight(naturalDim.height);
+    setAspectRatio(naturalDim.width / (naturalDim.height || 1));
+    setAspectLocked(false);
+    toast.info('Reset to original image size');
   };
 
   // Pan / Drag Handlers
@@ -170,10 +179,13 @@ export function ImageCropModal({
       const containerRect = container.getBoundingClientRect();
       const imgRect = img.getBoundingClientRect();
 
+      const outW = targetWidth > 0 ? targetWidth : naturalDim.width;
+      const outH = targetHeight > 0 ? targetHeight : naturalDim.height;
+
       // Create an export canvas with target dimensions
       const canvas = document.createElement('canvas');
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
+      canvas.width = outW;
+      canvas.height = outH;
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Could not create canvas context');
 
@@ -208,8 +220,8 @@ export function ImageCropModal({
         sourceH,
         0,
         0,
-        targetWidth,
-        targetHeight
+        outW,
+        outH
       );
 
       // Convert canvas to Blob
@@ -241,8 +253,8 @@ export function ImageCropModal({
       onCropComplete({
         url: uploaded.url || uploaded.webpUrl,
         alt: altText,
-        width: targetWidth,
-        height: targetHeight,
+        width: outW,
+        height: outH,
       });
       onOpenChange(false);
     } catch (err: any) {
@@ -261,7 +273,7 @@ export function ImageCropModal({
             Image Crop & Resize
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Adjust target dimensions, zoom level, and drag to frame your image perfectly.
+            Adjust custom width & height, zoom level, and drag to frame your image perfectly.
           </DialogDescription>
         </DialogHeader>
 
@@ -274,7 +286,7 @@ export function ImageCropModal({
                 Drag to Reposition
               </span>
               <span className="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                Output: {targetWidth} × {targetHeight} px
+                Output: {targetWidth || naturalDim.width} × {targetHeight || naturalDim.height} px
               </span>
             </div>
 
@@ -381,8 +393,9 @@ export function ImageCropModal({
                   <Input
                     id="crop-w"
                     type="number"
-                    value={targetWidth}
-                    onChange={(e) => handleWidthChange(Number(e.target.value))}
+                    value={targetWidth === 0 ? '' : targetWidth}
+                    onChange={(e) => handleWidthChange(e.target.value)}
+                    placeholder={String(naturalDim.width)}
                     className="h-8 text-xs font-mono"
                   />
                 </div>
@@ -392,8 +405,9 @@ export function ImageCropModal({
                   <Input
                     id="crop-h"
                     type="number"
-                    value={targetHeight}
-                    onChange={(e) => handleHeightChange(Number(e.target.value))}
+                    value={targetHeight === 0 ? '' : targetHeight}
+                    onChange={(e) => handleHeightChange(e.target.value)}
+                    placeholder={String(naturalDim.height)}
                     className="h-8 text-xs font-mono"
                   />
                 </div>
@@ -460,15 +474,18 @@ export function ImageCropModal({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="text-xs h-7"
+                    className="text-xs h-7 font-semibold text-indigo-400 hover:text-indigo-300"
                     onClick={() => {
-                      setTargetWidth(1200);
-                      setTargetHeight(630);
-                      setAspectRatio(1200 / 630);
+                      setTargetWidth(naturalDim.width);
+                      setTargetHeight(naturalDim.height);
+                      setAspectRatio(naturalDim.width / (naturalDim.height || 1));
                       setAspectLocked(true);
+                      setZoom(1);
+                      setPosition({ x: 0, y: 0 });
                     }}
+                    title={`Original Exact Dimensions (${naturalDim.width}×${naturalDim.height}px)`}
                   >
-                    OG Social
+                    OG Image
                   </Button>
                 </div>
               </div>
@@ -483,7 +500,7 @@ export function ImageCropModal({
                 onClick={handleReset}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                Reset Frame & Zoom
+                Reset to OG Size
               </Button>
             </div>
           </div>
