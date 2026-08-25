@@ -152,6 +152,23 @@ export class MediaService {
     }
   }
 
+  async renameFolder(id: number, name: string) {
+    if (!name?.trim()) throw new BadRequestException('Folder name is required');
+    const folder = await (this.prisma as any).mediaFolder.findUnique({ where: { id } });
+    if (!folder) throw new NotFoundException(`Folder #${id} not found`);
+    try {
+      return await (this.prisma as any).mediaFolder.update({
+        where: { id },
+        data: { name: name.trim() },
+      });
+    } catch (err: any) {
+      if (err?.code === 'P2002') {
+        throw new BadRequestException(`A folder named "${name}" already exists here`);
+      }
+      throw err;
+    }
+  }
+
   async deleteFolder(id: number) {
     const folder = await (this.prisma as any).mediaFolder.findUnique({ where: { id } });
     if (!folder) throw new NotFoundException(`Folder #${id} not found`);

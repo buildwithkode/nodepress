@@ -340,9 +340,9 @@ export default function ContentTypesPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {loading && (
+          {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <TableRow key={i}>
+               <TableRow key={i}>
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-36" /></TableCell>
@@ -351,15 +351,13 @@ export default function ContentTypesPage() {
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
               </TableRow>
             ))
-          )}
-          {filtered.length === 0 && !loading && (
+          ) : filtered.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
                 {search ? 'No content types match your search.' : 'No content types yet. Create your first one.'}
               </TableCell>
             </TableRow>
-          )}
-          {paginated.map((ct) => (
+          ) : paginated.map((ct) => (
             <TableRow key={ct.id}>
               <TableCell>
                 <button

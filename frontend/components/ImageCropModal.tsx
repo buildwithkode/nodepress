@@ -46,7 +46,7 @@ export function ImageCropModal({
   const [aspectLocked, setAspectLocked] = useState<boolean>(false);
   const [aspectRatio, setAspectRatio] = useState<number>(800 / 600);
 
-  // Zoom & Pan state
+  // Zoom & Pan state (zoom: 0 = 0% scale, 0.5 = 50% scale, 1.0 = 100% scale, 3.0 = 300% scale)
   const [zoom, setZoom] = useState<number>(1);
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -121,7 +121,7 @@ export function ImageCropModal({
     }
   };
 
-  // Reset to original exact dimensions & center framing
+  // Reset to original exact dimensions & 100% zoom
   const handleReset = () => {
     setZoom(1);
     setPosition({ x: 0, y: 0 });
@@ -129,7 +129,7 @@ export function ImageCropModal({
     setTargetHeight(naturalDim.height);
     setAspectRatio(naturalDim.width / (naturalDim.height || 1));
     setAspectLocked(false);
-    toast.info('Reset to original image size');
+    toast.info('Reset to 100% size & original dimensions');
   };
 
   // Pan / Drag Handlers
@@ -277,7 +277,7 @@ export function ImageCropModal({
             Image Crop & Resize
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Adjust custom width & height, zoom level, and drag to frame your image perfectly.
+            Adjust custom width & height, zoom level (0% to 300%), and drag to frame your image perfectly.
           </DialogDescription>
         </DialogHeader>
 
@@ -334,7 +334,7 @@ export function ImageCropModal({
                 <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white z-20 pointer-events-none" />
                 <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white z-20 pointer-events-none" />
 
-                {/* Transformed Image */}
+                {/* Transformed Image - Properly framed and scaled */}
                 {imageUrl ? (
                   <img
                     ref={imageRef}
@@ -342,11 +342,14 @@ export function ImageCropModal({
                     alt="Crop preview"
                     draggable={false}
                     style={{
-                      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+                      aspectRatio: `${naturalDim.width} / ${naturalDim.height}`,
+                      maxHeight: '100%',
+                      maxWidth: '100%',
+                      transform: `translate(${position.x}px, ${position.y}px) scale(${Math.max(0.001, zoom)})`,
                       transformOrigin: 'center center',
                       transition: isDragging ? 'none' : 'transform 0.08s ease-out',
                     }}
-                    className="max-h-none max-w-none object-contain pointer-events-none"
+                    className="object-contain pointer-events-none select-none shrink-0"
                   />
                 ) : (
                   <div className="text-xs text-muted-foreground">No image loaded</div>
@@ -354,7 +357,7 @@ export function ImageCropModal({
               </div>
             </div>
 
-            {/* Zoom Slider Bar */}
+            {/* Zoom Slider Bar (0% to 300%) */}
             <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <Label className="text-xs font-medium flex items-center gap-1.5">
@@ -372,16 +375,16 @@ export function ImageCropModal({
                   variant="outline"
                   size="icon-xs"
                   className="h-7 w-7 shrink-0"
-                  onClick={() => setZoom((z) => Math.max(0.5, Number((z - 0.1).toFixed(2))))}
+                  onClick={() => setZoom((z) => Math.max(0, Number((z - 0.1).toFixed(2))))}
                 >
                   <ZoomOut className="h-3.5 w-3.5" />
                 </Button>
 
                 <input
                   type="range"
-                  min={0.5}
-                  max={3.5}
-                  step={0.05}
+                  min={0}
+                  max={3}
+                  step={0.01}
                   value={zoom}
                   onChange={(e) => setZoom(Number(e.target.value))}
                   className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-indigo-500"
@@ -392,7 +395,7 @@ export function ImageCropModal({
                   variant="outline"
                   size="icon-xs"
                   className="h-7 w-7 shrink-0"
-                  onClick={() => setZoom((z) => Math.min(3.5, Number((z + 0.1).toFixed(2))))}
+                  onClick={() => setZoom((z) => Math.min(3, Number((z + 0.1).toFixed(2))))}
                 >
                   <ZoomIn className="h-3.5 w-3.5" />
                 </Button>

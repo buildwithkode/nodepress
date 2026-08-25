@@ -12,7 +12,8 @@ import {
   FolderPlus,
   FolderOpen,
   ChevronRight,
-  ImageIcon,
+  Pencil,
+  FolderInput,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Cookies from 'js-cookie';
@@ -46,7 +47,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import api from '../../../lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -97,7 +97,15 @@ export default function MediaPage() {
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [showNewFolder, setShowNewFolder]   = useState(false);
 
+  // Folder rename state
+  const [editingFolder, setEditingFolder] = useState<MediaFolder | null>(null);
+  const [editFolderName, setEditFolderName] = useState('');
+  const [renamingFolder, setRenamingFolder] = useState(false);
 
+  // Move file state
+  const [movingFile, setMovingFile] = useState<MediaFile | null>(null);
+  const [targetFolderId, setTargetFolderId] = useState<string>('unfiled');
+  const [movingLoading, setMovingLoading] = useState(false);
 
   const fetchFolders = async () => {
     try {
@@ -153,6 +161,22 @@ export default function MediaPage() {
     }
   };
 
+  const handleRenameFolder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFolder || !editFolderName.trim()) return;
+    setRenamingFolder(true);
+    try {
+      await api.put(`/media/folders/${editingFolder.id}`, { name: editFolderName.trim() });
+      toast.success('Folder renamed');
+      setEditingFolder(null);
+      fetchFolders();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to rename folder');
+    } finally {
+      setRenamingFolder(false);
+    }
+  };
+
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
@@ -170,6 +194,22 @@ export default function MediaPage() {
       toast.error(err.response?.data?.message || 'Failed to create folder');
     } finally {
       setCreatingFolder(false);
+    }
+  };
+
+  const handleMoveFile = async () => {
+    if (!movingFile) return;
+    setMovingLoading(true);
+    try {
+      const folderId = targetFolderId === 'unfiled' ? null : Number(targetFolderId);
+      await api.put(`/media/${movingFile.filename}/folder`, { folderId });
+      toast.success('File moved successfully');
+      setMovingFile(null);
+      fetchFiles(activeFolderId);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to move file');
+    } finally {
+      setMovingLoading(false);
     }
   };
 
@@ -205,17 +245,18 @@ export default function MediaPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    Array.from(e.target.files || []).forEach(uploadFile);
+    const fileList = Array.from(e.target.files ?? []);
+    fileList.forEach(uploadFile);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    Array.from(e.dataTransfer.files).forEach(uploadFile);
+    const dropped = Array.from(e.dataTransfer.files);
+    dropped.forEach(uploadFile);
   };
 
-  // Build flat list into a tree for sidebar (only root-level for simplicity)
   const rootFolders = folders.filter((f) => f.parentId === null);
 
   const activeFolderLabel =
@@ -264,7 +305,7 @@ export default function MediaPage() {
             <button
               onClick={() => setActiveFolderId(folder.id)}
               className={cn(
-                'flex-1 flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors text-left',
+                'flex-1 flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors text-left min-w-0',
                 activeFolderId === folder.id
                   ? 'bg-accent text-accent-foreground font-medium'
                   : 'hover:bg-muted text-muted-foreground hover:text-foreground',
@@ -276,28 +317,45 @@ export default function MediaPage() {
               }
               <span className="truncate">{folder.name}</span>
             </button>
+
             {canEdit && (
-              <AlertDialog>
-                <AlertDialogTrigger render={
-                  <button className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 hover:text-destructive transition-all" />
-                }>
-                  <Trash2 className="h-3 w-3" />
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete folder "{folder.name}"?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Files inside will become unfiled. Sub-folders will be deleted.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction variant="destructive" onClick={() => handleDeleteFolder(folder.id)}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Rename Folder Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingFolder(folder);
+                    setEditFolderName(folder.name);
+                  }}
+                  title="Rename folder"
+                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+
+                {/* Delete Folder Button */}
+                <AlertDialog>
+                  <AlertDialogTrigger render={
+                    <button className="p-1 rounded hover:bg-destructive/10 hover:text-destructive transition-all" title="Delete folder" />
+                  }>
+                    <Trash2 className="h-3 w-3" />
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete folder "{folder.name}"?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Files inside will become unfiled. Sub-folders will be deleted.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" onClick={() => handleDeleteFolder(folder.id)}>
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             )}
           </div>
         ))}
@@ -421,19 +479,34 @@ export default function MediaPage() {
                           {file.width}×{file.height}
                         </span>
                       )}
+                      {file.folderId && (
+                        <span className="inline-block text-[10px] bg-indigo-500/10 text-indigo-400 rounded px-1.5 py-0.5 truncate max-w-[90px]">
+                          📁 {folders.find((f) => f.id === file.folderId)?.name ?? 'Folder'}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 items-center">
                       <Button type="button" variant="outline" size="sm"
                         onClick={() => handleCopyUrl(file.webpUrl || file.url)}
                         className="flex-1 h-7 text-xs gap-1"
                         title={file.webpUrl ? 'Copy WebP URL' : 'Copy URL'}>
                         <Copy className="h-3 w-3" />{file.webpUrl ? 'WebP' : 'Copy'}
                       </Button>
-                      {file.webpUrl && (
-                        <Button type="button" variant="outline" size="sm"
-                          onClick={() => handleCopyUrl(file.url)}
-                          className="h-7 text-xs px-2" title="Copy original URL">
-                          <Copy className="h-3 w-3" />
+
+                      {/* Move to Folder Button */}
+                      {canEdit && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setMovingFile(file);
+                            setTargetFolderId(file.folderId ? String(file.folderId) : 'unfiled');
+                          }}
+                          className="h-7 text-xs px-2"
+                          title="Move to Folder"
+                        >
+                          <FolderInput className="h-3 w-3 text-muted-foreground hover:text-foreground" />
                         </Button>
                       )}
 
@@ -441,7 +514,7 @@ export default function MediaPage() {
                         <AlertDialog>
                           <AlertDialogTrigger render={
                             <Button variant="ghost" size="icon-xs" title="Delete"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10" />
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 w-7" />
                           }>
                             <Trash2 className="h-3 w-3" />
                           </AlertDialogTrigger>
@@ -470,6 +543,89 @@ export default function MediaPage() {
           </>
         )}
       </div>
+
+      {/* ── Rename Folder Dialog ──────────────────────────────────────────────── */}
+      <Dialog open={editingFolder !== null} onOpenChange={(open) => !open && setEditingFolder(null)}>
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={handleRenameFolder}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+                <Pencil className="h-4 w-4 text-indigo-400" />
+                Rename Folder
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Enter a new name for folder "{editingFolder?.name}".
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-4">
+              <Label htmlFor="rename-folder-input" className="text-xs font-medium mb-1.5 block">
+                Folder Name
+              </Label>
+              <Input
+                id="rename-folder-input"
+                autoFocus
+                value={editFolderName}
+                onChange={(e) => setEditFolderName(e.target.value)}
+                placeholder="Folder name"
+                className="h-9 text-sm"
+              />
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setEditingFolder(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" disabled={renamingFolder || !editFolderName.trim()}>
+                {renamingFolder && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Move File to Folder Dialog ─────────────────────────────────────────── */}
+      <Dialog open={movingFile !== null} onOpenChange={(open) => !open && setMovingFile(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+              <FolderInput className="h-4 w-4 text-indigo-400" />
+              Move File to Folder
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Choose a destination folder for <span className="font-semibold text-foreground">{movingFile?.originalName || movingFile?.filename}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-3">
+            <Label className="text-xs font-medium block">Destination Folder</Label>
+            <Select value={targetFolderId} onValueChange={(val) => setTargetFolderId(val ?? 'unfiled')}>
+              <SelectTrigger className="w-full h-9 text-xs">
+                <SelectValue placeholder="Select folder" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unfiled">📁 Unfiled (Root)</SelectItem>
+                {folders.map((f) => (
+                  <SelectItem key={f.id} value={String(f.id)}>
+                    📁 {f.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setMovingFile(null)}>
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={handleMoveFile} disabled={movingLoading}>
+              {movingLoading && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+              Move File
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -121,10 +121,21 @@ export default function EntriesPage() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  // Trash view
+  // Trash / Recycle Bin view
   const [showTrash, setShowTrash] = useState(false);
+  const [deletedCount, setDeletedCount] = useState(0);
 
   const selectedCT = contentTypes.find((ct) => ct.name === ctParam) ?? null;
+
+  const fetchDeletedCount = async () => {
+    if (!selectedCT) { setDeletedCount(0); return; }
+    try {
+      const res = await api.get('/entries', { params: { contentTypeId: selectedCT.id, deleted: true, limit: 1 } });
+      setDeletedCount(res.data.meta?.total ?? (Array.isArray(res.data) ? res.data.length : 0));
+    } catch {
+      setDeletedCount(0);
+    }
+  };
 
   /* ── Load content types + counts ───────────────────────────────────────── */
   useEffect(() => {
@@ -148,9 +159,11 @@ export default function EntriesPage() {
 
   /* ── Load entries when CT is selected ──────────────────────────────────── */
   useEffect(() => {
-    if (!selectedCT) { setEntries([]); return; }
+    if (!selectedCT) { setEntries([]); setDeletedCount(0); return; }
+    setEntries([]);
     setLoadingEntries(true);
     setSelected(new Set());
+    fetchDeletedCount();
     const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
     if (showTrash) {
       params.deleted = true;
@@ -166,21 +179,30 @@ export default function EntriesPage() {
   useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter, showTrash]);
 
   /* ── Refresh helpers ────────────────────────────────────────────────────── */
-  const refreshEntries = async () => {
+  const refreshEntries = async (trashState = showTrash) => {
     if (!selectedCT) return;
-    const res = await api.get('/entries', { params: { contentTypeId: selectedCT.id, limit: 100 } });
+    fetchDeletedCount();
+    const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
+    if (trashState) {
+      params.deleted = true;
+    } else if (statusFilter !== 'all') {
+      params.status = statusFilter;
+    }
+    const res = await api.get('/entries', { params });
     const list = res.data.data ?? res.data;
     setEntries(list);
-    setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: res.data.meta?.total ?? list.length }));
+    if (!trashState) {
+      setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: res.data.meta?.total ?? list.length }));
+    }
     setSelected(new Set());
   };
 
   /* ── Realtime ───────────────────────────────────────────────────────────── */
   useRealtimeEvents(
     {
-      onEntryCreated: () => { if (selectedCT && !showTrash) refreshEntries(); },
-      onEntryUpdated: () => { if (selectedCT && !showTrash) refreshEntries(); },
-      onEntryDeleted: () => { if (selectedCT) refreshEntries(); },
+      onEntryCreated: () => { if (selectedCT && !showTrash) refreshEntries(false); },
+      onEntryUpdated: () => { if (selectedCT && !showTrash) refreshEntries(false); },
+      onEntryDeleted: () => { if (selectedCT) { fetchDeletedCount(); refreshEntries(showTrash); } },
     },
     selectedCT ? [selectedCT.name] : [],
   );
@@ -189,8 +211,8 @@ export default function EntriesPage() {
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/entries/${id}`);
-      toast.success('Entry deleted');
-      await refreshEntries();
+      toast.success('Entry moved to recycle bin');
+      await refreshEntries(false);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Delete failed');
     }
@@ -201,7 +223,7 @@ export default function EntriesPage() {
     try {
       await api.post(`/entries/${id}/restore`);
       toast.success('Entry restored');
-      await refreshEntries();
+      await refreshEntries(true);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Restore failed');
     }
@@ -211,7 +233,7 @@ export default function EntriesPage() {
     try {
       await api.delete(`/entries/${id}/purge`);
       toast.success('Entry permanently deleted');
-      await refreshEntries();
+      await refreshEntries(true);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Purge failed');
     }
@@ -545,18 +567,37 @@ export default function EntriesPage() {
     <div className="space-y-4">
       {/* Breadcrumb + toolbar */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-1.5 text-muted-foreground"
-          onClick={() => router.push('/entries')}
-        >
-          <ArrowLeft className="h-4 w-4" /> All Types
-        </Button>
+        {showTrash ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 font-medium bg-background text-foreground hover:bg-muted border-border shadow-sm h-8 text-xs"
+            onClick={() => { setShowTrash(false); setSelected(new Set()); }}
+          >
+            <ArrowLeft className="h-3.5 w-3.5 text-amber-500" /> Back to Entries
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-muted-foreground"
+            onClick={() => router.push('/entries')}
+          >
+            <ArrowLeft className="h-4 w-4" /> All Types
+          </Button>
+        )}
         <span className="text-muted-foreground/40 text-sm">/</span>
         <span className="text-sm font-medium capitalize">{ctParam.replace(/_/g, ' ')}</span>
+        {showTrash && (
+          <>
+            <span className="text-muted-foreground/40 text-sm">/</span>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">
+              <RotateCcw className="h-3 w-3" /> Recycle Bin
+            </span>
+          </>
+        )}
 
-        {selectedCT && isAdmin && (
+        {selectedCT && isAdmin && !showTrash && (
           <div className="flex items-center gap-1 ml-1">
             <Button
               variant="ghost"
@@ -649,15 +690,17 @@ export default function EntriesPage() {
               </Button>
             </>
           )}
-          <Button
-            variant={showTrash ? 'default' : 'outline'}
-            size="sm"
-            className="gap-1.5"
-            onClick={() => { setShowTrash((v) => !v); setSelected(new Set()); }}
-          >
-            <Trash className="h-4 w-4" />
-            {showTrash ? 'Exit Trash' : 'Trash'}
-          </Button>
+          {deletedCount > 0 && !showTrash && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8 text-xs font-semibold text-amber-600 hover:text-amber-500 dark:text-amber-400 border-amber-500/30 hover:border-amber-500/60 shadow-sm"
+              onClick={() => { setShowTrash(true); setSelected(new Set()); }}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Recycle Bin ({deletedCount})
+            </Button>
+          )}
           {canEdit && !showTrash && (
             <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
               <Plus className="h-4 w-4 mr-1.5" /> New Entry
@@ -665,6 +708,16 @@ export default function EntriesPage() {
           )}
         </div>
       </div>
+
+      {/* Recycle Bin Notice Banner */}
+      {showTrash && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
+          <RotateCcw className="h-4 w-4 shrink-0 text-amber-500" />
+          <span>
+            <strong>Recycle Bin:</strong> Showing deleted entries. You can restore them to active or permanently purge them.
+          </span>
+        </div>
+      )}
 
       {/* Bulk action bar */}
       {canEdit && selected.size > 0 && !showTrash && (
@@ -765,29 +818,41 @@ export default function EntriesPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {loadingEntries && Array.from({ length: 4 }).map((_, i) => (
-            <TableRow key={i}>
-              {canEdit && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
-              <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-              {schemaColumns.map((col) => (
-                <TableCell key={col.name}><Skeleton className="h-4 w-24" /></TableCell>
-              ))}
-              <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
-            </TableRow>
-          ))}
-          {!loadingEntries && paginatedEntries.length === 0 && (
+          {loadingEntries ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <TableRow key={i}>
+                {canEdit && !showTrash && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
+                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                {schemaColumns.map((col) => (
+                  <TableCell key={col.name}><Skeleton className="h-4 w-24" /></TableCell>
+                ))}
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+              </TableRow>
+            ))
+          ) : paginatedEntries.length === 0 ? (
             <TableRow>
               <TableCell
                 colSpan={schemaColumns.length + (canEdit && !showTrash ? 4 : 3)}
                 className="py-12 text-center text-muted-foreground"
               >
-                {showTrash ? 'Trash is empty.' : search ? 'No entries match your search.' : 'No entries yet. Create the first one.'}
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <p>{showTrash ? 'Recycle Bin is empty.' : search ? 'No entries match your search.' : 'No entries yet. Create the first one.'}</p>
+                  {showTrash && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 h-7 text-xs mt-1"
+                      onClick={() => { setShowTrash(false); setSelected(new Set()); }}
+                    >
+                      <ArrowLeft className="h-3 w-3" /> Return to Active Entries
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
-          )}
-          {paginatedEntries.map((entry) => (
+          ) : paginatedEntries.map((entry) => (
             <TableRow key={entry.id} className={selected.has(entry.id) ? 'bg-muted/40' : ''}>
               {canEdit && !showTrash && (
                 <TableCell>

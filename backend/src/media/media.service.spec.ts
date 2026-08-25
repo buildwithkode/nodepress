@@ -36,6 +36,7 @@ const mockPrisma = {
     findMany:   jest.fn(),
     findUnique: jest.fn(),
     create:     jest.fn(),
+    update:     jest.fn(),
     delete:     jest.fn(),
   },
 };
@@ -145,6 +146,34 @@ describe('MediaService', () => {
       expect(mockPrisma.mediaFolder.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: { name: 'Photos', parentId: null } }),
       );
+    });
+  });
+
+  // ── renameFolder ────────────────────────────────────────────────────────────
+
+  describe('renameFolder()', () => {
+    it('throws BadRequestException for empty folder name', async () => {
+      await expect(service.renameFolder(1, '   ')).rejects.toThrow(BadRequestException);
+      await expect(service.renameFolder(1, '')).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws NotFoundException when folder does not exist', async () => {
+      mockPrisma.mediaFolder.findUnique.mockResolvedValue(null);
+      await expect(service.renameFolder(99, 'New Name')).rejects.toThrow(NotFoundException);
+    });
+
+    it('renames an existing folder and returns updated record', async () => {
+      const folder = { id: 1, name: 'Old Name', parentId: null };
+      const updated = { id: 1, name: 'New Name', parentId: null };
+      mockPrisma.mediaFolder.findUnique.mockResolvedValue(folder);
+      mockPrisma.mediaFolder.update.mockResolvedValue(updated);
+
+      const result = await service.renameFolder(1, 'New Name');
+      expect(result).toEqual(updated);
+      expect(mockPrisma.mediaFolder.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { name: 'New Name' },
+      });
     });
   });
 

@@ -115,15 +115,15 @@ export default function FormsPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {loading && Array.from({ length: 4 }).map((_, i) => (
-            <TableRow key={i}>
-              {Array.from({ length: 6 }).map((__, j) => (
-                <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
-              ))}
-            </TableRow>
-          ))}
-
-          {!loading && paginated.length === 0 && (
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <TableRow key={i}>
+                {Array.from({ length: 6 }).map((__, j) => (
+                  <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : paginated.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="py-16 text-center text-muted-foreground">
                 {search
@@ -131,9 +131,7 @@ export default function FormsPage() {
                   : 'No forms yet. Create your first one.'}
               </TableCell>
             </TableRow>
-          )}
-
-          {paginated.map((form) => (
+          ) : paginated.map((form) => (
             <TableRow key={form.id}>
               <TableCell className="font-medium">{form.name}</TableCell>
               <TableCell>

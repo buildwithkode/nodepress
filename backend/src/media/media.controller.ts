@@ -137,6 +137,19 @@ export class MediaController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
+  @Put('folders/:id')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Rename a media folder' })
+  @ApiParam({ name: 'id', type: Number })
+  renameFolder(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('name') name: string,
+  ) {
+    return this.mediaService.renameFolder(id, name);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
   @Delete('folders/:id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Delete a folder (cascades to sub-folders; files become unfiled)' })

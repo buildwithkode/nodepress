@@ -154,7 +154,7 @@ export default function ApiKeysPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading && (
+            {loading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
@@ -165,15 +165,13 @@ export default function ApiKeysPage() {
                   <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                 </TableRow>
               ))
-            )}
-            {!loading && paginatedKeys.length === 0 && (
+            ) : paginatedKeys.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
                   {search ? 'No API keys match your search.' : 'No API keys yet. Create your first one.'}
                 </TableCell>
               </TableRow>
-            )}
-            {paginatedKeys.map((k) => (
+            ) : paginatedKeys.map((k) => (
               <TableRow key={k.id}>
                 {/* Name */}
                 <TableCell>
