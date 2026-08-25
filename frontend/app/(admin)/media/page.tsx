@@ -18,6 +18,7 @@ import {
   Check,
   ExternalLink,
   ImageIcon,
+  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Cookies from 'js-cookie';
@@ -127,6 +128,15 @@ export default function MediaPage() {
     setTargetWidth(w);
     setTargetHeight(h);
     setTargetFit(fit);
+  };
+
+  const resetSettings = () => {
+    setTargetWidth('800');
+    setTargetHeight('');
+    setTargetFormat('webp');
+    setTargetQuality(80);
+    setTargetFit('inside');
+    toast.info('Transform settings reset to defaults');
   };
 
   const fetchFolders = async () => {
@@ -537,7 +547,20 @@ export default function MediaPage() {
             <div className="space-y-5 py-1">
               {/* Presets Header Strip */}
               <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
-                <Label className="text-xs font-semibold text-foreground/80 mb-2 block">Quick Dimension Presets</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs font-semibold text-foreground/80 block">Quick Dimension Presets</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-[11px] gap-1 px-2 text-muted-foreground hover:text-foreground"
+                    onClick={resetSettings}
+                    title="Reset all settings to default"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Reset Defaults
+                  </Button>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <Button
                     type="button"
@@ -717,7 +740,11 @@ export default function MediaPage() {
             </div>
           )}
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-2 flex items-center justify-between sm:justify-between w-full">
+            <Button type="button" variant="outline" size="sm" className="text-xs gap-1.5" onClick={resetSettings}>
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reset
+            </Button>
             <Button type="button" variant="ghost" onClick={() => setTransformFile(null)}>
               Close
             </Button>
