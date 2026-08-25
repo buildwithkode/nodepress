@@ -505,32 +505,36 @@ export default function EditContentTypePage() {
                       />
                       Required
                     </label>
-                    {computedName && (
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {computedName && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className={cn(
+                            'h-8 w-8',
+                            (field.readRoles && field.readRoles.length > 0) || (field.writeRoles && field.writeRoles.length > 0)
+                              ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
+                              : 'text-muted-foreground hover:text-foreground'
+                          )}
+                          title="Configure field-level access control & permissions"
+                          onClick={() => router.push(`/users/permissions?tab=fields&ct=${computedName}`)}
+                        >
+                          <Shield className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon-sm"
-                        className={cn(
-                          'shrink-0',
-                          (field.readRoles && field.readRoles.length > 0) || (field.writeRoles && field.writeRoles.length > 0)
-                            ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
-                            : 'text-muted-foreground hover:text-foreground'
-                        )}
-                        title="Configure field-level access control & permissions"
-                        onClick={() => router.push(`/users/permissions?tab=fields&ct=${computedName}`)}
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        disabled={fields.length === 1}
+                        onClick={() => removeField(fi)}
+                        title="Delete field"
                       >
-                        <Shield className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                      disabled={fields.length === 1}
-                      onClick={() => removeField(fi)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    </div>
                   </div>
 
                   {/* Select choices */}
