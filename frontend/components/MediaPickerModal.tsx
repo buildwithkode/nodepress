@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Upload, ImageIcon, Check, Loader2 } from 'lucide-react';
+import { Upload, ImageIcon, Check, Loader2, Crop } from 'lucide-react';
 import { toast } from 'sonner';
 import Cookies from 'js-cookie';
 import api from '@/lib/axios';
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { ImageCropModal } from '@/components/ImageCropModal';
 
 interface MediaFile {
   filename: string;
@@ -36,14 +37,15 @@ interface Props {
 }
 
 export function MediaPickerModal({ value, onChange }: Props) {
-  const [open, setOpen]           = useState(false);
-  const [files, setFiles]         = useState<MediaFile[]>([]);
-  const [loading, setLoading]     = useState(false);
+  const [open, setOpen]               = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [files, setFiles]             = useState<MediaFile[]>([]);
+  const [loading, setLoading]         = useState(false);
   const [selectedUrl, setSelectedUrl] = useState<string>(value?.url ?? '');
-  const [alt, setAlt]             = useState<string>(value?.alt ?? '');
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver]   = useState(false);
-  const [tab, setTab]             = useState('browse');
+  const [alt, setAlt]                 = useState<string>(value?.alt ?? '');
+  const [uploading, setUploading]     = useState(false);
+  const [dragOver, setDragOver]       = useState(false);
+  const [tab, setTab]                 = useState('browse');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFiles = async () => {
@@ -87,7 +89,8 @@ export function MediaPickerModal({ value, onChange }: Props) {
       const uploaded = await res.json();
       toast.success(`${file.name} uploaded`);
       await fetchFiles();
-      setSelectedUrl(uploaded.url);
+      const targetUrl = uploaded.url || uploaded.webpUrl;
+      setSelectedUrl(targetUrl);
       setAlt('');
       setTab('browse');
     } catch {
@@ -107,23 +110,55 @@ export function MediaPickerModal({ value, onChange }: Props) {
               alt={value.alt}
               className="h-24 w-auto rounded border object-cover"
             />
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="absolute inset-0 flex items-center justify-center rounded bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium"
-            >
-              Change
-            </button>
+            <div className="absolute inset-0 flex items-center justify-center gap-1 rounded bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="px-2 py-1 bg-white/20 hover:bg-white/30 rounded text-white text-[11px] font-medium"
+              >
+                Change
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedUrl(value.url);
+                  setAlt(value.alt || '');
+                  setCropModalOpen(true);
+                }}
+                className="px-2 py-1 bg-indigo-600/80 hover:bg-indigo-600 rounded text-white text-[11px] font-medium flex items-center gap-1"
+              >
+                <Crop className="h-3 w-3" />
+                Crop
+              </button>
+            </div>
           </div>
         )}
         {value?.url && value.alt && (
           <p className="text-xs text-muted-foreground">Alt: {value.alt}</p>
         )}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
             <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
             {value?.url ? 'Change Image' : 'Choose from Media'}
           </Button>
+
+          {value?.url && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedUrl(value.url);
+                setAlt(value.alt || '');
+                setCropModalOpen(true);
+              }}
+              className="gap-1.5 text-indigo-400 hover:text-indigo-300"
+            >
+              <Crop className="h-3.5 w-3.5" />
+              Crop / Zoom
+            </Button>
+          )}
+
           {value?.url && (
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
               Remove
@@ -251,16 +286,44 @@ export function MediaPickerModal({ value, onChange }: Props) {
             </TabsContent>
           </Tabs>
 
-          <DialogFooter>
+          <DialogFooter className="flex items-center justify-between sm:justify-between w-full">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="button" onClick={confirm} disabled={!selectedUrl}>
-              Use Image
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (selectedUrl) {
+                    setCropModalOpen(true);
+                  }
+                }}
+                disabled={!selectedUrl}
+                className="gap-1.5 text-indigo-400 hover:text-indigo-300"
+              >
+                <Crop className="h-3.5 w-3.5" />
+                Crop & Zoom
+              </Button>
+              <Button type="button" onClick={confirm} disabled={!selectedUrl}>
+                Use Image
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Image Crop & Resize Modal */}
+      <ImageCropModal
+        open={cropModalOpen}
+        onOpenChange={setCropModalOpen}
+        imageUrl={selectedUrl || value?.url || ''}
+        altText={alt || value?.alt || ''}
+        onCropComplete={(cropped) => {
+          onChange({ url: cropped.url, alt: cropped.alt || alt });
+          setOpen(false);
+        }}
+      />
     </>
   );
 }
