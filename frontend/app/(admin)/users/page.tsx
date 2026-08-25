@@ -277,7 +277,7 @@ export default function UsersPage() {
 
   return (
     <AdminGuard>
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 w-full">
 
       {/* ── User list ─────────────────────────────────────────────────────── */}
       <Card>

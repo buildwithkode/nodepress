@@ -58,7 +58,7 @@ export default function AuditLogPage() {
 
   return (
     <AdminGuard>
-    <div className="space-y-4 max-w-5xl">
+    <div className="space-y-4 w-full">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

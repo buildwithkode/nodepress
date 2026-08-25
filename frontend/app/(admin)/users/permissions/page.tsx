@@ -270,7 +270,7 @@ export default function PermissionsPage() {
 
   return (
     <AdminGuard>
-      <div className="space-y-6 max-w-5xl">
+      <div className="space-y-6 w-full">
         {/* Header */}
         <div className="flex items-center gap-3">
           <Button
