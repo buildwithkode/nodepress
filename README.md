@@ -54,6 +54,7 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 | **Advanced REST Filter Engine** | Nested filtering with operators: `where[price][gte]=100`, `where[tag][in]=a,b`, `OR` & `AND` logic |
 | **GraphQL API** | Apollo Server with full queries + mutations — entries, content types, webhooks, media |
 | **Multi-locale (i18n)** | Per-entry locale field with `?locale=` filtering on all endpoints |
+| **Side-by-Side Translation Studio** | Dual-pane comparative translation workspace with 1-click "Copy Empty Fields from Reference" |
 | **Content relations** | Link entries across types — `?populate=author,author.company` ($O(\text{depth})$ batched lookups) |
 | **Next.js Live Draft Mode** | Built-in Next.js App Router Draft Mode integration, signed HMAC tokens & preview banner |
 | **Field-Level Security (RBAC/PBAC)** | Granular `readRoles` (strip fields from public responses) & `writeRoles` (protect fields from edits) |
@@ -68,6 +69,7 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 | **TypeScript Codegen** | Run `npx nodepress generate:types` to generate 100% type-safe TypeScript interfaces |
 | **Frontend SDK** | Pre-built `@/lib/nodepress` client helpers for Next.js App Router & React |
 | **Real-time WebSocket** | Socket.io gateway — subscribe to `entry:created`, `entry:updated`, `media:uploaded`, and more |
+| **Collaborative Presence & Locking** | Live user presence bubbles & 60s renewable soft-locks preventing concurrent edit collisions |
 | **Plugin Hook & Filter Bus** | `PluginHookBus` with priority lifecycle actions (`beforeCreate`, `afterUpdate`) and data filters |
 | **API keys** | Scoped keys with per-key rate limiting (read / write / all · per content type) |
 | **Webhooks** | HTTP callbacks on any event — HMAC signed, with retry + exponential backoff |
@@ -79,6 +81,7 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 | Feature | What it does |
 |---|---|
 | **Dynamic Image Resizing** | On-the-fly Sharp transformations: `GET /api/media/:file/transform?w=800&h=600&q=80&format=webp` |
+| **Responsive CDN & Srcset Studio** | In-app modal with presets (Thumbnail, Hero, Card) + 1-click HTML5 `<picture>` / `srcset` generator |
 | **Persistent Variant Cache** | Automatically saves resized WebP/Avif variants to disk for instant subsequent serving |
 | **File uploads** | Images, PDFs, videos — up to 10MB per file with magic bytes validation |
 | **Folder organisation** | Group media into folders in the admin panel |

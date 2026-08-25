@@ -978,6 +978,16 @@ GET /api/article/mon-article?locale=fr`} />
                 The same slug <IC>hello-world</IC> can exist in <IC>en</IC>, <IC>fr</IC>, and <IC>de</IC> simultaneously.
               </p>
             </div>
+
+            <h3 className="font-semibold mb-2 mt-6">Side-by-Side Multilingual Translation Studio</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              NodePress includes a built-in comparative translation studio directly inside the Entry Editor.
+            </p>
+            <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground space-y-2 mb-4">
+              <p><strong className="text-foreground">1. Dual-Pane View:</strong> Click <IC>🌐 Translate Workspace</IC> in the top header to split your screen into source reader and target translation form.</p>
+              <p><strong className="text-foreground">2. Instant Reference Switching:</strong> Pick any base language (<IC>en</IC>, <IC>es</IC>, <IC>fr</IC>, <IC>de</IC>, <IC>zh</IC>, <IC>ja</IC>) to inspect original text card-by-card while typing the localized version.</p>
+              <p><strong className="text-foreground">3. 1-Click Field Scaffolding:</strong> Click <IC>📋 Copy Empty Fields from Reference</IC> to autofill blank fields from the base locale without losing existing translated values.</p>
+            </div>
           </Section>
 
           {/* ── Relations ─────────────────────────────────────────────────── */}
@@ -1332,10 +1342,24 @@ mutation DeleteWebhook {
                   <tr><td className="px-4 py-2.5 font-mono text-xs">entry:created</td><td className="px-4 py-2.5 font-mono text-xs">{'{ id, slug, contentType, locale }'}</td></tr>
                   <tr><td className="px-4 py-2.5 font-mono text-xs">entry:updated</td><td className="px-4 py-2.5 font-mono text-xs">{'{ id, slug, contentType, locale, status }'}</td></tr>
                   <tr><td className="px-4 py-2.5 font-mono text-xs">entry:deleted</td><td className="px-4 py-2.5 font-mono text-xs">{'{ id, slug, contentType? }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">entry:presence</td><td className="px-4 py-2.5 font-mono text-xs">{'{ entryId, users: [{ id, email, role, joinedAt }] }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">entry:lockAcquired</td><td className="px-4 py-2.5 font-mono text-xs">{'{ entryId, lock: { userId, email, role, expiresAt } }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">entry:lockReleased</td><td className="px-4 py-2.5 font-mono text-xs">{'{ entryId, userId }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono text-xs">entry:lockTakeover</td><td className="px-4 py-2.5 font-mono text-xs">{'{ entryId, previousLock, newLock }'}</td></tr>
                   <tr><td className="px-4 py-2.5 font-mono text-xs">media:uploaded</td><td className="px-4 py-2.5 font-mono text-xs">{'{ id, filename, url, mimetype }'}</td></tr>
                   <tr><td className="px-4 py-2.5 font-mono text-xs">media:deleted</td><td className="px-4 py-2.5 font-mono text-xs">{'{ filename }'}</td></tr>
                 </tbody>
               </table>
+            </div>
+
+            <h3 className="font-semibold mb-2">Collaborative Presence & Post Soft-Locking</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              NodePress includes real-time presence awareness and 60-second lease soft-locking to prevent simultaneous edit overwrites:
+            </p>
+            <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground space-y-2 mb-4">
+              <p><strong className="text-foreground">🟢 Live Presence:</strong> Emitting <IC>entry:join</IC> puts the client in room <IC>entry:{'<'}id{'>'}</IC>. Active user count and avatars are broadcast via <IC>entry:presence</IC>.</p>
+              <p><strong className="text-foreground">🔒 Soft-Locking:</strong> The first editor automatically acquires a renewable 60s lease (<IC>entry:requestLock</IC> + periodic <IC>entry:heartbeat</IC>). Other editors receive a conflict warning banner.</p>
+              <p><strong className="text-foreground">⚡ Admin Override:</strong> Admins and editors can take over stale or urgent locks via <IC>entry:takeoverLock</IC>.</p>
             </div>
 
             <h3 className="font-semibold mb-2">Rooms</h3>
@@ -1661,7 +1685,7 @@ curl -X POST ${baseUrl}/api/media/upload \\
               <Endpoint method="GET"    path="/api/media?folderId=:id"       desc="List files in a specific folder — use folderId=null for unfiled files" />
             </div>
 
-            <h3 className="font-semibold mb-3 mt-6">Dynamic On-Demand Transformations</h3>
+            <h3 className="font-semibold mb-3 mt-6">Dynamic On-Demand Transformations & Responsive CDN</h3>
             <p className="text-muted-foreground text-sm mb-3">
               Transform and resize any media file on-the-fly with native Sharp libvips performance and automatic persistent disk caching:
             </p>
@@ -1670,6 +1694,12 @@ GET ${baseUrl}/api/media/1712345678-abc123.jpg/transform?w=800&h=600&q=80&format
 
 # Quick width resize:
 GET ${baseUrl}/api/media/1712345678-abc123.jpg/resize?w=400`} />
+
+            <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground space-y-2 mb-4">
+              <p><strong className="text-foreground">✨ UI Transformer Modal:</strong> In Admin → Media, click the <IC>✨</IC> button on any image card to open the interactive transformer.</p>
+              <p><strong className="text-foreground">📐 Presets:</strong> Instant buttons for Thumbnail (150×150), Card (400×300), Social Hero (1200×630), and Full Banner (1920×800).</p>
+              <p><strong className="text-foreground">📋 Responsive HTML5 Snippet:</strong> Generate and copy responsive HTML5 <IC>&lt;picture&gt;</IC> and <IC>srcset</IC> markup with 1 click for direct use in Next.js, React, or Astro.</p>
+            </div>
 
             <h3 className="font-semibold mb-3 mt-6">Cloud Storage Configuration (S3 / Cloudflare R2 / MinIO)</h3>
             <p className="text-muted-foreground text-sm mb-3">
