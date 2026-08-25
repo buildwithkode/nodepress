@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Sliders,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -81,9 +81,15 @@ interface PermRow {
 
 type MatrixKey = `${Role}::${string}`;
 
-export default function PermissionsPage() {
+function PermissionsPageContent() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'content-types' | 'fields'>('content-types');
+  const searchParams = useSearchParams();
+  const initialCt = searchParams.get('ct') ?? '';
+  const initialTab = searchParams.get('tab') ?? '';
+
+  const [activeTab, setActiveTab] = useState<'content-types' | 'fields'>(
+    initialTab === 'fields' || initialCt ? 'fields' : 'content-types'
+  );
 
   // Content type permissions matrix state
   const [contentTypes, setContentTypes] = useState<ContentTypeSummary[]>([]);
@@ -96,7 +102,7 @@ export default function PermissionsPage() {
   const [roleLoading, setRoleLoading]   = useState(false);
 
   // Field-level permissions matrix state
-  const [selectedContentTypeName, setSelectedContentTypeName] = useState<string>('');
+  const [selectedContentTypeName, setSelectedContentTypeName] = useState<string>(initialCt);
   const [selectedContentType, setSelectedContentType] = useState<ContentTypeDetail | null>(null);
   const [fieldsState, setFieldsState] = useState<SchemaField[]>([]);
   const [loadingSchema, setLoadingSchema] = useState(false);
@@ -114,8 +120,12 @@ export default function PermissionsPage() {
       setContentTypes(list);
       setPerms(permRes.data ?? []);
 
-      if (list.length > 0 && !selectedContentTypeName) {
-        setSelectedContentTypeName(list[0].name);
+      if (list.length > 0) {
+        if (initialCt && list.some((c: any) => c.name === initialCt)) {
+          setSelectedContentTypeName(initialCt);
+        } else if (!selectedContentTypeName) {
+          setSelectedContentTypeName(list[0].name);
+        }
       }
     } catch {
       toast.error('Failed to load permissions');
@@ -693,5 +703,19 @@ export default function PermissionsPage() {
         </p>
       </div>
     </AdminGuard>
+  );
+}
+
+export default function PermissionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading permissions…
+        </div>
+      }
+    >
+      <PermissionsPageContent />
+    </Suspense>
   );
 }

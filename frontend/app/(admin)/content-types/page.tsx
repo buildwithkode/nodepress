@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   AlertCircle,
   FileCode,
+  FileText,
+  Shield,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
@@ -360,10 +362,15 @@ export default function ContentTypesPage() {
           {paginated.map((ct) => (
             <TableRow key={ct.id}>
               <TableCell>
-                <div className="font-semibold text-foreground text-sm flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => router.push(`/entries?ct=${ct.name}`)}
+                  className="font-semibold text-foreground text-sm flex items-center gap-1.5 hover:text-primary transition-colors text-left"
+                  title={`View ${ctLabel(ct)} entries`}
+                >
                   <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
                   {ctLabel(ct)}
-                </div>
+                </button>
                 <div className="text-xs text-muted-foreground font-mono mt-0.5">/{ct.name}</div>
               </TableCell>
               <TableCell>
@@ -408,6 +415,24 @@ export default function ContentTypesPage() {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => router.push(`/entries?ct=${ct.name}`)}
+                    title="View Entries"
+                  >
+                    <FileText className="h-3.5 w-3.5 text-blue-400" />
+                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => router.push(`/users/permissions?tab=fields&ct=${ct.name}`)}
+                      title="Field Permissions & Access Control"
+                    >
+                      <Shield className="h-3.5 w-3.5 text-amber-400" />
+                    </Button>
+                  )}
                   {isAdmin && (
                     <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/content-types/${ct.id}/edit`)} title="Edit">
                       <Pencil className="h-3.5 w-3.5" />

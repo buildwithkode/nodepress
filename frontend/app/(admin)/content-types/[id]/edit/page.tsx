@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown, Download, Braces, Copy, Check, PanelRight, WrapText } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown, Download, Braces, Copy, Check, PanelRight, WrapText, Shield, FileText, Lock } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -21,7 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
-import { humanizeName } from '@/lib/utils';
+import { cn, humanizeName } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,12 +62,14 @@ const SIMPLE_FIELD_TYPES = FIELD_TYPES.filter(
 interface SubField { name: string; type: string }
 interface Layout   { name: string; label: string; fields: SubField[] }
 interface Field {
-  _id:      string;
-  name:     string;
-  label?:   string;
-  type:     string;
-  required: boolean;
-  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
+  _id:         string;
+  name:        string;
+  label?:      string;
+  type:        string;
+  required:    boolean;
+  readRoles?:  string[];
+  writeRoles?: string[];
+  options?:    { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
 }
 
 let _counter = 0;
@@ -319,7 +321,7 @@ export default function EditContentTypePage() {
   /* ── Page ────────────────────────────────────────────────────────────────── */
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <Button
           variant="ghost"
           size="sm"
@@ -328,29 +330,57 @@ export default function EditContentTypePage() {
         >
           <ArrowLeft className="h-4 w-4" /> Back to Content Types
         </Button>
-        {!loading && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => {
-              const payload = {
-                nodepress: '1.0',
-                exportedAt: new Date().toISOString(),
-                contentType: { name, displayName: name.trim(), schema: fields.filter((f) => f.name.trim()).map(buildSchemaField), allowedMethods },
-              };
-              const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `${name}.json`;
-              a.click();
-              URL.revokeObjectURL(url);
-            }}
-          >
-            <Download className="h-4 w-4" /> Export JSON
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {!loading && (
+            <>
+              {computedName && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => router.push(`/entries?ct=${computedName}`)}
+                    title="View entries for this content type"
+                  >
+                    <FileText className="h-4 w-4 text-blue-400" />
+                    View Entries
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => router.push(`/users/permissions?tab=fields&ct=${computedName}`)}
+                    title="Configure field-level permissions & access control"
+                  >
+                    <Shield className="h-4 w-4 text-amber-400" />
+                    Field Permissions
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  const payload = {
+                    nodepress: '1.0',
+                    exportedAt: new Date().toISOString(),
+                    contentType: { name, displayName: name.trim(), schema: fields.filter((f) => f.name.trim()).map(buildSchemaField), allowedMethods },
+                  };
+                  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${name}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                <Download className="h-4 w-4" /> Export JSON
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -475,6 +505,23 @@ export default function EditContentTypePage() {
                       />
                       Required
                     </label>
+                    {computedName && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className={cn(
+                          'shrink-0',
+                          (field.readRoles && field.readRoles.length > 0) || (field.writeRoles && field.writeRoles.length > 0)
+                            ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
+                            : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        title="Configure field-level access control & permissions"
+                        onClick={() => router.push(`/users/permissions?tab=fields&ct=${computedName}`)}
+                      >
+                        <Shield className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon-sm"
