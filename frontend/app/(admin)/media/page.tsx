@@ -1,7 +1,24 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Upload, Copy, Trash2, File, RefreshCw, Loader2, Folder, FolderPlus, FolderOpen, ChevronRight } from 'lucide-react';
+import {
+  Upload,
+  Copy,
+  Trash2,
+  File,
+  RefreshCw,
+  Loader2,
+  Folder,
+  FolderPlus,
+  FolderOpen,
+  ChevronRight,
+  Sparkles,
+  SlidersHorizontal,
+  Download,
+  Check,
+  ExternalLink,
+  ImageIcon,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import Cookies from 'js-cookie';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,8 +33,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import api from '../../../lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -67,6 +101,33 @@ export default function MediaPage() {
   const [newFolderName, setNewFolderName]   = useState('');
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [showNewFolder, setShowNewFolder]   = useState(false);
+
+  // Dynamic image transformation modal
+  const [transformFile, setTransformFile] = useState<MediaFile | null>(null);
+  const [targetWidth, setTargetWidth] = useState<string>('800');
+  const [targetHeight, setTargetHeight] = useState<string>('');
+  const [targetQuality, setTargetQuality] = useState<number>(80);
+  const [targetFormat, setTargetFormat] = useState<'webp' | 'avif' | 'jpeg' | 'png'>('webp');
+  const [targetFit, setTargetFit] = useState<'inside' | 'cover' | 'contain' | 'fill'>('inside');
+  const [copiedTransformUrl, setCopiedTransformUrl] = useState(false);
+  const [copiedPictureHtml, setCopiedPictureHtml] = useState(false);
+
+  const getTransformUrl = (filename: string, w?: string, h?: string, fmt?: string, q?: number, fit?: string) => {
+    const params = new URLSearchParams();
+    if (w && parseInt(w, 10) > 0) params.set('w', w);
+    if (h && parseInt(h, 10) > 0) params.set('h', h);
+    if (fmt) params.set('format', fmt);
+    if (q) params.set('q', String(q));
+    if (fit && fit !== 'inside') params.set('fit', fit);
+    const backendOrigin = (api.defaults.baseURL || '').replace(/\/api$/, '');
+    return `${backendOrigin}/api/media/${filename}/transform?${params.toString()}`;
+  };
+
+  const applyPreset = (w: string, h: string, fit: 'inside' | 'cover' | 'contain' | 'fill') => {
+    setTargetWidth(w);
+    setTargetHeight(h);
+    setTargetFit(fit);
+  };
 
   const fetchFolders = async () => {
     try {
@@ -405,6 +466,25 @@ export default function MediaPage() {
                           <Copy className="h-3 w-3" />
                         </Button>
                       )}
+                      {isImage(file.filename) && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon-xs"
+                          onClick={() => {
+                            setTransformFile(file);
+                            setTargetWidth(file.width ? String(Math.min(file.width, 800)) : '800');
+                            setTargetHeight('');
+                            setTargetQuality(80);
+                            setTargetFormat('webp');
+                            setTargetFit('inside');
+                          }}
+                          title="Dynamic Transform & Resize"
+                          className="h-7 w-7 text-indigo-400 hover:text-indigo-300"
+                        >
+                          <Sparkles className="h-3 w-3" />
+                        </Button>
+                      )}
                       {canEdit && (
                         <AlertDialog>
                           <AlertDialogTrigger render={
@@ -438,6 +518,181 @@ export default function MediaPage() {
           </>
         )}
       </div>
+
+      {/* ── Dynamic Image Transformer Modal ───────────────────────────────── */}
+      <Dialog open={transformFile !== null} onOpenChange={(open) => !open && setTransformFile(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-indigo-400" />
+              Dynamic Image Transformer & Responsive CDN
+            </DialogTitle>
+            <DialogDescription>
+              Generate on-the-fly resized, cropped, and format-optimized variants with edge-caching CDN URLs.
+            </DialogDescription>
+          </DialogHeader>
+
+          {transformFile && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-2">
+              {/* Left Column: Controls & Presets */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Preset Dimensions</Label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Button type="button" variant="outline" size="sm" className="text-xs h-7 justify-start" onClick={() => applyPreset('150', '150', 'cover')}>
+                      Thumbnail (150×150)
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" className="text-xs h-7 justify-start" onClick={() => applyPreset('400', '300', 'cover')}>
+                      Card (400×300)
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" className="text-xs h-7 justify-start" onClick={() => applyPreset('1200', '630', 'cover')}>
+                      Social Hero (1200×630)
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" className="text-xs h-7 justify-start" onClick={() => applyPreset('1920', '800', 'inside')}>
+                      Full Banner (1920×800)
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="tf-w" className="text-xs">Width (px)</Label>
+                    <Input id="tf-w" type="number" placeholder="Auto" value={targetWidth} onChange={(e) => setTargetWidth(e.target.value)} className="h-8 text-xs font-mono" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="tf-h" className="text-xs">Height (px)</Label>
+                    <Input id="tf-h" type="number" placeholder="Auto" value={targetHeight} onChange={(e) => setTargetHeight(e.target.value)} className="h-8 text-xs font-mono" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Format</Label>
+                    <Select value={targetFormat} onValueChange={(v: any) => setTargetFormat(v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="webp">WebP (Modern Standard)</SelectItem>
+                        <SelectItem value="avif">AVIF (Next-Gen High Compression)</SelectItem>
+                        <SelectItem value="jpeg">JPEG (Universal)</SelectItem>
+                        <SelectItem value="png">PNG (Lossless / Transparent)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Fit / Crop Mode</Label>
+                    <Select value={targetFit} onValueChange={(v: any) => setTargetFit(v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inside">Inside (Preserve Aspect)</SelectItem>
+                        <SelectItem value="cover">Cover (Crop & Fill)</SelectItem>
+                        <SelectItem value="contain">Contain (Letterbox)</SelectItem>
+                        <SelectItem value="fill">Fill (Stretch Exact)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs">
+                    <Label className="text-xs">Quality</Label>
+                    <span className="font-mono text-muted-foreground">{targetQuality}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={20}
+                    max={100}
+                    step={5}
+                    value={targetQuality}
+                    onChange={(e) => setTargetQuality(Number(e.target.value))}
+                    className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Live Preview & URL Exporters */}
+              <div className="flex flex-col justify-between rounded-lg border border-border bg-muted/20 p-4 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Live Preview</span>
+                    <Badge variant="outline" className="text-[10px] font-mono uppercase bg-indigo-500/10 text-indigo-400 border-indigo-500/30">
+                      {targetFormat}
+                    </Badge>
+                  </div>
+
+                  <div className="h-44 rounded-md border border-border bg-black/40 overflow-hidden flex items-center justify-center relative">
+                    <img
+                      src={getTransformUrl(transformFile.filename, targetWidth, targetHeight, targetFormat, targetQuality, targetFit)}
+                      alt="Transformed preview"
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs gap-1.5"
+                      onClick={() => {
+                        const url = getTransformUrl(transformFile.filename, targetWidth, targetHeight, targetFormat, targetQuality, targetFit);
+                        navigator.clipboard.writeText(url);
+                        setCopiedTransformUrl(true);
+                        toast.success('Transformed CDN URL copied to clipboard');
+                        setTimeout(() => setCopiedTransformUrl(false), 3000);
+                      }}
+                    >
+                      {copiedTransformUrl ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copiedTransformUrl ? 'Copied URL!' : 'Copy Transform URL'}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs gap-1.5"
+                      onClick={() => {
+                        const base = (api.defaults.baseURL || '').replace(/\/api$/, '');
+                        const webpSrc = `${base}/api/media/${transformFile.filename}/transform?w=800&format=webp`;
+                        const snippet = `<picture>\n  <source srcset="${webpSrc}" type="image/webp" />\n  <img src="${transformFile.url}" alt="${transformFile.originalName || 'image'}" loading="lazy" />\n</picture>`;
+                        navigator.clipboard.writeText(snippet);
+                        setCopiedPictureHtml(true);
+                        toast.success('HTML <picture> snippet copied');
+                        setTimeout(() => setCopiedPictureHtml(false), 3000);
+                      }}
+                      title="Copy responsive HTML5 <picture> snippet"
+                    >
+                      {copiedPictureHtml ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                      HTML &lt;picture&gt;
+                    </Button>
+                  </div>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="w-full text-xs gap-1.5"
+                    onClick={() => {
+                      const url = getTransformUrl(transformFile.filename, targetWidth, targetHeight, targetFormat, targetQuality, targetFit);
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Open / Download Transformed Asset
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setTransformFile(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

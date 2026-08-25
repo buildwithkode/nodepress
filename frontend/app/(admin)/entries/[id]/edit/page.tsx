@@ -4,8 +4,38 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, ChevronDown, ChevronRight, Search, CloudIcon, Eye, Copy, Check, ThumbsUp, Undo2, History, RotateCcw, Loader2, Braces, PanelRight, WrapText, ExternalLink, Rocket, Globe, Sparkles, Shield, Settings } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight,
+  Search,
+  CloudIcon,
+  Eye,
+  Copy,
+  Check,
+  ThumbsUp,
+  Undo2,
+  History,
+  RotateCcw,
+  Loader2,
+  Braces,
+  PanelRight,
+  WrapText,
+  ExternalLink,
+  Rocket,
+  Globe,
+  Sparkles,
+  Shield,
+  Settings,
+  Users,
+  Lock,
+  Unlock,
+  AlertTriangle,
+  Languages,
+  CopyCheck,
+} from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
+import { useEntryPresence } from '@/lib/useEntryPresence';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
@@ -27,7 +57,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-interface Field { name: string; type: string; options?: any }
+interface Field { name: string; type: string; options?: any; label?: string }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 interface Entry {
   id: number;
@@ -54,6 +84,21 @@ export default function EditEntryPage() {
   const [seoOpen, setSeoOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewCopied, setPreviewCopied] = useState(false);
+
+  // Real-time Collaborative Presence & Soft-Locking
+  const {
+    activeUsers,
+    lock,
+    isLockedByOther,
+    hasLock,
+    takeoverLock,
+  } = useEntryPresence(id ? parseInt(id, 10) : null, me?.id);
+
+  // Side-by-side Multilingual Translation Workspace
+  const [rightTab, setRightTab] = useState<'json' | 'translate'>('json');
+  const [baseLocale, setBaseLocale] = useState('en');
+  const [baseEntry, setBaseEntry] = useState<Entry | null>(null);
+  const [loadingBase, setLoadingBase] = useState(false);
 
   // JSON preview split pane
   const [jsonOpen, setJsonOpen] = useState(true);
@@ -256,37 +301,123 @@ export default function EditEntryPage() {
     }
   };
 
+  const fetchBaseLocale = async (loc: string) => {
+    if (!id) return;
+    setLoadingBase(true);
+    try {
+      const res = await api.get(`/entries/${id}`, { params: { locale: loc } });
+      setBaseEntry(res.data);
+    } catch {
+      setBaseEntry(entry);
+    } finally {
+      setLoadingBase(false);
+    }
+  };
+
+  useEffect(() => {
+    if (rightTab === 'translate' && id) {
+      fetchBaseLocale(baseLocale);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rightTab, baseLocale, id]);
+
+  const copyFieldsFromBase = () => {
+    if (!baseEntry?.data) return;
+    const currentVals = getValues();
+    const updated = { ...currentVals };
+    let copiedCount = 0;
+    for (const [k, v] of Object.entries(baseEntry.data)) {
+      if (updated[k] === undefined || updated[k] === null || updated[k] === '') {
+        updated[k] = v;
+        copiedCount++;
+      }
+    }
+    reset(updated);
+    toast.success(`Copied ${copiedCount} field(s) from ${baseLocale.toUpperCase()} reference`);
+  };
+
   return (
     <div className="space-y-4">
+      {/* Top breadcrumbs and active user presence */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(contentType ? `/entries?ct=${contentType.name}` : '/entries')}>
           <ArrowLeft className="h-4 w-4" /> Back to {contentType ? ctLabel(contentType) : 'Entries'}
         </Button>
-        {contentType && canManageSettings(me?.role) && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 h-8 text-xs"
-              onClick={() => router.push(`/content-types/${contentType.id}/edit`)}
-              title="Edit Content Type Schema"
-            >
-              <Settings className="h-3.5 w-3.5 text-indigo-400" />
-              Edit Schema
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 h-8 text-xs"
-              onClick={() => router.push(`/users/permissions?tab=fields&ct=${contentType.name}`)}
-              title="Configure Field-Level Permissions"
-            >
-              <Shield className="h-3.5 w-3.5 text-amber-400" />
-              Field Permissions
-            </Button>
-          </div>
-        )}
+
+        <div className="flex items-center gap-2">
+          {/* Active Presence Avatars */}
+          {activeUsers.length > 0 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-card text-xs">
+              <span className="relative flex h-2 w-2 mr-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[11px] text-muted-foreground font-medium mr-1">
+                {activeUsers.length} online
+              </span>
+              <div className="flex -space-x-1.5 overflow-hidden">
+                {activeUsers.slice(0, 4).map((u) => (
+                  <div
+                    key={u.id || u.email}
+                    title={`${u.email} (${u.role})`}
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white ring-2 ring-background uppercase"
+                  >
+                    {u.email.charAt(0)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {contentType && canManageSettings(me?.role) && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 h-8 text-xs"
+                onClick={() => router.push(`/content-types/${contentType.id}/edit`)}
+                title="Edit Content Type Schema"
+              >
+                <Settings className="h-3.5 w-3.5 text-indigo-400" />
+                Edit Schema
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 h-8 text-xs"
+                onClick={() => router.push(`/users/permissions?tab=fields&ct=${contentType.name}`)}
+                title="Configure Field-Level Permissions"
+              >
+                <Shield className="h-3.5 w-3.5 text-amber-400" />
+                Field Permissions
+              </Button>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Real-time Conflict Soft-Lock Banner */}
+      {isLockedByOther && (
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-amber-200">
+          <div className="flex items-center gap-2.5 text-sm">
+            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+            <span>
+              <strong>{lock?.email}</strong> is actively editing this entry. Simultaneous saves may conflict.
+            </span>
+          </div>
+          {(me?.role === 'admin' || me?.role === 'editor') && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs gap-1.5 border-amber-500/50 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 shrink-0"
+              onClick={takeoverLock}
+            >
+              <Lock className="h-3 w-3" />
+              Take Over Lock
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Pending review approval banner — shown to admins and editors only */}
       {status === 'pending_review' && canApprove && (
@@ -324,13 +455,27 @@ export default function EditEntryPage() {
               )}
               <Button
                 type="button"
+                variant={rightTab === 'translate' && jsonOpen ? 'secondary' : 'outline'}
+                size="sm"
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => {
+                  if (!jsonOpen) setJsonOpen(true);
+                  setRightTab(rightTab === 'translate' ? 'json' : 'translate');
+                }}
+                title="Side-by-side Multilingual Translation Workspace"
+              >
+                <Languages className="h-3.5 w-3.5 text-blue-400" />
+                {rightTab === 'translate' && jsonOpen ? 'JSON View' : 'Translate Workspace'}
+              </Button>
+              <Button
+                type="button"
                 variant={jsonOpen ? 'secondary' : 'outline'}
                 size="sm"
                 className="h-7 gap-1.5 text-xs"
                 onClick={() => setJsonOpen((v) => !v)}
               >
                 <PanelRight className="h-3.5 w-3.5" />
-                {jsonOpen ? 'Hide JSON' : 'Show JSON'}
+                {jsonOpen ? 'Hide Panel' : 'Show Panel'}
               </Button>
             </div>
           </div>
@@ -612,8 +757,97 @@ export default function EditEntryPage() {
             </div>
           )}
 
-          {/* Right pane: JSON preview */}
+          {/* Right pane: Translation Workspace or JSON Preview */}
           {jsonOpen && (() => {
+            if (rightTab === 'translate') {
+              return (
+                <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border bg-muted/10">
+                  <div className="sticky top-4 px-4 py-4 space-y-3">
+                    <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
+                      <div className="flex items-center gap-1.5">
+                        <Languages className="h-4 w-4 text-blue-400" />
+                        <span className="text-xs font-semibold">Reference Language</span>
+                      </div>
+                      <Select
+                        value={baseLocale}
+                        onValueChange={(val) => {
+                          if (val) {
+                            setBaseLocale(val);
+                            fetchBaseLocale(val);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-7 w-28 text-xs font-mono">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">EN (English)</SelectItem>
+                          <SelectItem value="es">ES (Spanish)</SelectItem>
+                          <SelectItem value="fr">FR (French)</SelectItem>
+                          <SelectItem value="de">DE (German)</SelectItem>
+                          <SelectItem value="zh">ZH (Chinese)</SelectItem>
+                          <SelectItem value="ja">JA (Japanese)</SelectItem>
+                          <SelectItem value="ar">AR (Arabic)</SelectItem>
+                          <SelectItem value="pt">PT (Portuguese)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-7 text-xs gap-1.5 border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                      onClick={copyFieldsFromBase}
+                      disabled={loadingBase || !baseEntry}
+                    >
+                      <CopyCheck className="h-3.5 w-3.5" />
+                      Copy Empty Fields from {baseLocale.toUpperCase()}
+                    </Button>
+
+                    {loadingBase ? (
+                      <div className="py-8 flex items-center justify-center text-muted-foreground text-xs gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                        Loading {baseLocale.toUpperCase()} reference...
+                      </div>
+                    ) : !contentType?.schema ? (
+                      <p className="text-xs text-muted-foreground">No schema fields</p>
+                    ) : (
+                      <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+                        <div className="rounded-md border border-border bg-card p-2.5">
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                            <span className="font-semibold uppercase">Slug</span>
+                            <span className="font-mono text-[10px]">core</span>
+                          </div>
+                          <p className="text-xs font-mono bg-muted/40 p-1.5 rounded text-foreground break-all">
+                            {baseEntry?.slug || '—'}
+                          </p>
+                        </div>
+
+                        {contentType.schema.map((field) => {
+                          const val = baseEntry?.data?.[field.name];
+                          const displayVal = typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val ?? '—');
+                          return (
+                            <div key={field.name} className="rounded-md border border-border bg-card p-2.5">
+                              <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                                <span className="font-semibold">{field.label || field.name}</span>
+                                <Badge variant="outline" className="text-[9px] font-mono px-1 py-0 uppercase">
+                                  {field.type}
+                                </Badge>
+                              </div>
+                              <div className="text-xs text-foreground bg-muted/40 p-2 rounded max-h-36 overflow-y-auto whitespace-pre-wrap leading-relaxed font-sans">
+                                {displayVal}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
             const { slug, ...fieldData } = watchedValues;
             const seo = {
               title: seoTitle.trim() || undefined,

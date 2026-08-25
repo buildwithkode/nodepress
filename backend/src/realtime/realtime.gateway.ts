@@ -35,6 +35,22 @@ import { PrismaService } from '../prisma/prisma.service';
  *   broadcast from instance A reaches clients connected to instance B.
  *   Falls back to in-memory adapter if Redis is unavailable (single-instance mode).
  */
+interface UserPresence {
+  id: number;
+  email: string;
+  role: string;
+  socketId: string;
+  joinedAt: number;
+}
+
+interface EntryLock {
+  userId: number;
+  email: string;
+  role: string;
+  lockedAt: number;
+  expiresAt: number;
+}
+
 @Injectable()
 @WebSocketGateway({
   namespace: '/realtime',
@@ -49,6 +65,11 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   server: Server;
 
   private readonly logger = new Logger(RealtimeGateway.name);
+
+  // Map of entryId -> Map of socketId -> UserPresence
+  private readonly entryPresences = new Map<number, Map<string, UserPresence>>();
+  // Map of entryId -> EntryLock
+  private readonly entryLocks = new Map<number, EntryLock>();
 
   constructor(
     private readonly jwtService: JwtService,
@@ -139,6 +160,54 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
   handleDisconnect(client: Socket) {
     this.logger.debug(`Client disconnected: ${client.id}`);
+    const user = (client as any).user;
+    if (!user) return;
+
+    // Sweep all entry rooms client was part of
+    for (const [entryId, presences] of this.entryPresences.entries()) {
+      if (presences.has(client.id)) {
+        presences.delete(client.id);
+        if (presences.size === 0) {
+          this.entryPresences.delete(entryId);
+        }
+        this.server.to(`entry:${entryId}`).emit('entry:presence', {
+          entryId,
+          users: this.getPresenceList(entryId),
+        });
+      }
+
+      // If user had a lock and has no more active sockets for this entry, release lock
+      const lock = this.entryLocks.get(entryId);
+      if (lock && lock.userId === user.id) {
+        const stillPresent = this.entryPresences.get(entryId)?.values();
+        const userStillHere = stillPresent ? Array.from(stillPresent).some((p) => p.id === user.id) : false;
+        if (!userStillHere) {
+          this.entryLocks.delete(entryId);
+          this.server.to(`entry:${entryId}`).emit('entry:lockReleased', { entryId, userId: user.id });
+        }
+      }
+    }
+  }
+
+  getLockStatus(entryId: number): EntryLock | null {
+    const lock = this.entryLocks.get(entryId);
+    if (!lock) return null;
+    if (lock.expiresAt < Date.now()) {
+      this.entryLocks.delete(entryId);
+      return null;
+    }
+    return lock;
+  }
+
+  getPresenceList(entryId: number): { id: number; email: string; role: string; joinedAt: number }[] {
+    const presences = this.entryPresences.get(entryId);
+    if (!presences) return [];
+    // Dedup by userId
+    const byUser = new Map<number, { id: number; email: string; role: string; joinedAt: number }>();
+    for (const p of presences.values()) {
+      byUser.set(p.id, { id: p.id, email: p.email, role: p.role, joinedAt: p.joinedAt });
+    }
+    return Array.from(byUser.values());
   }
 
   @SubscribeMessage('subscribe')
@@ -161,6 +230,167 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       client.leave(`ct:${data.contentType}`);
       return { unsubscribed: data.contentType };
     }
+  }
+
+  // ── Entry Collaborative Presence & Soft-Locking Handlers ─────────────────
+
+  @SubscribeMessage('entry:join')
+  handleEntryJoin(
+    @MessageBody() data: { entryId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = (client as any).user;
+    const entryId = Number(data?.entryId);
+    if (!user || !entryId) return;
+
+    client.join(`entry:${entryId}`);
+
+    let presences = this.entryPresences.get(entryId);
+    if (!presences) {
+      presences = new Map();
+      this.entryPresences.set(entryId, presences);
+    }
+    presences.set(client.id, {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      socketId: client.id,
+      joinedAt: Date.now(),
+    });
+
+    const activeUsers = this.getPresenceList(entryId);
+    const lock = this.getLockStatus(entryId);
+
+    this.server.to(`entry:${entryId}`).emit('entry:presence', {
+      entryId,
+      users: activeUsers,
+    });
+
+    return { success: true, entryId, users: activeUsers, lock };
+  }
+
+  @SubscribeMessage('entry:leave')
+  handleEntryLeave(
+    @MessageBody() data: { entryId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = (client as any).user;
+    const entryId = Number(data?.entryId);
+    if (!user || !entryId) return;
+
+    client.leave(`entry:${entryId}`);
+    const presences = this.entryPresences.get(entryId);
+    if (presences) {
+      presences.delete(client.id);
+      if (presences.size === 0) this.entryPresences.delete(entryId);
+    }
+
+    const lock = this.entryLocks.get(entryId);
+    if (lock && lock.userId === user.id) {
+      this.entryLocks.delete(entryId);
+      this.server.to(`entry:${entryId}`).emit('entry:lockReleased', { entryId, userId: user.id });
+    }
+
+    this.server.to(`entry:${entryId}`).emit('entry:presence', {
+      entryId,
+      users: this.getPresenceList(entryId),
+    });
+
+    return { success: true, entryId };
+  }
+
+  @SubscribeMessage('entry:requestLock')
+  handleRequestLock(
+    @MessageBody() data: { entryId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = (client as any).user;
+    const entryId = Number(data?.entryId);
+    if (!user || !entryId) return { acquired: false, message: 'Invalid request' };
+
+    const currentLock = this.getLockStatus(entryId);
+    if (!currentLock || currentLock.userId === user.id) {
+      const lock: EntryLock = {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        lockedAt: Date.now(),
+        expiresAt: Date.now() + 60000, // 60s lease
+      };
+      this.entryLocks.set(entryId, lock);
+      this.server.to(`entry:${entryId}`).emit('entry:lockAcquired', { entryId, lock });
+      return { acquired: true, lock };
+    }
+
+    return { acquired: false, lock: currentLock };
+  }
+
+  @SubscribeMessage('entry:heartbeat')
+  handleHeartbeat(
+    @MessageBody() data: { entryId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = (client as any).user;
+    const entryId = Number(data?.entryId);
+    if (!user || !entryId) return;
+
+    const lock = this.entryLocks.get(entryId);
+    if (lock && lock.userId === user.id) {
+      lock.expiresAt = Date.now() + 60000;
+      return { renewed: true, expiresAt: lock.expiresAt };
+    }
+    return { renewed: false };
+  }
+
+  @SubscribeMessage('entry:releaseLock')
+  handleReleaseLock(
+    @MessageBody() data: { entryId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = (client as any).user;
+    const entryId = Number(data?.entryId);
+    if (!user || !entryId) return;
+
+    const lock = this.entryLocks.get(entryId);
+    if (lock && (lock.userId === user.id || user.role === 'admin')) {
+      this.entryLocks.delete(entryId);
+      this.server.to(`entry:${entryId}`).emit('entry:lockReleased', { entryId, userId: user.id });
+      return { released: true };
+    }
+    return { released: false };
+  }
+
+  @SubscribeMessage('entry:takeoverLock')
+  handleTakeoverLock(
+    @MessageBody() data: { entryId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const user = (client as any).user;
+    const entryId = Number(data?.entryId);
+    if (!user || !entryId) return { acquired: false };
+
+    // Admin or editor can take over lock
+    if (user.role !== 'admin' && user.role !== 'editor') {
+      return { acquired: false, message: 'Insufficient permissions for takeover' };
+    }
+
+    const previousLock = this.entryLocks.get(entryId);
+    const newLock: EntryLock = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      lockedAt: Date.now(),
+      expiresAt: Date.now() + 60000,
+    };
+    this.entryLocks.set(entryId, newLock);
+
+    this.server.to(`entry:${entryId}`).emit('entry:lockTakeover', {
+      entryId,
+      previousLock,
+      newLock,
+    });
+
+    return { acquired: true, lock: newLock };
   }
 
   // ─── Methods called by services to broadcast events ───────────────────────
