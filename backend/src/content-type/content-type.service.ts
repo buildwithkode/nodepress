@@ -14,6 +14,7 @@ import { FieldDef } from '../fields/field.types';
 import { normalizeKey } from '../common/normalize';
 
 const ctCacheKey = (name: string) => `ct:meta:${name}`;
+const CT_ALL_CACHE_KEY = 'ct:meta:all_content_types';
 
 // These route names are already taken by static controllers
 const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads'];
@@ -77,7 +78,7 @@ export class ContentTypeService {
     // Normalize field names first, then validate
     const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
 
-    return this.prisma.contentType.create({
+    const created = await this.prisma.contentType.create({
       data: {
         name,
         displayName: dto.displayName?.trim() || null,
@@ -85,12 +86,22 @@ export class ContentTypeService {
         allowedMethods: dto.allowedMethods ?? null,
       },
     });
+
+    await this.cache.invalidatePrefix('ct:meta');
+    return created;
   }
 
   async findAll() {
-    return this.prisma.contentType.findMany({
+    const cached = await this.cache.get<any[]>(CT_ALL_CACHE_KEY);
+    if (cached) return cached;
+
+    const result = await this.prisma.contentType.findMany({
       orderBy: { createdAt: 'desc' },
     });
+
+    // Cache for 60 seconds (invalidated instantly on any mutation)
+    await this.cache.set(CT_ALL_CACHE_KEY, result, 60_000);
+    return result;
   }
 
   async findOne(id: number) {
@@ -160,11 +171,8 @@ export class ContentTypeService {
       data: updateData,
     });
 
-    // Bust the dynamic-api content-type cache for both old and new name
-    await Promise.all([
-      this.cache.invalidatePrefix(ctCacheKey(current.name)),
-      ...(updateData.name ? [this.cache.invalidatePrefix(ctCacheKey(updateData.name))] : []),
-    ]);
+    // Bust all content-type caches
+    await this.cache.invalidatePrefix('ct:meta');
 
     // Build schema-change impact warnings when schema was updated
     const warnings: string[] = [];
@@ -241,7 +249,7 @@ export class ContentTypeService {
   async remove(id: number) {
     const ct = await this.findOne(id);
     await this.prisma.contentType.delete({ where: { id } });
-    await this.cache.invalidatePrefix(ctCacheKey(ct.name));
+    await this.cache.invalidatePrefix('ct:meta');
     return ct;
   }
 

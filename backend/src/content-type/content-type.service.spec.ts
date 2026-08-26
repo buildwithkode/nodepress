@@ -38,6 +38,7 @@ const mockPrisma = {
 const mockCache = {
   get:              jest.fn().mockResolvedValue(undefined),
   set:              jest.fn(),
+  del:              jest.fn(),
   invalidatePrefix: jest.fn(),
 };
 
