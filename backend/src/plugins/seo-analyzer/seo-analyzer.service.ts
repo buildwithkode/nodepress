@@ -29,7 +29,8 @@ export class SeoAnalyzerService implements OnModuleInit {
   }
 
   private analyzeSeo(payload: EntryLifecyclePayload): void {
-    if (!payload?.data) return;
+    const data = payload?.data || (payload as any)?.dto?.data;
+    if (!data) return;
 
     const config = this.registry.getConfig('seo-analyzer');
     const minTitle = Number(config.minTitleLength) || 30;
@@ -38,8 +39,8 @@ export class SeoAnalyzerService implements OnModuleInit {
     const maxDesc = Number(config.maxDescLength) || 160;
 
     // Detect title & description from data or seo field
-    const rawTitle = payload.data.title || payload.data.name || (payload.data.seo as any)?.title || '';
-    const rawDesc = payload.data.description || payload.data.summary || (payload.data.seo as any)?.description || '';
+    const rawTitle = data.title || data.name || (data.seo as any)?.title || '';
+    const rawDesc = data.description || data.summary || (data.seo as any)?.description || '';
 
     const titleStr = typeof rawTitle === 'string' ? rawTitle.trim() : '';
     const descStr = typeof rawDesc === 'string' ? rawDesc.trim() : '';
@@ -71,11 +72,11 @@ export class SeoAnalyzerService implements OnModuleInit {
       suggestions.push(`Description exceeds SERP limit (${descStr.length} chars). Keep under ${maxDesc} chars.`);
     }
 
-    payload.data._seoScore = Math.max(0, score);
-    payload.data._seoSuggestions = suggestions;
+    data._seoScore = Math.max(0, score);
+    data._seoSuggestions = suggestions;
 
     this.logger.log(
-      `[seo-analyzer] Entry in "${payload.contentType}" analyzed: SEO Score ${score}/100 (${suggestions.length} suggestions)`,
+      `[seo-analyzer] Entry in "${payload.contentType || ''}" analyzed: SEO Score ${score}/100 (${suggestions.length} suggestions)`,
     );
   }
 }

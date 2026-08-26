@@ -396,16 +396,19 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   // ─── Methods called by services to broadcast events ───────────────────────
 
   notifyEntryCreated(payload: { id: number; slug: string; contentType: string; locale?: string }) {
+    if (!this.server) return;
     this.server.to('global').emit('entry:created', payload);
     this.server.to(`ct:${payload.contentType}`).emit('entry:created', payload);
   }
 
   notifyEntryUpdated(payload: { id: number; slug: string; contentType: string; locale?: string; status?: string }) {
+    if (!this.server) return;
     this.server.to('global').emit('entry:updated', payload);
     this.server.to(`ct:${payload.contentType}`).emit('entry:updated', payload);
   }
 
   notifyEntryDeleted(payload: { id: number; slug: string; contentType?: string }) {
+    if (!this.server) return;
     this.server.to('global').emit('entry:deleted', payload);
     if (payload.contentType) {
       this.server.to(`ct:${payload.contentType}`).emit('entry:deleted', payload);

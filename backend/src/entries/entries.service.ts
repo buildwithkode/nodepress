@@ -66,6 +66,9 @@ export class EntriesService {
     if (this.hookBus) {
       await this.hookBus.emit(PluginEvents.ENTRY_BEFORE_CREATE, {
         dto,
+        data: dto.data,
+        slug: dto.slug,
+        status: dto.status,
         actorId,
         role,
         contentType: contentType.name,
@@ -319,9 +322,11 @@ export class EntriesService {
       await this.hookBus.emit(PluginEvents.ENTRY_BEFORE_UPDATE, {
         id,
         dto,
+        data: dto.data,
         actorId,
         role,
         currentEntry: entry,
+        contentType: entry.contentType?.name,
       });
 
       if (dto.status === 'published' && entry.status !== 'published') {

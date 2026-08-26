@@ -29,22 +29,23 @@ export class WordCountService implements OnModuleInit {
   }
 
   private processEntry(payload: EntryLifecyclePayload): void {
-    if (!payload?.data) return;
+    const data = payload?.data || (payload as any)?.dto?.data;
+    if (!data) return;
 
     const config = this.registry.getConfig('word-count');
     const targetField = config.targetField || 'content';
     const wpm = Number(config.wordsPerMinute) || 200;
 
-    const content = payload.data[targetField];
+    const content = data[targetField];
     if (typeof content === 'string' && content.trim()) {
       const words = content.trim().split(/\s+/).length;
       const readingTimeMinutes = Math.max(1, Math.ceil(words / wpm));
 
-      payload.data._wordCount = words;
-      payload.data._readingTimeMinutes = readingTimeMinutes;
+      data._wordCount = words;
+      data._readingTimeMinutes = readingTimeMinutes;
 
       this.logger.log(
-        `[word-count] Calculated ${words} words (${readingTimeMinutes} min read) for entry in "${payload.contentType}"`,
+        `[word-count] Calculated ${words} words (${readingTimeMinutes} min read) for entry in "${payload.contentType || ''}"`,
       );
     }
   }
