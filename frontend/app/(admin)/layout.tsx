@@ -52,6 +52,7 @@ const ALL_NAV_GROUPS = [
     label: 'Developer',
     adminOnly: true,
     items: [
+      { href: '/plugins',   label: 'Plugins',   icon: Puzzle },
       { href: '/api-keys',  label: 'API Keys',  icon: Key },
       { href: '/webhooks',  label: 'Webhooks',  icon: Zap },
       { href: '/audit-log', label: 'Audit Log', icon: ScrollText },

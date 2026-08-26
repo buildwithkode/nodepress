@@ -1,11 +1,14 @@
 import { PluginHookBus } from './plugin-hook-bus';
+import { PluginRegistry } from './plugin.registry';
 import { PluginEvents } from './plugin.events';
 
 describe('PluginHookBus', () => {
   let bus: PluginHookBus;
+  let registry: PluginRegistry;
 
   beforeEach(() => {
-    bus = new PluginHookBus();
+    registry = new PluginRegistry();
+    bus = new PluginHookBus(registry);
   });
 
   describe('emit()', () => {
@@ -24,7 +27,7 @@ describe('PluginHookBus', () => {
       expect(order).toEqual([1, 2]);
     });
 
-    it('does not crash when hook throws error', async () => {
+    it('does not crash when hook throws error (Layer 2 Crash Isolation)', async () => {
       bus.on(PluginEvents.ENTRY_AFTER_CREATE, () => {
         throw new Error('Plugin failure');
       });
@@ -36,6 +39,63 @@ describe('PluginHookBus', () => {
 
       await expect(bus.emit(PluginEvents.ENTRY_AFTER_CREATE, { id: 1 })).resolves.not.toThrow();
       expect(nextRan).toBe(true);
+    });
+
+    it('skips hook execution if plugin is disabled in registry', async () => {
+      registry.register({
+        manifest: {
+          id: 'test-plugin',
+          name: 'Test Plugin',
+          version: '1.0.0',
+          description: 'Testing',
+          permissions: ['entries:read'],
+        },
+        module: class MockModule {},
+        enabled: false, // DISABLED
+        config: {},
+      });
+
+      let executed = false;
+      bus.on(PluginEvents.ENTRY_AFTER_CREATE, () => {
+        executed = true;
+      }, 10, 'test-plugin');
+
+      await bus.emit(PluginEvents.ENTRY_AFTER_CREATE, { id: 1 });
+      expect(executed).toBe(false);
+
+      // Now enable it live
+      registry.enable('test-plugin');
+      await bus.emit(PluginEvents.ENTRY_AFTER_CREATE, { id: 1 });
+      expect(executed).toBe(true);
+    });
+
+    it('blocks execution if plugin lacks required capability permission (Layer 1 Security)', async () => {
+      registry.register({
+        manifest: {
+          id: 'limited-plugin',
+          name: 'Limited Plugin',
+          version: '1.0.0',
+          description: 'Testing permissions',
+          permissions: ['entries:read'], // ONLY read permission
+        },
+        module: class MockModule {},
+        enabled: true,
+        config: {},
+      });
+
+      let executed = false;
+      bus.on(
+        PluginEvents.ENTRY_BEFORE_DELETE,
+        () => {
+          executed = true;
+        },
+        10,
+        'limited-plugin',
+        'entries:delete', // Requires delete permission
+      );
+
+      await bus.emit(PluginEvents.ENTRY_BEFORE_DELETE, { id: 1 });
+      expect(executed).toBe(false);
     });
   });
 

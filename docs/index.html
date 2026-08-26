@@ -530,18 +530,30 @@ export async function syncSearch(payload) {
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"/><path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Plugin Architecture & SDK</h2>
+          <h2 class="text-2xl font-bold text-white">Plugin Architecture & UI Manager</h2>
         </div>
         <p class="text-zinc-400 leading-relaxed mb-4">
-          NodePress includes an internal extension engine (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">PluginHookBus</code>) allowing developers to intercept lifecycle events, modify data with filters, and mount custom NestJS controllers without altering core code.
+          NodePress includes an enterprise-grade extension engine with an internal lifecycle hook bus (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">PluginHookBus</code>) and a visual <strong class="text-white">Admin Management UI</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/plugins</code>). Admins can enable/disable plugins live with 0ms downtime and configure custom settings via a slide-out settings drawer.
         </p>
 
-        <!-- Reference Starter: word-count -->
-        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-6 text-xs text-zinc-300">
-          <strong class="text-blue-400 text-sm block mb-1">Bundled Starter Example: Word Count Plugin</strong>
+        <!-- Defense in Depth Security Banner -->
+        <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 mb-6 text-xs text-zinc-300">
+          <strong class="text-emerald-400 text-sm block mb-1">🛡️ Defense-in-Depth Security Model</strong>
           <p class="leading-relaxed">
-            The repository includes a ready-to-use reference plugin located in <code class="bg-zinc-800 px-1.5 py-0.5 rounded text-pink-400 font-mono">backend/src/plugins/word-count/</code>. It demonstrates how to listen to entry creation/update events and calculate text metrics.
+            Unlike legacy CMS architectures where plugins have root access, NodePress protects your CMS with <strong class="text-white">Layer 1 Capability-Based Permission Scopes</strong>, <strong class="text-white">Layer 2 Crash Isolation Boundaries</strong> (a buggy plugin will never crash NodePress), and <strong class="text-white">Layer 4 Hard 5-Second Timeouts</strong>.
           </p>
+        </div>
+
+        <!-- Built-in Plugins -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
+            <span class="text-xs font-semibold text-blue-400 block mb-1">📄 Word Count & Reading Time</span>
+            <p class="text-xs text-zinc-400">Calculates total words and reading minutes on <code class="text-pink-400 font-mono">entry.beforeCreate</code> and <code class="text-pink-400 font-mono">entry.beforeUpdate</code>.</p>
+          </div>
+          <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
+            <span class="text-xs font-semibold text-amber-400 block mb-1">🔍 SEO Score & Meta Optimizer</span>
+            <p class="text-xs text-zinc-400">Analyzes title & description lengths, generates SEO readiness scores (0-100), and provides optimization suggestions.</p>
+          </div>
         </div>
 
         <h3 class="font-semibold text-white mb-2 text-sm">1. Create Plugin Manifest (`manifest.ts`)</h3>
@@ -553,57 +565,60 @@ export const MyPluginManifest: PluginManifest = {
   name: 'My Custom Plugin',
   version: '1.0.0',
   description: 'Custom lifecycle logic and data filters.',
+  author: 'Your Organization',
+  category: 'content',
   permissions: ['entries:read', 'entries:write'],
+  configSchema: [
+    {
+      name: 'webhookUrl',
+      label: 'Notification Webhook URL',
+      type: 'text',
+      required: false,
+    },
+  ],
+  defaultConfig: {
+    webhookUrl: '',
+  },
 };"></div>
 
         <h3 class="font-semibold text-white mt-5 mb-2 text-sm">2. Implement Service with Hook Bus (`my-plugin.service.ts`)</h3>
         <div class="code-block" data-code="// backend/src/plugins/my-plugin/my-plugin.service.ts
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { PluginHookBus, PluginEvents, EntryLifecyclePayload } from '../../plugin/plugin-sdk';
+import { PluginHookBus, PluginEvents, EntryLifecyclePayload, PluginRegistry } from '../../plugin/plugin-sdk';
 
 @Injectable()
 export class MyPluginService implements OnModuleInit {
   private readonly logger = new Logger(MyPluginService.name);
 
-  constructor(private readonly hookBus: PluginHookBus) {}
+  constructor(
+    private readonly hookBus: PluginHookBus,
+    private readonly registry: PluginRegistry,
+  ) {}
 
   onModuleInit() {
-    // Intercept entry before saving to database
-    this.hookBus.on(PluginEvents.ENTRY_BEFORE_CREATE, async (payload: EntryLifecyclePayload) => {
-      this.logger.log(`Processing new entry in collection: ${payload.contentType}`);
-      if (payload.data?.content) {
-        payload.data.wordCount = payload.data.content.split(/\s+/).length;
-      }
-    });
-
-    // React after publish
-    this.hookBus.on(PluginEvents.ENTRY_AFTER_PUBLISH, async (payload: EntryLifecyclePayload) => {
-      this.logger.log(`Entry #${payload.id} is now live in production!`);
-    });
+    // Intercept entry before saving to database (enforcing permissions and 5s timeout)
+    this.hookBus.on(
+      PluginEvents.ENTRY_BEFORE_CREATE,
+      async (payload: EntryLifecyclePayload) => {
+        const config = this.registry.getConfig('my-plugin');
+        this.logger.log(`Processing entry in collection: ${payload.contentType}`);
+      },
+      10,
+      'my-plugin',
+      'entries:write',
+    );
   }
 }"></div>
 
-        <h3 class="font-semibold text-white mt-5 mb-2 text-sm">3. Enable Plugin in `backend/src/plugin/plugins.config.ts`</h3>
-        <div class="code-block" data-code="// backend/src/plugin/plugins.config.ts
-import { MyPluginManifest, MyPluginModule } from '../plugins/my-plugin';
-
-export const ENABLED_PLUGINS = [
-  { manifest: MyPluginManifest, module: MyPluginModule },
-];"></div>
-
-        <h3 class="font-semibold text-white mt-5 mb-2 text-sm">Lifecycle Events Reference</h3>
+        <h3 class="font-semibold text-white mt-5 mb-2 text-sm">3. REST API Endpoints</h3>
         <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
           <table class="w-full text-xs">
-            <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-zinc-300"><th class="px-4 py-2">Event</th><th class="px-4 py-2">Trigger Point</th></tr></thead>
+            <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-zinc-300"><th class="px-4 py-2">Endpoint</th><th class="px-4 py-2">Method</th><th class="px-4 py-2">Description</th></tr></thead>
             <tbody class="divide-y divide-zinc-800 text-zinc-400 font-mono">
-              <tr><td class="px-4 py-2 text-pink-400">entry.beforeCreate</td><td class="px-4 py-2 font-sans text-zinc-300">Before new entry is written to database (allows mutating payload.data)</td></tr>
-              <tr><td class="px-4 py-2 text-pink-400">entry.afterCreate</td><td class="px-4 py-2 font-sans text-zinc-300">After entry is successfully created</td></tr>
-              <tr><td class="px-4 py-2 text-pink-400">entry.beforeUpdate</td><td class="px-4 py-2 font-sans text-zinc-300">Before update is committed to database</td></tr>
-              <tr><td class="px-4 py-2 text-pink-400">entry.afterUpdate</td><td class="px-4 py-2 font-sans text-zinc-300">After entry update or version restore</td></tr>
-              <tr><td class="px-4 py-2 text-pink-400">entry.beforePublish</td><td class="px-4 py-2 font-sans text-zinc-300">Before entry state is changed to published</td></tr>
-              <tr><td class="px-4 py-2 text-pink-400">entry.afterPublish</td><td class="px-4 py-2 font-sans text-zinc-300">After entry is live</td></tr>
-              <tr><td class="px-4 py-2 text-pink-400">entry.beforeDelete</td><td class="px-4 py-2 font-sans text-zinc-300">Before entry is moved to Recycle Bin</td></tr>
-              <tr><td class="px-4 py-2 text-pink-400">entry.afterDelete</td><td class="px-4 py-2 font-sans text-zinc-300">After entry is soft-deleted</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/plugins</td><td class="px-4 py-2 text-blue-400">GET</td><td class="px-4 py-2 font-sans text-zinc-300">List all plugins, active status, permissions, and configs</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/plugins/:id/toggle</td><td class="px-4 py-2 text-amber-400">PATCH</td><td class="px-4 py-2 font-sans text-zinc-300">Toggle enabled/disabled state live with 0ms downtime (Admin)</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/plugins/:id/config</td><td class="px-4 py-2 text-purple-400">PUT</td><td class="px-4 py-2 font-sans text-zinc-300">Update live runtime settings for a plugin (Admin)</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/plugins/hooks</td><td class="px-4 py-2 text-blue-400">GET</td><td class="px-4 py-2 font-sans text-zinc-300">Get summary of registered lifecycle hooks and data filters</td></tr>
             </tbody>
           </table>
         </div>

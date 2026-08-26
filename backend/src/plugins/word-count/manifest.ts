@@ -1,15 +1,35 @@
 import { PluginManifest } from '../../plugin/plugin-sdk';
 
-/**
- * Word Count Plugin — example NodePress plugin.
- *
- * Listens to entry lifecycle events and logs word-count statistics.
- * Replace the logging with your own logic (e.g., send to analytics, store in DB).
- */
 export const WordCountManifest: PluginManifest = {
   id: 'word-count',
-  name: 'Word Count',
-  version: '1.0.0',
-  description: 'Counts words in entry text fields after create/update and logs the result.',
-  permissions: ['entries:read'],
+  name: 'Word Count & Reading Time',
+  version: '1.2.0',
+  description: 'Calculates word metrics and estimated reading time on content entries before saving.',
+  author: 'BuildWithKode',
+  homepage: 'https://nodepress.buildwithkode.com',
+  category: 'content',
+  icon: 'FileText',
+  permissions: ['entries:read', 'entries:write'],
+  configSchema: [
+    {
+      name: 'wordsPerMinute',
+      label: 'Reading Speed (Words Per Minute)',
+      type: 'number',
+      description: 'Average adult reading speed used to calculate reading time in minutes.',
+      defaultValue: 200,
+      required: true,
+    },
+    {
+      name: 'targetField',
+      label: 'Content Field Key',
+      type: 'text',
+      description: 'Primary text field name to analyze (e.g. content, body, description).',
+      defaultValue: 'content',
+      required: true,
+    },
+  ],
+  defaultConfig: {
+    wordsPerMinute: 200,
+    targetField: 'content',
+  },
 };

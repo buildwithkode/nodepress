@@ -278,3 +278,16 @@ model Setting {
 
   @@map("settings")
 }
+
+// ─── Plugin System ───────────────────────────────────────────────────────────
+
+model InstalledPlugin {
+  id          String   @id // e.g. 'word-count', 'seo-analyzer'
+  enabled     Boolean  @default(true)
+  config      Json     @default("{}") // Live runtime configuration
+  installedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("installed_plugins")
+}
+
