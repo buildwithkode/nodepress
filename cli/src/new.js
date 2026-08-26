@@ -95,16 +95,20 @@ module.exports = async function createProject(name, opts = {}) {
 
   // ── Remove dev-only files (not needed in a user project) ───────────────────
   const devOnly = [
-    '.claude',           // Claude Code AI config
-    'CLAUDE.md',         // Claude Code instructions
-    'cli',               // The CLI tool itself
-    'scripts',           // Internal dev scripts
-    'docs',              // NodePress GitHub Pages site
-    'CHANGELOG.md',      // NodePress version history
-    'CODE_OF_CONDUCT.md',// NodePress open source conduct file
-    'CONTRIBUTING.md',   // NodePress contributor guide
-    '.github',           // NodePress CI/CD workflows and issue templates
-    'package-lock.json', // Root lockfile (regenerated for the fresh root package.json)
+    '.claude',              // Claude Code AI config
+    'CLAUDE.md',            // Claude Code instructions
+    'cli',                  // The CLI tool itself
+    'specs',                // Internal architecture specifications
+    'scripts',              // Internal release scripts
+    'docs',                 // NodePress GitHub Pages site
+    'CHANGELOG.md',         // NodePress version history
+    'CODE_OF_CONDUCT.md',   // NodePress open source conduct file
+    'CONTRIBUTING.md',      // NodePress contributor guide
+    '.githooks',            // Internal pre-push & commit githooks
+    '.github',              // NodePress CI/CD workflows and issue templates
+    'backend/test',         // Internal E2E integration test suites
+    'backend/scripts',      // Internal benchmark & stress test scripts
+    'package-lock.json',    // Root lockfile (regenerated for the fresh root package.json)
     'node_modules',
   ];
   for (const entry of devOnly) {
