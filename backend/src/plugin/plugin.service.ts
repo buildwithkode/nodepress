@@ -126,13 +126,13 @@ export class PluginService implements OnModuleInit {
     }
 
     // Audit log
-    await this.auditService.log({
-      action: newStatus ? 'plugin.enable' : 'plugin.disable',
-      entity: 'plugin',
-      entityId: id,
-      userEmail,
-      details: { id, enabled: newStatus },
-    });
+    await this.auditService.log(
+      { email: userEmail },
+      newStatus ? 'enabled' : 'disabled',
+      'plugin',
+      id,
+      { id, enabled: newStatus },
+    );
 
     this.logger.log(`Plugin "${id}" toggled to ${newStatus} by ${userEmail}`);
     return this.getPlugin(id);
@@ -161,15 +161,16 @@ export class PluginService implements OnModuleInit {
     this.registry.setConfig(id, mergedConfig);
 
     // Audit log
-    await this.auditService.log({
-      action: 'plugin.config_update',
-      entity: 'plugin',
-      entityId: id,
-      userEmail,
-      details: { id, config: mergedConfig },
-    });
+    await this.auditService.log(
+      { email: userEmail },
+      'updated',
+      'plugin',
+      id,
+      { id, config: mergedConfig },
+    );
 
     this.logger.log(`Plugin "${id}" configuration updated by ${userEmail}`);
     return this.getPlugin(id);
   }
 }
+
