@@ -536,27 +536,39 @@ export async function syncSearch(payload) {
           NodePress includes an enterprise-grade extension engine with an internal lifecycle hook bus (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">PluginHookBus</code>) and a visual <strong class="text-white">Admin Management UI</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/plugins</code>). Admins can enable/disable plugins live with 0ms downtime and configure custom settings via a slide-out settings drawer.
         </p>
 
-        <!-- Defense in Depth Security Banner -->
-        <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 mb-6 text-xs text-zinc-300">
-          <strong class="text-emerald-400 text-sm block mb-1">🛡️ Defense-in-Depth Security Model</strong>
-          <p class="leading-relaxed">
-            Unlike legacy CMS architectures where plugins have root access, NodePress protects your CMS with <strong class="text-white">Layer 1 Capability-Based Permission Scopes</strong>, <strong class="text-white">Layer 2 Crash Isolation Boundaries</strong> (a buggy plugin will never crash NodePress), and <strong class="text-white">Layer 4 Hard 5-Second Timeouts</strong>.
+        <!-- Crash Proof & Defense in Depth Security Banner -->
+        <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 mb-6 text-xs text-zinc-300">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-base">🛡️</span>
+            <strong class="text-emerald-400 text-sm">Crash-Proof Sandboxed Security Model</strong>
+          </div>
+          <p class="leading-relaxed mb-3">
+            In legacy CMS engines (like WordPress), a single unhandled error or slow database query in a third-party plugin can crash the entire web server or cause a White Screen of Death (WSOD). <strong class="text-white">NodePress is architected to be 100% crash-proof:</strong>
           </p>
+          <ul class="space-y-1.5 list-disc list-inside text-zinc-300">
+            <li><strong class="text-white">Layer 1 Capability-Based Permissions:</strong> Plugins must declare explicit permissions (e.g. <code class="text-emerald-400 font-mono">['entries:read', 'entries:write']</code>). If an unauthorized action is attempted, execution is blocked and logged.</li>
+            <li><strong class="text-white">Layer 2 Isolated Error Boundaries:</strong> Every hook and filter is wrapped in isolated error boundaries. If a plugin throws an uncaught exception, <strong class="text-white">NodePress catches the error, logs the trace, and continues serving requests smoothly without crashing</strong>.</li>
+            <li><strong class="text-white">Layer 4 Hard 5-Second Timeouts:</strong> All asynchronous plugin hooks are wrapped with a 5000ms timeout guard (<code class="text-pink-400 font-mono">Promise.race</code>). Slow or hanging external HTTP calls will never lock up CMS transactions.</li>
+            <li><strong class="text-white">0-Downtime Dynamic Toggling:</strong> Any misbehaving plugin can be instantly deactivated live from the <code class="text-pink-400 font-mono">/plugins</code> UI with 1 click.</li>
+          </ul>
         </div>
 
         <!-- Built-in Plugins -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
           <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
             <span class="text-xs font-semibold text-blue-400 block mb-1">📄 Word Count & Reading Time</span>
-            <p class="text-xs text-zinc-400">Calculates total words and reading minutes on <code class="text-pink-400 font-mono">entry.beforeCreate</code> and <code class="text-pink-400 font-mono">entry.beforeUpdate</code>.</p>
+            <p class="text-xs text-zinc-400">Calculates total words and reading minutes on <code class="text-pink-400 font-mono">entry.beforeCreate</code> and <code class="text-pink-400 font-mono">entry.beforeUpdate</code> with configurable WPM.</p>
           </div>
           <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
             <span class="text-xs font-semibold text-amber-400 block mb-1">🔍 SEO Score & Meta Optimizer</span>
-            <p class="text-xs text-zinc-400">Analyzes title & description lengths, generates SEO readiness scores (0-100), and provides optimization suggestions.</p>
+            <p class="text-xs text-zinc-400">Analyzes title & description lengths, generates SEO readiness scores (0-100), and provides actionable SERP snippet recommendations.</p>
           </div>
         </div>
 
-        <h3 class="font-semibold text-white mb-2 text-sm">1. Create Plugin Manifest (`manifest.ts`)</h3>
+        <!-- Step by Step Tutorial -->
+        <h3 class="text-base font-bold text-white mb-3">🛠️ Step-by-Step: How to Build & Use a Plugin</h3>
+
+        <h4 class="font-semibold text-white mb-2 text-xs text-zinc-200">Step 1: Create Plugin Manifest (<code class="text-pink-400 font-mono">backend/src/plugins/my-plugin/manifest.ts</code>)</h4>
         <div class="code-block" data-code="// backend/src/plugins/my-plugin/manifest.ts
 import { PluginManifest } from '../../plugin/plugin-sdk';
 
@@ -564,9 +576,9 @@ export const MyPluginManifest: PluginManifest = {
   id: 'my-plugin',
   name: 'My Custom Plugin',
   version: '1.0.0',
-  description: 'Custom lifecycle logic and data filters.',
+  description: 'Custom lifecycle logic, data calculation, and webhook dispatch.',
   author: 'Your Organization',
-  category: 'content',
+  category: 'content', // 'content' | 'seo' | 'utilities' | 'integrations' | 'security'
   permissions: ['entries:read', 'entries:write'],
   configSchema: [
     {
@@ -574,14 +586,22 @@ export const MyPluginManifest: PluginManifest = {
       label: 'Notification Webhook URL',
       type: 'text',
       required: false,
+      placeholder: 'https://api.example.com/webhook',
+    },
+    {
+      name: 'enableAutoTagging',
+      label: 'Enable Auto-Tagging',
+      type: 'boolean',
+      defaultValue: true,
     },
   ],
   defaultConfig: {
     webhookUrl: '',
+    enableAutoTagging: true,
   },
 };"></div>
 
-        <h3 class="font-semibold text-white mt-5 mb-2 text-sm">2. Implement Service with Hook Bus (`my-plugin.service.ts`)</h3>
+        <h4 class="font-semibold text-white mt-5 mb-2 text-xs text-zinc-200">Step 2: Implement Plugin Service (<code class="text-pink-400 font-mono">backend/src/plugins/my-plugin/my-plugin.service.ts</code>)</h4>
         <div class="code-block" data-code="// backend/src/plugins/my-plugin/my-plugin.service.ts
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { PluginHookBus, PluginEvents, EntryLifecyclePayload, PluginRegistry } from '../../plugin/plugin-sdk';
@@ -600,17 +620,60 @@ export class MyPluginService implements OnModuleInit {
     this.hookBus.on(
       PluginEvents.ENTRY_BEFORE_CREATE,
       async (payload: EntryLifecyclePayload) => {
+        // Read live config managed by Admin UI
         const config = this.registry.getConfig('my-plugin');
-        this.logger.log(`Processing entry in collection: ${payload.contentType}`);
+        const data = payload?.data || (payload as any)?.dto?.data;
+        if (!data) return;
+
+        // Add custom computation or tags
+        if (config.enableAutoTagging) {
+          data._autoProcessedAt = new Date().toISOString();
+        }
+
+        this.logger.log(`Processed entry in collection: ${payload.contentType}`);
       },
-      10,
-      'my-plugin',
-      'entries:write',
+      10,            // Execution Priority (lower runs first)
+      'my-plugin',   // Plugin ID
+      'entries:write' // Required Permission Scope
     );
   }
 }"></div>
 
-        <h3 class="font-semibold text-white mt-5 mb-2 text-sm">3. REST API Endpoints</h3>
+        <h4 class="font-semibold text-white mt-5 mb-2 text-xs text-zinc-200">Step 3: Create Module & Index (<code class="text-pink-400 font-mono">backend/src/plugins/my-plugin/index.ts</code>)</h4>
+        <div class="code-block" data-code="// backend/src/plugins/my-plugin/my-plugin.module.ts
+import { Module } from '@nestjs/common';
+import { MyPluginService } from './my-plugin.service';
+
+@Module({
+  providers: [MyPluginService],
+  exports: [MyPluginService],
+})
+export class MyPluginModule {}
+
+// backend/src/plugins/my-plugin/index.ts
+export * from './manifest';
+export * from './my-plugin.service';
+export * from './my-plugin.module';"></div>
+
+        <h4 class="font-semibold text-white mt-5 mb-2 text-xs text-zinc-200">Step 4: Register Plugin in Config (<code class="text-pink-400 font-mono">backend/src/plugin/plugins.config.ts</code>)</h4>
+        <div class="code-block" data-code="// backend/src/plugin/plugins.config.ts
+import { MyPluginManifest, MyPluginModule } from '../plugins/my-plugin';
+
+export const PLUGINS_CONFIG: PluginConfigEntry[] = [
+  // ... existing plugins
+  {
+    manifest: MyPluginManifest,
+    module: MyPluginModule,
+    enabled: true,
+  },
+];"></div>
+
+        <h4 class="font-semibold text-white mt-5 mb-2 text-xs text-zinc-200">Step 5: Control Live via Admin UI (<code class="text-pink-400 font-mono">/plugins</code>)</h4>
+        <p class="text-xs text-zinc-400 mb-4">
+          Visit <strong class="text-white">Developer &rarr; Plugins</strong> in the admin panel. Your plugin will appear automatically with its icon, category badge, declared permission chips, live toggle switch, and a <strong class="text-white">Configure</strong> button opening the dynamic settings drawer.
+        </p>
+
+        <h3 class="font-semibold text-white mt-6 mb-2 text-sm">REST API Endpoints</h3>
         <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
           <table class="w-full text-xs">
             <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-zinc-300"><th class="px-4 py-2">Endpoint</th><th class="px-4 py-2">Method</th><th class="px-4 py-2">Description</th></tr></thead>
