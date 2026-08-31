@@ -12,7 +12,7 @@ import json from 'highlight.js/lib/languages/json';
 import xml from 'highlight.js/lib/languages/xml';
 import python from 'highlight.js/lib/languages/python';
 import php from 'highlight.js/lib/languages/php';
-import 'highlight.js/styles/night-owl.css';
+import 'highlight.js/styles/atom-one-dark.css';
 
 // Register only the languages our snippets use (keeps the bundle small).
 // Auto-detection runs across this subset.
@@ -178,21 +178,13 @@ const FIELD_TYPES = [
 
 // ─── Form field types ─────────────────────────────────────────────────────────
 const FORM_FIELD_TYPES = [
-  { type: 'text',        label: 'Text',        color: 'bg-blue-500/10 text-blue-400',     desc: 'Single-line text input. Good for names, subjects, short answers.',          example: '"Acme Inc"' },
-  { type: 'textarea',    label: 'Textarea',    color: 'bg-purple-500/10 text-purple-400', desc: 'Multi-line text. Good for messages, comments, longer answers.',             example: '"Line one\\nLine two"' },
-  { type: 'number',      label: 'Number',      color: 'bg-orange-500/10 text-orange-400', desc: 'Numeric value — integer or decimal. Validated to be a number.',             example: '42' },
-  { type: 'email',       label: 'Email',       color: 'bg-cyan-500/10 text-cyan-400',     desc: 'Email address input. Validated server-side — must be a valid address.',     example: '"jane@example.com"' },
-  { type: 'url',         label: 'URL',         color: 'bg-sky-500/10 text-sky-400',       desc: 'Web address. Validated to be a well-formed URL.',                           example: '"https://example.com"' },
-  { type: 'phone',       label: 'Phone',       color: 'bg-teal-500/10 text-teal-400',     desc: 'Phone number. Validated against a default or custom pattern.',              example: '"+1 555 123 4567"' },
-  { type: 'date',        label: 'Date',        color: 'bg-amber-500/10 text-amber-400',   desc: 'Calendar date. Stored normalized as YYYY-MM-DD.',                           example: '"2026-06-25"' },
-  { type: 'datetime',    label: 'Date & Time', color: 'bg-amber-500/10 text-amber-400',   desc: 'Date with time. Stored normalized as ISO 8601.',                            example: '"2026-06-25T14:30:00Z"' },
-  { type: 'boolean',     label: 'Boolean',     color: 'bg-green-500/10 text-green-400',   desc: 'Yes/No toggle. Good for consent, terms agreement.',                         example: 'true' },
-  { type: 'select',      label: 'Select',      color: 'bg-yellow-500/10 text-yellow-400', desc: 'Dropdown — pick one from a predefined list. Options set in admin.',         example: '"premium"' },
-  { type: 'radio',       label: 'Radio',       color: 'bg-pink-500/10 text-pink-400',     desc: 'Radio buttons — pick one option. Options set in admin.',                    example: '"yes"' },
-  { type: 'multiselect', label: 'Multi-select',color: 'bg-yellow-500/10 text-yellow-400', desc: 'Pick many from a predefined list. Stored as an array.',                     example: '["sms", "email"]' },
-  { type: 'tags',        label: 'Tags',        color: 'bg-lime-500/10 text-lime-400',     desc: 'Freeform array of strings — user adds their own values.',                   example: '["urgent", "vip"]' },
-  { type: 'group',       label: 'Group',       color: 'bg-indigo-500/10 text-indigo-400', desc: 'Nested object — bundle related sub-fields together.',                       example: '{ "city": "Pune", "pincode": "411001" }' },
-  { type: 'repeater',    label: 'Repeater',    color: 'bg-violet-500/10 text-violet-400', desc: 'Repeatable list of objects (array-of-objects) with shared sub-fields.',     example: '[{ "url": "https://…", "type": "pdf" }]' },
+  { type: 'text',     label: 'Text',     color: 'bg-blue-500/10 text-blue-400',     desc: 'Single-line text input. Good for names, subjects, short answers.' },
+  { type: 'email',    label: 'Email',    color: 'bg-cyan-500/10 text-cyan-400',     desc: 'Email address input. Validated server-side — must be a valid address.' },
+  { type: 'textarea', label: 'Textarea', color: 'bg-purple-500/10 text-purple-400', desc: 'Multi-line text. Good for messages, comments, longer answers.' },
+  { type: 'number',   label: 'Number',   color: 'bg-orange-500/10 text-orange-400', desc: 'Numeric value — integer or decimal. Validated to be a number.' },
+  { type: 'select',   label: 'Select',   color: 'bg-yellow-500/10 text-yellow-400', desc: 'Dropdown — pick one from a predefined list. Options set in admin.' },
+  { type: 'radio',    label: 'Radio',    color: 'bg-pink-500/10 text-pink-400',     desc: 'Radio buttons — pick one option. Displayed inline. Options set in admin.' },
+  { type: 'checkbox', label: 'Checkbox', color: 'bg-green-500/10 text-green-400',   desc: 'Yes/No toggle. Good for newsletter consent, terms agreement.' },
 ];
 
 // ─── TOC ─────────────────────────────────────────────────────────────────────
@@ -655,12 +647,9 @@ npm run dev`} />
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-6 text-sm">
               <strong className="text-amber-400">Name normalization</strong>
               <p className="text-muted-foreground mt-1">
-                The exact name you type is kept as the content type's{' '}
-                <strong className="text-foreground">display name</strong> (shown in the admin — sidebar
-                lists, entry headers, dropdowns), while the API key is derived in <IC>snake_case</IC>.
-                "My Blog Posts" → displays as <em>My Blog Posts</em>, stored as <IC>my_blog_posts</IC>,
-                and the API URL uses hyphens: <IC>GET /api/my-blog-posts</IC>. The API endpoint is shown
-                as you type on the Create page.
+                Content type names are stored as <IC>snake_case</IC> internally.
+                "My Blog Posts" → stored as <IC>my_blog_posts</IC>, but the API URL uses hyphens:{' '}
+                <IC>GET /api/my-blog-posts</IC>. The API endpoint is shown as you type on the Create page.
               </p>
             </div>
 
@@ -823,7 +812,7 @@ npm run dev`} />
                 <li>Auto-generated from the first <IC>text</IC> or <IC>textarea</IC> field as you type</li>
                 <li>Converted to lowercase kebab-case — "My Blog Post" → <IC>my-blog-post</IC></li>
                 <li>You can override the slug manually before saving</li>
-                <li>You can still edit the slug after creation, but <strong className="text-foreground">changing it breaks existing links &amp; SEO</strong> pointing to the old URL</li>
+                <li>Once an entry is created, the slug is <strong className="text-foreground">locked</strong> (to keep URLs stable)</li>
                 <li>The slug becomes the second URL segment: <IC>/api/blog/my-blog-post</IC></li>
               </ul>
             </div>
@@ -919,7 +908,7 @@ POST /api/entries/bulk-promote  # Body: { "ids": [1, 2, 3], "status": "published
             <h3 className="font-semibold mb-3">Other actions</h3>
             <div className="space-y-2 mb-6">
               {[
-                ['Edit',       'Update any field value, including the slug (changing it breaks existing links/SEO).'],
+                ['Edit',       'Update any field value. The slug is locked after creation.'],
                 ['Duplicate',  'Creates a copy with slug "-copy" appended.'],
                 ['Copy URL',   'Copies the entry\'s public API URL (e.g. /api/article-page/my-post) to the clipboard — available to all roles.'],
               ].map(([action, desc]) => (
@@ -1756,21 +1745,71 @@ const rzp = new window.Razorpay({
 });
 rzp.open();`} />
 
-            <h3 className="font-semibold mb-2 mt-6">6. Automated Itemized Tax Invoicing</h3>
+            <h3 className="font-semibold mb-2 mt-6">6. Universal Shipping & Courier Tracking</h3>
             <p className="text-muted-foreground text-sm mb-2">
-              Fetch branded, printable HTML/PDF tax invoices with breakdown for any completed order:
+              NodePress computes flat-rate delivery or waives shipping when the cart exceeds the free shipping threshold:
+            </p>
+            <CodeBlock code={`POST /api/commerce/shipping/calculate
+{
+  "subtotal": 1200
+}
+
+// Response (if subtotal < ₹1,500 threshold):
+{
+  "shippingFee": 99,
+  "freeShippingThreshold": 1500,
+  "isFree": false,
+  "currency": "INR"
+}`} />
+            <p className="text-muted-foreground text-sm mb-2 mt-3">
+              When fulfilling physical merchandise, store admins assign the courier (<strong>Shiprocket, Delhivery, BlueDart, DTDC, FedEx</strong>) and enter the tracking AWB:
+            </p>
+            <CodeBlock code={`PATCH /api/commerce/orders/:id/fulfill
+{
+  "carrier": "Shiprocket",
+  "trackingNumber": "SR100982348"
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-6">7. Customer Lifetime Value (LTV) Analytics</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              NodePress automatically aggregates customer purchase frequencies, lifetime spend, and location metrics:
+            </p>
+            <CodeBlock code={`GET /api/commerce/customers
+// Returns:
+{
+  "data": [
+    {
+      "email": "customer@example.com",
+      "name": "Aarav Mehta",
+      "totalOrders": 4,
+      "totalSpent": 19996,
+      "lastOrderDate": "2026-08-31T10:00:00.000Z",
+      "city": "Mumbai",
+      "country": "India"
+    }
+  ]
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-6">8. Automated Itemized Tax Invoicing</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Fetch branded, printable HTML/PDF tax invoices with itemized line items, GST breakdown, and transaction IDs:
             </p>
             <CodeBlock code={`GET /api/commerce/orders/:id/invoice
 // Returns: { "orderNumber": "ORD-178...", "html": "<!DOCTYPE html>..." }`} />
 
-            <h3 className="font-semibold mb-2 mt-6">7. E-Commerce REST Endpoints Reference</h3>
+            <h3 className="font-semibold mb-2 mt-6">9. E-Commerce REST Endpoints Reference</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET" path="/api/commerce/products" desc="List active catalog products, variant matrices, and stock" />
               <Endpoint method="GET" path="/api/commerce/products/:slug" desc="Retrieve detailed product by URL slug" />
               <Endpoint method="POST" path="/api/commerce/coupons/validate" desc="Validate discount coupon against cart subtotal" />
+              <Endpoint method="POST" path="/api/commerce/shipping/calculate" desc="Compute shipping rate for cart subtotal" />
               <Endpoint method="POST" path="/api/commerce/checkout/create-session" desc="Create universal checkout session (Razorpay / Stripe / LemonSqueezy)" />
               <Endpoint method="POST" path="/api/commerce/webhooks/razorpay" desc="Handle Razorpay payment webhook with HMAC-SHA256 signature verification" />
               <Endpoint method="POST" path="/api/commerce/webhooks/stripe" desc="Handle Stripe payment webhook (payment_intent.succeeded)" />
+              <Endpoint method="GET" path="/api/commerce/dashboard" desc="Retrieve store KPI statistics, revenue, and low stock count" auth />
+              <Endpoint method="GET" path="/api/commerce/orders" desc="List all orders with status filters and pagination" auth />
+              <Endpoint method="PATCH" path="/api/commerce/orders/:id/fulfill" desc="Fulfill order with courier tracking AWB" auth />
+              <Endpoint method="GET" path="/api/commerce/customers" desc="Get aggregated customer list with lifetime value (LTV)" auth />
               <Endpoint method="GET" path="/api/commerce/orders/:id/invoice" desc="Retrieve printable HTML tax invoice for an order" auth />
               <Endpoint method="GET" path="/api/commerce/license/status" desc="Check Lemon Squeezy commercial license status and domain lock" auth />
             </div>
@@ -1950,103 +1989,15 @@ STORAGE_S3_PUBLIC_URL=http://localhost:9000/nodepress-uploads`} />
               <IC>contentTypes: ["blog"]</IC> cannot access <IC>/api/product</IC>.
             </p>
 
-            <CodeBlock code={`# Use the key in the X-API-Key header (read example)
+            <CodeBlock code={`# Use the key in the X-API-Key header
 curl ${baseUrl}/api/blog \\
-  -H "X-API-Key: np_your_key_here"`} />
+  -H "X-API-Key: np_your_key_here"
 
-            <h3 className="font-semibold mb-3 mt-8">Changing data with an API key — step by step</h3>
-            <p className="text-muted-foreground text-sm mb-3">
-              Create the key <strong className="text-foreground">once</strong> (admin), then every change uses
-              only the <IC>X-API-Key</IC> header — no login. The content type below is shown with hyphens
-              (<IC>/api/blog</IC>); a name like <IC>blog_posts</IC> is reached at <IC>/api/blog-posts</IC>.
-            </p>
-            <div className="rounded-xl border border-border p-5 mb-4 bg-muted/20 space-y-2 text-sm">
-              {[
-                ['1. Create a key', <>In <strong className="text-foreground">Developer → API Keys</strong> (admin only), make a key with access <IC>write</IC> (POST/PUT) or <IC>all</IC> (also DELETE), scoped to your content type. The <IC>np_…</IC> key shows once — copy it into your server\'s env.</>],
-                ['2. Create data', <><IC>POST /api/&lt;type&gt;</IC> with a top-level <IC>slug</IC> and a <IC>data</IC> object.</>],
-                ['3. Update data', <><IC>PUT /api/&lt;type&gt;/&lt;slug&gt;</IC> — the slug is in the URL, the body has only <IC>data</IC>.</>],
-                ['4. Read back', <><IC>GET /api/&lt;type&gt;/&lt;slug&gt;</IC> — public, needs no key.</>],
-                ['5. Delete data', <><IC>DELETE /api/&lt;type&gt;/&lt;slug&gt;</IC> — requires an <IC>all</IC> key.</>],
-              ].map(([step, desc], i) => (
-                <div key={i} className="flex gap-3">
-                  <span className="font-medium text-foreground w-28 shrink-0">{step}</span>
-                  <span className="text-muted-foreground">{desc}</span>
-                </div>
-              ))}
-            </div>
-            <CodeBlock code={`# 2. CREATE — POST /api/<type>
+# Or for write operations
 curl -X POST ${baseUrl}/api/blog \\
   -H "X-API-Key: np_your_key_here" \\
   -H "Content-Type: application/json" \\
-  -d '{"slug":"my-post","data":{"title":"Hello","body":"World"}}'
-
-# 3. UPDATE — PUT /api/<type>/<slug>  (slug in URL, data only in body)
-curl -X PUT ${baseUrl}/api/blog/my-post \\
-  -H "X-API-Key: np_your_key_here" \\
-  -H "Content-Type: application/json" \\
-  -d '{"data":{"title":"Hello (edited)"}}'
-
-# 4. READ BACK — GET (public, no key)
-curl ${baseUrl}/api/blog/my-post
-
-# 5. DELETE — needs an "all" key
-curl -X DELETE ${baseUrl}/api/blog/my-post \\
-  -H "X-API-Key: np_your_key_here"`} />
-            <p className="text-muted-foreground text-sm mt-3 mb-2">
-              A <IC>401</IC> means the key is missing or mistyped; a <IC>403</IC> means the key is valid but
-              not allowed (wrong access level, or not scoped to that content type).
-            </p>
-
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mt-6 mb-6 text-sm">
-              <strong className="text-amber-400">Keep write keys server-side</strong>
-              <p className="text-muted-foreground mt-1">
-                A <IC>write</IC>/<IC>all</IC> key can modify your content, so it must
-                <strong className="text-foreground"> never ship to the browser</strong>. Don't put it in
-                client-side JavaScript or a <IC>NEXT_PUBLIC_</IC> variable — anything in the browser is
-                readable by every visitor. Read keys are lower-risk, but treat any embedded key as public.
-              </p>
-              <p className="text-muted-foreground mt-2">
-                To write from a public website, proxy through your own server: the browser calls
-                <em> your</em> route, and your route (holding the key in a server-only env var) forwards
-                the write to NodePress. The API key bypasses role checks, so your route is the gatekeeper —
-                validate and authorize the request before forwarding.
-              </p>
-            </div>
-
-            <p className="text-muted-foreground text-sm mb-2">
-              <strong className="text-foreground">Browser → your server → NodePress.</strong> Example using a Next.js route handler:
-            </p>
-            <CodeBlock code={`// .env  (server-only — never NEXT_PUBLIC_)
-// NODEPRESS_API_KEY=np_your_write_key
-// BACKEND_URL=${baseUrl}
-
-// app/api/comments/route.ts  — runs on the server
-export async function POST(req: Request) {
-  const body = await req.json();
-  // validate / authorize the request here before trusting it
-
-  const res = await fetch(\`\${process.env.BACKEND_URL}/api/comments\`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': process.env.NODEPRESS_API_KEY!,   // secret stays on the server
-    },
-    body: JSON.stringify({ slug: body.slug, data: body.data }),
-  });
-  return Response.json(await res.json(), { status: res.status });
-}
-
-// client-side — no token anywhere:
-await fetch('/api/comments', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ slug: 'hello', data: { author: 'Jane', text: 'Nice!' } }),
-});`} />
-            <p className="text-muted-foreground text-sm mt-3 mb-2">
-              For visitor-generated content (comments, contact, reviews), prefer the public
-              <IC>POST /api/submit/:slug</IC> Forms endpoint — it needs no key and has rate limiting,
-              honeypot, and optional captcha built in.
-            </p>
+  -d '{"slug":"new-post","data":{"title":"Hello"}}'`} />
 
             <h3 className="font-semibold mb-3 mt-6">Per-key rate limiting</h3>
             <p className="text-muted-foreground text-sm mb-3">
@@ -2095,8 +2046,8 @@ X-RateLimit-Reset: 60       # seconds until window resets
                 {[
                   ['1. Create a form', 'Go to Forms → New Form. Give it a name, a URL-safe slug, and add your fields.'],
                   ['2. Configure actions', 'Optionally add an Email action (sends a notification on each submission) or a Webhook action (POSTs data to any URL).'],
-                  ['3. Call the submit API', 'Call POST /api/submit/:slug from any platform — React, React Native, curl, or any HTTP client. The builder\'s "Show payload" panel gives a ready-to-copy example body + curl/fetch snippets.'],
-                  ['4. View submissions', 'Every submission is stored. Open Forms → click the submission count → expand any row to see full details (nested groups/arrays included). Use Export CSV to download them.'],
+                  ['3. Call the submit API', 'Call POST /api/submit/:slug from any platform — React, React Native, curl, or any HTTP client.'],
+                  ['4. View submissions', 'Every submission is stored. Open Forms → click the submission count → expand any row to see full details.'],
                 ].map(([step, desc]) => (
                   <div key={step} className="flex gap-3">
                     <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
@@ -2109,10 +2060,7 @@ X-RateLimit-Reset: 60       # seconds until window resets
             {/* Form field types */}
             <h3 className="font-semibold mb-3">Form Field Types</h3>
             <p className="text-muted-foreground text-sm mb-3">
-              All fields are validated server-side on submission. Each field can carry optional
-              declarative rules (min/max, length, regex pattern, item counts) and required fields
-              return a clear error with a dot-path (e.g. <IC>address.pincode</IC>, <IC>documents[0].url</IC>).
-              Use <IC>group</IC> and <IC>repeater</IC> for nested objects and arrays-of-objects.
+              All fields are validated server-side on submission. Required fields return a clear error message if missing.
             </p>
             <div className="rounded-xl border border-border overflow-hidden mb-8">
               <table className="w-full text-sm">
@@ -2120,19 +2068,15 @@ X-RateLimit-Reset: 60       # seconds until window resets
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Type</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Description</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Example value</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {FORM_FIELD_TYPES.map(({ type, label, color, desc, example }) => (
+                  {FORM_FIELD_TYPES.map(({ type, label, color, desc }) => (
                     <tr key={type}>
-                      <td className="px-4 py-3 whitespace-nowrap align-top">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={cn('inline-flex px-2 py-0.5 rounded text-xs font-medium', color)}>{label}</span>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs leading-relaxed align-top">{desc}</td>
-                      <td className="px-4 py-3 align-top">
-                        <IC>{example}</IC>
-                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs leading-relaxed">{desc}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -2526,7 +2470,6 @@ echo $result['submissionId'];`,
                   ['3. Pick events', 'Choose which events fire it (entry.created, entry.updated, …) or select * for all of them.'],
                   ['4. Add a secret (recommended)', 'Set a secret so each delivery is HMAC-SHA256 signed — your receiver can verify the request genuinely came from NodePress (see below).'],
                   ['5. Test Ping', 'Click Test Ping to send a sample event and confirm your endpoint is reachable before relying on it. Watch the Delivery Log for the result.'],
-                  ['6. Edit or remove', 'Each webhook card has Edit (change name, URL, secret, or events), enable/disable, Test Ping, and Delete actions.'],
                 ].map(([step, desc]) => (
                   <div key={step} className="flex gap-3">
                     <span className="font-medium text-foreground w-44 shrink-0">{step}</span>
@@ -2577,13 +2520,6 @@ echo $result['submissionId'];`,
     "contentType": "blog"
   }
 }`} />
-            <p className="text-muted-foreground text-sm mt-3">
-              <strong className="text-foreground">The <code className="text-xs">data</code> is a summary, not the full entry.</strong>{' '}
-              It contains only <code className="text-xs">id</code>, <code className="text-xs">slug</code>,{' '}
-              <code className="text-xs">status</code>, and <code className="text-xs">contentType</code> — not your field values.
-              If your receiver needs the complete content, fetch it back with{' '}
-              <code className="text-xs">GET /api/{'{contentType}'}/{'{slug}'}</code> using the slug from the payload.
-            </p>
 
             <h3 className="font-semibold mb-3 mt-2">HMAC-SHA256 signing</h3>
             <p className="text-muted-foreground text-sm mb-3">
@@ -3062,56 +2998,23 @@ npm run docker:prod        # docker-compose -f docker-compose.prod.yml up -d --b
 
             <h3 className="font-semibold mb-3">Cloud media storage (S3-compatible)</h3>
             <p className="text-muted-foreground text-sm mb-3">
-              Set <IC>STORAGE_DRIVER=s3</IC> to store uploads in AWS S3, Cloudflare R2, MinIO, DigitalOcean Spaces, or
-              Backblaze B2. Files are streamed directly and served from the bucket's public URL or a custom CDN domain.
+              Set <IC>STORAGE_DRIVER=s3</IC> to store uploads in AWS S3, Cloudflare R2, MinIO, or
+              Backblaze B2. Files are served from the bucket's public URL or a CDN domain.
             </p>
-
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">1. Cloudflare R2 (Recommended — Zero Egress Fees)</h4>
-            <CodeBlock code={`STORAGE_DRIVER=s3
-STORAGE_S3_BUCKET=my-r2-bucket
+            <CodeBlock code={`# Cloudflare R2 example
+STORAGE_DRIVER=s3
+STORAGE_S3_BUCKET=my-bucket
 STORAGE_S3_REGION=auto
-STORAGE_S3_ACCESS_KEY=your_r2_access_key_id
-STORAGE_S3_SECRET_KEY=your_r2_secret_access_key
-STORAGE_S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
-# Custom domain or R2 public dev URL (enable 'Public Access' in R2 dashboard):
+STORAGE_S3_ACCESS_KEY=xxx
+STORAGE_S3_SECRET_KEY=xxx
+STORAGE_S3_ENDPOINT=https://xxx.r2.cloudflarestorage.com
 STORAGE_S3_PUBLIC_URL=https://assets.yourdomain.com`} />
 
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 mt-4">2. AWS S3</h4>
-            <CodeBlock code={`STORAGE_DRIVER=s3
-STORAGE_S3_BUCKET=my-s3-bucket
-STORAGE_S3_REGION=us-east-1
-STORAGE_S3_ACCESS_KEY=AKIAXXXXXXXXXXXXXXXX
-STORAGE_S3_SECRET_KEY=your_aws_secret_access_key
-# Optional: CloudFront CDN or custom domain (defaults to https://bucket.s3.region.amazonaws.com)
-STORAGE_S3_PUBLIC_URL=https://d111111abcdef8.cloudfront.net`} />
-
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 mt-4">3. MinIO (Self-Hosted S3)</h4>
-            <CodeBlock code={`STORAGE_DRIVER=s3
-STORAGE_S3_BUCKET=nodepress-uploads
-STORAGE_S3_REGION=us-east-1
-STORAGE_S3_ACCESS_KEY=minioadmin
-STORAGE_S3_SECRET_KEY=minioadmin
-STORAGE_S3_ENDPOINT=http://localhost:9000
-STORAGE_S3_PUBLIC_URL=http://localhost:9000/nodepress-uploads`} />
-
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 mt-4">4. DigitalOcean Spaces</h4>
-            <CodeBlock code={`STORAGE_DRIVER=s3
-STORAGE_S3_BUCKET=my-space-name
-STORAGE_S3_REGION=nyc3
-STORAGE_S3_ACCESS_KEY=your_do_spaces_key
-STORAGE_S3_SECRET_KEY=your_do_spaces_secret
-STORAGE_S3_ENDPOINT=https://nyc3.digitaloceanspaces.com
-STORAGE_S3_PUBLIC_URL=https://my-space-name.nyc3.cdn.digitaloceanspaces.com`} />
-
-            <h3 className="font-semibold mb-3 mt-6">Image optimization &amp; Dynamic Transforms</h3>
-            <p className="text-muted-foreground text-sm mb-3">
-              Uploaded images are automatically resized to a max dimension of 2400 px, EXIF-rotated,
-              and saved at JPEG quality 85. An optimized <IC>.webp</IC> sibling is generated automatically.
-            </p>
+            <h3 className="font-semibold mb-3 mt-4">Image optimization</h3>
             <p className="text-muted-foreground text-sm">
-              Use the dynamic image transform endpoint for on-demand transformations with persistent disk caching:
-              <br/>
-              <IC>GET /api/media/:filename/transform?w=800&amp;h=600&amp;q=80&amp;format=webp&amp;fit=cover</IC>
+              Uploaded images are automatically resized to a max dimension of 2400 px, EXIF-rotated,
+              and saved at JPEG quality 85. A <IC>.webp</IC> sibling is generated at quality 82 and
+              stored alongside the original. Both URLs are returned in the media API response.
             </p>
           </Section>
 
