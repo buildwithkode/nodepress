@@ -80,6 +80,7 @@
           <li><a href="#webhooks"         class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Webhooks & DLQ</a></li>
           <li><a href="#webhook-recipes"  class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Top 5 Webhook Recipes</a></li>
           <li><a href="#plugins"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Plugin Architecture</a></li>
+          <li><a href="#ecommerce"        class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">E-Commerce Pro (UPI & Stripe)</a></li>
           <li><a href="#graphql"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">GraphQL API</a></li>
           <li><a href="#realtime"         class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Real-time WebSockets</a></li>
           <li><a href="#seo"              class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">SEO & Sitemap XML</a></li>
@@ -682,6 +683,125 @@ export const PLUGINS_CONFIG: PluginConfigEntry[] = [
               <tr><td class="px-4 py-2 text-pink-400">/api/plugins/:id/toggle</td><td class="px-4 py-2 text-amber-400">PATCH</td><td class="px-4 py-2 font-sans text-zinc-300">Toggle enabled/disabled state live with 0ms downtime (Admin)</td></tr>
               <tr><td class="px-4 py-2 text-pink-400">/api/plugins/:id/config</td><td class="px-4 py-2 text-purple-400">PUT</td><td class="px-4 py-2 font-sans text-zinc-300">Update live runtime settings for a plugin (Admin)</td></tr>
               <tr><td class="px-4 py-2 text-pink-400">/api/plugins/hooks</td><td class="px-4 py-2 text-blue-400">GET</td><td class="px-4 py-2 font-sans text-zinc-300">Get summary of registered lifecycle hooks and data filters</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- E-Commerce Pro Suite -->
+      <section id="ecommerce" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">E-Commerce Pro Suite (EcommPress)</h2>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono font-medium">v1.0.0</span>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          <strong class="text-white">NodePress E-Commerce Pro</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">@nodepress-pro/ecommerce</code>) is an enterprise-grade headless commerce suite with <strong class="text-white">0% platform fees</strong>, <strong class="text-white">native Indian UPI checkout via Razorpay</strong>, <strong class="text-white">global card processing via Stripe</strong>, and <strong class="text-white">Merchant of Record compliance via Lemon Squeezy</strong>.
+        </p>
+
+        <!-- Feature Pillars Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
+            <span class="text-xs font-semibold text-emerald-400 block mb-1">⚡ 0% Platform Fees</span>
+            <p class="text-xs text-zinc-400">Direct payouts straight to your merchant gateway. Zero middleman cuts.</p>
+          </div>
+          <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
+            <span class="text-xs font-semibold text-blue-400 block mb-1">🇮🇳 Indian UPI & QR</span>
+            <p class="text-xs text-zinc-400">Native Razorpay UPI Intent (GPay, PhonePe, Paytm, QR) with HMAC-SHA256 webhooks.</p>
+          </div>
+          <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
+            <span class="text-xs font-semibold text-purple-400 block mb-1">🍋 Lemon Squeezy MoR</span>
+            <p class="text-xs text-zinc-400">Automated global EU VAT and US sales tax filing with domain licensing.</p>
+          </div>
+        </div>
+
+        <h3 class="text-base font-bold text-white mb-3">1. Quick Installation & Config</h3>
+        <p class="text-xs text-zinc-400 mb-2">Install the package and add it to <code class="text-pink-400 font-mono">backend/src/plugin/plugins.config.ts</code>:</p>
+        <div class="code-block" data-code="npm install @nodepress-pro/ecommerce
+
+// backend/src/plugin/plugins.config.ts
+import { EcommerceProManifest, EcommerceProModule } from '@nodepress-pro/ecommerce';
+
+export const ENABLED_PLUGINS = [
+  // ... core plugins
+  { manifest: EcommerceProManifest, module: EcommerceProModule }, // 👈 E-Commerce Pro
+];"></div>
+
+        <h3 class="text-base font-bold text-white mt-6 mb-3">2. Automated Database Schemas</h3>
+        <p class="text-xs text-zinc-400 mb-2">Upon boot, NodePress auto-provisions 3 core schemas with zero manual migrations:</p>
+        <ul class="space-y-1.5 text-xs text-zinc-300 list-disc list-inside mb-4">
+          <li><code class="text-pink-400 font-mono">products</code> — Title, price, compareAtPrice, SKU, stockQuantity, images, category, and variants matrix.</li>
+          <li><code class="text-pink-400 font-mono">coupons</code> — Promo codes, discountType (PERCENTAGE, FIXED, FREE_SHIPPING), minOrderSubtotal, maxUses.</li>
+          <li><code class="text-pink-400 font-mono">orders</code> — Order number, line items snapshot, payment status, transaction ID, and courier tracking.</li>
+        </ul>
+
+        <h3 class="text-base font-bold text-white mt-6 mb-3">3. Multi-Variant Product Catalog</h3>
+        <div class="code-block" data-code="POST /api/commerce/products
+{
+  &quot;title&quot;: &quot;Heritage Silk Saree&quot;,
+  &quot;price&quot;: 4999,
+  &quot;compareAtPrice&quot;: 6999,
+  &quot;sku&quot;: &quot;SAREE-ROYAL-01&quot;,
+  &quot;stockQuantity&quot;: 20,
+  &quot;category&quot;: &quot;Ethnic Wear&quot;,
+  &quot;variants&quot;: [
+    { &quot;name&quot;: &quot;Royal Crimson (M)&quot;, &quot;sku&quot;: &quot;SAREE-RED-M&quot;, &quot;priceDelta&quot;: 0, &quot;stockQuantity&quot;: 10 },
+    { &quot;name&quot;: &quot;Emerald Green (L)&quot;, &quot;sku&quot;: &quot;SAREE-GRN-L&quot;, &quot;priceDelta&quot;: 500, &quot;stockQuantity&quot;: 10 }
+  ]
+}"></div>
+
+        <h3 class="text-base font-bold text-white mt-6 mb-3">4. Coupon Validation & Cart Math</h3>
+        <div class="code-block" data-code="POST /api/commerce/coupons/validate
+{
+  &quot;code&quot;: &quot;FESTIVE50&quot;,
+  &quot;subtotal&quot;: 5000
+}
+
+// Returns:
+{
+  &quot;valid&quot;: true,
+  &quot;code&quot;: &quot;FESTIVE50&quot;,
+  &quot;discountType&quot;: &quot;PERCENTAGE&quot;,
+  &quot;discountValue&quot;: 50,
+  &quot;discountAmount&quot;: 2500,
+  &quot;finalTotal&quot;: 2500
+}"></div>
+
+        <h3 class="text-base font-bold text-white mt-6 mb-3">5. Razorpay UPI Storefront Checkout Flow</h3>
+        <div class="code-block" data-code="// 1. Create Checkout Session on NodePress
+const res = await axios.post('/api/commerce/checkout/create-session', {
+  items: [{ productId: 29, variantSku: 'SAREE-RED-M', quantity: 1 }],
+  customerEmail: 'customer@example.com',
+  customerName: 'Aarav Mehta',
+  couponCode: 'FESTIVE50',
+  gateway: 'razorpay',
+  currency: 'INR'
+});
+
+// 2. Open Official Razorpay Standard Modal
+const rzp = new window.Razorpay({
+  key: res.data.keyId,
+  amount: res.data.amountInPaise,
+  currency: 'INR',
+  name: 'Store Name',
+  description: 'Order ' + res.data.orderNumber,
+  handler: function (response) {
+    console.log('Payment Confirmed:', response.razorpay_payment_id);
+  }
+});
+rzp.open();"></div>
+
+        <h3 class="font-semibold text-white mt-6 mb-2 text-sm">Storefront REST Endpoints</h3>
+        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
+          <table class="w-full text-xs">
+            <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-zinc-300"><th class="px-4 py-2">Endpoint</th><th class="px-4 py-2">Method</th><th class="px-4 py-2">Description</th></tr></thead>
+            <tbody class="divide-y divide-zinc-800 text-zinc-400 font-mono">
+              <tr><td class="px-4 py-2 text-pink-400">/api/commerce/products</td><td class="px-4 py-2 text-blue-400">GET</td><td class="px-4 py-2 font-sans text-zinc-300">List active catalog products, variant matrices, and inventory</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/commerce/coupons/validate</td><td class="px-4 py-2 text-purple-400">POST</td><td class="px-4 py-2 font-sans text-zinc-300">Validate discount code against cart subtotal</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/commerce/checkout/create-session</td><td class="px-4 py-2 text-purple-400">POST</td><td class="px-4 py-2 font-sans text-zinc-300">Create checkout session (Razorpay / Stripe / LemonSqueezy)</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/commerce/orders/:id/invoice</td><td class="px-4 py-2 text-blue-400">GET</td><td class="px-4 py-2 font-sans text-zinc-300">Retrieve printable HTML tax invoice for an order (Auth)</td></tr>
             </tbody>
           </table>
         </div>
