@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck, Palette } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck, Palette, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import hljs from 'highlight.js/lib/core';
 import typescript from 'highlight.js/lib/languages/typescript';
@@ -210,6 +210,7 @@ const TOC_ITEMS = [
   { id: 'roles',          label: 'Roles & Permissions' },
   { id: 'brand',          label: 'Brand & Theme' },
   { id: 'plugins',        label: 'Plugin System' },
+  { id: 'ecommerce',      label: 'E-Commerce Pro Suite' },
   { id: 'media',          label: 'Media Library' },
   { id: 'api-keys',       label: 'API Keys' },
   { id: 'forms',          label: 'Forms' },
@@ -1631,6 +1632,147 @@ export class MyPluginService {
             <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
               <strong className="text-blue-400">Discover installed plugins:</strong>
               <p className="text-muted-foreground mt-1 text-xs"><IC>GET /api/plugins</IC> — returns all registered plugins with their manifest, version, and enabled status.</p>
+            </div>
+          </Section>
+
+          {/* ── E-Commerce Pro Suite (EcommPress) ─────────────────────────── */}
+          <Section id="ecommerce" title="E-Commerce Pro Suite (EcommPress)" icon={ShoppingBag}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              NodePress E-Commerce Pro (<IC>@nodepress-pro/ecommerce</IC>) is a headless, commercial e-commerce suite that provides full storefront APIs with <strong>0% platform fees</strong>, <strong>native Indian UPI checkout via Razorpay</strong>, <strong>global card processing via Stripe</strong>, and <strong>Merchant of Record support via Lemon Squeezy</strong>.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">0% Fees</div>
+                <div className="font-bold text-foreground">Direct Payouts</div>
+                <div className="text-xs text-muted-foreground mt-1">Connect your own Razorpay or Stripe accounts directly.</div>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">🇮🇳 Indian UPI & QR</div>
+                <div className="font-bold text-foreground">Razorpay Native</div>
+                <div className="text-xs text-muted-foreground mt-1">GPay, PhonePe, Paytm, RuPay, and HMAC-SHA256 webhooks.</div>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="text-xs font-semibold text-violet-400 uppercase tracking-wider mb-1">🍋 Global Compliance</div>
+                <div className="font-bold text-foreground">Lemon Squeezy</div>
+                <div className="text-xs text-muted-foreground mt-1">Automated EU VAT, US sales taxes, and software licensing.</div>
+              </div>
+            </div>
+
+            <h3 className="font-semibold mb-2 mt-6">1. Installation & Registration</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Install the package and register it in <IC>src/plugin/plugins.config.ts</IC>:
+            </p>
+            <CodeBlock code={`npm install @nodepress-pro/ecommerce`} />
+            <CodeBlock code={`// src/plugin/plugins.config.ts
+import { EcommerceProManifest, EcommerceProModule } from '@nodepress-pro/ecommerce';
+
+export const ENABLED_PLUGINS = [
+  { manifest: WordCountManifest, module: WordCountModule },
+  { manifest: SeoAnalyzerManifest, module: SeoAnalyzerModule },
+  { manifest: EcommerceProManifest, module: EcommerceProModule }, // 👈 E-Commerce Pro
+];`} />
+
+            <h3 className="font-semibold mb-2 mt-6">2. Automated Schema Provisioning</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              When enabled, NodePress automatically provisions 3 content type schemas in your database with zero manual SQL migrations:
+            </p>
+            <div className="space-y-2 mb-6">
+              <div className="rounded-xl border border-border p-3 bg-muted/20 text-xs font-mono">
+                <strong className="text-foreground">products</strong> — Title, price, compareAtPrice, SKU, stockQuantity, images, category, and variants matrix.
+              </div>
+              <div className="rounded-xl border border-border p-3 bg-muted/20 text-xs font-mono">
+                <strong className="text-foreground">coupons</strong> — Promo code, discountType (PERCENTAGE / FIXED / FREE_SHIPPING), discountValue, minOrderSubtotal, maxUses.
+              </div>
+              <div className="rounded-xl border border-border p-3 bg-muted/20 text-xs font-mono">
+                <strong className="text-foreground">orders</strong> — Order number, customer info, immutable line-item snapshot, paymentGateway, paymentStatus, and tracking.
+              </div>
+            </div>
+
+            <h3 className="font-semibold mb-2 mt-6">3. Multi-Variant Product Catalog</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Create multi-option variant matrix products (e.g. Size × Color) with unique SKUs and price delta adjustments:
+            </p>
+            <CodeBlock code={`POST /api/commerce/products
+{
+  "title": "Heritage Silk Saree",
+  "price": 4999,
+  "compareAtPrice": 6999,
+  "sku": "SAREE-ROYAL-01",
+  "stockQuantity": 20,
+  "category": "Ethnic Wear",
+  "variants": [
+    { "name": "Royal Crimson (M)", "sku": "SAREE-RED-M", "priceDelta": 0, "stockQuantity": 10 },
+    { "name": "Emerald Green (L)", "sku": "SAREE-GRN-L", "priceDelta": 500, "stockQuantity": 10 }
+  ]
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-6">4. Coupons & Promotion Rules</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Validate discount codes on cart subtotals with minimum spend and expiration constraints:
+            </p>
+            <CodeBlock code={`POST /api/commerce/coupons/validate
+{
+  "code": "FESTIVE50",
+  "subtotal": 5000
+}
+
+// Response:
+{
+  "valid": true,
+  "code": "FESTIVE50",
+  "discountType": "PERCENTAGE",
+  "discountValue": 50,
+  "discountAmount": 2500,
+  "finalTotal": 2500,
+  "message": "Coupon applied successfully!"
+}`} />
+
+            <h3 className="font-semibold mb-2 mt-6">5. Razorpay UPI & Card Checkout Flow</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Dispatch an authenticated checkout session from your frontend and open the Razorpay Standard Checkout popup:
+            </p>
+            <CodeBlock code={`// 1. Create Checkout Session on NodePress Backend
+const res = await axios.post('/api/commerce/checkout/create-session', {
+  items: [{ productId: 29, variantSku: 'SAREE-RED-M', quantity: 1 }],
+  customerEmail: 'customer@example.com',
+  customerName: 'Aarav Mehta',
+  couponCode: 'FESTIVE50',
+  gateway: 'razorpay',
+  currency: 'INR'
+});
+
+// 2. Open Official Razorpay Checkout Modal
+const rzp = new window.Razorpay({
+  key: res.data.keyId,
+  amount: res.data.amountInPaise, // Automatically converted to paise
+  currency: 'INR',
+  name: 'Store Name',
+  description: 'Order ' + res.data.orderNumber,
+  handler: function (response) {
+    // Payment Successful -> Order auto-marked as PAID and stock decremented
+    console.log('Payment ID:', response.razorpay_payment_id);
+  }
+});
+rzp.open();`} />
+
+            <h3 className="font-semibold mb-2 mt-6">6. Automated Itemized Tax Invoicing</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Fetch branded, printable HTML/PDF tax invoices with breakdown for any completed order:
+            </p>
+            <CodeBlock code={`GET /api/commerce/orders/:id/invoice
+// Returns: { "orderNumber": "ORD-178...", "html": "<!DOCTYPE html>..." }`} />
+
+            <h3 className="font-semibold mb-2 mt-6">7. E-Commerce REST Endpoints Reference</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET" path="/api/commerce/products" desc="List active catalog products, variant matrices, and stock" />
+              <Endpoint method="GET" path="/api/commerce/products/:slug" desc="Retrieve detailed product by URL slug" />
+              <Endpoint method="POST" path="/api/commerce/coupons/validate" desc="Validate discount coupon against cart subtotal" />
+              <Endpoint method="POST" path="/api/commerce/checkout/create-session" desc="Create universal checkout session (Razorpay / Stripe / LemonSqueezy)" />
+              <Endpoint method="POST" path="/api/commerce/webhooks/razorpay" desc="Handle Razorpay payment webhook with HMAC-SHA256 signature verification" />
+              <Endpoint method="POST" path="/api/commerce/webhooks/stripe" desc="Handle Stripe payment webhook (payment_intent.succeeded)" />
+              <Endpoint method="GET" path="/api/commerce/orders/:id/invoice" desc="Retrieve printable HTML tax invoice for an order" auth />
+              <Endpoint method="GET" path="/api/commerce/license/status" desc="Check Lemon Squeezy commercial license status and domain lock" auth />
             </div>
           </Section>
 
