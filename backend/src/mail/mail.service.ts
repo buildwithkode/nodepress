@@ -277,6 +277,95 @@ export class MailService implements OnModuleInit {
   }
 
   /**
+   * Send an Order Confirmation receipt email to the buyer upon successful payment.
+   */
+  async sendOrderConfirmation(order: any): Promise<void> {
+    const to = order.customerEmail || order.customeremail;
+    if (!to) return;
+
+    const items = order.items || [];
+    const itemsHtml = items
+      .map(
+        (it: any) => `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 10px 0;">
+          <strong>${escapeHtml(it.title || it.sku)}</strong>
+          ${it.variantSku ? `<br><small style="color:#666;">Variant: ${escapeHtml(it.variantSku)}</small>` : ''}
+        </td>
+        <td style="padding: 10px 0; text-align: center;">x${it.quantity}</td>
+        <td style="padding: 10px 0; text-align: right;">₹${(Number(it.price) * Number(it.quantity)).toLocaleString('en-IN')}</td>
+      </tr>
+    `,
+      )
+      .join('');
+
+    const subject = `Order Confirmed #${order.orderNumber} — Thank you for your purchase!`;
+    const html = `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #eaeaea;border-radius:12px;overflow:hidden;">
+        <div style="background:#18181b;color:#ffffff;padding:24px;text-align:center;">
+          <h1 style="margin:0;font-size:22px;font-weight:700;">Order Confirmed! 🎉</h1>
+          <p style="margin:6px 0 0;font-size:13px;color:#a1a1aa;">Order #${order.orderNumber} &bull; Paid via ${order.paymentGateway || 'Razorpay UPI'}</p>
+        </div>
+        <div style="padding:24px;">
+          <p style="font-size:15px;color:#27272a;margin-top:0;">Hi <strong>${escapeHtml(order.customerName || 'Customer')}</strong>,</p>
+          <p style="font-size:13px;color:#52525b;line-height:1.5;">We have received your payment of <strong>₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}</strong> and your order is being prepared for dispatch.</p>
+          
+          <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:13px;">
+            <thead>
+              <tr style="border-bottom:2px solid #18181b;color:#71717a;text-align:left;">
+                <th style="padding-bottom:8px;">Item</th>
+                <th style="padding-bottom:8px;text-align:center;">Qty</th>
+                <th style="padding-bottom:8px;text-align:right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="padding-top:12px;font-weight:700;font-size:14px;">Total Paid:</td>
+                <td style="padding-top:12px;font-weight:700;font-size:16px;text-align:right;color:#059669;">₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div style="background:#f4f4f5;border-radius:8px;padding:14px;margin-top:20px;font-size:12px;color:#52525b;">
+            <strong>Delivery Address:</strong><br>
+            ${
+              order.shippingAddress
+                ? `
+              ${escapeHtml(order.shippingAddress.name || order.customerName || '')}<br>
+              ${escapeHtml(order.shippingAddress.addressLine1 || '')}<br>
+              ${escapeHtml(order.shippingAddress.city || '')}, ${escapeHtml(order.shippingAddress.state || '')} — ${escapeHtml(order.shippingAddress.postalCode || '')}
+            `
+                : 'Standard Delivery'
+            }
+          </div>
+
+          <div style="margin-top:24px;text-align:center;">
+            <a href="http://localhost:5173/checkout-test" style="display:inline-block;background:#18181b;color:#ffffff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;">Track Your Order</a>
+          </div>
+        </div>
+        <div style="background:#fafafa;border-top:1px solid #eaeaea;padding:14px;text-align:center;font-size:11px;color:#a1a1aa;">
+          NodePress Commerce &bull; Automated Order Receipt
+        </div>
+      </div>
+    `;
+
+    if (!this.transporter) {
+      this.logger.log(`[OrderConfirmation Email] To: ${to} | Subject: "${subject}" | Total: ₹${order.totalAmount}`);
+      return;
+    }
+
+    await this.send({
+      to,
+      subject,
+      text: `Order Confirmed #${order.orderNumber}. Total: ₹${order.totalAmount}. Thank you for shopping with us!`,
+      html,
+    });
+  }
+
+  /**
    * Generic low-level send. All public methods funnel through here.
    * Never throws — logs errors only.
    */
