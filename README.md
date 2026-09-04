@@ -90,11 +90,14 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 ### Security & Access Control
 | Feature | What it does |
 |---|---|
+| **Two-Factor Auth (2FA / TOTP)** | Built-in RFC 6238 TOTP (Google Authenticator, Authy, 1Password) + 8 backup recovery codes |
+| **Emergency Admin Reset CLI** | `npm run reset-admin <email> <pass>` instant password & 2FA recovery from terminal |
+| **Forgot & Reset Password** | Secure 15-minute token flow with SMTP support & instant dev-mode link preview |
 | **Field-Level Access (RBAC)** | Restrict read and write access per field to specific roles |
 | **4 Built-in Roles** | Admin · Editor · Contributor · Viewer — each with granular capability sets |
 | **Per-content-type overrides** | Give Editor full access to `blog` but read-only on `legal` |
-| **JWT + refresh tokens** | 7-day access tokens, 30-day silent refresh (HttpOnly cookie) |
-| **Helmet + CORS** | Security headers on every response, strict origin enforcement |
+| **JWT + refresh tokens** | 7-day access tokens, 30-day silent refresh (HttpOnly cookie with rotation) |
+| **Helmet + CORS** | Security headers on every response, strict multi-origin enforcement |
 | **Rate limiting** | Per-IP throttling on all endpoints, stricter on auth routes |
 
 ### Forms
