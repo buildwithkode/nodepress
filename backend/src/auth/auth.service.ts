@@ -53,7 +53,7 @@ export class AuthService {
   async login(dto: LoginDto, res: Response) {
     const normalizedEmail = dto.email?.trim().toLowerCase();
     let user = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (!user && normalizedEmail) {
+    if (!user && normalizedEmail && typeof this.prisma.user.findFirst === 'function') {
       user = await this.prisma.user.findFirst({
         where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
       });
@@ -243,7 +243,7 @@ export class AuthService {
   async forgotPassword(email: string): Promise<{ message: string; devResetUrl?: string }> {
     const normalizedEmail = email?.trim().toLowerCase();
     let user = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (!user && normalizedEmail) {
+    if (!user && normalizedEmail && typeof this.prisma.user.findFirst === 'function') {
       user = await this.prisma.user.findFirst({
         where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
       });

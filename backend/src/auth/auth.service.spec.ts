@@ -19,6 +19,7 @@ const mockPrisma = {
     count:      jest.fn(),
     create:     jest.fn(),
     findUnique: jest.fn(),
+    findFirst:  jest.fn(),
   },
   $queryRaw: jest.fn(),
 };
