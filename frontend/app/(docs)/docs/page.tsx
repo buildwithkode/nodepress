@@ -3131,6 +3131,29 @@ X-API-Key: np_abc123...`} />
               After 30 days, or after calling <IC>POST /api/auth/logout</IC>, the user must log in again.
             </p>
 
+            <h3 className="font-semibold mb-3 mt-6">Two-Factor Authentication (2FA / TOTP)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              NodePress has built-in RFC 6238 TOTP Two-Factor Authentication compatible with Google Authenticator, 1Password, Authy, and Apple Keychain.
+            </p>
+            <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground space-y-2 mb-4">
+              <p><strong className="text-foreground">🔒 Default State:</strong> 2FA starts disabled by default for new accounts so users are never locked out before scanning their QR code.</p>
+              <p><strong className="text-foreground">📱 Enabling 2FA:</strong> Navigate to <IC>Users → Security</IC> in the admin panel, scan the QR code with your authenticator app, and confirm with a 6-digit code.</p>
+              <p><strong className="text-foreground">🔑 Backup Recovery Codes:</strong> When enabling 2FA, 8 single-use recovery codes are generated. If you lose access to your authenticator app, any of these codes will grant emergency login.</p>
+            </div>
+
+            <h3 className="font-semibold mb-3 mt-6">Emergency Admin Recovery CLI (<IC>npm run reset-admin</IC>)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              If you forget your admin password, get locked out by 2FA, or lose access to your device, you can instantly reset your admin account directly from the server terminal:
+            </p>
+            <CodeBlock code={`# In backend directory:
+npm run reset-admin <email> <newpassword>
+
+# Example:
+npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
+            <p className="text-muted-foreground text-xs mb-3">
+              This command hashes the new password with bcrypt (10 rounds), resets any locked 2FA states, and creates the admin account if it does not already exist.
+            </p>
+
             <h3 className="font-semibold mb-3 mt-6">Password reset &amp; team invitations</h3>
             <p className="text-muted-foreground text-sm mb-3">
               If SMTP is configured, <IC>POST /api/auth/forgot-password</IC> emails a 15-minute reset link.

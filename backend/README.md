@@ -70,6 +70,7 @@ npm run start:dev
 | `npm run start:dev` | Dev server with hot reload (port 3000) |
 | `npm run build` | Compile TypeScript to `dist/` |
 | `npm run start:prod` | Run compiled output |
+| `npm run reset-admin [email] [pass]` | Reset admin password & recovery CLI |
 | `npx tsc --noEmit` | Type-check without building |
 | `npx prisma migrate dev --name <name>` | Create and apply a migration |
 | `npx prisma generate` | Regenerate Prisma client after schema changes |
