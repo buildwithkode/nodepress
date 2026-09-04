@@ -10,11 +10,28 @@ import { Button } from '@/components/ui/button';
 import { Shield, KeyRound, ArrowLeft } from 'lucide-react';
 
 function loginErrorMessage(err: any): string {
-  if (!err.response) return 'Cannot connect to the server. Is the backend running?';
-  if (err.response.status === 401) return err.response?.data?.message || 'Invalid email or password.';
-  if (err.response.status === 429) return 'Too many attempts. Please wait a minute and try again.';
-  if (err.response.status >= 500) return 'Server error. Please try again later.';
-  return err.response?.data?.message || 'Something went wrong. Please try again.';
+  if (!err.response) {
+    return 'Cannot reach the backend server. Please verify the backend service is running.';
+  }
+  const status = err.response.status;
+  const backendMsg = err.response?.data?.message;
+
+  if (status === 401) {
+    return backendMsg || 'Invalid email or password.';
+  }
+  if (status === 429) {
+    return 'Too many login attempts. Please wait a minute and try again.';
+  }
+  if (status === 502 || status === 503 || status === 504) {
+    return 'Backend service is offline or unreachable. Please start your backend server.';
+  }
+  if (status >= 500) {
+    if (backendMsg && typeof backendMsg === 'string') {
+      return `Server error: ${backendMsg}`;
+    }
+    return 'Backend connection failed. Please ensure the backend server is running and database is connected.';
+  }
+  return backendMsg || 'Something went wrong. Please try again.';
 }
 
 function LoginForm() {
@@ -43,7 +60,7 @@ function LoginForm() {
 
   useEffect(() => {
     api.get('/auth/setup-status').then((res) => {
-      if (res.data.required) {
+      if (res.data?.required) {
         Cookies.remove('np_initialized');
         router.replace('/setup');
         return;
@@ -61,13 +78,14 @@ function LoginForm() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!email.trim() || !password) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
       setError('Please enter your email and password.');
       return;
     }
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email: normalizedEmail, password });
       if (res.data.requires2fa) {
         setRequires2fa(true);
         setTempToken(res.data.tempToken);

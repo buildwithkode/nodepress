@@ -39,9 +39,10 @@ export class AuthService {
       throw new ConflictException('Setup already completed. Use the admin panel to manage users.');
     }
 
+    const normalizedEmail = dto.email.trim().toLowerCase();
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = await this.prisma.user.create({
-      data: { email: dto.email, password: hashedPassword, role: 'admin' },
+      data: { email: normalizedEmail, password: hashedPassword, role: 'admin' },
       select: { id: true, email: true, role: true, createdAt: true },
     });
 
@@ -50,7 +51,13 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, res: Response) {
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const normalizedEmail = dto.email?.trim().toLowerCase();
+    let user = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (!user && normalizedEmail) {
+      user = await this.prisma.user.findFirst({
+        where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      });
+    }
 
     // Always run bcrypt to prevent timing-based email enumeration
     const dummyHash = '$2b$10$invalidhashfortimingprotectiononly000000000000000000000';
@@ -234,7 +241,13 @@ export class AuthService {
   // ── Password reset ──────────────────────────────────────────────────────────
 
   async forgotPassword(email: string): Promise<{ message: string; devResetUrl?: string }> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email?.trim().toLowerCase();
+    let user = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (!user && normalizedEmail) {
+      user = await this.prisma.user.findFirst({
+        where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      });
+    }
 
     if (user) {
       await this.prisma.passwordResetToken.updateMany({

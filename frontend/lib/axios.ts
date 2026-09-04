@@ -5,6 +5,7 @@ const api = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,  // send HttpOnly np_refresh cookie on auth endpoints
+  timeout: 30000,         // 30s timeout so connection issues fail cleanly
 });
 
 // Attach JWT access token to every request
