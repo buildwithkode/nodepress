@@ -30,6 +30,7 @@ import {
   Shield,
   Settings,
   Clock,
+  ExternalLink,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -1092,6 +1093,17 @@ export default function EntriesPage() {
                           {duplicating === entry.id
                             ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             : <Copy className="h-3.5 w-3.5" />}
+                        </Button>
+                      )}
+                      {entry.status === 'published' && selectedCT && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title="View Live Post on Website"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30"
+                          onClick={() => window.open(`/${selectedCT.name}/${entry.slug}`, '_blank')}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
                         </Button>
                       )}
                       <Button

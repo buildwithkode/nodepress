@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { ArrowRight, BookOpen } from 'lucide-react';
 
 const BACKEND = process.env.BACKEND_URL || 'http://localhost:3000';
 
@@ -25,7 +26,7 @@ export async function generateMetadata({
   const title = params.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   return {
     title: `${title} | NodePress CMS`,
-    description: `Explore all published ${title.toLowerCase()} on NodePress.`,
+    description: `Browse all published stories and articles under ${title}.`,
   };
 }
 
@@ -46,7 +47,7 @@ export default async function EntryListPage({
       {/* Header */}
       <div className="border-b border-gray-100 pb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-3">
-          <span>●</span> Public Archive
+          <BookOpen className="h-3.5 w-3.5" /> Live Blog & Articles
         </div>
         <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">{title}</h1>
         <p className="text-gray-500 mt-2 text-base">
@@ -115,13 +116,15 @@ export default async function EntryListPage({
                   </div>
 
                   {/* Author & Meta Footer */}
-                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
-                    <span className="font-medium text-gray-700">{author}</span>
-                    <div className="flex items-center gap-2">
-                      <span>{dateStr}</span>
+                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <span className="font-semibold text-gray-800">{author}</span>
                       <span>•</span>
                       <span>{readTime}</span>
                     </div>
+                    <span className="inline-flex items-center gap-1 font-semibold text-blue-600 group-hover:translate-x-1 transition-transform">
+                      Read Full Story <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
                   </div>
                 </div>
               </Link>
