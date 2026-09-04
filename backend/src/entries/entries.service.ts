@@ -283,6 +283,33 @@ export class EntriesService {
     };
   }
 
+  async getCounts(): Promise<{ totals: Record<number, number>; pending: Record<number, number> }> {
+    const [totalGroups, pendingGroups] = await Promise.all([
+      this.prisma.entry.groupBy({
+        by: ['contentTypeId'],
+        where: { deletedAt: null },
+        _count: { _all: true },
+      }),
+      this.prisma.entry.groupBy({
+        by: ['contentTypeId'],
+        where: { deletedAt: null, status: 'pending_review' },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const totals: Record<number, number> = {};
+    const pending: Record<number, number> = {};
+
+    for (const g of totalGroups) {
+      totals[g.contentTypeId] = g._count._all;
+    }
+    for (const g of pendingGroups) {
+      pending[g.contentTypeId] = g._count._all;
+    }
+
+    return { totals, pending };
+  }
+
   async findOne(id: number, populate: string[] = [], role?: string) {
     const entry = await this.prisma.entry.findUnique({
       where: { id },

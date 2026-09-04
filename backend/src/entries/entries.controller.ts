@@ -91,6 +91,15 @@ export class EntriesController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @SkipThrottle()
+  @Get('counts')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get entry counts and pending counts grouped by content type' })
+  getCounts() {
+    return this.entriesService.getCounts();
+  }
+
   // ─── Import / Export — MUST be before @Get(':id') to avoid route shadowing ─
   // NestJS registers routes in declaration order. A static segment like "export"
   // must appear before a wildcard like ":id", otherwise GET /entries/export

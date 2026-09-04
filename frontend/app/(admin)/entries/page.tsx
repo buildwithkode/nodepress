@@ -152,30 +152,52 @@ export default function EntriesPage() {
 
   /* ── Load content types + counts ───────────────────────────────────────── */
   useEffect(() => {
+    let mounted = true;
     setLoadingCTs(true);
-    api.get('/content-types')
-      .then(async (res) => {
-        const cts: ContentType[] = res.data;
+
+    const loadData = async () => {
+      try {
+        const [ctRes, countsRes] = await Promise.all([
+          api.get('/content-types'),
+          api.get('/entries/counts').catch(() => null),
+        ]);
+        if (!mounted) return;
+
+        const cts: ContentType[] = ctRes.data;
         setContentTypes(cts);
-        const counts = await Promise.all(
-          cts.map(async (ct) => {
-            const [totalRes, pendingRes] = await Promise.all([
-              api.get('/entries', { params: { contentTypeId: ct.id, limit: 1 } }).catch(() => ({ data: { meta: { total: 0 } } })),
-              api.get('/entries', { params: { contentTypeId: ct.id, status: 'pending_review', limit: 1 } }).catch(() => ({ data: { meta: { total: 0 } } })),
-            ]);
-            return {
-              id: ct.id,
-              count: totalRes.data?.meta?.total ?? (Array.isArray(totalRes.data) ? totalRes.data.length : 0),
-              pendingCount: pendingRes.data?.meta?.total ?? (Array.isArray(pendingRes.data) ? pendingRes.data.length : 0),
-            };
-          }),
-        );
-        setEntryCounts(Object.fromEntries(counts.map((c) => [c.id, c.count])));
-        setPendingCounts(Object.fromEntries(counts.map((c) => [c.id, c.pendingCount])));
-      })
-      .catch(() => toast.error('Failed to load content types'))
-      .finally(() => setLoadingCTs(false));
-  }, []);
+
+        if (countsRes?.data?.totals) {
+          setEntryCounts(countsRes.data.totals);
+          setPendingCounts(countsRes.data.pending || {});
+        } else {
+          // Fallback to individual counts
+          const counts = await Promise.all(
+            cts.map(async (ct) => {
+              const [totalRes, pendingRes] = await Promise.all([
+                api.get('/entries', { params: { contentTypeId: ct.id, limit: 1 } }).catch(() => ({ data: { meta: { total: 0 } } })),
+                api.get('/entries', { params: { contentTypeId: ct.id, status: 'pending_review', limit: 1 } }).catch(() => ({ data: { meta: { total: 0 } } })),
+              ]);
+              return {
+                id: ct.id,
+                count: totalRes.data?.meta?.total ?? (Array.isArray(totalRes.data) ? totalRes.data.length : 0),
+                pendingCount: pendingRes.data?.meta?.total ?? (Array.isArray(pendingRes.data) ? pendingRes.data.length : 0),
+              };
+            }),
+          );
+          if (!mounted) return;
+          setEntryCounts(Object.fromEntries(counts.map((c) => [c.id, c.count])));
+          setPendingCounts(Object.fromEntries(counts.map((c) => [c.id, c.pendingCount])));
+        }
+      } catch {
+        toast.error('Failed to load content types');
+      } finally {
+        if (mounted) setLoadingCTs(false);
+      }
+    };
+
+    loadData();
+    return () => { mounted = false; };
+  }, [user]);
 
   /* ── Load entries when CT is selected ──────────────────────────────────── */
   useEffect(() => {

@@ -48,7 +48,8 @@ export default function DashboardPage() {
   // Stale-while-revalidate: cached data renders instantly on revisit,
   // background revalidation happens when data is older than 30 s.
   const { data: contentTypes = [], loading: loadingCT }     = useFetch<ContentType[]>('/content-types');
-  const { data: entriesResp,       loading: loadingEnt }    = useFetch<{ data: Entry[] }>('/entries');
+  const { data: entriesResp,       loading: loadingEnt }    = useFetch<{ data: Entry[]; meta?: { total: number } }>('/entries');
+  const { data: countsResp }                                = useFetch<{ totals: Record<number, number>; pending: Record<number, number> }>('/entries/counts');
   const { data: mediaResp,         loading: loadingMed }    = useFetch<{ data: MediaFile[] }>('/media');
   const { data: apiKeys = [],      loading: loadingKeys }   = useFetch<any[]>('/api-keys');
   const { data: formsResp,         loading: loadingForms }  = useFetch<{ data: FormRow[] }>('/forms');
@@ -66,14 +67,25 @@ export default function DashboardPage() {
     setSelectedCT(contentTypes[0]);
   }
 
-  const ctEntryCounts: Record<number, number> = {};
-  const ctPendingCounts: Record<number, number> = {};
-  entries.forEach((e) => {
-    ctEntryCounts[e.contentTypeId] = (ctEntryCounts[e.contentTypeId] ?? 0) + 1;
-    if (e.status === 'pending_review') {
-      ctPendingCounts[e.contentTypeId] = (ctPendingCounts[e.contentTypeId] ?? 0) + 1;
-    }
-  });
+  const ctEntryCounts: Record<number, number> = countsResp?.totals
+    ? { ...countsResp.totals }
+    : {};
+  const ctPendingCounts: Record<number, number> = countsResp?.pending
+    ? { ...countsResp.pending }
+    : {};
+
+  if (!countsResp?.totals) {
+    entries.forEach((e) => {
+      ctEntryCounts[e.contentTypeId] = (ctEntryCounts[e.contentTypeId] ?? 0) + 1;
+      if (e.status === 'pending_review') {
+        ctPendingCounts[e.contentTypeId] = (ctPendingCounts[e.contentTypeId] ?? 0) + 1;
+      }
+    });
+  }
+
+  const totalEntriesCount = countsResp?.totals
+    ? Object.values(countsResp.totals).reduce((sum, n) => sum + n, 0)
+    : (entriesResp?.meta?.total ?? entries.length);
 
   const recentMedia = [...media]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -121,7 +133,7 @@ export default function DashboardPage() {
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Overview</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <StatCard label="Content Types"    sub="total schemas"      value={contentTypes.length} icon={Layers}        loading={loading} href="/content-types" />
-          <StatCard label="Total Entries"    sub="across all types"   value={entries.length}      icon={FileText}      loading={loading} href="/entries" />
+          <StatCard label="Total Entries"    sub="across all types"   value={totalEntriesCount}   icon={FileText}      loading={loading} href="/entries" />
           <StatCard label="Media Files"      sub="uploaded files"     value={media.length}        icon={Image}         loading={loading} href="/media" />
           <StatCard label="API Keys"         sub="active keys"        value={apiKeyCount}         icon={Key}           loading={loading} href="/api-keys" />
           <StatCard label="Forms"            sub="active forms"       value={activeForms}         icon={ClipboardList} loading={loading} href="/forms" />

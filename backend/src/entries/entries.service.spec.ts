@@ -49,6 +49,7 @@ const mockPrisma = {
     update:      jest.fn(),
     updateMany:  jest.fn(),
     delete:      jest.fn(),
+    groupBy:     jest.fn(),
   },
   entryVersion: {
     create:      jest.fn(),
@@ -336,6 +337,18 @@ describe('EntriesService', () => {
       mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
       const result = await service.importEntries(1, [{ slug: '', data: {} }]);
       expect(result.errors).toHaveLength(1);
+    });
+  });
+
+  describe('getCounts()', () => {
+    it('returns grouped totals and pending counts', async () => {
+      mockPrisma.entry.groupBy
+        .mockResolvedValueOnce([{ contentTypeId: 1, _count: { _all: 5 } }])
+        .mockResolvedValueOnce([{ contentTypeId: 1, _count: { _all: 2 } }]);
+
+      const result = await service.getCounts();
+      expect(result.totals[1]).toBe(5);
+      expect(result.pending[1]).toBe(2);
     });
   });
 });
