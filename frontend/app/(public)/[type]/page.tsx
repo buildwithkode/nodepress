@@ -47,11 +47,11 @@ export default async function EntryListPage({
       {/* Header */}
       <div className="border-b border-gray-100 pb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-3">
-          <BookOpen className="h-3.5 w-3.5" /> Live Blog & Articles
+          <BookOpen className="h-3.5 w-3.5" /> Live {title}
         </div>
         <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">{title}</h1>
         <p className="text-gray-500 mt-2 text-base">
-          {entries.length} {entries.length === 1 ? 'published article' : 'published articles'}
+          {entries.length} {entries.length === 1 ? 'published item' : 'published items'}
         </p>
       </div>
 
