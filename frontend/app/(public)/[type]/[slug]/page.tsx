@@ -28,14 +28,12 @@ export async function generateMetadata({
   const fallbackTitle = entry.data?.title || entry.data?.name || params.slug;
   const title = entry.seo?.title || fallbackTitle;
   const description = entry.seo?.description || entry.data?.description || entry.data?.excerpt || undefined;
-  const image = entry.seo?.image || entry.data?.image || undefined;
+  const image = entry.seo?.image || entry.data?.featured_image || entry.data?.image || undefined;
 
   return {
-    title: `${title} | NodePress`,
+    title: `${title} | NodePress CMS`,
     description,
     robots: entry.seo?.noIndex ? 'noindex, nofollow' : 'index, follow',
-    // Relative canonical — resolved to an absolute URL against metadataBase
-    // (SITE_URL) set in the root layout.
     alternates: { canonical: `/${params.type}/${params.slug}` },
     openGraph: {
       title,
@@ -53,127 +51,6 @@ export async function generateMetadata({
   };
 }
 
-// Smart field value renderer
-function FieldValue({ name, value }: { name: string; value: any }) {
-  const label = name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-
-  const renderValue = () => {
-    if (value === null || value === undefined) {
-      return <span className="text-gray-200">—</span>;
-    }
-
-    // Image field
-    if (
-      typeof value === 'string' &&
-      (value.startsWith('http') || value.startsWith('/uploads')) &&
-      /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(value)
-    ) {
-      return (
-        <img
-          src={value}
-          alt={name}
-          className="max-w-full max-h-96 rounded-md border border-gray-100 block"
-        />
-      );
-    }
-
-    // Boolean
-    if (typeof value === 'boolean') {
-      return (
-        <span
-          className={
-            value
-              ? 'inline-block bg-green-50 text-green-600 border border-green-200 rounded px-2.5 py-0.5 text-sm'
-              : 'inline-block bg-red-50 text-red-500 border border-red-200 rounded px-2.5 py-0.5 text-sm'
-          }
-        >
-          {value ? 'Yes' : 'No'}
-        </span>
-      );
-    }
-
-    // Number
-    if (typeof value === 'number') {
-      return <span className="font-medium text-gray-800">{value.toLocaleString()}</span>;
-    }
-
-    // Repeater — array of objects
-    if (Array.isArray(value)) {
-      if (value.length === 0) {
-        return <span className="text-gray-300">Empty</span>;
-      }
-      return (
-        <div className="flex flex-col gap-3">
-          {value.map((item: any, i: number) => (
-            <div
-              key={i}
-              className="border border-gray-100 rounded-md px-4 py-3 bg-gray-50"
-            >
-              {typeof item === 'object' && !Array.isArray(item)
-                ? Object.entries(item)
-                    .filter(([k]) => k !== '_layout')
-                    .map(([k, v]) => (
-                      <div key={k} className="mb-1">
-                        <span className="text-gray-400 text-xs">
-                          {k.replace(/_/g, ' ')}:{' '}
-                        </span>
-                        <span className="text-sm text-gray-700">{String(v)}</span>
-                      </div>
-                    ))
-                : String(item)}
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    // Rich text / HTML string (contains HTML tags)
-    if (typeof value === 'string' && /<[a-z][\s\S]*>/i.test(value)) {
-      return (
-        <div
-          className="leading-relaxed text-gray-700 max-w-none np-rich"
-          dangerouslySetInnerHTML={{ __html: value }}
-        />
-      );
-    }
-
-    // Long text
-    if (typeof value === 'string' && value.length > 100) {
-      return (
-        <p className="leading-relaxed text-gray-700 whitespace-pre-wrap m-0">{value}</p>
-      );
-    }
-
-    // Plain object (catch-all for nested structures)
-    if (typeof value === 'object') {
-      return (
-        <div className="flex flex-col gap-1">
-          {Object.entries(value)
-            .filter(([k]) => k !== '_layout')
-            .map(([k, v]) => (
-              <div key={k}>
-                <span className="text-gray-400 text-xs">{k.replace(/_/g, ' ')}: </span>
-                <span className="text-sm text-gray-700">{String(v)}</span>
-              </div>
-            ))}
-        </div>
-      );
-    }
-
-    // Default — short string
-    return <span className="text-gray-700">{String(value)}</span>;
-  };
-
-  return (
-    <div className="grid gap-x-6 gap-y-3 pb-5 mb-5 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0"
-      style={{ gridTemplateColumns: '160px 1fr' }}
-    >
-      <div className="text-gray-400 text-sm pt-0.5 font-medium">{label}</div>
-      <div>{renderValue()}</div>
-    </div>
-  );
-}
-
 export default async function EntryDetailPage({
   params,
 }: {
@@ -183,16 +60,32 @@ export default async function EntryDetailPage({
 
   if (!entry) notFound();
 
-  const title =
-    entry.data?.title || entry.data?.name || entry.slug;
+  const data = entry.data || {};
+  const title = data.title || data.name || entry.slug;
+  const category = data.category || params.type;
+  const author = data.author || 'Editorial Team';
+  const readTime = data.read_time || '4 min read';
+  const excerpt = data.excerpt || data.description || '';
+  const featuredImage = data.featured_image || data.image || entry.seo?.image;
+  const content = data.content || '';
+  const rawTags = data.tags || '';
+  const tagsList = typeof rawTags === 'string' && rawTags.length > 0
+    ? rawTags.split(',').map((t: string) => t.trim()).filter(Boolean)
+    : [];
 
   const typeLabel = params.type
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
   const siteUrl = process.env.SITE_URL || 'http://localhost:5173';
   const canonicalUrl = `${siteUrl}/${params.type}/${params.slug}`;
-  const description = entry.seo?.description || entry.data?.description || entry.data?.excerpt || undefined;
-  const image = entry.seo?.image || entry.data?.image || undefined;
+  const description = entry.seo?.description || excerpt || undefined;
+  const image = entry.seo?.image || featuredImage || undefined;
+
+  const dateFormatted = new Date(entry.createdAt).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -202,6 +95,14 @@ export default async function EntryDetailPage({
     image: image ? [image] : undefined,
     datePublished: entry.createdAt,
     dateModified: entry.updatedAt,
+    author: {
+      '@type': 'Person',
+      name: author,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'NodePress',
+    },
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': canonicalUrl,
@@ -228,8 +129,8 @@ export default async function EntryDetailPage({
   };
 
   return (
-    <div>
-      {/* Schema.org Structured Data (JSON-LD) for Search Engines */}
+    <article className="max-w-3xl mx-auto space-y-10">
+      {/* Schema.org Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -239,52 +140,106 @@ export default async function EntryDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      {/* Breadcrumb */}
-      <div className="mb-6 text-sm text-gray-400">
-        <Link href={`/${params.type}`} className="text-blue-500 hover:underline no-underline">
-          {typeLabel}
+      {/* Navigation Breadcrumb */}
+      <nav className="flex items-center gap-2 text-xs font-medium text-gray-400">
+        <Link href={`/${params.type}`} className="text-blue-600 hover:text-blue-800 no-underline transition-colors">
+          ← Back to {typeLabel}
         </Link>
-        {' / '}
-        <span className="text-gray-500">{entry.slug}</span>
-      </div>
+        <span>/</span>
+        <span className="text-gray-600 truncate max-w-[280px]">{entry.slug}</span>
+      </nav>
 
-      {/* Title */}
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
+      {/* Article Header */}
+      <header className="space-y-4">
+        <div className="flex items-center gap-3">
+          <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-100">
+            {category}
+          </span>
+          <span className="text-xs text-gray-400">•</span>
+          <span className="text-xs text-gray-500 font-medium">{readTime}</span>
+        </div>
 
-      {/* Meta */}
-      <div className="flex flex-wrap gap-4 mb-10 text-xs text-gray-400">
-        <span>Published {new Date(entry.createdAt).toLocaleDateString()}</span>
-        {entry.updatedAt !== entry.createdAt && (
-          <span>Updated {new Date(entry.updatedAt).toLocaleDateString()}</span>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">
+          {title}
+        </h1>
+
+        {excerpt && (
+          <p className="text-lg text-gray-600 leading-relaxed font-normal">
+            {excerpt}
+          </p>
         )}
-        <span className="bg-blue-50 text-blue-500 px-2 py-0.5 rounded">
-          {params.type}
-        </span>
-      </div>
 
-      {/* Fields */}
-      <div>
-        {Object.entries(entry.data).map(([key, value]) => (
-          <FieldValue key={key} name={key} value={value} />
-        ))}
-      </div>
+        {/* Author Byline */}
+        <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+              {author.charAt(0)}
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-900 m-0">{author}</p>
+              <p className="text-xs text-gray-400 m-0">Published on {dateFormatted}</p>
+            </div>
+          </div>
+          <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2.5 py-1 rounded border border-gray-200">
+            JSON-LD Validated
+          </span>
+        </div>
+      </header>
 
-      {/* API info */}
-      <div className="mt-12 bg-blue-50 border border-blue-100 rounded-lg px-5 py-4">
-        <p className="text-xs text-gray-500 m-0">
-          <strong>API endpoint:</strong>{' '}
-          <code className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs">
-            GET {BACKEND}/api/{params.type.replace(/_/g, '-')}/{params.slug}
-          </code>
-          {' · '}
-          <Link
-            href={`/api/${params.type.replace(/_/g, '-')}/${params.slug}`}
-            className="text-blue-500 text-xs hover:underline"
-          >
-            View JSON ↗
-          </Link>
-        </p>
-      </div>
-    </div>
+      {/* Featured Image */}
+      {featuredImage && (
+        <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-lg border border-gray-100">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={featuredImage}
+            alt={title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
+      {/* Article Content */}
+      <section className="prose prose-lg prose-blue max-w-none text-gray-800 leading-relaxed space-y-6">
+        {content ? (
+          <div
+            className="np-rich [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-gray-900 [&>h2]:mt-8 [&>h2]:mb-4 [&>h3]:text-xl [&>h3]:font-semibold [&>h3]:text-gray-800 [&>h3]:mt-6 [&>h3]:mb-3 [&>p]:leading-relaxed [&>p]:text-gray-700 [&>blockquote]:border-l-4 [&>blockquote]:border-blue-500 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-gray-600 [&>blockquote]:my-6 [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:space-y-2 [&>ul]:text-gray-700"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        ) : (
+          <p className="text-gray-400 italic">No content available for this article.</p>
+        )}
+      </section>
+
+      {/* Tags Row */}
+      {tagsList.length > 0 && (
+        <div className="pt-8 border-t border-gray-100">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Tags & Topics</p>
+          <div className="flex flex-wrap gap-2">
+            {tagsList.map((tag: string) => (
+              <span
+                key={tag}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg transition-colors cursor-default"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Footer Navigation Box */}
+      <footer className="bg-gray-50 border border-gray-200/80 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h4 className="text-sm font-bold text-gray-900">Like this article?</h4>
+          <p className="text-xs text-gray-500 mt-0.5">Explore more articles in the {typeLabel} archive.</p>
+        </div>
+        <Link
+          href={`/${params.type}`}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-4 py-2.5 rounded-xl shadow transition-all no-underline shrink-0"
+        >
+          View All {typeLabel} →
+        </Link>
+      </footer>
+    </article>
   );
 }

@@ -22,41 +22,11 @@ export async function generateMetadata({
 }: {
   params: { type: string };
 }): Promise<Metadata> {
+  const title = params.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   return {
-    title: `${params.type.replace(/_/g, ' ')} | NodePress`,
+    title: `${title} | NodePress CMS`,
+    description: `Explore all published ${title.toLowerCase()} on NodePress.`,
   };
-}
-
-// Render a preview of entry data (first 2 non-empty text fields)
-function EntryPreview({ data }: { data: Record<string, any> }) {
-  const entries = Object.entries(data).filter(
-    ([, v]) =>
-      v !== null &&
-      v !== undefined &&
-      typeof v !== 'object' &&
-      typeof v !== 'boolean',
-  );
-
-  if (entries.length === 0) {
-    return <span className="text-gray-400 text-xs">No preview available</span>;
-  }
-
-  const preview = entries.slice(0, 2);
-
-  return (
-    <div className="space-y-1">
-      {preview.map(([key, val]) => (
-        <div key={key}>
-          <span className="text-gray-400 text-xs capitalize">
-            {key.replace(/_/g, ' ')}:{' '}
-          </span>
-          <span className="text-sm text-gray-600">
-            {String(val).length > 120 ? String(val).slice(0, 120) + '…' : String(val)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 export default async function EntryListPage({
@@ -64,63 +34,116 @@ export default async function EntryListPage({
 }: {
   params: { type: string };
 }) {
-  const entries = await getEntries(params.type);
+  const raw = await getEntries(params.type);
 
-  if (entries === null) notFound();
+  if (raw === null) notFound();
 
+  const entries = Array.isArray(raw) ? raw : (raw?.data && Array.isArray(raw.data) ? raw.data : []);
   const title = params.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
-    <div>
+    <div className="space-y-10">
       {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-        <p className="text-gray-400 mt-2 text-sm">
-          {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+      <div className="border-b border-gray-100 pb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-3">
+          <span>●</span> Public Archive
+        </div>
+        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">{title}</h1>
+        <p className="text-gray-500 mt-2 text-base">
+          {entries.length} {entries.length === 1 ? 'published article' : 'published articles'}
         </p>
       </div>
 
-      {/* Entry list */}
+      {/* Entry list / Grid */}
       {entries.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-gray-100 rounded-lg text-gray-300 text-sm">
-          No entries published yet.
+        <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 text-sm">
+          No published entries available yet.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {entries.map((entry: any) => (
-            <Link
-              key={entry.id}
-              href={`/${params.type}/${entry.slug}`}
-              className="block no-underline group"
-            >
-              <div className="bg-white border border-gray-200 rounded-lg px-6 py-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all">
-                <div className="flex items-start justify-between mb-2">
-                  <span className="font-semibold text-base text-blue-600 group-hover:text-blue-700">
-                    {entry.slug}
-                  </span>
-                  <span className="text-xs text-gray-300 shrink-0 ml-4">
-                    {new Date(entry.createdAt).toLocaleDateString()}
-                  </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {entries.map((entry: any) => {
+            const data = entry.data || {};
+            const postTitle = data.title || data.name || entry.slug;
+            const excerpt = data.excerpt || data.description || '';
+            const featuredImage = data.featured_image || data.image || entry.seo?.image;
+            const category = data.category || params.type;
+            const author = data.author || 'Editorial Team';
+            const readTime = data.read_time || '3 min read';
+            const dateStr = new Date(entry.createdAt).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            });
+
+            return (
+              <Link
+                key={entry.id || entry.slug}
+                href={`/${params.type}/${entry.slug}`}
+                className="group flex flex-col bg-white border border-gray-200/80 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-400/60 transition-all duration-300 no-underline"
+              >
+                {/* Featured Image */}
+                {featuredImage && (
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={featuredImage}
+                      alt={postTitle}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-3 left-3 bg-gray-900/80 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                      {category}
+                    </div>
+                  </div>
+                )}
+
+                {/* Card Body */}
+                <div className="flex-1 p-6 flex flex-col justify-between">
+                  <div>
+                    {!featuredImage && (
+                      <span className="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-md mb-3">
+                        {category}
+                      </span>
+                    )}
+                    <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                      {postTitle}
+                    </h2>
+                    {excerpt && (
+                      <p className="mt-3 text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                        {excerpt}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Author & Meta Footer */}
+                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+                    <span className="font-medium text-gray-700">{author}</span>
+                    <div className="flex items-center gap-2">
+                      <span>{dateStr}</span>
+                      <span>•</span>
+                      <span>{readTime}</span>
+                    </div>
+                  </div>
                 </div>
-                <EntryPreview data={entry.data} />
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
 
       {/* API info box */}
-      <div className="mt-12 bg-blue-50 border border-blue-100 rounded-lg px-5 py-4">
-        <p className="text-xs text-gray-500 m-0">
-          <strong>API endpoint:</strong>{' '}
-          <code className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs">
-            GET {BACKEND}/api/{params.type.replace(/_/g, '-')}
-          </code>
-          {' · '}
-          <Link href={`/api/${params.type.replace(/_/g, '-')}`} className="text-blue-500 text-xs hover:underline">
-            View JSON ↗
-          </Link>
-        </p>
+      <div className="mt-14 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse" />
+          <p className="text-xs text-gray-600 font-mono m-0">
+            <strong>API Endpoint:</strong> GET /api/{params.type}
+          </p>
+        </div>
+        <Link
+          href={`/api/${params.type}`}
+          className="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm transition-all"
+        >
+          View Raw JSON ↗
+        </Link>
       </div>
     </div>
   );
