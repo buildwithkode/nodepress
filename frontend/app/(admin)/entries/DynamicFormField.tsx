@@ -18,7 +18,6 @@ import RepeaterField from './RepeaterField';
 import FlexibleField from './FlexibleField';
 import GroupField from './GroupField';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
-import { MediaDropzone } from '@/components/MediaDropzone';
 import { RelationPicker } from '@/components/RelationPicker';
 
 const RichTextEditor = dynamic(
@@ -247,7 +246,7 @@ export default function DynamicFormField({
             control={control}
             name={field.name}
             render={({ field: f }) => (
-              <MediaDropzone value={f.value ?? null} onChange={f.onChange} />
+              <MediaPickerModal value={f.value ?? null} onChange={f.onChange} />
             )}
           />
         );

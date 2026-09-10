@@ -13,9 +13,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Quote, Code, Code2, Minus, ImageIcon, Eye, Code as CodeIcon,
   Maximize2, Minimize2, RemoveFormatting, Clock, FileText,
-  UploadCloud, Loader2,
 } from 'lucide-react';
-import Cookies from 'js-cookie';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -70,42 +68,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
 
-  // Desktop canvas drop state
-  const [isCanvasDragging, setIsCanvasDragging] = useState(false);
-  const [canvasUploading, setCanvasUploading] = useState(false);
-
   const switchingRef = useRef(false);
-
-  const handleCanvasDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsCanvasDragging(false);
-    const files = e.dataTransfer.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-    if (!file.type.startsWith('image/')) return;
-
-    setCanvasUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const token = Cookies.get('np_token') || '';
-      const res = await fetch('/api/media/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json();
-      const targetUrl = data.url || data.webpUrl;
-      editor?.chain().focus().setImage({ src: targetUrl, alt: file.name.replace(/\.[^/.]+$/, '') }).run();
-      toast.success('Image uploaded and embedded into content');
-    } catch {
-      toast.error('Failed to upload dropped image');
-    } finally {
-      setCanvasUploading(false);
-    }
-  };
 
   const editor = useEditor({
     extensions: [
@@ -461,33 +424,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
       )}
 
       {/* ── Editor Canvas Area ── */}
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsCanvasDragging(true);
-        }}
-        onDragLeave={() => setIsCanvasDragging(false)}
-        onDrop={handleCanvasDrop}
-        className={cn(
-          'relative flex-1 overflow-y-auto transition-colors',
-          isFullscreen && 'px-6 py-4',
-          isCanvasDragging && 'bg-primary/5 ring-2 ring-primary/40 ring-inset'
-        )}
-      >
-        {isCanvasDragging && (
-          <div className="absolute inset-0 z-20 pointer-events-none flex flex-col items-center justify-center bg-background/80 backdrop-blur-xs border-2 border-dashed border-primary">
-            <UploadCloud className="h-8 w-8 text-primary animate-bounce mb-2" />
-            <p className="text-xs font-semibold text-foreground">Drop image file to insert inline</p>
-          </div>
-        )}
-        {canvasUploading && (
-          <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center bg-background/70 backdrop-blur-xs">
-            <div className="flex items-center gap-2 text-xs font-semibold bg-card px-4 py-2 rounded-xl shadow-lg border border-border">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              Uploading image…
-            </div>
-          </div>
-        )}
+      <div className={cn('flex-1 overflow-y-auto', isFullscreen && 'px-6 py-4')}>
         <div className={cn(isFullscreen && 'max-w-4xl mx-auto')}>
           {mode === 'visual' ? (
             <EditorContent editor={editor} />
