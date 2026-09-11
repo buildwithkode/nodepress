@@ -40,6 +40,7 @@ interface Field {
   name: string;
   label?: string;
   type: string;
+  required?: boolean;
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
 }
 
@@ -141,8 +142,9 @@ export default function DynamicFormField({
       case 'text':
         return (
           <Input
-            placeholder={`Enter ${label}`}
-            {...register(field.name)}
+            id={field.name}
+            placeholder={`Enter ${label}…`}
+            {...register(field.name, { required: field.required ? `${label} is required` : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -150,9 +152,10 @@ export default function DynamicFormField({
       case 'textarea':
         return (
           <Textarea
+            id={field.name}
             rows={3}
-            placeholder={`Enter ${label}`}
-            {...register(field.name)}
+            placeholder={`Enter ${label}…`}
+            {...register(field.name, { required: field.required ? `${label} is required` : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -175,9 +178,10 @@ export default function DynamicFormField({
       case 'number':
         return (
           <Input
+            id={field.name}
             type="number"
-            placeholder={`Enter ${label}`}
-            {...register(field.name, { valueAsNumber: true })}
+            placeholder={`Enter ${label}…`}
+            {...register(field.name, { valueAsNumber: true, required: field.required ? `${label} is required` : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -188,18 +192,15 @@ export default function DynamicFormField({
             control={control}
             name={field.name}
             render={({ field: f }) => (
-              <div className="flex items-center gap-2">
+              <div className="flex h-9 items-center justify-between rounded-md border border-input bg-background px-3">
+                <span className="text-xs text-muted-foreground">
+                  {f.value ? 'Enabled' : 'Disabled'}
+                </span>
                 <Switch
                   id={`switch-${field.name}`}
                   checked={!!f.value}
                   onCheckedChange={f.onChange}
                 />
-                <label
-                  htmlFor={`switch-${field.name}`}
-                  className="cursor-pointer select-none text-sm text-muted-foreground"
-                >
-                  {f.value ? 'Enabled' : 'Disabled'}
-                </label>
               </div>
             )}
           />
@@ -295,25 +296,21 @@ export default function DynamicFormField({
 
       case 'date':
         return (
-          <input
+          <Input
+            id={field.name}
             type="date"
-            {...register(field.name)}
-            className={cn(
-              'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-              error && 'border-destructive focus-visible:ring-destructive',
-            )}
+            {...register(field.name, { required: field.required ? `${label} is required` : false })}
+            className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
 
       case 'datetime':
         return (
-          <input
+          <Input
+            id={field.name}
             type="datetime-local"
-            {...register(field.name)}
-            className={cn(
-              'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-              error && 'border-destructive focus-visible:ring-destructive',
-            )}
+            {...register(field.name, { required: field.required ? `${label} is required` : false })}
+            className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
 
@@ -329,6 +326,7 @@ export default function DynamicFormField({
                 : JSON.stringify(f.value ?? {}, null, 2);
               return (
                 <textarea
+                  id={field.name}
                   rows={6}
                   value={display}
                   onChange={(e) => {
@@ -354,8 +352,9 @@ export default function DynamicFormField({
       default:
         return (
           <Input
-            placeholder={`Enter ${label}`}
-            {...register(field.name)}
+            id={field.name}
+            placeholder={`Enter ${label}…`}
+            {...register(field.name, { required: field.required ? `${label} is required` : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -363,10 +362,14 @@ export default function DynamicFormField({
   };
 
   return (
-    <div className="mb-4">
-      {field.type !== 'boolean' && (
-        <Label className="mb-1.5 block text-sm font-medium">{label}</Label>
-      )}
+    <div className="space-y-1.5 mb-5">
+      <Label
+        htmlFor={field.type === 'boolean' ? `switch-${field.name}` : field.name}
+        className="text-xs font-semibold text-foreground/90 flex items-center gap-1"
+      >
+        <span>{label}</span>
+        {field.required && <span className="text-destructive font-normal" title="Required">*</span>}
+      </Label>
       {renderControl()}
       {error && (
         <p className="mt-1 text-xs text-destructive">

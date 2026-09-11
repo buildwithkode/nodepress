@@ -223,6 +223,33 @@ export class EntriesController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
+  @Post(':id/translate')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Create or get a translation entry for a given locale' })
+  @ApiParam({ name: 'id', type: Number })
+  async createTranslation(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { targetLocale: string; copyData?: boolean },
+    @Request() req: any,
+  ) {
+    const result = await this.entriesService.createTranslation(
+      id,
+      body.targetLocale,
+      body.copyData ?? true,
+      req.user,
+    );
+    if (result.isNew) {
+      await this.auditService.log(
+        { id: req.user.id, email: req.user.email, ip: req.ip },
+        'created', 'entry', `entry:${result.id}`,
+        { action: 'translate', sourceId: id, locale: result.locale },
+      );
+    }
+    return result;
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor', 'contributor')
   @Put(':id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update an entry — auto-snapshots a version before saving (contributor, editor, or admin)' })

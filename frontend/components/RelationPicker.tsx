@@ -145,8 +145,7 @@ export function RelationPicker({ relatedContentType, cardinality, value, onChang
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className="w-full justify-between text-muted-foreground font-normal"
+            className="w-full h-9 justify-between text-muted-foreground font-normal"
             onClick={() => setOpen((o) => !o)}
           >
             {relatedContentType

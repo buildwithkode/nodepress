@@ -31,6 +31,8 @@ import {
   Settings,
   Clock,
   ExternalLink,
+  FileText,
+  ShoppingBag,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -91,11 +93,25 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   archived:       { label: 'Archived',       className: 'bg-muted text-muted-foreground border border-border' },
 };
 
+const SUPPORTED_LOCALES = [
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'es', label: 'Spanish', flag: '🇪🇸' },
+  { code: 'fr', label: 'French', flag: '🇫🇷' },
+  { code: 'de', label: 'German', flag: '🇩🇪' },
+  { code: 'zh', label: 'Chinese', flag: '🇨🇳' },
+  { code: 'ja', label: 'Japanese', flag: '🇯🇵' },
+  { code: 'pt', label: 'Portuguese', flag: '🇵🇹' },
+  { code: 'ar', label: 'Arabic', flag: '🇸🇦' },
+];
+
+const COMMERCE_CONTENT_TYPES = new Set(['orders', 'coupons']);
+
 interface Field { name: string; label?: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 interface Entry {
-  id: number; slug: string; status: string; contentTypeId: number;
+  id: number; slug: string; status: string; locale?: string; contentTypeId: number;
   data: Record<string, any>; createdAt: string; updatedAt: string;
+  publishAt?: string | null;
 }
 
 export default function EntriesPage() {
@@ -106,6 +122,12 @@ export default function EntriesPage() {
   const isAdmin = canManageSettings(user?.role);
   const ctParam     = searchParams?.get('ct')     ?? '';
   const statusParam = searchParams?.get('status') ?? '';
+
+  useEffect(() => {
+    if (ctParam && COMMERCE_CONTENT_TYPES.has(ctParam.toLowerCase())) {
+      router.replace('/entries');
+    }
+  }, [ctParam, router]);
 
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
   const [entryCounts, setEntryCounts] = useState<Record<number, number>>({});
@@ -118,6 +140,7 @@ export default function EntriesPage() {
   const [duplicating, setDuplicating] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>(statusParam || 'all');
+  const [localeFilter, setLocaleFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
@@ -164,7 +187,9 @@ export default function EntriesPage() {
         ]);
         if (!mounted) return;
 
-        const cts: ContentType[] = ctRes.data;
+        const rawCts: ContentType[] = ctRes.data;
+        // Filter out transactional/plugin-managed commerce schemas from editorial CMS entries
+        const cts = (rawCts || []).filter((ct) => !COMMERCE_CONTENT_TYPES.has(ct.name.toLowerCase()));
         setContentTypes(cts);
 
         if (countsRes?.data?.totals) {
@@ -211,16 +236,17 @@ export default function EntriesPage() {
     const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
     if (showTrash) {
       params.deleted = true;
-    } else if (statusFilter !== 'all') {
-      params.status = statusFilter;
+    } else {
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (localeFilter !== 'all') params.locale = localeFilter;
     }
     api.get('/entries', { params })
       .then((res) => setEntries(res.data.data ?? res.data))
       .catch(() => toast.error('Failed to load entries'))
       .finally(() => setLoadingEntries(false));
-  }, [selectedCT?.id, statusFilter, showTrash]);
+  }, [selectedCT?.id, statusFilter, localeFilter, showTrash]);
 
-  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter, showTrash]);
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter, localeFilter, showTrash]);
 
   /* ── Refresh helpers ────────────────────────────────────────────────────── */
   const refreshEntries = async (trashState = showTrash) => {
@@ -230,8 +256,9 @@ export default function EntriesPage() {
     const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
     if (trashState) {
       params.deleted = true;
-    } else if (statusFilter !== 'all') {
-      params.status = statusFilter;
+    } else {
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (localeFilter !== 'all') params.locale = localeFilter;
     }
     const res = await api.get('/entries', { params });
     const list = res.data.data ?? res.data;
@@ -696,21 +723,42 @@ export default function EntriesPage() {
         )}
         <div className="ml-auto flex items-center gap-2">
           {!showTrash && (
-            <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setPage(1); } }}>
-              <SelectTrigger className="h-8 w-44 text-xs">
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="published">Production (Published)</SelectItem>
-                <SelectItem value="staging">Staging (QA)</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="pending_review">
-                  Pending Review {selectedCTPendingCount > 0 ? `(${selectedCTPendingCount})` : ''}
-                </SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
+            <>
+              <Select value={localeFilter} onValueChange={(v) => { if (v) { setLocaleFilter(v); setPage(1); } }}>
+                <SelectTrigger className="h-8 w-36 text-xs">
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground mr-1 shrink-0" />
+                  <SelectValue placeholder="All languages" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All languages</SelectItem>
+                  {SUPPORTED_LOCALES.map((l) => (
+                    <SelectItem key={l.code} value={l.code}>
+                      <div className="flex items-center gap-1.5">
+                        <span>{l.flag}</span>
+                        <span>{l.label}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono uppercase">({l.code})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setPage(1); } }}>
+                <SelectTrigger className="h-8 w-44 text-xs">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="published">Production (Published)</SelectItem>
+                  <SelectItem value="staging">Staging (QA)</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="pending_review">
+                    Pending Review {selectedCTPendingCount > 0 ? `(${selectedCTPendingCount})` : ''}
+                  </SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
           )}
           <SearchInput
             placeholder="Search entries…"
@@ -963,10 +1011,23 @@ export default function EntriesPage() {
                 </TableCell>
               )}
               <TableCell>
-                <p className="font-medium text-foreground">{entry.slug}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-foreground">{entry.slug}</p>
+                  <Badge variant="outline" className="text-[10px] font-mono uppercase px-1.5 py-0 text-muted-foreground border-border/80 shrink-0">
+                    {entry.locale || 'en'}
+                  </Badge>
+                </div>
               </TableCell>
               <TableCell>
-                {entry.status === 'pending_review' ? (
+                {entry.status === 'draft' && entry.publishAt ? (
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/40"
+                    title={`Scheduled to publish: ${new Date(entry.publishAt).toLocaleString()}`}
+                  >
+                    <Clock className="h-3 w-3" />
+                    Scheduled · {new Date(entry.publishAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} {new Date(entry.publishAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                ) : entry.status === 'pending_review' ? (
                   <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40">
                     <Clock className="h-3 w-3" />
                     Pending Review

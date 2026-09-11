@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { PluginSettingsDrawer, PluginItem } from '@/components/PluginSettingsDrawer';
 import api from '@/lib/axios';
+import { usePlugins } from '@/context/PluginContext';
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'All Plugins' },
@@ -35,6 +36,7 @@ const CATEGORY_TABS = [
 ];
 
 export default function PluginsPage() {
+  const { refreshPlugins } = usePlugins();
   const [plugins, setPlugins] = useState<PluginItem[]>([]);
   const [meta, setMeta] = useState<{
     totalPlugins: number;
@@ -92,6 +94,7 @@ export default function PluginsPage() {
         ...prev,
         enabledPlugins: prev.enabledPlugins + (newStatus ? 1 : -1),
       }));
+      await refreshPlugins();
     } catch (err) {
       console.error(`Failed to toggle plugin "${plugin.id}":`, err);
       // Revert optimistic update

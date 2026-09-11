@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight, WrapText, Rocket, Globe, Shield, Settings } from 'lucide-react';
+import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight, WrapText, Rocket, Globe, Shield, Settings, X, Clock } from 'lucide-react';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -30,6 +31,17 @@ function toSlug(str: string) {
   return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+const SUPPORTED_LOCALES = [
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'es', label: 'Spanish', flag: '🇪🇸' },
+  { code: 'fr', label: 'French', flag: '🇫🇷' },
+  { code: 'de', label: 'German', flag: '🇩🇪' },
+  { code: 'zh', label: 'Chinese', flag: '🇨🇳' },
+  { code: 'ja', label: 'Japanese', flag: '🇯🇵' },
+  { code: 'pt', label: 'Portuguese', flag: '🇵🇹' },
+  { code: 'ar', label: 'Arabic', flag: '🇸🇦' },
+];
+
 interface Field { name: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 
@@ -45,6 +57,7 @@ export default function NewEntryPage() {
   const [loadingCT, setLoadingCT] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<string>('published');
+  const [publishAt, setPublishAt] = useState('');
   const [locale, setLocale] = useState('en');
   // SEO fields
   const [seoOpen, setSeoOpen] = useState(false);
@@ -52,7 +65,7 @@ export default function NewEntryPage() {
   const [seoDescription, setSeoDescription] = useState('');
   const [seoImage, setSeoImage] = useState('');
   const [seoNoIndex, setSeoNoIndex] = useState(false);
-  const [jsonOpen, setJsonOpen] = useState(true);
+  const [jsonOpen, setJsonOpen] = useState(false);
   const [jsonCopied, setJsonCopied] = useState(false);
   const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
@@ -81,9 +94,13 @@ export default function NewEntryPage() {
   useEffect(() => {
     api.get('/content-types')
       .then((res) => {
-        setContentTypes(res.data);
+        const COMMERCE_CONTENT_TYPES = new Set(['orders', 'coupons']);
+        const editorialCTs: ContentType[] = (res.data || []).filter(
+          (c: ContentType) => !COMMERCE_CONTENT_TYPES.has(c.name.toLowerCase())
+        );
+        setContentTypes(editorialCTs);
         if (ctId) {
-          const ct = res.data.find((c: ContentType) => c.id === ctId) ?? null;
+          const ct = editorialCTs.find((c: ContentType) => c.id === ctId) ?? null;
           setSelectedCT(ct);
         }
       })
@@ -116,7 +133,15 @@ export default function NewEntryPage() {
         noIndex: seoNoIndex || undefined,
       };
       const hasSeo = Object.values(seo).some((v) => v !== undefined);
-      await api.post('/entries', { contentTypeId: selectedCT.id, slug, locale, status, data: rest, seo: hasSeo ? seo : null });
+      await api.post('/entries', {
+        contentTypeId: selectedCT.id,
+        slug,
+        locale,
+        status,
+        data: rest,
+        seo: hasSeo ? seo : null,
+        publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
+      });
       toast.success('Entry created');
       router.push('/entries');
     } catch (err: any) {
@@ -179,8 +204,29 @@ export default function NewEntryPage() {
             </div>
             {selectedCT && (
               <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {/* Language Selector */}
+                <Select value={locale} onValueChange={(v) => { if (v) setLocale(v); }}>
+                  <SelectTrigger className="h-8 w-36 text-xs font-medium border-border/80 bg-background/80">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <Globe className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                      <span>{SUPPORTED_LOCALES.find((l) => l.code === locale)?.label || locale.toUpperCase()} ({locale.toUpperCase()})</span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    {SUPPORTED_LOCALES.map((l) => (
+                      <SelectItem key={l.code} value={l.code}>
+                        <div className="flex items-center gap-2">
+                          <span>{l.flag}</span>
+                          <span>{l.label}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono uppercase">({l.code})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 {/* Status Selector */}
-                <Select value={status} onValueChange={setStatus}>
+                <Select value={status} onValueChange={(v) => { if (v) setStatus(v); }}>
                   <SelectTrigger className="h-8 w-36 text-xs font-medium border-border/80 bg-background/80">
                     <div className="flex items-center gap-2 truncate">
                       <span
@@ -239,11 +285,15 @@ export default function NewEntryPage() {
                   type="button"
                   variant={jsonOpen ? 'secondary' : 'outline'}
                   size="sm"
-                  className="h-8 gap-1.5 text-xs"
+                  className={cn(
+                    "h-8 gap-1.5 text-xs font-medium transition-all",
+                    jsonOpen && "bg-muted text-foreground border-border/80 shadow-xs"
+                  )}
                   onClick={() => setJsonOpen((v) => !v)}
+                  title="Toggle Live JSON Preview"
                 >
-                  <PanelRight className="h-3.5 w-3.5" />
-                  {jsonOpen ? 'Hide JSON' : 'Show JSON'}
+                  <Braces className="h-3.5 w-3.5" />
+                  JSON
                 </Button>
               </div>
             )}
@@ -282,8 +332,8 @@ export default function NewEntryPage() {
               <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
                 {/* Slug */}
-                <div className="mb-4">
-                  <Label htmlFor="slug" className="mb-1.5 block">Slug</Label>
+                <div className="space-y-1.5 mb-5">
+                  <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">Slug</Label>
                   {(() => {
                     const slugReg = register('slug', {
                       required: 'Slug is required',
@@ -301,68 +351,82 @@ export default function NewEntryPage() {
                   })()}
                   {errors.slug
                     ? <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
-                    : <p className="mt-1 text-xs text-muted-foreground">Auto-generated from the first text field</p>}
+                    : <p className="text-[11px] text-muted-foreground">Auto-generated from the first text field</p>}
                 </div>
 
-                {/* Status + Locale */}
-                <div className="mb-4 grid grid-cols-2 gap-4 items-start">
-                  <div>
-                    <Label className="mb-1.5 block">Status</Label>
-                    <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="published">Production (Published)</SelectItem>
-                        <SelectItem value="staging">Staging (QA)</SelectItem>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="pending_review">Pending Review</SelectItem>
-                        <SelectItem value="archived">Archived</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="mt-1 text-xs text-muted-foreground">Staging and Published entries are accessible via their respective environment targets</p>
+                {/* Scheduled publish */}
+                {status === 'draft' && (
+                  <div className="mb-4 p-3.5 rounded-xl border border-border/80 bg-muted/20 backdrop-blur-xs">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 text-primary" />
+                        Scheduled Publish
+                      </Label>
+                      {publishAt && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-medium">
+                          Active schedule
+                        </span>
+                      )}
+                    </div>
+                    <DateTimePicker
+                      value={publishAt}
+                      onChange={setPublishAt}
+                      placeholder="Pick date & time to auto-publish…"
+                    />
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {publishAt ? (
+                        <span className="text-foreground/90 font-medium">
+                          Will automatically publish on{' '}
+                          <span className="text-primary font-semibold">
+                            {new Date(publishAt).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}{' '}
+                            at{' '}
+                            {new Date(publishAt).toLocaleTimeString(undefined, {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </span>
+                      ) : (
+                        'Set a date and time to automatically publish this draft. Leave empty to publish manually.'
+                      )}
+                    </p>
                   </div>
-                  <div>
-                    <Label className="mb-1.5 block">Locale</Label>
-                    <Select value={locale} onValueChange={(v) => { if (v !== null) setLocale(v); }}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">🇬🇧 en</SelectItem>
-                        <SelectItem value="fr">🇫🇷 fr</SelectItem>
-                        <SelectItem value="de">🇩🇪 de</SelectItem>
-                        <SelectItem value="es">🇪🇸 es</SelectItem>
-                        <SelectItem value="it">🇮🇹 it</SelectItem>
-                        <SelectItem value="pt">🇧🇷 pt</SelectItem>
-                        <SelectItem value="ja">🇯🇵 ja</SelectItem>
-                        <SelectItem value="zh">🇨🇳 zh</SelectItem>
-                        <SelectItem value="ar">🇸🇦 ar</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="mt-1 text-xs text-muted-foreground">BCP 47 language code</p>
-                  </div>
-                </div>
+                )}
 
                 {selectedCT.schema.length > 0 && (
-                  <>
-                    <div className="pt-6 pb-2">
-                      <span className="text-base font-semibold text-foreground">Fields</span>
-                      <Separator className="mt-2 bg-foreground/15" />
+                  <div className="pt-6">
+                    <div className="flex items-center justify-between pb-2 mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-semibold text-foreground">Fields</span>
+                        {selectedCT.displayName && (
+                          <span className="text-xs text-muted-foreground font-normal">
+                            ({selectedCT.displayName})
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {selectedCT.schema.length} field{selectedCT.schema.length === 1 ? '' : 's'}
+                      </span>
                     </div>
-                    <div className="pt-1">
+                    <Separator className="mt-1 mb-5 bg-border/70" />
+
+                    <div>
                       {selectedCT.schema.map((field) => (
                         <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} />
                       ))}
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {/* SEO Panel */}
                 <div className="mt-6">
                   <div className="pt-3 pb-2 mb-1">
                     <span className="text-base font-semibold text-foreground">SEO</span>
-                    <Separator className="mt-2 bg-foreground/15" />
+                    <Separator className="mt-1 mb-3 bg-border/70" />
                   </div>
                   <button
                     type="button"
@@ -465,7 +529,7 @@ export default function NewEntryPage() {
               contentTypeId: selectedCT.id,
               data: fieldData,
               seo: hasSeo ? previewSeo : null,
-              publishAt: null,
+              publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (
@@ -477,7 +541,7 @@ export default function NewEntryPage() {
                       <span className="text-xs font-medium">JSON Preview</span>
                       <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setJsonWrap((w) => !w)}
@@ -495,11 +559,20 @@ export default function NewEntryPage() {
                           setTimeout(() => setJsonCopied(false), 2000);
                         }}
                         className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                        title="Copy JSON"
+                        title="Copy raw JSON"
                       >
-                        {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                        {jsonCopied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                         {jsonCopied ? 'Copied' : 'Copy'}
                       </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-foreground ml-1"
+                        onClick={() => setJsonOpen(false)}
+                        title="Close JSON Panel"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
                   <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>

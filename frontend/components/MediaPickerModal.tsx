@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Upload, ImageIcon, Check, Loader2, Crop } from 'lucide-react';
+import { Upload, ImageIcon, Check, Loader2, Crop, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Cookies from 'js-cookie';
 import api from '@/lib/axios';
@@ -103,68 +103,116 @@ export function MediaPickerModal({ value, onChange }: Props) {
   return (
     <>
       <div className="space-y-2">
+        {/* Input-style trigger bar matching standard inputs */}
+        <div
+          onClick={() => setOpen(true)}
+          className={cn(
+            "group flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm shadow-xs transition-colors cursor-pointer hover:bg-muted/30 focus-within:ring-1 focus-within:ring-ring",
+            value?.url ? "border-primary/40 bg-primary/[0.02]" : "text-muted-foreground"
+          )}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            {value?.url ? (
+              <img
+                src={value.url}
+                alt={value.alt || ''}
+                className="h-6 w-6 rounded object-cover border border-border/80 shrink-0"
+              />
+            ) : (
+              <ImageIcon className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-foreground transition-colors" />
+            )}
+            <span className={cn("truncate text-xs sm:text-sm font-normal", value?.url ? "text-foreground font-medium" : "text-muted-foreground")}>
+              {value?.url ? (value.alt ? `${value.alt} (${value.url.split('/').pop()})` : value.url.split('/').pop() || value.url) : 'Choose image from media library…'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+            {value?.url && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedUrl(value.url);
+                    setAlt(value.alt || '');
+                    setCropModalOpen(true);
+                  }}
+                  className="rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  title="Crop / Zoom"
+                >
+                  <Crop className="h-3 w-3 inline mr-1" />
+                  Crop
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange(null);
+                  }}
+                  className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  title="Remove image"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs text-primary font-medium hover:bg-primary/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(true);
+              }}
+            >
+              {value?.url ? 'Change' : 'Browse'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Thumbnail Preview Card when image is selected */}
         {value?.url && (
-          <div className="relative inline-block group">
+          <div className="relative inline-flex items-center gap-3 p-2 rounded-lg border border-border/80 bg-muted/20">
             <img
               src={value.url}
-              alt={value.alt}
-              className="h-24 w-auto rounded border object-cover"
+              alt={value.alt || ''}
+              className="h-16 w-24 rounded-md border border-border object-cover bg-black/10"
             />
-            <div className="absolute inset-0 flex items-center justify-center gap-1 rounded bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                type="button"
-                onClick={() => setOpen(true)}
-                className="px-2 py-1 bg-white/20 hover:bg-white/30 rounded text-white text-[11px] font-medium"
-              >
-                Change
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedUrl(value.url);
-                  setAlt(value.alt || '');
-                  setCropModalOpen(true);
-                }}
-                className="px-2 py-1 bg-indigo-600/80 hover:bg-indigo-600 rounded text-white text-[11px] font-medium flex items-center gap-1"
-              >
-                <Crop className="h-3 w-3" />
-                Crop
-              </button>
+            <div className="text-xs space-y-1">
+              <p className="font-medium text-foreground truncate max-w-[240px]">
+                {value.url.split('/').pop()}
+              </p>
+              {value.alt && (
+                <p className="text-[11px] text-muted-foreground truncate max-w-[240px]">
+                  Alt: {value.alt}
+                </p>
+              )}
+              <div className="flex items-center gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedUrl(value.url);
+                    setAlt(value.alt || '');
+                    setCropModalOpen(true);
+                  }}
+                  className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
+                >
+                  <Crop className="h-3 w-3" />
+                  Crop
+                </button>
+                <span className="text-muted-foreground/40">·</span>
+                <button
+                  type="button"
+                  onClick={() => onChange(null)}
+                  className="text-[11px] text-destructive/80 hover:text-destructive font-medium"
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           </div>
         )}
-        {value?.url && value.alt && (
-          <p className="text-xs text-muted-foreground">Alt: {value.alt}</p>
-        )}
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
-            <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
-            {value?.url ? 'Change Image' : 'Choose from Media'}
-          </Button>
-
-          {value?.url && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedUrl(value.url);
-                setAlt(value.alt || '');
-                setCropModalOpen(true);
-              }}
-              className="gap-1.5 text-indigo-400 hover:text-indigo-300"
-            >
-              <Crop className="h-3.5 w-3.5" />
-              Crop / Zoom
-            </Button>
-          )}
-
-          {value?.url && (
-            <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
-              Remove
-            </Button>
-          )}
-        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

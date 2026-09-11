@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { type LucideIcon } from 'lucide-react';
+import api from '@/lib/axios';
 
 // ─── Plugin slot types ────────────────────────────────────────────────────────
 
@@ -53,6 +54,10 @@ interface PluginContextType {
   navItems: PluginNavItem[];
   dashboardWidgets: PluginDashboardWidget[];
   fieldTypes: PluginFieldType[];
+  enabledPluginIds: string[];
+  isPluginEnabled: (pluginId: string) => boolean;
+  loadingPlugins: boolean;
+  refreshPlugins: () => Promise<void>;
 }
 
 const PluginContext = createContext<PluginContextType>({
@@ -60,12 +65,40 @@ const PluginContext = createContext<PluginContextType>({
   navItems: [],
   dashboardWidgets: [],
   fieldTypes: [],
+  enabledPluginIds: [],
+  isPluginEnabled: () => false,
+  loadingPlugins: true,
+  refreshPlugins: async () => {},
 });
 
 export const PluginProvider = ({ children }: { children: ReactNode }) => {
   const [navItems, setNavItems] = useState<PluginNavItem[]>([]);
   const [dashboardWidgets, setDashboardWidgets] = useState<PluginDashboardWidget[]>([]);
   const [fieldTypes, setFieldTypes] = useState<PluginFieldType[]>([]);
+  const [enabledPluginIds, setEnabledPluginIds] = useState<string[]>([]);
+  const [loadingPlugins, setLoadingPlugins] = useState(true);
+
+  const refreshPlugins = useCallback(async () => {
+    try {
+      const res = await api.get('/plugins');
+      const plugins: Array<{ id: string; enabled: boolean }> = res.data?.plugins || [];
+      const enabledIds = plugins.filter((p) => p.enabled).map((p) => p.id);
+      setEnabledPluginIds(enabledIds);
+    } catch {
+      // Unauthenticated or network error
+    } finally {
+      setLoadingPlugins(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshPlugins();
+  }, [refreshPlugins]);
+
+  const isPluginEnabled = useCallback(
+    (pluginId: string) => enabledPluginIds.includes(pluginId),
+    [enabledPluginIds],
+  );
 
   const register = useCallback((plugin: PluginRegistration) => {
     if (plugin.navItems?.length)       setNavItems((prev) => [...prev, ...plugin.navItems!]);
@@ -74,7 +107,18 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <PluginContext.Provider value={{ register, navItems, dashboardWidgets, fieldTypes }}>
+    <PluginContext.Provider
+      value={{
+        register,
+        navItems,
+        dashboardWidgets,
+        fieldTypes,
+        enabledPluginIds,
+        isPluginEnabled,
+        loadingPlugins,
+        refreshPlugins,
+      }}
+    >
       {children}
     </PluginContext.Provider>
   );

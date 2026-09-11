@@ -338,7 +338,90 @@ export class EntriesService {
       );
     }
 
-    return { ...entry, data };
+    // Fetch sibling translations for the same contentTypeId & slug
+    const translations = await this.prisma.entry.findMany({
+      where: {
+        contentTypeId: entry.contentTypeId,
+        slug: entry.slug,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        locale: true,
+        status: true,
+        updatedAt: true,
+      },
+      orderBy: { id: 'asc' },
+    });
+
+    return { ...entry, data, translations };
+  }
+
+  async createTranslation(
+    id: number,
+    targetLocale: string,
+    copyData = true,
+    actor?: { id: number; email: string },
+  ) {
+    const source = await this.prisma.entry.findUnique({
+      where: { id },
+      include: { contentType: true },
+    });
+
+    if (!source || source.deletedAt !== null) {
+      throw new NotFoundException(`Source entry #${id} not found`);
+    }
+
+    const normLocale = (targetLocale || '').trim().toLowerCase();
+    if (!normLocale) {
+      throw new BadRequestException('Target locale is required');
+    }
+
+    // Check if translation already exists
+    const existing = await this.prisma.entry.findUnique({
+      where: {
+        contentTypeId_slug_locale: {
+          contentTypeId: source.contentTypeId,
+          slug: source.slug,
+          locale: normLocale,
+        },
+      },
+    });
+
+    if (existing && existing.deletedAt === null) {
+      return { id: existing.id, isNew: false, locale: existing.locale };
+    }
+
+    const newEntry = await this.prisma.entry.create({
+      data: {
+        contentTypeId: source.contentTypeId,
+        slug: source.slug,
+        locale: normLocale,
+        status: 'draft',
+        data: copyData ? (source.data as any) : {},
+        seo: copyData ? (source.seo as any) : undefined,
+      },
+      include: { contentType: true },
+    });
+
+    this.webhooks.fire('entry.created', {
+      id: newEntry.id,
+      slug: newEntry.slug,
+      status: newEntry.status,
+      contentType: source.contentType?.name,
+      locale: newEntry.locale,
+    });
+
+    if (source.contentType) {
+      this.realtime.notifyEntryCreated({
+        id: newEntry.id,
+        slug: newEntry.slug,
+        contentType: source.contentType.name,
+        locale: newEntry.locale,
+      });
+    }
+
+    return { id: newEntry.id, isNew: true, locale: newEntry.locale };
   }
 
   async update(id: number, dto: UpdateEntryDto, actorId?: number, role?: string) {
@@ -584,7 +667,7 @@ export class EntriesService {
 
     const updated = await this.prisma.entry.update({
       where: { id: entryId },
-      data: { status: targetStatus },
+      data: { status: targetStatus, ...(targetStatus === 'published' ? { publishAt: null } : {}) },
       include: { contentType: true },
     });
 

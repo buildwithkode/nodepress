@@ -33,6 +33,9 @@ import {
   AlertTriangle,
   Languages,
   CopyCheck,
+  Plus,
+  X,
+  Clock,
 } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import { useEntryPresence } from '@/lib/useEntryPresence';
@@ -44,6 +47,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -56,17 +60,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+const SUPPORTED_LOCALES = [
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'es', label: 'Spanish', flag: '🇪🇸' },
+  { code: 'fr', label: 'French', flag: '🇫🇷' },
+  { code: 'de', label: 'German', flag: '🇩🇪' },
+  { code: 'zh', label: 'Chinese', flag: '🇨🇳' },
+  { code: 'ja', label: 'Japanese', flag: '🇯🇵' },
+  { code: 'pt', label: 'Portuguese', flag: '🇵🇹' },
+  { code: 'ar', label: 'Arabic', flag: '🇸🇦' },
+];
 
 interface Field { name: string; type: string; options?: any; label?: string }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
+interface TranslationItem {
+  id: number;
+  locale: string;
+  status: string;
+  updatedAt: string;
+}
 interface Entry {
   id: number;
   slug: string;
   status: string;
+  locale?: string;
   contentTypeId: number;
   data: Record<string, any>;
   seo?: { title?: string; description?: string; image?: string; noIndex?: boolean } | null;
   publishAt?: string | null;
+  translations?: TranslationItem[];
+}
+
+function toLocalDatetimeString(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export default function EditEntryPage() {
@@ -94,14 +133,15 @@ export default function EditEntryPage() {
     takeoverLock,
   } = useEntryPresence(id ? parseInt(id, 10) : null, me?.id);
 
-  // Side-by-side Multilingual Translation Workspace
-  const [rightTab, setRightTab] = useState<'json' | 'translate'>('json');
+  // Multilingual translations and live reference state
+  const [translations, setTranslations] = useState<TranslationItem[]>([]);
+  const [creatingTranslation, setCreatingTranslation] = useState(false);
+  const [sidePanel, setSidePanel] = useState<'none' | 'reference' | 'json'>('json');
   const [baseLocale, setBaseLocale] = useState('en');
   const [baseEntry, setBaseEntry] = useState<Entry | null>(null);
   const [loadingBase, setLoadingBase] = useState(false);
 
-  // JSON preview split pane
-  const [jsonOpen, setJsonOpen] = useState(true);
+  // Split pane sizing & drag
   const [jsonCopied, setJsonCopied] = useState(false);
   const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
@@ -159,7 +199,7 @@ export default function EditEntryPage() {
         status,
         data: rest,
         seo: hasSeo ? seo : null,
-        publishAt: publishAt ? new Date(publishAt).toISOString() : null,
+        publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
       setAutosaveStatus('saved');
       setTimeout(() => setAutosaveStatus('idle'), 2000);
@@ -181,12 +221,20 @@ export default function EditEntryPage() {
         const e: Entry = res.data;
         setEntry(e);
         setStatus(e.status ?? 'published');
-        setLocale((e as any).locale ?? 'en');
+        const entryLocale = e.locale ?? 'en';
+        setLocale(entryLocale);
+        const transList: TranslationItem[] = e.translations ?? [];
+        setTranslations(transList);
+        // Default reference language to English if current is non-English, or first sibling if current is English
+        const defaultRef = entryLocale === 'en'
+          ? (transList.find((t) => t.locale !== 'en')?.locale || 'es')
+          : 'en';
+        setBaseLocale(defaultRef);
         setSeoTitle(e.seo?.title ?? '');
         setSeoDescription(e.seo?.description ?? '');
         setSeoImage(e.seo?.image ?? '');
         setSeoNoIndex(e.seo?.noIndex ?? false);
-        setPublishAt(e.publishAt ? new Date(e.publishAt).toISOString().slice(0, 16) : '');
+        setPublishAt(toLocalDatetimeString(e.publishAt));
         const ctRes = await api.get(`/content-types/${e.contentTypeId}`);
         setContentType(ctRes.data);
         reset({ slug: e.slug, ...e.data });
@@ -214,7 +262,7 @@ export default function EditEntryPage() {
         status,
         data: rest,
         seo: hasSeo ? seo : null,
-        publishAt: publishAt ? new Date(publishAt).toISOString() : null,
+        publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
       toast.success('Entry updated');
       router.push('/entries');
@@ -288,25 +336,54 @@ export default function EditEntryPage() {
     }
   };
 
-  const fetchBaseLocale = async (loc: string) => {
-    if (!id) return;
+  const handleAddTranslation = async (targetLocale: string) => {
+    if (!entry) return;
+    setCreatingTranslation(true);
+    try {
+      const res = await api.post(`/entries/${entry.id}/translate`, {
+        targetLocale,
+        copyData: true,
+      });
+      toast.success(`Created ${targetLocale.toUpperCase()} translation draft`);
+      router.push(`/entries/${res.data.id}/edit`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to create translation draft');
+    } finally {
+      setCreatingTranslation(false);
+    }
+  };
+
+  const fetchBaseLocale = async (loc: string, currentEntry?: Entry | null) => {
+    const active = currentEntry ?? entry;
+    if (!active) return;
     setLoadingBase(true);
     try {
-      const res = await api.get(`/entries/${id}`, { params: { locale: loc } });
-      setBaseEntry(res.data);
+      const transList = active.translations || translations;
+      const sibling = transList.find((t) => t.locale === loc && t.id !== active.id);
+      if (sibling) {
+        const res = await api.get(`/entries/${sibling.id}`);
+        setBaseEntry(res.data);
+      } else {
+        const res = await api.get('/entries', {
+          params: { contentTypeId: active.contentTypeId, slug: active.slug, locale: loc, limit: 1 },
+        });
+        const items = res.data.data ?? res.data;
+        const found = Array.isArray(items) ? items[0] : null;
+        setBaseEntry(found || null);
+      }
     } catch {
-      setBaseEntry(entry);
+      setBaseEntry(null);
     } finally {
       setLoadingBase(false);
     }
   };
 
   useEffect(() => {
-    if (rightTab === 'translate' && id) {
-      fetchBaseLocale(baseLocale);
+    if (sidePanel === 'reference' && entry) {
+      fetchBaseLocale(baseLocale, entry);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rightTab, baseLocale, id]);
+  }, [sidePanel, baseLocale, entry?.id]);
 
   const copyFieldsFromBase = () => {
     if (!baseEntry?.data) return;
@@ -454,8 +531,94 @@ export default function EditEntryPage() {
                 </span>
               )}
 
+              {/* Editorial Multilingual Locale Switcher */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 text-xs font-medium border-border/80 bg-background/80"
+                    disabled={creatingTranslation}
+                  >
+                    <Globe className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                    <span className="font-semibold">
+                      {SUPPORTED_LOCALES.find((l) => l.code === locale)?.label || locale.toUpperCase()} ({locale.toUpperCase()})
+                    </span>
+                    <ChevronDown className="h-3 w-3 opacity-50 ml-0.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-60">
+                  <DropdownMenuLabel className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
+                    Translations ({translations.length || 1})
+                  </DropdownMenuLabel>
+                  {(translations.length > 0 ? translations : [{ id: entry?.id ?? 0, locale, status, updatedAt: '' }]).map((t) => {
+                    const isCurrent = (entry && t.id === entry.id) || t.locale === locale;
+                    const loc = SUPPORTED_LOCALES.find((l) => l.code === t.locale);
+                    return (
+                      <DropdownMenuItem
+                        key={t.id}
+                        className={cn(
+                          "flex items-center justify-between cursor-pointer text-xs py-1.5",
+                          isCurrent && "bg-accent/60 font-medium"
+                        )}
+                        onClick={() => {
+                          if (!isCurrent) router.push(`/entries/${t.id}/edit`);
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">{loc?.flag || '🌐'}</span>
+                          <span>{loc?.label || t.locale.toUpperCase()}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono uppercase">({t.locale})</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[9px] px-1.5 py-0 capitalize",
+                              t.status === 'published' && "border-emerald-500/40 text-emerald-500 bg-emerald-500/10",
+                              t.status === 'draft' && "border-amber-500/40 text-amber-500 bg-amber-500/10",
+                              t.status === 'pending_review' && "border-blue-500/40 text-blue-500 bg-blue-500/10",
+                              t.status === 'staging' && "border-purple-500/40 text-purple-500 bg-purple-500/10",
+                            )}
+                          >
+                            {t.status}
+                          </Badge>
+                          {isCurrent && <Check className="h-3.5 w-3.5 text-primary ml-0.5" />}
+                        </div>
+                      </DropdownMenuItem>
+                    );
+                  })}
+
+                  {(() => {
+                    const existingLocales = new Set((translations.length > 0 ? translations : [{ locale }]).map((t) => t.locale));
+                    const untranslated = SUPPORTED_LOCALES.filter((l) => !existingLocales.has(l.code));
+                    if (untranslated.length === 0) return null;
+                    return (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
+                          Add Translation
+                        </DropdownMenuLabel>
+                        {untranslated.map((loc) => (
+                          <DropdownMenuItem
+                            key={loc.code}
+                            className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground py-1.5"
+                            onClick={() => handleAddTranslation(loc.code)}
+                          >
+                            <Plus className="h-3.5 w-3.5 text-blue-400" />
+                            <span className="text-sm">{loc.flag}</span>
+                            <span>{loc.label}</span>
+                            <span className="text-[10px] font-mono text-muted-foreground ml-auto uppercase">{loc.code}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    );
+                  })()}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {/* Status Selector */}
-              <Select value={status} onValueChange={setStatus}>
+              <Select value={status} onValueChange={(v) => { if (v) setStatus(v); }}>
                 <SelectTrigger className="h-8 w-36 text-xs font-medium border-border/80 bg-background/80">
                   <div className="flex items-center gap-2 truncate">
                     <span
@@ -510,42 +673,53 @@ export default function EditEntryPage() {
                 {submitting ? 'Saving…' : status === 'published' ? 'Update' : 'Save'}
               </Button>
 
-              <Button
-                type="button"
-                variant={rightTab === 'translate' && jsonOpen ? 'secondary' : 'outline'}
-                size="sm"
-                className="h-8 gap-1.5 text-xs"
-                onClick={() => {
-                  if (!jsonOpen) setJsonOpen(true);
-                  setRightTab(rightTab === 'translate' ? 'json' : 'translate');
-                }}
-                title="Side-by-side Multilingual Translation Workspace"
-              >
-                <Languages className="h-3.5 w-3.5 text-blue-400" />
-                {rightTab === 'translate' && jsonOpen ? 'JSON View' : 'Translate'}
-              </Button>
-              <Button
-                type="button"
-                variant={jsonOpen ? 'secondary' : 'outline'}
-                size="sm"
-                className="h-8 gap-1.5 text-xs"
-                onClick={() => setJsonOpen((v) => !v)}
-              >
-                <PanelRight className="h-3.5 w-3.5" />
-                {jsonOpen ? 'Hide Panel' : 'Panel'}
-              </Button>
+              {/* Segmented Side Panel Toggle: JSON vs Reference */}
+              <div className="inline-flex items-center rounded-md border border-border/80 p-0.5 bg-muted/40 shadow-xs">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-7 px-2.5 text-xs gap-1.5 transition-all font-medium",
+                    sidePanel === 'json'
+                      ? "bg-background text-foreground shadow-xs border border-border/60"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={() => setSidePanel((p) => (p === 'json' ? 'none' : 'json'))}
+                  title="Live JSON Output"
+                >
+                  <Braces className="h-3.5 w-3.5" />
+                  JSON
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-7 px-2.5 text-xs gap-1.5 transition-all font-medium",
+                    sidePanel === 'reference'
+                      ? "bg-background text-blue-500 shadow-xs border border-border/60"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={() => setSidePanel((p) => (p === 'reference' ? 'none' : 'reference'))}
+                  title="Side-by-side Multilingual Translation Reference"
+                >
+                  <Languages className="h-3.5 w-3.5" />
+                  Reference
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>
 
         <div ref={containerRef} className="flex items-start border-t border-border">
           {/* Left pane: form */}
-          <div style={{ width: jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
+          <div style={{ width: sidePanel !== 'none' ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
           <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
             {/* Slug (editable — changing it breaks existing links/SEO) */}
-            <div className="mb-4">
-              <Label htmlFor="slug" className="mb-1.5 block">Slug</Label>
+            <div className="space-y-1.5 mb-4.5">
+              <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">Slug</Label>
               <Input
                 id="slug"
                 {...register('slug', {
@@ -556,80 +730,75 @@ export default function EditEntryPage() {
               />
               {errors.slug
                 ? <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
-                : <p className="mt-1 text-xs text-amber-500">Changing the slug breaks existing links and SEO pointing to the old URL.</p>}
-            </div>
-
-            {/* Status + Locale */}
-            <div className="mb-4 grid grid-cols-2 gap-4 items-start">
-              <div>
-                <Label className="mb-1.5 block">Status</Label>
-                <Select value={status} onValueChange={(v: string | null) => v && setStatus(v)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="published">Production (Published)</SelectItem>
-                    <SelectItem value="staging">Staging (QA)</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="pending_review">Pending Review</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="mt-1 text-xs text-muted-foreground">Staging and Published entries are accessible via their respective environment targets</p>
-              </div>
-              <div>
-                <Label className="mb-1.5 block">Locale</Label>
-                <Select value={locale} onValueChange={(v) => { if (v !== null) setLocale(v); }}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">🇬🇧 en</SelectItem>
-                    <SelectItem value="fr">🇫🇷 fr</SelectItem>
-                    <SelectItem value="de">🇩🇪 de</SelectItem>
-                    <SelectItem value="es">🇪🇸 es</SelectItem>
-                    <SelectItem value="it">🇮🇹 it</SelectItem>
-                    <SelectItem value="pt">🇧🇷 pt</SelectItem>
-                    <SelectItem value="ja">🇯🇵 ja</SelectItem>
-                    <SelectItem value="zh">🇨🇳 zh</SelectItem>
-                    <SelectItem value="ar">🇸🇦 ar</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="mt-1 text-xs text-muted-foreground">BCP 47 language code</p>
-              </div>
+                : <p className="text-[11px] text-amber-500">Changing the slug breaks existing links and SEO pointing to the old URL.</p>}
             </div>
 
             {/* Scheduled publish */}
             {status === 'draft' && (
-              <div className="mb-4 p-3 rounded-md border border-border bg-muted/30">
-                <Label htmlFor="publishAt" className="mb-1.5 block text-sm">
-                  Scheduled Publish
-                </Label>
-                <input
-                  id="publishAt"
-                  type="datetime-local"
+              <div className="mb-4 p-3.5 rounded-xl border border-border/80 bg-muted/20 backdrop-blur-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-primary" />
+                    Scheduled Publish
+                  </Label>
+                  {publishAt && (
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-medium">
+                      Active schedule
+                    </span>
+                  )}
+                </div>
+                <DateTimePicker
                   value={publishAt}
-                  onChange={(e) => setPublishAt(e.target.value)}
-                  className="flex h-9 w-full max-w-xs rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  onChange={setPublishAt}
+                  placeholder="Pick date & time to auto-publish…"
                 />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Entry automatically publishes at this time. Leave empty to publish manually.
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {publishAt ? (
+                    <span className="text-foreground/90 font-medium">
+                      Will automatically publish on{' '}
+                      <span className="text-primary font-semibold">
+                        {new Date(publishAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}{' '}
+                        at{' '}
+                        {new Date(publishAt).toLocaleTimeString(undefined, {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </span>
+                  ) : (
+                    'Set a date and time to automatically publish this draft. Leave empty to publish manually.'
+                  )}
                 </p>
               </div>
             )}
 
             {contentType && contentType.schema.length > 0 && (
-              <>
-                <div className="pt-6 pb-2">
-                  <span className="text-base font-semibold text-foreground">Fields</span>
-                  <Separator className="mt-2 bg-foreground/15" />
+              <div className="pt-6">
+                <div className="flex items-center justify-between pb-2 mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-semibold text-foreground">Fields</span>
+                    {contentType.displayName && (
+                      <span className="text-xs text-muted-foreground font-normal">
+                        ({contentType.displayName})
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {contentType.schema.length} field{contentType.schema.length === 1 ? '' : 's'}
+                  </span>
                 </div>
-                <div className="pt-1">
+                <Separator className="mt-1 mb-5 bg-border/70" />
+
+                <div>
                   {contentType.schema.map((field) => (
                     <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} />
                   ))}
                 </div>
-              </>
+              </div>
             )}
 
             {/* SEO Panel */}
@@ -708,7 +877,7 @@ export default function EditEntryPage() {
           </div>
 
           {/* Drag handle */}
-          {jsonOpen && (
+          {sidePanel !== 'none' && (
             <div
               onMouseDown={onDragStart}
               className="relative w-px self-stretch shrink-0 cursor-col-resize group select-none bg-border hover:bg-primary/40 transition-colors"
@@ -718,8 +887,8 @@ export default function EditEntryPage() {
           )}
 
           {/* Right pane: Translation Workspace or JSON Preview */}
-          {jsonOpen && (() => {
-            if (rightTab === 'translate') {
+          {sidePanel !== 'none' && (() => {
+            if (sidePanel === 'reference') {
               return (
                 <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border bg-muted/10">
                   <div className="sticky top-4 px-4 py-4 space-y-3">
@@ -728,29 +897,46 @@ export default function EditEntryPage() {
                         <Languages className="h-4 w-4 text-blue-400" />
                         <span className="text-xs font-semibold">Reference Language</span>
                       </div>
-                      <Select
-                        value={baseLocale}
-                        onValueChange={(val) => {
-                          if (val) {
-                            setBaseLocale(val);
-                            fetchBaseLocale(val);
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="h-7 w-28 text-xs font-mono">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">EN (English)</SelectItem>
-                          <SelectItem value="es">ES (Spanish)</SelectItem>
-                          <SelectItem value="fr">FR (French)</SelectItem>
-                          <SelectItem value="de">DE (German)</SelectItem>
-                          <SelectItem value="zh">ZH (Chinese)</SelectItem>
-                          <SelectItem value="ja">JA (Japanese)</SelectItem>
-                          <SelectItem value="ar">AR (Arabic)</SelectItem>
-                          <SelectItem value="pt">PT (Portuguese)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-1.5">
+                        <Select
+                          value={baseLocale}
+                          onValueChange={(val) => {
+                            if (val) {
+                              setBaseLocale(val);
+                              fetchBaseLocale(val);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-7 w-32 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent align="end">
+                            {SUPPORTED_LOCALES.map((l) => {
+                              const exists = translations.some((t) => t.locale === l.code);
+                              return (
+                                <SelectItem key={l.code} value={l.code}>
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{l.flag}</span>
+                                    <span>{l.code.toUpperCase()}</span>
+                                    {exists && (
+                                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 ml-1 shrink-0" title="Translation available" />
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          onClick={() => setSidePanel('none')}
+                          title="Close Reference Panel"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
 
                     <Button
@@ -769,6 +955,13 @@ export default function EditEntryPage() {
                       <div className="py-8 flex items-center justify-center text-muted-foreground text-xs gap-2">
                         <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
                         Loading {baseLocale.toUpperCase()} reference...
+                      </div>
+                    ) : !baseEntry ? (
+                      <div className="py-8 text-center text-xs text-muted-foreground px-4 space-y-2 border border-dashed rounded-md">
+                        <p>No <strong>{baseLocale.toUpperCase()}</strong> translation exists to reference.</p>
+                        <p className="text-[11px] opacity-75">
+                          Choose a language with an active translation (marked with a green dot) or add one via the 🌐 menu above.
+                        </p>
                       </div>
                     ) : !contentType?.schema ? (
                       <p className="text-xs text-muted-foreground">No schema fields</p>
@@ -824,7 +1017,7 @@ export default function EditEntryPage() {
               contentTypeId: entry?.contentTypeId,
               data: fieldData,
               seo: hasSeo ? seo : null,
-              publishAt: publishAt ? new Date(publishAt).toISOString() : null,
+              publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (
@@ -854,11 +1047,20 @@ export default function EditEntryPage() {
                           setTimeout(() => setJsonCopied(false), 2000);
                         }}
                         className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                        title="Copy JSON"
+                        title="Copy raw JSON"
                       >
-                        {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                        {jsonCopied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                         {jsonCopied ? 'Copied' : 'Copy'}
                       </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-foreground ml-1"
+                        onClick={() => setSidePanel('none')}
+                        title="Close JSON Panel"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
                   <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
