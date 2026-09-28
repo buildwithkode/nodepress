@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { type LucideIcon } from 'lucide-react';
+import Cookies from 'js-cookie';
 import api from '@/lib/axios';
 
 // ─── Plugin slot types ────────────────────────────────────────────────────────
@@ -79,6 +80,13 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
   const [loadingPlugins, setLoadingPlugins] = useState(true);
 
   const refreshPlugins = useCallback(async () => {
+    // Only attempt to fetch plugins when an authenticated session exists.
+    // Public routes (/login, /forgot-password, /docs) do not require plugin slots.
+    const token = Cookies.get('np_token');
+    if (!token) {
+      setLoadingPlugins(false);
+      return;
+    }
     try {
       const res = await api.get('/plugins');
       const plugins: Array<{ id: string; enabled: boolean }> = res.data?.plugins || [];

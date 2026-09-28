@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
 import { useBrand } from '../../../context/BrandContext';
 import api from '../../../lib/axios';
@@ -261,9 +262,9 @@ function LoginForm() {
 
           {!requires2fa && (
             <p className="mt-5 text-center text-xs text-white/30">
-              <a href="/forgot-password" className="hover:text-white/60 transition-colors">
+              <Link href="/forgot-password" className="hover:text-white/60 transition-colors">
                 Forgot password?
-              </a>
+              </Link>
             </p>
           )}
         </div>

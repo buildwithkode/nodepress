@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import api from '../../../lib/axios';
 import { Button } from '@/components/ui/button';
 
@@ -99,9 +100,9 @@ function ResetPasswordForm() {
           )}
 
           <p className="mt-5 text-center text-xs text-white/30">
-            <a href="/login" className="hover:text-white/60 transition-colors">
+            <Link href="/login" className="hover:text-white/60 transition-colors">
               Back to sign in
-            </a>
+            </Link>
           </p>
         </div>
       </div>

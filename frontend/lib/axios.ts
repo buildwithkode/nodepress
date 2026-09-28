@@ -39,7 +39,8 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       !original._retried &&
       !original.url?.includes('/auth/refresh') &&
-      !original.url?.includes('/auth/login')
+      !original.url?.includes('/auth/login') &&
+      !original.url?.includes('/plugins')
     ) {
       original._retried = true;
 
@@ -51,10 +52,19 @@ api.interceptors.response.use(
         return api(original);  // retry with new token
       }
 
-      // Refresh failed — clear auth and redirect to login with reason
+      // Refresh failed — clear auth cookies
       Cookies.remove('np_token', { path: '/' });
       Cookies.remove('np_role', { path: '/' });
-      window.location.href = '/login?reason=expired';
+
+      // Only redirect if user is on an authenticated page.
+      // If already on an auth or public page, never force-redirect (prevents refresh / bounce loops).
+      if (typeof window !== 'undefined') {
+        const publicAuthPrefixes = ['/login', '/forgot-password', '/reset-password', '/setup', '/docs'];
+        const isPublicAuthPage = publicAuthPrefixes.some((p) => window.location.pathname.startsWith(p));
+        if (!isPublicAuthPage) {
+          window.location.href = '/login?reason=expired';
+        }
+      }
     }
 
     return Promise.reject(error);
