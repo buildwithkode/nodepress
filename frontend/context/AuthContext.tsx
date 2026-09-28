@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     api
       .post<{ access_token: string }>('/auth/refresh', {})
       .then((res) => {
-        Cookies.set('np_token', res.data.access_token, { expires: 7, sameSite: 'strict' });
+        Cookies.set('np_token', res.data.access_token, { expires: 7, sameSite: 'lax', path: '/' });
         return api.get<User>('/auth/me');
       })
       .then((res) => setUser(res.data))
@@ -62,16 +62,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (token: string, newUser: User) => {
     // Store JWT in a cookie — readable by Next.js middleware for SSR route protection.
     // The user object lives only in React state, never in localStorage.
-    Cookies.set('np_token', token, { expires: 7, sameSite: 'strict' }); // 7 days — matches JWT expiry
+    Cookies.set('np_token', token, { expires: 7, sameSite: 'lax', path: '/' }); // 7 days — matches JWT expiry
     // Store role in a separate cookie so middleware can enforce role-based routing.
     // This cookie is for UX only — the backend enforces actual permissions.
-    Cookies.set('np_role', newUser.role, { expires: 30, sameSite: 'strict' });
+    Cookies.set('np_role', newUser.role, { expires: 30, sameSite: 'lax', path: '/' });
     setUser(newUser);
   };
 
   const logout = () => {
-    Cookies.remove('np_token');
-    Cookies.remove('np_role');
+    Cookies.remove('np_token', { path: '/' });
+    Cookies.remove('np_role', { path: '/' });
     setUser(null);
     // Ask the backend to clear the HttpOnly refresh cookie
     api.post('/auth/logout').catch(() => {});

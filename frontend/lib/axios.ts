@@ -22,7 +22,7 @@ async function tryRefresh(): Promise<string | null> {
   try {
     const res = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
     const { access_token } = res.data;
-    Cookies.set('np_token', access_token, { expires: 7 }); // 7 days — matches JWT expiry
+    Cookies.set('np_token', access_token, { expires: 7, sameSite: 'lax', path: '/' }); // 7 days — matches JWT expiry
     return access_token;
   } catch {
     return null;
@@ -52,7 +52,8 @@ api.interceptors.response.use(
       }
 
       // Refresh failed — clear auth and redirect to login with reason
-      Cookies.remove('np_token');
+      Cookies.remove('np_token', { path: '/' });
+      Cookies.remove('np_role', { path: '/' });
       window.location.href = '/login?reason=expired';
     }
 

@@ -306,7 +306,7 @@ export class AuthService {
     res.cookie(REFRESH_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       expires: expiresAt,
       path: '/api/auth',  // scoped — only sent to auth endpoints
     });

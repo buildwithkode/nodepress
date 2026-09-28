@@ -47,8 +47,27 @@ function isAdminOnlyPath(pathname: string): boolean {
   );
 }
 
+function isTokenValid(token?: string): boolean {
+  if (!token) return false;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = atob(base64);
+    const payload = JSON.parse(json);
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      return false; // Token expired
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function middleware(request: NextRequest) {
-  const token       = request.cookies.get('np_token')?.value;
+  const rawToken    = request.cookies.get('np_token')?.value;
+  const tokenValid  = isTokenValid(rawToken);
+  const token       = tokenValid ? rawToken : undefined;
   const role        = request.cookies.get('np_role')?.value;
   const initialized = request.cookies.get('np_initialized')?.value;
   const { pathname } = request.nextUrl;
@@ -56,17 +75,20 @@ export function middleware(request: NextRequest) {
   const isLoginPage = pathname === '/login';
   const isSetupPage = pathname === '/setup';
 
+  // If a stale or expired token is present on an admin path, clear it and redirect to login
+  if (!token && rawToken && isAdminPath(pathname)) {
+    const res = NextResponse.redirect(new URL('/login?reason=expired', request.url));
+    res.cookies.delete('np_token');
+    res.cookies.delete('np_role');
+    return res;
+  }
+
   // Protect admin paths when unauthenticated
   if (!token && isAdminPath(pathname)) {
-    // np_initialized is set by the setup page on first registration.
-    // - Present  → setup already done, user just needs to sign in → /login
-    // - Missing  → could be fresh install OR existing user who cleared cookies.
-    //              Send to /login either way; the login page's useEffect calls
-    //              setup-status and bounces to /setup automatically if needed.
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Already logged in — redirect away from login/setup pages
+  // Already logged in with a valid token — redirect away from login/setup pages
   if (token && (isLoginPage || isSetupPage)) {
     return NextResponse.redirect(new URL('/', request.url));
   }

@@ -22,7 +22,14 @@ import { RelationPicker } from '@/components/RelationPicker';
 
 const RichTextEditor = dynamic(
   () => import('@/components/RichTextEditor'),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-44 w-full rounded-md border border-input bg-muted/20 animate-pulse flex items-center justify-center text-xs text-muted-foreground">
+        Loading editor…
+      </div>
+    ),
+  },
 );
 
 interface SubField {

@@ -92,7 +92,7 @@ function LoginForm() {
         setTwoFactorCode('');
       } else {
         login(res.data.access_token, res.data.user);
-        router.push('/');
+        window.location.href = '/';
       }
     } catch (err: any) {
       setError(loginErrorMessage(err));
@@ -115,7 +115,7 @@ function LoginForm() {
         code: twoFactorCode.trim(),
       });
       login(res.data.access_token, res.data.user);
-      router.push('/');
+      window.location.href = '/';
     } catch (err: any) {
       setError(loginErrorMessage(err));
     } finally {
