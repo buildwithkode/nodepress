@@ -1,405 +1,891 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-version="1.6.0">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EcommPress — Official Developer Documentation & System Architecture</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <title>NodePress — Documentation</title>
+  <meta name="description" content="NodePress headless CMS documentation. Self-hosted, REST API, GraphQL, Real-time WebSockets, Multi-stage workflows, no Docker required." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Syntax highlighting (Night Owl) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <style>
-    :root {
-      --bg: #090D16;
-      --surface: #0E1424;
-      --border: #1E293B;
-      --primary: #6366F1;
-      --primary-hover: #4F46E5;
-      --text: #F8FAFC;
-      --text-muted: #94A3B8;
-      --accent: #10B981;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(9, 13, 22, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: #fff;
-    }
-    .badge {
-      background: rgba(99, 102, 241, 0.15);
-      color: #818CF8;
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      padding: 0.2rem 0.6rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    .hero {
-      text-align: center;
-      padding: 4rem 2rem 3rem;
-      background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15), transparent 70%);
-      border-bottom: 1px solid var(--border);
-    }
-    .hero h1 {
-      font-size: 2.75rem;
-      font-weight: 800;
-      margin-bottom: 0.75rem;
-      letter-spacing: -0.02em;
-    }
-    .hero p {
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    .container {
-      max-width: 1250px;
-      margin: 0 auto;
-      padding: 3rem 2rem;
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 3rem;
-    }
-    nav.sidebar {
-      position: sticky;
-      top: 6rem;
-      height: fit-content;
-    }
-    nav.sidebar a {
-      display: block;
-      color: var(--text-muted);
-      text-decoration: none;
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      margin-bottom: 0.25rem;
-      transition: all 0.2s;
-    }
-    nav.sidebar a:hover {
-      color: #fff;
-      background: var(--surface);
-    }
-    section {
-      margin-bottom: 3.5rem;
-      scroll-margin-top: 6rem;
-    }
-    h2 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    p { margin-bottom: 1rem; color: var(--text-muted); font-size: 0.95rem; }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    pre {
-      background: #040711;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.825rem;
-      color: #CBD5E1;
-      margin: 0.75rem 0;
-    }
-    code {
-      font-family: 'JetBrains Mono', monospace;
-      background: rgba(255,255,255,0.06);
-      padding: 0.15rem 0.35rem;
-      border-radius: 4px;
-      font-size: 0.85em;
-      color: #A5B4FC;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin-top: 1rem;
-      background: var(--surface);
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    th, td {
-      padding: 0.75rem 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-    th { background: rgba(0,0,0,0.3); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
-    .method-get { color: #34D399; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-    .method-post { color: #60A5FA; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-    .method-patch { color: #F59E0B; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-    footer {
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 2rem;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media (max-width: 850px) {
-      .container { grid-template-columns: 1fr; }
-      nav.sidebar { display: none; }
-      .grid-2 { grid-template-columns: 1fr; }
-    }
+    * { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    html { scroll-behavior: smooth; }
+    .toc-link.active { color: #3b82f6; background: rgba(59,130,246,0.08); font-weight: 500; }
+    pre { tab-size: 2; }
+    pre code.hljs { background: transparent; padding: 0; color: #abb2bf; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #18181b; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
   </style>
 </head>
-<body>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
 
-  <header>
-    <div class="brand">
-      🛍️ EcommPress <span class="badge">v1.0.0</span>
-    </div>
-    <div>
-      <a href="https://github.com/buildwithkode/ecommpress" target="_blank" style="color: #fff; text-decoration: none; font-size: 0.85rem; background: var(--border); padding: 0.4rem 0.8rem; border-radius: 6px;">
-        GitHub Repository ↗
-      </a>
+  <!-- Header -->
+  <header class="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur border-b border-zinc-800">
+    <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="https://nodepress.buildwithkode.com" target="_blank" class="flex items-center gap-3 group">
+          <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <span class="text-white text-xs font-extrabold">N</span>
+          </div>
+          <span class="font-semibold text-sm text-white group-hover:text-blue-400 transition-colors">NodePress</span>
+        </a>
+        <span class="text-zinc-600">/</span>
+        <span class="text-zinc-400 text-sm">Documentation</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">v1.6.0</span>
+        <a href="https://github.com/buildwithkode/nodepress" target="_blank" class="text-zinc-400 hover:text-white text-sm transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
     </div>
   </header>
 
-  <div class="hero">
-    <h1>NodePress E-Commerce Pro Suite</h1>
-    <p>Comprehensive developer reference & store manager guide for Indian UPI (Razorpay), global Stripe checkout, table management, customer analytics, and courier shipping.</p>
-  </div>
+  <div class="max-w-7xl mx-auto px-6 py-10 flex gap-10">
 
-  <div class="container">
-    <nav class="sidebar">
-      <a href="#architecture">1. System Integration</a>
-      <a href="#hub-navigation">2. Commerce Hub (/commerce)</a>
-      <a href="#quick-start">3. Installation</a>
-      <a href="#licensing">4. License Keys</a>
-      <a href="#payments">5. Razorpay & Stripe</a>
-      <a href="#catalog">6. Products & Variants</a>
-      <a href="#customers">7. Customer Analytics</a>
-      <a href="#coupons">8. Coupons & Discounts</a>
-      <a href="#shipping">9. Shipping & Courier AWB</a>
-      <a href="#invoices">10. Tax Invoicing</a>
-      <a href="#api-reference">11. REST API Reference</a>
-    </nav>
+    <!-- Sidebar TOC -->
+    <aside class="hidden lg:block w-56 shrink-0">
+      <div class="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2">
+        <p class="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">On this page</p>
+        <ul class="space-y-0.5 text-xs" id="toc">
+          <li><a href="#installation"     class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Installation</a></li>
+          <li><a href="#quick-start"      class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Quick Start</a></li>
+          <li><a href="#content-types"    class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Content Types Builder</a></li>
+          <li><a href="#field-types"      class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Field Types (14+ Types)</a></li>
+          <li><a href="#entries"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Entries & Workflows</a></li>
+          <li><a href="#media"            class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Media Library & Crop</a></li>
+          <li><a href="#api-keys"         class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Keys</a></li>
+          <li><a href="#forms"            class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Forms & Spam Shield</a></li>
+          <li><a href="#brand"            class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Brand & Custom CSS</a></li>
+          <li><a href="#team"             class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Team, RBAC & 2FA</a></li>
+          <li><a href="#permissions"      class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Field Permissions</a></li>
+          <li><a href="#audit-log"        class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Audit Logging</a></li>
+          <li><a href="#webhooks"         class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Webhooks & DLQ</a></li>
+          <li><a href="#webhook-recipes"  class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Top 5 Webhook Recipes</a></li>
+          <li><a href="#plugins"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Plugin Architecture</a></li>
+          <li><a href="#graphql"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">GraphQL API</a></li>
+          <li><a href="#realtime"         class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Real-time WebSockets</a></li>
+          <li><a href="#seo"              class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">SEO & Sitemap XML</a></li>
+          <li><a href="#self-hosting"     class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Self-Hosting</a></li>
+          <li><a href="#api-reference"    class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">API Reference</a></li>
+          <li><a href="#code-examples"    class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Frontend Examples</a></li>
+        </ul>
+      </div>
+    </aside>
 
-    <main>
-      <!-- Section 1: System Integration -->
-      <section id="architecture">
-        <h2>🔌 1. System Integration (How Everything is Connected)</h2>
-        <p>EcommPress seamlessly links your storefront, payment gateways, and courier logistics into one unified architecture:</p>
-        
-        <div class="card">
-          <h3 style="color:#818CF8; font-size: 1rem; margin-bottom: 0.5rem;">Phase A: Cart, Promo & Universal Shipping Calculation</h3>
-          <p style="font-size:0.875rem;">When the customer checks out on your frontend, NodePress calculates: <code>Total = Subtotal - Discount + ShippingFee</code>. If subtotal &ge; ₹1,500 (or coupon is <code>FREE_SHIPPING</code>), delivery fee is ₹0; otherwise flat ₹99 is added.</p>
+    <!-- Main content -->
+    <main class="flex-1 min-w-0 max-w-3xl">
+
+      <!-- Hero -->
+      <div class="mb-14">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">v1.6.0</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Self-hosted</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">REST + GraphQL</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Real-time WebSockets</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Staging Pipeline</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">MIT License</span>
+        </div>
+        <h1 class="text-4xl font-extrabold mb-3 text-white tracking-tight">NodePress Headless CMS</h1>
+        <p class="text-lg text-zinc-400 leading-relaxed max-w-2xl">
+          An enterprise-grade, self-hosted headless content management system. Design flexible schemas, manage multi-environment workflows, upload assets, and consume content through auto-generated REST APIs, GraphQL, and real-time WebSockets.
+        </p>
+      </div>
+
+      <!-- Installation -->
+      <section id="installation" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Installation & Prerequisites</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">NodePress runs locally on your machine or on any server with Node.js 18+ and PostgreSQL or SQLite.</p>
+
+        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-6">
+          <p class="text-sm font-medium text-blue-400 mb-1">Check your environment</p>
+          <div class="code-block" data-code="node -v    # v18.0.0 or higher required
+git --version  # required for cloning
+npm -v     # v9.0.0 or higher"></div>
         </div>
 
-        <div class="card">
-          <h3 style="color:#60A5FA; font-size: 1rem; margin-bottom: 0.5rem;">Phase B: Razorpay UPI Intent & Cryptographic Webhooks</h3>
-          <p style="font-size:0.875rem;">NodePress converts the amount to paise (<code>₹2,499.50 = 249950 paise</code>) and returns an authenticated payload. The frontend opens the native Razorpay modal (GPay, PhonePe, Paytm, QR). Upon payment, Razorpay notifies the backend via HMAC-SHA256 webhook, and NodePress atomically deducts the variant SKU stock and transitions the order to <code>PAID</code>.</p>
-        </div>
+        <div class="space-y-4">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+            <h3 class="text-sm font-semibold text-white mb-1">Clone & Install Dependencies</h3>
+            <div class="code-block" data-code="# 1. Clone repository
+git clone https://github.com/buildwithkode/nodepress.git
+cd nodepress
 
-        <div class="card">
-          <h3 style="color:#34D399; font-size: 1rem; margin-bottom: 0.5rem;">Phase C: Courier AWB Tracking & Automated Tax Invoices</h3>
-          <p style="font-size:0.875rem;">The store owner books pickup with their courier aggregator (Shiprocket, Delhivery, BlueDart, FedEx) and enters the tracking number on the <code>/commerce</code> Orders table. The order transitions to <code>SHIPPED</code> with a live tracking link, and an itemized HTML/PDF tax invoice is generated with 1 click.</p>
+# 2. Install all root, backend, and frontend dependencies
+npm install"></div>
+          </div>
         </div>
       </section>
 
-      <!-- Section 2: Commerce Hub Navigation -->
-      <section id="hub-navigation">
-        <h2>🎛️ 2. Dedicated Commerce Hub (<code>/commerce</code>)</h2>
-        <p>The admin panel provides a complete table-based management suite with 7 dedicated sections:</p>
-        <div class="grid-2">
-          <div class="card">
-            <h3 style="color:#818CF8; font-size: 1rem; margin-bottom: 0.35rem;">🏠 Home / Overview</h3>
-            <p style="font-size:0.85rem; margin-bottom:0;">Revenue KPI cards, total paid checkouts, Average Order Value (AOV), and low-stock inventory alerts.</p>
+      <!-- Quick Start -->
+      <section id="quick-start" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </div>
-          <div class="card">
-            <h3 style="color:#60A5FA; font-size: 1rem; margin-bottom: 0.35rem;">📦 Orders Table</h3>
-            <p style="font-size:0.85rem; margin-bottom:0;">Searchable table with Order #, Customer, Total, Payment & Fulfillment badges, Courier AWB, and 1-click invoice print.</p>
+          <h2 class="text-2xl font-bold text-white">Quick Start</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Start the development server with a single command:</p>
+        <div class="code-block" data-code="# Start NestJS API (port 3000) & Next.js Admin UI (port 5173)
+npm run dev"></div>
+        <div class="grid sm:grid-cols-2 gap-4 mt-6">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Admin Panel</p>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-2">Open the visual control center in your browser.</p>
+            <a href="http://localhost:5173" target="_blank" class="text-xs text-blue-400 underline font-mono">http://localhost:5173</a>
           </div>
-          <div class="card">
-            <h3 style="color:#34D399; font-size: 1rem; margin-bottom: 0.35rem;">🏷️ Products Table</h3>
-            <p style="font-size:0.85rem; margin-bottom:0;">Searchable catalog with Thumbnails, SKUs, Categories, Prices, Stock levels (color-coded), and Variant matrix pills.</p>
-          </div>
-          <div class="card">
-            <h3 style="color:#F59E0B; font-size: 1rem; margin-bottom: 0.35rem;">👤 Customers Table</h3>
-            <p style="font-size:0.85rem; margin-bottom:0;">Aggregated buyer directory with Name, Email, Total Orders, Lifetime Value (LTV total spend), and Location.</p>
-          </div>
-          <div class="card">
-            <h3 style="color:#EC4899; font-size: 1rem; margin-bottom: 0.35rem;">🎟️ Discounts Table</h3>
-            <p style="font-size:0.85rem; margin-bottom:0;">Promo codes table with Percentage, Fixed, and Free Shipping types, Minimum spend limits, and Create Coupon modal.</p>
-          </div>
-          <div class="card">
-            <h3 style="color:#A78BFA; font-size: 1rem; margin-bottom: 0.35rem;">🚚 Shipping & Markets</h3>
-            <p style="font-size:0.85rem; margin-bottom:0;">Flat Rate Delivery rules, Free Shipping Thresholds, and supported courier carrier links.</p>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">API Backend & Swagger</p>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-2">Explore live REST documentation & GraphQL playground.</p>
+            <a href="http://localhost:3000/api/docs" target="_blank" class="text-xs text-blue-400 underline font-mono">http://localhost:3000/api/docs</a>
           </div>
         </div>
       </section>
 
-      <!-- Section 3: Quick Start -->
-      <section id="quick-start">
-        <h2>🚀 3. Quick Installation</h2>
-        <p>Install the package into your NodePress project backend:</p>
-        <pre><code>npm install @nodepress-pro/ecommerce</code></pre>
-        <p>Register the plugin in <code>backend/src/plugin/plugins.config.ts</code>:</p>
-        <pre><code>import { EcommerceProManifest, EcommerceProModule } from '@nodepress-pro/ecommerce';
-
-export const ENABLED_PLUGINS = [
-  { manifest: WordCountManifest, module: WordCountModule },
-  { manifest: SeoAnalyzerManifest, module: SeoAnalyzerModule },
-  { manifest: EcommerceProManifest, module: EcommerceProModule }, // 👈 Registered
-];</code></pre>
-      </section>
-
-      <!-- Section 4: Licensing -->
-      <section id="licensing">
-        <h2>🔑 4. License Key Activation (Lemon Squeezy)</h2>
-        <p>Purchases on Lemon Squeezy issue a unique key (e.g. <code>83AD5792-2E0D-...</code>). When saved in the Admin Settings drawer, NodePress contacts Lemon Squeezy's <code>/v1/licenses/activate</code> endpoint and binds your domain.</p>
-        <div class="card">
-          <strong>⚡ Localhost Evaluation Mode:</strong> On <code>localhost</code> and <code>127.0.0.1</code>, testing is automatically unlocked with zero key required.
+      <!-- Content Types -->
+      <section id="content-types" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Content Types Builder</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">
+          Content Types are the data blueprints (schemas) for your content (e.g., Blog Posts, Products, Authors, Pages). NodePress automatically provisions REST endpoints and GraphQL queries for every content type you build.
+        </p>
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-300 mb-6 space-y-2">
+          <p>• <strong>Display Names & Slugs:</strong> Automatically formats snake_case database identifiers into human-friendly titles.</p>
+          <p>• <strong>Dynamic Endpoints:</strong> Creating <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blog_posts</code> creates <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/blog-posts</code> instantly.</p>
+          <p>• <strong>Method Locks:</strong> Choose which HTTP methods (GET, POST, PUT, DELETE) are exposed per collection.</p>
         </div>
       </section>
 
-      <!-- Section 5: Payments -->
-      <section id="payments">
-        <h2>💳 5. Razorpay & Stripe Setup</h2>
-        <p>Configure gateway credentials in your Admin Settings drawer:</p>
-        <div class="card">
-          <h3 style="color:#818CF8; margin-bottom: 0.5rem;">🇮🇳 Razorpay (India & UPI)</h3>
-          <p>Instant UPI Intent (Google Pay, PhonePe, Paytm, BHIM), dynamic QR codes, RuPay/Visa cards, and HMAC-SHA256 signature verification with exact paise precision.</p>
+      <!-- Field Types -->
+      <section id="field-types" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Field Types (14+ Types)</h2>
         </div>
-        <div class="card">
-          <h3 style="color:#60A5FA; margin-bottom: 0.5rem;">🌍 Stripe (Global Multi-Currency)</h3>
-          <p>International card payments, Apple Pay, Google Pay, and webhook handling.</p>
-        </div>
-        <div class="card">
-          <h3 style="color:#34D399; margin-bottom: 0.5rem;">🍋 Lemon Squeezy (Merchant of Record)</h3>
-          <p>Automated global EU VAT and US sales tax handling.</p>
+        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Type</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Description</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">JSON Value</th></tr></thead>
+            <tbody class="divide-y divide-zinc-800 text-xs">
+              <tr><td class="px-4 py-2.5"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded font-mono">text</span></td><td class="px-4 py-2.5 text-zinc-400">Single-line text for titles, names, headers.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"My Article"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded font-mono">textarea</span></td><td class="px-4 py-2.5 text-zinc-400">Multi-line plain text for excerpts and summaries.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"Summary line..."</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded font-mono">richtext</span></td><td class="px-4 py-2.5 text-zinc-400">WYSIWYG HTML with images, links, formatting.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"&lt;p&gt;Content...&lt;/p&gt;"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded font-mono">markdown</span></td><td class="px-4 py-2.5 text-zinc-400">Raw markdown editor with live side-by-side preview.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"## Heading\n\nText"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded font-mono">image</span></td><td class="px-4 py-2.5 text-zinc-400">Image object with URL, alt text, and dimensions.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">{"url":"...","alt":"..."}</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded font-mono">number</span></td><td class="px-4 py-2.5 text-zinc-400">Integers, decimals, prices, or counts.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">99.50</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-green-500/10 text-green-400 px-2 py-0.5 rounded font-mono">boolean</span></td><td class="px-4 py-2.5 text-zinc-400">Toggle switch for flags (featured, sponsored).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">true</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded font-mono">select</span></td><td class="px-4 py-2.5 text-zinc-400">Dropdown select from predefined options.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"tech"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded font-mono">date</span></td><td class="px-4 py-2.5 text-zinc-400">Calendar date (YYYY-MM-DD).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2026-08-25"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono">datetime</span></td><td class="px-4 py-2.5 text-zinc-400">ISO 8601 full timestamp with timezone.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2026-08-25T12:00:00Z"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-mono">color</span></td><td class="px-4 py-2.5 text-zinc-400">Hex color picker swatch.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"#3b82f6"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded font-mono">repeater</span></td><td class="px-4 py-2.5 text-zinc-400">Array of objects sharing sub-fields (e.g. FAQ list).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{"q":"..","a":".."}]</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-violet-500/10 text-violet-400 px-2 py-0.5 rounded font-mono">flexible</span></td><td class="px-4 py-2.5 text-zinc-400">Page builder blocks with custom <code class="text-pink-400 font-mono">_layout</code> types.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">[{"_layout":"hero"}]</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-teal-500/10 text-teal-400 px-2 py-0.5 rounded font-mono">relation</span></td><td class="px-4 py-2.5 text-zinc-400">One-to-one or one-to-many relationship (inlined via <code class="text-pink-400 font-mono">?populate=</code>).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"uuid" / ["uuid1"]</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
-      <!-- Section 6: Catalog -->
-      <section id="catalog">
-        <h2>🛍️ 6. Products & Multi-Variant Matrix</h2>
-        <p>Create products with multi-option variants (e.g. Size × Color):</p>
-        <pre><code>POST /api/commerce/products
+      <!-- Entries & Workflows -->
+      <section id="entries" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Entries, Workflows & Pipeline</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">
+          Entries support advanced lifecycle environments, version history, recycle bin safety, signed preview tokens, and bulk data operations.
+        </p>
+
+        <!-- Multi-stage Publishing -->
+        <h3 class="font-semibold text-white mb-2">1. Multi-Stage Publishing Pipeline</h3>
+        <p class="text-sm text-zinc-400 mb-3">Promote content through staged environments:</p>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6 text-center text-xs">
+          <div class="p-2.5 rounded-lg border border-zinc-800 bg-zinc-900"><span class="font-bold text-zinc-400 block mb-1">Draft</span>WIP content</div>
+          <div class="p-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10"><span class="font-bold text-amber-400 block mb-1">⏳ Review</span>Pending QA</div>
+          <div class="p-2.5 rounded-lg border border-purple-500/30 bg-purple-500/10"><span class="font-bold text-purple-400 block mb-1">🚀 Staging</span>Testing deploy</div>
+          <div class="p-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10"><span class="font-bold text-emerald-400 block mb-1">🌐 Production</span>Live public API</div>
+          <div class="p-2.5 rounded-lg border border-zinc-800 bg-zinc-900/40"><span class="font-bold text-zinc-500 block mb-1">Archived</span>Hidden/retired</div>
+        </div>
+
+        <!-- Pending Review Markings -->
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-6 text-xs text-zinc-300 space-y-1.5">
+          <p class="font-semibold text-amber-400 text-sm">Visual Markings for Items Pending Review</p>
+          <p>• <strong>Overview Grid:</strong> Collections with pending reviews show glowing amber card borders, live pulsing indicators, and a <code class="bg-zinc-800 px-1 rounded text-amber-400 font-mono">⏳ X Pending Review</code> direct-filter badge.</p>
+          <p>• <strong>Collection Table:</strong> Real-time banner alert with 1-click filter button <code class="bg-zinc-800 px-1 rounded font-mono">Show Pending Reviews (X) →</code>.</p>
+        </div>
+
+        <!-- Version Snapshots & Diff Restore -->
+        <h3 class="font-semibold text-white mb-2">2. Version Snapshots & 1-Click Rollbacks</h3>
+        <p class="text-sm text-zinc-400 mb-3">Every save snapshots a timestamped version. View side-by-side diffs and restore any revision:</p>
+        <div class="code-block" data-code="# Get all versions of an entry
+GET /api/entries/:id/versions
+
+# Restore entry to a specific historical version
+POST /api/entries/:id/versions/:versionId/restore"></div>
+
+        <!-- Recycle Bin / Soft Delete -->
+        <h3 class="font-semibold text-white mt-6 mb-2">3. Recycle Bin & Soft Deletion Safeguards</h3>
+        <p class="text-sm text-zinc-400 mb-3">Deleted entries enter the Recycle Bin. Trashed entries can be restored or purged permanently:</p>
+        <div class="code-block" data-code="# Move entry to Recycle Bin (soft delete)
+DELETE /api/entries/:id
+
+# Restore from Recycle Bin
+POST /api/entries/:id/restore
+
+# Permanently erase from database (Admin only)
+DELETE /api/entries/:id/purge"></div>
+
+        <!-- Bulk JSON & CSV Export / Import -->
+        <h3 class="font-semibold text-white mt-6 mb-2">4. Bulk JSON & CSV Export / Import with Dry-Run</h3>
+        <p class="text-sm text-zinc-400 mb-3">Export collections to JSON or RFC 4180 CSV, or import data with pre-flight dry-run validation:</p>
+        <div class="code-block" data-code="# Export collection
+GET /api/entries/export?contentTypeId=1&format=csv
+
+# Dry-run validation before import
+POST /api/entries/import?contentTypeId=1
 {
-  "title": "Heritage Silk Saree",
-  "price": 4999,
-  "sku": "SAREE-01",
-  "stockQuantity": 20,
-  "variants": [
-    { "name": "Royal Crimson (M)", "sku": "SAREE-RED-M", "priceDelta": 0, "stockQuantity": 10 },
-    { "name": "Emerald Green (L)", "sku": "SAREE-GRN-L", "priceDelta": 500, "stockQuantity": 10 }
-  ]
-}</code></pre>
+  &quot;dryRun&quot;: true,
+  &quot;updateDuplicates&quot;: true,
+  &quot;entries&quot;: [{ &quot;slug&quot;: &quot;demo&quot;, &quot;data&quot;: { &quot;title&quot;: &quot;Demo&quot; } }]
+}"></div>
+
+        <!-- Signed Preview URLs -->
+        <h3 class="font-semibold text-white mt-6 mb-2">5. Signed Preview URLs</h3>
+        <p class="text-sm text-zinc-400 mb-3">Generate secure 1-hour signed tokens to preview unpublished or draft content:</p>
+        <div class="code-block" data-code="# Generate signed preview token
+POST /api/entries/:id/preview-url
+
+# Response: { &quot;previewUrl&quot;: &quot;https://site.com/preview?token=jwt_signed_token&quot; }"></div>
       </section>
 
-      <!-- Section 7: Customers -->
-      <section id="customers">
-        <h2>👤 7. Customer Analytics & Lifetime Value</h2>
-        <p>Query aggregated customer statistics across all historical orders:</p>
-        <pre><code>GET /api/commerce/customers
-// Returns:
+      <!-- Media & Image Crop -->
+      <section id="media" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Media Library & In-Browser Cropper</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">Centralized media management with built-in asset manipulation and WebP optimization.</p>
+        <div class="grid sm:grid-cols-2 gap-4 mb-6">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">In-Browser Image Cropper</p>
+            <p class="text-xs text-zinc-400 leading-relaxed">Crop, rotate, and lock aspect ratios (1:1, 16:9, 4:3, 3:2, 2:3, 9:16) directly in the CMS before saving.</p>
+          </div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <p class="font-medium text-white mb-1 text-sm">Automated WebP Conversion</p>
+            <p class="text-xs text-zinc-400 leading-relaxed">Uploaded JPEG/PNG files are automatically converted to compressed WebP format and resized to maximum 2400px.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- API Keys -->
+      <section id="api-keys" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">API Keys & Scoped Access</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">Generate secret keys with scoped permissions, rate limits, and expiration dates. Pass via <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-API-Key</code>.</p>
+        <div class="code-block" data-code="curl https://your-domain.com/api/blog \
+  -H 'X-API-Key: np_live_secret_key'"></div>
+      </section>
+
+      <!-- Forms -->
+      <section id="forms" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Forms & Spam Shield</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Visual form builder with built-in spam protection and automated actions.</p>
+        <div class="code-block" data-code="// Public submission endpoint (no API key required)
+POST /api/submit/contact-us
 {
-  "data": [
-    {
-      "email": "customer@example.com",
-      "name": "Aarav Mehta",
-      "totalOrders": 4,
-      "totalSpent": 19996,
-      "lastOrderDate": "2026-08-31T10:00:00.000Z",
-      "city": "Mumbai",
-      "country": "India"
+  &quot;data&quot;: {
+    &quot;name&quot;: &quot;Alex Smith&quot;,
+    &quot;email&quot;: &quot;alex@example.com&quot;,
+    &quot;message&quot;: &quot;I would like a demo.&quot;
+  }
+}"></div>
+      </section>
+
+      <!-- Brand -->
+      <section id="brand" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Brand & Custom CSS</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Under <code class="text-pink-400 bg-zinc-800 px-1 rounded">Settings → Brand</code>, customize the logo, browser favicon, platform title, primary theme accents, and inject custom CSS rules.</p>
+      </section>
+
+      <!-- Team, RBAC & 2FA -->
+      <section id="team" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Team, RBAC & Two-Factor Auth (2FA)</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Manage multi-user access with strict server-side role enforcement:</p>
+        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
+          <table class="w-full text-sm">
+            <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-xs font-semibold text-zinc-300"><th class="px-4 py-2.5">Role</th><th class="px-4 py-2.5">Permissions</th></tr></thead>
+            <tbody class="divide-y divide-zinc-800 text-xs text-zinc-400">
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">superadmin</td><td class="px-4 py-2.5">Full system control, database migration, API keys, brand settings.</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">admin</td><td class="px-4 py-2.5">Manage users, permissions, content types, entries, media, webhooks.</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">editor</td><td class="px-4 py-2.5">Create, edit, stage, and publish all entries and media assets.</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">author</td><td class="px-4 py-2.5">Create and edit own entries; submit for review.</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">contributor</td><td class="px-4 py-2.5">Create draft entries only (cannot publish or delete).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-xs text-zinc-300 space-y-1.5">
+          <p class="font-semibold text-white">Two-Factor Authentication (2FA / TOTP)</p>
+          <p>Every team member can activate TOTP-based 2FA (Google Authenticator, Authy) from their user profile with backup recovery codes.</p>
+        </div>
+      </section>
+
+      <!-- Field Permissions -->
+      <section id="permissions" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Field-Level Permissions</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          Under <code class="text-pink-400 bg-zinc-800 px-1 rounded">Users → Permissions → Field Permissions</code>, lock down individual fields per role:
+        </p>
+        <div class="grid sm:grid-cols-2 gap-3 text-xs text-zinc-300">
+          <div class="p-3 rounded-xl border border-zinc-800 bg-zinc-900"><strong class="text-white block mb-1">Read Access</strong>Hide sensitive fields (internal margins, SEO overrides, admin notes) from specific roles.</div>
+          <div class="p-3 rounded-xl border border-zinc-800 bg-zinc-900"><strong class="text-white block mb-1">Write Access</strong>Prevent non-admins from modifying protected fields (e.g. author verification badges).</div>
+        </div>
+      </section>
+
+      <!-- Audit Log -->
+      <section id="audit-log" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Audit Logging</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          All administrative actions (entry modifications, schema updates, logins, role changes) are recorded immutably with timestamp, actor email, IP address, and before/after state diffs.
+        </p>
+        <div class="code-block" data-code="GET /api/audit-logs?page=1&limit=50&action=entry.update"></div>
+      </section>
+
+      <!-- Webhooks -->
+      <section id="webhooks" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Webhooks & Dead-Letter Queue (DLQ)</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">
+          Webhooks automatically POST JSON events to external services whenever content or media changes. Signed with HMAC-SHA256 (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-NodePress-Signature</code>).
+        </p>
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-xs text-zinc-300 space-y-2 mb-6">
+          <p>• <strong>Automatic Retries:</strong> 3 attempts with exponential backoff (Immediate, +5m, +30m).</p>
+          <p>• <strong>Dead-Letter Queue (DLQ):</strong> Failed deliveries are archived in the DLQ with full payload & error headers.</p>
+          <p>• <strong>1-Click Re-Delivery:</strong> Re-dispatch any failed delivery directly from the admin UI or via <code class="text-pink-400 font-mono">POST /api/webhooks/deliveries/:id/retry</code>.</p>
+        </div>
+      </section>
+
+      <!-- Top 5 Webhook Recipes -->
+      <section id="webhook-recipes" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Top 5 Real-World Webhook Recipes</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-6">Step-by-step production recipes for connecting NodePress to external platforms:</p>
+
+        <div class="space-y-4">
+          <!-- Recipe 1 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">1. Next.js On-Demand Cache Invalidation (ISR)</h3>
+              <span class="text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">Next.js App Router</span>
+            </div>
+            <p class="text-xs text-zinc-400">Instantly revalidate cached pages when content is created or edited, without rebuilding the whole site.</p>
+            <div class="code-block" data-code="// app/api/revalidate/route.ts (Next.js)
+import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+import crypto from 'crypto';
+
+export async function POST(req: NextRequest) {
+  const bodyText = await req.text();
+  const signature = req.headers.get('x-nodepress-signature');
+  const secret = process.env.NODEPRESS_WEBHOOK_SECRET!;
+
+  // 1. Verify HMAC-SHA256 signature
+  const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(bodyText).digest('hex');
+  if (signature !== expected) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { event, data } = JSON.parse(bodyText);
+
+  // 2. Revalidate affected paths
+  if (data?.slug && data?.contentType) {
+    revalidatePath(`/${data.contentType}/${data.slug}`);
+    revalidatePath('/'); // refresh homepage
+  }
+
+  return NextResponse.json({ revalidated: true, event, now: Date.now() });
+}"></div>
+          </div>
+
+          <!-- Recipe 2 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">2. Vercel & Netlify Production Deploy Hooks</h3>
+              <span class="text-[10px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full">CI / CD</span>
+            </div>
+            <p class="text-xs text-zinc-400">Trigger static site generation builds automatically when articles are published.</p>
+            <p class="text-xs text-zinc-400 pl-2 border-l-2 border-zinc-700">In Vercel / Netlify Settings → <em>Deploy Hooks</em> → copy the hook URL and paste into NodePress Webhooks for <code class="text-pink-400">entry.created</code> / <code class="text-pink-400">entry.updated</code>.</p>
+          </div>
+
+          <!-- Recipe 3 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">3. Editorial Team Alerts (Slack & Discord)</h3>
+              <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">Team Channels</span>
+            </div>
+            <p class="text-xs text-zinc-400">Send real-time alerts when content is submitted for review or when forms receive new leads.</p>
+            <p class="text-xs text-zinc-400 pl-2 border-l-2 border-zinc-700">Paste your Slack Incoming Webhook URL into NodePress. For Discord, append <code class="text-pink-400">/slack</code> to your Discord webhook URL to accept standard Slack payload format!</p>
+          </div>
+
+          <!-- Recipe 4 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">4. Algolia / Meilisearch Search Index Sync</h3>
+              <span class="text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full">Search Engines</span>
+            </div>
+            <div class="code-block" data-code="// Handler for search synchronization
+export async function syncSearch(payload) {
+  const { event, data } = payload;
+  if (event === 'entry.created' || event === 'entry.updated') {
+    if (data.status === 'published') {
+      await searchIndex.saveObject({ objectID: String(data.id), ...data });
+    } else {
+      await searchIndex.deleteObject(String(data.id));
     }
-  ]
-}</code></pre>
-      </section>
+  } else if (event === 'entry.deleted' || event === 'entry.purged') {
+    await searchIndex.deleteObject(String(data.id));
+  }
+}"></div>
+          </div>
 
-      <!-- Section 8: Coupons -->
-      <section id="coupons">
-        <h2>🏷️ 8. Coupons & Promotions</h2>
-        <p>Support for <code>PERCENTAGE</code> (50% off), <code>FIXED</code> (₹500 off), and <code>FREE_SHIPPING</code>.</p>
-        <pre><code>POST /api/commerce/coupons/validate
-{
-  "code": "FESTIVE50",
-  "subtotal": 5000
-}
-// Returns: { "discountAmount": 2500, "finalTotal": 2500 }</code></pre>
-      </section>
-
-      <!-- Section 9: Shipping -->
-      <section id="shipping">
-        <h2>🚚 9. Shipping & Courier Fulfillment</h2>
-        <p>Calculate flat rates or free delivery above threshold, and fulfill orders with tracking numbers:</p>
-        <div class="card">
-          <p><strong>Rate Formula:</strong> <code>Final Total = Subtotal - Discount + Shipping Fee</code></p>
-          <p>If cart subtotal &ge; ₹1,500, shipping fee is <code>₹0</code> (Free Delivery).</p>
+          <!-- Recipe 5 -->
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">5. CRM & Automation (HubSpot, Salesforce, Zapier, Make)</h3>
+              <span class="text-[10px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full">Integrations</span>
+            </div>
+            <p class="text-xs text-zinc-400">Forward contact form submissions and leads directly to your CRM via Zapier or Make Catch Hook URLs.</p>
+          </div>
         </div>
-        <p>Mark order as fulfilled with tracking AWB:</p>
-        <pre><code>PATCH /api/commerce/orders/:id/fulfill
-{
-  "carrier": "Shiprocket",
-  "trackingNumber": "SR100982348"
-}</code></pre>
       </section>
 
-      <!-- Section 10: Invoices -->
-      <section id="invoices">
-        <h2>🧾 10. Automated Tax Invoices</h2>
-        <p>Retrieve itemized, printable HTML/PDF tax invoices with breakdown:</p>
-        <pre><code>GET /api/commerce/orders/:id/invoice</code></pre>
+      <!-- Plugins -->
+      <section id="plugins" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"/><path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Plugin Architecture & UI Manager</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          NodePress includes an enterprise-grade extension engine with an internal lifecycle hook bus (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">PluginHookBus</code>) and a visual <strong class="text-white">Admin Management UI</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/plugins</code>). Admins can enable/disable plugins live with 0ms downtime and configure custom settings via a slide-out settings drawer.
+        </p>
+
+        <!-- Crash Proof & Defense in Depth Security Banner -->
+        <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 mb-6 text-xs text-zinc-300">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-base">🛡️</span>
+            <strong class="text-emerald-400 text-sm">Crash-Proof Sandboxed Security Model</strong>
+          </div>
+          <p class="leading-relaxed mb-3">
+            In legacy CMS engines (like WordPress), a single unhandled error or slow database query in a third-party plugin can crash the entire web server or cause a White Screen of Death (WSOD). <strong class="text-white">NodePress is architected to be 100% crash-proof:</strong>
+          </p>
+          <ul class="space-y-1.5 list-disc list-inside text-zinc-300">
+            <li><strong class="text-white">Layer 1 Capability-Based Permissions:</strong> Plugins must declare explicit permissions (e.g. <code class="text-emerald-400 font-mono">['entries:read', 'entries:write']</code>). If an unauthorized action is attempted, execution is blocked and logged.</li>
+            <li><strong class="text-white">Layer 2 Isolated Error Boundaries:</strong> Every hook and filter is wrapped in isolated error boundaries. If a plugin throws an uncaught exception, <strong class="text-white">NodePress catches the error, logs the trace, and continues serving requests smoothly without crashing</strong>.</li>
+            <li><strong class="text-white">Layer 4 Hard 5-Second Timeouts:</strong> All asynchronous plugin hooks are wrapped with a 5000ms timeout guard (<code class="text-pink-400 font-mono">Promise.race</code>). Slow or hanging external HTTP calls will never lock up CMS transactions.</li>
+            <li><strong class="text-white">0-Downtime Dynamic Toggling:</strong> Any misbehaving plugin can be instantly deactivated live from the <code class="text-pink-400 font-mono">/plugins</code> UI with 1 click.</li>
+          </ul>
+        </div>
+
+        <!-- Built-in Plugins -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
+            <span class="text-xs font-semibold text-blue-400 block mb-1">📄 Word Count & Reading Time</span>
+            <p class="text-xs text-zinc-400">Calculates total words and reading minutes on <code class="text-pink-400 font-mono">entry.beforeCreate</code> and <code class="text-pink-400 font-mono">entry.beforeUpdate</code> with configurable WPM.</p>
+          </div>
+          <div class="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/60">
+            <span class="text-xs font-semibold text-amber-400 block mb-1">🔍 SEO Score & Meta Optimizer</span>
+            <p class="text-xs text-zinc-400">Analyzes title & description lengths, generates SEO readiness scores (0-100), and provides actionable SERP snippet recommendations.</p>
+          </div>
+        </div>
+
+        <!-- Step by Step Tutorial -->
+        <h3 class="text-base font-bold text-white mb-3">🛠️ Step-by-Step: How to Build & Use a Plugin</h3>
+
+        <h4 class="font-semibold text-white mb-2 text-xs text-zinc-200">Step 1: Create Plugin Manifest (<code class="text-pink-400 font-mono">backend/src/plugins/my-plugin/manifest.ts</code>)</h4>
+        <div class="code-block" data-code="// backend/src/plugins/my-plugin/manifest.ts
+import { PluginManifest } from '../../plugin/plugin-sdk';
+
+export const MyPluginManifest: PluginManifest = {
+  id: 'my-plugin',
+  name: 'My Custom Plugin',
+  version: '1.0.0',
+  description: 'Custom lifecycle logic, data calculation, and webhook dispatch.',
+  author: 'Your Organization',
+  category: 'content', // 'content' | 'seo' | 'utilities' | 'integrations' | 'security'
+  permissions: ['entries:read', 'entries:write'],
+  configSchema: [
+    {
+      name: 'webhookUrl',
+      label: 'Notification Webhook URL',
+      type: 'text',
+      required: false,
+      placeholder: 'https://api.example.com/webhook',
+    },
+    {
+      name: 'enableAutoTagging',
+      label: 'Enable Auto-Tagging',
+      type: 'boolean',
+      defaultValue: true,
+    },
+  ],
+  defaultConfig: {
+    webhookUrl: '',
+    enableAutoTagging: true,
+  },
+};"></div>
+
+        <h4 class="font-semibold text-white mt-5 mb-2 text-xs text-zinc-200">Step 2: Implement Plugin Service (<code class="text-pink-400 font-mono">backend/src/plugins/my-plugin/my-plugin.service.ts</code>)</h4>
+        <div class="code-block" data-code="// backend/src/plugins/my-plugin/my-plugin.service.ts
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { PluginHookBus, PluginEvents, EntryLifecyclePayload, PluginRegistry } from '../../plugin/plugin-sdk';
+
+@Injectable()
+export class MyPluginService implements OnModuleInit {
+  private readonly logger = new Logger(MyPluginService.name);
+
+  constructor(
+    private readonly hookBus: PluginHookBus,
+    private readonly registry: PluginRegistry,
+  ) {}
+
+  onModuleInit() {
+    // Intercept entry before saving to database (enforcing permissions and 5s timeout)
+    this.hookBus.on(
+      PluginEvents.ENTRY_BEFORE_CREATE,
+      async (payload: EntryLifecyclePayload) => {
+        // Read live config managed by Admin UI
+        const config = this.registry.getConfig('my-plugin');
+        const data = payload?.data || (payload as any)?.dto?.data;
+        if (!data) return;
+
+        // Add custom computation or tags
+        if (config.enableAutoTagging) {
+          data._autoProcessedAt = new Date().toISOString();
+        }
+
+        this.logger.log(`Processed entry in collection: ${payload.contentType}`);
+      },
+      10,            // Execution Priority (lower runs first)
+      'my-plugin',   // Plugin ID
+      'entries:write' // Required Permission Scope
+    );
+  }
+}"></div>
+
+        <h4 class="font-semibold text-white mt-5 mb-2 text-xs text-zinc-200">Step 3: Create Module & Index (<code class="text-pink-400 font-mono">backend/src/plugins/my-plugin/index.ts</code>)</h4>
+        <div class="code-block" data-code="// backend/src/plugins/my-plugin/my-plugin.module.ts
+import { Module } from '@nestjs/common';
+import { MyPluginService } from './my-plugin.service';
+
+@Module({
+  providers: [MyPluginService],
+  exports: [MyPluginService],
+})
+export class MyPluginModule {}
+
+// backend/src/plugins/my-plugin/index.ts
+export * from './manifest';
+export * from './my-plugin.service';
+export * from './my-plugin.module';"></div>
+
+        <h4 class="font-semibold text-white mt-5 mb-2 text-xs text-zinc-200">Step 4: Register Plugin in Config (<code class="text-pink-400 font-mono">backend/src/plugin/plugins.config.ts</code>)</h4>
+        <div class="code-block" data-code="// backend/src/plugin/plugins.config.ts
+import { MyPluginManifest, MyPluginModule } from '../plugins/my-plugin';
+
+export const PLUGINS_CONFIG: PluginConfigEntry[] = [
+  // ... existing plugins
+  {
+    manifest: MyPluginManifest,
+    module: MyPluginModule,
+    enabled: true,
+  },
+];"></div>
+
+        <h4 class="font-semibold text-white mt-5 mb-2 text-xs text-zinc-200">Step 5: Control Live via Admin UI (<code class="text-pink-400 font-mono">/plugins</code>)</h4>
+        <p class="text-xs text-zinc-400 mb-4">
+          Visit <strong class="text-white">Developer &rarr; Plugins</strong> in the admin panel. Your plugin will appear automatically with its icon, category badge, declared permission chips, live toggle switch, and a <strong class="text-white">Configure</strong> button opening the dynamic settings drawer.
+        </p>
+
+        <h3 class="font-semibold text-white mt-6 mb-2 text-sm">REST API Endpoints</h3>
+        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
+          <table class="w-full text-xs">
+            <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-zinc-300"><th class="px-4 py-2">Endpoint</th><th class="px-4 py-2">Method</th><th class="px-4 py-2">Description</th></tr></thead>
+            <tbody class="divide-y divide-zinc-800 text-zinc-400 font-mono">
+              <tr><td class="px-4 py-2 text-pink-400">/api/plugins</td><td class="px-4 py-2 text-blue-400">GET</td><td class="px-4 py-2 font-sans text-zinc-300">List all plugins, active status, permissions, and configs</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/plugins/:id/toggle</td><td class="px-4 py-2 text-amber-400">PATCH</td><td class="px-4 py-2 font-sans text-zinc-300">Toggle enabled/disabled state live with 0ms downtime (Admin)</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/plugins/:id/config</td><td class="px-4 py-2 text-purple-400">PUT</td><td class="px-4 py-2 font-sans text-zinc-300">Update live runtime settings for a plugin (Admin)</td></tr>
+              <tr><td class="px-4 py-2 text-pink-400">/api/plugins/hooks</td><td class="px-4 py-2 text-blue-400">GET</td><td class="px-4 py-2 font-sans text-zinc-300">Get summary of registered lifecycle hooks and data filters</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      <!-- Section 11: REST API -->
-      <section id="api-reference">
-        <h2>📡 11. REST API Reference</h2>
-        <table>
-          <thead>
-            <tr><th>Method</th><th>Endpoint</th><th>Access</th><th>Description</th></tr>
-          </thead>
-          <tbody>
-            <tr><td class="method-get">GET</td><td>/api/commerce/products</td><td>Public</td><td>List all catalog products & variants</td></tr>
-            <tr><td class="method-post">POST</td><td>/api/commerce/coupons/validate</td><td>Public</td><td>Validate discount coupon on cart</td></tr>
-            <tr><td class="method-post">POST</td><td>/api/commerce/shipping/calculate</td><td>Public</td><td>Compute shipping fee for cart subtotal</td></tr>
-            <tr><td class="method-post">POST</td><td>/api/commerce/checkout/create-session</td><td>Public</td><td>Dispatch Razorpay / Stripe session</td></tr>
-            <tr><td class="method-get">GET</td><td>/api/commerce/dashboard</td><td>Admin</td><td>Get store KPI statistics and overview</td></tr>
-            <tr><td class="method-get">GET</td><td>/api/commerce/orders</td><td>Admin</td><td>List all orders with pagination & filters</td></tr>
-            <tr><td class="method-patch">PATCH</td><td>/api/commerce/orders/:id/fulfill</td><td>Admin</td><td>Fulfill order with courier tracking AWB</td></tr>
-            <tr><td class="method-get">GET</td><td>/api/commerce/customers</td><td>Admin</td><td>Get customer directory with lifetime spend</td></tr>
-            <tr><td class="method-get">GET</td><td>/api/commerce/orders/:id/invoice</td><td>Admin</td><td>Generate printable HTML tax invoice</td></tr>
-          </tbody>
-        </table>
+      <!-- GraphQL -->
+      <section id="graphql" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">GraphQL API & Playground</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">
+          Full GraphQL endpoint available at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/graphql</code> with Apollo Sandbox playground.
+        </p>
+        <div class="code-block" data-code="query GetPublishedArticles {
+  entries(contentTypeId: 1, status: &quot;published&quot;, limit: 10) {
+    total
+    data {
+      id
+      slug
+      data
+      createdAt
+    }
+  }
+}"></div>
       </section>
+
+      <!-- Real-time -->
+      <section id="realtime" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Real-time WebSockets (Socket.io)</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Connect via Socket.io at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/realtime</code> to receive live entry and media update broadcasts:</p>
+        <div class="code-block" data-code="import { io } from 'socket.io-client';
+
+const socket = io('https://your-api.com', {
+  path: '/api/realtime',
+  auth: { apiKey: 'np_your_api_key' },
+});
+
+socket.on('entry:updated', (event) => {
+  console.log('Live entry update received:', event);
+});"></div>
+      </section>
+
+      <!-- SEO -->
+      <section id="seo" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">SEO & Sitemap XML</h2>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Dynamic Sitemap</p><p class="text-xs text-zinc-400">Generated automatically at <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/sitemap.xml</code> with canonical URLs, last modified dates, and noIndex filters.</p></div>
+          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p class="font-medium text-white mb-1 text-sm">Robots & Meta</p><p class="text-xs text-zinc-400">Configurable robots directives served at <code class="text-pink-400 bg-zinc-800 px-1 rounded">GET /api/robots.txt</code>.</p></div>
+        </div>
+      </section>
+
+      <!-- Self-Hosting -->
+      <section id="self-hosting" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Self-Hosting & Production</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Deploy with Docker or any Node.js host:</p>
+        <div class="code-block" data-code="# Production launch with Docker Compose
+docker-compose -f docker-compose.prod.yml up -d"></div>
+      </section>
+
+      <!-- API Reference -->
+      <section id="api-reference" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Complete REST API Reference</h2>
+        </div>
+        
+        <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Entries & Workflows</h3>
+        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/entries</code><span class="text-zinc-500">List entries with filters (?contentTypeId, ?status, ?search, ?deleted)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries</code><span class="text-zinc-500">Create a new entry</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/entries/:id</code><span class="text-zinc-500">Get a single entry by ID</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-purple-500/10 text-purple-400 border border-purple-500/30">PUT</span><code class="text-white font-mono flex-1">/api/entries/:id</code><span class="text-zinc-500">Update an entry (creates version snapshot)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/:id/promote</code><span class="text-zinc-500">Promote stage (draft → staging → published)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/:id/preview-url</code><span class="text-zinc-500">Generate 1-hour signed preview token</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/entries/:id/versions</code><span class="text-zinc-500">List version revision history</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/:id/versions/:vid/restore</code><span class="text-zinc-500">Restore to historical version snapshot</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/entries/export</code><span class="text-zinc-500">Export collection as JSON array or RFC 4180 CSV</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/import</code><span class="text-zinc-500">Import entries with pre-flight dryRun validation</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-red-500/10 text-red-400 border border-red-500/30">DELETE</span><code class="text-white font-mono flex-1">/api/entries/:id</code><span class="text-zinc-500">Soft delete to Recycle Bin</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/entries/:id/restore</code><span class="text-zinc-500">Restore from Recycle Bin</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-red-500/10 text-red-400 border border-red-500/30">DELETE</span><code class="text-white font-mono flex-1">/api/entries/:id/purge</code><span class="text-zinc-500">Permanently purge entry from database</span></div>
+        </div>
+
+        <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Webhooks & Deliveries</h3>
+        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/webhooks</code><span class="text-zinc-500">List configured webhooks</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/webhooks</code><span class="text-zinc-500">Create a new webhook</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/webhooks/deliveries</code><span class="text-zinc-500">List delivery log & Dead-Letter Queue (DLQ)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/webhooks/deliveries/:id/retry</code><span class="text-zinc-500">1-Click re-delivery of a webhook payload</span></div>
+        </div>
+      </section>
+
+      <!-- Frontend Examples -->
+      <section id="code-examples" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Frontend Consumption Examples</h2>
+        </div>
+
+        <h3 class="font-semibold text-white mb-2 text-sm">Next.js App Router (React Server Component)</h3>
+        <div class="code-block" data-code="// app/blog/page.tsx
+export default async function BlogPage() {
+  const res = await fetch('https://your-api.com/api/blog-posts', {
+    next: { tags: ['blog-posts'] }, // auto-revalidated by webhook!
+  });
+  const { data: posts } = await res.json();
+
+  return (
+    <div className=&quot;grid gap-4&quot;>
+      {posts.map((post) => (
+        <article key={post.id}>
+          <h2>{post.data.title}</h2>
+          <div dangerouslySetInnerHTML={{ __html: post.data.content }} />
+        </article>
+      ))}
+    </div>
+  );
+}"></div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="border-t border-zinc-800 pt-8 pb-16 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-500">
+        <span>Copyright &copy; 2026-present BuildWithKode &mdash; MIT License</span>
+        <div class="flex gap-6 text-xs">
+          <a href="https://github.com/buildwithkode/nodepress" target="_blank" class="hover:text-white transition-colors">GitHub</a>
+          <a href="https://nodepress.buildwithkode.com" target="_blank" class="hover:text-white transition-colors">Official Site</a>
+        </div>
+      </footer>
+
     </main>
   </div>
 
-  <footer>
-    EcommPress © 2026 BuildWithKode. Commercial software package.
-  </footer>
+  <script>
+    // Code blocks with copy button
+    document.querySelectorAll('.code-block').forEach(el => {
+      const code = el.dataset.code || '';
+      const lang = el.dataset.lang || '';
+      el.innerHTML = `
+        <div class="relative group my-3 rounded-xl overflow-hidden border border-zinc-800">
+          <div class="flex items-center justify-between bg-zinc-900 px-4 py-2 border-b border-zinc-800">
+            <span class="flex gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-zinc-700"></span>
+              <span class="w-3 h-3 rounded-full bg-zinc-700"></span>
+              <span class="w-3 h-3 rounded-full bg-zinc-700"></span>
+            </span>
+            <button class="copy-btn flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors">
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+          </div>
+          <pre class="bg-zinc-950 p-4 text-xs font-mono overflow-x-auto leading-6"><code class="${lang ? 'language-' + lang : ''}">${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code></pre>
+        </div>`;
+      const codeEl = el.querySelector('pre code');
+      if (window.hljs && codeEl) {
+        try { hljs.highlightElement(codeEl); } catch (_) {}
+      }
+      el.querySelector('.copy-btn').addEventListener('click', function() {
+        navigator.clipboard.writeText(code);
+        this.innerHTML = '<svg class="h-3.5 w-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="text-green-400">Copied!</span>';
+        setTimeout(() => { this.innerHTML = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy'; }, 2000);
+      });
+    });
 
+    if (window.hljs) {
+      document.querySelectorAll('pre code:not(.hljs)').forEach(c => {
+        try { hljs.highlightElement(c); } catch (_) {}
+      });
+    }
+
+    // Active TOC link via IntersectionObserver
+    const sections = document.querySelectorAll('section[id]');
+    const tocLinks = document.querySelectorAll('.toc-link');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          tocLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`.toc-link[href="#${e.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(s => observer.observe(s));
+  </script>
 </body>
 </html>
