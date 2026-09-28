@@ -4,12 +4,14 @@ import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 
 dotenv.config({ path: resolve(__dirname, '../.env') });
+dotenv.config({ path: resolve(process.cwd(), '.env') });
+dotenv.config({ path: resolve(process.cwd(), 'backend/.env') });
 
 const prisma = new PrismaClient();
 
 async function main() {
   const args = process.argv.slice(2);
-  const targetEmail = args[0]?.trim().toLowerCase() || 'admin@nodepress.com';
+  const targetEmail = args[0]?.trim().toLowerCase() || 'leo9karthik@gmail.com';
   const newPassword = args[1] || 'admin123';
 
   console.log(`\n🔐 NodePress Admin Password Tool`);

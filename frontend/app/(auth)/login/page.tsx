@@ -150,8 +150,9 @@ function LoginForm() {
 
           {/* Session expired banner */}
           {!requires2fa && reason === 'expired' && (
-            <div className="mb-5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-300 text-center">
-              Your session expired. Please sign in again.
+            <div className="mb-5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3.5 py-3 text-xs text-amber-300 text-center space-y-1">
+              <p className="font-medium">Your session has expired (7-day security limit).</p>
+              <p className="text-amber-400/80 text-[11px]">Please sign in with your email and password to continue.</p>
             </div>
           )}
 

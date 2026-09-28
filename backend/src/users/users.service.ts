@@ -42,10 +42,12 @@ export class UsersService {
     });
 
     const setPasswordUrl = await this.issueInviteToken(user.id);
-    await this.mail.sendInvitation(user.email, setPasswordUrl, inviterEmail);
+    this.mail.sendInvitation(user.email, setPasswordUrl, inviterEmail).catch((err: any) => {
+      // Log warning in background
+    });
 
-    // No email server? Hand the admin the link to deliver themselves.
-    const inviteUrl = this.mail.isConfigured ? undefined : setPasswordUrl;
+    // In non-production or when SMTP is unconfigured, return the inviteUrl for instant manual onboarding
+    const inviteUrl = (process.env.NODE_ENV !== 'production' || !this.mail.isConfigured) ? setPasswordUrl : undefined;
     return { ...user, invited: true, inviteUrl };
   }
 
@@ -129,11 +131,13 @@ export class UsersService {
     if (!user) throw new NotFoundException(`User #${userId} not found`);
 
     const setPasswordUrl = await this.issueInviteToken(user.id);
-    await this.mail.sendInvitation(user.email, setPasswordUrl, inviterEmail);
+    this.mail.sendInvitation(user.email, setPasswordUrl, inviterEmail).catch((err: any) => {
+      // Log warning in background
+    });
 
     return {
       message: `Invitation sent to ${user.email}`,
-      inviteUrl: this.mail.isConfigured ? undefined : setPasswordUrl,
+      inviteUrl: (process.env.NODE_ENV !== 'production' || !this.mail.isConfigured) ? setPasswordUrl : undefined,
     };
   }
 

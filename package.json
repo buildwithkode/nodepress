@@ -18,6 +18,7 @@
     "docker:down": "docker-compose down",
     "migrate": "cd backend && npx prisma migrate dev",
     "studio": "cd backend && npx prisma studio",
+    "reset-password": "cd backend && npx tsx scripts/reset-admin-password.ts",
     "install:all": "npm install"
   },
   "workspaces": [

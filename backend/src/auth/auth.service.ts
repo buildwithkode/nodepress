@@ -262,12 +262,16 @@ export class AuthService {
         data: { userId: user.id, token, expiresAt },
       });
 
-      const resetUrl = `${process.env.SITE_URL || process.env.APP_URL}/reset-password?token=${token}`;
-      await this.mail.sendPasswordReset(email, resetUrl);
+      const resetUrl = `${process.env.SITE_URL || process.env.APP_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
+      
+      // Send email in background so slow SMTP never blocks or hangs the user's HTTP request
+      this.mail.sendPasswordReset(user.email, resetUrl).catch((err: any) => {
+        this.logger.warn(`Failed to dispatch password reset email: ${err?.message}`);
+      });
 
-      // In development with no SMTP, expose the reset URL in the response so
-      // developers don't have to dig through terminal logs to find it.
-      if (process.env.NODE_ENV !== 'production' && !this.mail.isConfigured) {
+      // In development, expose the reset URL in the response so developers and local
+      // testers have an instant reset link right on screen without needing external SMTP.
+      if (process.env.NODE_ENV !== 'production') {
         return {
           message: 'If that email exists, a reset link has been sent.',
           devResetUrl: resetUrl,
