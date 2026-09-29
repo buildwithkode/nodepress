@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight, BookOpen } from 'lucide-react';
 
-const BACKEND = process.env.BACKEND_URL || 'http://localhost:3000';
+const BACKEND = process.env.BACKEND_URL || 'http://localhost:3001';
 
 async function getEntries(type: string) {
   try {

@@ -59,7 +59,7 @@ export function useEntryPresence(entryId: number | null | undefined, currentUser
   useEffect(() => {
     if (!entryId) return;
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
     const token = Cookies.get('np_token');
 
     const socket = io(apiBase, {

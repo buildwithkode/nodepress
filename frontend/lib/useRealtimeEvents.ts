@@ -67,7 +67,7 @@ export function useRealtimeEvents(
   handlersRef.current = handlers;
 
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
     const token = Cookies.get('np_token');
 
     const socket = io(apiBase, {

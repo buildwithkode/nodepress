@@ -422,6 +422,63 @@ Before going live, verify:
 
 ---
 
+## REST API & Frontend Integration Guide
+
+### Do you need a token for every API request?
+**No!** For consumer websites and visitor frontends (Next.js, React, Astro, Vue, Svelte, or mobile apps), **content reading and form submissions require ZERO authentication tokens**. You can query published content directly from client-side or server-side code without passing headers or secret keys.
+
+### The 3-Tier Security Model
+
+| Tier | Endpoints | Auth Header Needed? | Typical Frontend Use Case |
+|---|---|---|---|
+| **Tier 1: Public Read APIs** | `GET /api/:contentType`<br/>`GET /api/:contentType/:slug`<br/>`GET /api/brand`<br/>`POST /api/submit/:formSlug`<br/>`GET /api/sitemap.xml` | **None (Zero Token)** | Visitor frontends, blog articles, product catalogs, contact forms, SEO sitemaps |
+| **Tier 2: Headless Frontends & SSG** | All endpoints (scoped by key permissions) | `X-API-Key: np_live_...` | Jamstack static site builds (Astro, Next.js SSG), CI/CD content sync pipelines, external microservices |
+| **Tier 3: Admin & Content Mutations** | `POST/PUT/DELETE /api/entries`<br/>`POST /api/media/upload`<br/>`/api/users` | `Authorization: Bearer <JWT>` | Admin dashboards, content editing, schema builder, media asset manager |
+
+### Frontend Integration Examples
+
+#### 1. Public Consumption with Vanilla Fetch (Zero Token Required)
+```typescript
+// Fetch published articles — zero headers, zero token required!
+const res = await fetch('http://localhost:3001/api/posts?status=published');
+const { data: posts, meta } = await res.json();
+
+console.log(`Fetched ${posts.length} posts (Total: ${meta.total})`);
+```
+
+#### 2. Using the Pre-Built Frontend SDK (`@/lib/nodepress`)
+```typescript
+import { fetchEntries, fetchEntry } from '@/lib/nodepress';
+
+// List entries with automatic pagination & sorting
+const { data: articles } = await fetchEntries({
+  type: 'blog',
+  page: 1,
+  limit: 10,
+  sort: 'createdAt:desc',
+});
+
+// Fetch a single entry by slug (for dynamic [slug] routes)
+const post = await fetchEntry({
+  type: 'blog',
+  slug: 'hello-world',
+});
+```
+
+#### 3. Headless Jamstack SSG with API Key
+```typescript
+// SSG build or external microservice
+const res = await fetch('http://localhost:3001/api/entries?contentTypeId=articles', {
+  headers: {
+    'X-API-Key': process.env.NODEPRESS_API_KEY, // e.g. np_live_...
+  },
+  next: { revalidate: 3600 },
+});
+const entries = await res.json();
+```
+
+---
+
 ## GraphQL API
 
 The GraphQL endpoint is at `/graphql`. Apollo Sandbox (interactive playground) is available in all environments — click **GraphQL Playground** in the Developer sidebar.
@@ -432,7 +489,7 @@ All write mutations and protected queries require a JWT Bearer token. Three ways
 
 **Option A — Login API (curl):**
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"you@example.com","password":"yourpassword"}'
 # Response: { "access_token": "eyJhbGci..." }
@@ -528,10 +585,10 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
 ## Troubleshooting
 
 **"Cannot connect to the server" on login**
-The backend isn't running. In the `backend/` folder run `npm run start:dev`, then check `http://localhost:3000/api/health`.
+The backend isn't running. In the `backend/` folder run `npm run start:dev`, then check `http://localhost:3001/api/health` (or `http://localhost:3000/api/health` depending on your `PORT` config).
 
-**`AggregateError [ECONNREFUSED] ... port 3000`, or the login page just fails**
-PostgreSQL isn't running, so the backend exited during startup while the frontend kept going. The error names the *frontend's* port and never mentions the database, which makes it look like a broken login page. `npm run dev` checks for this before starting and tells you which command to run; set `SKIP_DB_CHECK=1` to bypass it.
+**`AggregateError [ECONNREFUSED] ... port 3001` (or `port 3000`), or the login page just fails**
+PostgreSQL isn't running, so the backend exited during startup while the frontend kept going. The error names the *frontend's* proxy port and never mentions the database, which makes it look like a broken login page. `npm run dev` checks for this before starting and tells you which command to run; set `SKIP_DB_CHECK=1` to bypass it.
 
 **PostgreSQL doesn't start automatically after a reboot (macOS Ventura or newer)**
 macOS **Background Task Management** blocks launch daemons independently of `launchctl`, so the daemon can be enabled, have a valid plist and `RunAtLoad`, and still never start at boot. `launchctl bootstrap` appears to fix it because a manual start isn't gated — but the next reboot leaves the database down again.
@@ -543,7 +600,7 @@ log show --last 1h --predicate 'eventMessage CONTAINS "postgresql"' | grep dispo
 `disposition=[enabled, disallowed, ...]` means Background Task Management is blocking it. `launchctl` cannot override this — fix it in **System Settings → General → Login Items & Extensions → Allow in the Background**, and enable the `postgres` entry (it points at `/Library/LaunchDaemons/postgresql-*.plist`). Then reboot and confirm with `lsof -nP -iTCP:5432 -sTCP:LISTEN`.
 
 **Login fails with correct credentials**
-You may have hit the rate limit (10 attempts/min in production). Restart the backend to clear it. If the problem persists, check `http://localhost:3000/api/auth/setup-status` — if `required: true`, setup wasn't completed.
+You may have hit the rate limit (10 attempts/min in production). Restart the backend to clear it. If the problem persists, check `http://localhost:3001/api/auth/setup-status` — if `required: true`, setup wasn't completed.
 
 **"Your session expired" after signing in**
 Normal behaviour after 30 days of inactivity (refresh token lifetime). Just sign in again — no data is lost.

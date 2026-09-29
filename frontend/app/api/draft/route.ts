@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Missing secret or slug parameter for draft mode', { status: 400 });
   }
 
-  const backendUrl = (process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const backendUrl = (process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001').replace(/\/$/, '');
 
   // Validate the preview token against NodePress backend
   try {

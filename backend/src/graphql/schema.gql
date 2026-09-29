@@ -186,7 +186,7 @@ type Query {
   webhook(id: Int!): WebhookModel
 
   """Delivery log for a webhook. Admin only."""
-  webhookDeliveries(limit: Int = 50, webhookId: Int!): [WebhookDeliveryModel!]!
+  webhookDeliveries(limit: Int = 50, status: String, webhookId: Int!): [WebhookDeliveryModel!]!
 
   """List all webhooks. Admin only."""
   webhooks: [WebhookModel!]!

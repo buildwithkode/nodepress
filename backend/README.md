@@ -54,12 +54,35 @@ npx prisma migrate dev
 npm run start:dev
 ```
 
-- REST API: `http://localhost:3000/api`
-- GraphQL: `http://localhost:3000/api/graphql`
-- WebSocket: `ws://localhost:3000/api/realtime`
-- Swagger docs: `http://localhost:3000/api/docs`
-- Health check: `http://localhost:3000/api/health`
-- Metrics: `http://localhost:3000/api/metrics`
+- REST API: `http://localhost:3001/api` (or configured `PORT`)
+- GraphQL: `http://localhost:3001/api/graphql`
+- WebSocket: `ws://localhost:3001/api/realtime`
+- Swagger docs: `http://localhost:3001/api/docs`
+- Health check: `http://localhost:3001/api/health`
+- Metrics: `http://localhost:3001/api/metrics`
+
+---
+
+## API Authentication Architecture
+
+### Do frontend APIs require a token?
+**No!** Consumer frontends querying published content or submitting public forms require **zero tokens or headers**.
+
+1. **Tier 1: Public Read APIs (Zero Token / No Auth)**
+   - `GET /api/:contentType` (e.g. `/api/posts`, `/api/products`)
+   - `GET /api/:contentType/:slug`
+   - `GET /api/brand`
+   - `POST /api/submit/:formSlug` (public forms protected by honeypot & spam shield)
+   - `GET /api/sitemap.xml`
+   - Anyone can call these directly from browser or server `fetch()` without auth headers.
+
+2. **Tier 2: Headless Frontends & SSG (`X-API-Key`)**
+   - For Jamstack SSG builds (Astro, Next.js build-time), CI/CD pipelines, or external microservices.
+   - Header: `X-API-Key: np_live_...`
+
+3. **Tier 3: Admin & Content Mutations (`Authorization: Bearer <JWT>`)**
+   - `POST/PUT/DELETE /api/entries`, `POST /api/media/upload`, `/api/users`.
+   - Admin frontend automatically rotates access tokens via `HttpOnly` refresh cookie.
 
 ---
 

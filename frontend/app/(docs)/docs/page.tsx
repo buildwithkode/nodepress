@@ -3111,16 +3111,103 @@ LOG_LEVEL=info   # trace | debug | info | warn | error | fatal`} />
             <h3 className="font-semibold mb-3">Base URL</h3>
             <CodeBlock code={`${baseUrl}/api`} />
 
-            <h3 className="font-semibold mb-3 mt-6">Authentication</h3>
-            <p className="text-muted-foreground text-sm mb-3">
-              GET requests are <strong className="text-foreground">public</strong> — no auth needed.
-              Write operations require either a JWT token (admin) or an API key with write access.
-            </p>
-            <CodeBlock code={`# JWT token (admin login)
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            <h3 className="font-semibold mb-3 mt-6">Authentication &amp; Token Integration Guide</h3>
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-foreground space-y-2 mb-6">
+              <p className="font-semibold text-emerald-400">💡 Do I need a token for every API when integrating with a frontend?</p>
+              <p className="text-muted-foreground text-xs leading-relaxed">
+                <strong>No!</strong> For public websites and visitor frontends (Next.js, React, Astro, Vue, Svelte, or mobile apps),
+                <strong className="text-foreground"> content reading and form submissions require ZERO authentication tokens</strong>.
+                Anyone can fetch published content directly from the browser or server without passing headers or secret keys.
+              </p>
+            </div>
 
-# API key (for external apps)
-X-API-Key: np_abc123...`} />
+            <div className="grid gap-3 mb-6">
+              <div className="rounded-xl border border-border bg-card p-4 text-xs space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Tier 1: Public Read APIs</span>
+                  <span className="text-muted-foreground font-mono">No Token Required (Zero Auth)</span>
+                </div>
+                <p className="text-muted-foreground">
+                  Used by consumer-facing frontends to render blog posts, product catalogs, pages, brand settings, sitemaps, and accept public form submissions.
+                </p>
+                <div className="font-mono text-foreground bg-zinc-950 p-2.5 rounded border border-zinc-800 space-y-1">
+                  <div>GET  /api/:contentType       <span className="text-muted-foreground">// e.g. /api/posts, /api/products</span></div>
+                  <div>GET  /api/:contentType/:slug  <span className="text-muted-foreground">// e.g. /api/posts/my-post</span></div>
+                  <div>GET  /api/brand              <span className="text-muted-foreground">// Public logo, name, colors</span></div>
+                  <div>POST /api/submit/:formSlug   <span className="text-muted-foreground">// Protected by honeypot &amp; spam shield</span></div>
+                  <div>GET  /api/sitemap.xml        <span className="text-muted-foreground">// Dynamic SEO sitemap</span></div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-4 text-xs space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded font-bold font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30">Tier 2: Headless Frontends &amp; Jamstack</span>
+                  <span className="text-muted-foreground font-mono">X-API-Key: np_live_...</span>
+                </div>
+                <p className="text-muted-foreground">
+                  For static site generation (Astro, Next.js build-time SSG), CI/CD content sync pipelines, or external microservices that need scoped access or draft preview without managing user credentials.
+                </p>
+                <div className="font-mono text-foreground bg-zinc-950 p-2.5 rounded border border-zinc-800 space-y-1">
+                  <div>Header: <span className="text-amber-400">X-API-Key: np_live_...</span></div>
+                  <div className="text-muted-foreground">Manage scoped keys in Admin Panel &rarr; Settings &rarr; API Keys</div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-4 text-xs space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">Tier 3: Admin &amp; Content Mutations</span>
+                  <span className="text-muted-foreground font-mono">Authorization: Bearer &lt;JWT&gt;</span>
+                </div>
+                <p className="text-muted-foreground">
+                  Required for creating, updating, deleting entries, uploading media files, managing schema, and inviting users. Authenticated via JWT obtained from <IC>POST /api/auth/login</IC>.
+                </p>
+                <div className="font-mono text-foreground bg-zinc-950 p-2.5 rounded border border-zinc-800 space-y-1">
+                  <div>Header: <span className="text-blue-400">Authorization: Bearer eyJhbGciOi...</span></div>
+                  <div className="text-muted-foreground">Admin panel rotates access tokens automatically via HttpOnly refresh cookie</div>
+                </div>
+              </div>
+            </div>
+
+            <h4 className="font-semibold text-sm mb-2 text-foreground">Frontend Code Examples</h4>
+            <p className="text-xs text-muted-foreground mb-1">
+              <strong>1. Public Vanilla Fetch (Zero Token):</strong> Works anywhere in Next.js Server Components, React, Vue, Svelte, or vanilla JS:
+            </p>
+            <CodeBlock code={`// Zero headers, zero authentication required!
+const res = await fetch('http://localhost:3001/api/posts?status=published');
+const { data: posts, meta } = await res.json();
+
+console.log(\`Fetched \${posts.length} published posts (Total: \${meta.total})\`);`} />
+
+            <p className="text-xs text-muted-foreground mt-4 mb-1">
+              <strong>2. Built-in Frontend SDK (<IC>@/lib/nodepress</IC>):</strong> Pre-configured typed client helpers:
+            </p>
+            <CodeBlock code={`import { fetchEntries, fetchEntry } from '@/lib/nodepress';
+
+// List entries with automatic pagination & sorting
+const { data: articles } = await fetchEntries({
+  type: 'blog',
+  page: 1,
+  limit: 10,
+  sort: 'createdAt:desc',
+});
+
+// Fetch single entry by slug (ideal for generateStaticParams or dynamic routes)
+const post = await fetchEntry({
+  type: 'blog',
+  slug: 'hello-world',
+});`} />
+
+            <p className="text-xs text-muted-foreground mt-4 mb-1">
+              <strong>3. External SSG Build with API Key:</strong>
+            </p>
+            <CodeBlock code={`// Server-side static generation build or microservice
+const res = await fetch('http://localhost:3001/api/entries?contentTypeId=articles', {
+  headers: {
+    'X-API-Key': process.env.NODEPRESS_API_KEY, // e.g. np_live_...
+  },
+  next: { revalidate: 3600 },
+});
+const entries = await res.json();`} />
 
             <h3 className="font-semibold mb-3 mt-6">Token lifecycle</h3>
             <p className="text-muted-foreground text-sm mb-3">

@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 
 // BACKEND_URL is used server-side (server components) and here as the proxy target.
-// In development this defaults to localhost:3000.
+// In development this defaults to localhost:3001 (NodePress NestJS backend).
 // In production set BACKEND_URL in your environment (e.g. https://api.yourdomain.com).
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
 const nextConfig = {
   async rewrites() {
