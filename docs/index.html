@@ -117,26 +117,256 @@
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Installation & Prerequisites</h2>
+          <h2 class="text-2xl font-bold text-white">Installation — Step by Step</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-6">NodePress runs locally on your machine or on any server with Node.js 18+ and PostgreSQL or SQLite.</p>
+        <p class="text-zinc-400 leading-relaxed mb-6">
+          Follow these steps in order. Each step takes only a few minutes. NodePress runs locally on your machine or on any server with Node.js 18+ and PostgreSQL (or Docker).
+        </p>
 
-        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-6">
-          <p class="text-sm font-medium text-blue-400 mb-1">Check your environment</p>
-          <div class="code-block" data-code="node -v    # v18.0.0 or higher required
-git --version  # required for cloning
-npm -v     # v9.0.0 or higher"></div>
+        <!-- Quick check -->
+        <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-8">
+          <p class="text-sm font-medium text-blue-400 mb-1">Already have some tools installed?</p>
+          <p class="text-xs text-zinc-400 mb-3">Run these commands in your terminal to check. If you see a valid version, you can skip that step.</p>
+          <div class="code-block" data-code="node -v        # v18 or higher? → skip Step 1
+git --version  # any version?   → skip Step 2
+psql --version # v14 or higher? → skip Step 3 (or use Docker)"></div>
         </div>
 
-        <div class="space-y-4">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-            <h3 class="text-sm font-semibold text-white mb-1">Clone & Install Dependencies</h3>
-            <div class="code-block" data-code="# 1. Clone repository
+        <!-- Step 1: Node.js -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">1</div>
+            <h3 class="font-semibold text-white">Install Node.js</h3>
+          </div>
+          <div class="ml-10 space-y-3">
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Already installed?</strong> Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> — if it shows <code class="text-pink-400 bg-zinc-800 px-1 rounded">v18</code> or higher, skip to Step 2.
+            </div>
+            <p class="text-sm text-zinc-400">Node.js is the engine that runs NodePress. Download and install version 18 or newer (LTS recommended).</p>
+            <a href="https://nodejs.org" target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Download Node.js from nodejs.org
+            </a>
+            <p class="text-xs text-zinc-500">After installing, verify: <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> should print something like <code class="text-pink-400 bg-zinc-800 px-1 rounded">v22.0.0</code></p>
+          </div>
+        </div>
+
+        <!-- Step 2: Git -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">2</div>
+            <h3 class="font-semibold text-white">Install Git</h3>
+          </div>
+          <div class="ml-10 space-y-3">
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Already installed?</strong> Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">git --version</code> — if it shows a version number, skip to Step 3.
+            </div>
+            <p class="text-sm text-zinc-400">Git is used to download the NodePress source code. You only need to install it — no prior git experience required.</p>
+            <a href="https://git-scm.com/downloads" target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Download Git from git-scm.com
+            </a>
+            <p class="text-xs text-zinc-500">On Windows: click Next through all the installer options — defaults are fine.</p>
+          </div>
+        </div>
+
+        <!-- Step 3: PostgreSQL -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">3</div>
+            <h3 class="font-semibold text-white">Install PostgreSQL (or Docker)</h3>
+          </div>
+          <div class="ml-10 space-y-3">
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Have Docker?</strong> Skip this step and Step 5 — Docker manages the database for you. Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose up -d</code> inside your project folder after Step 4.
+            </div>
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Already installed?</strong> Make sure you remember the password you set for the <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> user — you'll need it in Step 5. Then skip to Step 4.
+            </div>
+            <p class="text-sm text-zinc-400">PostgreSQL is the database where all your content, users, and schemas are stored.</p>
+            <a href="https://www.postgresql.org/download/" target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Download PostgreSQL from postgresql.org
+            </a>
+            <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm">
+              <p class="text-amber-400 font-medium mb-2">⚠ Important during installation:</p>
+              <ul class="text-zinc-400 text-xs space-y-1 list-disc list-inside">
+                <li>When asked to set a <strong class="text-zinc-200">password for the postgres user</strong>, write it down — you will need it in Step 5.</li>
+                <li>Leave the port as <strong class="text-zinc-200">5432</strong> (the default).</li>
+                <li>PostgreSQL runs automatically in the background after installation.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Scaffold or Clone -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">4</div>
+            <h3 class="font-semibold text-white">Create or Clone your NodePress project</h3>
+          </div>
+          <div class="ml-10 space-y-4">
+            <div>
+              <p class="text-sm font-medium text-white mb-2">Method A — One-line CLI (Recommended for new projects):</p>
+              <p class="text-xs text-zinc-400 mb-2">Open a terminal, navigate to your desired directory, and run:</p>
+              <div class="code-block" data-code="npx create-nodepress-app my-project"></div>
+              <p class="text-xs text-zinc-500 mt-2">
+                Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded">my-project</code> with your project name. This scaffolds NodePress, generates secure cryptographic secrets, and installs dependencies.
+              </p>
+              <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs text-zinc-400 mt-2 space-y-1">
+                <p>• <strong>Docker support:</strong> Add <code class="text-pink-400 bg-zinc-800 px-1 rounded">--docker</code> (<code class="text-pink-400 bg-zinc-800 px-1 rounded">npx create-nodepress-app my-project --docker</code>) to include <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose.yml</code>, Nginx, PgBouncer, and monitoring configs.</p>
+                <p>• <strong>Error tracking:</strong> Add <code class="text-pink-400 bg-zinc-800 px-1 rounded">--sentry</code> to include Sentry SDK integration.</p>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-sm font-medium text-white mb-2">Method B — Clone from GitHub (Direct source):</p>
+              <div class="code-block" data-code="# 1. Clone repository
 git clone https://github.com/buildwithkode/nodepress.git
 cd nodepress
 
-# 2. Install all root, backend, and frontend dependencies
+# 2. Configure environment files
+cp backend/.env.example backend/.env
+cp frontend/.env.local.example frontend/.env.local
+
+# 3. Install all dependencies (npm workspaces)
 npm install"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Database Connection -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">5</div>
+            <h3 class="font-semibold text-white">Connect NodePress to your database</h3>
+          </div>
+          <div class="ml-10 space-y-3">
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
+              <strong>Using Docker?</strong> Skip this step. Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose up -d</code> in your project root — Docker manages the database and credentials automatically.
+            </div>
+            <p class="text-sm text-zinc-400">Open <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">backend/.env</code> in your editor and configure your database connection string:</p>
+            <div class="code-block" data-code='DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/nodepress"'></div>
+            
+            <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
+              <p class="text-blue-400 font-medium mb-1">What is DATABASE_URL?</p>
+              <p class="text-zinc-400 text-xs">It's the URI NodePress uses to connect to PostgreSQL: <code class="text-pink-400 bg-zinc-800 px-1 rounded">postgres</code> is the username, the portion after <code class="text-pink-400 bg-zinc-800 px-1 rounded">:</code> is your password, <code class="text-pink-400 bg-zinc-800 px-1 rounded">localhost:5432</code> is host & port, and <code class="text-pink-400 bg-zinc-800 px-1 rounded">nodepress</code> is the database name.</p>
+            </div>
+
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs text-zinc-400">
+              <strong class="text-zinc-200">Didn't set a password?</strong> If you left the default postgres install without a password:<br/>
+              <code class="text-pink-400">DATABASE_URL="postgresql://postgres@localhost:5432/nodepress"</code>
+            </div>
+
+            <!-- Hosted / Supabase Callout -->
+            <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm">
+              <p class="text-emerald-400 font-medium mb-1">Using Supabase or Cloud PostgreSQL?</p>
+              <p class="text-zinc-400 text-xs mb-2">
+                In Supabase, open <strong>Connect</strong> and configure both strings in <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code>:
+              </p>
+              <div class="code-block" data-code='DATABASE_URL="postgresql://postgres.<ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres.<ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres"'></div>
+              <ul class="text-zinc-400 text-xs space-y-1 list-disc list-inside mt-2">
+                <li><strong>Transaction pooler (port 6543)</strong> powers runtime queries on <code class="text-pink-400 bg-zinc-800 px-1 rounded">DATABASE_URL</code>.</li>
+                <li><strong>Session pooler (port 5432)</strong> is assigned to <code class="text-pink-400 bg-zinc-800 px-1 rounded">DIRECT_URL</code> for migrations.</li>
+                <li>Keep <code class="text-pink-400 bg-zinc-800 px-1 rounded">?pgbouncer=true&connection_limit=1</code> on <code class="text-pink-400 bg-zinc-800 px-1 rounded">DATABASE_URL</code>.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6: Migrate -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">6</div>
+            <h3 class="font-semibold text-white">Create the database tables (Migrations)</h3>
+          </div>
+          <div class="ml-10 space-y-3">
+            <p class="text-sm text-zinc-400">Run this once from your project root. It applies all Prisma migrations and creates every table NodePress needs:</p>
+            <div class="code-block" data-code="npm run migrate"></div>
+            <p class="text-xs text-zinc-500">
+              Using Supabase, Neon, or Railway? Use <code class="text-pink-400 bg-zinc-800 px-1 rounded">migrate deploy</code>: <code class="text-pink-400 bg-zinc-800 px-1 rounded">cd backend && npx prisma migrate deploy</code>
+            </p>
+            <div class="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+              <strong>Getting an authentication error?</strong> The password in <code class="text-pink-400 bg-zinc-800 px-1 rounded">DATABASE_URL</code> doesn't match your PostgreSQL credentials. Double check <code class="text-pink-400 bg-zinc-800 px-1 rounded">backend/.env</code>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 7: Start Server -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">7</div>
+            <h3 class="font-semibold text-white">Start the development server</h3>
+          </div>
+          <div class="ml-10 space-y-3">
+            <p class="text-sm text-zinc-400">Run this from the project root — it concurrently starts both the NestJS API and the Next.js Admin Panel:</p>
+            <div class="code-block" data-code="npm run dev"></div>
+            <div class="grid sm:grid-cols-2 gap-4 mt-3">
+              <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <p class="font-medium text-white mb-1 text-sm flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Admin Panel
+                </p>
+                <p class="text-xs text-zinc-400 leading-relaxed mb-2">Visual CMS administration interface.</p>
+                <a href="http://localhost:5173" target="_blank" class="text-xs text-blue-400 underline font-mono">http://localhost:5173</a>
+              </div>
+              <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <p class="font-medium text-white mb-1 text-sm flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-400"></span> Backend API & Swagger
+                </p>
+                <p class="text-xs text-zinc-400 leading-relaxed mb-2">Interactive REST API docs & GraphQL playground.</p>
+                <a href="http://localhost:3000/api/docs" target="_blank" class="text-xs text-blue-400 underline font-mono">http://localhost:3000/api/docs</a>
+              </div>
+            </div>
+            <p class="text-xs text-zinc-500">Need to run them separately? Use <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run dev:backend</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded">npm run dev:frontend</code> in two terminal tabs.</p>
+          </div>
+        </div>
+
+        <!-- Step 8: Setup Admin Account -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">8</div>
+            <h3 class="font-semibold text-white">Create your admin account (First-time Setup)</h3>
+          </div>
+          <div class="ml-10 space-y-3">
+            <p class="text-sm text-zinc-400">
+              Open your browser and navigate to <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">http://localhost:5173</code>. If no users exist, you are automatically redirected to the setup wizard.
+            </p>
+            <p class="text-xs text-zinc-400">Fill in your site name, admin email, and a secure password. Once submitted, your root administrator account is created.</p>
+            <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-sm">
+              <p class="text-green-400 font-medium">🎉 Setup complete!</p>
+              <p class="text-zinc-400 text-xs mt-1">NodePress is now fully operational. The setup wizard permanently locks after the initial account is created. You can immediately create content types, invite team members, upload assets, and consume APIs.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Root scripts reference -->
+        <div class="mb-4">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            </div>
+            <h3 class="font-semibold text-white">Root Scripts Reference</h3>
+          </div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">The root <code class="text-pink-400 bg-zinc-800 px-1 rounded">package.json</code> contains unified scripts so you can manage both services effortlessly from the repository root:</p>
+            <div class="rounded-xl border border-zinc-800 overflow-hidden">
+              <table class="w-full text-xs">
+                <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2 font-medium text-zinc-400">Script</th><th class="text-left px-4 py-2 font-medium text-zinc-400">Description</th></tr></thead>
+                <tbody class="divide-y divide-zinc-800">
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run dev</td><td class="px-4 py-2 text-zinc-400">Start both backend API (:3000) and frontend admin (:5173) concurrently</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run dev:backend</td><td class="px-4 py-2 text-zinc-400">Start backend API server only (NestJS)</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run dev:frontend</td><td class="px-4 py-2 text-zinc-400">Start frontend admin server only (Next.js)</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run build</td><td class="px-4 py-2 text-zinc-400">Compile both backend and frontend for production deployment</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run migrate</td><td class="px-4 py-2 text-zinc-400">Run Prisma migrations (<code class="text-pink-400">prisma migrate dev</code>)</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run studio</td><td class="px-4 py-2 text-zinc-400">Open Prisma Studio visual database inspector</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run install:all</td><td class="px-4 py-2 text-zinc-400">Install all dependencies across backend and frontend workspaces</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:dev</td><td class="px-4 py-2 text-zinc-400">Start Docker local stack (<code class="text-pink-400">docker-compose up</code>)</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run docker:down</td><td class="px-4 py-2 text-zinc-400">Stop all running Docker containers</td></tr>
+                  <tr><td class="px-4 py-2 font-mono text-pink-400">npm run reset-admin</td><td class="px-4 py-2 text-zinc-400">Emergency CLI to reset admin password and bypass 2FA if locked out</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -147,21 +377,41 @@ npm install"></div>
           <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </div>
-          <h2 class="text-2xl font-bold text-white">Quick Start</h2>
+          <h2 class="text-2xl font-bold text-white">Quick Start — Your First Content API in 3 Steps</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-4">Start the development server with a single command:</p>
-        <div class="code-block" data-code="# Start NestJS API (port 3000) & Next.js Admin UI (port 5173)
-npm run dev"></div>
-        <div class="grid sm:grid-cols-2 gap-4 mt-6">
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-            <p class="font-medium text-white mb-1 text-sm">Admin Panel</p>
-            <p class="text-xs text-zinc-400 leading-relaxed mb-2">Open the visual control center in your browser.</p>
-            <a href="http://localhost:5173" target="_blank" class="text-xs text-blue-400 underline font-mono">http://localhost:5173</a>
+        <p class="text-zinc-400 leading-relaxed mb-6">Once your dev server is running, build your first dynamic endpoint in under 2 minutes:</p>
+
+        <div class="space-y-6">
+          <div class="flex gap-4">
+            <div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">1</div><div class="w-px flex-1 bg-zinc-800 mt-2"></div></div>
+            <div class="flex-1 pb-6">
+              <h3 class="font-semibold text-white mb-1">Create a Content Type</h3>
+              <p class="text-sm text-zinc-400">Go to <strong class="text-zinc-200">Content Types → New</strong>. Enter name <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">Blog Posts</code> (slug: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blog_posts</code>). Add fields: title (text), content (richtext), and cover_image (media).</p>
+            </div>
           </div>
-          <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-            <p class="font-medium text-white mb-1 text-sm">API Backend & Swagger</p>
-            <p class="text-xs text-zinc-400 leading-relaxed mb-2">Explore live REST documentation & GraphQL playground.</p>
-            <a href="http://localhost:3000/api/docs" target="_blank" class="text-xs text-blue-400 underline font-mono">http://localhost:3000/api/docs</a>
+
+          <div class="flex gap-4">
+            <div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">2</div><div class="w-px flex-1 bg-zinc-800 mt-2"></div></div>
+            <div class="flex-1 pb-6">
+              <h3 class="font-semibold text-white mb-1">Publish an Entry</h3>
+              <p class="text-sm text-zinc-400">Go to <strong class="text-zinc-200">Entries → Blog Posts → New Entry</strong>. Fill in the fields and click <strong class="text-zinc-200">Publish</strong>. NodePress auto-generates a clean URL slug from the title.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">3</div></div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-white mb-1">Consume via REST or GraphQL</h3>
+              <p class="text-sm text-zinc-400 mb-3">Your REST and GraphQL endpoints are live immediately without redeploying:</p>
+              <div class="code-block" data-code="# 1. List published blog posts
+curl http://localhost:3000/api/blog-posts
+
+# 2. Get single post by slug
+curl http://localhost:3000/api/blog-posts/my-first-post
+
+# 3. Explore interactively via Swagger UI
+open http://localhost:3000/api/docs"></div>
+            </div>
           </div>
         </div>
       </section>
