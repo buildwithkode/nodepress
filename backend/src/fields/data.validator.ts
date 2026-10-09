@@ -80,6 +80,9 @@ export class DataValidator {
         case 'image':
           this.validateImage(value, path, errors);
           break;
+        case 'link':
+          this.validateLink(value, path, errors);
+          break;
         case 'relation':
           this.validateRelation(value, path, errors);
           break;
@@ -219,6 +222,31 @@ export class DataValidator {
       return;
     }
     errors.push(`${path}: must be a URL string or { url, alt } object`);
+  }
+
+  private validateLink(value: unknown, path: string, errors: string[]): void {
+    // Shorthand: plain URL string
+    if (typeof value === 'string') {
+      if (!value.trim()) {
+        errors.push(`${path}: must be a non-empty URL string`);
+      }
+      return;
+    }
+    // Structured: { url, text?, newTab? } object
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const link = value as Record<string, unknown>;
+      if (typeof link.url !== 'string' || !link.url.trim()) {
+        errors.push(`${path}.url: must be a non-empty URL string`);
+      }
+      if (link.text !== undefined && typeof link.text !== 'string') {
+        errors.push(`${path}.text: must be a string`);
+      }
+      if (link.newTab !== undefined && typeof link.newTab !== 'boolean') {
+        errors.push(`${path}.newTab: must be a boolean`);
+      }
+      return;
+    }
+    errors.push(`${path}: must be a URL string or { url, text, newTab } object`);
   }
 
   private validateRelation(value: unknown, path: string, errors: string[]): void {

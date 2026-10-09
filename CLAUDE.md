@@ -205,6 +205,7 @@ Entries use a schema-driven form. Field types and their renderers:
 | `boolean` | `Switch` (uses `valuePropName="checked"`) |
 | `select` | `Select` with options from field config |
 | `image` | `MediaPickerModal` — upload (`POST /api/media/upload`) or pick from the media library; stores the selected URL |
+| `link` | structured link object (`{ url, text, newTab }`) with URL, label, new-tab toggle, and live preview button |
 | `relation` | picks a related entry; stores its `publicId` (UUID). `options: { relatedContentType, cardinality: 'one' \| 'many' }`. Resolve via `?populate=` |
 | `color` | color picker |
 | `date` / `datetime` | date / date-time picker |

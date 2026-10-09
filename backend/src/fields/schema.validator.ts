@@ -109,6 +109,7 @@ export class SchemaValidator {
         this.validateSelectOptions(field.options, path, errors);
         break;
       case 'image':
+      case 'link':
         // no structured options
         break;
       case 'repeater':

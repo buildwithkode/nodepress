@@ -1,7 +1,7 @@
 'use client';
 
 import { useFieldArray, Controller } from 'react-hook-form';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Link2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -130,6 +130,62 @@ function renderSubInput(
                 placeholder="{}"
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
               />
+            );
+          }}
+        />
+      );
+    case 'link':
+      return (
+        <Controller
+          control={control}
+          name={fieldPath}
+          defaultValue={{ url: '', text: '', newTab: false }}
+          render={({ field: f }) => {
+            const val =
+              typeof f.value === 'object' && f.value !== null
+                ? f.value
+                : { url: typeof f.value === 'string' ? f.value : '', text: '', newTab: false };
+            return (
+              <div className="space-y-1.5 rounded-md border bg-background/50 p-2 text-xs">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative flex-1">
+                    <Link2 className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="https://example.com or /path"
+                      value={val.url || ''}
+                      onChange={(e) => f.onChange({ ...val, url: e.target.value })}
+                      className="pl-8 text-xs font-mono h-8"
+                    />
+                  </div>
+                  <Input
+                    placeholder="Text (optional)"
+                    value={val.text || ''}
+                    onChange={(e) => f.onChange({ ...val, text: e.target.value })}
+                    className="sm:w-1/3 text-xs h-8"
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <label className="flex cursor-pointer items-center gap-1.5 select-none">
+                    <input
+                      type="checkbox"
+                      checked={!!val.newTab}
+                      onChange={(e) => f.onChange({ ...val, newTab: e.target.checked })}
+                      className="h-3 w-3 rounded border-muted-foreground/30 accent-primary"
+                    />
+                    <span>Open in new tab</span>
+                  </label>
+                  {val.url && (
+                    <a
+                      href={val.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-primary hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" /> Test
+                    </a>
+                  )}
+                </div>
+              </div>
             );
           }}
         />

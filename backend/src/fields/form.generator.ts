@@ -74,6 +74,7 @@ export class FormGenerator {
     boolean:    'switch',
     select:     'select',
     image:      'image-url-input',
+    link:       'link-input',
     color:      'color-picker',
     date:       'date-picker',
     datetime:   'datetime-picker',
