@@ -166,7 +166,6 @@ const FIELD_TYPES = [
   { type: 'boolean',  label: 'Boolean',        color: 'bg-green-500/10 text-green-400',  desc: 'True/false toggle. Good for published, featured, active flags.',  example: 'true' },
   { type: 'select',   label: 'Select',         color: 'bg-yellow-500/10 text-yellow-400',desc: 'One value from a predefined list of choices.',                    example: '"tech"' },
   { type: 'image',    label: 'Image URL',      color: 'bg-pink-500/10 text-pink-400',    desc: 'A URL string pointing to an image (from Media Library or external).', example: '"/uploads/photo.jpg"' },
-  { type: 'link',     label: 'Link',           color: 'bg-emerald-500/10 text-emerald-400', desc: 'Hyperlink object with URL, optional text label, and new-tab target.', example: '{"url":"https://example.com","text":"Visit Site","newTab":true}' },
   { type: 'color',    label: 'Color',          color: 'bg-rose-500/10 text-rose-400',    desc: 'Hex color value picked from a color-swatch widget.',              example: '"#ff6b35"' },
   { type: 'date',     label: 'Date',           color: 'bg-teal-500/10 text-teal-400',    desc: 'Calendar date (no time). Stored as ISO 8601 date string.',        example: '"2024-12-25"' },
   { type: 'datetime', label: 'Date & Time',    color: 'bg-sky-500/10 text-sky-400',      desc: 'Full timestamp with time. Stored as ISO 8601 datetime string.',   example: '"2024-12-25T10:30:00.000Z"' },
@@ -797,22 +796,6 @@ npm run dev`} />
 
 // cardinality: "many" — array of UUIDs or populated entries
 "tags": ["uuid-1", "uuid-2"]`} />
-
-            <h3 className="font-semibold mb-3 mt-6">Link — example schema & output</h3>
-            <p className="text-muted-foreground text-sm mb-2">Hyperlink object with target URL, optional text label, and new-tab toggle.</p>
-            <CodeBlock code={`// Schema definition
-{
-  "name": "cta_link",
-  "type": "link",
-  "required": true
-}
-
-// API output
-"cta_link": {
-  "url": "https://example.com/pricing",
-  "text": "View Pricing",
-  "newTab": true
-}`} />
           </Section>
 
           {/* ── Entries ───────────────────────────────────────────────────── */}

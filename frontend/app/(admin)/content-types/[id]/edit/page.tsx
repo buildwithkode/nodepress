@@ -45,7 +45,6 @@ const FIELD_TYPES = [
   { value: 'boolean',  label: 'Boolean' },
   { value: 'select',   label: 'Select' },
   { value: 'image',    label: 'Image' },
-  { value: 'link',     label: 'Link' },
   { value: 'color',    label: 'Color' },
   { value: 'date',     label: 'Date' },
   { value: 'datetime', label: 'Date & Time' },

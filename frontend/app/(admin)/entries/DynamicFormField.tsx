@@ -19,7 +19,6 @@ import FlexibleField from './FlexibleField';
 import GroupField from './GroupField';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
 import { RelationPicker } from '@/components/RelationPicker';
-import { Link2, ExternalLink } from 'lucide-react';
 
 const RichTextEditor = dynamic(
   () => import('@/components/RichTextEditor'),
@@ -257,68 +256,6 @@ export default function DynamicFormField({
             render={({ field: f }) => (
               <MediaPickerModal value={f.value ?? null} onChange={f.onChange} />
             )}
-          />
-        );
-
-      case 'link':
-        return (
-          <Controller
-            control={control}
-            name={field.name}
-            defaultValue={{ url: '', text: '', newTab: false }}
-            render={({ field: f }) => {
-              const val = typeof f.value === 'object' && f.value !== null
-                ? f.value
-                : { url: typeof f.value === 'string' ? f.value : '', text: '', newTab: false };
-              return (
-                <div className="space-y-2 rounded-lg border border-border bg-muted/10 p-3">
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="relative flex-1">
-                      <Link2 className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id={`${field.name}-url`}
-                        placeholder="https://example.com or /path"
-                        value={val.url || ''}
-                        onChange={(e) => f.onChange({ ...val, url: e.target.value })}
-                        className="pl-8 text-xs font-mono"
-                      />
-                    </div>
-                    <Input
-                      id={`${field.name}-text`}
-                      placeholder="Display text (optional)"
-                      value={val.text || ''}
-                      onChange={(e) => f.onChange({ ...val, text: e.target.value })}
-                      className="sm:w-1/3 text-xs"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
-                    <label
-                      htmlFor={`newtab-${field.name}`}
-                      className="flex cursor-pointer items-center gap-2 select-none"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`newtab-${field.name}`}
-                        checked={!!val.newTab}
-                        onChange={(e) => f.onChange({ ...val, newTab: e.target.checked })}
-                        className="h-3.5 w-3.5 rounded border-muted-foreground/30 accent-primary"
-                      />
-                      <span>Open in new tab (<code className="text-[10px]">_blank</code>)</span>
-                    </label>
-                    {val.url && (
-                      <a
-                        href={val.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-1 text-[11px] text-primary hover:underline"
-                      >
-                        <ExternalLink className="h-3 w-3" /> Test Link
-                      </a>
-                    )}
-                  </div>
-                </div>
-              );
-            }}
           />
         );
 

@@ -198,37 +198,3 @@ describe('repeater validation', () => {
     expectErrors({ faq: [{ question: 'Q?' }] }, schema as any, 'faq[0].answer: required');
   });
 });
-
-// ── Link fields ───────────────────────────────────────────────────────────────
-
-describe('link validation', () => {
-  const schema = [{ name: 'buttonLink', type: 'link', required: false }];
-
-  it('passes with a structured link object', () => {
-    expectValid({ buttonLink: { url: 'https://example.com', text: 'Click Here', newTab: true } }, schema as any);
-    expectValid({ buttonLink: { url: '/about' } }, schema as any);
-  });
-
-  it('passes with a plain URL string', () => {
-    expectValid({ buttonLink: 'https://example.com' }, schema as any);
-    expectValid({ buttonLink: '/blog/first-post' }, schema as any);
-  });
-
-  it('fails when url is empty or missing in object', () => {
-    expectErrors({ buttonLink: { url: '' } }, schema as any, 'must be a non-empty URL string');
-    expectErrors({ buttonLink: { text: 'No URL' } }, schema as any, 'must be a non-empty URL string');
-  });
-
-  it('fails when string is empty', () => {
-    expectErrors({ buttonLink: '   ' }, schema as any, 'must be a non-empty URL string');
-  });
-
-  it('fails when text is not string or newTab is not boolean', () => {
-    expectErrors({ buttonLink: { url: 'https://example.com', text: 123 } }, schema as any, 'must be a string');
-    expectErrors({ buttonLink: { url: 'https://example.com', newTab: 'yes' } }, schema as any, 'must be a boolean');
-  });
-
-  it('fails when value is neither string nor object', () => {
-    expectErrors({ buttonLink: 12345 }, schema as any, 'must be a URL string or { url, text, newTab } object');
-  });
-});

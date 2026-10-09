@@ -19,7 +19,6 @@ export const SIMPLE_FIELD_TYPES = [
   'boolean',
   'select',
   'image',
-  'link',
   'relation',
   'color',
   'date',
@@ -125,18 +124,6 @@ export interface JsonFieldDef extends BaseField {
   options?: Record<string, never>;
 }
 
-export interface LinkFieldDef extends BaseField {
-  type: 'link';
-  options?: Record<string, never>;
-}
-
-/** Runtime value for a link field */
-export interface LinkValue {
-  url: string;
-  text?: string;
-  newTab?: boolean;
-}
-
 /**
  * Runtime value for a relation field.
  * Stored as a publicId UUID string (cardinality=one) or UUID string[] (cardinality=many).
@@ -151,7 +138,6 @@ export type SimpleFieldDef =
   | BooleanFieldDef
   | SelectFieldDef
   | ImageFieldDef
-  | LinkFieldDef
   | RelationFieldDef
   | ColorFieldDef
   | DateFieldDef
@@ -220,7 +206,6 @@ export type FieldValue =
   | null
   | undefined
   | ImageValue
-  | LinkValue
   | RelationValue
   | GroupValue
   | RepeaterItem[]

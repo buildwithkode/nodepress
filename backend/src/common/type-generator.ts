@@ -29,8 +29,6 @@ function mapSimpleFieldType(field: SimpleFieldDef): string {
       return 'boolean';
     case 'image':
       return '{ url: string; alt?: string }';
-    case 'link':
-      return '{ url: string; text?: string; newTab?: boolean }';
     case 'select': {
       const choices = (field as any).options?.choices;
       const isMultiple = (field as any).options?.multiple;
