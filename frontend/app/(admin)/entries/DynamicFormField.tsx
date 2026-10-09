@@ -299,7 +299,7 @@ export default function DynamicFormField({
                       <input
                         type="checkbox"
                         id={`newtab-${field.name}`}
-                        checked={!!(val.newTab ?? val.newtab)}
+                        checked={!!val.newTab}
                         onChange={(e) => f.onChange({ ...val, newTab: e.target.checked })}
                         className="h-3.5 w-3.5 rounded border-muted-foreground/30 accent-primary"
                       />

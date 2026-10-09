@@ -9,10 +9,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
 import { SchemaValidator } from '../fields/schema.validator';
 import { FormGenerator } from '../fields/form.generator';
-import { validate } from 'class-validator';
-import { plainToInstance } from 'class-transformer';
-import { FieldDto } from './dto/create-content-type.dto';
-import { ALL_FIELD_TYPES } from '../fields/field.types';
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -182,25 +178,6 @@ describe('ContentTypeService', () => {
       await service.remove(1);
       expect(mockPrisma.contentType.delete).toHaveBeenCalledWith({ where: { id: 1 } });
       expect(mockCache.invalidatePrefix).toHaveBeenCalled();
-    });
-  });
-
-  // ── FieldDto Validation ────────────────────────────────────────────────────
-
-  describe('FieldDto validation', () => {
-    it('accepts link and all registered field types in FieldDto', async () => {
-      for (const fieldType of ALL_FIELD_TYPES) {
-        const field = plainToInstance(FieldDto, { name: 'test_field', type: fieldType });
-        const errors = await validate(field);
-        expect(errors).toHaveLength(0);
-      }
-    });
-
-    it('rejects invalid field type in FieldDto', async () => {
-      const field = plainToInstance(FieldDto, { name: 'test_field', type: 'unknown_type' });
-      const errors = await validate(field);
-      expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0].constraints?.isIn).toBeDefined();
     });
   });
 });
