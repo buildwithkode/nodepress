@@ -1,43 +1,112 @@
-# NodePress — Development Docker Compose
-# Usage: docker-compose up -d
-# Starts PostgreSQL only; backend + frontend run with npm run dev locally.
+# NodePress — Docker Compose (One-Click & Production Deployment)
+# Usage: docker compose up -d --build
 
-version: '3.9'
+version: '3.8'
 
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: nodepress_redis
-    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
+  # ── PostgreSQL Database ─────────────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     container_name: nodepress_db
     environment:
-      POSTGRES_DB:       nodepress
-      POSTGRES_USER:     postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
-    ports:
-      - "5432:5432"
+      POSTGRES_DB:       ${POSTGRES_DB:-nodepress}
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nodepress_secret}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - nodepress-net
+
+  # ── Redis Cache ─────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: nodepress_redis
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nodepress-net
+
+  # ── NestJS Backend ──────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nodepress_backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL:  "postgresql://${POSTGRES_USER:-postgres}:${DB_PASSWORD:-nodepress_secret}@db:5432/${POSTGRES_DB:-nodepress}"
+      DIRECT_URL:    "postgresql://${POSTGRES_USER:-postgres}:${DB_PASSWORD:-nodepress_secret}@db:5432/${POSTGRES_DB:-nodepress}"
+      PORT:          3000
+      NODE_ENV:      production
+      JWT_SECRET:    ${JWT_SECRET:-b1326b377faa5705b57a89c0688913cbca4e8d0d95a8d61afc4bcc69bb5403641d9a0a4fe404e93e5ee502fcc5337a11}
+      CORS_ORIGIN:   ${CORS_ORIGIN:-*}
+      APP_URL:       ${APP_URL:-http://localhost/api}
+      SITE_URL:      ${SITE_URL:-http://localhost}
+      REDIS_URL:     redis://redis:6379
+    volumes:
+      - uploads_data:/app/uploads
+    restart: unless-stopped
+    networks:
+      - nodepress-net
+    command: >
+      sh -c "npx prisma migrate deploy && node dist/main.js"
+
+  # ── Next.js Frontend ─────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://backend:3000
+    container_name: nodepress_frontend
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: http://backend:3000
+      PORT: 3001
+    restart: unless-stopped
+    networks:
+      - nodepress-net
+
+  # ── Nginx Reverse Proxy ──────────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nodepress_nginx
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro
+    restart: unless-stopped
+    networks:
+      - nodepress-net
+
+networks:
+  nodepress-net:
+    driver: bridge
 
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:
