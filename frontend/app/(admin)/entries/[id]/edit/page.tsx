@@ -51,7 +51,7 @@ import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn, ctLabel } from '@/lib/utils';
+import { cn, ctLabel, formatSlugInput, cleanSlug } from '@/lib/utils';
 import DynamicFormField from '../../DynamicFormField';
 import {
   Select,
@@ -176,10 +176,12 @@ export default function EditEntryPage() {
   const [seoNoIndex, setSeoNoIndex] = useState(false);
   const [publishAt, setPublishAt] = useState('');
 
-  const { register, control, handleSubmit, reset, watch, getValues, formState: { errors } } = useForm<Record<string, any>>();
+  const { register, control, handleSubmit, reset, setValue, watch, getValues, formState: { errors } } = useForm<Record<string, any>>();
 
   // ── Autosave ──────────────────────────────────────────────────────────────
   const watchedValues = watch();
+  const watchedSlug = watch('slug') || '';
+  const previewSlug = cleanSlug(watchedSlug);
 
   const autosaveFn = useCallback(async () => {
     if (!entry) return;
@@ -187,6 +189,7 @@ export default function EditEntryPage() {
     try {
       const values = getValues();
       const { slug, ...rest } = values;
+      const cleanFinalSlug = cleanSlug(slug || '');
       const seo = {
         title: seoTitle.trim() || undefined,
         description: seoDescription.trim() || undefined,
@@ -195,7 +198,7 @@ export default function EditEntryPage() {
       };
       const hasSeo = Object.values(seo).some((v) => v !== undefined);
       await api.put(`/entries/${entry.id}`, {
-        slug,
+        slug: cleanFinalSlug,
         status,
         data: rest,
         seo: hasSeo ? seo : null,
@@ -248,6 +251,7 @@ export default function EditEntryPage() {
     setSubmitting(true);
     try {
       const { slug, ...rest } = values;
+      const cleanFinalSlug = cleanSlug(slug || '');
 
       const seo = {
         title: seoTitle.trim() || undefined,
@@ -258,7 +262,7 @@ export default function EditEntryPage() {
       const hasSeo = Object.values(seo).some((v) => v !== undefined);
 
       await api.put(`/entries/${entry.id}`, {
-        slug,
+        slug: cleanFinalSlug,
         status,
         data: rest,
         seo: hasSeo ? seo : null,
@@ -720,17 +724,58 @@ export default function EditEntryPage() {
             {/* Slug (editable — changing it breaks existing links/SEO) */}
             <div className="space-y-1.5 mb-4.5">
               <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">Slug</Label>
-              <Input
-                id="slug"
-                {...register('slug', {
-                  required: 'Slug is required',
-                  pattern: { value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'Lowercase, numbers and hyphens only' },
-                })}
-                className={cn(errors.slug && 'border-destructive focus-visible:ring-destructive')}
-              />
-              {errors.slug
-                ? <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
-                : <p className="text-[11px] text-amber-500">Changing the slug breaks existing links and SEO pointing to the old URL.</p>}
+              {(() => {
+                const slugReg = register('slug', {
+                  validate: (v) => {
+                    const cleaned = cleanSlug(v || '');
+                    if (!cleaned) return 'Slug is required';
+                    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleaned)) {
+                      return 'Lowercase letters, numbers and hyphens only';
+                    }
+                    return true;
+                  },
+                });
+                return (
+                  <Input
+                    id="slug"
+                    {...slugReg}
+                    onChange={(e) => {
+                      const target = e.target;
+                      const start = target.selectionStart;
+                      const end = target.selectionEnd;
+                      const oldVal = target.value;
+                      const formatted = formatSlugInput(oldVal);
+                      target.value = formatted;
+                      if (start !== null && end !== null && formatted.length === oldVal.length) {
+                        target.setSelectionRange(start, end);
+                      }
+                      slugReg.onChange(e);
+                    }}
+                    onBlur={(e) => {
+                      const cleaned = cleanSlug(e.target.value);
+                      if (e.target.value !== cleaned) {
+                        e.target.value = cleaned;
+                        setValue('slug', cleaned, { shouldValidate: true });
+                      }
+                      slugReg.onBlur(e);
+                    }}
+                    className={cn(errors.slug && 'border-destructive focus-visible:ring-destructive')}
+                  />
+                );
+              })()}
+              <div className="flex items-center gap-2 text-xs bg-muted/30 px-3 py-1.5 rounded-md border border-border/50 font-mono mt-1.5 text-muted-foreground">
+                <span className="text-[11px] font-sans font-medium text-muted-foreground/70 select-none shrink-0">
+                  Preview URL:
+                </span>
+                <span className="truncate text-foreground font-medium">
+                  /api/<span className="text-muted-foreground">{contentType ? contentType.name : 'content-type'}</span>/<span className="text-primary font-semibold">{previewSlug || '…'}</span>
+                </span>
+              </div>
+              {errors.slug ? (
+                <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
+              ) : (
+                <p className="text-[11px] text-amber-500">Changing the slug breaks existing links and SEO pointing to the old URL.</p>
+              )}
             </div>
 
             {/* Scheduled publish */}

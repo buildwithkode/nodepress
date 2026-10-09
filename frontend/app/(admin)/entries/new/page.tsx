@@ -17,7 +17,7 @@ import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn, ctLabel } from '@/lib/utils';
+import { cn, ctLabel, formatSlugInput, cleanSlug } from '@/lib/utils';
 import DynamicFormField from '../DynamicFormField';
 import {
   Select,
@@ -26,10 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-function toSlug(str: string) {
-  return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/^-+|-+$/g, '');
-}
 
 const SUPPORTED_LOCALES = [
   { code: 'en', label: 'English', flag: '🇺🇸' },
@@ -90,6 +86,8 @@ export default function NewEntryPage() {
 
   const { register, control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<Record<string, any>>();
   const watchedValues = watch();
+  const watchedSlug = watch('slug') || '';
+  const previewSlug = cleanSlug(watchedSlug);
 
   useEffect(() => {
     api.get('/content-types')
@@ -116,7 +114,7 @@ export default function NewEntryPage() {
       if (!name) return;
       if (name === 'slug') { slugManualRef.current = true; return; }
       if (slugManualRef.current) return;
-      if (name === firstTextField.name) setValue('slug', toSlug(values[firstTextField.name] || ''), { shouldValidate: false });
+      if (name === firstTextField.name) setValue('slug', cleanSlug(values[firstTextField.name] || ''), { shouldValidate: false });
     });
     return () => sub.unsubscribe();
   }, [firstTextField, watch, setValue]);
@@ -126,6 +124,7 @@ export default function NewEntryPage() {
     setSubmitting(true);
     try {
       const { slug, ...rest } = values;
+      const cleanFinalSlug = cleanSlug(slug || '');
       const seo = {
         title: seoTitle.trim() || undefined,
         description: seoDescription.trim() || undefined,
@@ -135,7 +134,7 @@ export default function NewEntryPage() {
       const hasSeo = Object.values(seo).some((v) => v !== undefined);
       await api.post('/entries', {
         contentTypeId: selectedCT.id,
-        slug,
+        slug: cleanFinalSlug,
         locale,
         status,
         data: rest,
@@ -336,22 +335,58 @@ export default function NewEntryPage() {
                   <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">Slug</Label>
                   {(() => {
                     const slugReg = register('slug', {
-                      required: 'Slug is required',
-                      pattern: { value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'Lowercase, numbers and hyphens only' },
+                      validate: (v) => {
+                        const cleaned = cleanSlug(v || '');
+                        if (!cleaned) return 'Slug is required';
+                        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleaned)) {
+                          return 'Lowercase letters, numbers and hyphens only';
+                        }
+                        return true;
+                      },
                     });
                     return (
                       <Input
                         id="slug"
                         placeholder="my-entry-slug"
                         {...slugReg}
-                        onChange={(e) => { slugManualRef.current = true; slugReg.onChange(e); }}
+                        onChange={(e) => {
+                          slugManualRef.current = true;
+                          const target = e.target;
+                          const start = target.selectionStart;
+                          const end = target.selectionEnd;
+                          const oldVal = target.value;
+                          const formatted = formatSlugInput(oldVal);
+                          target.value = formatted;
+                          if (start !== null && end !== null && formatted.length === oldVal.length) {
+                            target.setSelectionRange(start, end);
+                          }
+                          slugReg.onChange(e);
+                        }}
+                        onBlur={(e) => {
+                          const cleaned = cleanSlug(e.target.value);
+                          if (e.target.value !== cleaned) {
+                            e.target.value = cleaned;
+                            setValue('slug', cleaned, { shouldValidate: true });
+                          }
+                          slugReg.onBlur(e);
+                        }}
                         className={cn(errors.slug && 'border-destructive focus-visible:ring-destructive')}
                       />
                     );
                   })()}
-                  {errors.slug
-                    ? <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
-                    : <p className="text-[11px] text-muted-foreground">Auto-generated from the first text field</p>}
+                  <div className="flex items-center gap-2 text-xs bg-muted/30 px-3 py-1.5 rounded-md border border-border/50 font-mono mt-1.5 text-muted-foreground">
+                    <span className="text-[11px] font-sans font-medium text-muted-foreground/70 select-none shrink-0">
+                      Preview URL:
+                    </span>
+                    <span className="truncate text-foreground font-medium">
+                      /api/<span className="text-muted-foreground">{selectedCT ? selectedCT.name : 'content-type'}</span>/<span className="text-primary font-semibold">{previewSlug || '…'}</span>
+                    </span>
+                  </div>
+                  {errors.slug ? (
+                    <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">Auto-generated from the first text field. Formatted with lowercase and hyphens.</p>
+                  )}
                 </div>
 
                 {/* Scheduled publish */}
