@@ -768,7 +768,7 @@ export default function EditEntryPage() {
                   Preview URL:
                 </span>
                 <span className="truncate text-foreground font-medium">
-                  /api/<span className="text-muted-foreground">{contentType ? contentType.name : 'content-type'}</span>/<span className="text-primary font-semibold">{previewSlug || '…'}</span>
+                  /api/<span className="text-muted-foreground">{contentType ? contentType.name.replace(/_/g, '-') : 'content-type'}</span>/<span className="text-primary font-semibold">{previewSlug || '…'}</span>
                 </span>
               </div>
               {errors.slug ? (
