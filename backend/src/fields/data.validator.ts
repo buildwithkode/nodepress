@@ -241,7 +241,8 @@ export class DataValidator {
       if (link.text !== undefined && typeof link.text !== 'string') {
         errors.push(`${path}.text: must be a string`);
       }
-      if (link.newTab !== undefined && typeof link.newTab !== 'boolean') {
+      const newTabVal = link.newTab !== undefined ? link.newTab : link.newtab;
+      if (newTabVal !== undefined && typeof newTabVal !== 'boolean') {
         errors.push(`${path}.newTab: must be a boolean`);
       }
       return;

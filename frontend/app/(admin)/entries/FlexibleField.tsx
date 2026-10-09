@@ -185,7 +185,7 @@ function renderSubInput(
                   <label className="flex cursor-pointer items-center gap-1.5 select-none">
                     <input
                       type="checkbox"
-                      checked={!!val.newTab}
+                      checked={!!(val.newTab ?? val.newtab)}
                       onChange={(e) => f.onChange({ ...val, newTab: e.target.checked })}
                       className="h-3 w-3 rounded border-muted-foreground/30 accent-primary"
                     />
