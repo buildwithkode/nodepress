@@ -199,38 +199,21 @@ psql --version # v14 or higher? → skip Step 3 (or use Docker)"></div>
           </div>
         </div>
 
-        <!-- Step 4: Scaffold or Clone -->
+        <!-- Step 4: Scaffold -->
         <div class="mb-8">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">4</div>
-            <h3 class="font-semibold text-white">Create or Clone your NodePress project</h3>
+            <h3 class="font-semibold text-white">Create your NodePress project</h3>
           </div>
-          <div class="ml-10 space-y-4">
-            <div>
-              <p class="text-sm font-medium text-white mb-2">Method A — One-line CLI (Recommended for new projects):</p>
-              <p class="text-xs text-zinc-400 mb-2">Open a terminal, navigate to your desired directory, and run:</p>
-              <div class="code-block" data-code="npx create-nodepress-app my-project"></div>
-              <p class="text-xs text-zinc-500 mt-2">
-                Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded">my-project</code> with your project name. This scaffolds NodePress, generates secure cryptographic secrets, and installs dependencies.
-              </p>
-              <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs text-zinc-400 mt-2 space-y-1">
-                <p>• <strong>Docker support:</strong> Add <code class="text-pink-400 bg-zinc-800 px-1 rounded">--docker</code> (<code class="text-pink-400 bg-zinc-800 px-1 rounded">npx create-nodepress-app my-project --docker</code>) to include <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose.yml</code>, Nginx, PgBouncer, and monitoring configs.</p>
-                <p>• <strong>Error tracking:</strong> Add <code class="text-pink-400 bg-zinc-800 px-1 rounded">--sentry</code> to include Sentry SDK integration.</p>
-              </div>
-            </div>
-
-            <div>
-              <p class="text-sm font-medium text-white mb-2">Method B — Clone from GitHub (Direct source):</p>
-              <div class="code-block" data-code="# 1. Clone repository
-git clone https://github.com/buildwithkode/nodepress.git
-cd nodepress
-
-# 2. Configure environment files
-cp backend/.env.example backend/.env
-cp frontend/.env.local.example frontend/.env.local
-
-# 3. Install all dependencies (npm workspaces)
-npm install"></div>
+          <div class="ml-10">
+            <p class="text-sm text-zinc-400 mb-3">Open a terminal, navigate to the folder where you want your project, and run:</p>
+            <div class="code-block" data-code="npx create-nodepress-app my-project"></div>
+            <p class="text-xs text-zinc-500 mt-2">
+              Replace <code class="text-pink-400 bg-zinc-800 px-1 rounded">my-project</code> with your project name. This command downloads NodePress, generates secure cryptographic secrets, and installs dependencies. Takes 2–5 minutes.
+            </p>
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs text-zinc-400 mt-3 space-y-1">
+              <p>• <strong>Docker support:</strong> Add <code class="text-pink-400 bg-zinc-800 px-1 rounded">--docker</code> (<code class="text-pink-400 bg-zinc-800 px-1 rounded">npx create-nodepress-app my-project --docker</code>) to include <code class="text-pink-400 bg-zinc-800 px-1 rounded">docker-compose.yml</code>, Nginx, PgBouncer, and monitoring configs.</p>
+              <p>• <strong>Error tracking:</strong> Add <code class="text-pink-400 bg-zinc-800 px-1 rounded">--sentry</code> to include Sentry SDK integration.</p>
             </div>
           </div>
         </div>
