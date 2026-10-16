@@ -32,7 +32,7 @@ npm run studio         # cd backend && prisma studio
 ### Backend (`cd backend/`)
 
 ```bash
-npm run start:dev      # Dev server with hot reload (port 3000)
+npm run start:dev      # Dev server with hot reload (port = PORT in backend/.env, default 3000)
 npm run build          # Compile TypeScript to dist/
 npm run start:prod     # Run compiled output
 npx tsc --noEmit       # Type-check without building
@@ -78,7 +78,8 @@ Layer B clones GitHub `main`, so run it **after pushing** for a faithful check o
 ### Environment files
 
 - `backend/.env` — `DATABASE_URL`, `DIRECT_URL`, `PORT`, `JWT_SECRET` (**must be ≥32 chars** or env validation exits the process), `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `APP_URL`, `SITE_URL`, `LOG_LEVEL`, `STORAGE_DRIVER` (+ `STORAGE_S3_*` when `s3`), `REDIS_URL` (optional), `METRICS_TOKEN` (optional), `SENTRY_DSN` (optional), `SMTP_*` (optional), `CAPTCHA_PROVIDER`/`CAPTCHA_SECRET_KEY` (optional)
-- `frontend/.env.local` — `BACKEND_URL=http://localhost:3000` (used only in server components), `NEXT_PUBLIC_SENTRY_DSN` (optional)
+- `frontend/.env.local` — `BACKEND_URL` (server components + proxy target; in local dev it's overridden by the PORT auto-detection below), `NEXT_PUBLIC_API_URL` (browser → backend for the Socket.io connection; must be set explicitly when the backend is remote), `NEXT_PUBLIC_SENTRY_DSN` (optional)
+- `APP_URL` is the **backend's** public URL; `SITE_URL` and `CORS_ORIGIN` are the **frontend's**. Never put the backend's own port in `CORS_ORIGIN`.
 - See `backend/.env.example` and `frontend/.env.local.example` for full documentation of all variables.
 
 ---
@@ -188,7 +189,12 @@ Four route groups:
 
 **Middleware** (`middleware.ts`) protects the `ADMIN_PATHS` list (keep it in sync when adding an admin page). `ADMIN_ONLY_PATHS` (e.g. `/users`, `/api-keys`, `/webhooks`, `/audit-log`, `/content-types/new`) further restrict to admin role. Public routes and `/setup` pass through freely; already-logged-in users are redirected away from `/login` and `/setup`.
 
-**API proxy**: `next.config.js` rewrites `/api/*` → `http://localhost:3000/api/*` and `/uploads/*` → `http://localhost:3000/uploads/*`. This only works client-side. Server components must use `BACKEND_URL` env var directly.
+**API proxy**: `next.config.js` rewrites `/api/*`, `/uploads/*` and `/graphql` → `BACKEND_URL`. This only works client-side. Server components must use `BACKEND_URL` env var directly. Socket.io (`lib/useRealtimeEvents.ts`, `lib/useEntryPresence.ts`) bypasses the proxy and connects to `NEXT_PUBLIC_API_URL` directly.
+
+**Changing the backend PORT** needs no other edits in local dev, via three cooperating pieces:
+- `next.config.js` `resolveBackendUrl()` — when `BACKEND_URL` is unset or points at localhost, it reads `PORT` from `../backend/.env` (so a stale `.env.local` loses). For a local backend only, it inlines `BACKEND_URL` / `NEXT_PUBLIC_BACKEND_URL` / `NEXT_PUBLIC_API_URL` into the build. A remote URL is never inlined, because it may be a Docker-internal hostname.
+- `config/env.ts` — outside production, an unset or localhost `APP_URL` is rewritten to `http://localhost:${PORT}` (media URLs follow).
+- `main.ts` CORS — outside production, any `localhost`/`127.0.0.1` origin is allowed. In production only `CORS_ORIGIN` entries are allowed (`*` sends a literal wildcard). Disallowed origins get no CORS headers, not an error. The Socket.io gateway (`realtime.gateway.ts`) has its own separate CORS config.
 
 **Auth storage**: JWT stored in cookie `np_token` (readable by middleware server-side). User object in `localStorage`. `lib/axios.ts` reads `Cookies.get('np_token')` for the `Authorization` header.
 

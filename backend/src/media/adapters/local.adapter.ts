@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { existsSync, unlinkSync } from 'fs';
 import { join, resolve } from 'path';
 import { StorageAdapter } from './storage.adapter';
+import { env } from '../../config/env';
 
 @Injectable()
 export class LocalStorageAdapter implements StorageAdapter {
   private readonly uploadsDir = resolve(join(process.cwd(), 'uploads'));
-  private readonly appUrl = process.env.APP_URL || 'http://localhost:3000';
+  private readonly appUrl = env.APP_URL || `http://localhost:${env.PORT}`;
 
   /** Local: Multer already saved the file — nothing to do. Return the public URL. */
   async save(_localPath: string, filename: string, _mimetype: string): Promise<string> {

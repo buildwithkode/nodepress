@@ -66,6 +66,15 @@ function validateEnv(raw: NodeJS.ProcessEnv) {
     envToValidate.CORS_ORIGIN = envToValidate.CORS_ORIGIN || 'http://localhost:3000';
   }
 
+  // Dev only: if APP_URL is unset or points at localhost, sync it to the active PORT
+  // so changing PORT in .env doesn't leave media URLs on the old port.
+  if (envToValidate.NODE_ENV !== 'production') {
+    const port = envToValidate.PORT || 3000;
+    if (!envToValidate.APP_URL || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(envToValidate.APP_URL)) {
+      envToValidate.APP_URL = `http://localhost:${port}`;
+    }
+  }
+
   const result = EnvSchema.safeParse(envToValidate);
 
   if (!result.success) {

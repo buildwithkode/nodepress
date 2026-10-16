@@ -1,11 +1,48 @@
 /** @type {import('next').NextConfig} */
+const fs = require('fs');
+const path = require('path');
 
-// BACKEND_URL is used server-side (server components) and here as the proxy target.
-// In development this defaults to localhost:3001 (NodePress NestJS backend).
-// In production set BACKEND_URL in your environment (e.g. https://api.yourdomain.com).
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+// Dynamically resolve the backend URL:
+// 1. If BACKEND_URL is explicitly configured to a non-localhost remote URL (e.g. production/docker), use it.
+// 2. In local dev, auto-detect the backend's configured PORT from ../backend/.env so changing PORT just works.
+// 3. Fallback to process.env.BACKEND_URL or http://localhost:3000.
+function resolveBackendUrl() {
+  const envUrl = process.env.BACKEND_URL;
+  const isLocal = !envUrl || envUrl.includes('localhost') || envUrl.includes('127.0.0.1');
+
+  if (isLocal) {
+    try {
+      const backendEnvPath = path.resolve(__dirname, '../backend/.env');
+      if (fs.existsSync(backendEnvPath)) {
+        const content = fs.readFileSync(backendEnvPath, 'utf8');
+        const portMatch = content.match(/^\s*PORT\s*=\s*["']?(\d+)["']?/m);
+        if (portMatch && portMatch[1]) {
+          return `http://localhost:${portMatch[1]}`;
+        }
+      }
+    } catch {
+      // ignore read errors and fall through
+    }
+  }
+
+  return envUrl || 'http://localhost:3000';
+}
+
+const BACKEND_URL = resolveBackendUrl();
+
+// `env` values are inlined into the client bundle at build time. Only do that for a
+// local backend: a remote BACKEND_URL may be an internal hostname (e.g. http://backend:3000
+// in Docker) that browsers can't reach, so NEXT_PUBLIC_* must then be set explicitly.
+const isLocalBackend = /localhost|127\.0\.0\.1/.test(BACKEND_URL);
 
 const nextConfig = {
+  env: isLocalBackend
+    ? {
+        BACKEND_URL,
+        NEXT_PUBLIC_BACKEND_URL: BACKEND_URL,
+        NEXT_PUBLIC_API_URL: BACKEND_URL,
+      }
+    : {},
   async rewrites() {
     return [
       {

@@ -92,7 +92,20 @@ async function bootstrap() {
   // Supports comma-separated origins: "https://app.com,https://staging.app.com"
   const origins = env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean);
   app.enableCors({
-    origin: origins.length === 1 ? origins[0] : origins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      // In development, automatically allow any localhost / 127.0.0.1 port
+      if (env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      if (origins.includes(origin)) return callback(null, true);
+      // '*' sends a literal wildcard rather than echoing the origin, so browsers
+      // still refuse credentialed cross-site requests.
+      if (origins.includes('*')) return callback(null, '*');
+      // Omit CORS headers instead of passing an Error, which surfaces as a 500.
+      return callback(null, false);
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
     credentials: true,
