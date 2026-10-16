@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { INDEXABLE_FIELD_TYPES, INDEXED_HINT } from '@/lib/indexable-fields';
 
 const FIELD_TYPES = [
   { value: 'text',     label: 'Text' },
@@ -67,6 +68,7 @@ interface Field {
   label?:      string;
   type:        string;
   required:    boolean;
+  indexed?:    boolean;
   readRoles?:  string[];
   writeRoles?: string[];
   options?:    { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
@@ -80,11 +82,12 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any }) => ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any }) => ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
   required: f.required,
+  ...(f.indexed && INDEXABLE_FIELD_TYPES.has(f.type) ? { indexed: true } : {}),
   ...(f.readRoles ? { readRoles: f.readRoles } : {}),
   ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}),
   ...(f.options ? { options: f.options } : {}),
@@ -505,6 +508,18 @@ export default function EditContentTypePage() {
                       />
                       Required
                     </label>
+                    {INDEXABLE_FIELD_TYPES.has(field.type) && (
+                      <label
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none"
+                        title={INDEXED_HINT}
+                      >
+                        <Checkbox
+                          checked={!!field.indexed}
+                          onCheckedChange={(c) => updateField(fi, 'indexed', c === true)}
+                        />
+                        Indexed
+                      </label>
+                    )}
                     <div className="flex items-center gap-0.5 shrink-0">
                       {computedName && (
                         <Button

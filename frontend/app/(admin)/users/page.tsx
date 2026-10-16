@@ -358,7 +358,9 @@ export default function UsersPage() {
                             disabled={inviting === u.id}
                             onClick={() => handleSendInvite(u.id, u.email)}
                           >
-                            <Mail className="h-3.5 w-3.5" />
+                            {inviting === u.id
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              : <Mail className="h-3.5 w-3.5" />}
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger render={

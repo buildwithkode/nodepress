@@ -24,6 +24,7 @@ export class DynamicApiController {
   @ApiParam({ name: 'type', example: 'blog', description: 'Content type name (e.g. blog, article, product)' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
+  @ApiQuery({ name: 'cursor', required: false, type: String, description: 'Keyset cursor from meta.nextCursor — faster than page for deep pagination; skips the total count' })
   @ApiQuery({ name: 'sort', required: false, example: 'createdAt:desc', description: 'field:direction' })
   @ApiQuery({ name: 'stage', required: false, enum: ['published', 'staging', 'draft', 'all'], description: 'Environment stage. Defaults to "published". Set to "staging" for staging previews.' })
   @ApiQuery({ name: 'where', required: false, description: 'where[field][operator]=value — supports eq, ne, gt, gte, lt, lte, in, notIn, contains, startsWith, endsWith, null, notNull' })
@@ -34,12 +35,13 @@ export class DynamicApiController {
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiQuery({ name: 'fields', required: false, type: String, description: 'Comma-separated data field names to include (projection). Omit for all fields.' })
   @ApiHeader({ name: 'x-nodepress-environment', required: false, description: 'Target environment: "staging" or "production"' })
-  @ApiResponse({ status: 200, description: '{ data: Entry[], meta: { total, page, limit, totalPages } }' })
+  @ApiResponse({ status: 200, description: '{ data: Entry[], meta: { total, page, limit, totalPages, nextCursor } } — with ?cursor=, meta is { limit, nextCursor }' })
   @ApiResponse({ status: 404, description: 'Content type not found or method disabled' })
   findAll(
     @Param('type') type: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
     @Query('sort') sort?: string,
     @Query('stage') stage?: any,
     @Query('where') where?: Record<string, any>,
@@ -55,6 +57,7 @@ export class DynamicApiController {
     return this.dynamicApiService.findAll(type, {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
+      cursor: cursor || undefined,
       sort,
       stage: effectiveStage,
       where: where || filters || undefined,

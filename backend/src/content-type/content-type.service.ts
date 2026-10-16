@@ -10,6 +10,7 @@ import { CreateContentTypeDto } from './dto/create-content-type.dto';
 import { UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { SchemaValidator } from '../fields/schema.validator';
 import { FormGenerator } from '../fields/form.generator';
+import { FieldIndexService } from './field-index.service';
 import { FieldDef } from '../fields/field.types';
 import { normalizeKey } from '../common/normalize';
 
@@ -56,6 +57,7 @@ export class ContentTypeService {
     private cache: AppCacheService,
     private schemaValidator: SchemaValidator,
     private formGenerator: FormGenerator,
+    private fieldIndexes: FieldIndexService,
   ) {}
 
   async create(dto: CreateContentTypeDto) {
@@ -88,6 +90,7 @@ export class ContentTypeService {
     });
 
     await this.cache.invalidatePrefix('ct:meta');
+    void this.fieldIndexes.sync(created.id, validatedSchema as any[]);
     return created;
   }
 
@@ -173,6 +176,7 @@ export class ContentTypeService {
 
     // Bust all content-type caches
     await this.cache.invalidatePrefix('ct:meta');
+    if (updateData.schema) void this.fieldIndexes.sync(id, updateData.schema);
 
     // Build schema-change impact warnings when schema was updated
     const warnings: string[] = [];
@@ -250,6 +254,7 @@ export class ContentTypeService {
     const ct = await this.findOne(id);
     await this.prisma.contentType.delete({ where: { id } });
     await this.cache.invalidatePrefix('ct:meta');
+    void this.fieldIndexes.dropAll(id);
     return ct;
   }
 

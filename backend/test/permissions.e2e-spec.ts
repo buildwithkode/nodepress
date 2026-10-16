@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createTestApp, cleanDatabase, registerAdmin } from './helpers';
+import { createTestApp, cleanDatabase, registerAdmin, inviteUser } from './helpers';
 
 describe('Permissions (e2e)', () => {
   let app: INestApplication;
@@ -14,26 +14,9 @@ describe('Permissions (e2e)', () => {
     await cleanDatabase(app);
     adminToken = await registerAdmin(app);
 
-    // Create editor and contributor users
-    await request(app.getHttpServer())
-      .post('/api/users')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({ email: 'editor@test.com', password: 'Password123!', role: 'editor' });
-
-    await request(app.getHttpServer())
-      .post('/api/users')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({ email: 'contributor@test.com', password: 'Password123!', role: 'contributor' });
-
-    const editorLogin = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email: 'editor@test.com', password: 'Password123!' });
-    editorToken = editorLogin.body.access_token;
-
-    const contributorLogin = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email: 'contributor@test.com', password: 'Password123!' });
-    contributorToken = contributorLogin.body.access_token;
+    // Invite editor and contributor users and accept their invitations
+    ({ token: editorToken } = await inviteUser(app, adminToken, 'editor@test.com', 'editor'));
+    ({ token: contributorToken } = await inviteUser(app, adminToken, 'contributor@test.com', 'contributor'));
 
     // Create a content type
     const ctRes = await request(app.getHttpServer())

@@ -3,9 +3,10 @@ import { MailService } from '../../mail/mail.service';
 import { EmailAction } from '../types/form-field.types';
 
 /**
- * EmailActionHandler — fires an email when a form is submitted.
+ * EmailActionHandler — sends the email for a form's email action.
  *
- * Delegates to MailService (singleton transporter, validated env config).
+ * Runs as a queued job (see ActionsService), so a failed send throws and is
+ * retried. Without SMTP configured the email is skipped, not retried.
  * Subject supports {{field_name}} interpolation against submission data.
  */
 @Injectable()
@@ -22,6 +23,6 @@ export class EmailActionHandler {
       ? String(data[action.replyToField] ?? '')
       : undefined;
 
-    await this.mail.sendFormSubmission(action.to, subject, data, replyTo, fields);
+    await this.mail.sendFormSubmission(action.to, subject, data, replyTo, fields, { throwOnError: true });
   }
 }

@@ -49,6 +49,9 @@ model Entry {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   deletedAt     DateTime?                                  // null = active; set on soft delete
+  // Generated column (see migration add_entry_search_vector) — Postgres keeps it
+  // in sync with slug + data; never written by the app. Backs ?search=.
+  searchVector  Unsupported("tsvector")?                   @default(dbgenerated("to_tsvector('english'::regconfig, ((COALESCE(slug, ''::text) || ' '::text) || COALESCE((data)::text, ''::text)))")) @map("search_vector")
   versions      EntryVersion[]
 
   @@unique([contentTypeId, slug, locale])
@@ -59,6 +62,8 @@ model Entry {
   @@index([publishAt])
   @@index([createdAt])
   @@index([contentTypeId, status, deletedAt])   // public API: WHERE contentTypeId=? AND status='published' AND deletedAt IS NULL
+  @@index([contentTypeId, createdAt, id])     // list order + keyset ?cursor= paging
+  @@index([searchVector], map: "entries_search_vector_idx", type: Gin)
   @@map("entries")
 }
 
@@ -248,6 +253,23 @@ model Form {
   submissions    FormSubmission[]
 
   @@map("forms")
+}
+
+/// Background jobs (form actions, plugin tasks) — claimed with SKIP LOCKED by JobWorker.
+model Job {
+  id          Int      @id @default(autoincrement())
+  type        String   // handler key, e.g. "form.email"
+  payload     Json
+  status      String   @default("pending") // pending | done | failed
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  runAt       DateTime @default(now()) // when the job is next due; while running, the end of its lease
+  lastError   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, runAt])
+  @@map("jobs")
 }
 
 model FormSubmission {

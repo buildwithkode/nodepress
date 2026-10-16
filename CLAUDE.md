@@ -111,13 +111,14 @@ src/
   permissions/             # Granular role/permission records (Permission model)
   plugin/ plugins/         # Plugin loader + bundled plugins + PluginHookBus (lifecycle actions & data filters)
   common/                  # SentryExceptionFilter, normalize, sanitize, populate.util (O(depth) batch), field-security.util, filter-query.util (nested where), type-generator
-  forms/                   # Form builder + submissions + email/webhook actions + captcha verification
-  webhooks/                # Webhook CRUD + delivery queue + retry with exponential backoff
+  forms/                   # Form builder + submissions + email/webhook actions (queued as jobs) + captcha verification
+  jobs/                    # Generic background job queue (jobs table) — JobsService.enqueue/registerHandler + JobWorker
+  webhooks/                # Webhook CRUD + Postgres delivery queue (WebhookWorker, SKIP LOCKED) + retry with backoff
   audit/                   # AuditLog write + list (resource, action, userId, ip) + weekly retention prune
   users/                   # User CRUD (admin only)
   health/                  # GET /api/health — DB connectivity check
   seo/                     # GET /api/sitemap.xml + GET /api/robots.txt
-  scheduler/               # Cron job — auto-publishes entries when publishAt passes
+  scheduler/               # Cron jobs — auto-publishes entries when publishAt passes, weekly pruning
 ```
 
 **Critical ordering**: `DynamicApiModule` must be the **last import** in `app.module.ts`. Its `@Controller()` with no prefix uses wildcard params (`/:type`, `/:type/:slug`) that would shadow all static routes (`/entries`, `/media`, etc.) if registered first.
@@ -136,6 +137,25 @@ The core models:
 - `Setting` — **singleton (always row id=1)** holding the install brand (`brandName`, `brandLogoUrl`, `brandColor`); managed via `GET/PUT /api/brand`
 
 Run `grep '^model' backend/prisma/schema.prisma` for the full list. Content type names are normalized via `normalizeName()` (lowercase + underscores). Reserved names (`auth`, `media`, `entries`, `content-types`, `uploads`) are blocked.
+
+### Scaling & production notes
+
+- **Search** uses the generated `entries.search_vector` column (GIN index). It's declared in `schema.prisma` as `Unsupported("tsvector")` with a `dbgenerated(...)` default that must match Postgres' own rendering of the expression, or `prisma migrate diff` reports drift. Never write it from app code.
+- **Pagination**: `?cursor=` keyset paging lives in `dynamic-api.service.ts` (`encodeCursor`/`cursorWhere`). Keep the predicate in the `field <= v AND (field < v OR id < c)` form — the textbook OR form can't use the index.
+- **Multi-instance state** goes through Redis when `REDIS_URL` is set: cache (`AppCacheService`), throttler (`common/redis-throttler.storage.ts`), Socket.io adapter (set on the *root* server in `realtime.gateway.ts` — the gateway itself is a namespace).
+- **`TRUST_PROXY`** must be right for the deployment, or per-IP rate limits and audit IPs see the proxy instead of clients.
+- **CORS** rules live in one place, `common/cors-origin.ts`, shared by HTTP and Socket.io.
+- **Public cache invalidation** is automatic and per content type: a Prisma `$use` middleware in `DynamicApiService.onModuleInit` bumps `dyn:generation:<contentTypeId>` for each content type an `Entry`/`ContentType` write touches, from any service, so other types stay cached. `dynamic-api/cache-scope.ts` works out the types from the write's args, its result, or (bulk writes by id) a lookup; when it can't, it bumps the global `dyn:generation`. Don't add per-call invalidation, and don't write entries through raw SQL or a client that bypasses `PrismaService`.
+- **Webhook queue**: `WebhooksService.fire()` only inserts `webhook_deliveries` rows; `WebhookWorker` on every instance claims due rows with `FOR UPDATE SKIP LOCKED` (`claimDue()`), at most `WEBHOOK_CONCURRENCY` in flight. A claimed row stays `pending` with `attempts` already incremented and `nextRetryAt` pushed out as a 60 s lease, so a crashed worker's row is reclaimed automatically. Compare `nextRetryAt` against `now() AT TIME ZONE 'UTC'` in raw SQL — the column is `timestamp without time zone` holding UTC.
+- **Background jobs** (`jobs/`): `JobsService.enqueue(type, payload)` inserts a `jobs` row; the module owning the type registers its handler with `registerHandler(type, fn)` in `onModuleInit` (form actions: `forms/actions/actions.service.ts`). A handler throws to be retried (1 min, then 10 min; `maxAttempts` default 3). Payloads are snapshots. `JobWorker` and `WebhookWorker` share the claim/lease/concurrency loop in `common/queue-runner.ts`; `QUEUE_WORKER=false` disables both on an instance. Done jobs are pruned after 7 days, failed after 30.
+- **No Postgres session advisory locks**: Prisma pools connections, so `pg_advisory_unlock` can run on a different connection than the lock and leak it. Make cron jobs safe to run on every instance instead (conditional updates, idempotent deletes), as `scheduler.service.ts` does.
+- **Read replica** (`DATABASE_REPLICA_URL`): `PrismaService.readReplica` is the replica client or `null`. Use it only for lag-tolerant public reads (via `DynamicApiService.readClient()`, which also honours the read-after-write window). Prisma clients are proxies — never return `this` from a `PrismaService` getter; it's the raw target without model accessors.
+- **Indexed fields** (`indexed: true` in a schema field): `content-type/field-index.service.ts` keeps one partial expression index `entries_f_<ctId>_<field>` per flagged field, matching the SQL Prisma emits for JSON path filters. It runs `CREATE INDEX CONCURRENTLY` in the background and never throws.
+- **Query strings** are parsed by `common/query-parser.ts` (qs). Express 5's default "simple" parser silently drops nested params like `where[a][eq]`; the e2e `createTestApp()` sets the same parser.
+- **nginx**: `nginx/proxy.conf` is mounted at `/etc/nginx/snippets/` — never under `conf.d/` (nginx includes those at the http level, where `location` is invalid). `/api/realtime` uses an `ip_hash` upstream; restart nginx after changing the backend replica count.
+- **E2E tests** (`npm run test:e2e` in `backend/`) wipe every table. `test/jest.setup.ts` loads `backend/.env.test` before `.env` and refuses non-local database hosts — put a throwaway `DATABASE_URL` in `.env.test`. It also blanks `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` so tests never send real email (`E2E_ALLOW_SMTP=1` overrides) — blank, not deleted, because the Prisma client re-loads `.env` and would restore a deleted key.
+- **`prisma db push` fails on this schema** (`cannot use column reference in DEFAULT expression`): `search_vector` is a generated column, which Prisma can only describe as a `dbgenerated` default. Use migrations (`migrate dev` / `migrate deploy`).
+- **Schema changes need a migration.** `prisma db push` hides missing migrations — always check `npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url <throwaway>` is empty.
 
 ### Relations & `?populate=`
 
@@ -189,12 +209,12 @@ Four route groups:
 
 **Middleware** (`middleware.ts`) protects the `ADMIN_PATHS` list (keep it in sync when adding an admin page). `ADMIN_ONLY_PATHS` (e.g. `/users`, `/api-keys`, `/webhooks`, `/audit-log`, `/content-types/new`) further restrict to admin role. Public routes and `/setup` pass through freely; already-logged-in users are redirected away from `/login` and `/setup`.
 
-**API proxy**: `next.config.js` rewrites `/api/*`, `/uploads/*` and `/graphql` → `BACKEND_URL`. This only works client-side. Server components must use `BACKEND_URL` env var directly. Socket.io (`lib/useRealtimeEvents.ts`, `lib/useEntryPresence.ts`) bypasses the proxy and connects to `NEXT_PUBLIC_API_URL` directly.
+**API proxy**: `next.config.js` rewrites `/api/*`, `/uploads/*` and `/graphql` → `BACKEND_URL`. This only works client-side. Server components must use `BACKEND_URL` env var directly. Socket.io (`lib/useRealtimeEvents.ts`, `lib/useEntryPresence.ts`, both via `lib/realtime-socket.ts`) bypasses the proxy and connects to `${NEXT_PUBLIC_API_URL}/realtime` (falling back to the page origin). The `/realtime` namespace must be in the URL — the bare URL joins `/`, which connects but receives nothing.
 
 **Changing the backend PORT** needs no other edits in local dev, via three cooperating pieces:
 - `next.config.js` `resolveBackendUrl()` — when `BACKEND_URL` is unset or points at localhost, it reads `PORT` from `../backend/.env` (so a stale `.env.local` loses). For a local backend only, it inlines `BACKEND_URL` / `NEXT_PUBLIC_BACKEND_URL` / `NEXT_PUBLIC_API_URL` into the build. A remote URL is never inlined, because it may be a Docker-internal hostname.
 - `config/env.ts` — outside production, an unset or localhost `APP_URL` is rewritten to `http://localhost:${PORT}` (media URLs follow).
-- `main.ts` CORS — outside production, any `localhost`/`127.0.0.1` origin is allowed. In production only `CORS_ORIGIN` entries are allowed (`*` sends a literal wildcard). Disallowed origins get no CORS headers, not an error. The Socket.io gateway (`realtime.gateway.ts`) has its own separate CORS config.
+- `main.ts` CORS — outside production, any `localhost`/`127.0.0.1` origin is allowed. In production only `CORS_ORIGIN` entries are allowed (`*` sends a literal wildcard). Disallowed origins get no CORS headers, not an error. The Socket.io gateway (`realtime.gateway.ts`) shares the same rules via `common/cors-origin.ts`.
 
 **Auth storage**: JWT stored in cookie `np_token` (readable by middleware server-side). User object in `localStorage`. `lib/axios.ts` reads `Cookies.get('np_token')` for the `Authorization` header.
 

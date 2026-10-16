@@ -4,6 +4,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { RedisThrottlerStorage } from './common/redis-throttler.storage';
 import { GqlThrottlerGuard } from './common/gql-throttler.guard';
 import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './prisma/prisma.module';
@@ -18,6 +19,7 @@ import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { AuditModule } from './audit/audit.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { JobsModule } from './jobs/jobs.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { SeoModule } from './seo/seo.module';
 import { AppCacheModule } from './cache/cache.module';
@@ -66,13 +68,17 @@ import { BrandModule } from './brand/brand.module';
       },
     }),
 
-    ThrottlerModule.forRoot([
-      {
-        name: 'default',
-        ttl: 60_000,
-        limit: 120,
-      },
-    ]),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: 'default',
+          ttl: 60_000,
+          limit: 120,
+        },
+      ],
+      // Shared across replicas when REDIS_URL is set; in-memory otherwise.
+      storage: new RedisThrottlerStorage(process.env.REDIS_URL),
+    }),
 
     AppCacheModule,     // Global — AppCacheService available everywhere without re-importing
     BrandModule,        // Global — BrandService (install brand) available everywhere; registered before MailModule which uses it
@@ -85,6 +91,7 @@ import { BrandModule } from './brand/brand.module';
     AuthModule,
     AuditModule,        // Global — AuditService available everywhere without re-importing
     WebhooksModule,     // Global — WebhooksService available everywhere without re-importing
+    JobsModule,         // Global — JobsService (background jobs: form actions, plugin tasks)
     UsersModule,
     PermissionsModule,
     GraphqlModule,

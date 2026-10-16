@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { INDEXABLE_FIELD_TYPES, INDEXED_HINT } from '@/lib/indexable-fields';
 
 const FIELD_TYPES = [
   { value: 'text',     label: 'Text' },
@@ -48,6 +49,7 @@ interface Field {
   name:     string;
   type:     string;
   required: boolean;
+  indexed?: boolean;
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
 }
 
@@ -56,11 +58,12 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; options?: any }) => ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; options?: any }) => ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
   required: f.required,
+  ...(f.indexed && INDEXABLE_FIELD_TYPES.has(f.type) ? { indexed: true } : {}),
   ...(f.options ? { options: f.options } : {}),
 });
 
@@ -151,7 +154,7 @@ export default function NewContentTypePage() {
         setName(ct.displayName || ct.name);
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, options: f.options }))
+            ? ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, options: f.options }))
             : [{ name: '', type: 'text', required: false }],
         );
         if (Array.isArray(ct.allowedMethods)) setAllowedMethods(ct.allowedMethods);
@@ -342,6 +345,12 @@ export default function NewContentTypePage() {
                         <Checkbox checked={!!field.required} onCheckedChange={(c) => updateField(fi, 'required', c === true)} />
                         Required
                       </label>
+                      {INDEXABLE_FIELD_TYPES.has(field.type) && (
+                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none" title={INDEXED_HINT}>
+                          <Checkbox checked={!!field.indexed} onCheckedChange={(c) => updateField(fi, 'indexed', c === true)} />
+                          Indexed
+                        </label>
+                      )}
                       <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={fields.length === 1} onClick={() => removeField(fi)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

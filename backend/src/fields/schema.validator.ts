@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import {
   ALL_FIELD_TYPES,
+  INDEXABLE_FIELD_TYPES,
   SIMPLE_FIELD_TYPES,
   SimpleFieldType,
   FieldDef,
@@ -90,6 +91,15 @@ export class SchemaValidator {
     }
     if (field.description !== undefined && typeof field.description !== 'string') {
       errors.push(`${path}.description: must be string`);
+    }
+    if (field.indexed !== undefined) {
+      if (typeof field.indexed !== 'boolean') {
+        errors.push(`${path}.indexed: must be boolean`);
+      } else if (field.indexed && (isSubField || !INDEXABLE_FIELD_TYPES.has(field.type))) {
+        errors.push(
+          `${path}.indexed: only top-level ${[...INDEXABLE_FIELD_TYPES].join(', ')} fields can be indexed`,
+        );
+      }
     }
 
     // type-specific option validation

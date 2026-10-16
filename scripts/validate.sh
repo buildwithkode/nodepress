@@ -130,15 +130,19 @@ if [ "$RUN_SMOKE" = "1" ]; then
   else
     APP="$TMP_PROJECT"
     [ -z "$APP" ] && APP="$ROOT"   # fall back to working tree if scaffold skipped
-    export DATABASE_URL DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" PORT="$SMOKE_PORT"
-    printf 'DATABASE_URL="%s"\nDIRECT_URL="%s"\nPORT="%s"\nJWT_SECRET="validate-only-secret-key-0123456789abcdef"\nCORS_ORIGIN="http://localhost:5173"\n' \
-      "$DATABASE_URL" "$DIRECT_URL" "$SMOKE_PORT" > "$APP/backend/.env"
+    # Settings go in through the environment (dotenv never overrides it). Never
+    # write backend/.env here: with --no-scaffold, APP is the working tree and
+    # that file holds the developer's real credentials.
+    export DATABASE_URL DIRECT_URL="${DIRECT_URL:-$DATABASE_URL}" PORT="$SMOKE_PORT" \
+      JWT_SECRET="validate-only-secret-key-0123456789abcdef" CORS_ORIGIN="http://localhost:5173" \
+      APP_URL="http://localhost:$SMOKE_PORT"
 
     info "prisma migrate deploy…"
     ( cd "$APP/backend" && npx prisma migrate deploy >/dev/null 2>&1 ) && pass "migrate" || fail "migrate failed"
 
     info "booting backend on :${SMOKE_PORT}…"
-    ( cd "$APP/backend" && node dist/main.js >/tmp/np-validate-be.log 2>&1 ) &
+    # exec: SMOKE_PID must be node itself, or cleanup() kills only the subshell.
+    ( cd "$APP/backend" && exec node dist/main.js >/tmp/np-validate-be.log 2>&1 ) &
     SMOKE_PID=$!
     B="http://localhost:$SMOKE_PORT/api"
     n=0; until curl -sf "$B/health" >/dev/null 2>&1 || [ $n -ge 30 ]; do sleep 1; n=$((n+1)); done

@@ -220,6 +220,7 @@ export class MailService implements OnModuleInit {
     data: Record<string, unknown>,
     replyTo?: string,
     fields?: { name: string; label?: string }[],
+    options: { throwOnError?: boolean } = {},
   ): Promise<void> {
     if (!this.transporter) {
       this.logger.warn(`[FormEmail] No SMTP configured — skipping email to ${to}`);
@@ -273,12 +274,13 @@ export class MailService implements OnModuleInit {
       .map(([k, v]) => `${labelFor(k)}: ${formatValuePlain(v)}`)
       .join('\n');
 
-    await this.send({ to, subject, text: textLines, html, replyTo });
+    await this.send({ to, subject, text: textLines, html, replyTo }, options);
   }
 
   /**
    * Generic low-level send. All public methods funnel through here.
-   * Never throws — logs errors only.
+   * Never throws — logs errors only — unless `throwOnError` is set (queued
+   * jobs use it so a failed send is retried).
    */
   async send(options: {
     to: string;
@@ -286,7 +288,7 @@ export class MailService implements OnModuleInit {
     text: string;
     html: string;
     replyTo?: string;
-  }): Promise<void> {
+  }, { throwOnError = false }: { throwOnError?: boolean } = {}): Promise<void> {
     if (!this.transporter) return;
 
     const from = env.SMTP_FROM ?? (env.SMTP_USER
@@ -306,6 +308,7 @@ export class MailService implements OnModuleInit {
     } catch (err: any) {
       // Never throw — a failed email must not break the caller's response
       this.logger.error(`Mail send failed → ${options.to} | ${err?.message ?? err}`);
+      if (throwOnError) throw err;
     }
   }
 

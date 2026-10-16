@@ -26,45 +26,78 @@ describe('Users (e2e)', () => {
 
   // ── Create ────────────────────────────────────────────────────────────────────
 
-  it('POST /api/users → admin creates an editor', async () => {
+  it('POST /api/users → admin invites an editor (no password)', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ email: 'editor@test.com', password: 'Password123!', role: 'editor' })
+      .send({ email: 'editor@test.com', role: 'editor' })
       .expect(201);
 
     editorId = res.body.id;
     expect(res.body.email).toBe('editor@test.com');
     expect(res.body.role).toBe('editor');
+    expect(res.body.invited).toBe(true);
     expect(res.body.password).toBeUndefined();
+    // SMTP is not configured in tests, so the set-password link comes back for manual delivery.
+    expect(res.body.inviteUrl).toMatch(/\/reset-password\?token=/);
+
+    // The invited user cannot log in until they set a password.
+    await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: 'editor@test.com', password: 'Password123!' })
+      .expect(401);
+
+    const token = new URL(res.body.inviteUrl).searchParams.get('token');
+    await request(app.getHttpServer())
+      .post('/api/auth/reset-password')
+      .send({ token, password: 'Password123!' })
+      .expect(201);
+  });
+
+  it('POST /api/users → 400 when a password is sent (invite-only)', async () => {
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ email: 'withpass@test.com', password: 'Password123!', role: 'editor' })
+      .expect(400);
   });
 
   it('POST /api/users → 409 on duplicate email', async () => {
     await request(app.getHttpServer())
       .post('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ email: 'editor@test.com', password: 'Password123!', role: 'editor' })
+      .send({ email: 'editor@test.com', role: 'editor' })
       .expect(409);
   });
 
   it('POST /api/users → 401 without auth', async () => {
     await request(app.getHttpServer())
       .post('/api/users')
-      .send({ email: 'anon@test.com', password: 'Password123!', role: 'editor' })
+      .send({ email: 'anon@test.com', role: 'editor' })
       .expect(401);
   });
 
   it('POST /api/users → 403 for non-admin', async () => {
     const editorLogin = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: 'editor@test.com', password: 'Password123!' });
+      .send({ email: 'editor@test.com', password: 'Password123!' })
+      .expect(201);
     const editorToken = editorLogin.body.access_token;
 
     await request(app.getHttpServer())
       .post('/api/users')
       .set('Authorization', `Bearer ${editorToken}`)
-      .send({ email: 'another@test.com', password: 'Password123!', role: 'editor' })
+      .send({ email: 'another@test.com', role: 'editor' })
       .expect(403);
+  });
+
+  it('POST /api/users/:id/invite → resends the invitation link', async () => {
+    const res = await request(app.getHttpServer())
+      .post(`/api/users/${editorId}/invite`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(201);
+
+    expect(res.body.inviteUrl).toMatch(/\/reset-password\?token=/);
   });
 
   // ── List ──────────────────────────────────────────────────────────────────────

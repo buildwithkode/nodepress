@@ -1,4 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
+import { mkdirSync } from 'fs';
+import { join } from 'path';
 import { PrismaModule } from '../prisma/prisma.module';
 import { MediaController } from './media.controller';
 import { MediaService } from './media.service';
@@ -25,8 +27,19 @@ import { S3StorageAdapter } from './adapters/s3.adapter';
 const storageAdapterProvider = {
   provide: STORAGE_ADAPTER,
   useFactory: () => {
+    // Multer stages every upload in uploads/ before the adapter stores it (even
+    // for S3), and the health check reports this directory. Create it at boot so
+    // a fresh install isn't "unhealthy" until the first upload.
+    mkdirSync(join(process.cwd(), 'uploads'), { recursive: true });
     const driver = process.env.STORAGE_DRIVER ?? 'local';
     if (driver === 's3') return new S3StorageAdapter();
+    if (process.env.NODE_ENV === 'production') {
+      new Logger('MediaModule').warn(
+        'STORAGE_DRIVER=local in production — uploads live on this container\'s disk. ' +
+        'They are lost on redeploy without a persistent volume, and are invisible to other ' +
+        'replicas when scaling horizontally. Use STORAGE_DRIVER=s3 (S3, R2, Spaces, MinIO).',
+      );
+    }
     return new LocalStorageAdapter();
   },
 };

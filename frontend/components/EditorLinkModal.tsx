@@ -54,6 +54,7 @@ export function EditorLinkModal({
   const handleSave = () => {
     let cleanUrl = url.trim();
     if (!cleanUrl) return;
+    // Prepend https:// if missing protocol and not mailto/tel/anchor
     if (!/^(https?:\/\/|mailto:|tel:|#|\/)/i.test(cleanUrl)) {
       cleanUrl = `https://${cleanUrl}`;
     }

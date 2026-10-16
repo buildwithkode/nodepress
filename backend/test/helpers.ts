@@ -3,7 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as express from 'express';
 import cookieParser = require('cookie-parser');
 import request from 'supertest';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
+import { parseQueryString } from '../src/common/query-parser';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 /** Boot the full NestJS app against the test database (DATABASE_URL env var).
@@ -14,7 +16,8 @@ export async function createTestApp(): Promise<INestApplication> {
     imports: [AppModule],
   }).compile();
 
-  const app = moduleFixture.createNestApplication();
+  const app = moduleFixture.createNestApplication<NestExpressApplication>();
+  app.set('query parser', parseQueryString);
 
   // ── Mirror main.ts middleware setup exactly ──────────────────────────────
   // express.json must be registered BEFORE app.init() so Apollo Server can
@@ -43,6 +46,7 @@ export async function cleanDatabase(app: INestApplication) {
   await prisma.$executeRawUnsafe(`DELETE FROM "webhook_deliveries"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "webhooks"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "api_keys"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "jobs"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "form_submissions"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "forms"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "media"`);
@@ -62,4 +66,32 @@ export async function registerAdmin(
     .post('/api/auth/register')
     .send({ email, password });
   return res.body.access_token as string;
+}
+
+/**
+ * Invite a team member the way the admin UI does (email + role, no password),
+ * then accept the invitation by setting a password through the invite link.
+ * Returns the new user's id and a logged-in access token.
+ */
+export async function inviteUser(
+  app: INestApplication,
+  adminToken: string,
+  email: string,
+  role: string,
+  password = 'Password123!',
+) {
+  const server = app.getHttpServer();
+  const invite = await request(server)
+    .post('/api/users')
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({ email, role });
+  if (invite.status !== 201) {
+    throw new Error(`Invite for ${email} failed: ${invite.status} ${JSON.stringify(invite.body)}`);
+  }
+
+  const token = new URL(invite.body.inviteUrl).searchParams.get('token');
+  await request(server).post('/api/auth/reset-password').send({ token, password }).expect(201);
+
+  const login = await request(server).post('/api/auth/login').send({ email, password });
+  return { id: invite.body.id as number, token: login.body.access_token as string };
 }

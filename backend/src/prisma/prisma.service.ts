@@ -5,13 +5,36 @@ import { PrismaClient } from '@prisma/client';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
 
+  /**
+   * Optional read replica (DATABASE_REPLICA_URL). Only queries that tolerate a
+   * little replication lag should use it — see `reader`.
+   */
+  private readonly replica: PrismaClient | null = process.env.DATABASE_REPLICA_URL
+    ? new PrismaClient({ datasources: { db: { url: process.env.DATABASE_REPLICA_URL } } })
+    : null;
+
+  /**
+   * The read replica client, or null when DATABASE_REPLICA_URL is unset.
+   * (It returns null rather than `this` as a fallback: Prisma clients are
+   * proxies, and `this` inside a getter is the raw target without the model
+   * accessors — callers fall back to the injected PrismaService instead.)
+   */
+  get readReplica(): PrismaClient | null {
+    return this.replica;
+  }
+
   async onModuleInit() {
     await this.$connect();
     await this.assertSchemaReady();
+    if (this.replica) {
+      await this.replica.$connect();
+      this.logger.log('Read replica connected (DATABASE_REPLICA_URL) — public reads use it');
+    }
   }
 
   async onModuleDestroy() {
     await this.$disconnect();
+    await this.replica?.$disconnect();
   }
 
   /**

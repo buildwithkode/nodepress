@@ -58,6 +58,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
     try {
       const res = await api.get('/media?limit=100');
       const list = Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+      // Filter image mimetypes or extensions
       const imageFiles = list.filter((f: MediaFile) =>
         f.mimetype?.startsWith('image/') ||
         /\.(png|jpe?g|webp|gif|svg|avif)$/i.test(f.url || f.filename)
@@ -83,6 +84,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
     }
   }, [open]);
 
+  // Validate external URL preview
   useEffect(() => {
     if (!urlInput.trim()) {
       setUrlValid(null);

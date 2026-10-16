@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanDatabase, registerAdmin } from './helpers';
+import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Dynamic API (e2e)', () => {
   let app: INestApplication;
@@ -275,5 +276,127 @@ describe('Dynamic API (e2e)', () => {
     expect(res.body.data.author).toBeDefined();
     expect(typeof res.body.data.author).toBe('object');
     expect(res.body.data.author.slug).toBe('jane-doe');
+  });
+  // ── Nested query params (regression: Express 5 "simple" parser ignored them) ──
+
+  it('GET /api/article?where[title][eq]=… → actually filters', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/article?where[title][eq]=Hello World')
+      .expect(200);
+
+    expect(res.body.data.map((e: any) => e.slug)).toEqual(['hello-world']);
+    expect(res.body.meta.total).toBe(1);
+  });
+
+  it('GET /api/article?filters[title][contains]=… → Strapi-style alias filters too', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/article?filters[title][contains]=Second')
+      .expect(200);
+
+    expect(res.body.data.map((e: any) => e.slug)).toEqual(['second-post']);
+  });
+
+  // ── Cache invalidation across write paths ─────────────────────────────────
+
+  it('an admin-panel edit is visible on the cached public API immediately', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/api/entries')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contentTypeId, slug: 'cache-check', status: 'published', data: { title: 'Before' } })
+      .expect(201);
+
+    // Prime the public cache
+    const before = await request(app.getHttpServer()).get('/api/article/cache-check').expect(200);
+    expect(before.body.data.title).toBe('Before');
+
+    await request(app.getHttpServer())
+      .put(`/api/entries/${created.body.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ data: { title: 'After' } })
+      .expect(200);
+
+    const after = await request(app.getHttpServer()).get('/api/article/cache-check').expect(200);
+    expect(after.body.data.title).toBe('After');
+
+    await request(app.getHttpServer())
+      .delete(`/api/entries/${created.body.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    await request(app.getHttpServer()).get('/api/article/cache-check').expect(404);
+  });
+
+  it('a write clears only its own content type from the public cache', async () => {
+    const server = app.getHttpServer();
+    const auth = { Authorization: `Bearer ${token}` };
+    const other = await request(server)
+      .post('/api/content-types')
+      .set(auth)
+      .send({ name: 'note', schema: [{ name: 'title', type: 'text' }] })
+      .expect(201);
+    const art = await request(server)
+      .post('/api/entries')
+      .set(auth)
+      .send({ contentTypeId, slug: 'scoped', status: 'published', data: { title: 'Cached' } })
+      .expect(201);
+    const note = await request(server)
+      .post('/api/entries')
+      .set(auth)
+      .send({ contentTypeId: other.body.id, slug: 'n1', status: 'draft', data: { title: 'Note' } })
+      .expect(201);
+
+    // Prime the article cache, then change the row behind Prisma's back (raw SQL
+    // skips the invalidation middleware), so a cache hit still shows "Cached".
+    await request(server).get('/api/article/scoped').expect(200);
+    const prisma = app.get(PrismaService);
+    await prisma.$executeRawUnsafe(
+      `UPDATE "entries" SET "data" = '{"title":"Changed"}' WHERE "id" = ${Number(art.body.id)}`,
+    );
+
+    // A bulk publish of a note must not clear the article cache…
+    await request(server).post('/api/entries/bulk-publish').set(auth).send({ ids: [note.body.id] }).expect(201);
+    await request(server).get('/api/note/n1').expect(200);
+    const stillCached = await request(server).get('/api/article/scoped').expect(200);
+    expect(stillCached.body.data.title).toBe('Cached');
+
+    // …while a bulk write to the article clears it.
+    await request(server).post('/api/entries/bulk-publish').set(auth).send({ ids: [art.body.id] }).expect(201);
+    const fresh = await request(server).get('/api/article/scoped').expect(200);
+    expect(fresh.body.data.title).toBe('Changed');
+  });
+
+  // ── Indexed fields ────────────────────────────────────────────────────────
+
+  it('indexed: true builds a partial expression index; removing the flag drops it', async () => {
+    const prisma = app.get(PrismaService);
+    const indexName = `entries_f_${contentTypeId}_title`;
+    const indexExists = async () =>
+      (await prisma.$queryRawUnsafe<any[]>(`SELECT 1 FROM pg_indexes WHERE indexname = '${indexName}'`)).length > 0;
+    const waitFor = async (want: boolean) => {
+      for (let i = 0; i < 50 && (await indexExists()) !== want; i++) await new Promise((r) => setTimeout(r, 100));
+      return indexExists();
+    };
+
+    await request(app.getHttpServer())
+      .put(`/api/content-types/${contentTypeId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ schema: [{ name: 'title', type: 'text', required: true, indexed: true }, { name: 'body', type: 'textarea' }] })
+      .expect(200);
+    expect(await waitFor(true)).toBe(true);
+
+    await request(app.getHttpServer())
+      .put(`/api/content-types/${contentTypeId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ schema: [{ name: 'title', type: 'text', required: true }, { name: 'body', type: 'textarea' }] })
+      .expect(200);
+    expect(await waitFor(false)).toBe(false);
+  });
+
+  it('indexed: true is rejected on fields that cannot be indexed', async () => {
+    const res = await request(app.getHttpServer())
+      .put(`/api/content-types/${contentTypeId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ schema: [{ name: 'title', type: 'text', required: true }, { name: 'body', type: 'richtext', indexed: true }] })
+      .expect(400);
+    expect(JSON.stringify(res.body)).toContain('indexed');
   });
 });

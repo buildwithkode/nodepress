@@ -28,6 +28,11 @@ export const SIMPLE_FIELD_TYPES = [
 
 export const COMPLEX_FIELD_TYPES = ['repeater', 'flexible', 'group'] as const;
 
+/** Field types with scalar values that can carry `indexed: true` (B-tree comparable). */
+export const INDEXABLE_FIELD_TYPES: ReadonlySet<string> = new Set([
+  'text', 'textarea', 'number', 'boolean', 'select', 'date', 'datetime', 'color', 'relation',
+]);
+
 export const ALL_FIELD_TYPES = [...SIMPLE_FIELD_TYPES, ...COMPLEX_FIELD_TYPES] as const;
 
 export type SimpleFieldType = (typeof SIMPLE_FIELD_TYPES)[number];
@@ -45,6 +50,11 @@ interface BaseField {
   required?: boolean;
   /** Helper text shown below the input */
   description?: string;
+  /**
+   * Build a database index for filtering on this field (`?where[field][eq]=…`).
+   * Top-level scalar fields only — see INDEXABLE_FIELD_TYPES.
+   */
+  indexed?: boolean;
 }
 
 // ─── Simple field defs ────────────────────────────────────────────────────────

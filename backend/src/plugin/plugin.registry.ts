@@ -118,10 +118,19 @@ export class PluginRegistry {
       const plugin = this.plugins.get(row.id);
       if (plugin) {
         plugin.enabled = row.enabled;
-        if (row.config && typeof row.config === 'object') {
+        // Config may arrive as a JSON string depending on how the row was written.
+        let configObj = row.config;
+        if (typeof configObj === 'string') {
+          try {
+            configObj = JSON.parse(configObj);
+          } catch {
+            // Unparseable config — keep the manifest defaults below.
+          }
+        }
+        if (configObj && typeof configObj === 'object') {
           plugin.config = {
             ...(plugin.manifest.defaultConfig || {}),
-            ...row.config,
+            ...configObj,
           };
         }
       }

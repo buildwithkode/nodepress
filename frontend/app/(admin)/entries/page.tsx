@@ -32,7 +32,6 @@ import {
   Clock,
   ExternalLink,
   FileText,
-  ShoppingBag,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -712,7 +711,7 @@ export default function EntriesPage() {
             </Button>
           </div>
         )}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end sm:ml-auto">
           {!showTrash && (
             <>
               <Select value={localeFilter} onValueChange={(v) => { if (v) { setLocaleFilter(v); setPage(1); } }}>

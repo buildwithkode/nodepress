@@ -1,15 +1,36 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": "\\.e2e-spec\\.ts$",
-  "transform": { "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": { "esModuleInterop": true } }] },
-  "moduleNameMapper": { "^src/(.*)$": "<rootDir>/../src/$1" },
-  "setupFiles": ["<rootDir>/jest.setup.ts"],
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "esModuleInterop": true,
+          "allowJs": true
+        }
+      }
+    ]
+  },
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/../src/$1"
+  },
+  "setupFiles": [
+    "<rootDir>/jest.setup.ts"
+  ],
   "testTimeout": 60000,
   "globals": {
     "ts-jest": {
       "tsconfig": "<rootDir>/../tsconfig.json"
     }
-  }
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!.*(htmlparser2|domutils|domhandler|domelementtype|dom-serializer|entities))"
+  ]
 }

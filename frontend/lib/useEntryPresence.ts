@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
-import Cookies from 'js-cookie';
+import type { Socket } from 'socket.io-client';
+import { connectRealtime } from './realtime-socket';
 import { toast } from 'sonner';
 
 export interface PresenceUser {
@@ -59,15 +59,7 @@ export function useEntryPresence(entryId: number | null | undefined, currentUser
   useEffect(() => {
     if (!entryId) return;
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
-    const token = Cookies.get('np_token');
-
-    const socket = io(apiBase, {
-      path: '/api/realtime',
-      transports: ['websocket', 'polling'],
-      withCredentials: true,
-      auth: token ? { token: `Bearer ${token}` } : {},
-    });
+    const socket = connectRealtime();
     socketRef.current = socket;
 
     socket.on('connect', () => {

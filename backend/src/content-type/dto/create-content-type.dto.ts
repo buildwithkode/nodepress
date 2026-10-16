@@ -32,6 +32,14 @@ export class FieldDto {
   description?: string;
 
   @ApiPropertyOptional({
+    example: true,
+    description: 'Build a database index for ?where[field] filters (top-level text, number, boolean, select, date, datetime, color, relation fields)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  indexed?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Type-specific config — subFields for repeater, layouts for flexible, choices for select, min/max for number/text',
     example: { subFields: [{ name: 'image', type: 'image' }] },
   })

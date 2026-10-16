@@ -1,14 +1,25 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ForbiddenException,
   ConflictException,
   UnauthorizedException,
+  Optional,
+  OnModuleInit,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
+import {
+  CacheScope, WriteParams, changedNothing, entryIdsToLookUp, isCachedWrite, scopeFromArgs, scopeFromResult,
+} from './cache-scope';
+import { WebhooksService } from '../webhooks/webhooks.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
+import { PluginHookBus } from '../plugin/plugin-hook-bus';
+import { PluginEvents } from '../plugin/plugin.events';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 import { sanitizeEntryData } from '../common/sanitize';
 import { FieldDef } from '../fields/field.types';
@@ -24,6 +35,7 @@ type SortableField = 'createdAt' | 'updatedAt' | 'slug';
 export interface PublicListQuery {
   page?: number;
   limit?: number;
+  cursor?: string;                  // opaque keyset cursor from a previous meta.nextCursor (replaces page)
   sort?: string;                    // e.g. "createdAt:desc" or "slug:asc"
   filter?: Record<string, string>;  // legacy simple filter e.g. { category: "tech" }
   where?: Record<string, any>;      // advanced where query e.g. { price: { gte: 100 }, category: { in: ["tech", "news"] } }
@@ -44,10 +56,13 @@ export interface PublicSingleQuery {
 export interface PaginatedResult<T> {
   data: T[];
   meta: {
-    total: number;
-    page: number;
+    /** Omitted in cursor mode — counting every row is what cursor paging avoids. */
+    total?: number;
+    page?: number;
     limit: number;
-    totalPages: number;
+    totalPages?: number;
+    /** Pass as ?cursor= to fetch the next page; null on the last page. Absent for search results. */
+    nextCursor?: string | null;
     /** Present when a search was executed. "fulltext" = PostgreSQL GIN index used.
      *  "fallback" = fell back to LIKE (e.g. single character or special syntax). */
     searchMode?: 'fulltext' | 'fallback';
@@ -66,17 +81,89 @@ const LIST_TTL         = 30_000;
 const ENTRY_TTL        = 60_000;
 const CONTENT_TYPE_TTL = 300_000;
 
-/** Prefix used for cache invalidation — flushes ALL variants for a content type */
-const cachePrefix    = (typeName: string) => `dyn:${typeName}:`;
 const ctCacheKey     = (typeName: string) => `ct:meta:${typeName}`;
 
-/** Parse "field:direction" → Prisma orderBy object */
-function parseSortParam(sort?: string): Record<string, SortDirection> {
-  if (!sort) return { createdAt: 'desc' };
+/**
+ * Public responses are cached under `dyn:<global>.<type>:<contentTypeId>:…`,
+ * where <type> is a per-content-type generation counter. A write to an entry or
+ * content type — from this API, the admin panel, the scheduler, imports or
+ * plugins — bumps only the generations of the content types it touched (one
+ * O(1) INCR each), so their cached responses become unreachable and simply
+ * expire while every other type stays cached. The global generation is the
+ * fallback when a write's content type can't be determined. Both live in the
+ * shared cache, so they hold across replicas.
+ */
+const GLOBAL_GENERATION_KEY = 'dyn:generation';
+const typeGenerationKey = (contentTypeId: number) => `dyn:generation:${contentTypeId}`;
+const GENERATION_TTL = 365 * 24 * 60 * 60_000;
+
+/**
+ * After a write, reads of the written content type go to the primary for this
+ * long so a lagging read replica can't put the pre-write row back into the cache.
+ */
+const RECENT_WRITE_KEY = 'replica:recent-write';
+const typeRecentWriteKey = (contentTypeId: number) => `replica:recent-write:${contentTypeId}`;
+const READ_AFTER_WRITE_MS = Number(process.env.REPLICA_READ_AFTER_WRITE_MS) || 5_000;
+
+/** What a public read needs to know about the cache for one content type. */
+interface CacheState { prefix: string; recentWrite: boolean }
+
+/** Parse "field:direction" → sort field + direction */
+function parseSortParam(sort?: string): { field: SortableField; direction: SortDirection } {
+  if (!sort) return { field: 'createdAt', direction: 'desc' };
   const [rawField, rawDir] = sort.split(':');
   const field = SORTABLE[rawField] ?? 'createdAt';
   const direction: SortDirection = rawDir === 'asc' ? 'asc' : 'desc';
-  return { [field]: direction };
+  return { field, direction };
+}
+
+/**
+ * Keyset cursor: the sort key + id of the last row on a page, base64url-encoded.
+ * Paging by cursor is O(limit) at any depth, whereas OFFSET makes Postgres walk
+ * past every skipped row, and it skips the per-request COUNT(*).
+ */
+interface CursorPayload { s: string; v: string; id: number }
+
+function encodeCursor(field: SortableField, direction: SortDirection, row: Record<string, any>): string {
+  const value = row[field] instanceof Date ? row[field].toISOString() : String(row[field]);
+  const payload: CursorPayload = { s: `${field}:${direction}`, v: value, id: row.id };
+  return Buffer.from(JSON.stringify(payload)).toString('base64url');
+}
+
+function decodeCursor(cursor: string, field: SortableField, direction: SortDirection): CursorPayload {
+  let payload: CursorPayload;
+  try {
+    payload = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
+  } catch {
+    throw new BadRequestException('Invalid cursor');
+  }
+  if (!payload || typeof payload.v !== 'string' || !Number.isInteger(payload.id)) {
+    throw new BadRequestException('Invalid cursor');
+  }
+  if (payload.s !== `${field}:${direction}`) {
+    throw new BadRequestException('Cursor was issued for a different sort order');
+  }
+  return payload;
+}
+
+/**
+ * WHERE clause selecting rows strictly after the cursor in (field, id) order.
+ *
+ * Written as `field <= v AND (field < v OR id < c)` rather than the textbook
+ * `field < v OR (field = v AND id < c)`: the leading range condition lets
+ * Postgres start the index scan at the cursor. The OR-only form can't, and
+ * filters every earlier row — measured at 88 ms vs 0.04 ms, 100k rows deep.
+ */
+function cursorWhere(field: SortableField, direction: SortDirection, c: CursorPayload) {
+  const value = field === 'slug' ? c.v : new Date(c.v);
+  const strict = direction === 'desc' ? 'lt' : 'gt';
+  const inclusive = direction === 'desc' ? 'lte' : 'gte';
+  return {
+    AND: [
+      { [field]: { [inclusive]: value } },
+      { OR: [{ [field]: { [strict]: value } }, { id: { [strict]: c.id } }] },
+    ],
+  };
 }
 
 /**
@@ -112,18 +199,61 @@ function buildDataFilters(filter: Record<string, string>) {
 }
 
 @Injectable()
-export class DynamicApiService {
+export class DynamicApiService implements OnModuleInit {
+  private readonly logger = new Logger(DynamicApiService.name);
+
   constructor(
     private prisma: PrismaService,
     private cache: AppCacheService,
     private jwtService: JwtService,
+    private webhooks: WebhooksService,
+    private realtime: RealtimeGateway,
+    @Optional() private hookBus?: PluginHookBus,
   ) {}
+
+  onModuleInit() {
+    // Prisma middleware sees every Entry/ContentType write in the process,
+    // whichever service makes it, so no write path can forget to invalidate.
+    if (typeof this.prisma.$use !== 'function') return; // mocked in unit tests
+    this.prisma.$use((params, next) => this.invalidatingWrite(params, next));
+  }
+
+  /** Run a write, then drop the cached responses of the content types it touched. */
+  async invalidatingWrite(params: WriteParams, next: (params: any) => Promise<any>): Promise<any> {
+    if (!isCachedWrite(params)) return next(params);
+
+    let scope = scopeFromArgs(params);
+    // A hard delete removes the rows the content type would be looked up from.
+    if (scope === null && params.action.startsWith('delete')) scope = await this.lookUpEntryTypes(params);
+
+    const result = await next(params);
+    if (changedNothing(result)) return result; // e.g. a scheduler run with nothing due
+
+    scope ??= scopeFromResult(params, result) ?? (await this.lookUpEntryTypes(params));
+    await this.invalidateScope(scope ?? 'all');
+    return result;
+  }
+
+  private async lookUpEntryTypes(params: WriteParams): Promise<number[] | null> {
+    const ids = entryIdsToLookUp(params);
+    if (!ids) return null;
+    try {
+      const rows = await this.prisma.entry.findMany({
+        where: { id: { in: ids } },
+        select: { contentTypeId: true },
+        distinct: ['contentTypeId'],
+      });
+      return rows.map((r) => r.contentTypeId);
+    } catch {
+      return null;
+    }
+  }
 
   private async resolveContentType(typeName: string, method: MethodKey) {
     const name = typeName.trim().toLowerCase().replace(/[\s-]+/g, '_');
 
     // Cache content type meta for 5 minutes — avoids a DB round-trip on every
-    // public API request. Invalidated by invalidate() on any mutation.
+    // public API request. The content-type service clears it on schema changes.
     const cacheKey = ctCacheKey(name);
     let contentType = await this.cache.get<any>(cacheKey);
 
@@ -152,12 +282,46 @@ export class DynamicApiService {
     return { id: publicId, ...rest, data };
   }
 
-  /** Flush all cached results for a content type (called on any mutation) */
-  private async invalidate(typeName: string) {
-    await Promise.all([
-      this.cache.invalidatePrefix(cachePrefix(typeName)),
-      this.cache.invalidatePrefix(ctCacheKey(typeName)),
+  /** Make the cached public responses of some (or all) content types stale. */
+  private async invalidateScope(scope: CacheScope) {
+    const ops = scope === 'all'
+      ? [
+          this.cache.increment(GLOBAL_GENERATION_KEY, GENERATION_TTL),
+          this.cache.set(RECENT_WRITE_KEY, 1, READ_AFTER_WRITE_MS),
+        ]
+      : scope.flatMap((id) => [
+          this.cache.increment(typeGenerationKey(id), GENERATION_TTL),
+          this.cache.set(typeRecentWriteKey(id), 1, READ_AFTER_WRITE_MS),
+        ]);
+    try {
+      await Promise.all(ops);
+    } catch (err: any) {
+      // The write itself already succeeded; cached responses expire on their TTL.
+      this.logger.warn(`Public cache invalidation failed: ${err?.message}`);
+    }
+  }
+
+  /** Cache key prefix and read-after-write flag for a content type, in one round trip. */
+  private async cacheState(contentTypeId: number): Promise<CacheState> {
+    const [globalGen, typeGen, recentAll, recentType] = await this.cache.getMany<number>([
+      GLOBAL_GENERATION_KEY,
+      typeGenerationKey(contentTypeId),
+      RECENT_WRITE_KEY,
+      typeRecentWriteKey(contentTypeId),
     ]);
+    return {
+      prefix: `dyn:${globalGen ?? 0}.${typeGen ?? 0}:${contentTypeId}:`,
+      recentWrite: !!(recentAll || recentType),
+    };
+  }
+
+  /**
+   * Client for a public read: the read replica when configured, except right
+   * after a write to the same content type (see READ_AFTER_WRITE_MS).
+   */
+  private readClient(state: CacheState): PrismaClient {
+    const replica = this.prisma.readReplica;
+    return replica && !state.recentWrite ? replica : this.prisma;
   }
 
   async findAll(typeName: string, query: PublicListQuery = {}): Promise<PaginatedResult<any>> {
@@ -166,18 +330,27 @@ export class DynamicApiService {
     const page  = Math.max(1, query.page ?? 1);
     const limit = Math.min(100, Math.max(1, query.limit ?? 20));
     const skip  = (page - 1) * limit;
-    const orderBy = parseSortParam(query.sort);
+    const { field: sortField, direction: sortDir } = parseSortParam(query.sort);
+    // id is a tiebreaker so pages never skip or repeat rows sharing a timestamp.
+    const orderBy = [{ [sortField]: sortDir }, { id: sortDir }];
+    if (query.cursor && query.search) {
+      throw new BadRequestException('cursor cannot be combined with search — use page instead');
+    }
+    const cursor = query.cursor ? decodeCursor(query.cursor, sortField, sortDir) : null;
 
     // ── Cache lookup ──────────────────────────────────────────────────────────
     // populate/fields responses vary per request and aren't cached, so they must
     // also skip the cache read (the key omits populate/fields) — otherwise a
     // populated list could be served raw, or vice versa.
     const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
-    const cacheKey = `${cachePrefix(typeName)}list:${JSON.stringify({ page, limit, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale, stage: query.stage })}`;
+    const state = await this.cacheState(contentType.id);
+    const cacheKey = `${state.prefix}list:${JSON.stringify({ page, limit, cursor: query.cursor, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale, stage: query.stage })}`;
     if (cacheable) {
       const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
       if (cached) return cached;
     }
+
+    const db = this.readClient(state);
 
     // Build status condition based on environment stage targeting
     const statusFilter = query.stage === 'staging'
@@ -199,35 +372,36 @@ export class DynamicApiService {
     };
 
     // ── Full-text search ──────────────────────────────────────────────────────
-    // Uses the entries_fts_idx GIN index with DB-level pagination (LIMIT/OFFSET)
+    // Uses the entries_search_vector_idx GIN index (generated search_vector column) with DB-level pagination
     // to prevent memory exhaustion and Postgres parameter overflow on large datasets.
     // Falls back to LIKE for short/special-char queries tsquery rejects.
     let searchMode: 'fulltext' | 'fallback' | undefined;
     let total = 0;
     let entries: any[] = [];
+    let hasMore = false;
 
     if (query.search && query.search.trim()) {
       const term = query.search.trim();
       let matches: { id: number }[] = [];
       try {
-        const countResult = await this.prisma.$queryRaw<any[]>`
+        const countResult = await db.$queryRaw<any[]>`
           SELECT count(*)::int AS count FROM entries
           WHERE "contentTypeId" = ${contentType.id}
             AND status = 'published'
             AND "deletedAt" IS NULL
             ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
-            AND to_tsvector('english', slug || ' ' || COALESCE(data::text, '')) @@ websearch_to_tsquery('english', ${term})
+            AND search_vector @@ websearch_to_tsquery('english', ${term})
         `;
         total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
 
         if (total > 0) {
-          const res = await this.prisma.$queryRaw<{ id: number }[]>`
+          const res = await db.$queryRaw<{ id: number }[]>`
             SELECT id FROM entries
             WHERE "contentTypeId" = ${contentType.id}
               AND status = 'published'
               AND "deletedAt" IS NULL
               ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
-              AND to_tsvector('english', slug || ' ' || COALESCE(data::text, '')) @@ websearch_to_tsquery('english', ${term})
+              AND search_vector @@ websearch_to_tsquery('english', ${term})
             ORDER BY "createdAt" DESC
             LIMIT ${limit} OFFSET ${skip}
           `;
@@ -237,7 +411,7 @@ export class DynamicApiService {
       } catch {
         // Fallback: plain LIKE for short/special-char queries that tsquery can't parse
         const like = `%${term}%`;
-        const countResult = await this.prisma.$queryRaw<any[]>`
+        const countResult = await db.$queryRaw<any[]>`
           SELECT count(*)::int AS count FROM entries
           WHERE "contentTypeId" = ${contentType.id}
             AND status = 'published'
@@ -248,7 +422,7 @@ export class DynamicApiService {
         total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
 
         if (total > 0) {
-          const res = await this.prisma.$queryRaw<{ id: number }[]>`
+          const res = await db.$queryRaw<{ id: number }[]>`
             SELECT id FROM entries
             WHERE "contentTypeId" = ${contentType.id}
               AND status = 'published'
@@ -265,7 +439,7 @@ export class DynamicApiService {
 
       if (matches && matches.length > 0) {
         const pageIds = matches.map((m) => m.id);
-        const rawEntries = await this.prisma.entry.findMany({
+        const rawEntries = await db.entry.findMany({
           where: { id: { in: pageIds } },
           select: {
             id: true, publicId: true, slug: true, locale: true,
@@ -278,10 +452,24 @@ export class DynamicApiService {
       } else {
         entries = [];
       }
+    } else if (cursor) {
+      // Fetch one extra row to learn whether another page exists, without COUNT(*).
+      const rows = await db.entry.findMany({
+        where: { AND: [where, cursorWhere(sortField, sortDir, cursor)] },
+        orderBy,
+        take: limit + 1,
+        select: {
+          id: true, publicId: true, slug: true, locale: true,
+          status: true, deletedAt: true, data: true, seo: true,
+          createdAt: true, updatedAt: true,
+        },
+      });
+      hasMore = rows.length > limit;
+      entries = rows.slice(0, limit);
     } else {
       const [countedTotal, fetchedEntries] = await Promise.all([
-        this.prisma.entry.count({ where }),
-        this.prisma.entry.findMany({
+        db.entry.count({ where }),
+        db.entry.findMany({
           where,
           orderBy,
           skip,
@@ -311,7 +499,7 @@ export class DynamicApiService {
 
     if (query.populate?.length) {
       const dataList = processed.map((p) => p.entryData);
-      populatedDataList = await populateManyDeep(dataList, schema, query.populate, this.prisma);
+      populatedDataList = await populateManyDeep(dataList, schema, query.populate, db);
     } else {
       populatedDataList = processed.map((p) => p.entryData);
     }
@@ -322,14 +510,22 @@ export class DynamicApiService {
       return projectFields(entry, query.fields);
     });
 
-    const result: PaginatedResult<any> = {
-      data,
-      meta: {
-        total, page, limit,
-        totalPages: Math.ceil(total / limit),
-        ...(searchMode ? { searchMode } : {}),
-      },
-    };
+    const last = entries[entries.length - 1];
+    const result: PaginatedResult<any> = cursor
+      ? {
+          data,
+          meta: { limit, nextCursor: hasMore && last ? encodeCursor(sortField, sortDir, last) : null },
+        }
+      : {
+          data,
+          meta: {
+            total, page, limit,
+            totalPages: Math.ceil(total / limit),
+            ...(searchMode
+              ? { searchMode }
+              : { nextCursor: skip + entries.length < total && last ? encodeCursor(sortField, sortDir, last) : null }),
+          },
+        };
     // Only cache un-projected, un-populated responses (matches the read guard above)
     if (cacheable) {
       await this.cache.set(cacheKey, result, LIST_TTL);
@@ -346,13 +542,16 @@ export class DynamicApiService {
     // so they must also SKIP the cache read — otherwise a populated request would
     // return a previously-cached raw (un-populated) entry under the same key.
     const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
-    const cacheKey = `${cachePrefix(typeName)}slug:${slug}:${locale}:${query.stage || 'published'}`;
+    const state = await this.cacheState(contentType.id);
+    const cacheKey = `${state.prefix}slug:${slug}:${locale}:${query.stage || 'published'}`;
     if (cacheable) {
       const cached = await this.cache.get<any>(cacheKey);
       if (cached) return cached;
     }
 
-    const entry = await this.prisma.entry.findUnique({
+    const db = this.readClient(state);
+
+    const entry = await db.entry.findUnique({
       where: {
         contentTypeId_slug_locale: { contentTypeId: contentType.id, slug, locale },
       },
@@ -384,7 +583,7 @@ export class DynamicApiService {
 
     const schema = contentType.schema as unknown as FieldDef[];
     if (query.populate?.length) {
-      data = await populateDeep(data, schema, query.populate, this.prisma);
+      data = await populateDeep(data, schema, query.populate, db);
     }
 
     data = filterUnauthorizedReadFields(data, schema, undefined);
@@ -426,7 +625,14 @@ export class DynamicApiService {
       },
     });
 
-    await this.invalidate(typeName);
+
+    // Same side effects as an admin-panel create, so webhooks (e.g. site
+    // rebuilds), live admin views and plugins see API-key writes too.
+    const event = { id: created.id, slug: created.slug, status: created.status, contentType: contentType.name };
+    this.webhooks.fire('entry.created', event);
+    this.realtime.notifyEntryCreated({ id: created.id, slug: created.slug, contentType: contentType.name, locale: created.locale });
+    await this.hookBus?.emit(PluginEvents.ENTRY_AFTER_CREATE, { ...event, data: created.data as Record<string, any> });
+
     return this.toPublicEntry(created, filterUnauthorizedReadFields(created.data as Record<string, any>, schema, undefined));
   }
 
@@ -457,7 +663,12 @@ export class DynamicApiService {
       },
     });
 
-    await this.invalidate(typeName);
+
+    const event = { id: updated.id, slug: updated.slug, status: updated.status, contentType: contentType.name };
+    this.webhooks.fire('entry.updated', event);
+    this.realtime.notifyEntryUpdated({ ...event, locale: updated.locale });
+    await this.hookBus?.emit(PluginEvents.ENTRY_AFTER_UPDATE, { ...event, data: updated.data as Record<string, any> });
+
     return this.toPublicEntry(updated, filterUnauthorizedReadFields(updated.data as Record<string, any>, schema, undefined));
   }
 
@@ -471,8 +682,13 @@ export class DynamicApiService {
       throw new NotFoundException(`Entry with slug "${slug}" not found in "${typeName}" (locale: ${locale})`);
     }
 
+    await this.hookBus?.emit(PluginEvents.ENTRY_BEFORE_DELETE, { id: entry.id, entry });
     await this.prisma.entry.update({ where: { id: entry.id }, data: { deletedAt: new Date() } });
-    await this.invalidate(typeName);
+
+    this.webhooks.fire('entry.deleted', { id: entry.id, slug: entry.slug });
+    this.realtime.notifyEntryDeleted({ id: entry.id, slug: entry.slug, contentType: contentType.name });
+    await this.hookBus?.emit(PluginEvents.ENTRY_AFTER_DELETE, { id: entry.id, slug: entry.slug, contentType: contentType.name });
+
     return { message: `Entry "${slug}" deleted from "${typeName}"` };
   }
 

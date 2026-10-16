@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -28,6 +29,8 @@ import {
   Code2,
   Loader2,
   Palette,
+  Menu,
+  X,
 } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
@@ -95,6 +98,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { brand } = useBrand();
   const router = useRouter();
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile drawer automatically when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   // Block the admin UI from rendering until auth is confirmed.
   // This prevents two bad scenarios:
@@ -140,20 +149,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     ?.label ?? 'Dashboard';
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background relative">
+      {/* ── Mobile Backdrop Overlay ── */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* ── Sidebar ── */}
-      <aside className="fixed inset-y-0 left-0 z-20 flex w-64 flex-col bg-sidebar border-r border-sidebar-border">
-
-        {/* Brand — logo (if set) + name */}
-        <div className="flex items-center gap-2 px-4 h-14 border-b border-sidebar-border shrink-0">
-          {brand.brandLogoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={brand.brandLogoUrl} alt={brand.brandName} className="h-6 w-6 rounded object-contain shrink-0" />
-          ) : (
-            <span className="h-6 w-6 rounded shrink-0" style={{ backgroundColor: 'var(--brand)' }} />
-          )}
-          <span className="font-semibold text-sm text-sidebar-foreground truncate">{brand.brandName}</span>
+      {/* ── Sidebar (Fixed on Desktop, Slide-over Drawer on Mobile) ── */}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out md:translate-x-0 md:z-20',
+          mobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full',
+        )}
+      >
+        {/* Brand — logo (if set) + name + Mobile Close Button */}
+        <div className="flex items-center justify-between px-4 h-14 border-b border-sidebar-border shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            {brand.brandLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={brand.brandLogoUrl} alt={brand.brandName} className="h-6 w-6 rounded object-contain shrink-0" />
+            ) : (
+              <span className="h-6 w-6 rounded shrink-0" style={{ backgroundColor: 'var(--brand)' }} />
+            )}
+            <span className="font-semibold text-sm text-sidebar-foreground truncate">{brand.brandName}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(false)}
+            className="md:hidden h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+            aria-label="Close sidebar"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Nav groups */}
@@ -171,6 +203,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link
                       key={href}
                       href={href}
+                      onClick={() => setMobileMenuOpen(false)}
                       style={isActive ? { backgroundColor: 'var(--brand)' } : undefined}
                       className={cn(
                         isActive
@@ -232,14 +265,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* ── Main content ── */}
-      <main className="flex-1 ml-64 flex flex-col min-h-screen min-w-0">
-        {/* Top bar */}
-        <div className="sticky top-0 z-10 h-14 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-6">
-          <h1 className="text-base font-semibold text-foreground">{pageTitle}</h1>
+      {/* ── Main content (Full width on mobile, offset on desktop) ── */}
+      <main className="flex-1 md:ml-64 flex flex-col min-h-screen w-full min-w-0">
+        {/* Top bar with Mobile Hamburger Button */}
+        <div className="sticky top-0 z-30 h-14 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden h-8 w-8 -ml-1 text-foreground"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <h1 className="text-base font-semibold text-foreground truncate">{pageTitle}</h1>
+          </div>
           <ThemeToggle />
         </div>
-        <div className="flex-1 bg-muted/20 p-4 md:p-6 min-w-0 overflow-x-auto">
+        <div className="flex-1 bg-muted/20 p-3 sm:p-4 md:p-6 min-w-0 overflow-x-auto">
           <ErrorBoundary label={pageTitle}>
             {children}
           </ErrorBoundary>

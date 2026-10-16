@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { AuthProvider } from '../context/AuthContext';
 import { PluginProvider } from '../context/PluginContext';
 import { BrandProvider } from '../context/BrandContext';
@@ -14,6 +14,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL || 'http://localhost:5173'),
   title: 'NodePress CMS',
   description: 'Headless CMS Admin Panel',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

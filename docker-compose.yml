@@ -1,19 +1,42 @@
 # NodePress — Docker Compose (One-Click & Production Deployment)
 # Usage: docker compose up -d --build
-
-version: '3.8'
+#
+# No .env is required: JWT_SECRET and the database password are generated on the
+# first `up` by the secrets-init service. Set them in .env only to use your own.
 
 services:
+  # ── First-boot secrets ──────────────────────────────────────────────────────
+  # Generates JWT_SECRET and the DB password into the secrets_data volume on the
+  # first `up` (or writes through values set in .env). See scripts/docker-secrets-init.sh.
+  secrets-init:
+    image: postgres:16-alpine
+    container_name: nodepress_secrets_init
+    entrypoint: ["sh", "/secrets-init.sh"]
+    environment:
+      JWT_SECRET:  ${JWT_SECRET:-}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+    volumes:
+      - ./scripts/docker-secrets-init.sh:/secrets-init.sh:ro
+      - secrets_data:/secrets
+      - postgres_data:/pgdata:ro
+    restart: "no"
+    networks:
+      - nodepress-net
+
   # ── PostgreSQL Database ─────────────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     container_name: nodepress_db
+    depends_on:
+      secrets-init:
+        condition: service_completed_successfully
     environment:
-      POSTGRES_DB:       ${POSTGRES_DB:-nodepress}
-      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-nodepress_secret}
+      POSTGRES_DB:            ${POSTGRES_DB:-nodepress}
+      POSTGRES_USER:          ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD_FILE: /run/nodepress-secrets/db_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - secrets_data:/run/nodepress-secrets:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -46,27 +69,37 @@ services:
       dockerfile: Dockerfile
     container_name: nodepress_backend
     depends_on:
+      secrets-init:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      DATABASE_URL:  "postgresql://${POSTGRES_USER:-postgres}:${DB_PASSWORD:-nodepress_secret}@db:5432/${POSTGRES_DB:-nodepress}"
-      DIRECT_URL:    "postgresql://${POSTGRES_USER:-postgres}:${DB_PASSWORD:-nodepress_secret}@db:5432/${POSTGRES_DB:-nodepress}"
+      # DATABASE_URL, DIRECT_URL and JWT_SECRET are assembled from the
+      # secrets_data volume in `command` below — never hardcode them here.
+      POSTGRES_DB:   ${POSTGRES_DB:-nodepress}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
       PORT:          3000
       NODE_ENV:      production
-      JWT_SECRET:    ${JWT_SECRET:-b1326b377faa5705b57a89c0688913cbca4e8d0d95a8d61afc4bcc69bb5403641d9a0a4fe404e93e5ee502fcc5337a11}
-      CORS_ORIGIN:   ${CORS_ORIGIN:-*}
+      CORS_ORIGIN:   ${CORS_ORIGIN:-${SITE_URL:-http://localhost}}
       APP_URL:       ${APP_URL:-http://localhost/api}
       SITE_URL:      ${SITE_URL:-http://localhost}
       REDIS_URL:     redis://redis:6379
     volumes:
       - uploads_data:/app/uploads
+      - secrets_data:/run/nodepress-secrets:ro
     restart: unless-stopped
     networks:
       - nodepress-net
-    command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
+    command:
+      - sh
+      - -c
+      - |
+        export JWT_SECRET="$$(cat /run/nodepress-secrets/jwt_secret)"
+        export DATABASE_URL="postgresql://$${POSTGRES_USER}:$$(cat /run/nodepress-secrets/db_password)@db:5432/$${POSTGRES_DB}"
+        export DIRECT_URL="$$DATABASE_URL"
+        npx prisma migrate deploy && exec node dist/main.js
 
   # ── Next.js Frontend ─────────────────────────────────────────────────────────
   frontend:
@@ -97,7 +130,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro
+      - ./nginx/proxy.conf:/etc/nginx/snippets/nodepress-proxy.conf:ro
     restart: unless-stopped
     networks:
       - nodepress-net
@@ -107,6 +140,7 @@ networks:
     driver: bridge
 
 volumes:
+  secrets_data:
   postgres_data:
   redis_data:
   uploads_data:

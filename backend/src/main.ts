@@ -26,8 +26,10 @@ import { join } from 'path';
 import helmet from 'helmet';
 import * as express from 'express';
 import cookieParser from 'cookie-parser';
+import { parseQueryString } from './common/query-parser';
 import { AppModule } from './app.module';
 import { SentryExceptionFilter } from './common/sentry-exception.filter';
+import { corsOrigin } from './common/cors-origin';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -42,6 +44,16 @@ async function bootstrap() {
   // Captures all 5xx errors and sends them to Sentry. No-op when SENTRY_DSN is unset.
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new SentryExceptionFilter(httpAdapter));
+
+  // ─── Reverse proxy trust ──────────────────────────────────────────────────
+  // Without this, every request behind nginx appears to come from nginx's IP:
+  // the per-IP throttler limits the whole site as one client and audit logs
+  // record the proxy. A numeric value is a hop count; otherwise it's passed
+  // through as Express subnet names/CIDRs.
+  app.set('trust proxy', /^\d+$/.test(env.TRUST_PROXY) ? Number(env.TRUST_PROXY) : env.TRUST_PROXY);
+
+  // Nested query params (?where[field][op]=…) — see common/query-parser.ts.
+  app.set('query parser', parseQueryString);
 
   // ─── Security headers (Helmet) ─────────────────────────────────────────────
   // Sets: X-Frame-Options, X-Content-Type-Options, HSTS, Referrer-Policy,
@@ -90,22 +102,8 @@ async function bootstrap() {
   // ─── CORS ──────────────────────────────────────────────────────────────────
   // CORS_ORIGIN is now required — validated by env.ts at startup.
   // Supports comma-separated origins: "https://app.com,https://staging.app.com"
-  const origins = env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean);
   app.enableCors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
-      if (!origin) return callback(null, true);
-      // In development, automatically allow any localhost / 127.0.0.1 port
-      if (env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-        return callback(null, true);
-      }
-      if (origins.includes(origin)) return callback(null, true);
-      // '*' sends a literal wildcard rather than echoing the origin, so browsers
-      // still refuse credentialed cross-site requests.
-      if (origins.includes('*')) return callback(null, '*');
-      // Omit CORS headers instead of passing an Error, which surfaces as a 500.
-      return callback(null, false);
-    },
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
     credentials: true,

@@ -12,6 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { corsOrigin } from '../common/cors-origin';
 
 /**
  * NodePress Real-time Gateway
@@ -55,8 +56,10 @@ interface EntryLock {
 @WebSocketGateway({
   namespace: '/realtime',
   path: '/api/realtime',
+  // Same origin rules as the HTTP API. A raw comma-separated CORS_ORIGIN string
+  // used to be passed here verbatim, which matched no browser origin at all.
   cors: {
-    origin: process.env.CORS_ORIGIN ?? '*',
+    origin: corsOrigin,
     credentials: true,
   },
 })
@@ -132,7 +135,11 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
           this.logger.warn(`Socket.io Redis sub error: ${err.message}`),
         );
 
-        server.adapter(createAdapter(pubClient, subClient));
+        // This gateway lives on the '/realtime' namespace, so afterInit receives
+        // a Namespace — which has no adapter() — not the root Server. Setting the
+        // adapter on the root re-initialises existing namespaces with it.
+        const root: Server = (server as any).server ?? server;
+        root.adapter(createAdapter(pubClient, subClient));
         this.logger.log('Socket.io: Redis adapter enabled — events sync across all instances');
       } catch (err: any) {
         // Fail-open: app still works with in-memory adapter on a single instance

@@ -1,3 +1,4 @@
+import { FieldIndexService } from './field-index.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   NotFoundException,
@@ -60,6 +61,7 @@ describe('ContentTypeService', () => {
         { provide: AppCacheService,  useValue: mockCache },
         { provide: SchemaValidator,  useValue: mockSchemaValidator },
         { provide: FormGenerator,    useValue: mockFormGenerator },
+        { provide: FieldIndexService, useValue: { sync: jest.fn(), dropAll: jest.fn() } },
       ],
     }).compile();
 

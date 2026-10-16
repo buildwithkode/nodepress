@@ -67,10 +67,13 @@ export class SubmissionService {
       data: { formId: form.id, data: data as any, ip: ip ?? null },
     });
 
-    // 6. Trigger actions asynchronously (non-blocking for the response)
-    this.actions.run(actions, data, fields).catch(() => {
-      // already logged inside ActionsService
-    });
+    // 6. Queue actions (email/webhook) as background jobs. The submission is
+    //    already saved, so a queueing error is logged, not returned.
+    try {
+      await this.actions.queue(actions, data, { formId: form.id, submissionId: submission.id }, fields);
+    } catch (err: any) {
+      this.logger.error(`Could not queue actions for submission #${submission.id}: ${err?.message}`);
+    }
 
     return {
       success: true,

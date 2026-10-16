@@ -124,6 +124,18 @@ describe('MailService', () => {
       const call = mockSendMail.mock.calls[0][0];
       expect(call.replyTo).toBe('alice@example.com');
     });
+
+    it('swallows SMTP errors by default', async () => {
+      mockSendMail.mockRejectedValueOnce(new Error('421 try later'));
+      await expect(service.sendFormSubmission('o@example.com', 'S', { a: 1 })).resolves.toBeUndefined();
+    });
+
+    it('rethrows SMTP errors with throwOnError so a queued job can retry', async () => {
+      mockSendMail.mockRejectedValueOnce(new Error('421 try later'));
+      await expect(
+        service.sendFormSubmission('o@example.com', 'S', { a: 1 }, undefined, undefined, { throwOnError: true }),
+      ).rejects.toThrow('421 try later');
+    });
   });
 
   // ── no-op when not configured ─────────────────────────────────────────────

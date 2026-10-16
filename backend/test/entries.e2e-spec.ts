@@ -407,10 +407,9 @@ describe('Entries (e2e)', () => {
 
   it('POST /api/entries/import → imports entries (upsert by slug)', async () => {
     const res = await request(app.getHttpServer())
-      .post('/api/entries/import')
+      .post(`/api/entries/import?contentTypeId=${contentTypeId}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
-        contentTypeId,
         entries: [
           { slug: 'import-new',       data: { title: 'Imported New' },       status: 'published' },
           { slug: 'public-post',      data: { title: 'Public Post Updated' }, status: 'published' },
@@ -425,10 +424,9 @@ describe('Entries (e2e)', () => {
 
   it('POST /api/entries/import → skips rows without slug and lists them in errors', async () => {
     const res = await request(app.getHttpServer())
-      .post('/api/entries/import')
+      .post(`/api/entries/import?contentTypeId=${contentTypeId}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
-        contentTypeId,
         entries: [
           { data: { title: 'Missing slug' } },
         ],

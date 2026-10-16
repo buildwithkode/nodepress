@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import { createHmac } from 'crypto';
 import { WebhooksService } from './webhooks.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { AppCacheService } from '../cache/app-cache.service';
 
 const mockHook = {
   id: 1,
@@ -26,11 +27,20 @@ const mockPrisma = {
   },
   webhookDelivery: {
     create:     jest.fn(),
+    createMany: jest.fn(),
     findUnique: jest.fn(),
     findMany:   jest.fn(),
     update:     jest.fn(),
     count:      jest.fn(),
   },
+  $queryRaw:   jest.fn(),
+  $executeRaw: jest.fn(),
+};
+
+const mockCache = {
+  get: jest.fn().mockResolvedValue(undefined), // always a miss: hooks come from the DB
+  set: jest.fn(),
+  del: jest.fn(),
 };
 
 describe('WebhooksService', () => {
@@ -43,6 +53,7 @@ describe('WebhooksService', () => {
       providers: [
         WebhooksService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: AppCacheService, useValue: mockCache },
       ],
     }).compile();
 
@@ -122,45 +133,121 @@ describe('WebhooksService', () => {
 
   // ── fire — event matching ──────────────────────────────────────────────────
 
-  describe('fire()', () => {
+  describe('enqueue()', () => {
     beforeEach(() => {
       mockPrisma.webhook.findMany.mockResolvedValue([mockHook]);
-      mockPrisma.webhookDelivery.create.mockResolvedValue({ id: 1 });
+      mockPrisma.webhookDelivery.createMany.mockImplementation(async ({ data }: any) => ({ count: data.length }));
     });
 
-    it('enqueues delivery for a matching event', async () => {
-      service.fire('entry.created', { id: 1 });
+    it('queues one pending delivery per matching hook and wakes the worker', async () => {
+      const wake = jest.fn();
+      service.onEnqueue(wake);
+      expect(await service.enqueue('entry.created', { id: 1 })).toBe(1);
+      expect(mockPrisma.webhookDelivery.createMany).toHaveBeenCalledWith({
+        data: [expect.objectContaining({ webhookId: 1, event: 'entry.created', status: 'pending', attempts: 0 })],
+      });
+      expect(wake).toHaveBeenCalled();
+    });
+
+    it('does not send anything inline — the worker does', async () => {
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn();
+      await service.enqueue('entry.created', { id: 1 });
+      expect(global.fetch).not.toHaveBeenCalled();
+      global.fetch = originalFetch;
+    });
+
+    it('skips non-matching events', async () => {
+      mockPrisma.webhook.findMany.mockResolvedValue([{ ...mockHook, events: ['entry.created'] }]);
+      expect(await service.enqueue('media.uploaded', { filename: 'photo.jpg' })).toBe(0);
+      expect(mockPrisma.webhookDelivery.createMany).not.toHaveBeenCalled();
+    });
+
+    it('matches wildcard (*) hooks for any event', async () => {
+      mockPrisma.webhook.findMany.mockResolvedValue([{ ...mockHook, events: ['*'] }]);
+      expect(await service.enqueue('media.deleted', { filename: 'old.jpg' })).toBe(1);
+    });
+
+    it('uses the cached hook list when present', async () => {
+      mockCache.get.mockResolvedValueOnce([mockHook]);
+      await service.enqueue('entry.created', { id: 1 });
+      expect(mockPrisma.webhook.findMany).not.toHaveBeenCalled();
+    });
+
+    it('fire() never throws, even when queueing fails', async () => {
+      mockPrisma.webhook.findMany.mockRejectedValue(new Error('db down'));
+      expect(() => service.fire('entry.created', { id: 1 })).not.toThrow();
       await new Promise((r) => setImmediate(r));
-      expect(mockPrisma.webhook.findMany).toHaveBeenCalled();
+    });
+  });
+
+  it('clears the cached hook list when a webhook changes', async () => {
+    mockPrisma.webhook.findUnique.mockResolvedValue(mockHook);
+    mockPrisma.webhook.update.mockResolvedValue({ ...mockHook, enabled: false });
+    await service.toggle(1, false);
+    expect(mockCache.del).toHaveBeenCalledWith('webhooks:enabled');
+  });
+
+  // ── deliver (worker) ───────────────────────────────────────────────────────
+
+  describe('deliver()', () => {
+    const claimed = { id: 7, webhookId: 1, event: 'entry.created', payload: { id: 1 }, attempts: 1, createdAt: new Date() };
+    let originalFetch: typeof fetch;
+
+    beforeEach(() => {
+      originalFetch = global.fetch;
+      mockPrisma.webhook.findMany.mockResolvedValue([mockHook]);
+    });
+    afterEach(() => { global.fetch = originalFetch; });
+
+    it('marks a successful delivery as delivered, signed with the hook secret', async () => {
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200 } as any);
+      await service.deliver(claimed);
+
+      const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+      const expected = 'sha256=' + createHmac('sha256', 'mysecret').update(init.body).digest('hex');
+      expect(init.headers['X-NodePress-Signature']).toBe(expected);
+      expect(init.headers['X-NodePress-Attempt']).toBe('1');
+      expect(mockPrisma.webhookDelivery.update).toHaveBeenCalledWith({
+        where: { id: 7 },
+        data: expect.objectContaining({ status: 'delivered', responseStatus: 200, nextRetryAt: null }),
+      });
     });
 
-    it('skips delivery for non-matching event', async () => {
-      mockPrisma.webhook.findMany.mockResolvedValue([
-        { ...mockHook, events: ['entry.created'] },
-      ]);
+    it('reschedules a failed attempt with backoff', async () => {
+      global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 503 } as any);
+      const before = Date.now();
+      await service.deliver(claimed);
 
-      service.fire('media.uploaded', { filename: 'photo.jpg' });
-      await new Promise((r) => setImmediate(r));
-      expect(mockPrisma.webhookDelivery.create).not.toHaveBeenCalled();
+      const { data } = mockPrisma.webhookDelivery.update.mock.calls[0][0];
+      expect(data).toMatchObject({ status: 'pending', attempts: 1, errorMessage: 'HTTP 503', responseStatus: 503 });
+      expect(data.nextRetryAt.getTime()).toBeGreaterThanOrEqual(before + 5 * 60_000);
     });
 
-    it('delivers to wildcard (*) hooks for any event', async () => {
-      mockPrisma.webhook.findMany.mockResolvedValue([
-        { ...mockHook, events: ['*'] },
-      ]);
-      mockPrisma.webhookDelivery.create.mockResolvedValue({ id: 2 });
-
-      service.fire('media.deleted', { filename: 'old.jpg' });
-      await new Promise((r) => setImmediate(r));
-      expect(mockPrisma.webhook.findMany).toHaveBeenCalled();
+    it('fails permanently after the last attempt', async () => {
+      global.fetch = jest.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+      await service.deliver({ ...claimed, attempts: 3 });
+      expect(mockPrisma.webhookDelivery.update).toHaveBeenCalledWith({
+        where: { id: 7 },
+        data: expect.objectContaining({ status: 'failed', attempts: 3, errorMessage: 'ECONNREFUSED', nextRetryAt: null }),
+      });
     });
 
-    it('skips disabled hooks (DB filters enabled:true, returns empty)', async () => {
+    it('fails the delivery when its webhook was disabled or deleted', async () => {
       mockPrisma.webhook.findMany.mockResolvedValue([]);
+      global.fetch = jest.fn();
+      await service.deliver(claimed);
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(mockPrisma.webhookDelivery.update).toHaveBeenCalledWith({
+        where: { id: 7 },
+        data: expect.objectContaining({ status: 'failed', errorMessage: 'Webhook disabled or deleted' }),
+      });
+    });
 
-      service.fire('entry.created', { id: 1 });
-      await new Promise((r) => setImmediate(r));
-      expect(mockPrisma.webhookDelivery.create).not.toHaveBeenCalled();
+    it('never throws when recording the outcome fails', async () => {
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200 } as any);
+      mockPrisma.webhookDelivery.update.mockRejectedValueOnce(new Error('db down'));
+      await expect(service.deliver(claimed)).resolves.toBeUndefined();
     });
   });
 

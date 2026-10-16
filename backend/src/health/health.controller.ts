@@ -7,6 +7,7 @@ import {
   HealthIndicatorResult,
 } from '@nestjs/terminus';
 import { statSync } from 'fs';
+import { getHeapStatistics } from 'v8';
 import { join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
@@ -64,13 +65,18 @@ export class HealthController {
 
       // ── Process memory ────────────────────────────────────────────────────
       async (): Promise<HealthIndicatorResult> => {
-        const heapUsed = process.memoryUsage().heapUsed;
-        const heapUsedMB = Math.round(heapUsed / 1024 / 1024);
-        const threshold = 512; // MB — alert if heap exceeds 512 MB
+        const heapUsedMB = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
+        // Report down only when the heap is close to V8's real limit (which follows
+        // --max-old-space-size / container memory), not at a fixed size — a fixed
+        // 512 MB made busy-but-healthy replicas fail load-balancer checks.
+        // HEALTH_MAX_HEAP_MB overrides the threshold.
+        const limitMB = Math.round(getHeapStatistics().heap_size_limit / 1024 / 1024);
+        const threshold = Number(process.env.HEALTH_MAX_HEAP_MB) || Math.round(limitMB * 0.9);
         return {
           memory: {
             status: (heapUsedMB < threshold ? 'up' : 'down') as 'up' | 'down',
             heapUsedMB,
+            thresholdMB: threshold,
           },
         };
       },

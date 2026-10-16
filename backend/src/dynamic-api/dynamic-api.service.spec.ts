@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { WebhooksService } from '../webhooks/webhooks.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { JwtService } from '@nestjs/jwt';
 import { DynamicApiService } from './dynamic-api.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -47,11 +49,21 @@ const mockCache = {
   get:               jest.fn().mockResolvedValue(undefined), // cache miss by default
   set:               jest.fn(),
   invalidatePrefix:  jest.fn(),
+  increment:         jest.fn(),
+  // Delegates to get() so a test's get() mock also drives the batched reads.
+  getMany:           jest.fn((keys: string[]) => Promise.all(keys.map((k) => mockCache.get(k)))),
 };
 
 const mockJwt = {
   sign:   jest.fn().mockReturnValue('tok'),
   verify: jest.fn(),
+};
+
+const mockWebhooks = { fire: jest.fn() };
+const mockRealtime = {
+  notifyEntryCreated: jest.fn(),
+  notifyEntryUpdated: jest.fn(),
+  notifyEntryDeleted: jest.fn(),
 };
 
 // ── Suite ─────────────────────────────────────────────────────────────────────
@@ -73,6 +85,8 @@ describe('DynamicApiService', () => {
         { provide: PrismaService,   useValue: mockPrisma },
         { provide: AppCacheService, useValue: mockCache },
         { provide: JwtService,      useValue: mockJwt },
+        { provide: WebhooksService, useValue: mockWebhooks },
+        { provide: RealtimeGateway, useValue: mockRealtime },
       ],
     }).compile();
 
@@ -199,29 +213,130 @@ describe('DynamicApiService', () => {
     });
   });
 
+  // ── read replica ───────────────────────────────────────────────────────────
+
+  describe('read replica routing', () => {
+    const replica = { entry: { findUnique: jest.fn() } };
+
+    afterEach(() => { delete (mockPrisma as any).readReplica; });
+
+    it('serves public reads from the replica when one is configured', async () => {
+      (mockPrisma as any).readReplica = replica;
+      mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
+      replica.entry.findUnique.mockResolvedValue(makeEntry());
+      mockPrisma.entry.findUnique.mockClear();
+
+      const result = await service.findOne('blog', 'hello');
+      expect(result.slug).toBe('hello');
+      expect(replica.entry.findUnique).toHaveBeenCalled();
+      expect(mockPrisma.entry.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('reads the primary right after a write so the replica cannot re-cache stale data', async () => {
+      (mockPrisma as any).readReplica = replica;
+      mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
+      mockPrisma.entry.findUnique.mockResolvedValue(makeEntry());
+      replica.entry.findUnique.mockClear();
+      mockCache.get.mockImplementation(async (key: string) => (key === 'replica:recent-write' ? 1 : undefined));
+
+      await service.findOne('blog', 'hello');
+      expect(mockPrisma.entry.findUnique).toHaveBeenCalled();
+      expect(replica.entry.findUnique).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── cache invalidation (Prisma middleware) ─────────────────────────────────
+
+  describe('invalidatingWrite()', () => {
+    const bumped = () => mockCache.increment.mock.calls.map(([key]) => key);
+    const write = (params: any, result: any = {}) => service.invalidatingWrite(params, async () => result);
+
+    it('bumps only the written content type', async () => {
+      await write({ model: 'Entry', action: 'create', args: { data: { contentTypeId: 7 } } });
+      expect(bumped()).toEqual(['dyn:generation:7']);
+      expect(mockCache.set).toHaveBeenCalledWith('replica:recent-write:7', 1, expect.any(Number));
+    });
+
+    it('takes the content type from the returned row', async () => {
+      await write({ model: 'Entry', action: 'update', args: { where: { id: 3 }, data: { status: 'published' } } }, { id: 3, contentTypeId: 4 });
+      expect(bumped()).toEqual(['dyn:generation:4']);
+      expect(mockPrisma.entry.findMany).not.toHaveBeenCalled();
+    });
+
+    it('looks up the content types of a bulk update by entry id', async () => {
+      mockPrisma.entry.findMany.mockResolvedValue([{ contentTypeId: 2 }, { contentTypeId: 5 }]);
+      await write({ model: 'Entry', action: 'updateMany', args: { where: { id: { in: [1, 2, 3] } }, data: { status: 'archived' } } }, { count: 3 });
+      expect(bumped()).toEqual(['dyn:generation:2', 'dyn:generation:5']);
+    });
+
+    it('looks up a hard delete before the rows are gone', async () => {
+      const order: string[] = [];
+      mockPrisma.entry.findMany.mockImplementation(async () => { order.push('lookup'); return [{ contentTypeId: 9 }]; });
+      await service.invalidatingWrite({ model: 'Entry', action: 'delete', args: { where: { id: 1 } } }, async () => { order.push('delete'); return {}; });
+      expect(order).toEqual(['lookup', 'delete']);
+      expect(bumped()).toEqual(['dyn:generation:9']);
+    });
+
+    it('skips invalidation when a bulk write matched nothing', async () => {
+      await write({ model: 'Entry', action: 'updateMany', args: { where: { status: 'draft' }, data: {} } }, { count: 0 });
+      expect(mockCache.increment).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the global generation when the content type is unknown', async () => {
+      await write({ model: 'Entry', action: 'updateMany', args: { where: { status: 'draft' }, data: { status: 'published' } } }, { count: 2 });
+      expect(bumped()).toEqual(['dyn:generation']);
+    });
+
+    it('ignores writes to other models', async () => {
+      await write({ model: 'User', action: 'update', args: { where: { id: 1 }, data: {} } });
+      expect(mockCache.increment).not.toHaveBeenCalled();
+    });
+
+    it('keys public reads by the content type generation', async () => {
+      mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
+      mockPrisma.entry.findUnique.mockResolvedValue(makeEntry());
+      mockCache.get.mockImplementation(async (key: string) =>
+        ({ 'dyn:generation': 2, 'dyn:generation:1': 5 } as Record<string, number>)[key]);
+
+      await service.findOne('blog', 'hello');
+      expect(mockCache.set).toHaveBeenCalledWith('dyn:2.5:1:slug:hello:en:published', expect.anything(), expect.any(Number));
+    });
+  });
+
   // ── create ─────────────────────────────────────────────────────────────────
 
   describe('create()', () => {
-    it('creates an entry and invalidates cache', async () => {
+    it('creates an entry', async () => {
+      mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
+      mockPrisma.entry.findUnique.mockResolvedValue(null);
+      mockPrisma.entry.create.mockResolvedValue(makeEntry());
+
+      const result = await service.create('blog', 'hello', { title: 'Hello' });
+      expect(result.slug).toBe('hello');
+    });
+
+    it('fires the entry.created webhook and realtime event like an admin create', async () => {
       mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
       mockPrisma.entry.findUnique.mockResolvedValue(null);
       mockPrisma.entry.create.mockResolvedValue(makeEntry());
 
       await service.create('blog', 'hello', { title: 'Hello' });
-      expect(mockCache.invalidatePrefix).toHaveBeenCalled();
+      expect(mockWebhooks.fire).toHaveBeenCalledWith('entry.created', expect.objectContaining({ slug: 'hello', contentType: 'blog' }));
+      expect(mockRealtime.notifyEntryCreated).toHaveBeenCalledWith(expect.objectContaining({ slug: 'hello', contentType: 'blog' }));
     });
   });
 
   // ── update ─────────────────────────────────────────────────────────────────
 
   describe('update()', () => {
-    it('updates entry and invalidates cache', async () => {
+    it('updates entry and fires side effects', async () => {
       mockPrisma.contentType.findUnique.mockResolvedValue(mockContentType);
       mockPrisma.entry.findUnique.mockResolvedValue(makeEntry());
       mockPrisma.entry.update.mockResolvedValue(makeEntry({ data: { title: 'Updated' } }));
 
       await service.update('blog', 'hello', { title: 'Updated' });
-      expect(mockCache.invalidatePrefix).toHaveBeenCalled();
+      expect(mockWebhooks.fire).toHaveBeenCalledWith('entry.updated', expect.objectContaining({ contentType: 'blog' }));
+      expect(mockRealtime.notifyEntryUpdated).toHaveBeenCalled();
     });
   });
 
@@ -235,6 +350,8 @@ describe('DynamicApiService', () => {
 
       const result = await service.remove('blog', 'hello');
       expect(result.message).toContain('hello');
+      expect(mockWebhooks.fire).toHaveBeenCalledWith('entry.deleted', expect.objectContaining({ slug: 'hello' }));
+      expect(mockRealtime.notifyEntryDeleted).toHaveBeenCalledWith(expect.objectContaining({ contentType: 'blog' }));
     });
   });
 

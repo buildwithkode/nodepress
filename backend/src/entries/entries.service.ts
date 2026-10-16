@@ -182,7 +182,7 @@ export class EntriesService {
         const countResult = await this.prisma.$queryRaw<{ count: number }[]>`
           SELECT count(*)::int as count
           FROM entries
-          WHERE to_tsvector('english', slug || ' ' || COALESCE(data::text, '')) @@ plainto_tsquery('english', ${term})
+          WHERE search_vector @@ plainto_tsquery('english', ${term})
             ${Prisma.join(whereConditions, ' ')}
         `;
         total = countResult[0]?.count != null ? Number(countResult[0].count) : 0;
@@ -191,7 +191,7 @@ export class EntriesService {
           const res = await this.prisma.$queryRaw<{ id: number }[]>`
             SELECT id
             FROM entries
-            WHERE to_tsvector('english', slug || ' ' || COALESCE(data::text, '')) @@ plainto_tsquery('english', ${term})
+            WHERE search_vector @@ plainto_tsquery('english', ${term})
               ${Prisma.join(whereConditions, ' ')}
             ORDER BY "createdAt" DESC
             LIMIT ${limit} OFFSET ${skip}

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const EnvSchema = z.object({
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
+  DATABASE_REPLICA_URL: z.string().url('DATABASE_REPLICA_URL must be a valid URL').optional(),
   JWT_SECRET:      z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN:  z.string().default('7d'),
   PORT:            z.coerce.number().default(3000),
@@ -18,6 +19,13 @@ const EnvSchema = z.object({
 
   // Redis — optional, validated if present
   REDIS_URL: z.string().url().optional(),
+
+  // Express `trust proxy` — which upstream proxies may set X-Forwarded-For.
+  // Default trusts private-network hops only (Docker nginx, k8s ingress), so
+  // req.ip is the real client and per-IP rate limits/audit logs work, while a
+  // directly exposed server can't be spoofed. Behind a CDN that terminates on a
+  // public IP (e.g. Cloudflare → nginx), set a hop count such as "2".
+  TRUST_PROXY: z.string().default('loopback, linklocal, uniquelocal'),
 
   // S3 — required when STORAGE_DRIVER=s3 (must match what s3.adapter.ts reads)
   STORAGE_S3_BUCKET:      z.string().optional(),
@@ -49,6 +57,14 @@ const EnvSchema = z.object({
 
   // Audit log retention in days — default 90
   AUDIT_LOG_RETENTION_DAYS: z.coerce.number().int().positive().default(90),
+
+  // Background queues — webhook deliveries (webhook_deliveries) and jobs such as
+  // form actions (jobs), both claimed with SKIP LOCKED. Every instance runs the
+  // workers unless QUEUE_WORKER=false (e.g. API-only replicas).
+  QUEUE_WORKER:        z.enum(['true', 'false']).default('true'),
+  QUEUE_POLL_MS:       z.coerce.number().int().positive().default(1000), // how often an idle worker checks for due work
+  WEBHOOK_CONCURRENCY: z.coerce.number().int().positive().default(10),   // webhook deliveries in flight per instance
+  JOB_CONCURRENCY:     z.coerce.number().int().positive().default(5),    // jobs (form emails/webhooks…) in flight per instance
 
   // Public form submission guardrails — abuse protection for nested payloads.
   // Applied to every POST /api/submit/:slug before validation.

@@ -79,12 +79,33 @@ export class AppCacheService implements OnModuleInit, OnModuleDestroy {
     return entry.value as T;
   }
 
+  /** Read several keys in one round trip (Redis MGET). Missing keys are undefined. */
+  async getMany<T = unknown>(keys: string[]): Promise<(T | undefined)[]> {
+    if (this.redis) {
+      const raws = await this.redis.mget(...keys).catch(() => keys.map(() => null));
+      return raws.map((raw) => {
+        if (raw === null) return undefined;
+        try { return JSON.parse(raw) as T; } catch { return undefined; }
+      });
+    }
+    return Promise.all(keys.map((k) => this.get<T>(k)));
+  }
+
   async set<T>(key: string, value: T, ttlMs = 30_000): Promise<void> {
     if (this.redis) {
       await this.redis.set(key, JSON.stringify(value), 'PX', ttlMs).catch(() => null);
       return;
     }
     this.store.set(key, { value, exp: Date.now() + ttlMs });
+  }
+
+  /** Delete a single key (e.g. a plugin dropping its own cached value). */
+  async del(key: string): Promise<void> {
+    if (this.redis) {
+      await this.redis.del(key).catch(() => null);
+      return;
+    }
+    this.store.delete(key);
   }
 
   /** Delete every key that starts with `prefix`.

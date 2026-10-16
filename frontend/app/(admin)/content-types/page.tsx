@@ -287,14 +287,14 @@ export default function ContentTypesPage() {
     <div className="space-y-6 w-full">
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex-1 max-w-xs">
+        <div className="flex-1 w-full sm:max-w-xs">
           <SearchInput
             placeholder="Search content types..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end">
           <Button
             variant="outline"
             size="sm"
@@ -328,27 +328,27 @@ export default function ContentTypesPage() {
       </div>
 
       {/* Table */}
-      <Table>
+      <Table className="min-w-[1100px]">
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Fields</TableHead>
-            <TableHead className="w-40">Endpoints</TableHead>
-            <TableHead className="w-24">Count</TableHead>
-            <TableHead className="w-28">Created</TableHead>
-            <TableHead className="w-24">Actions</TableHead>
+            <TableHead className="w-64 min-w-[220px]">Name</TableHead>
+            <TableHead className="min-w-[420px]">Fields</TableHead>
+            <TableHead className="w-56 min-w-[220px]">Endpoints</TableHead>
+            <TableHead className="w-24 min-w-[90px] text-center">Count</TableHead>
+            <TableHead className="w-32 min-w-[120px]">Created</TableHead>
+            <TableHead className="w-36 min-w-[140px] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
                <TableRow key={i}>
-                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-36" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                <TableCell className="w-64 min-w-[220px] py-4"><Skeleton className="h-4 w-32" /></TableCell>
+                <TableCell className="min-w-[420px] py-4"><Skeleton className="h-4 w-64" /></TableCell>
+                <TableCell className="w-56 min-w-[220px] py-4"><Skeleton className="h-4 w-36" /></TableCell>
+                <TableCell className="w-24 min-w-[90px] text-center py-4"><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                <TableCell className="w-32 min-w-[120px] py-4"><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell className="w-36 min-w-[140px] text-right py-4"><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
               </TableRow>
             ))
           ) : filtered.length === 0 ? (
@@ -359,25 +359,25 @@ export default function ContentTypesPage() {
             </TableRow>
           ) : paginated.map((ct) => (
             <TableRow key={ct.id}>
-              <TableCell>
+              <TableCell className="w-64 min-w-[220px] align-top py-4">
                 <button
                   type="button"
                   onClick={() => router.push(`/entries?ct=${ct.name}`)}
                   className="font-semibold text-foreground text-sm flex items-center gap-1.5 hover:text-primary transition-colors text-left"
                   title={`View ${ctLabel(ct)} entries`}
                 >
-                  <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
-                  {ctLabel(ct)}
+                  <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span>{ctLabel(ct)}</span>
                 </button>
-                <div className="text-xs text-muted-foreground font-mono mt-0.5">/{ct.name}</div>
+                <div className="text-xs text-muted-foreground font-mono mt-1">/{ct.name}</div>
               </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1 max-w-sm">
+              <TableCell className="min-w-[420px] align-top py-4">
+                <div className="flex flex-wrap gap-1.5">
                   {ct.schema.map((f) => (
                     <span
                       key={f.name}
                       className={cn(
-                        'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-mono font-medium',
+                        'inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-mono font-medium shadow-xs',
                         FIELD_TYPE_BADGE[f.type] ?? 'bg-muted text-muted-foreground',
                       )}
                     >
@@ -387,8 +387,8 @@ export default function ContentTypesPage() {
                   ))}
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
+              <TableCell className="w-56 min-w-[220px] align-top py-4">
+                <div className="flex items-center flex-wrap gap-1">
                   {METHOD_BADGES.map(({ key, short, cls }) => {
                     const enabled = ct.allowedMethods === null || ct.allowedMethods.includes(key);
                     return (
@@ -405,14 +405,14 @@ export default function ContentTypesPage() {
                   })}
                 </div>
               </TableCell>
-              <TableCell>
-                <Badge variant="secondary">{ct.schema.length}</Badge>
+              <TableCell className="w-24 min-w-[90px] text-center align-top py-4">
+                <Badge variant="secondary" className="font-mono text-xs px-2">{ct.schema.length}</Badge>
               </TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell className="w-32 min-w-[120px] text-muted-foreground text-xs align-top py-4 whitespace-nowrap">
                 {new Date(ct.createdAt).toLocaleDateString()}
               </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
+              <TableCell className="w-36 min-w-[140px] text-right align-top py-4">
+                <div className="flex items-center justify-end gap-1">
                   <Button
                     variant="ghost"
                     size="icon-sm"

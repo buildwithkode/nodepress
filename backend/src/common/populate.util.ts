@@ -1,4 +1,4 @@
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaClient } from '@prisma/client';
 import { FieldDef, RelationFieldDef } from '../fields/field.types';
 
 /**
@@ -30,14 +30,14 @@ export function parsePopulatePaths(paths: string[]): Map<string, string[]> {
  * @param entriesData   - Array of entry data objects
  * @param schema        - FieldDef[] from the content type schema
  * @param populatePaths - Dot-notation paths (e.g. ["author", "author.company"])
- * @param prisma        - PrismaService instance
+ * @param prisma        - Prisma client (primary or read replica)
  * @param depth         - Current recursion depth (internal — starts at 0, max 3)
  */
 export async function populateManyDeep(
   entriesData: Record<string, any>[],
   schema: FieldDef[],
   populatePaths: string[],
-  prisma: PrismaService,
+  prisma: PrismaClient,
   depth = 0,
 ): Promise<Record<string, any>[]> {
   const MAX_DEPTH = 3;
@@ -150,14 +150,14 @@ export async function populateManyDeep(
  * @param data          - The entry's data object
  * @param schema        - FieldDef[] from the content type schema
  * @param populatePaths - Dot-notation paths (e.g. ["author", "author.company"])
- * @param prisma        - PrismaService instance
+ * @param prisma        - Prisma client (primary or read replica)
  * @param depth         - Current recursion depth (internal — starts at 0)
  */
 export async function populateDeep(
   data: Record<string, any>,
   schema: FieldDef[],
   populatePaths: string[],
-  prisma: PrismaService,
+  prisma: PrismaClient,
   depth = 0,
 ): Promise<Record<string, any>> {
   const [populated] = await populateManyDeep([data], schema, populatePaths, prisma, depth);

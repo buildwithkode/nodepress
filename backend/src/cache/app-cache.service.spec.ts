@@ -35,6 +35,12 @@ describe('AppCacheService (in-memory mode)', () => {
     expect(await service.get('key2')).toBeUndefined();
   });
 
+  it('getMany returns values in key order, undefined for missing keys', async () => {
+    await service.set('a', 1, 5_000);
+    await service.set('c', { x: 3 }, 5_000);
+    expect(await service.getMany(['a', 'b', 'c'])).toEqual([1, undefined, { x: 3 }]);
+  });
+
   it('invalidatePrefix removes matching keys only', async () => {
     await service.set('dyn:blog:list', [1, 2, 3], 10_000);
     await service.set('dyn:blog:slug:hello', { id: 1 }, 10_000);
