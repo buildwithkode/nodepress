@@ -104,8 +104,6 @@ const SUPPORTED_LOCALES = [
   { code: 'ar', label: 'Arabic', flag: '🇸🇦' },
 ];
 
-const COMMERCE_CONTENT_TYPES = new Set(['orders', 'coupons']);
-
 interface Field { name: string; label?: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 interface Entry {
@@ -123,11 +121,6 @@ export default function EntriesPage() {
   const ctParam     = searchParams?.get('ct')     ?? '';
   const statusParam = searchParams?.get('status') ?? '';
 
-  useEffect(() => {
-    if (ctParam && COMMERCE_CONTENT_TYPES.has(ctParam.toLowerCase())) {
-      router.replace('/entries');
-    }
-  }, [ctParam, router]);
 
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
   const [entryCounts, setEntryCounts] = useState<Record<number, number>>({});
@@ -187,9 +180,7 @@ export default function EntriesPage() {
         ]);
         if (!mounted) return;
 
-        const rawCts: ContentType[] = ctRes.data;
-        // Filter out transactional/plugin-managed commerce schemas from editorial CMS entries
-        const cts = (rawCts || []).filter((ct) => !COMMERCE_CONTENT_TYPES.has(ct.name.toLowerCase()));
+        const cts: ContentType[] = ctRes.data || [];
         setContentTypes(cts);
 
         if (countsRes?.data?.totals) {

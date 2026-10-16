@@ -92,13 +92,10 @@ export default function NewEntryPage() {
   useEffect(() => {
     api.get('/content-types')
       .then((res) => {
-        const COMMERCE_CONTENT_TYPES = new Set(['orders', 'coupons']);
-        const editorialCTs: ContentType[] = (res.data || []).filter(
-          (c: ContentType) => !COMMERCE_CONTENT_TYPES.has(c.name.toLowerCase())
-        );
-        setContentTypes(editorialCTs);
+        const cts: ContentType[] = res.data || [];
+        setContentTypes(cts);
         if (ctId) {
-          const ct = editorialCTs.find((c: ContentType) => c.id === ctId) ?? null;
+          const ct = cts.find((c: ContentType) => c.id === ctId) ?? null;
           setSelectedCT(ct);
         }
       })

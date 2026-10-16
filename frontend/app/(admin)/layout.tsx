@@ -28,7 +28,6 @@ import {
   Code2,
   Loader2,
   Palette,
-  ShoppingBag,
 } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
@@ -92,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // skipped on the loading render and ran on the next one, producing React's
   // "change in the order of Hooks" error.)
   const { user, loading, logout } = useAuth();
-  const { navItems: pluginNavItems, isPluginEnabled } = usePlugins();
+  const { navItems: pluginNavItems } = usePlugins();
   const { brand } = useBrand();
   const router = useRouter();
   const pathname = usePathname();
@@ -116,33 +115,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const admin = canManageSettings(user?.role);
   const baseGroups = ALL_NAV_GROUPS.filter((g) => !g.adminOnly || admin);
 
-  // Dynamically inject Commerce group ONLY when the EcommPress plugin is installed & enabled
-  const isEcommerceEnabled = isPluginEnabled('ecommerce-pro') || isPluginEnabled('ecommpress');
-  const navGroupsWithCommerce = isEcommerceEnabled
-    ? [
-        baseGroups[0],
-        {
-          label: 'Commerce',
-          adminOnly: false,
-          items: [
-            { href: '/commerce', label: 'E-Commerce Hub', icon: ShoppingBag },
-          ],
-        },
-        ...baseGroups.slice(1),
-      ]
-    : baseGroups;
-
   // Merge plugin-contributed nav items into a 'Plugins' group
   const allNavGroups = pluginNavItems.length > 0
     ? [
-        ...navGroupsWithCommerce,
+        ...baseGroups,
         {
           label: 'Plugins',
           adminOnly: false,
           items: pluginNavItems.map((item) => ({ ...item, icon: item.icon ?? Puzzle })),
         },
       ]
-    : navGroupsWithCommerce;
+    : baseGroups;
 
   const handleLogout = () => {
     logout();

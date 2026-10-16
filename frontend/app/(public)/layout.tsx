@@ -16,8 +16,6 @@ async function getContentTypes(): Promise<NavItem[]> {
       .filter(
         (ct: any) =>
           !ct.name.startsWith('test_') &&
-          ct.name !== 'orders' &&
-          ct.name !== 'coupons' &&
           ct.name !== 'article'
       )
       .map((ct: any) => ({
