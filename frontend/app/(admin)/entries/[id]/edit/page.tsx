@@ -620,16 +620,7 @@ export default function EditEntryPage() {
               <Select value={status} onValueChange={(v) => { if (v) setStatus(v); }}>
                 <SelectTrigger className="h-8 w-36 text-xs font-medium border-border/80 bg-background/80">
                   <div className="flex items-center gap-2 truncate">
-                    <span
-                      className={cn(
-                        'h-2 w-2 rounded-full shrink-0',
-                        status === 'published' && 'bg-emerald-500 ring-2 ring-emerald-500/20',
-                        status === 'staging' && 'bg-purple-500 ring-2 ring-purple-500/20',
-                        status === 'pending_review' && 'bg-blue-500 ring-2 ring-blue-500/20',
-                        status === 'draft' && 'bg-amber-500 ring-2 ring-amber-500/20',
-                        status === 'archived' && 'bg-zinc-500 ring-2 ring-zinc-500/20',
-                      )}
-                    />
+                    {/* The selected item's label (colour dot + name) shows here. */}
                     <SelectValue />
                   </div>
                 </SelectTrigger>

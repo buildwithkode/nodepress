@@ -4,7 +4,42 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+/**
+ * Collect { value, label } pairs from the <SelectItem>s rendered as (nested)
+ * children, so <SelectValue> shows the selected item's label instead of its
+ * raw value ("All languages", not "all"). Items rendered inside other
+ * components can't be seen here — pass `items` explicitly for those.
+ */
+function collectItems(node: React.ReactNode, out: { value: unknown; label: React.ReactNode }[], depth = 0) {
+  if (depth > 12) return
+  React.Children.forEach(node, (child) => {
+    if (!React.isValidElement(child)) return
+    const props = child.props as { value?: unknown; children?: React.ReactNode }
+    if (child.type === SelectItem && props.value !== undefined) {
+      out.push({ value: props.value, label: props.children })
+      return
+    }
+    if (props.children) collectItems(props.children, out, depth + 1)
+  })
+}
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  items,
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const derived = React.useMemo(() => {
+    if (items) return items
+    const found: { value: unknown; label: React.ReactNode }[] = []
+    collectItems(children, found)
+    return found.length ? found : undefined
+  }, [items, children])
+  return (
+    <SelectPrimitive.Root items={derived} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (

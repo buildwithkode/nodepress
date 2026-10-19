@@ -302,6 +302,7 @@ The docs page also has a **"Your Endpoints"** live section that fetches real con
 
 ## Key conventions
 
+- **Selects** (`components/ui/select.tsx`): the `Select` wrapper builds Base UI's `items` map from the `<SelectItem>` children it renders, so `<SelectValue />` shows labels. Items rendered inside another component aren't visible to it — pass `items` explicitly there. Don't draw your own label next to `<SelectValue />`; it already renders the item's content.
 - **Content type names** are always stored lowercased and snake_cased. The dynamic API normalizes `typeName.toLowerCase()` so `/api/Blog` resolves to content type `blog`.
 - **Prisma `^5.22.0`** — not v7+. The v7 datasource `url` field syntax breaks this project.
 - **`@IsOptional()` on DTO optional fields** — required because `ValidationPipe` runs with `forbidNonWhitelisted: true`. Any field without a decorator causes a 400 error.
