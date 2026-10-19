@@ -299,6 +299,23 @@ export class AuthService {
     return { message: 'Password updated successfully' };
   }
 
+  /** The user a verified SSO code belongs to (it may have been deleted since). */
+  async findUserForSession(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Account no longer exists');
+    return user;
+  }
+
+  /**
+   * Start a session for an already-authenticated user (e.g. after SSO): the
+   * same access token + rotating refresh cookie as a password login.
+   */
+  async createSession(user: { id: number; email: string; role: string }, res: Response) {
+    const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+    await this.issueRefreshCookie(user.id, res);
+    return { access_token, user: { id: user.id, email: user.email, role: user.role } };
+  }
+
   // ── Private helpers ─────────────────────────────────────────────────────────
 
   private async issueRefreshCookie(userId: number, res: Response): Promise<void> {

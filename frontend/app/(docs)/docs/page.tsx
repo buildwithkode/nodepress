@@ -971,17 +971,30 @@ POST /api/entries/bulk-promote  # Body: { "ids": [1, 2, 3], "status": "published
 GET /api/article?locale=fr
 
 # Single entry in French
-GET /api/article/mon-article?locale=fr`} />
+GET /api/article/mon-article?locale=fr
 
-            <h3 className="font-semibold mb-2 mt-5">Supported locales</h3>
-            <p className="text-muted-foreground text-sm mb-2">
-              Any BCP 47 code is accepted. The admin panel includes shortcuts for:
+# French if it exists, otherwise the default language (Content-Language says which)
+GET /api/article/mon-article?locale=fr&fallback=true
+
+# No ?locale= → the default language
+GET /api/article/mon-article`} />
+            <p className="text-muted-foreground text-sm mt-2">
+              Single-entry responses carry a <IC>Content-Language</IC> header with the locale that was served.
+              Without <IC>fallback=true</IC>, a missing translation is a <IC>404</IC>.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {['en', 'fr', 'de', 'es', 'it', 'pt', 'ja', 'zh', 'ar'].map((l) => (
-                <span key={l} className="px-2 py-1 rounded bg-muted font-mono text-xs">{l}</span>
-              ))}
-            </div>
+
+            <h3 className="font-semibold mb-2 mt-5">Languages (Settings → Languages)</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Admins choose which languages editors can write in and which one is the default. The editor&apos;s language
+              switcher and &quot;Add translation&quot; menu, the entries list filter, and the translation chips on each entry
+              row (filled = this entry, outlined = translated, dashed = missing) all follow this list. Upgrading enables
+              every language your entries already use. <IC>GET /api/locales</IC> returns the list publicly (for building
+              language switchers); <IC>PUT /api/locales</IC> changes it (admin).
+            </p>
+            <p className="text-muted-foreground text-sm mb-2">
+              Locale codes are BCP 47 and stored in canonical form (<IC>pt-br</IC> → <IC>pt-BR</IC>). The API still
+              accepts entries in a language that isn&apos;t enabled; a blank locale means <IC>en</IC>.
+            </p>
 
             <div className="mt-5 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
               <strong className="text-blue-400">Unique constraint:</strong>
@@ -997,7 +1010,7 @@ GET /api/article/mon-article?locale=fr`} />
             </p>
             <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground space-y-2 mb-4">
               <p><strong className="text-foreground">1. Dual-Pane View:</strong> Click <IC>🌐 Translate Workspace</IC> in the top header to split your screen into source reader and target translation form.</p>
-              <p><strong className="text-foreground">2. Instant Reference Switching:</strong> Pick any base language (<IC>en</IC>, <IC>es</IC>, <IC>fr</IC>, <IC>de</IC>, <IC>zh</IC>, <IC>ja</IC>) to inspect original text card-by-card while typing the localized version.</p>
+              <p><strong className="text-foreground">2. Instant Reference Switching:</strong> Pick any enabled language as the reference (the default language when you&apos;re editing a translation) to read the original card-by-card while typing the localized version.</p>
               <p><strong className="text-foreground">3. 1-Click Field Scaffolding:</strong> Click <IC>📋 Copy Empty Fields from Reference</IC> to autofill blank fields from the base locale without losing existing translated values.</p>
             </div>
           </Section>
@@ -3149,11 +3162,39 @@ const entries = await res.json();`} />
             <h3 className="font-semibold mb-3 mt-6">Token lifecycle</h3>
             <p className="text-muted-foreground text-sm mb-3">
               Login returns a <strong className="text-foreground">JWT access token (7 days)</strong> and
-              sets an <IC>HttpOnly SameSite=Strict</IC> refresh cookie valid for <strong className="text-foreground">30 days</strong>.
+              sets an <IC>HttpOnly SameSite=Lax</IC> refresh cookie valid for <strong className="text-foreground">30 days</strong>.
               The admin frontend silently calls <IC>POST /api/auth/refresh</IC> when a 401 is received,
               obtains a new access token, and retries the original request — completely transparent to the user.
               After 30 days, or after calling <IC>POST /api/auth/logout</IC>, the user must log in again.
             </p>
+
+            <h3 className="font-semibold mb-3 mt-6">Single sign-on (OpenID Connect)</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Let your team sign in with Google Workspace, Microsoft Entra ID, Okta, Auth0, Keycloak or any OpenID
+              Connect provider. When configured, the login page shows a <strong className="text-foreground">Continue with …</strong>{' '}
+              button next to the password form. Register this redirect URI with the provider:{' '}
+              <IC>https://&lt;your-admin-site&gt;/api/auth/oidc/callback</IC>.
+            </p>
+            <CodeBlock code={`# backend/.env
+OIDC_ISSUER=https://accounts.google.com            # Entra: https://login.microsoftonline.com/<tenant-id>/v2.0
+OIDC_CLIENT_ID=...
+OIDC_CLIENT_SECRET=...
+OIDC_PROVIDER_NAME=Google                          # button label
+
+# Optional
+OIDC_ALLOWED_DOMAINS=acme.com,acme.co.uk           # only these email domains
+OIDC_AUTO_CREATE=true                              # create accounts on first sign-in (default: invite-only)
+OIDC_DEFAULT_ROLE=viewer                           # role for auto-created users
+OIDC_ROLE_CLAIM=groups                             # map provider groups to roles…
+OIDC_ROLE_MAP=cms-admins:admin,cms-editors:editor  # …highest match wins, re-applied at every sign-in
+# OIDC_REDIRECT_URI=...                            # override the default <SITE_URL>/api/auth/oidc/callback`} />
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-3 mt-3">
+              <li>Uses the authorization-code flow with PKCE, <IC>state</IC> and <IC>nonce</IC>; the ID token&apos;s signature (provider JWKS), issuer, audience and expiry are verified.</li>
+              <li>Users are matched by email. By default only existing (invited) users can sign in; set <IC>OIDC_AUTO_CREATE=true</IC> to create accounts automatically. Emails the provider marks as unverified are refused.</li>
+              <li>The issuer must match exactly, so use a single-tenant issuer for Microsoft (your tenant ID, not <IC>common</IC>).</li>
+              <li>Password login keeps working (useful as a break-glass admin account). SSO sign-ins don&apos;t ask for NodePress 2FA — enforce MFA at your identity provider.</li>
+              <li>Endpoints: <IC>GET /api/auth/oidc/config</IC>, <IC>GET /api/auth/oidc/login</IC>, <IC>GET /api/auth/oidc/callback</IC>, <IC>POST /api/auth/oidc/exchange</IC>.</li>
+            </ul>
 
             <h3 className="font-semibold mb-3 mt-6">Two-Factor Authentication (2FA / TOTP)</h3>
             <p className="text-muted-foreground text-sm mb-3">
@@ -3325,6 +3366,13 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
               <Endpoint method="POST"   path="/api/jobs/:id/retry"             desc="Run a failed job again now with fresh attempts — admin only" auth />
               <Endpoint method="POST"   path="/api/jobs/retry-failed"          desc="Requeue every failed job (optionally ?type=) — admin only" auth />
               <Endpoint method="DELETE" path="/api/jobs/:id"                   desc="Delete a done or failed job — admin only" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Languages</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/locales"                    desc="Enabled content languages and the default (public)" />
+              <Endpoint method="PUT"    path="/api/locales"                    desc="Set enabled languages + default — body: { locales: ['en','fr'], defaultLocale: 'en' } — admin only" auth />
+              <Endpoint method="GET"    path="/api/locales/usage"              desc="Entries per locale" auth />
             </div>
 
             <h3 className="font-semibold mb-3">API Keys</h3>

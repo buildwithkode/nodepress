@@ -58,6 +58,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { useLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
 import { cn, ctLabel } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -92,23 +93,14 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   archived:       { label: 'Archived',       className: 'bg-muted text-muted-foreground border border-border' },
 };
 
-const SUPPORTED_LOCALES = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'es', label: 'Spanish', flag: '🇪🇸' },
-  { code: 'fr', label: 'French', flag: '🇫🇷' },
-  { code: 'de', label: 'German', flag: '🇩🇪' },
-  { code: 'zh', label: 'Chinese', flag: '🇨🇳' },
-  { code: 'ja', label: 'Japanese', flag: '🇯🇵' },
-  { code: 'pt', label: 'Portuguese', flag: '🇵🇹' },
-  { code: 'ar', label: 'Arabic', flag: '🇸🇦' },
-];
-
 interface Field { name: string; label?: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 interface Entry {
   id: number; slug: string; status: string; locale?: string; contentTypeId: number;
   data: Record<string, any>; createdAt: string; updatedAt: string;
   publishAt?: string | null;
+  /** Locales this entry exists in (same content type + slug). */
+  translations?: string[];
 }
 
 export default function EntriesPage() {
@@ -133,6 +125,8 @@ export default function EntriesPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>(statusParam || 'all');
   const [localeFilter, setLocaleFilter] = useState<string>('all');
+  const localesConfig = useLocales();
+  const SUPPORTED_LOCALES = (localesConfig?.locales ?? []).map((code) => ({ code, label: localeLabel(code) }));
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
@@ -724,7 +718,6 @@ export default function EntriesPage() {
                   {SUPPORTED_LOCALES.map((l) => (
                     <SelectItem key={l.code} value={l.code}>
                       <div className="flex items-center gap-1.5">
-                        <span>{l.flag}</span>
                         <span>{l.label}</span>
                         <span className="text-[10px] text-muted-foreground font-mono uppercase">({l.code})</span>
                       </div>
@@ -1003,9 +996,34 @@ export default function EntriesPage() {
               <TableCell>
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-foreground">{entry.slug}</p>
-                  <Badge variant="outline" className="text-[10px] font-mono uppercase px-1.5 py-0 text-muted-foreground border-border/80 shrink-0">
-                    {entry.locale || 'en'}
-                  </Badge>
+                  {SUPPORTED_LOCALES.length > 1 ? (
+                    // One chip per enabled language: this row's own (filled), other
+                    // existing translations (outlined) and missing ones (dashed).
+                    <div className="flex flex-wrap gap-1 shrink-0">
+                      {SUPPORTED_LOCALES.map(({ code, label }) => {
+                        const own = code === (entry.locale || localesConfig?.defaultLocale);
+                        const exists = own || (entry.translations ?? []).includes(code);
+                        return (
+                          <span
+                            key={code}
+                            title={`${label}: ${own ? 'this entry' : exists ? 'translated' : 'missing translation'}`}
+                            className={cn(
+                              'text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
+                              own && 'bg-primary/15 border-primary/40 text-primary font-semibold',
+                              !own && exists && 'border-emerald-500/40 text-emerald-500',
+                              !exists && 'border-dashed border-border text-muted-foreground/60',
+                            )}
+                          >
+                            {code}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] font-mono uppercase px-1.5 py-0 text-muted-foreground border-border/80 shrink-0">
+                      {entry.locale || 'en'}
+                    </Badge>
+                  )}
                 </div>
               </TableCell>
               <TableCell>

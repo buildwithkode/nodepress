@@ -178,7 +178,7 @@ jobs:
   # frontend), Docker lockfiles drifting from package.json, and the repo
   # disagreeing with itself about its version.
   hygiene:
-    name: Hygiene (prod audit · Docker lockfiles · versions)
+    name: Hygiene (prod audit · Docker lockfiles · licences · versions)
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -193,6 +193,11 @@ jobs:
 
       - name: Docker lockfiles install and are clean
         run: scripts/check-docker-lockfiles.sh
+
+      - name: Production dependency licences
+        run: |
+          npm ci --ignore-scripts
+          node scripts/check-licenses.js
 
       - name: Version consistency
         run: node scripts/check-versions.js

@@ -8,7 +8,7 @@ export interface AuditActor {
 }
 
 export type AuditAction = 'created' | 'updated' | 'deleted' | 'restored' | 'login' | 'role_changed' | 'password_changed' | 'invited' | 'enabled' | 'disabled';
-export type AuditResource = 'entry' | 'content_type' | 'user' | 'api_key' | 'form' | 'media' | 'plugin';
+export type AuditResource = 'entry' | 'content_type' | 'user' | 'api_key' | 'form' | 'media' | 'plugin' | 'settings';
 
 
 @Injectable()

@@ -43,6 +43,7 @@ export interface PaginatedResult<T> {
   };
 }
 
+import { assertValidSlug, canonicalLocale } from '../common/slug-locale.util';
 @Injectable()
 export class EntriesService {
   constructor(
@@ -83,7 +84,8 @@ export class EntriesService {
       schema,
     );
 
-    const locale = dto.locale ?? 'en';
+    assertValidSlug(dto.slug);
+    const locale = canonicalLocale(dto.locale);
     const existing = await this.prisma.entry.findUnique({
       where: { contentTypeId_slug_locale: { contentTypeId: dto.contentTypeId, slug: dto.slug, locale } },
     });
@@ -277,6 +279,25 @@ export class EntriesService {
       return { ...e, data: entryData };
     });
 
+    // Which locales each entry exists in (same content type + slug), so the
+    // list can show missing translations. One query for the whole page.
+    if (data.length > 0) {
+      const siblings = await this.prisma.entry.findMany({
+        where: {
+          deletedAt: null,
+          OR: data.map((e) => ({ contentTypeId: e.contentTypeId, slug: e.slug })),
+        },
+        select: { contentTypeId: true, slug: true, locale: true },
+      });
+      const byKey = new Map<string, Set<string>>();
+      for (const s of siblings) {
+        const key = `${s.contentTypeId}:${s.slug}`;
+        if (!byKey.has(key)) byKey.set(key, new Set());
+        byKey.get(key)!.add(s.locale);
+      }
+      for (const e of data as any[]) e.translations = [...(byKey.get(`${e.contentTypeId}:${e.slug}`) ?? [e.locale])].sort();
+    }
+
     return {
       data,
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
@@ -372,10 +393,11 @@ export class EntriesService {
       throw new NotFoundException(`Source entry #${id} not found`);
     }
 
-    const normLocale = (targetLocale || '').trim().toLowerCase();
-    if (!normLocale) {
+    if (!(targetLocale || '').trim()) {
       throw new BadRequestException('Target locale is required');
     }
+    // Canonical form, so "pt-br" matches the "pt-BR" in Settings → Languages.
+    const normLocale = canonicalLocale(targetLocale);
 
     // Check if translation already exists
     const existing = await this.prisma.entry.findUnique({
@@ -463,6 +485,8 @@ export class EntriesService {
 
     if (dto.slug !== undefined) {
       if (dto.slug !== entry.slug) {
+        // Only a changed slug is checked, so older entries keep saving.
+        assertValidSlug(dto.slug);
         const conflict = await this.prisma.entry.findUnique({
           where: { contentTypeId_slug_locale: { contentTypeId: entry.contentTypeId, slug: dto.slug, locale: entry.locale } },
         });
@@ -841,19 +865,35 @@ export class EntriesService {
     // Validate rows
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      const locale = row.locale ?? 'en';
       const rowNum = i + 1;
       let rowValid = true;
       let rowError: string | undefined;
+      let locale = 'en';
+      try {
+        locale = canonicalLocale(row.locale);
+      } catch (err: any) {
+        rowError = `Row #${rowNum}: ${err.message}`;
+        rowValid = false;
+      }
 
       if (!row.slug) {
         rowError = `Row #${rowNum}: missing slug`;
-        errors.push(rowError);
         rowValid = false;
       }
 
       const key = `${row.slug}::${locale}`;
       const isExisting = existingSet.has(key);
+
+      // New entries need a URL-safe slug; existing ones are matched as they are.
+      if (rowValid && !isExisting) {
+        try {
+          assertValidSlug(row.slug);
+        } catch (err: any) {
+          rowError = `Row #${rowNum}: ${err.message}`;
+          rowValid = false;
+        }
+      }
+      if (rowError) errors.push(rowError);
 
       if (rowValid) {
         if (isExisting) {
@@ -894,10 +934,11 @@ export class EntriesService {
     let skipped = 0;
 
     for (const row of rows) {
-      const locale = row.locale ?? 'en';
       if (!row.slug) continue;
+      let locale = String(row.locale ?? 'en');
 
       try {
+        locale = canonicalLocale(row.locale);
         const existing = await this.prisma.entry.findUnique({
           where: { contentTypeId_slug_locale: { contentTypeId, slug: row.slug, locale } },
         });
@@ -922,6 +963,7 @@ export class EntriesService {
           });
           updated++;
         } else {
+          assertValidSlug(row.slug);
           await this.prisma.entry.create({
             data: {
               slug: row.slug,

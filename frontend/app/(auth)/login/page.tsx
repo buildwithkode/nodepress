@@ -40,6 +40,8 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reason = searchParams?.get('reason');
+  const ssoError = searchParams?.get('sso_error');
+  const [sso, setSso] = useState<{ enabled: boolean; providerName: string | null }>({ enabled: false, providerName: null });
 
   const { brand } = useBrand();
   const [email, setEmail] = useState('');
@@ -70,6 +72,7 @@ function LoginForm() {
     }).catch(() => {
       setChecking(false);
     });
+    api.get('/auth/oidc/config').then((res) => setSso(res.data)).catch(() => { /* SSO optional */ });
   }, []);
 
   if (checking) {
@@ -157,6 +160,12 @@ function LoginForm() {
             </div>
           )}
 
+          {!requires2fa && ssoError && (
+            <div className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-3.5 py-3 text-xs text-red-300 text-center">
+              {ssoError}
+            </div>
+          )}
+
           {!requires2fa ? (
             /* Standard Login Form */
             <form onSubmit={handlePasswordSubmit} noValidate className="space-y-5">
@@ -196,6 +205,21 @@ function LoginForm() {
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? 'Signing in…' : 'Sign in'}
               </Button>
+
+              {sso.enabled && (
+                <>
+                  <div className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/30">
+                    <span className="h-px flex-1 bg-white/10" /> or <span className="h-px flex-1 bg-white/10" />
+                  </div>
+                  {/* Full-page navigation: the backend redirects to the identity provider. */}
+                  <a
+                    href="/api/auth/oidc/login?returnTo=%2F"
+                    className="flex w-full items-center justify-center rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+                  >
+                    Continue with {sso.providerName}
+                  </a>
+                </>
+              )}
             </form>
           ) : (
             /* 2FA Verification Form */

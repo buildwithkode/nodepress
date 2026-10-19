@@ -12,6 +12,7 @@ import { JwtOrApiKeyGuard } from '../api-keys/jwt-or-api-key.guard';
 import { TimeoutInterceptor } from '../common/timeout.interceptor';
 import { HttpCacheInterceptor } from '../common/http-cache.interceptor';
 import { StageAccessGuard, requestedStage } from './stage-access.guard';
+import { assertValidSlug, canonicalLocale } from '../common/slug-locale.util';
 
 @ApiTags('Dynamic API')
 @Controller()
@@ -82,7 +83,8 @@ export class DynamicApiController {
   @ApiOperation({ summary: 'Get a single published entry by slug (public)' })
   @ApiParam({ name: 'type', example: 'blog' })
   @ApiParam({ name: 'slug', example: 'my-first-post' })
-  @ApiQuery({ name: 'locale', required: false, type: String, description: 'Locale of the entry to fetch. Default: en.' })
+  @ApiQuery({ name: 'locale', required: false, type: String, description: 'Locale of the entry to fetch. Default: the configured default language.' })
+  @ApiQuery({ name: 'fallback', required: false, type: Boolean, description: 'true = serve the default-language version when this locale has no translation (Content-Language says which was served)' })
   @ApiQuery({ name: 'stage', required: false, enum: ['published', 'staging', 'draft', 'all'], description: 'Environment stage targeting.' })
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiQuery({ name: 'fields', required: false, type: String, description: 'Comma-separated data field names to include (projection). Omit for all fields.' })
@@ -98,16 +100,20 @@ export class DynamicApiController {
     @Query('stage') stage?: any,
     @Query('populate') populate?: string,
     @Query('fields') fields?: string,
+    @Query('fallback') fallback?: string,
     @Headers('x-nodepress-environment') envHeader?: string,
   ) {
     const effectiveStage = stage || (envHeader === 'staging' ? 'staging' : undefined);
     const result = await this.dynamicApiService.findOne(type, slug, {
+      fallback: fallback === 'true' || fallback === '1',
       locale: locale?.trim() || undefined,
       stage: effectiveStage,
       populate: populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
       fields: fields ? fields.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
     });
     await this.tagForCdn(req, res, type);
+    // Which translation was served (differs from ?locale= when it fell back).
+    if (result?.locale) res.setHeader('Content-Language', result.locale);
     return result;
   }
 
@@ -171,7 +177,7 @@ export class DynamicApiController {
   ) {
     if (!slug) throw new BadRequestException('slug is required');
     if (!data) throw new BadRequestException('data is required');
-    return this.dynamicApiService.create(type, slug, data, locale?.trim() || 'en');
+    return this.dynamicApiService.create(type, assertValidSlug(slug), data, canonicalLocale(locale));
   }
 
   @UseGuards(JwtOrApiKeyGuard)

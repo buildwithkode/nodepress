@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import { useEntryPresence } from '@/lib/useEntryPresence';
+import { useLocales, loadLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
@@ -68,17 +69,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-const SUPPORTED_LOCALES = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'es', label: 'Spanish', flag: '🇪🇸' },
-  { code: 'fr', label: 'French', flag: '🇫🇷' },
-  { code: 'de', label: 'German', flag: '🇩🇪' },
-  { code: 'zh', label: 'Chinese', flag: '🇨🇳' },
-  { code: 'ja', label: 'Japanese', flag: '🇯🇵' },
-  { code: 'pt', label: 'Portuguese', flag: '🇵🇹' },
-  { code: 'ar', label: 'Arabic', flag: '🇸🇦' },
-];
 
 interface Field { name: string; type: string; options?: any; label?: string }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
@@ -120,6 +110,11 @@ export default function EditEntryPage() {
   const [contentType, setContentType] = useState<ContentType | null>(null);
   const [status, setStatus] = useState<string>('published');
   const [locale, setLocale] = useState<string>('en');
+  // Enabled content languages (Settings → Languages). Existing translations in
+  // a language that was later disabled still show in the switcher.
+  const localesConfig = useLocales();
+  const defaultLocale = localesConfig?.defaultLocale ?? 'en';
+  const SUPPORTED_LOCALES = (localesConfig?.locales ?? [locale]).map((code) => ({ code, label: localeLabel(code) }));
   const [seoOpen, setSeoOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewCopied, setPreviewCopied] = useState(false);
@@ -224,14 +219,16 @@ export default function EditEntryPage() {
         const e: Entry = res.data;
         setEntry(e);
         setStatus(e.status ?? 'published');
-        const entryLocale = e.locale ?? 'en';
+        const entryLocale = e.locale ?? defaultLocale;
         setLocale(entryLocale);
         const transList: TranslationItem[] = e.translations ?? [];
         setTranslations(transList);
-        // Default reference language to English if current is non-English, or first sibling if current is English
-        const defaultRef = entryLocale === 'en'
-          ? (transList.find((t) => t.locale !== 'en')?.locale || 'es')
-          : 'en';
+        // Reference language: the default language when editing a translation,
+        // otherwise the first other translation (or another enabled language).
+        const cfg = await loadLocales();
+        const defaultRef = entryLocale === cfg.defaultLocale
+          ? (transList.find((t) => t.locale !== entryLocale)?.locale || cfg.locales.find((l) => l !== entryLocale) || entryLocale)
+          : cfg.defaultLocale;
         setBaseLocale(defaultRef);
         setSeoTitle(e.seo?.title ?? '');
         setSeoDescription(e.seo?.description ?? '');
@@ -570,8 +567,7 @@ export default function EditEntryPage() {
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{loc?.flag || '🌐'}</span>
-                          <span>{loc?.label || t.locale.toUpperCase()}</span>
+                          <span>{loc?.label || localeLabel(t.locale)}</span>
                           <span className="text-[10px] text-muted-foreground font-mono uppercase">({t.locale})</span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -610,7 +606,6 @@ export default function EditEntryPage() {
                             onClick={() => handleAddTranslation(loc.code)}
                           >
                             <Plus className="h-3.5 w-3.5 text-blue-400" />
-                            <span className="text-sm">{loc.flag}</span>
                             <span>{loc.label}</span>
                             <span className="text-[10px] font-mono text-muted-foreground ml-auto uppercase">{loc.code}</span>
                           </DropdownMenuItem>
@@ -961,7 +956,6 @@ export default function EditEntryPage() {
                               return (
                                 <SelectItem key={l.code} value={l.code}>
                                   <div className="flex items-center gap-1.5">
-                                    <span>{l.flag}</span>
                                     <span>{l.code.toUpperCase()}</span>
                                     {exists && (
                                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 ml-1 shrink-0" title="Translation available" />

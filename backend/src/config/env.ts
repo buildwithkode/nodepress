@@ -66,6 +66,20 @@ const EnvSchema = z.object({
   WEBHOOK_CONCURRENCY: z.coerce.number().int().positive().default(10),   // webhook deliveries in flight per instance
   JOB_CONCURRENCY:     z.coerce.number().int().positive().default(5),    // jobs (form emails/webhooks…) in flight per instance
 
+  // Single sign-on via OpenID Connect (auth/oidc.service.ts) — Google,
+  // Microsoft Entra ID, Okta, Auth0, Keycloak… Enabled when OIDC_ISSUER is set.
+  OIDC_ISSUER:          z.string().url().optional(),   // e.g. https://accounts.google.com
+  OIDC_CLIENT_ID:       z.string().optional(),
+  OIDC_CLIENT_SECRET:   z.string().optional(),
+  OIDC_PROVIDER_NAME:   z.string().default('SSO'),     // login button label: "Continue with <name>"
+  OIDC_SCOPES:          z.string().default('openid email profile'),
+  OIDC_REDIRECT_URI:    z.string().url().optional(),   // default: <SITE_URL>/api/auth/oidc/callback (through the admin's /api proxy)
+  OIDC_ALLOWED_DOMAINS: z.string().optional(),         // comma-separated email domains; empty = any
+  OIDC_AUTO_CREATE:     z.enum(['true', 'false']).default('false'), // create unknown users (else invite-only)
+  OIDC_DEFAULT_ROLE:    z.enum(['admin', 'editor', 'contributor', 'viewer']).default('viewer'),
+  OIDC_ROLE_CLAIM:      z.string().optional(),         // e.g. "groups" or "roles"
+  OIDC_ROLE_MAP:        z.string().optional(),         // e.g. "cms-admins:admin,cms-editors:editor"
+
   // On-the-fly image transforms (media/image-transform.service.ts)
   IMAGE_TRANSFORM_CONCURRENCY: z.coerce.number().int().positive().optional(), // default 2
   IMAGE_VARIANT_CACHE_MB:      z.coerce.number().int().positive().optional(), // default 2048
@@ -122,6 +136,12 @@ function validateEnv(raw: NodeJS.ProcessEnv) {
   const data = result.data;
   if (data.CAPTCHA_PROVIDER && !data.CAPTCHA_SECRET_KEY) {
     console.error(`\n❌  CAPTCHA_PROVIDER=${data.CAPTCHA_PROVIDER} requires CAPTCHA_SECRET_KEY to be set\n`);
+    process.exit(1);
+  }
+
+  // Extra validation: OIDC needs a client id and secret once an issuer is set
+  if (data.OIDC_ISSUER && (!data.OIDC_CLIENT_ID || !data.OIDC_CLIENT_SECRET)) {
+    console.error('\n❌  OIDC_ISSUER requires OIDC_CLIENT_ID and OIDC_CLIENT_SECRET\n');
     process.exit(1);
   }
 

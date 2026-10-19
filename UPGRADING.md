@@ -58,7 +58,7 @@ in one transaction, so a failed restore leaves the database as it was.
 
 - **Run migrations.** New: `add_two_factor_and_installed_plugins`,
   `add_entry_search_vector`, `add_entry_list_index`, `add_jobs`,
-  `add_media_focal_point`. All use
+  `add_media_focal_point`, `add_content_locales`. All use
   `IF NOT EXISTS`. A database created with `prisma db push` has no migration
   history: apply each new `migration.sql` with `psql -f` instead (see
   `backend/prisma/migrations/`).
@@ -71,6 +71,9 @@ in one transaction, so a failed restore leaves the database as it was.
   which exposed unpublished content to anyone. Preview frontends must now send
   an `X-API-Key` (any access level, covering the content type) or a JWT.
   Published reads are unchanged.
+- **Entry slugs are validated on create.** New slugs (admin, public write API,
+  import) must be lowercase letters, numbers and hyphens/underscores; API
+  clients sending other slugs get a `400`. Existing entries are untouched.
 - **Docker:** rebuild both images (`docker compose build`). The previous images
   could not be rebuilt at all (out-of-sync lockfiles) and shipped vulnerable
   dependencies.
@@ -86,6 +89,7 @@ in one transaction, so a failed restore leaves the database as it was.
 | `WEBHOOK_CONCURRENCY` | `10` | Webhook deliveries in flight per instance |
 | `JOB_CONCURRENCY` | `5` | Background jobs (form actions) in flight per instance |
 | `HEALTH_MAX_HEAP_MB` | 90 % of the heap limit | Memory threshold for `/api/health` |
+| `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_PROVIDER_NAME` | — | Single sign-on (see the Auth docs; more `OIDC_*` options in `.env.example`) |
 | `IMAGE_TRANSFORM_CONCURRENCY` | `2` | Image encodes in flight per instance |
 | `IMAGE_VARIANT_CACHE_MB` | `2048` | Size cap for cached image variants |
 | `CDN_PURGE_DRIVER` | `none` | `cloudflare`, `fastly` or `webhook` — purge CDN cache on writes |
@@ -100,6 +104,7 @@ in one transaction, so a failed restore leaves the database as it was.
   with retries instead of inline. Deliveries in progress during a restart are
   retried automatically.
 - Public cache invalidation is per content type.
+- Single-entry reads without `?locale=` use the default language from Settings → Languages (still `en` unless you change it).
 - Image transform sizes are rounded up to fixed buckets (e.g. `w=500` returns 640 px wide) and quality to steps of 10.
 - Content type schema import is all-or-nothing, and its dry run lists
   field-level changes.

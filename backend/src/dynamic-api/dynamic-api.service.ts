@@ -14,6 +14,7 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
 import { CdnPurgeService, publicCacheTags } from '../cdn/cdn-purge.service';
+import { LocalesService } from '../locales/locales.service';
 import {
   CacheScope, WriteParams, changedNothing, entryIdsToLookUp, isCachedWrite, scopeFromArgs, scopeFromResult,
 } from './cache-scope';
@@ -48,7 +49,9 @@ export interface PublicListQuery {
 }
 
 export interface PublicSingleQuery {
-  locale?: string;   // default: "en"
+  locale?: string;   // default: the configured default locale (Settings → Languages)
+  /** When the entry has no translation in `locale`, serve the default-locale version. */
+  fallback?: boolean;
   stage?: 'published' | 'staging' | 'draft' | 'all';
   populate?: string[];
   fields?: string[];                // field projection — only return listed data keys
@@ -211,6 +214,7 @@ export class DynamicApiService implements OnModuleInit {
     private realtime: RealtimeGateway,
     @Optional() private hookBus?: PluginHookBus,
     @Optional() private cdn?: CdnPurgeService,
+    @Optional() private locales?: LocalesService,
   ) {}
 
   onModuleInit() {
@@ -545,8 +549,19 @@ export class DynamicApiService implements OnModuleInit {
   }
 
   async findOne(typeName: string, slug: string, query: PublicSingleQuery = {}): Promise<any> {
+    const defaultLocale = (await this.locales?.get())?.defaultLocale ?? 'en';
+    const locale = query.locale ?? defaultLocale;
+    try {
+      return await this.findOneInLocale(typeName, slug, { ...query, locale });
+    } catch (err) {
+      if (!(err instanceof NotFoundException) || !query.fallback || locale === defaultLocale) throw err;
+      return this.findOneInLocale(typeName, slug, { ...query, locale: defaultLocale });
+    }
+  }
+
+  private async findOneInLocale(typeName: string, slug: string, query: PublicSingleQuery & { locale: string }): Promise<any> {
     const contentType = await this.resolveContentType(typeName, 'read');
-    const locale = query.locale ?? 'en';
+    const locale = query.locale;
 
     // ── Cache lookup ──────────────────────────────────────────────────────────
     // populate/fields responses vary per request and are never written to cache,

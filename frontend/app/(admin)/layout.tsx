@@ -30,7 +30,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks } from 'lucide-react';
+  X, ListChecks, Languages } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
   {
@@ -76,6 +76,7 @@ const ALL_NAV_GROUPS = [
     adminOnly: true,
     items: [
       { href: '/brand', label: 'Brand', icon: Palette },
+      { href: '/languages', label: 'Languages', icon: Languages },
     ],
   },
   {

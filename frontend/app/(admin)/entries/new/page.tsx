@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight, WrapText, Rocket, Globe, Shield, Settings, X, Clock } from 'lucide-react';
+import { useLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
@@ -27,17 +28,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const SUPPORTED_LOCALES = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'es', label: 'Spanish', flag: '🇪🇸' },
-  { code: 'fr', label: 'French', flag: '🇫🇷' },
-  { code: 'de', label: 'German', flag: '🇩🇪' },
-  { code: 'zh', label: 'Chinese', flag: '🇨🇳' },
-  { code: 'ja', label: 'Japanese', flag: '🇯🇵' },
-  { code: 'pt', label: 'Portuguese', flag: '🇵🇹' },
-  { code: 'ar', label: 'Arabic', flag: '🇸🇦' },
-];
-
 interface Field { name: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 
@@ -55,6 +45,13 @@ export default function NewEntryPage() {
   const [status, setStatus] = useState<string>('published');
   const [publishAt, setPublishAt] = useState('');
   const [locale, setLocale] = useState('en');
+  // Enabled content languages (Settings → Languages); new entries start in the default.
+  const localesConfig = useLocales();
+  const SUPPORTED_LOCALES = (localesConfig?.locales ?? [locale]).map((code) => ({ code, label: localeLabel(code) }));
+  const localeTouched = useRef(false);
+  useEffect(() => {
+    if (localesConfig && !localeTouched.current) setLocale(localesConfig.defaultLocale);
+  }, [localesConfig]);
   // SEO fields
   const [seoOpen, setSeoOpen] = useState(false);
   const [seoTitle, setSeoTitle] = useState('');
@@ -109,8 +106,10 @@ export default function NewEntryPage() {
     if (!firstTextField) return;
     const sub = watch((values, { name }) => {
       if (!name) return;
-      if (name === 'slug') { slugManualRef.current = true; return; }
-      if (slugManualRef.current) return;
+      // Manual slug edits are detected in the slug input's onChange. Don't
+      // treat name === 'slug' as one here: the setValue below fires this same
+      // watcher, which used to stop auto-generation after the first letter.
+      if (name === 'slug' || slugManualRef.current) return;
       if (name === firstTextField.name) setValue('slug', cleanSlug(values[firstTextField.name] || ''), { shouldValidate: false });
     });
     return () => sub.unsubscribe();
@@ -201,7 +200,7 @@ export default function NewEntryPage() {
             {selectedCT && (
               <div className="flex items-center gap-2 shrink-0 flex-wrap">
                 {/* Language Selector */}
-                <Select value={locale} onValueChange={(v) => { if (v) setLocale(v); }}>
+                <Select value={locale} onValueChange={(v) => { if (v) { localeTouched.current = true; setLocale(v); } }}>
                   <SelectTrigger className="h-8 w-36 text-xs font-medium border-border/80 bg-background/80">
                     <div className="flex items-center gap-1.5 truncate">
                       <Globe className="h-3.5 w-3.5 text-blue-400 shrink-0" />
@@ -212,7 +211,6 @@ export default function NewEntryPage() {
                     {SUPPORTED_LOCALES.map((l) => (
                       <SelectItem key={l.code} value={l.code}>
                         <div className="flex items-center gap-2">
-                          <span>{l.flag}</span>
                           <span>{l.label}</span>
                           <span className="text-[10px] text-muted-foreground font-mono uppercase">({l.code})</span>
                         </div>

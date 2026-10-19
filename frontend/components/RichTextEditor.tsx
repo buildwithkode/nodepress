@@ -2,9 +2,7 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
+import { Placeholder } from '@tiptap/extensions';
 import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
 import {
@@ -37,6 +35,9 @@ const ToolbarButton = ({
 }) => (
   <button
     type="button"
+    // Don't take focus from the editor: it keeps its cursor/selection and the
+    // next keystroke goes straight into the text.
+    onMouseDown={(e) => e.preventDefault()}
     onClick={onClick}
     disabled={disabled}
     title={title}
@@ -69,17 +70,35 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
   const [charCount, setCharCount] = useState(0);
 
   const switchingRef = useRef(false);
+  // HTML this editor has emitted recently. The form echoes every emitted value
+  // back as `value`, sometimes a render late; an echo of an older value must
+  // not overwrite newer text (it would drop keystrokes and move the cursor).
+  const emittedRef = useRef<string[]>([]);
+  const rememberEmitted = (html: string) => {
+    emittedRef.current.push(html);
+    if (emittedRef.current.length > 50) emittedRef.current.shift();
+  };
 
   const editor = useEditor({
+    // Rendered client-side only (next/dynamic, ssr: false); this also silences
+    // TipTap 3's SSR hydration warning.
+    immediatelyRender: false,
+    // TipTap 3 no longer re-renders on every transaction by default; the
+    // toolbar reads editor.isActive()/can() during render, so keep v2 behaviour.
+    shouldRerenderOnTransaction: true,
     extensions: [
+      // StarterKit 3 bundles Link and Underline — configure them here rather
+      // than adding the extensions again (duplicates are rejected).
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4] },
-      }),
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'tiptap-link',
+        // StarterKit 3 adds TrailingNode, which keeps an empty <p></p> at the
+        // end of the document — it would be saved into every richtext field.
+        trailingNode: false,
+        link: {
+          openOnClick: false,
+          HTMLAttributes: {
+            class: 'tiptap-link',
+          },
         },
       }),
       Placeholder.configure({ placeholder: placeholder || 'Write your editorial story here…' }),
@@ -97,6 +116,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
       if (switchingRef.current) return;
       const html = editor.getHTML();
       setHtmlValue(html);
+      rememberEmitted(html);
       onChange?.(html);
 
       // Update metrics
@@ -123,11 +143,14 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
     }
   }, [editor]);
 
-  // Sync external value
+  // Sync external value (entry loaded, form reset, HTML tab) — but not echoes
+  // of what this editor just emitted.
   useEffect(() => {
     if (!editor) return;
+    if (value !== undefined && emittedRef.current.includes(value)) return;
     if (value !== undefined && editor.getHTML() !== value) {
-      editor.commands.setContent(value || '');
+      emittedRef.current = [];
+      editor.commands.setContent(value || '', { emitUpdate: false });
       setHtmlValue(value || '');
       const text = editor.getText();
       const words = text.trim() ? text.trim().split(/\s+/).length : 0;
@@ -159,7 +182,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
   const switchToVisual = () => {
     if (!editor) return;
     switchingRef.current = true;
-    editor.commands.setContent(htmlValue || '');
+    editor.commands.setContent(htmlValue || '', { emitUpdate: false });
     onChange?.(htmlValue || '');
     setMode('visual');
     switchingRef.current = false;
@@ -277,6 +300,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
             <button
               key={level}
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
               title={`Heading ${level}`}
               className={cn(

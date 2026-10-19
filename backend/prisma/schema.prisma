@@ -298,6 +298,11 @@ model Setting {
   // Optional admin-UI theme overrides (hex). null = use the built-in theme default.
   buttonColor  String?  // overrides the primary button colour (--primary)
   inputColor   String?  // overrides the input border + focus ring (--input / --ring)
+  // Content languages: enabled locale codes (e.g. ["en","fr"]) and the default.
+  // Drive the admin UI and the public API's ?fallback=true; the API still
+  // accepts entries in any locale.
+  locales       Json     @default("[\"en\"]")
+  defaultLocale String   @default("en")
   updatedAt    DateTime @updatedAt
 
   @@map("settings")
