@@ -12,7 +12,10 @@ describe('JobsService', () => {
     prisma = {
       job: {
         createMany: jest.fn(async ({ data }: any) => ({ count: data.length })),
-        update: jest.fn(),
+        update: jest.fn(async ({ where, data }: any) => ({ id: where.id, ...data })),
+        updateMany: jest.fn(async () => ({ count: 2 })),
+        findUnique: jest.fn(),
+        delete: jest.fn(),
       },
       $queryRaw: jest.fn(),
       $executeRaw: jest.fn(),
@@ -77,5 +80,44 @@ describe('JobsService', () => {
     jobs.registerHandler('test.job', async () => undefined);
     prisma.job.update.mockRejectedValueOnce(new Error('db down'));
     await expect(jobs.process(job())).resolves.toBeUndefined();
+  });
+
+  describe('admin actions', () => {
+    it('retry resets attempts, makes the job due now and wakes the worker', async () => {
+      const wake = jest.fn();
+      jobs.onEnqueue(wake);
+      prisma.job.findUnique.mockResolvedValue({ id: 4, status: 'failed' });
+      const before = Date.now();
+      await jobs.retry(4);
+      const { data } = prisma.job.update.mock.calls[0][0];
+      expect(data).toMatchObject({ status: 'pending', attempts: 0 });
+      expect(data.runAt.getTime()).toBeGreaterThanOrEqual(before);
+      expect(wake).toHaveBeenCalled();
+    });
+
+    it('retry refuses a job that already succeeded, and unknown ids', async () => {
+      prisma.job.findUnique.mockResolvedValueOnce({ id: 4, status: 'done' });
+      await expect(jobs.retry(4)).rejects.toThrow(/already succeeded/);
+      prisma.job.findUnique.mockResolvedValueOnce(null);
+      await expect(jobs.retry(5)).rejects.toThrow(/not found/);
+    });
+
+    it('retryFailed requeues only failed jobs, optionally of one type', async () => {
+      expect(await jobs.retryFailed('form.email')).toEqual({ requeued: 2 });
+      expect(prisma.job.updateMany).toHaveBeenCalledWith({
+        where: { status: 'failed', type: 'form.email' },
+        data: expect.objectContaining({ status: 'pending', attempts: 0 }),
+      });
+    });
+
+    it('remove deletes finished jobs but never a pending one', async () => {
+      prisma.job.findUnique.mockResolvedValueOnce({ status: 'pending' });
+      await expect(jobs.remove(1)).rejects.toThrow(/may be running/);
+      expect(prisma.job.delete).not.toHaveBeenCalled();
+
+      prisma.job.findUnique.mockResolvedValueOnce({ status: 'failed' });
+      await jobs.remove(2);
+      expect(prisma.job.delete).toHaveBeenCalledWith({ where: { id: 2 } });
+    });
   });
 });

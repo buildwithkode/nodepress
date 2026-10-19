@@ -136,6 +136,8 @@ model Media {
   size         Int                               // bytes (after optimization)
   width        Int?                              // pixels (images only)
   height       Int?                              // pixels (images only)
+  focalX       Float?                            // focal point 0–1 from the left (cover crops keep it in frame)
+  focalY       Float?                            // focal point 0–1 from the top
   uploadedBy   Int?                              // userId
   folderId     Int?                              // null = root / unfiled
   folder       MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)

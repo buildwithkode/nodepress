@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Param, Body, Query, Headers, BadRequestException, UseGuards, UseInterceptors,
+  Param, Body, Query, Headers, BadRequestException, UseGuards, UseInterceptors, Req, Res,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import {
   ApiTags, ApiOperation, ApiResponse,
   ApiBearerAuth, ApiParam, ApiBody, ApiHeader, ApiQuery,
@@ -10,6 +11,7 @@ import { DynamicApiService } from './dynamic-api.service';
 import { JwtOrApiKeyGuard } from '../api-keys/jwt-or-api-key.guard';
 import { TimeoutInterceptor } from '../common/timeout.interceptor';
 import { HttpCacheInterceptor } from '../common/http-cache.interceptor';
+import { StageAccessGuard, requestedStage } from './stage-access.guard';
 
 @ApiTags('Dynamic API')
 @Controller()
@@ -17,6 +19,7 @@ export class DynamicApiController {
   constructor(private readonly dynamicApiService: DynamicApiService) {}
 
   @Get(':type')
+  @UseGuards(StageAccessGuard)
   @UseInterceptors(new TimeoutInterceptor(10_000), new HttpCacheInterceptor())
   @ApiOperation({
     summary: 'List published (or staged) entries for a content type with pagination, filtering, search, and relations',
@@ -37,7 +40,9 @@ export class DynamicApiController {
   @ApiHeader({ name: 'x-nodepress-environment', required: false, description: 'Target environment: "staging" or "production"' })
   @ApiResponse({ status: 200, description: '{ data: Entry[], meta: { total, page, limit, totalPages, nextCursor } } — with ?cursor=, meta is { limit, nextCursor }' })
   @ApiResponse({ status: 404, description: 'Content type not found or method disabled' })
-  findAll(
+  async findAll(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
     @Param('type') type: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -54,7 +59,7 @@ export class DynamicApiController {
     @Headers('x-nodepress-environment') envHeader?: string,
   ) {
     const effectiveStage = stage || (envHeader === 'staging' ? 'staging' : undefined);
-    return this.dynamicApiService.findAll(type, {
+    const result = await this.dynamicApiService.findAll(type, {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       cursor: cursor || undefined,
@@ -67,9 +72,12 @@ export class DynamicApiController {
       populate: populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
       fields: fields ? fields.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
     });
+    await this.tagForCdn(req, res, type);
+    return result;
   }
 
   @Get(':type/:slug')
+  @UseGuards(StageAccessGuard)
   @UseInterceptors(new TimeoutInterceptor(10_000), new HttpCacheInterceptor())
   @ApiOperation({ summary: 'Get a single published entry by slug (public)' })
   @ApiParam({ name: 'type', example: 'blog' })
@@ -81,7 +89,9 @@ export class DynamicApiController {
   @ApiHeader({ name: 'x-nodepress-environment', required: false, description: 'Target environment: "staging" or "production"' })
   @ApiResponse({ status: 200, description: 'Entry found' })
   @ApiResponse({ status: 404, description: 'Entry not found or not published' })
-  findOne(
+  async findOne(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
     @Param('type') type: string,
     @Param('slug') slug: string,
     @Query('locale') locale?: string,
@@ -91,12 +101,27 @@ export class DynamicApiController {
     @Headers('x-nodepress-environment') envHeader?: string,
   ) {
     const effectiveStage = stage || (envHeader === 'staging' ? 'staging' : undefined);
-    return this.dynamicApiService.findOne(type, slug, {
+    const result = await this.dynamicApiService.findOne(type, slug, {
       locale: locale?.trim() || undefined,
       stage: effectiveStage,
       populate: populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
       fields: fields ? fields.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
     });
+    await this.tagForCdn(req, res, type);
+    return result;
+  }
+
+  /**
+   * Tag published responses so a CDN can purge them per content type
+   * (Cloudflare: Cache-Tag, Fastly: Surrogate-Key). Unpublished stages are
+   * private and never tagged.
+   */
+  private async tagForCdn(req: Request, res: Response, type: string) {
+    if (requestedStage(req) !== 'published') return;
+    const tags = await this.dynamicApiService.publicCacheTags(type);
+    if (!tags.length) return;
+    res.setHeader('Cache-Tag', tags.join(','));
+    res.setHeader('Surrogate-Key', tags.join(' '));
   }
 
   @Get(':type/:slug/preview')

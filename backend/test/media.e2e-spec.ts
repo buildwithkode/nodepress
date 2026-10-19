@@ -96,4 +96,52 @@ describe('Media (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(404);
   });
+
+  // ── On-the-fly transforms & focal point ──────────────────────────────────
+
+  it('transforms an uploaded image with snapped sizes and a focal-point crop', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const sharp = require('sharp');
+    // 800×400: left half red, right half blue.
+    const half = (r: number, b: number) =>
+      sharp({ create: { width: 400, height: 400, channels: 3, background: { r, g: 0, b } } }).png().toBuffer();
+    const img = await sharp({ create: { width: 800, height: 400, channels: 3, background: { r: 0, g: 0, b: 0 } } })
+      .composite([{ input: await half(255, 0), left: 0, top: 0 }, { input: await half(0, 255), left: 400, top: 0 }])
+      .png().toBuffer();
+
+    const up = await request(app.getHttpServer())
+      .post('/api/media/upload')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', img, { filename: 'split.png', contentType: 'image/png' })
+      .expect(201);
+    const file = up.body.filename;
+
+    const resized = await request(app.getHttpServer())
+      .get(`/api/media/${file}/transform?w=150&format=auto`)
+      .set('Accept', 'image/avif,image/webp,*/*')
+      .buffer(true).parse((res, cb) => { const c: Buffer[] = []; res.on('data', (d) => c.push(d)); res.on('end', () => cb(null, Buffer.concat(c))); })
+      .expect(200);
+    expect(resized.headers['content-type']).toBe('image/avif');
+    expect(resized.headers.vary).toBe('Accept');
+    expect((await sharp(resized.body).metadata()).width).toBe(192);
+
+    await request(app.getHttpServer()).put(`/api/media/${file}/focal-point`).send({ x: 0.9, y: 0.5 }).expect(401);
+    const focal = await request(app.getHttpServer())
+      .put(`/api/media/${file}/focal-point`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ x: 0.9, y: 0.5 })
+      .expect(200);
+    expect(focal.body).toMatchObject({ focalX: 0.9, focalY: 0.5 });
+
+    const crop = await request(app.getHttpServer())
+      .get(`/api/media/${file}/transform?w=64&h=64&fit=cover&format=png&fp=0.9,0.5`)
+      .buffer(true).parse((res, cb) => { const c: Buffer[] = []; res.on('data', (d) => c.push(d)); res.on('end', () => cb(null, Buffer.concat(c))); })
+      .expect(200);
+    expect(crop.headers['cache-control']).toContain('immutable');
+    const { data } = await sharp(crop.body).raw().toBuffer({ resolveWithObject: true });
+    expect(data[2]).toBeGreaterThan(200); // blue side kept
+    expect(data[0]).toBeLessThan(50);
+
+    await request(app.getHttpServer()).delete(`/api/media/${file}`).set('Authorization', `Bearer ${token}`).expect(200);
+  });
 });

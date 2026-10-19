@@ -4,6 +4,7 @@ import { join } from 'path';
 import { PrismaModule } from '../prisma/prisma.module';
 import { MediaController } from './media.controller';
 import { MediaService } from './media.service';
+import { ImageTransformService } from './image-transform.service';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { STORAGE_ADAPTER } from './adapters/storage.adapter';
 import { LocalStorageAdapter } from './adapters/local.adapter';
@@ -47,7 +48,7 @@ const storageAdapterProvider = {
 @Module({
   imports: [PrismaModule, RealtimeModule],
   controllers: [MediaController],
-  providers: [MediaService, storageAdapterProvider],
+  providers: [MediaService, ImageTransformService, storageAdapterProvider],
   exports: [MediaService],
 })
 export class MediaModule {}

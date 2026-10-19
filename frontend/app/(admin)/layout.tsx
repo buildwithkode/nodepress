@@ -30,8 +30,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X,
-} from 'lucide-react';
+  X, ListChecks } from 'lucide-react';
 
 const ALL_NAV_GROUPS = [
   {
@@ -58,6 +57,7 @@ const ALL_NAV_GROUPS = [
       { href: '/plugins',   label: 'Plugins',   icon: Puzzle },
       { href: '/api-keys',  label: 'API Keys',  icon: Key },
       { href: '/webhooks',  label: 'Webhooks',  icon: Zap },
+      { href: '/jobs',      label: 'Jobs',      icon: ListChecks },
       { href: '/audit-log', label: 'Audit Log', icon: ScrollText },
     ],
     externalLinks: [

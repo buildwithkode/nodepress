@@ -66,6 +66,21 @@ const EnvSchema = z.object({
   WEBHOOK_CONCURRENCY: z.coerce.number().int().positive().default(10),   // webhook deliveries in flight per instance
   JOB_CONCURRENCY:     z.coerce.number().int().positive().default(5),    // jobs (form emails/webhooks…) in flight per instance
 
+  // On-the-fly image transforms (media/image-transform.service.ts)
+  IMAGE_TRANSFORM_CONCURRENCY: z.coerce.number().int().positive().optional(), // default 2
+  IMAGE_VARIANT_CACHE_MB:      z.coerce.number().int().positive().optional(), // default 2048
+
+  // CDN in front of the public API. Public published reads carry Cache-Tag /
+  // Surrogate-Key headers; on writes the matching tags are purged.
+  CDN_PURGE_DRIVER:         z.enum(['none', 'cloudflare', 'fastly', 'webhook']).default('none'),
+  CDN_CACHE_TTL:            z.coerce.number().int().nonnegative().optional(), // s-maxage; default 3600 with a purge driver, 30 without
+  CLOUDFLARE_ZONE_ID:       z.string().optional(),
+  CLOUDFLARE_API_TOKEN:     z.string().optional(),   // needs Zone → Cache Purge permission
+  FASTLY_SERVICE_ID:        z.string().optional(),
+  FASTLY_API_TOKEN:         z.string().optional(),   // needs purge_select scope
+  CDN_PURGE_WEBHOOK_URL:    z.string().url().optional(),
+  CDN_PURGE_WEBHOOK_SECRET: z.string().optional(),   // signs the body: X-NodePress-Signature: sha256=<hmac>
+
   // Public form submission guardrails — abuse protection for nested payloads.
   // Applied to every POST /api/submit/:slug before validation.
   FORM_MAX_DEPTH:         z.coerce.number().int().positive().default(3),      // max object/array nesting
@@ -107,6 +122,18 @@ function validateEnv(raw: NodeJS.ProcessEnv) {
   const data = result.data;
   if (data.CAPTCHA_PROVIDER && !data.CAPTCHA_SECRET_KEY) {
     console.error(`\n❌  CAPTCHA_PROVIDER=${data.CAPTCHA_PROVIDER} requires CAPTCHA_SECRET_KEY to be set\n`);
+    process.exit(1);
+  }
+
+  // Extra validation: a CDN purge driver needs its credentials
+  const cdnRequired: Record<string, string[]> = {
+    cloudflare: ['CLOUDFLARE_ZONE_ID', 'CLOUDFLARE_API_TOKEN'],
+    fastly: ['FASTLY_SERVICE_ID', 'FASTLY_API_TOKEN'],
+    webhook: ['CDN_PURGE_WEBHOOK_URL'],
+  };
+  const cdnMissing = (cdnRequired[data.CDN_PURGE_DRIVER] ?? []).filter((k) => !data[k as keyof typeof data]);
+  if (cdnMissing.length) {
+    console.error(`\n❌  CDN_PURGE_DRIVER=${data.CDN_PURGE_DRIVER} requires: ${cdnMissing.join(', ')}\n`);
     process.exit(1);
   }
 

@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
+import { CdnPurgeService, publicCacheTags } from '../cdn/cdn-purge.service';
 import {
   CacheScope, WriteParams, changedNothing, entryIdsToLookUp, isCachedWrite, scopeFromArgs, scopeFromResult,
 } from './cache-scope';
@@ -209,6 +210,7 @@ export class DynamicApiService implements OnModuleInit {
     private webhooks: WebhooksService,
     private realtime: RealtimeGateway,
     @Optional() private hookBus?: PluginHookBus,
+    @Optional() private cdn?: CdnPurgeService,
   ) {}
 
   onModuleInit() {
@@ -299,6 +301,15 @@ export class DynamicApiService implements OnModuleInit {
       // The write itself already succeeded; cached responses expire on their TTL.
       this.logger.warn(`Public cache invalidation failed: ${err?.message}`);
     }
+    this.cdn?.schedule(scope);
+  }
+
+  /** Cache-Tag values for a content type's public responses (for CDN purging). */
+  async publicCacheTags(typeName: string): Promise<string[]> {
+    const name = typeName.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    let contentType = await this.cache.get<any>(ctCacheKey(name));
+    if (!contentType) contentType = await this.prisma.contentType.findUnique({ where: { name }, select: { id: true } });
+    return contentType ? publicCacheTags(contentType.id) : [];
   }
 
   /** Cache key prefix and read-after-write flag for a content type, in one round trip. */

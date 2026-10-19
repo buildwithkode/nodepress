@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Pencil,
   FolderInput,
+  Crosshair,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Cookies from 'js-cookie';
@@ -52,6 +53,8 @@ import api from '../../../lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
 import { canManageContent } from '@/lib/roles';
+import { transformUrl } from '@/lib/media-url';
+import { FocalPointDialog } from './_components/FocalPointDialog';
 
 interface MediaFile {
   filename: string;
@@ -62,6 +65,8 @@ interface MediaFile {
   size: number;
   width?: number | null;
   height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
   folderId?: number | null;
   createdAt: string;
 }
@@ -104,6 +109,7 @@ export default function MediaPage() {
 
   // Move file state
   const [movingFile, setMovingFile] = useState<MediaFile | null>(null);
+  const [focalFile, setFocalFile] = useState<MediaFile | null>(null);
   const [targetFolderId, setTargetFolderId] = useState<string>('unfiled');
   const [movingLoading, setMovingLoading] = useState(false);
 
@@ -451,7 +457,11 @@ export default function MediaPage() {
                   {/* Thumbnail */}
                   {isImage(file.filename) ? (
                     <a href={file.url} target="_blank" rel="noopener noreferrer" className="relative block">
-                      <img src={file.url} alt={file.originalName || file.filename}
+                      {/* A small square variant (cropped around the focal point) instead of the full original. */}
+                      <img
+                        src={transformUrl(file.filename, { w: 256, h: 256, fit: 'cover', focalX: file.focalX, focalY: file.focalY })}
+                        alt={file.originalName || file.filename}
+                        loading="lazy"
                         className="w-full h-32 object-cover block" />
                       {file.webpUrl && (
                         <span className="absolute top-1.5 right-1.5 text-[9px] font-semibold bg-blue-600 text-white rounded px-1 py-0.5 leading-none">
@@ -492,6 +502,19 @@ export default function MediaPage() {
                         title={file.webpUrl ? 'Copy WebP URL' : 'Copy URL'}>
                         <Copy className="h-3 w-3" />{file.webpUrl ? 'WebP' : 'Copy'}
                       </Button>
+
+                      {canEdit && isImage(file.filename) && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setFocalFile(file)}
+                          className="h-7 text-xs px-2"
+                          title={file.focalX != null ? `Focal point ${file.focalX}, ${file.focalY}` : 'Set focal point'}
+                        >
+                          <Crosshair className={cn('h-3 w-3', file.focalX != null ? 'text-indigo-400' : 'text-muted-foreground')} />
+                        </Button>
+                      )}
 
                       {/* Move to Folder Button */}
                       {canEdit && (
@@ -586,6 +609,14 @@ export default function MediaPage() {
       </Dialog>
 
       {/* ── Move File to Folder Dialog ─────────────────────────────────────────── */}
+      <FocalPointDialog
+        file={focalFile}
+        onClose={() => setFocalFile(null)}
+        onSaved={(filename, focalX, focalY) =>
+          setFiles((prev) => prev.map((f) => (f.filename === filename ? { ...f, focalX, focalY } : f)))
+        }
+      />
+
       <Dialog open={movingFile !== null} onOpenChange={(open) => !open && setMovingFile(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

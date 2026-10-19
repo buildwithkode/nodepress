@@ -229,16 +229,21 @@ describe('MediaService', () => {
     });
   });
 
-  // ── getTransformedImage ───────────────────────────────────────────────────
+  // ── setFocalPoint ─────────────────────────────────────────────────────────
 
-  describe('getTransformedImage()', () => {
-    it('rejects path traversal attempts', async () => {
-      await expect(service.getTransformedImage('../secret.jpg', {})).rejects.toThrow(BadRequestException);
-      await expect(service.getTransformedImage('foo/bar.jpg', {})).rejects.toThrow(BadRequestException);
+  describe('setFocalPoint()', () => {
+    it('stores a clamped, rounded focal point for an image', async () => {
+      mockPrisma.media.findUnique.mockResolvedValue({ filename: 'a.jpg', mimetype: 'image/jpeg' });
+      mockPrisma.media.update.mockImplementation(async ({ data }: any) => data);
+      expect(await service.setFocalPoint('a.jpg', 0.3333, 1.4)).toEqual({ focalX: 0.33, focalY: 1 });
     });
 
-    it('throws NotFoundException if source file does not exist', async () => {
-      await expect(service.getTransformedImage('nonexistent-file-xyz.jpg', {})).rejects.toThrow(NotFoundException);
+    it('clears it with nulls, and refuses non-images', async () => {
+      mockPrisma.media.findUnique.mockResolvedValueOnce({ filename: 'a.jpg', mimetype: 'image/jpeg' });
+      mockPrisma.media.update.mockImplementation(async ({ data }: any) => data);
+      expect(await service.setFocalPoint('a.jpg', null, null)).toEqual({ focalX: null, focalY: null });
+      mockPrisma.media.findUnique.mockResolvedValueOnce({ filename: 'doc.pdf', mimetype: 'application/pdf' });
+      await expect(service.setFocalPoint('doc.pdf', 0.5, 0.5)).rejects.toThrow(BadRequestException);
     });
   });
 });

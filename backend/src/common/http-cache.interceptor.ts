@@ -8,16 +8,19 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { createHash } from 'crypto';
 import type { Request, Response } from 'express';
+import { cdnCacheTtl } from '../cdn/cdn-purge.service';
 
 /**
- * HttpCacheInterceptor — adds ETag and Cache-Control headers to GET responses.
+ * HttpCacheInterceptor — ETag + Cache-Control for public dynamic-API GETs.
  *
- * Applied to public dynamic-API GET routes. Allows CDNs, reverse proxies, and
- * browsers to cache responses and serve 304 Not Modified when content is
- * unchanged, eliminating unnecessary data transfer.
+ * Browsers get `max-age=0`: they revalidate every time, which is a cheap 304
+ * thanks to the ETag, so a publish is visible on the next page view. Shared
+ * caches (a CDN) keep the response for `s-maxage` = cdnCacheTtl(): long when a
+ * CDN purge driver is configured (purged on every write via Cache-Tag /
+ * Surrogate-Key), short otherwise.
  *
- * TTL is intentionally kept short (30 s) to match the server-side cache so
- * stale content is never served for longer than the server TTL.
+ * A response already marked private (unpublished stages, see
+ * StageAccessGuard) keeps its header and is never made public.
  */
 @Injectable()
 export class HttpCacheInterceptor implements NestInterceptor {
@@ -33,12 +36,17 @@ export class HttpCacheInterceptor implements NestInterceptor {
       map((body) => {
         if (res.headersSent) return body;
 
+        const preset = String(res.getHeader('Cache-Control') ?? '');
+        const isPrivate = preset.startsWith('private') || preset.includes('no-store');
+
         const json  = JSON.stringify(body);
         const etag  = `"${createHash('sha1').update(json).digest('hex').slice(0, 20)}"`;
         const ifNoneMatch = req.headers['if-none-match'];
 
         res.setHeader('ETag', etag);
-        res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
+        if (!isPrivate) {
+          res.setHeader('Cache-Control', `public, max-age=0, s-maxage=${cdnCacheTtl()}, stale-while-revalidate=60`);
+        }
         res.setHeader('Vary', 'Accept-Encoding');
 
         // Standard HTTP conditional request: return 304 if content hasn't changed

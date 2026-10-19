@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -123,6 +123,64 @@ export class JobsService {
       // DB error recording the outcome: the lease expires and the job runs again.
       this.logger.error(`Job #${job.id} (${job.type}) bookkeeping failed: ${err?.message}`);
     }
+  }
+
+  // ── Admin (see JobsController) ──────────────────────────────────────────────
+
+  async list(filter: { status?: string; type?: string; page?: number; limit?: number } = {}) {
+    const page = Math.max(1, filter.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filter.limit ?? 25));
+    const where: Prisma.JobWhereInput = {};
+    if (filter.status && filter.status !== 'all') where.status = filter.status;
+    if (filter.type) where.type = filter.type;
+
+    const [total, data, byStatus, types] = await Promise.all([
+      this.prisma.job.count({ where }),
+      this.prisma.job.findMany({ where, orderBy: { id: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.prisma.job.groupBy({ by: ['status'], _count: { _all: true } }),
+      this.prisma.job.findMany({ distinct: ['type'], select: { type: true }, orderBy: { type: 'asc' } }),
+    ]);
+    const counts = { pending: 0, done: 0, failed: 0 } as Record<string, number>;
+    for (const row of byStatus) counts[row.status] = row._count._all;
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      counts,
+      types: types.map((t) => t.type),
+    };
+  }
+
+  /** Run a failed (or waiting) job again now, with a fresh set of attempts. */
+  async retry(id: number) {
+    const job = await this.prisma.job.findUnique({ where: { id } });
+    if (!job) throw new NotFoundException(`Job #${id} not found`);
+    if (job.status === 'done') throw new BadRequestException(`Job #${id} already succeeded`);
+    const updated = await this.prisma.job.update({
+      where: { id },
+      data: { status: 'pending', attempts: 0, runAt: new Date() },
+    });
+    this.enqueueListener?.();
+    return updated;
+  }
+
+  /** Retry every failed job (optionally of one type). Returns how many were requeued. */
+  async retryFailed(type?: string) {
+    const { count } = await this.prisma.job.updateMany({
+      where: { status: 'failed', ...(type ? { type } : {}) },
+      data: { status: 'pending', attempts: 0, runAt: new Date() },
+    });
+    if (count > 0) this.enqueueListener?.();
+    return { requeued: count };
+  }
+
+  /** Delete a finished job. Pending jobs may be running, so they can't be deleted. */
+  async remove(id: number) {
+    const job = await this.prisma.job.findUnique({ where: { id }, select: { status: true } });
+    if (!job) throw new NotFoundException(`Job #${id} not found`);
+    if (job.status === 'pending') throw new BadRequestException('A pending job may be running — retry or wait for it to finish');
+    await this.prisma.job.delete({ where: { id } });
+    return { deleted: id };
   }
 
   private async retryOrFail(job: ClaimedJob, error: string) {

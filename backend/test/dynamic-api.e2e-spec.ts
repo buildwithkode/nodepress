@@ -296,6 +296,32 @@ describe('Dynamic API (e2e)', () => {
     expect(res.body.data.map((e: any) => e.slug)).toEqual(['second-post']);
   });
 
+  // ── Unpublished stages need credentials ───────────────────────────────────
+
+  it('anonymous requests cannot read drafts via ?stage= or the environment header', async () => {
+    const server = app.getHttpServer();
+    for (const stage of ['draft', 'all', 'staging']) {
+      await request(server).get(`/api/article?stage=${stage}`).expect(401);
+    }
+    await request(server).get('/api/article').set('x-nodepress-environment', 'staging').expect(401);
+    await request(server).get('/api/article/draft-post?stage=draft').expect(401);
+    // The default (published) stage stays public.
+    const pub = await request(server).get('/api/article?stage=published').expect(200);
+    expect(pub.body.data.map((e: any) => e.slug)).not.toContain('draft-post');
+  });
+
+  it('a logged-in user or a scoped API key can read drafts, and the response is never publicly cacheable', async () => {
+    const server = app.getHttpServer();
+    const withJwt = await request(server).get('/api/article?stage=draft').set('Authorization', `Bearer ${token}`).expect(200);
+    expect(withJwt.body.data.map((e: any) => e.slug)).toContain('draft-post');
+    expect(withJwt.headers['cache-control']).toBe('private, no-store');
+
+    const withKey = await request(server).get('/api/article/draft-post?stage=draft').set('X-API-Key', apiKey).expect(200);
+    expect(withKey.body.slug).toBe('draft-post');
+
+    await request(server).get('/api/article?stage=draft').set('Authorization', 'Bearer not-a-token').expect(401);
+  });
+
   // ── Cache invalidation across write paths ─────────────────────────────────
 
   it('an admin-panel edit is visible on the cached public API immediately', async () => {

@@ -124,4 +124,33 @@ describe('Form actions via the job queue (e2e)', () => {
     const ids = batches.flat().map((j) => j.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
+
+  it('admin jobs API: lists failed jobs, retries them, and is admin-only', async () => {
+    await prisma.job.create({
+      data: { type: 'test.unhandled', payload: { n: 1 }, status: 'failed', attempts: 3, lastError: 'boom', runAt: new Date() },
+    });
+
+    await request(app.getHttpServer()).get('/api/jobs').expect(401);
+
+    const list = await request(app.getHttpServer())
+      .get('/api/jobs?status=failed')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(list.body.counts.failed).toBeGreaterThanOrEqual(1);
+    expect(list.body.types).toContain('test.unhandled');
+    const job = list.body.data.find((j: any) => j.type === 'test.unhandled');
+    expect(job.lastError).toBe('boom');
+
+    await request(app.getHttpServer()).post(`/api/jobs/${job.id}/retry`).set('Authorization', `Bearer ${token}`).expect(201);
+    // No handler is registered for this type, so the worker fails it again —
+    // proving the retry really re-ran it (attempt 1, new error).
+    const again = await waitFor(async () => {
+      const row = await prisma.job.findUnique({ where: { id: job.id } });
+      return row && row.status === 'failed' && row.attempts === 1 ? row : null;
+    });
+    expect(again.lastError).toContain('No handler registered');
+
+    await request(app.getHttpServer()).delete(`/api/jobs/${job.id}`).set('Authorization', `Bearer ${token}`).expect(200);
+    expect(await prisma.job.findUnique({ where: { id: job.id } })).toBeNull();
+  });
 });

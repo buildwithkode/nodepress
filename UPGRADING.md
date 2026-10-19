@@ -57,7 +57,8 @@ in one transaction, so a failed restore leaves the database as it was.
 **Action required**
 
 - **Run migrations.** New: `add_two_factor_and_installed_plugins`,
-  `add_entry_search_vector`, `add_entry_list_index`, `add_jobs`. All use
+  `add_entry_search_vector`, `add_entry_list_index`, `add_jobs`,
+  `add_media_focal_point`. All use
   `IF NOT EXISTS`. A database created with `prisma db push` has no migration
   history: apply each new `migration.sql` with `psql -f` instead (see
   `backend/prisma/migrations/`).
@@ -65,6 +66,11 @@ in one transaction, so a failed restore leaves the database as it was.
   remote-code-execution advisories and many high ones. No configuration change
   is needed; custom pages that read route `params` in server components must
   `await` them (`const { slug } = await props.params`).
+- **Previewing staging/draft content now needs credentials.** `?stage=staging|draft|all`
+  and the `X-NodePress-Environment: staging` header used to work anonymously,
+  which exposed unpublished content to anyone. Preview frontends must now send
+  an `X-API-Key` (any access level, covering the content type) or a JWT.
+  Published reads are unchanged.
 - **Docker:** rebuild both images (`docker compose build`). The previous images
   could not be rebuilt at all (out-of-sync lockfiles) and shipped vulnerable
   dependencies.
@@ -80,6 +86,13 @@ in one transaction, so a failed restore leaves the database as it was.
 | `WEBHOOK_CONCURRENCY` | `10` | Webhook deliveries in flight per instance |
 | `JOB_CONCURRENCY` | `5` | Background jobs (form actions) in flight per instance |
 | `HEALTH_MAX_HEAP_MB` | 90 % of the heap limit | Memory threshold for `/api/health` |
+| `IMAGE_TRANSFORM_CONCURRENCY` | `2` | Image encodes in flight per instance |
+| `IMAGE_VARIANT_CACHE_MB` | `2048` | Size cap for cached image variants |
+| `CDN_PURGE_DRIVER` | `none` | `cloudflare`, `fastly` or `webhook` — purge CDN cache on writes |
+| `CDN_CACHE_TTL` | 3600 with a driver, 30 without | `s-maxage` for public API responses |
+| `CLOUDFLARE_ZONE_ID` / `CLOUDFLARE_API_TOKEN` | — | For `CDN_PURGE_DRIVER=cloudflare` |
+| `FASTLY_SERVICE_ID` / `FASTLY_API_TOKEN` | — | For `CDN_PURGE_DRIVER=fastly` |
+| `CDN_PURGE_WEBHOOK_URL` / `CDN_PURGE_WEBHOOK_SECRET` | — | For `CDN_PURGE_DRIVER=webhook` |
 
 **Behaviour changes**
 
@@ -87,5 +100,6 @@ in one transaction, so a failed restore leaves the database as it was.
   with retries instead of inline. Deliveries in progress during a restart are
   retried automatically.
 - Public cache invalidation is per content type.
+- Image transform sizes are rounded up to fixed buckets (e.g. `w=500` returns 640 px wide) and quality to steps of 10.
 - Content type schema import is all-or-nothing, and its dry run lists
   field-level changes.

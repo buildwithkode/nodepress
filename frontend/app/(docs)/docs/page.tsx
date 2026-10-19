@@ -855,13 +855,16 @@ GET /api/blog?where[category][eq]=news`} />
             <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-4 mb-6">
               <h4 className="font-semibold text-sm text-purple-400 mb-2">Querying Staging Environments via API</h4>
               <p className="text-xs text-muted-foreground mb-3">
-                Headless frontends (such as Staging / QA preview builds or Vercel preview branches) can query staging entries by passing <IC>?stage=staging</IC> or the <IC>X-NodePress-Environment: staging</IC> header:
+                Headless frontends (such as Staging / QA preview builds or Vercel preview branches) can query staging entries by passing <IC>?stage=staging</IC> or the <IC>X-NodePress-Environment: staging</IC> header.
+                Any stage other than <IC>published</IC> returns unpublished content, so it needs credentials — an API key
+                covering the content type (any access level) or a JWT — and the response is sent with{' '}
+                <IC>Cache-Control: private, no-store</IC>. Without credentials the API answers <IC>401</IC>.
               </p>
               <CodeBlock code={`# 1. Using Query Parameter (returns staging + published entries)
-curl http://localhost:4000/api/articles?stage=staging
+curl -H "X-API-Key: np_..." http://localhost:4000/api/articles?stage=staging
 
 # 2. Using Environment Header
-curl -H "X-NodePress-Environment: staging" http://localhost:4000/api/articles/my-post
+curl -H "X-API-Key: np_..." -H "X-NodePress-Environment: staging" http://localhost:4000/api/articles/my-post
 
 # 3. 1-Click Promotion Endpoints (Admin / Editor)
 POST /api/entries/:id/promote   # Body: { "status": "staging" | "published" | "draft" }
@@ -1694,20 +1697,45 @@ curl -X POST ${baseUrl}/api/media/upload \\
               <Endpoint method="GET"    path="/api/media?folderId=:id"       desc="List files in a specific folder — use folderId=null for unfiled files" />
             </div>
 
-            <h3 className="font-semibold mb-3 mt-6">Dynamic On-Demand Transformations & Responsive CDN</h3>
+            <h3 className="font-semibold mb-3 mt-6">On-the-fly image transforms</h3>
             <p className="text-muted-foreground text-sm mb-3">
-              Transform and resize any media file on-the-fly with native Sharp libvips performance and automatic persistent disk caching:
+              Request any size or format of an uploaded image; it is generated once with Sharp, cached on disk and served
+              with a one-year <IC>immutable</IC> cache header, so a CDN serves it from then on. Works with local and S3
+              storage (an S3 original is downloaded once, up to 25 MB).
             </p>
-            <CodeBlock code={`# Resize to 800x600, convert to WebP, quality 80:
-GET ${baseUrl}/api/media/1712345678-abc123.jpg/transform?w=800&h=600&q=80&format=webp&fit=cover
+            <CodeBlock code={`# 800 px wide, AVIF or WebP depending on the browser's Accept header
+GET ${baseUrl}/api/media/1712345678-abc123.jpg/transform?w=800&format=auto
 
-# Quick width resize:
-GET ${baseUrl}/api/media/1712345678-abc123.jpg/resize?w=400`} />
+# Square thumbnail cropped around the image's focal point
+GET ${baseUrl}/api/media/1712345678-abc123.jpg/transform?w=400&h=400&fit=cover&fp=0.62,0.35
 
+# Responsive srcset
+<img src="/api/media/pic.jpg/transform?w=640&format=auto"
+     srcset="/api/media/pic.jpg/transform?w=640&format=auto 640w,
+             /api/media/pic.jpg/transform?w=1080&format=auto 1080w,
+             /api/media/pic.jpg/transform?w=1920&format=auto 1920w"
+     sizes="100vw" alt="">`} />
+            <div className="rounded-xl border border-border overflow-x-auto mb-3 mt-3">
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-border">
+                  {[
+                    ['w / h', 'Width / height in px, rounded up to 16, 32, 48, 64, 96, 128, 192, 256, 320, 384, 480, 640, 750, 828, 960, 1080, 1200, 1440, 1600, 1920, 2048, 2560, 3200 or 3840. Never enlarges.'],
+                    ['format', 'auto (AVIF → WebP → JPEG by Accept header; sends Vary: Accept), webp (default), avif, jpeg, png'],
+                    ['fit', 'inside (default), cover, contain, fill, outside'],
+                    ['q', 'Quality 30–100, rounded to steps of 10 (default 80)'],
+                    ['fp', 'The image\'s focal point "x,y". With fit=cover and both w and h, the crop keeps the focal point in frame. Including fp pins the URL so it can be cached forever; without it, focal crops are cached for an hour so a changed focal point shows up.'],
+                  ].map(([k, v]) => (
+                    <tr key={k}>
+                      <td className="px-4 py-2.5 align-top"><IC>{k}</IC></td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground space-y-2 mb-4">
-              <p><strong className="text-foreground">✨ UI Transformer Modal:</strong> In Admin → Media, click the <IC>✨</IC> button on any image card to open the interactive transformer.</p>
-              <p><strong className="text-foreground">📐 Presets:</strong> Instant buttons for Thumbnail (150×150), Card (400×300), Social Hero (1200×630), and Full Banner (1920×800).</p>
-              <p><strong className="text-foreground">📋 Responsive HTML5 Snippet:</strong> Generate and copy responsive HTML5 <IC>&lt;picture&gt;</IC> and <IC>srcset</IC> markup with 1 click for direct use in Next.js, React, or Astro.</p>
+              <p><strong className="text-foreground">Focal point:</strong> in Admin → Media, click the crosshair on an image card, click the most important part of the image and Save (<IC>PUT /api/media/:filename/focal-point</IC> with <IC>{'{ "x": 0.62, "y": 0.35 }'}</IC>; nulls clear it). The media list returns <IC>focalX</IC>/<IC>focalY</IC>.</p>
+              <p><strong className="text-foreground">Abuse limits:</strong> because sizes and quality are snapped, one image has a bounded number of variants. At most <IC>IMAGE_TRANSFORM_CONCURRENCY</IC> encodes (default 2) run at once; when 50 more are waiting the endpoint answers <IC>503</IC>. Variants unused for 30 days, and the least recently used ones above <IC>IMAGE_VARIANT_CACHE_MB</IC> (default 2048), are pruned nightly.</p>
             </div>
 
             <h3 className="font-semibold mb-3 mt-6">Cloud Storage Configuration (S3 / Cloudflare R2 / MinIO)</h3>
@@ -1935,6 +1963,9 @@ X-RateLimit-Reset: 60       # seconds until window resets
               endpoint. A failed email or a webhook that errors, times out (10 s) or returns a non-2xx status is
               retried twice more — after 1 minute and after 10 minutes — and nothing is lost if the server restarts.
               Up to <IC>JOB_CONCURRENCY</IC> actions (default 5) run at once per backend instance.
+              Actions that still fail appear under <strong className="text-foreground">Developer → Jobs</strong>{' '}
+              (admin only), where you can see the error and payload, retry one job or all failed jobs, and delete
+              finished ones.
             </p>
 
             {/* Email setup (SMTP) */}
@@ -2871,6 +2902,35 @@ STORAGE_S3_PUBLIC_URL=https://assets.yourdomain.com`} />
               stored alongside the original. Both URLs are returned in the media API response.
             </p>
 
+            <h3 className="font-semibold mb-3 mt-6">CDN caching</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              Public API reads of published content are sent with{' '}
+              <IC>Cache-Control: public, max-age=0, s-maxage=…</IC>: browsers revalidate every time (a cheap{' '}
+              <IC>304</IC> via the ETag), while a CDN such as Cloudflare or Fastly keeps the response. Each response also
+              carries <IC>Cache-Tag</IC> (Cloudflare) and <IC>Surrogate-Key</IC> (Fastly) headers —{' '}
+              <IC>np-all</IC> plus <IC>np-ct-&lt;contentTypeId&gt;</IC>. With a purge driver configured, every write
+              purges just the content types it changed (batched over 2 seconds, retried through the job queue), so
+              responses can be cached for an hour and still update within seconds of a publish.
+            </p>
+            <CodeBlock code={`# backend/.env — pick one driver
+CDN_PURGE_DRIVER=cloudflare          # none (default) | cloudflare | fastly | webhook
+CLOUDFLARE_ZONE_ID=...
+CLOUDFLARE_API_TOKEN=...             # token with Zone → Cache Purge
+
+# CDN_PURGE_DRIVER=fastly
+# FASTLY_SERVICE_ID=...
+# FASTLY_API_TOKEN=...               # purge_select scope
+
+# CDN_PURGE_DRIVER=webhook           # Vercel, Netlify, Varnish, your own purger
+# CDN_PURGE_WEBHOOK_URL=https://example.com/purge
+# CDN_PURGE_WEBHOOK_SECRET=...       # body signed: X-NodePress-Signature: sha256=<hmac>
+
+# CDN_CACHE_TTL=3600                 # s-maxage; default 3600 with a driver, 30 without`} />
+            <p className="text-muted-foreground text-sm mt-3">
+              A purge of everything uses the <IC>np-all</IC> tag, never Cloudflare&apos;s purge-everything, so the rest of
+              your zone stays cached. Draft and staging reads are <IC>private</IC> and never tagged.
+            </p>
+
             <h3 className="font-semibold mb-3 mt-6">Backup &amp; restore</h3>
             <p className="text-muted-foreground text-sm mb-3">
               <IC>npm run backup</IC> writes one archive with the database (a <IC>pg_dump</IC>), the uploads
@@ -3231,8 +3291,9 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
             <h3 className="font-semibold mb-3">Media</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/media"                                  desc="List media files — ?page, ?limit, ?folderId (null=unfiled)" />
-              <Endpoint method="GET"    path="/api/media/:filename/transform"              desc="Dynamic on-the-fly image resizing & WebP conversion: ?w, ?h, ?q, ?format, ?fit (disk cached)" />
-              <Endpoint method="GET"    path="/api/media/:filename/resize"                 desc="Quick image resizing: ?w, ?h, ?q, ?format" />
+              <Endpoint method="GET"    path="/api/media/:filename/transform"              desc="On-the-fly resize/convert: ?w, ?h (snapped to size buckets), ?q, ?format (auto|webp|avif|jpeg|png), ?fit, ?fp — cached" />
+              <Endpoint method="GET"    path="/api/media/:filename/resize"                 desc="Alias for /transform" />
+              <Endpoint method="PUT"    path="/api/media/:filename/focal-point"            desc="Set the focal point for cover crops — body: { x, y } (0–1), nulls clear it" auth />
               <Endpoint method="POST"   path="/api/media/upload"                           desc="Upload a file (multipart/form-data)" auth />
               <Endpoint method="DELETE" path="/api/media/:filename"                        desc="Delete a file" auth />
               <Endpoint method="GET"    path="/api/media/folders"                          desc="List all media folders (flat list)" auth />
@@ -3256,6 +3317,14 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
               <Endpoint method="POST"   path="/api/webhooks/:id/ping"          desc="Send a test ping to the webhook URL" auth />
               <Endpoint method="GET"    path="/api/webhooks/deliveries"        desc="List delivery log & DLQ — ?status, ?webhookId, ?page, ?limit" auth />
               <Endpoint method="POST"   path="/api/webhooks/deliveries/:id/retry" desc="1-Click immediate re-delivery of a delivery payload" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Background Jobs</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/jobs"                       desc="List jobs with status counts — ?status=all|pending|done|failed, ?type, ?page, ?limit — admin only" auth />
+              <Endpoint method="POST"   path="/api/jobs/:id/retry"             desc="Run a failed job again now with fresh attempts — admin only" auth />
+              <Endpoint method="POST"   path="/api/jobs/retry-failed"          desc="Requeue every failed job (optionally ?type=) — admin only" auth />
+              <Endpoint method="DELETE" path="/api/jobs/:id"                   desc="Delete a done or failed job — admin only" auth />
             </div>
 
             <h3 className="font-semibold mb-3">API Keys</h3>

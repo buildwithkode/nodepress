@@ -5,10 +5,12 @@ import { ApiKeysModule } from '../api-keys/api-keys.module';
 import { AuthModule } from '../auth/auth.module';
 import { AppCacheModule } from '../cache/cache.module';
 import { RealtimeModule } from '../realtime/realtime.module';
+import { CdnModule } from '../cdn/cdn.module';
+import { StageAccessGuard } from './stage-access.guard';
 
 @Module({
-  imports: [ApiKeysModule, AuthModule, AppCacheModule, RealtimeModule],
+  imports: [ApiKeysModule, AuthModule, AppCacheModule, RealtimeModule, CdnModule],
   controllers: [DynamicApiController],
-  providers: [DynamicApiService],
+  providers: [DynamicApiService, StageAccessGuard],
 })
 export class DynamicApiModule {}

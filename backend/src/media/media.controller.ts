@@ -1,6 +1,6 @@
 import {
   Controller, Post, Get, Put, Delete, Param, Query, Body,
-  UseInterceptors, UploadedFile, UseGuards, BadRequestException, ParseIntPipe, Request, Res,
+  UseInterceptors, UploadedFile, UseGuards, BadRequestException, ParseIntPipe, Request, Res, Headers,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse, ApiBearerAuth,
@@ -13,6 +13,7 @@ import { extname, join } from 'path';
 import { randomBytes } from 'crypto';
 import { readFileSync, unlinkSync, createReadStream } from 'fs';
 import { MediaService } from './media.service';
+import { ImageTransformService } from './image-transform.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -58,7 +59,10 @@ const MIME_MAP: Record<string, string> = {
 @ApiTags('Media')
 @Controller('media')
 export class MediaController {
-  constructor(private readonly mediaService: MediaService) {}
+  constructor(
+    private readonly mediaService: MediaService,
+    private readonly imageTransform: ImageTransformService,
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
@@ -176,43 +180,37 @@ export class MediaController {
   @SkipThrottle()
   @Get(':filename/transform')
   @ApiOperation({
-    summary: 'Dynamically transform and resize an image on-the-fly with disk caching',
-    description: 'Supports width (w), height (h), quality (q: 1-100), format (webp, avif, jpeg, png), and fit (cover, contain, fill, inside, outside).',
+    summary: 'Resize / convert an image on the fly (cached)',
+    description:
+      'Width and height are rounded up to a fixed set of sizes (16…3840), quality to steps of 10 (30–100), ' +
+      'so each image has a bounded number of variants. format=auto picks AVIF or WebP from the Accept header. ' +
+      'fit=cover with both w and h crops around the image\'s focal point. Works with local and S3 storage.',
   })
   @ApiParam({ name: 'filename', example: '1234567890-abc123.jpg' })
-  @ApiQuery({ name: 'w', required: false, type: Number, description: 'Target width (px)' })
-  @ApiQuery({ name: 'h', required: false, type: Number, description: 'Target height (px)' })
-  @ApiQuery({ name: 'q', required: false, type: Number, description: 'Quality 1-100 (default: 80)' })
-  @ApiQuery({ name: 'format', required: false, enum: ['webp', 'avif', 'jpeg', 'png'] })
+  @ApiQuery({ name: 'w', required: false, type: Number, description: 'Target width (px), rounded up to the next size bucket' })
+  @ApiQuery({ name: 'h', required: false, type: Number, description: 'Target height (px), rounded up to the next size bucket' })
+  @ApiQuery({ name: 'q', required: false, type: Number, description: 'Quality 30-100 in steps of 10 (default 80)' })
+  @ApiQuery({ name: 'format', required: false, enum: ['auto', 'webp', 'avif', 'jpeg', 'png'] })
   @ApiQuery({ name: 'fit', required: false, enum: ['cover', 'contain', 'fill', 'inside', 'outside'] })
+  @ApiQuery({ name: 'fp', required: false, description: 'The image\'s focal point "x,y" — pins the URL so it can be cached forever' })
   async transform(
     @Param('filename') filename: string,
-    @Query('w') w: string | undefined,
-    @Query('h') h: string | undefined,
-    @Query('q') q: string | undefined,
-    @Query('format') format: any,
-    @Query('fit') fit: any,
+    @Query() query: Record<string, string>,
+    @Headers('accept') accept: string | undefined,
     @Res() res: any,
   ) {
-    const width = w ? parseInt(w, 10) : undefined;
-    const height = h ? parseInt(h, 10) : undefined;
-    const quality = q ? parseInt(q, 10) : undefined;
-
-    const { filePath, contentType, size } = await this.mediaService.getTransformedImage(filename, {
-      width: !isNaN(width!) ? width : undefined,
-      height: !isNaN(height!) ? height : undefined,
-      quality: !isNaN(quality!) ? quality : undefined,
-      format,
-      fit,
-    });
-
+    const result = await this.imageTransform.transform(
+      filename,
+      { w: query.w, h: query.h, q: query.q, format: query.format, fit: query.fit, fp: query.fp },
+      accept,
+    );
     res.set({
-      'Content-Type': contentType,
-      'Content-Length': size,
-      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Content-Type': result.contentType,
+      'Content-Length': result.size,
+      'Cache-Control': result.cacheControl,
+      ...(result.vary ? { Vary: result.vary } : {}),
     });
-
-    createReadStream(filePath).pipe(res);
+    createReadStream(result.filePath).pipe(res);
   }
 
   @SkipThrottle()
@@ -220,14 +218,25 @@ export class MediaController {
   @ApiOperation({ summary: 'Alias for :filename/transform' })
   resize(
     @Param('filename') filename: string,
-    @Query('w') w: string | undefined,
-    @Query('h') h: string | undefined,
-    @Query('q') q: string | undefined,
-    @Query('format') format: any,
-    @Query('fit') fit: any,
+    @Query() query: Record<string, string>,
+    @Headers('accept') accept: string | undefined,
     @Res() res: any,
   ) {
-    return this.transform(filename, w, h, q, format, fit, res);
+    return this.transform(filename, query, accept, res);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  @Put(':filename/focal-point')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Set (or clear with nulls) the focal point used for cover crops' })
+  @ApiParam({ name: 'filename', example: '1234567890-abc123.jpg' })
+  setFocalPoint(
+    @Param('filename') filename: string,
+    @Body('x') x: number | null,
+    @Body('y') y: number | null,
+  ) {
+    return this.mediaService.setFocalPoint(filename, x, y);
   }
 
   // ── File delete — must come after all static /folders/* routes ─────────────
