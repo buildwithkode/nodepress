@@ -134,4 +134,52 @@ describe('Content Types (e2e)', () => {
 
     expect(list.body.some((ct: any) => ct.name === 'to_delete')).toBe(false);
   });
+
+  // ── Field types & schema import ───────────────────────────────────────────
+
+  it('accepts every field type the admin builder offers (color, date, datetime, json)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/content-types')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'event',
+        schema: [
+          { name: 'title', type: 'text' },
+          { name: 'accent', type: 'color' },
+          { name: 'day', type: 'date' },
+          { name: 'starts_at', type: 'datetime' },
+          { name: 'meta', type: 'json' },
+        ],
+      });
+    expect(res.status).toBe(201);
+  });
+
+  it('import dry run shows field-level changes; an invalid bundle changes nothing', async () => {
+    const server = app.getHttpServer();
+    const auth = { Authorization: `Bearer ${token}` };
+    await request(server).post('/api/content-types').set(auth)
+      .send({ name: 'recipe', schema: [{ name: 'title', type: 'text' }, { name: 'notes', type: 'text' }] })
+      .expect(201);
+
+    const dry = await request(server).post('/api/content-types/import').set(auth).send({
+      dryRun: true,
+      contentTypes: [{ name: 'recipe', schema: [{ name: 'title', type: 'richtext' }, { name: 'serves', type: 'number' }] }],
+    }).expect(201);
+    expect(dry.body.preview[0].changes).toMatchObject({
+      added: ['serves'],
+      removed: ['notes'],
+      typeChanged: [{ name: 'title', from: 'text', to: 'richtext' }],
+    });
+
+    // One valid and one invalid type: nothing may be created.
+    await request(server).post('/api/content-types/import').set(auth).send({
+      contentTypes: [
+        { name: 'ingredient', schema: [{ name: 'name', type: 'text' }] },
+        { name: 'broken', schema: [{ name: 'x', type: 'hologram' }] },
+      ],
+    }).expect(400);
+    const list = await request(server).get('/api/content-types').set(auth).expect(200);
+    const names = (list.body.data ?? list.body).map((c: any) => c.name);
+    expect(names).not.toContain('ingredient');
+  });
 });

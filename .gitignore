@@ -44,3 +44,6 @@ Thumbs.db
 
 # Internal developer notes & references
 UPGRADE_STRATEGY.md
+
+# Database/uploads backups from `npm run backup` (contain secrets)
+/backups/

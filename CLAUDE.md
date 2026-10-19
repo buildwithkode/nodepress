@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 NodePress is a self-hosted headless CMS (WordPress + ACF + Strapi inspired) with:
 - **Backend**: NestJS + PostgreSQL + Prisma ORM — `backend/`
-- **Frontend**: Next.js 14 App Router + Ant Design admin panel — `frontend/`
+- **Frontend**: Next.js 15 App Router admin panel (shadcn/ui + Radix + Tailwind, React 18) — `frontend/`
 - **CLI**: `create-nodepress-app` — the published scaffolding tool — `cli/`
 
 This is an **npm-workspaces** monorepo (`backend`, `frontend`, `cli`). A single root `npm install` installs all three. Most build/test commands still run per-package, so `cd` into the right directory first.
@@ -27,7 +27,15 @@ npm run docker:dev     # docker-compose up -d (Postgres for local dev)
 npm run docker:prod    # Production stack (Postgres + Redis + nginx)
 npm run migrate        # cd backend && prisma migrate dev
 npm run studio         # cd backend && prisma studio
+npm run backup         # pg_dump + local uploads + manifest → backups/nodepress-<time>.tar.gz (scripts/backup.js)
+npm run restore -- <file.tar.gz>   # guarded restore (type-the-name confirm, refuses non-empty DB / newer backup without --force)
 ```
+
+### Pre-push gate and CI
+
+`.githooks/pre-push` (installed by the root `prepare` script) type-checks both workspaces, runs backend unit tests, runs `npm audit --omit=dev --audit-level=high` **at the repo root** (all workspaces — the frontend matters: Next.js advisories), runs `scripts/check-docker-lockfiles.sh`, and `scripts/check-versions.js`. `.github/workflows/ci.yml` runs the same plus e2e (with a schema-drift check), the runtime smoke test and Docker image builds — but GitHub hasn't started an Actions run on this account since 2026-04-02, so the hook is what actually runs. Don't bypass it with `--no-verify` unless the user asks.
+
+**Three lockfiles.** Local installs and CI use the root `package-lock.json`. The Docker images build with `backend/` or `frontend/` as the context, so they install from `backend/package-lock.json` / `frontend/package-lock.json` and ignore the root `overrides` — security overrides must be repeated in the workspace `package.json`, and an override of a direct dependency must use `"$name"`. After changing a workspace's dependencies, run `scripts/check-docker-lockfiles.sh --fix`. Never delete the root lockfile; when npm ignores a new override, remove only the affected entry from the lockfile and reinstall.
 
 ### Backend (`cd backend/`)
 
@@ -186,6 +194,7 @@ Relation fields store the target entry's `publicId` (UUID), not its numeric id. 
 
 - CLI: `npx nodepress generate:types` outputs strongly-typed schemas in `frontend/types/nodepress.d.ts`.
 - Next.js Draft Mode: `/api/draft` and `/api/disable-draft` handlers allow real-time live preview of drafts with HMAC-signed tokens.
+- **Next.js 15**: route `params`/`searchParams` in server components are Promises (`const params = await props.params`), as are `cookies()`, `headers()` and `draftMode()`. `next/image` is unused and `images.unoptimized` keeps the `/_next/image` optimizer off.
 
 ### Auth system
 

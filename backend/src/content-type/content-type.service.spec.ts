@@ -182,4 +182,59 @@ describe('ContentTypeService', () => {
       expect(mockCache.invalidatePrefix).toHaveBeenCalled();
     });
   });
+
+  // ── importSchemas ──────────────────────────────────────────────────────────
+
+  describe('importSchemas()', () => {
+    const existing = { id: 1, name: 'blog', schema: [{ name: 'title', type: 'text' }, { name: 'old', type: 'text' }] };
+
+    beforeEach(() => {
+      mockPrisma.contentType.findMany.mockResolvedValue([existing]);
+      mockSchemaValidator.validate.mockImplementation((s) => s);
+    });
+
+    it('dry run reports field-level changes for existing types', async () => {
+      const result: any = await service.importSchemas({
+        dryRun: true,
+        contentTypes: [
+          { name: 'blog', schema: [{ name: 'title', type: 'richtext' }, { name: 'tags', type: 'text' }] },
+          { name: 'page', schema: [{ name: 'title', type: 'text' }] },
+        ],
+      });
+      expect(result).toMatchObject({ dryRun: true, valid: true, toCreate: 1, toUpdate: 1 });
+      const blog = result.preview.find((p: any) => p.name === 'blog');
+      expect(blog.changes).toMatchObject({
+        added: ['tags'],
+        removed: ['old'],
+        typeChanged: [{ name: 'title', from: 'text', to: 'richtext' }],
+        unchanged: false,
+      });
+      expect(result.preview.find((p: any) => p.name === 'page').changes).toBeUndefined();
+      expect(mockPrisma.contentType.create).not.toHaveBeenCalled();
+    });
+
+    it('dry run catches schemas the validator rejects', async () => {
+      mockSchemaValidator.validate.mockImplementation(() => { throw new Error('Field "x" has unknown type'); });
+      const result: any = await service.importSchemas({ dryRun: true, contentTypes: [{ name: 'page', schema: [{ name: 'x', type: 'nope' }] }] });
+      expect(result.valid).toBe(false);
+      expect(result.errors[0]).toContain('unknown type');
+    });
+
+    it('a real import with any invalid schema changes nothing', async () => {
+      mockSchemaValidator.validate.mockImplementation((s: any[]) => {
+        if (s.some((f) => f.type === 'nope')) throw new Error('bad');
+        return s;
+      });
+      await expect(
+        service.importSchemas({
+          contentTypes: [
+            { name: 'page', schema: [{ name: 'title', type: 'text' }] },
+            { name: 'broken', schema: [{ name: 'x', type: 'nope' }] },
+          ],
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockPrisma.contentType.create).not.toHaveBeenCalled();
+      expect(mockPrisma.contentType.update).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
+import { diffSchemas } from './schema-diff';
 import { CreateContentTypeDto } from './dto/create-content-type.dto';
 import { UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { SchemaValidator } from '../fields/schema.validator';
@@ -309,8 +310,11 @@ export class ContentTypeService {
     const dryRun = !!dto.dryRun;
     const overwrite = dto.overwrite !== false;
 
-    const existingList = await this.prisma.contentType.findMany({ select: { id: true, name: true } });
+    const existingList = await this.prisma.contentType.findMany({ select: { id: true, name: true, schema: true } });
     const existingMap = new Map(existingList.map((c) => [c.name, c.id]));
+    const existingSchemas = new Map(existingList.map((c) => [c.name, c.schema as any[]]));
+    // Validated schemas, so nothing is written unless every one of them is valid.
+    const validated = new Map<string, any[]>();
 
     const errors: string[] = [];
     const preview: any[] = [];
@@ -340,6 +344,18 @@ export class ContentTypeService {
         valid = false;
       }
 
+      // Run the same validation the real import runs, so a dry run that passes
+      // means the import will too.
+      if (valid) {
+        try {
+          validated.set(name, this.schemaValidator.validate(normalizeSchema(ct.schema)));
+        } catch (err: any) {
+          errorMsg = `"${name}": ${err?.response?.message ?? err?.message ?? 'invalid schema'}`;
+          errors.push(errorMsg);
+          valid = false;
+        }
+      }
+
       const isExisting = existingMap.has(name);
       if (valid) {
         if (isExisting) toUpdate++;
@@ -353,7 +369,15 @@ export class ContentTypeService {
         isExisting,
         valid,
         error: errorMsg,
+        // What would change for an existing type. Removed fields keep their
+        // data in existing entries; it is just no longer shown or validated.
+        changes: isExisting && valid ? diffSchemas(existingSchemas.get(name), validated.get(name)) : undefined,
       });
+    }
+
+    // All or nothing: never apply part of a bundle that contains an invalid schema.
+    if (!dryRun && errors.length > 0) {
+      throw new BadRequestException({ message: 'Import aborted — nothing was changed', errors });
     }
 
     if (dryRun) {
@@ -376,7 +400,7 @@ export class ContentTypeService {
       const name = normalizeName(ct.name);
       if (!name || RESERVED_NAMES.includes(name) || !Array.isArray(ct.schema)) continue;
 
-      const validatedSchema = this.schemaValidator.validate(normalizeSchema(ct.schema));
+      const validatedSchema = validated.get(name)!;
       const existingId = existingMap.get(name);
 
       if (existingId) {

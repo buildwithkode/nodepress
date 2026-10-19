@@ -50,10 +50,10 @@
     ],
     "coverageThreshold": {
       "global": {
-        "statements": 35,
-        "branches": 38,
-        "functions": 29,
-        "lines": 36
+        "statements": 42,
+        "branches": 40,
+        "functions": 36,
+        "lines": 42
       }
     },
     "testEnvironment": "node",
@@ -133,7 +133,7 @@
   "overrides": {
     "@apollo/server": "^5.5.1",
     "express": "^5.2.1",
-    "rxjs": "^7.8.2",
+    "rxjs": "$rxjs",
     "@graphql-tools/utils": "12.0.4",
     "ts-morph": "^27.0.2",
     "@nestjs/swagger": {

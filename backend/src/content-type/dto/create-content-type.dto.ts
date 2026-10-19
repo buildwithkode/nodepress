@@ -1,6 +1,7 @@
 import { IsString, IsNotEmpty, IsArray, ValidateNested, IsIn, IsOptional, IsBoolean, ArrayUnique } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ALL_FIELD_TYPES } from '../../fields/field.types';
 
 export class FieldDto {
   @ApiProperty({ example: 'title' })
@@ -8,12 +9,10 @@ export class FieldDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({
-    example: 'text',
-    enum: ['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'relation', 'repeater', 'flexible', 'group'],
-  })
+  // The canonical registry, so a new field type can't be forgotten here.
+  @ApiProperty({ example: 'text', enum: ALL_FIELD_TYPES })
   @IsString()
-  @IsIn(['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'relation', 'repeater', 'flexible', 'group'])
+  @IsIn(ALL_FIELD_TYPES)
   type: string;
 
   @ApiPropertyOptional({ example: 'Article Title' })

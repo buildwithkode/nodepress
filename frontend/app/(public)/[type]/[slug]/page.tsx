@@ -17,11 +17,11 @@ async function getEntry(type: string, slug: string) {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { type: string; slug: string };
-}): Promise<Metadata> {
+// Next.js 15: route params arrive as a Promise.
+type Props = { params: Promise<{ type: string; slug: string }> };
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const entry = await getEntry(params.type, params.slug);
   if (!entry) return { title: 'Not Found' };
 
@@ -51,11 +51,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function EntryDetailPage({
-  params,
-}: {
-  params: { type: string; slug: string };
-}) {
+export default async function EntryDetailPage(props: Props) {
+  const params = await props.params;
   const entry = await getEntry(params.type, params.slug);
 
   if (!entry) notFound();

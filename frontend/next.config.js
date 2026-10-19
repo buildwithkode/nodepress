@@ -36,6 +36,10 @@ const BACKEND_URL = resolveBackendUrl();
 const isLocalBackend = /localhost|127\.0\.0\.1/.test(BACKEND_URL);
 
 const nextConfig = {
+  // The admin never uses next/image, so switch off the /_next/image optimizer
+  // endpoint entirely — it is attack surface with nothing to gain (it was the
+  // vector for an unauthenticated RCE fixed in Next 15.5.24).
+  images: { unoptimized: true },
   env: isLocalBackend
     ? {
         BACKEND_URL,

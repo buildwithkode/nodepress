@@ -2583,7 +2583,11 @@ async function getEntry(type: string, slug: string) {
 }
 
 // 2. Next.js dynamic metadata for OpenGraph & Twitter
-export async function generateMetadata({ params }: { params: { type: string; slug: string } }): Promise<Metadata> {
+// Next.js 15+: params is a Promise
+type Props = { params: Promise<{ type: string; slug: string }> };
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const entry = await getEntry(params.type, params.slug);
   if (!entry) return { title: 'Not Found' };
 
@@ -2613,7 +2617,8 @@ export async function generateMetadata({ params }: { params: { type: string; slu
 }
 
 // 3. Page component with Schema.org JSON-LD Structured Data
-export default async function Page({ params }: { params: { type: string; slug: string } }) {
+export default async function Page(props: Props) {
+  const params = await props.params;
   const entry = await getEntry(params.type, params.slug);
 
   const jsonLd = {
@@ -2864,6 +2869,29 @@ STORAGE_S3_PUBLIC_URL=https://assets.yourdomain.com`} />
               Uploaded images are automatically resized to a max dimension of 2400 px, EXIF-rotated,
               and saved at JPEG quality 85. A <IC>.webp</IC> sibling is generated at quality 82 and
               stored alongside the original. Both URLs are returned in the media API response.
+            </p>
+
+            <h3 className="font-semibold mb-3 mt-6">Backup &amp; restore</h3>
+            <p className="text-muted-foreground text-sm mb-3">
+              <IC>npm run backup</IC> writes one archive with the database (a <IC>pg_dump</IC>), the uploads
+              folder (when <IC>STORAGE_DRIVER=local</IC>) and a manifest of the version and migrations. It uses{' '}
+              <IC>DIRECT_URL</IC> when set, because a transaction-mode pooler can&apos;t run <IC>pg_dump</IC>.
+              Archives contain password hashes and API keys, so they are created readable by you only — store
+              them privately. With S3 storage, back up the bucket with your provider&apos;s tools.
+            </p>
+            <CodeBlock code={`npm run backup                              # → backups/nodepress-<timestamp>.tar.gz
+npm run backup -- --out /mnt/backups         # choose the folder
+
+npm run restore -- backups/nodepress-20261019-093614.tar.gz`} />
+            <p className="text-muted-foreground text-sm mt-3 mb-2">Restore is guarded so it can&apos;t silently destroy data:</p>
+            <ul className="text-muted-foreground text-sm space-y-1 list-disc pl-4 mb-3">
+              <li>It shows the target database and asks you to type its name (<IC>--yes</IC> skips this in scripts).</li>
+              <li>It refuses a database that already has users, a backup from a newer NodePress version, or one with migrations your code doesn&apos;t have — <IC>--force</IC> overrides.</li>
+              <li>The database is restored in a single transaction, then <IC>prisma migrate deploy</IC> brings an older backup up to date.</li>
+            </ul>
+            <p className="text-muted-foreground text-sm">
+              Requires the PostgreSQL client tools (<IC>pg_dump</IC>, <IC>pg_restore</IC>, <IC>psql</IC>). The
+              production Docker stack also runs a nightly database dump (2am UTC, 30-day retention).
             </p>
           </Section>
 

@@ -1,0 +1,52 @@
+# Weekly dependency update PRs. Security updates are raised as soon as an
+# advisory is published (enable "Dependabot security updates" in the repo's
+# Settings → Code security).
+version: 2
+updates:
+  # Root npm workspace — covers backend and frontend via the root lockfile.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      nestjs:
+        patterns: ["@nestjs/*"]
+      prisma:
+        patterns: ["prisma", "@prisma/*"]
+      radix:
+        patterns: ["@radix-ui/*"]
+      tiptap:
+        patterns: ["@tiptap/*"]
+    ignore:
+      # Prisma 7 changes the datasource syntax this project relies on.
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+
+  # The Docker images install from these per-workspace lockfiles.
+  - package-ecosystem: npm
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

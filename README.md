@@ -117,6 +117,7 @@ Open `http://localhost:5173` → fill in a form → you have a working CMS with 
 | **Redis** | Query-result cache + Socket.io multi-instance sync |
 | **Prometheus + Grafana** | Pre-built dashboard, alerting rules for high error rate, high latency, backend-down |
 | **Automated daily backups** | pg_dump every night at 2am UTC, 30-day retention, optional S3 upload |
+| **Backup & restore commands** | `npm run backup` / `npm run restore` — database + uploads in one archive, guarded restore (confirmation, overwrite and version checks, single transaction) |
 | **Graceful shutdown** | SIGTERM / SIGINT handled — no dropped requests on deploy |
 
 ---

@@ -570,6 +570,41 @@ export default function ContentTypesPage() {
                     ))}
                   </div>
                 )}
+
+                {/* Field-level changes for content types that already exist */}
+                {importPreflight.preview?.some((p: any) => p.changes) && (
+                  <ul className="mt-2 space-y-1 text-[11px] font-mono">
+                    {importPreflight.preview
+                      .filter((p: any) => p.changes)
+                      .map((p: any) => {
+                        const c = p.changes;
+                        const parts: { text: string; tone: string }[] = [
+                          ...c.added.map((f: string) => ({ text: `+ ${f}`, tone: 'text-emerald-400' })),
+                          ...c.removed.map((f: string) => ({ text: `− ${f}`, tone: 'text-amber-400' })),
+                          ...c.typeChanged.map((t: any) => ({ text: `~ ${t.name}: ${t.from} → ${t.to}`, tone: 'text-amber-400' })),
+                          ...c.nowRequired.map((f: string) => ({ text: `! ${f} now required`, tone: 'text-amber-400' })),
+                          ...c.modified.map((f: string) => ({ text: `• ${f} settings`, tone: 'text-muted-foreground' })),
+                        ];
+                        return (
+                          <li key={p.name} className="break-words">
+                            <span className="text-foreground">{p.name}:</span>{' '}
+                            {c.unchanged ? (
+                              <span className="text-muted-foreground">no changes</span>
+                            ) : (
+                              parts.map((x, i) => (
+                                <span key={i} className={cn('mr-2', x.tone)}>{x.text}</span>
+                              ))
+                            )}
+                          </li>
+                        );
+                      })}
+                    {importPreflight.preview.some((p: any) => p.changes?.removed?.length || p.changes?.typeChanged?.length) && (
+                      <li className="text-muted-foreground font-sans">
+                        Removed fields keep their data in existing entries; it just stops being shown and validated.
+                      </li>
+                    )}
+                  </ul>
+                )}
               </div>
             )}
           </div>

@@ -2,10 +2,11 @@
 #
 # NodePress pre-push gate.
 #
-# GitHub Actions is disabled on this account (no run has executed since
-# 2026-03-25), so this local hook is the only automated check that runs before
-# code leaves a machine. It type-checks both workspaces, runs the backend unit
-# tests, audits production dependencies, and verifies version consistency.
+# The same checks run in CI (.github/workflows/ci.yml), but GitHub Actions has
+# not started a run on this account since 2026-04-02, so this local hook is
+# the check that actually runs before code leaves a machine. It type-checks
+# both workspaces, runs the backend unit tests, audits production dependencies
+# of every workspace, checks the Docker lockfiles, and verifies versions.
 #
 # Not here, because both need a real Postgres: the e2e suite and the runtime
 # smoke test. Run those with `./scripts/validate.sh --no-scaffold --smoke`
@@ -36,14 +37,20 @@ echo "[pre-push] backend unit tests…"
   NODE_ENV="test" \
   npm test --silent )
 
-echo "[pre-push] production dependency audit…"
+echo "[pre-push] production dependency audit (all workspaces)…"
 # Runtime deps only. A critical tar RCE and 17 highs sat on main for months
-# because nothing checked; dev-only advisories are noise for a self-hosted CMS.
-( cd "$ROOT/backend" && npm audit --omit=dev --audit-level=high )
+# because nothing checked, and auditing only the backend let two critical
+# Next.js RCEs through; dev-only advisories are noise for a self-hosted CMS.
+( cd "$ROOT" && npm audit --omit=dev --audit-level=high )
+
+echo "[pre-push] Docker lockfiles…"
+# The Docker images install from backend/ and frontend/package-lock.json, not
+# the root lockfile, so those can drift (broken build) or go stale (old CVEs).
+"$ROOT/scripts/check-docker-lockfiles.sh"
 
 echo "[pre-push] version consistency…"
 # Catches manifests disagreeing, a version listed twice in CHANGELOG.md, or
 # entries out of order — how 1.3.0 shipped twice, after 1.4.0 and 1.5.0.
 node "$ROOT/scripts/check-versions.js"
 
-echo "[pre-push] ✓ type-checks · unit tests · audit · versions passed"
+echo "[pre-push] ✓ type-checks · unit tests · audit · Docker lockfiles · versions passed"

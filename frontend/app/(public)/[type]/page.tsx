@@ -18,11 +18,11 @@ async function getEntries(type: string) {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { type: string };
-}): Promise<Metadata> {
+// Next.js 15: route params arrive as a Promise.
+type Props = { params: Promise<{ type: string }> };
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const title = params.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   return {
     title: `${title} | NodePress CMS`,
@@ -30,11 +30,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function EntryListPage({
-  params,
-}: {
-  params: { type: string };
-}) {
+export default async function EntryListPage(props: Props) {
+  const params = await props.params;
   const raw = await getEntries(params.type);
 
   if (raw === null) notFound();
