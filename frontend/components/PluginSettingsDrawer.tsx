@@ -29,6 +29,15 @@ export interface PluginItem {
   nodepress?: string | null;
   /** Why the plugin can't run on this install (it stays disabled), if any. */
   incompatible?: string | null;
+  /** bundled with NodePress, or uploaded by an admin. */
+  source?: 'bundled' | 'uploaded';
+  /** Why an uploaded plugin isn't running (it stays disabled), if any. */
+  loadError?: string | null;
+  /** Uploaded plugins: trusted | untrusted | unsigned. */
+  signature?: string | null;
+  /** Waiting for a server restart: being installed, updated (to pendingVersion) or removed. */
+  pending?: 'install' | 'update' | 'remove' | null;
+  pendingVersion?: string | null;
   enabled: boolean;
   configSchema: PluginConfigField[];
   config: Record<string, any>;

@@ -18,7 +18,7 @@ async function runPluginE2ETest() {
   const contentTypeService = app.get(ContentTypeService);
 
   console.log('\n--- 1. Testing Plugin Listing & Discovery ---');
-  const listResult = pluginService.listPlugins();
+  const listResult = await pluginService.listPlugins();
   console.log(`✅ Total Plugins Registered: ${listResult.meta.totalPlugins}`);
   console.log(`✅ Active Plugins: ${listResult.meta.enabledPlugins}`);
   console.log(`✅ Active Hooks: ${listResult.meta.totalHooks}, Active Filters: ${listResult.meta.totalFilters}`);

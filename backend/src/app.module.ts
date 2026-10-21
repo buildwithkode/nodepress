@@ -27,7 +27,7 @@ import { MetricsModule } from './metrics/metrics.module';
 import { HttpMetricsInterceptor } from './metrics/http-metrics.interceptor';
 import { ApiKeyRateLimitInterceptor } from './api-keys/api-key-rate-limit.interceptor';
 import { PluginModule } from './plugin/plugin.module';
-import { ENABLED_PLUGINS } from './plugin/plugins.config';
+import { pluginHostModule } from './plugin/plugin-loader';
 import { PermissionsModule } from './permissions/permissions.module';
 import { GraphqlModule } from './graphql/graphql.module';
 import { RealtimeModule } from './realtime/realtime.module';
@@ -87,8 +87,8 @@ import { LocalesModule } from './locales/locales.module';
     MailModule,         // Global — MailService available everywhere without re-importing
     MetricsModule,      // Global — Prometheus metrics + GET /api/metrics endpoint
     PluginModule,       // Global — PluginRegistry + GET /api/plugins endpoint
-    // Dynamically import enabled plugin NestJS modules so their routes/services/listeners are wired in
-    ...ENABLED_PLUGINS.map((p) => p.module),
+    // Bundled plugins (plugins.config.ts) + uploaded packages (plugin_packages), loaded before Nest starts
+    pluginHostModule(),
     PrismaModule,
     AuthModule,
     AuditModule,        // Global — AuditService available everywhere without re-importing

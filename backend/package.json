@@ -58,8 +58,13 @@
     },
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/$1"
+      "^src/(.*)$": "<rootDir>/$1",
+      "^@nodepress/plugin-sdk$": "<rootDir>/plugin/plugin-sdk"
     },
+    "modulePaths": [
+      "<rootDir>/../node_modules",
+      "<rootDir>/../../node_modules"
+    ],
     "transformIgnorePatterns": [
       "node_modules/(?!.*(htmlparser2|domutils|domhandler|domelementtype|dom-serializer|entities))"
     ]

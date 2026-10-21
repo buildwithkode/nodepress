@@ -30,6 +30,8 @@ import { parseQueryString } from './common/query-parser';
 import { AppModule } from './app.module';
 import { SentryExceptionFilter } from './common/sentry-exception.filter';
 import { corsOrigin } from './common/cors-origin';
+import { recordBootFailure } from './plugin/plugin-loader';
+import { PluginService } from './plugin/plugin.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -168,6 +170,16 @@ async function bootstrap() {
   console.log(`📚 API Docs at   http://localhost:${port}/api/docs`);
   console.log(`📁 Uploads at    http://localhost:${port}/uploads`);
   console.log(`❤️  Health at     http://localhost:${port}/api/health`);
+
+  // Uploaded plugins that started fine are no longer suspects for a failed startup.
+  await app.get(PluginService).recordBootSuccess();
 }
 
-bootstrap();
+bootstrap().catch(async (err) => {
+  console.error(err);
+  // A just-uploaded plugin that breaks startup is switched off, so the
+  // supervisor's restart (Docker, PM2, systemd) comes up without it.
+  const blamed = await recordBootFailure(err);
+  if (blamed.length) console.error(`Switched off uploaded plugin(s): ${blamed.join(', ')} — restart to start without them`);
+  process.exit(1);
+});

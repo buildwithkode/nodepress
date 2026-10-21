@@ -20,9 +20,20 @@ import {
   RefreshCw,
   ExternalLink,
   Sparkles,
+  Upload,
+  Trash2,
+  Power,
+  Clock,
+  ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { PluginSettingsDrawer, PluginItem } from '@/components/PluginSettingsDrawer';
+import { PluginUploadDialog } from '@/components/PluginUploadDialog';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { usePlugins } from '@/context/PluginContext';
@@ -45,6 +56,9 @@ export default function PluginsPage() {
     totalHooks: number;
     totalFilters: number;
     activeEvents: string[];
+    /** Admins only: whether uploads are allowed here (null for editors). */
+    uploads?: { mode: 'signed' | 'unsigned' | 'off'; maxUploadMb: number } | null;
+    restartRequired?: boolean;
   }>({
     totalPlugins: 0,
     enabledPlugins: 0,
@@ -59,6 +73,8 @@ export default function PluginsPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [selectedPlugin, setSelectedPlugin] = useState<PluginItem | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [restarting, setRestarting] = useState(false);
 
   const fetchPlugins = async () => {
     try {
@@ -105,6 +121,48 @@ export default function PluginsPage() {
     } finally {
       setTogglingId(null);
     }
+  };
+
+  const handleDelete = async (plugin: PluginItem) => {
+    try {
+      await api.delete(`/plugins/packages/${plugin.id}`);
+      toast.success(`${plugin.name} deleted — restart the server to unload it`);
+      await fetchPlugins();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? `Could not delete ${plugin.name}`);
+    }
+  };
+
+  /** Ask the server to exit; its supervisor (Docker, PM2, systemd) starts it again. */
+  const handleRestart = async () => {
+    setRestarting(true);
+    try {
+      await api.post('/plugins/restart');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Could not restart the server');
+      setRestarting(false);
+      return;
+    }
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    await sleep(2500);
+    const deadline = Date.now() + 90_000;
+    while (Date.now() < deadline) {
+      try {
+        await api.get('/health', { timeout: 3000 });
+        await fetchPlugins();
+        await refreshPlugins();
+        toast.success('Server restarted — plugin changes are loaded');
+        setRestarting(false);
+        return;
+      } catch {
+        await sleep(2000);
+      }
+    }
+    setRestarting(false);
+    toast.error(
+      "The server hasn't come back. If nothing restarts it automatically (Docker, PM2, systemd), start it again — e.g. npm run start:dev.",
+      { duration: 15000 },
+    );
   };
 
   const handleOpenSettings = (plugin: PluginItem) => {
@@ -173,8 +231,40 @@ export default function PluginsPage() {
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+          {meta.uploads && (
+            <Button
+              size="sm"
+              onClick={() => setUploadOpen(true)}
+              disabled={meta.uploads.mode === 'off'}
+              title={meta.uploads.mode === 'off' ? 'Uploads are turned off on this server (PLUGIN_UPLOADS=off)' : undefined}
+            >
+              <Upload className="w-3.5 h-3.5 mr-1.5" />
+              Upload plugin
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Restart banner */}
+      {meta.restartRequired && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-blue-500/30 bg-blue-500/5 px-4 py-3">
+          <div className="flex items-start gap-2.5 text-sm">
+            <Clock className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" />
+            <div>
+              <div className="font-medium text-foreground">Restart needed to load plugin changes</div>
+              <div className="text-xs text-muted-foreground">
+                Takes a few seconds. With several servers, restart each one (e.g. a rolling restart).
+              </div>
+            </div>
+          </div>
+          {meta.uploads && (
+            <Button size="sm" onClick={handleRestart} disabled={restarting}>
+              {restarting ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Power className="w-3.5 h-3.5 mr-1.5" />}
+              {restarting ? 'Restarting…' : 'Restart now'}
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Metric Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -299,6 +389,17 @@ export default function PluginsPage() {
                         <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
                           v{plugin.version}
                         </span>
+                        {plugin.source === 'uploaded' && (
+                          <span
+                            className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-border/60 text-muted-foreground flex items-center gap-1"
+                            title={plugin.signature === 'trusted' ? 'Signed by a trusted publisher' : 'Not signed by a trusted publisher'}
+                          >
+                            {plugin.signature === 'trusted'
+                              ? <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                              : <ShieldAlert className="w-3 h-3 text-amber-500" />}
+                            Uploaded
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                         <span>by {plugin.author}</span>
@@ -315,8 +416,12 @@ export default function PluginsPage() {
                       role="switch"
                       aria-checked={plugin.enabled}
                       aria-label={`Toggle ${plugin.name}`}
-                      disabled={togglingId === plugin.id || (!!plugin.incompatible && !plugin.enabled)}
-                      title={plugin.incompatible ?? undefined}
+                      disabled={
+                        togglingId === plugin.id ||
+                        plugin.pending === 'install' ||
+                        (!!(plugin.incompatible || plugin.loadError) && !plugin.enabled)
+                      }
+                      title={plugin.pending === 'install' ? 'Restart the server to load it first' : plugin.loadError ?? plugin.incompatible ?? undefined}
                       onClick={() => handleToggle(plugin)}
                       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                         plugin.enabled ? 'bg-emerald-500 dark:bg-emerald-600' : 'bg-zinc-300 dark:bg-zinc-700'
@@ -330,6 +435,24 @@ export default function PluginsPage() {
                     </button>
                   </div>
                 </div>
+
+                {plugin.pending && (
+                  <div className="mb-3 flex items-start gap-1.5 rounded-md border border-blue-500/30 bg-blue-500/10 px-2.5 py-2 text-xs text-blue-700 dark:text-blue-400">
+                    <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>
+                      {plugin.pending === 'install' && 'Installed — loads when the server restarts.'}
+                      {plugin.pending === 'update' && `Updates to v${plugin.pendingVersion} when the server restarts.`}
+                      {plugin.pending === 'remove' && 'Deleted — unloads when the server restarts.'}
+                    </span>
+                  </div>
+                )}
+
+                {plugin.loadError && (
+                  <div className="mb-3 flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-2.5 py-2 text-xs text-destructive">
+                    <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>{plugin.loadError} Upload a fixed version or delete it.</span>
+                  </div>
+                )}
 
                 {plugin.incompatible && (
                   <div className="mb-3 flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-xs text-amber-700 dark:text-amber-400">
@@ -371,16 +494,50 @@ export default function PluginsPage() {
                     }`}
                   />
                   <span className="text-[11px] font-medium text-muted-foreground">
-                    {plugin.enabled ? 'Enabled' : plugin.incompatible ? 'Incompatible' : 'Disabled'}
+                    {plugin.enabled ? 'Enabled' : plugin.loadError ? 'Not running' : plugin.incompatible ? 'Incompatible' : 'Disabled'}
                     {plugin.nodepress && <span className="ml-1.5 font-mono text-muted-foreground/70">NodePress {plugin.nodepress}</span>}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {plugin.source === 'uploaded' && meta.uploads && meta.uploads.mode !== 'off' && plugin.pending !== 'remove' && (
+                    <AlertDialog>
+                      <AlertDialogTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            disabled={plugin.enabled}
+                            title={plugin.enabled ? 'Disable it before deleting' : undefined}
+                          />
+                        }
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                        Delete
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete {plugin.name}?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            The package and its settings are removed. It unloads when the server restarts. Content it
+                            created stays.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction variant="destructive" onClick={() => handleDelete(plugin)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-7 text-xs px-2.5"
+                    disabled={plugin.pending === 'install'}
                     onClick={() => handleOpenSettings(plugin)}
                   >
                     <Settings2 className="w-3.5 h-3.5 mr-1" />
@@ -406,11 +563,22 @@ export default function PluginsPage() {
               they hook into: a plugin can only subscribe to the events its{' '}
               <strong className="text-foreground">declared permissions</strong> allow, a failing hook is logged without
               breaking the request, each hook has a <strong className="text-foreground">5-second timeout</strong>, and
-              turning a plugin off stops its hooks, jobs and API routes immediately — no restart.
+              turning a plugin off stops its hooks, jobs and API routes immediately — no restart. Installing, updating
+              or deleting an uploaded plugin takes effect after a restart; one that breaks startup is switched off
+              automatically.
             </p>
           </div>
         </div>
       </div>
+
+      {meta.uploads && (
+        <PluginUploadDialog
+          open={uploadOpen}
+          onOpenChange={setUploadOpen}
+          maxUploadMb={meta.uploads.maxUploadMb}
+          onInstalled={fetchPlugins}
+        />
+      )}
 
       {/* Slide-out Settings Drawer */}
       <PluginSettingsDrawer

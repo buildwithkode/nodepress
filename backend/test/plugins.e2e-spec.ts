@@ -131,4 +131,14 @@ describe('Plugins (e2e)', () => {
     const admin = await request(app.getHttpServer()).get('/api/plugins').set('Authorization', `Bearer ${token}`).expect(200);
     expect(admin.body.plugins.find((p: any) => p.id === 'word-count').config.wordsPerMinute).toBe(200);
   });
+
+  it('the on/off state an admin saved survives a restart', async () => {
+    await toggle('word-count', false);
+    await app.close();
+    app = await createTestApp({ reloadPlugins: true });
+    const res = await request(app.getHttpServer()).get('/api/plugins').set('Authorization', `Bearer ${token}`).expect(200);
+    expect(res.body.plugins.find((p: any) => p.id === 'word-count').enabled).toBe(false);
+    const entry = await createEntry('wc-after-restart', { title: 'R', content: 'one two' }).expect(201);
+    expect(entry.body.data._word_count).toBeUndefined();
+  });
 });

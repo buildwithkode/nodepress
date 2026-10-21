@@ -1621,12 +1621,82 @@ import { MyPluginService } from './my-plugin.service';
 export class MyPluginModule {}`} />
 
             <h3 className="font-semibold mb-2 mt-5">Installing a plugin</h3>
-            <p className="text-muted-foreground text-sm mb-2">Add it to <IC>src/plugin/plugins.config.ts</IC>, then enable or disable it at runtime on the Plugins page:</p>
+            <p className="text-muted-foreground text-sm mb-2">
+              <strong className="text-foreground">Upload it</strong> (site owners): on the Plugins page click{' '}
+              <strong className="text-foreground">Upload plugin</strong> and choose the plugin&apos;s <IC>.zip</IC>. NodePress checks it
+              before installing anything — manifest, NodePress version, permissions and signature — and shows you what it
+              will do. After <strong className="text-foreground">Install</strong>, click <strong className="text-foreground">Restart now</strong>:
+              the server exits and Docker, PM2 or systemd starts it again (with <IC>npm run start:dev</IC>, start it yourself).
+              The plugin then appears disabled; turn it on when you&apos;re ready. Updating is the same with a newer zip (it keeps
+              its on/off state and settings); deleting needs the plugin disabled first.
+            </p>
+            <p className="text-muted-foreground text-sm mb-2">
+              Uploaded packages are stored in Postgres, so every server — including a fresh container or a PaaS redeploy —
+              unpacks and loads them at startup (into <IC>PLUGINS_DIR</IC>, default <IC>backend/.plugins</IC>). A package
+              that fails to load is listed with its error; one that stops the server from starting is switched off
+              automatically, so the next start succeeds. With several servers, restart each one.
+            </p>
+            <p className="text-muted-foreground text-sm mb-2">
+              <strong className="text-foreground">Or bundle it in code</strong> (developers): put it in <IC>src/plugins/</IC> and add
+              it to <IC>src/plugin/plugins.config.ts</IC>. Bundled plugins can&apos;t be deleted or replaced by an upload.
+            </p>
             <CodeBlock code={`import { MyPluginManifest, MyPluginModule } from '../plugins/my-plugin';
 
 export const ENABLED_PLUGINS = [
   { manifest: MyPluginManifest, module: MyPluginModule },
 ];`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Upload settings</h3>
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Variable</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Meaning</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border text-xs">
+                  {[
+                    ['PLUGIN_UPLOADS', 'signed (default): only packages signed by a trusted key. unsigned: any valid package, with a warning. off: no uploads or deletes — installed plugins still load.'],
+                    ['PLUGIN_TRUSTED_KEYS', 'Comma-separated publisher public keys (printed by plugin keygen).'],
+                    ['PLUGIN_MAX_UPLOAD_MB', 'Largest package accepted (default 25).'],
+                    ['PLUGINS_DIR', 'Where packages are unpacked (default backend/.plugins). Re-created from the database at startup.'],
+                  ].map(([name, desc]) => (
+                    <tr key={name}><td className="px-4 py-2.5 font-mono">{name}</td><td className="px-4 py-2.5">{desc}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-semibold mb-2 mt-5">Building an uploadable package</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              A package is a zip with <IC>nodepress-plugin.json</IC> at the root (the manifest above as JSON, plus{' '}
+              <IC>main</IC> and <IC>files</IC>) and your compiled JavaScript. The entry file exports <IC>manifest</IC> and{' '}
+              <IC>module</IC>. Import the SDK as <IC>@nodepress/plugin-sdk</IC> — the server supplies it, along with{' '}
+              <IC>@nestjs/*</IC>, Prisma and <IC>rxjs</IC>; bundle any other runtime dependencies by adding{' '}
+              <IC>node_modules</IC> to <IC>files</IC>. The JSON manifest is what admins review, so its id, version and
+              permissions must match the exported one or the plugin won&apos;t load. (The SDK&apos;s type definitions aren&apos;t
+              published to npm yet — for now, point <IC>@nodepress/plugin-sdk</IC> at a NodePress checkout&apos;s{' '}
+              <IC>backend/src/plugin/plugin-sdk.ts</IC> with <IC>paths</IC> in your <IC>tsconfig.json</IC>.)
+            </p>
+            <CodeBlock code={`// nodepress-plugin.json
+{
+  "id": "my-plugin",
+  "name": "My Plugin",
+  "version": "1.0.0",
+  "description": "What this plugin does",
+  "nodepress": "^1.6.0",
+  "permissions": ["entries:read", "entries:write"],
+  "main": "dist/index.js",
+  "files": ["dist"]
+}
+
+// src/index.ts → compiled to dist/index.js (tsc with emitDecoratorMetadata)
+export { MyPluginManifest as manifest } from './manifest';
+export { MyPluginModule as module } from './my-plugin.module';`} />
+            <CodeBlock code={`npx create-nodepress-app plugin keygen --out my-key.pem   # once; prints your public key
+npx create-nodepress-app plugin pack . --key my-key.pem   # → my-plugin-1.0.0.zip, signed`} />
+            <p className="text-muted-foreground text-xs mt-2">
+              Keep the private key secret. Servers trust your plugins once your public key is in their{' '}
+              <IC>PLUGIN_TRUSTED_KEYS</IC>. The signature covers every file, so a package changed after signing is refused.
+              Signing proves who built a package; it doesn&apos;t make the code safe — uploaded plugins run with full access
+              to the server, like bundled ones.
+            </p>
 
             <h3 className="font-semibold mb-2 mt-5">The plugin context</h3>
             <p className="text-muted-foreground text-sm mb-2">
@@ -1694,7 +1764,7 @@ export class MyPluginService implements OnModuleInit {
 
             <h3 className="font-semibold mb-2 mt-5">What the core enforces</h3>
             <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted-foreground">
-              <li><strong className="text-foreground">Disabled means off:</strong> a disabled plugin&apos;s hooks don&apos;t run, its queued jobs fail with &quot;plugin disabled&quot;, and its controllers answer <IC>404</IC>. Declare controllers in the plugin&apos;s own module.</li>
+              <li><strong className="text-foreground">Disabled means off:</strong> a disabled plugin&apos;s hooks don&apos;t run, its queued jobs fail with &quot;plugin disabled&quot;, and its controllers — including those in modules only the plugin imports — answer <IC>404</IC>.</li>
               <li><strong className="text-foreground">Errors are contained:</strong> a hook that throws is logged and the request continues (only <IC>PluginVetoError</IC> stops it). Each hook has a 5-second timeout.</li>
               <li><strong className="text-foreground">Compatibility:</strong> if the running NodePress doesn&apos;t satisfy the manifest&apos;s <IC>nodepress</IC> range, the plugin stays disabled and the Plugins page shows why.</li>
               <li><strong className="text-foreground">Secrets:</strong> <IC>password</IC> settings are returned masked to admins, hidden from everyone else, and never written to the audit log. Saving the form without retyping one keeps the stored value.</li>
@@ -1703,7 +1773,7 @@ export class MyPluginService implements OnModuleInit {
 
             <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
               <strong className="text-blue-400">Discover installed plugins:</strong>
-              <p className="text-muted-foreground mt-1 text-xs"><IC>GET /api/plugins</IC> — registered plugins with version, compatibility and enabled state (settings are included for admins only). <IC>PATCH /api/plugins/:id/toggle</IC> and <IC>PUT /api/plugins/:id/config</IC> are admin-only.</p>
+              <p className="text-muted-foreground mt-1 text-xs"><IC>GET /api/plugins</IC> — registered plugins with version, compatibility, enabled state and pending restart changes (settings are included for admins only). Admin-only: <IC>PATCH /api/plugins/:id/toggle</IC>, <IC>PUT /api/plugins/:id/config</IC>, <IC>POST /api/plugins/packages</IC> (multipart <IC>file</IC>; <IC>?dryRun=true</IC> only reviews it), <IC>DELETE /api/plugins/packages/:id</IC> and <IC>POST /api/plugins/restart</IC>.</p>
             </div>
           </Section>
 

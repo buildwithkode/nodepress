@@ -320,3 +320,21 @@ model InstalledPlugin {
   @@map("installed_plugins")
 }
 
+/// An uploaded plugin package (admin → Plugins → Upload). Every instance unpacks
+/// and loads these at startup — see plugin/plugin-loader.ts.
+model PluginPackage {
+  id          String    @id // manifest id
+  version     String
+  manifest    Json      // nodepress-plugin.json, so listing never unpacks the archive
+  archive     Bytes     // the zip as uploaded
+  sha256      String    // of archive
+  size        Int
+  signature   String    // trusted | untrusted | unsigned
+  signerKeyId String?
+  uploadedBy  String?
+  uploadedAt  DateTime  @default(now())
+  bootedAt    DateTime? // first successful startup with this archive
+  loadError   String?   // why it was switched off (failed to load or broke startup); cleared by a new upload
+
+  @@map("plugin_packages")
+}

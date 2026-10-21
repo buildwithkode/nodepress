@@ -101,6 +101,14 @@ const EnvSchema = z.object({
   FORM_MAX_ARRAY_ITEMS:   z.coerce.number().int().positive().default(100),    // max items in any array field
   FORM_MAX_FIELDS:        z.coerce.number().int().positive().default(200),    // max total fields after flattening
   FORM_MAX_PAYLOAD_BYTES: z.coerce.number().int().positive().default(102400), // max JSON body size (~100 KB)
+
+  // ─── Plugin uploads (admin → Plugins → Upload plugin) ───────────────────────
+  // signed: only packages signed by a key in PLUGIN_TRUSTED_KEYS; unsigned: any
+  // valid package (with a warning); off: no uploads or deletes (installed ones still load).
+  PLUGIN_UPLOADS:       z.enum(['signed', 'unsigned', 'off']).default('signed'),
+  PLUGIN_TRUSTED_KEYS:  z.string().optional(),   // comma-separated Ed25519 public keys (base64url), see `plugin keygen`
+  PLUGIN_MAX_UPLOAD_MB: z.coerce.number().int().positive().default(25),
+  PLUGINS_DIR:          z.string().optional(),   // where packages are unpacked; default backend/.plugins
 });
 
 function validateEnv(raw: NodeJS.ProcessEnv) {

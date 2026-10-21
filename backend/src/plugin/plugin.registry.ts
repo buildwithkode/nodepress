@@ -39,13 +39,20 @@ export interface PluginManifest {
 
 export interface RegisteredPlugin {
   manifest: PluginManifest;
-  /** The NestJS module class for this plugin */
-  module: Type<any>;
+  /** The NestJS module class for this plugin (null when an uploaded package failed to load) */
+  module: Type<any> | null;
   enabled: boolean;
   config: Record<string, any>;
+  /** bundled (plugins.config.ts) or uploaded (admin → Plugins → Upload). Default bundled. */
+  source?: 'bundled' | 'uploaded';
   /** Why the plugin can't run on this NodePress (it stays disabled), if any. */
   incompatible?: string;
+  /** Why an uploaded package isn't running (it stays disabled), if any. */
+  loadError?: string;
 }
+
+/** Why a registered plugin can't be enabled, or undefined when it can. */
+export const blockedReason = (p: RegisteredPlugin): string | undefined => p.loadError || p.incompatible;
 
 /** Reason a manifest can't run on this NodePress version, or null when it can. */
 export function compatibilityProblem(manifest: PluginManifest, coreVersion = NODEPRESS_VERSION): string | null {
@@ -80,17 +87,19 @@ export class PluginRegistry {
     }
     const incompatible = compatibilityProblem(plugin.manifest) ?? undefined;
     if (incompatible) this.logger.warn(`Plugin "${plugin.manifest.id}" disabled: ${incompatible}`);
+    const blocked = !!(incompatible || plugin.loadError);
     const initialConfig = {
       ...(plugin.manifest.defaultConfig || {}),
       ...(plugin.config || {}),
     };
     this.plugins.set(plugin.manifest.id, {
       ...plugin,
-      enabled: incompatible ? false : plugin.enabled,
+      source: plugin.source ?? 'bundled',
+      enabled: blocked ? false : plugin.enabled,
       incompatible,
       config: initialConfig,
     });
-    this.logger.log(`Plugin registered: ${plugin.manifest.name} v${plugin.manifest.version} [enabled=${incompatible ? false : plugin.enabled}]`);
+    this.logger.log(`Plugin registered: ${plugin.manifest.name} v${plugin.manifest.version} [enabled=${blocked ? false : plugin.enabled}]`);
   }
 
   getAll(): RegisteredPlugin[] {
@@ -112,7 +121,7 @@ export class PluginRegistry {
 
   enable(id: string): boolean {
     const plugin = this.plugins.get(id);
-    if (!plugin || plugin.incompatible) return false;
+    if (!plugin || blockedReason(plugin)) return false;
     plugin.enabled = true;
     this.logger.log(`Plugin "${id}" enabled`);
     return true;
@@ -163,7 +172,7 @@ export class PluginRegistry {
     for (const row of dbPlugins) {
       const plugin = this.plugins.get(row.id);
       if (plugin) {
-        plugin.enabled = plugin.incompatible ? false : row.enabled;
+        plugin.enabled = blockedReason(plugin) ? false : row.enabled;
         // Config may arrive as a JSON string depending on how the row was written.
         let configObj = row.config;
         if (typeof configObj === 'string') {

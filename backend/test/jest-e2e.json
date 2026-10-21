@@ -19,8 +19,13 @@
     ]
   },
   "moduleNameMapper": {
-    "^src/(.*)$": "<rootDir>/../src/$1"
+    "^src/(.*)$": "<rootDir>/../src/$1",
+    "^@nodepress/plugin-sdk$": "<rootDir>/../src/plugin/plugin-sdk"
   },
+  "modulePaths": [
+    "<rootDir>/../node_modules",
+    "<rootDir>/../../node_modules"
+  ],
   "setupFiles": [
     "<rootDir>/jest.setup.ts"
   ],

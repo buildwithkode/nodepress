@@ -1,4 +1,4 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as express from 'express';
 import cookieParser = require('cookie-parser');
@@ -7,13 +7,29 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
 import { parseQueryString } from '../src/common/query-parser';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { reloadPluginHost } from '../src/plugin/plugin-loader';
+
+/**
+ * AppModule again, with the plugins loaded afresh from the database — what a
+ * restart does (AppModule itself loads them once per process).
+ */
+function rebootedAppModule() {
+  const meta = (key: string) => Reflect.getMetadata(key, AppModule) ?? [];
+  @Module({
+    imports: meta('imports').map((m: any) => (m instanceof Promise ? reloadPluginHost() : m)),
+    controllers: meta('controllers'),
+    providers: meta('providers'),
+  })
+  class RebootedAppModule {}
+  return RebootedAppModule;
+}
 
 /** Boot the full NestJS app against the test database (DATABASE_URL env var).
  *  Mirrors the middleware setup in main.ts so behaviour is identical to production.
  */
-export async function createTestApp(): Promise<INestApplication> {
+export async function createTestApp(opts: { reloadPlugins?: boolean } = {}): Promise<INestApplication> {
   const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
+    imports: [opts.reloadPlugins ? rebootedAppModule() : AppModule],
   }).compile();
 
   const app = moduleFixture.createNestApplication<NestExpressApplication>();
@@ -54,6 +70,7 @@ export async function cleanDatabase(app: INestApplication) {
   await prisma.$executeRawUnsafe(`DELETE FROM "password_reset_tokens"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "refresh_tokens"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "users"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "plugin_packages"`);
 }
 
 /** Register the first admin user and return the token. */

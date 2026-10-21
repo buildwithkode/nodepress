@@ -208,12 +208,15 @@ describe('Plugin SDK', () => {
     });
 
     function service() {
-      const prisma = { installedPlugin: { upsert: jest.fn().mockResolvedValue({}), findMany: jest.fn().mockResolvedValue([]) } };
+      const prisma = {
+        installedPlugin: { upsert: jest.fn().mockResolvedValue({}), findMany: jest.fn().mockResolvedValue([]) },
+        pluginPackage: { findMany: jest.fn().mockResolvedValue([]) },
+      };
       const audit = { log: jest.fn().mockResolvedValue(undefined) };
       return { svc: new PluginService(prisma as any, registry, bus, audit as any), prisma, audit };
     }
 
-    it('masks password-type settings and hides settings from non-admins', () => {
+    it('masks password-type settings and hides settings from non-admins', async () => {
       register(registry, secretManifest);
       registry.setConfig('pay', { apiKey: 'sk_live_123', mode: 'live' });
       expect(maskSecrets(registry.get('pay')!)).toEqual({ apiKey: SECRET_MASK, mode: 'live' });
@@ -223,7 +226,8 @@ describe('Plugin SDK', () => {
       const editorView = svc.getPlugin('pay', 'editor');
       expect(editorView.config).toEqual({});
       expect(editorView.configSchema).toEqual([]);
-      expect(JSON.stringify(svc.listPlugins('editor'))).not.toContain('sk_live_123');
+      expect(JSON.stringify(await svc.listPlugins('editor'))).not.toContain('sk_live_123');
+      expect((await svc.listPlugins('editor')).plugins.length).toBe(1);
     });
 
     it('saving the mask back keeps the stored secret, and the audit log gets keys only', async () => {

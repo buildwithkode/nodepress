@@ -47,3 +47,6 @@ UPGRADE_STRATEGY.md
 
 # Database/uploads backups from `npm run backup` (contain secrets)
 /backups/
+
+# Unpacked uploaded plugins (re-created from the database at startup)
+backend/.plugins/

@@ -22,6 +22,8 @@ const HELP = `
     npx nodepress <project-name> --docker             Scaffold with Docker (Postgres + Redis + nginx)
     npx nodepress <project-name> --sentry             Include Sentry error tracking
     npx nodepress generate:types [--out <path>]       Generate TypeScript interfaces from Content Types
+    npx nodepress plugin keygen [--out <key.pem>]     Create a key for signing plugin packages
+    npx nodepress plugin pack [dir] [--key <key.pem>] Zip (and sign) a built plugin for Plugins → Upload
     npx nodepress --version                           Show version
     npx nodepress --help                              Show this help
 
@@ -36,6 +38,8 @@ if (flags.includes('--version') || flags.includes('-v')) {
   console.log(require('../package.json').version);
 } else if (flags.includes('--help') || flags.includes('-h')) {
   console.log(HELP);
+} else if (positionals[0] === 'plugin') {
+  require('../src/plugin')(argv.slice(argv.indexOf('plugin') + 1));
 } else if (positionals[0] === 'generate:types' || positionals[0] === 'types' || positionals[0] === 'generate-types') {
   require('../src/generate-types')(opts, positionals.slice(1));
 } else if (positionals[0] === 'new') {
