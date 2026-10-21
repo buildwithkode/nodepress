@@ -25,10 +25,17 @@ export interface PluginItem {
   category: string;
   icon?: string;
   permissions: string[];
+  /** semver range of NodePress versions the plugin supports, if declared. */
+  nodepress?: string | null;
+  /** Why the plugin can't run on this install (it stays disabled), if any. */
+  incompatible?: string | null;
   enabled: boolean;
   configSchema: PluginConfigField[];
   config: Record<string, any>;
 }
+
+/** What the API returns in place of a saved password-type setting. */
+export const SECRET_MASK = '••••••••';
 
 interface PluginSettingsDrawerProps {
   plugin: PluginItem | null;
@@ -42,15 +49,28 @@ export function PluginSettingsDrawer({ plugin, open, onClose, onSaved }: PluginS
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Secrets the server already holds (sent back masked). Their inputs start empty;
+  // leaving one empty keeps the stored value, "Clear" removes it.
+  const [storedSecrets, setStoredSecrets] = useState<Set<string>>(new Set());
+  const [clearedSecrets, setClearedSecrets] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (plugin) {
       // Initialize with existing config merged with schema defaults
       const initial: Record<string, any> = {};
+      const stored = new Set<string>();
       for (const field of plugin.configSchema || []) {
-        initial[field.name] = plugin.config?.[field.name] ?? field.defaultValue ?? '';
+        const value = plugin.config?.[field.name];
+        if (field.type === 'password') {
+          if (value === SECRET_MASK) stored.add(field.name);
+          initial[field.name] = '';
+        } else {
+          initial[field.name] = value ?? field.defaultValue ?? '';
+        }
       }
-      setFormData({ ...plugin.config, ...initial });
+      setFormData(initial);
+      setStoredSecrets(stored);
+      setClearedSecrets(new Set());
       setSaveSuccess(false);
       setErrorMsg(null);
     }
@@ -70,7 +90,13 @@ export function PluginSettingsDrawer({ plugin, open, onClose, onSaved }: PluginS
     setErrorMsg(null);
 
     try {
-      const res = await api.put(`/plugins/${plugin.id}/config`, formData);
+      // An untouched stored secret is left out, so the server keeps it.
+      const payload = Object.fromEntries(
+        Object.entries(formData).filter(
+          ([name, value]) => !(storedSecrets.has(name) && value === '' && !clearedSecrets.has(name)),
+        ),
+      );
+      const res = await api.put(`/plugins/${plugin.id}/config`, payload);
       setSaveSuccess(true);
       if (onSaved) {
         onSaved(res.data);
@@ -177,15 +203,36 @@ export function PluginSettingsDrawer({ plugin, open, onClose, onSaved }: PluginS
                       />
                     )}
 
-                    {field.type === 'password' && (
-                      <input
-                        type="password"
-                        value={formData[field.name] ?? ''}
-                        onChange={(e) => handleChange(field.name, e.target.value)}
-                        required={field.required}
-                        className="w-full px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-hidden focus:ring-2 focus:ring-primary text-foreground font-mono"
-                      />
-                    )}
+                    {field.type === 'password' && (() => {
+                      const kept = storedSecrets.has(field.name) && !clearedSecrets.has(field.name);
+                      return (
+                        <div className="flex gap-2">
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            value={formData[field.name] ?? ''}
+                            onChange={(e) => handleChange(field.name, e.target.value)}
+                            required={field.required && !kept}
+                            placeholder={kept ? 'Saved — leave blank to keep it' : clearedSecrets.has(field.name) ? 'Will be cleared on save' : ''}
+                            className="w-full px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-hidden focus:ring-2 focus:ring-primary text-foreground font-mono"
+                          />
+                          {kept && !field.required && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-9 text-xs"
+                              onClick={() => {
+                                setClearedSecrets((prev) => new Set(prev).add(field.name));
+                                handleChange(field.name, '');
+                              }}
+                            >
+                              Clear
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {field.type === 'number' && (
                       <input

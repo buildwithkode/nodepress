@@ -192,6 +192,8 @@ Relation fields store the target entry's `publicId` (UUID), not its numeric id. 
 
 `plugin/plugin-hook-bus.ts` provides a global priority-ordered event and filter pipeline (`hookBus.on()`, `hookBus.emit()`, `hookBus.addFilter()`, `hookBus.applyFilters()`). Handler failures are caught and logged without aborting core database transactions. Exposed at `GET /api/plugins/hooks`.
 
+Plugins talk to the core through a scoped **`PluginContext`** (`plugin/plugin-context.ts`): the plugin module imports `PluginContextModule.forPlugin(manifest)` and services inject `@InjectPluginContext()`. `ctx.on()` checks the manifest permission for the event (`EVENT_PERMISSIONS` in `plugin/plugin-permissions.ts`) and throws at startup if it's missing. Only `PluginVetoError` thrown from a before-hook propagates (422); every other hook error is swallowed. `PluginEnabledGuard` (global) 404s controllers declared in a disabled plugin's *root* module (`PluginModule.mapPluginControllers`). `GET /api/plugins` returns settings to admins only, with `password` fields masked as `SECRET_MASK`. Manifests may declare a `nodepress` semver range; incompatible plugins stay disabled. When adding a new way to write entries, emit the entry hooks with a `source` (see `EntriesService.emitForEntries`). Hook-added data keys must be snake_case — `normalizeDataKeys` lowercases them on save.
+
 ### TypeScript Codegen & Next.js Live Preview
 
 - CLI: `npx nodepress generate:types` outputs strongly-typed schemas in `frontend/types/nodepress.d.ts`.

@@ -1,4 +1,9 @@
 import { Injectable, Logger, Type } from '@nestjs/common';
+import * as semver from 'semver';
+import { isKnownPermission } from './plugin-permissions';
+
+/** The running NodePress version (all manifests carry the same version). */
+export const NODEPRESS_VERSION: string = require('../../package.json').version;
 
 export interface PluginConfigField {
   name: string;
@@ -25,6 +30,11 @@ export interface PluginManifest {
   /** Optional configurable fields editable in the admin settings drawer */
   configSchema?: PluginConfigField[];
   defaultConfig?: Record<string, any>;
+  /**
+   * NodePress versions this plugin works with, as a semver range (e.g. "^1.6.0").
+   * An incompatible plugin is loaded disabled, with the reason on the Plugins page.
+   */
+  nodepress?: string;
 }
 
 export interface RegisteredPlugin {
@@ -33,6 +43,18 @@ export interface RegisteredPlugin {
   module: Type<any>;
   enabled: boolean;
   config: Record<string, any>;
+  /** Why the plugin can't run on this NodePress (it stays disabled), if any. */
+  incompatible?: string;
+}
+
+/** Reason a manifest can't run on this NodePress version, or null when it can. */
+export function compatibilityProblem(manifest: PluginManifest, coreVersion = NODEPRESS_VERSION): string | null {
+  if (!manifest.nodepress) return null;
+  if (!semver.validRange(manifest.nodepress)) return `Invalid "nodepress" range "${manifest.nodepress}" in manifest`;
+  if (!semver.satisfies(coreVersion, manifest.nodepress, { includePrerelease: true })) {
+    return `Requires NodePress ${manifest.nodepress}; this install runs ${coreVersion}`;
+  }
+  return null;
 }
 
 /**
@@ -46,20 +68,29 @@ export interface RegisteredPlugin {
 export class PluginRegistry {
   private readonly logger = new Logger(PluginRegistry.name);
   private readonly plugins = new Map<string, RegisteredPlugin>();
+  private readonly configListeners = new Map<string, Array<(config: Record<string, any>) => void>>();
 
   register(plugin: RegisteredPlugin): void {
     if (this.plugins.has(plugin.manifest.id)) {
       throw new Error(`Plugin "${plugin.manifest.id}" is already registered`);
     }
+    const unknown = (plugin.manifest.permissions || []).filter((p) => !isKnownPermission(p));
+    if (unknown.length) {
+      this.logger.warn(`Plugin "${plugin.manifest.id}" declares unknown permission(s): ${unknown.join(', ')}`);
+    }
+    const incompatible = compatibilityProblem(plugin.manifest) ?? undefined;
+    if (incompatible) this.logger.warn(`Plugin "${plugin.manifest.id}" disabled: ${incompatible}`);
     const initialConfig = {
       ...(plugin.manifest.defaultConfig || {}),
       ...(plugin.config || {}),
     };
     this.plugins.set(plugin.manifest.id, {
       ...plugin,
+      enabled: incompatible ? false : plugin.enabled,
+      incompatible,
       config: initialConfig,
     });
-    this.logger.log(`Plugin registered: ${plugin.manifest.name} v${plugin.manifest.version} [enabled=${plugin.enabled}]`);
+    this.logger.log(`Plugin registered: ${plugin.manifest.name} v${plugin.manifest.version} [enabled=${incompatible ? false : plugin.enabled}]`);
   }
 
   getAll(): RegisteredPlugin[] {
@@ -81,7 +112,7 @@ export class PluginRegistry {
 
   enable(id: string): boolean {
     const plugin = this.plugins.get(id);
-    if (!plugin) return false;
+    if (!plugin || plugin.incompatible) return false;
     plugin.enabled = true;
     this.logger.log(`Plugin "${id}" enabled`);
     return true;
@@ -99,7 +130,22 @@ export class PluginRegistry {
     const plugin = this.plugins.get(id);
     if (!plugin) return false;
     plugin.config = { ...plugin.config, ...config };
+    this.notifyConfig(id);
     return true;
+  }
+
+  /** Called (with the new config) whenever an admin changes this plugin's settings. */
+  onConfigChange(id: string, listener: (config: Record<string, any>) => void): void {
+    const list = this.configListeners.get(id) ?? [];
+    list.push(listener);
+    this.configListeners.set(id, list);
+  }
+
+  private notifyConfig(id: string) {
+    const config = this.getConfig(id);
+    for (const listener of this.configListeners.get(id) ?? []) {
+      try { listener(config); } catch (err: any) { this.logger.error(`Config listener of "${id}" failed: ${err?.message}`); }
+    }
   }
 
   getConfig(id: string): Record<string, any> {
@@ -117,7 +163,7 @@ export class PluginRegistry {
     for (const row of dbPlugins) {
       const plugin = this.plugins.get(row.id);
       if (plugin) {
-        plugin.enabled = row.enabled;
+        plugin.enabled = plugin.incompatible ? false : row.enabled;
         // Config may arrive as a JSON string depending on how the row was written.
         let configObj = row.config;
         if (typeof configObj === 'string') {

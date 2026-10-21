@@ -19,8 +19,8 @@ export class PluginApiController {
   @Get()
   @Roles('admin', 'editor')
   @ApiOperation({ summary: 'List all registered plugins, active state, and configuration' })
-  list() {
-    return this.pluginService.listPlugins();
+  list(@Req() req?: any) {
+    return this.pluginService.listPlugins(req?.user?.role);
   }
 
   @Get('hooks')
@@ -33,8 +33,8 @@ export class PluginApiController {
   @Get(':id')
   @Roles('admin', 'editor')
   @ApiOperation({ summary: 'Get details and config for a single plugin' })
-  getOne(@Param('id') id: string) {
-    return this.pluginService.getPlugin(id);
+  getOne(@Param('id') id: string, @Req() req?: any) {
+    return this.pluginService.getPlugin(id, req?.user?.role);
   }
 
   @Patch(':id/toggle')

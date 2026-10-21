@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { PluginHookBus } from '../plugin/plugin-hook-bus';
+import { PluginEvents } from '../plugin/plugin.events';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
@@ -21,6 +23,7 @@ export class SchedulerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly webhooks: WebhooksService,
+    @Optional() private readonly hookBus?: PluginHookBus,
   ) {}
 
   // ── Scheduled publishing ─────────────────────────────────────────────────────
@@ -38,7 +41,7 @@ export class SchedulerService {
     const now = new Date();
     const due = await this.prisma.entry.findMany({
       where: { status: 'draft', deletedAt: null, publishAt: { lte: now } },
-      select: { id: true, slug: true, contentTypeId: true },
+      select: { id: true, slug: true, contentTypeId: true, locale: true, data: true, contentType: { select: { name: true } } },
       orderBy: { publishAt: 'asc' },
       take: PUBLISH_BATCH,
     });
@@ -60,6 +63,16 @@ export class SchedulerService {
         status: 'published',
         scheduledPublish: true,
       });
+
+      // After-events only: a scheduled publish was approved when the editor set
+      // it (plugins can reject that through entry.beforeUpdate); a veto here
+      // would leave the entry retrying every minute.
+      const payload = {
+        id: entry.id, slug: entry.slug, status: 'published', contentType: entry.contentType?.name ?? '',
+        locale: entry.locale, data: entry.data as Record<string, any>, source: 'scheduler' as const,
+      };
+      await this.hookBus?.emit(PluginEvents.ENTRY_AFTER_UPDATE, payload);
+      await this.hookBus?.emit(PluginEvents.ENTRY_AFTER_PUBLISH, payload);
     }
 
     if (published > 0) {

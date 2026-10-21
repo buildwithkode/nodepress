@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PluginSettingsDrawer, PluginItem } from '@/components/PluginSettingsDrawer';
+import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { usePlugins } from '@/context/PluginContext';
 
@@ -95,8 +96,8 @@ export default function PluginsPage() {
         enabledPlugins: prev.enabledPlugins + (newStatus ? 1 : -1),
       }));
       await refreshPlugins();
-    } catch (err) {
-      console.error(`Failed to toggle plugin "${plugin.id}":`, err);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? `Could not ${newStatus ? 'enable' : 'disable'} ${plugin.name}`);
       // Revert optimistic update
       setPlugins((prev) =>
         prev.map((p) => (p.id === plugin.id ? { ...p, enabled: plugin.enabled } : p)),
@@ -314,9 +315,10 @@ export default function PluginsPage() {
                       role="switch"
                       aria-checked={plugin.enabled}
                       aria-label={`Toggle ${plugin.name}`}
-                      disabled={togglingId === plugin.id}
+                      disabled={togglingId === plugin.id || (!!plugin.incompatible && !plugin.enabled)}
+                      title={plugin.incompatible ?? undefined}
                       onClick={() => handleToggle(plugin)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                         plugin.enabled ? 'bg-emerald-500 dark:bg-emerald-600' : 'bg-zinc-300 dark:bg-zinc-700'
                       }`}
                     >
@@ -328,6 +330,13 @@ export default function PluginsPage() {
                     </button>
                   </div>
                 </div>
+
+                {plugin.incompatible && (
+                  <div className="mb-3 flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-xs text-amber-700 dark:text-amber-400">
+                    <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>{plugin.incompatible}. Update the plugin or NodePress to enable it.</span>
+                  </div>
+                )}
 
                 {/* Description */}
                 <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-4">
@@ -362,7 +371,8 @@ export default function PluginsPage() {
                     }`}
                   />
                   <span className="text-[11px] font-medium text-muted-foreground">
-                    {plugin.enabled ? 'Active & Intercepting' : 'Disabled in Memory'}
+                    {plugin.enabled ? 'Enabled' : plugin.incompatible ? 'Incompatible' : 'Disabled'}
+                    {plugin.nodepress && <span className="ml-1.5 font-mono text-muted-foreground/70">NodePress {plugin.nodepress}</span>}
                   </span>
                 </div>
 
@@ -390,17 +400,13 @@ export default function PluginsPage() {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              Enterprise Defense-in-Depth Security Model
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                100% Crash Isolated
-              </span>
-            </h4>
+            <h4 className="text-sm font-semibold text-foreground">How plugins run</h4>
             <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-              Unlike legacy CMS architectures, NodePress executes all plugins inside sandboxed boundaries with{' '}
-              <strong className="text-foreground">Layer 1 Capability Permissions</strong>,{' '}
-              <strong className="text-foreground">Layer 2 Crash Isolation</strong> (plugin bugs never crash the core CMS), and{' '}
-              <strong className="text-foreground">Layer 4 Hard 5-Second Timeouts</strong>. Toggle plugins on or off with 0ms downtime without needing server restarts.
+              Plugins run inside the NodePress server, so only install plugins you trust. The core still limits what
+              they hook into: a plugin can only subscribe to the events its{' '}
+              <strong className="text-foreground">declared permissions</strong> allow, a failing hook is logged without
+              breaking the request, each hook has a <strong className="text-foreground">5-second timeout</strong>, and
+              turning a plugin off stops its hooks, jobs and API routes immediately — no restart.
             </p>
           </div>
         </div>

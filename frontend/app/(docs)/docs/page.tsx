@@ -1586,76 +1586,124 @@ PUT /api/permissions/reset/all`} />
           {/* ── Plugin System ─────────────────────────────────────────────── */}
           <Section id="plugins" title="Plugin System" icon={Puzzle}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              NodePress ships with a plugin architecture that lets you extend the CMS with custom NestJS modules — new REST endpoints, event listeners, background jobs, and more.
+              A plugin is a NestJS module with a manifest. It can react to (and reject) content writes, run background
+              jobs, add REST endpoints and expose settings in the admin. Plugins run inside the server process — install
+              only plugins you trust.
             </p>
 
-            <h3 className="font-semibold mb-2">Plugin contract</h3>
-            <p className="text-muted-foreground text-sm mb-2">A plugin is a folder that exports two things:</p>
+            <h3 className="font-semibold mb-2">Manifest and module</h3>
             <CodeBlock code={`// src/plugins/my-plugin/manifest.ts
 import { PluginManifest } from '../../plugin/plugin-sdk';
 
 export const MyPluginManifest: PluginManifest = {
-  id: 'my-plugin',           // kebab-case unique ID
+  id: 'my-plugin',              // kebab-case, unique
   name: 'My Plugin',
   version: '1.0.0',
   description: 'What this plugin does',
-  permissions: ['entries:read'],
+  nodepress: '^1.6.0',          // NodePress versions it supports (semver range)
+  permissions: ['entries:read', 'entries:write', 'jobs:run'],
+  configSchema: [
+    { name: 'apiKey', label: 'API key', type: 'password' }, // shown masked, never logged
+    { name: 'limit', label: 'Limit', type: 'number', defaultValue: 10 },
+  ],
 };
 
 // src/plugins/my-plugin/my-plugin.module.ts
 import { Module } from '@nestjs/common';
+import { PluginContextModule } from '../../plugin/plugin-sdk';
+import { MyPluginManifest } from './manifest';
 import { MyPluginService } from './my-plugin.service';
 
-@Module({ providers: [MyPluginService] })
+@Module({
+  imports: [PluginContextModule.forPlugin(MyPluginManifest)],
+  providers: [MyPluginService],
+})
 export class MyPluginModule {}`} />
 
-            <h3 className="font-semibold mb-2 mt-5">Enabling a plugin</h3>
-            <p className="text-muted-foreground text-sm mb-2">Add it to <IC>src/plugin/plugins.config.ts</IC>:</p>
+            <h3 className="font-semibold mb-2 mt-5">Installing a plugin</h3>
+            <p className="text-muted-foreground text-sm mb-2">Add it to <IC>src/plugin/plugins.config.ts</IC>, then enable or disable it at runtime on the Plugins page:</p>
             <CodeBlock code={`import { MyPluginManifest, MyPluginModule } from '../plugins/my-plugin';
 
 export const ENABLED_PLUGINS = [
   { manifest: MyPluginManifest, module: MyPluginModule },
 ];`} />
 
-            <h3 className="font-semibold mb-2 mt-5">Reacting to entry lifecycle events</h3>
-            <p className="text-muted-foreground text-sm mb-2">Install <IC>@nestjs/event-emitter</IC> and use <IC>@OnEvent()</IC> in your plugin service:</p>
-            <CodeBlock code={`import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { PluginEvents, EntryLifecyclePayload } from '../../plugin/plugin-sdk';
+            <h3 className="font-semibold mb-2 mt-5">The plugin context</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Inject <IC>PluginContext</IC> with <IC>@InjectPluginContext()</IC>. It is scoped to your plugin: hooks are
+              registered under its id, <IC>config()</IC> returns only its own settings, and jobs are namespaced
+              as <IC>my-plugin.&lt;type&gt;</IC>.
+            </p>
+            <CodeBlock code={`import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  InjectPluginContext, PluginContext, PluginEvents, EntryLifecyclePayload, PluginVetoError,
+} from '../../plugin/plugin-sdk';
 
 @Injectable()
-export class MyPluginService {
-  @OnEvent(PluginEvents.ENTRY_AFTER_CREATE)
-  handleCreate(payload: EntryLifecyclePayload) {
-    console.log('Entry created:', payload.slug, payload.contentType);
-  }
+export class MyPluginService implements OnModuleInit {
+  constructor(@InjectPluginContext() private readonly ctx: PluginContext) {}
 
-  @OnEvent(PluginEvents.ENTRY_AFTER_PUBLISH)
-  handlePublish(payload: EntryLifecyclePayload) {
-    // e.g. post to social media, ping a CDN, update a search index
+  onModuleInit() {
+    // Before-hooks may change payload.data, or throw PluginVetoError to reject the write (HTTP 422).
+    this.ctx.on(PluginEvents.ENTRY_BEFORE_CREATE, (p: EntryLifecyclePayload) => {
+      if (p.contentType === 'product' && Number(p.data.price) < 0) {
+        throw new PluginVetoError('Price cannot be negative');
+      }
+    });
+
+    // After-hooks are notifications; p.source says where the change came from.
+    this.ctx.on(PluginEvents.ENTRY_AFTER_PUBLISH, async (p: EntryLifecyclePayload) => {
+      await this.ctx.jobs.enqueue('sync', { id: p.id });
+    });
+
+    this.ctx.jobs.register('sync', async (payload) => {
+      const { apiKey } = this.ctx.config();
+      // … call an external service; throw to retry
+    });
+
+    this.ctx.onConfigChange((config) => this.ctx.logger.log('Settings changed'));
   }
 }`} />
 
-            <h3 className="font-semibold mb-2 mt-5">Available lifecycle events</h3>
+            <h3 className="font-semibold mb-2 mt-5">Lifecycle events</h3>
             <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Event constant</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Fires when</th></tr></thead>
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Event</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Fires when</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Permission</th></tr></thead>
                 <tbody className="text-muted-foreground divide-y divide-border font-mono text-xs">
                   {[
-                    ['ENTRY_BEFORE_CREATE / ENTRY_AFTER_CREATE', 'Entry is being / has been created'],
-                    ['ENTRY_BEFORE_UPDATE / ENTRY_AFTER_UPDATE', 'Entry is being / has been updated'],
-                    ['ENTRY_BEFORE_DELETE / ENTRY_AFTER_DELETE', 'Entry is being / has been soft-deleted'],
-                    ['ENTRY_BEFORE_PUBLISH / ENTRY_AFTER_PUBLISH', 'Entry status changes to published'],
-                  ].map(([event, desc]) => (
-                    <tr key={event}><td className="px-4 py-2.5">{event}</td><td className="px-4 py-2.5 font-sans">{desc}</td></tr>
+                    ['ENTRY_BEFORE_CREATE', 'An entry is about to be created (admin or public API) — can veto', 'entries:write'],
+                    ['ENTRY_BEFORE_UPDATE', 'An entry is about to be updated (admin or public API) — can veto', 'entries:write'],
+                    ['ENTRY_BEFORE_PUBLISH', 'An entry is about to be published (incl. bulk, promote) — can veto', 'entries:write'],
+                    ['ENTRY_BEFORE_DELETE', 'An entry is about to be deleted (incl. bulk) — can veto', 'entries:delete'],
+                    ['ENTRY_AFTER_CREATE', 'Created — also by import and new translations', 'entries:read'],
+                    ['ENTRY_AFTER_UPDATE', 'Updated — also by bulk status changes, restore, import, scheduled publish', 'entries:read'],
+                    ['ENTRY_AFTER_PUBLISH', 'Published — also bulk, promote and scheduled publish', 'entries:read'],
+                    ['ENTRY_AFTER_DELETE', 'Soft-deleted (incl. bulk)', 'entries:read'],
+                  ].map(([event, desc, perm]) => (
+                    <tr key={event}><td className="px-4 py-2.5">{event}</td><td className="px-4 py-2.5 font-sans">{desc}</td><td className="px-4 py-2.5">{perm}</td></tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <p className="text-muted-foreground text-xs mt-2">
+              Payloads carry <IC>id</IC>, <IC>slug</IC>, <IC>status</IC>, <IC>contentType</IC>, <IC>locale</IC>, <IC>data</IC> and{' '}
+              <IC>source</IC> (<IC>admin</IC>, <IC>api</IC>, <IC>bulk</IC>, <IC>import</IC>, <IC>restore</IC>, <IC>translation</IC>,{' '}
+              <IC>scheduler</IC> or <IC>promote</IC>). Subscribing to an event without its permission in the manifest fails at startup.
+              Keys you add to <IC>data</IC> are stored lowercased, like all entry keys — use snake_case.
+            </p>
+
+            <h3 className="font-semibold mb-2 mt-5">What the core enforces</h3>
+            <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted-foreground">
+              <li><strong className="text-foreground">Disabled means off:</strong> a disabled plugin&apos;s hooks don&apos;t run, its queued jobs fail with &quot;plugin disabled&quot;, and its controllers answer <IC>404</IC>. Declare controllers in the plugin&apos;s own module.</li>
+              <li><strong className="text-foreground">Errors are contained:</strong> a hook that throws is logged and the request continues (only <IC>PluginVetoError</IC> stops it). Each hook has a 5-second timeout.</li>
+              <li><strong className="text-foreground">Compatibility:</strong> if the running NodePress doesn&apos;t satisfy the manifest&apos;s <IC>nodepress</IC> range, the plugin stays disabled and the Plugins page shows why.</li>
+              <li><strong className="text-foreground">Secrets:</strong> <IC>password</IC> settings are returned masked to admins, hidden from everyone else, and never written to the audit log. Saving the form without retyping one keeps the stored value.</li>
+              <li><strong className="text-foreground">Permissions:</strong> <IC>entries:read</IC>, <IC>entries:write</IC>, <IC>entries:delete</IC>, <IC>content-types:write</IC>, <IC>media:read</IC>, <IC>settings:read</IC>, <IC>settings:write</IC>, <IC>jobs:run</IC>, <IC>routes:public</IC>. They gate what the context lets you subscribe to; they are not a sandbox.</li>
+            </ul>
 
             <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
               <strong className="text-blue-400">Discover installed plugins:</strong>
-              <p className="text-muted-foreground mt-1 text-xs"><IC>GET /api/plugins</IC> — returns all registered plugins with their manifest, version, and enabled status.</p>
+              <p className="text-muted-foreground mt-1 text-xs"><IC>GET /api/plugins</IC> — registered plugins with version, compatibility and enabled state (settings are included for admins only). <IC>PATCH /api/plugins/:id/toggle</IC> and <IC>PUT /api/plugins/:id/config</IC> are admin-only.</p>
             </div>
           </Section>
 

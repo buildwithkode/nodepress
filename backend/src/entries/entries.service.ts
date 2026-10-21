@@ -20,7 +20,7 @@ import { populateDeep } from '../common/populate.util';
 import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
 import { entriesToCsv, parseCsvToEntries } from '../common/csv.util';
 import { PluginHookBus } from '../plugin/plugin-hook-bus';
-import { PluginEvents } from '../plugin/plugin.events';
+import { PluginEvents, EntryEventSource } from '../plugin/plugin.events';
 
 export interface AdminListQuery {
   contentTypeId?: number;
@@ -54,6 +54,37 @@ export class EntriesService {
     private jwtService: JwtService,
     @Optional() private hookBus?: PluginHookBus,
   ) {}
+
+  /**
+   * Emit a lifecycle event for each entry, in order. A PluginVetoError from a
+   * before-hook propagates (and stops the loop) so the caller can abort.
+   */
+  private async emitForEntries(
+    event: string,
+    entries: Array<{ id: number; slug: string; status: string; locale?: string; data?: any; contentType?: { name: string } | null }>,
+    source: EntryEventSource,
+    extra: Record<string, any> = {},
+  ) {
+    if (!this.hookBus?.hasListeners(event)) return;
+    for (const e of entries) {
+      await this.hookBus.emit(event, {
+        id: e.id,
+        slug: e.slug,
+        status: e.status,
+        contentType: e.contentType?.name ?? '',
+        locale: e.locale,
+        data: e.data as Record<string, any>,
+        source,
+        ...extra,
+      });
+    }
+  }
+
+  /** Entries for bulk hooks — only queried when a plugin listens to one of `events`. */
+  private async entriesForHooks(ids: number[], events: string[]) {
+    if (!events.some((e) => this.hookBus?.hasListeners(e))) return [];
+    return this.prisma.entry.findMany({ where: { id: { in: ids }, deletedAt: null }, include: { contentType: true } });
+  }
 
   async create(dto: CreateEntryDto, actorId?: number, role?: string) {
     const contentType = await this.prisma.contentType.findUnique({
@@ -443,6 +474,8 @@ export class EntriesService {
       });
     }
 
+    await this.emitForEntries(PluginEvents.ENTRY_AFTER_CREATE, [newEntry], 'translation');
+
     return { id: newEntry.id, isNew: true, locale: newEntry.locale };
   }
 
@@ -613,6 +646,7 @@ export class EntriesService {
     });
 
     this.webhooks.fire('entry.restored', { id: restored.id, slug: restored.slug });
+    await this.emitForEntries(PluginEvents.ENTRY_AFTER_UPDATE, [restored], 'restore');
 
     return restored;
   }
@@ -631,44 +665,59 @@ export class EntriesService {
 
   // ── Bulk operations ───────────────────────────────────────────────────────
 
+  // Bulk actions fire the same hooks as single ones, per entry. Before-hooks
+  // run for every entry first, so a veto rejects the whole batch untouched.
+
   async bulkDelete(ids: number[]) {
+    const entries = await this.entriesForHooks(ids, [PluginEvents.ENTRY_BEFORE_DELETE, PluginEvents.ENTRY_AFTER_DELETE]);
+    await this.emitForEntries(PluginEvents.ENTRY_BEFORE_DELETE, entries, 'bulk');
     const result = await this.prisma.entry.updateMany({
       where: { id: { in: ids }, deletedAt: null },
       data: { deletedAt: new Date() },
     });
+    await this.emitForEntries(PluginEvents.ENTRY_AFTER_DELETE, entries, 'bulk');
     return { affected: result.count };
   }
 
   async bulkPublish(ids: number[]) {
+    const entries = await this.entriesForHooks(ids, [PluginEvents.ENTRY_BEFORE_PUBLISH, PluginEvents.ENTRY_AFTER_PUBLISH, PluginEvents.ENTRY_AFTER_UPDATE]);
+    const publishing = entries.filter((e) => e.status !== 'published');
+    await this.emitForEntries(PluginEvents.ENTRY_BEFORE_PUBLISH, publishing, 'bulk');
     const result = await this.prisma.entry.updateMany({
       where: { id: { in: ids }, deletedAt: null },
       data: { status: 'published' },
     });
+    const after = publishing.map((e) => ({ ...e, status: 'published' }));
+    await this.emitForEntries(PluginEvents.ENTRY_AFTER_UPDATE, after, 'bulk');
+    await this.emitForEntries(PluginEvents.ENTRY_AFTER_PUBLISH, after, 'bulk');
+    return { affected: result.count };
+  }
+
+  /** archive / pending_review / staging — fire after-update per changed entry. */
+  private async bulkSetStatus(ids: number[], status: EntryStatus) {
+    const entries = await this.entriesForHooks(ids, [PluginEvents.ENTRY_AFTER_UPDATE]);
+    const result = await this.prisma.entry.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { status },
+    });
+    await this.emitForEntries(
+      PluginEvents.ENTRY_AFTER_UPDATE,
+      entries.filter((e) => e.status !== status).map((e) => ({ ...e, status })),
+      'bulk',
+    );
     return { affected: result.count };
   }
 
   async bulkArchive(ids: number[]) {
-    const result = await this.prisma.entry.updateMany({
-      where: { id: { in: ids }, deletedAt: null },
-      data: { status: 'archived' },
-    });
-    return { affected: result.count };
+    return this.bulkSetStatus(ids, 'archived');
   }
 
   async bulkSetPendingReview(ids: number[]) {
-    const result = await this.prisma.entry.updateMany({
-      where: { id: { in: ids }, deletedAt: null },
-      data: { status: 'pending_review' },
-    });
-    return { affected: result.count };
+    return this.bulkSetStatus(ids, 'pending_review');
   }
 
   async bulkStage(ids: number[]) {
-    const result = await this.prisma.entry.updateMany({
-      where: { id: { in: ids }, deletedAt: null },
-      data: { status: 'staging' },
-    });
-    return { affected: result.count };
+    return this.bulkSetStatus(ids, 'staging');
   }
 
   /**
@@ -677,6 +726,9 @@ export class EntriesService {
    */
   async promote(entryId: number, targetStatus: EntryStatus, actorId?: number) {
     const entry = await this.findOne(entryId);
+
+    const publishing = targetStatus === 'published' && entry.status !== 'published';
+    if (publishing) await this.emitForEntries(PluginEvents.ENTRY_BEFORE_PUBLISH, [entry as any], 'promote');
 
     // Snapshot version before promotion
     await this.prisma.entryVersion.create({
@@ -730,6 +782,9 @@ export class EntriesService {
       locale: updated.locale,
       status: updated.status,
     });
+
+    await this.emitForEntries(PluginEvents.ENTRY_AFTER_UPDATE, [updated], 'promote');
+    if (publishing) await this.emitForEntries(PluginEvents.ENTRY_AFTER_PUBLISH, [updated], 'promote');
 
     return updated;
   }
@@ -952,7 +1007,8 @@ export class EntriesService {
             skipped++;
             continue;
           }
-          await this.prisma.entry.update({
+          const importedUpdate = await this.prisma.entry.update({
+            include: { contentType: true },
             where: { id: existing.id },
             data: {
               status: (row.status as any) ?? existing.status,
@@ -961,10 +1017,12 @@ export class EntriesService {
               publishAt: row.publishAt ? new Date(row.publishAt) : existing.publishAt,
             },
           });
+          await this.emitForEntries(PluginEvents.ENTRY_AFTER_UPDATE, [importedUpdate], 'import');
           updated++;
         } else {
           assertValidSlug(row.slug);
-          await this.prisma.entry.create({
+          const importedCreate = await this.prisma.entry.create({
+            include: { contentType: true },
             data: {
               slug: row.slug,
               locale,
@@ -975,6 +1033,7 @@ export class EntriesService {
               publishAt: row.publishAt ? new Date(row.publishAt) : null,
             },
           });
+          await this.emitForEntries(PluginEvents.ENTRY_AFTER_CREATE, [importedCreate], 'import');
           created++;
         }
       } catch (err: any) {
@@ -1044,6 +1103,7 @@ export class EntriesService {
       contentType: updated.contentType?.name,
       restoredFromVersion: versionId,
     });
+    await this.emitForEntries(PluginEvents.ENTRY_AFTER_UPDATE, [updated], 'restore', { restoredFromVersion: versionId });
 
     this.realtime.notifyEntryUpdated({
       id: updated.id,

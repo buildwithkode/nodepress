@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { PluginContextModule } from '../../plugin/plugin-sdk';
+import { WordCountManifest } from './manifest';
 import { WordCountService } from './word-count.service';
 
 /**
@@ -8,6 +10,7 @@ import { WordCountService } from './word-count.service';
  * Add controllers here if your plugin needs to expose REST endpoints.
  */
 @Module({
+  imports: [PluginContextModule.forPlugin(WordCountManifest)],
   providers: [WordCountService],
   exports: [WordCountService],
 })

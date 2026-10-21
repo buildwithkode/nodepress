@@ -634,13 +634,17 @@ export class DynamicApiService implements OnModuleInit {
       throw new ConflictException(`Slug "${slug}" already exists in "${typeName}" (locale: ${locale})`);
     }
 
+    // Same before-hook as an admin create: plugins may change `data` or veto.
+    const before = { slug, status: 'published', contentType: contentType.name, locale, data, source: 'api' as const };
+    await this.hookBus?.emit(PluginEvents.ENTRY_BEFORE_CREATE, before);
+
     const created = await this.prisma.entry.create({
       data: {
         slug,
         locale,
         status: 'published',
         data: normalizeDataKeys(
-          sanitizeEntryData(injectRepeaterIds(data), schema),
+          sanitizeEntryData(injectRepeaterIds(before.data), schema),
         ) as Prisma.InputJsonValue,
         contentTypeId: contentType.id,
       },
@@ -675,11 +679,16 @@ export class DynamicApiService implements OnModuleInit {
 
     validateFieldWritePermissions(data, entry.data as Record<string, any>, schema, undefined);
 
+    const before = {
+      id: entry.id, slug, status: entry.status, contentType: contentType.name, locale, data, source: 'api' as const,
+    };
+    await this.hookBus?.emit(PluginEvents.ENTRY_BEFORE_UPDATE, before);
+
     const updated = await this.prisma.entry.update({
       where: { id: entry.id },
       data: {
         data: normalizeDataKeys(
-          sanitizeEntryData(injectRepeaterIds(data), schema),
+          sanitizeEntryData(injectRepeaterIds(before.data), schema),
         ) as Prisma.InputJsonValue,
       },
       select: {

@@ -1,58 +1,40 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { PluginHookBus, PluginEvents, EntryLifecyclePayload, PluginRegistry } from '../../plugin/plugin-sdk';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PluginEvents, EntryLifecyclePayload, InjectPluginContext, PluginContext } from '../../plugin/plugin-sdk';
 
 /**
  * SEO Score & Meta Optimizer Plugin Service
  *
  * Analyzes title and meta description lengths against Google SERP display limits.
  * Attaches real-time SEO intelligence to content entries:
- *  - `_seoScore`: 0-100 quality rating
- *  - `_seoSuggestions`: Actionable tips to improve search ranking
+ *  - `_seo_score`: 0-100 quality rating
+ *  - `_seo_suggestions`: Actionable tips to improve search ranking
  *
  * Declares required permission: `entries:write`
  * Crash-Proof: Errors are caught internally without affecting core CMS operations.
  */
 @Injectable()
 export class SeoAnalyzerService implements OnModuleInit {
-  private readonly logger = new Logger(SeoAnalyzerService.name);
-
-  constructor(
-    private readonly hookBus: PluginHookBus,
-    private readonly registry: PluginRegistry,
-  ) {}
+  constructor(@InjectPluginContext() private readonly ctx: PluginContext) {}
 
   /**
    * Register SEO lifecycle hooks on application startup.
    */
   onModuleInit() {
-    // Intercept entry before creation
-    this.hookBus.on(
-      PluginEvents.ENTRY_BEFORE_CREATE,
-      (payload: EntryLifecyclePayload) => this.analyzeSeo(payload),
-      15, // Priority: 15
-      'seo-analyzer',
-      'entries:write', // Capability permission requirement
-    );
-
-    // Intercept entry before update
-    this.hookBus.on(
-      PluginEvents.ENTRY_BEFORE_UPDATE,
-      (payload: EntryLifecyclePayload) => this.analyzeSeo(payload),
-      15,
-      'seo-analyzer',
-      'entries:write',
-    );
+    // Before-hooks need `entries:write` in the manifest; the context checks that at startup.
+    const handler = (payload: EntryLifecyclePayload) => this.analyzeSeo(payload);
+    this.ctx.on(PluginEvents.ENTRY_BEFORE_CREATE, handler, { priority: 15 });
+    this.ctx.on(PluginEvents.ENTRY_BEFORE_UPDATE, handler, { priority: 15 });
   }
 
   /**
    * Evaluates title & description length thresholds, calculates score, and generates feedback.
    */
   private analyzeSeo(payload: EntryLifecyclePayload): void {
-    const data = payload?.data || (payload as any)?.dto?.data;
+    const data = payload?.data;
     if (!data) return;
 
     // Read live SERP boundary configuration from the Admin UI
-    const config = this.registry.getConfig('seo-analyzer');
+    const config = this.ctx.config();
     const minTitle = Number(config.minTitleLength) || 30;
     const maxTitle = Number(config.maxTitleLength) || 60;
     const minDesc = Number(config.minDescLength) || 70;
@@ -93,10 +75,10 @@ export class SeoAnalyzerService implements OnModuleInit {
     }
 
     // Attach computed SEO metrics to the entry payload
-    data._seoScore = Math.max(0, score);
-    data._seoSuggestions = suggestions;
+    data._seo_score = Math.max(0, score);
+    data._seo_suggestions = suggestions;
 
-    this.logger.log(
+    this.ctx.logger.debug(
       `[seo-analyzer] Entry in "${payload.contentType || ''}" analyzed: SEO Score ${score}/100 (${suggestions.length} suggestions)`,
     );
   }

@@ -1,5 +1,6 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { PluginRegistry } from './plugin.registry';
+import { PluginVetoError, isPluginVeto } from './plugin-veto.error';
 
 export type HookHandler<T = any> = (payload: T, context?: any) => Promise<void> | void;
 export type FilterHandler<T = any> = (value: T, context?: any) => Promise<T> | T;
@@ -108,6 +109,10 @@ export class PluginHookBus {
   /**
    * Emit an event to all registered action listeners in priority order.
    * Enforces enabled state, permission checks, crash isolation, and 5s timeout.
+   *
+   * A handler that throws PluginVetoError stops the dispatch and the error
+   * propagates to the caller (the write is rejected with 422). Every other
+   * error is logged and the next handler runs.
    */
   async emit<T = any>(event: string, payload: T, context?: any): Promise<void> {
     const list = this.hooks.get(event);
@@ -135,6 +140,10 @@ export class PluginHookBus {
           `Hook "${event}" in plugin "${pluginId || 'core'}"`,
         );
       } catch (err: any) {
+        if (isPluginVeto(err)) {
+          this.logger.log(`Plugin "${pluginId || 'core'}" vetoed "${event}": ${err.message}`);
+          throw err.pluginId || !pluginId ? err : new PluginVetoError(String((err.getResponse() as any)?.message ?? err.message), pluginId);
+        }
         this.logger.error(
           `Error executing hook "${event}" for plugin "${pluginId || 'core'}": ${err?.message || err}`,
           err?.stack,
@@ -180,6 +189,11 @@ export class PluginHookBus {
       }
     }
     return current;
+  }
+
+  /** Is anything subscribed to this event? Lets callers skip building payloads. */
+  hasListeners(event: string): boolean {
+    return (this.hooks.get(event)?.length ?? 0) > 0;
   }
 
   /**
