@@ -207,6 +207,12 @@ const TOC_ITEMS = [
   { id: 'forms',          label: 'Forms' },
   { id: 'webhooks',       label: 'Webhooks' },
   { id: 'seo',            label: 'SEO & Sitemap' },
+  { id: 'client',         label: 'JS / TS Client' },
+  { id: 'releases',       label: 'Content Releases' },
+  { id: 'templates',      label: 'Starter Templates' },
+  { id: 'ai',             label: 'AI Assistant & MCP' },
+  { id: 'search',         label: 'Search Engine' },
+  { id: 'email-storage',  label: 'Email & Storage' },
   { id: 'self-hosting',   label: 'Self-Hosting' },
   { id: 'observability',  label: 'Observability' },
   { id: 'api-reference',  label: 'API Reference' },
@@ -956,6 +962,16 @@ POST /api/entries/bulk-promote  # Body: { "ids": [1, 2, 3], "status": "published
               The same slug can exist in multiple locales — each combination is a unique entry.
             </p>
 
+            <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm mb-4">
+              <strong className="text-foreground">Admin interface language.</strong>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Separate from content languages: the admin panel itself is available in English, French, German and Spanish. Each
+                person picks theirs with the language switcher in the top bar (or on the sign-in page); the browser language is used
+                until they do. Translations live in <IC>frontend/messages/&lt;locale&gt;/*.json</IC>; <IC>node scripts/check-i18n.js</IC>
+                checks they stay complete.
+              </p>
+            </div>
+
             <h3 className="font-semibold mb-2">Creating a localized entry</h3>
             <p className="text-muted-foreground text-sm mb-2">In the admin panel, select the locale from the dropdown next to Status when creating or editing an entry. Via API:</p>
             <CodeBlock code={`POST /api/entries
@@ -976,11 +992,17 @@ GET /api/article/mon-article?locale=fr
 # French if it exists, otherwise the default language (Content-Language says which)
 GET /api/article/mon-article?locale=fr&fallback=true
 
+# French articles, plus default-language articles not yet translated
+GET /api/article?locale=fr&fallback=true
+
 # No ?locale= → the default language
 GET /api/article/mon-article`} />
             <p className="text-muted-foreground text-sm mt-2">
               Single-entry responses carry a <IC>Content-Language</IC> header with the locale that was served.
-              Without <IC>fallback=true</IC>, a missing translation is a <IC>404</IC>.
+              Without <IC>fallback=true</IC>, a missing translation is a <IC>404</IC>. On a list, <IC>fallback=true</IC>{' '}
+              returns one entry per slug — the translation when a published one exists, otherwise the default-language
+              entry — and each entry&apos;s <IC>locale</IC> says which was served. Filters, search, sorting and paging
+              apply to that merged list.
             </p>
 
             <h3 className="font-semibold mb-2 mt-5">Languages (Settings → Languages)</h3>
@@ -1076,10 +1098,36 @@ GET /api/article/my-post?populate=author,author.company,author.company.address
   }
 }`} />
 
+            <h3 className="font-semibold mb-2 mt-5">Two-way relations (reverse fields)</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              A relation field with <IC>mappedBy</IC> is a <strong className="text-foreground">reverse field</strong>: it lists the entries of
+              the related type whose relation points at this entry. Nothing is stored on this side — the forward field is the
+              single source of truth, so the two can't drift. Pick <em>Reverse of</em> in the field's options (the forward field must
+              already exist). Reverse fields are read-only (writing one is a 422), come back with <IC>?populate=</IC>, and return the
+              newest 100 links per entry.
+            </p>
+            <CodeBlock code={`// author schema — "posts" lists the posts whose "author" is this author
+{ "name": "posts", "type": "relation",
+  "options": { "relatedContentType": "post", "cardinality": "many", "mappedBy": "author" } }
+
+GET /api/author/jane?populate=posts            # Jane's published posts
+GET /api/author?populate=posts,posts.tags       # nested through the reverse field`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Filtering by a related entry's fields</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              On a relation field, <IC>where</IC> can filter on the linked entry's own fields (one level deep). Up to 1,000 linked
+              entries may match — narrow the filter beyond that.
+            </p>
+            <CodeBlock code={`GET /api/post?where[author][slug][eq]=jane
+GET /api/post?where[author.name][eq]=Jane          # same, dot notation
+GET /api/post?where[tags][label][in]=News,Guides   # many-relations: any linked entry matches
+GET /api/post?where[author][eq]=<uuid>             # comparing the stored UUID still works`} />
+
             <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm mt-4">
               <strong className="text-blue-400">Performance note.</strong>
               <p className="text-muted-foreground mt-1 text-xs">
                 Each depth level makes one additional batched DB query — not N queries per relation. Caching is bypassed when <IC>?populate</IC> is used because the response shape varies per request.
+                Public reads only populate <strong>published</strong> linked entries; the admin API includes drafts.
               </p>
             </div>
           </Section>
@@ -1090,6 +1138,32 @@ GET /api/article/my-post?populate=author,author.company,author.company.address
               NodePress exposes a GraphQL endpoint at <IC>/graphql</IC> alongside the REST API.
               Use GraphQL when you need to fetch multiple resources in one round-trip or want strict typing.
             </p>
+
+            <h3 className="font-semibold mb-2">Typed queries per content type</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Every content type gets its own GraphQL types and two queries, named after it: <IC>blog_post</IC> →
+              type <IC>BlogPost</IC> (fields under <IC>data</IC>), <IC>blogPost(slug, locale, fallback)</IC> and
+              <IC>blogPosts(where, search, sort, page, limit, cursor, locale, fallback)</IC>. Relation fields resolve to the
+              related type (reverse fields too), repeaters and groups are objects, flexible fields are unions per layout.
+              Only published entries are served. The schema follows content type changes without a restart (other
+              instances within <IC>GRAPHQL_SCHEMA_POLL_MS</IC>, default 10 s). A content type whose name would clash with a
+              built-in type or query is left out, with a warning in the server log.
+            </p>
+            <CodeBlock code={`{
+  blogPosts(locale: "fr", fallback: true, where: { featured: { eq: true } }, limit: 5) {
+    data {
+      slug
+      locale                       # "en" where the French version was missing
+      data {
+        title
+        cover { url alt }
+        author { slug data { name } }
+        blocks { __typename ... on BlogPostBlocksHero { heading } }
+      }
+    }
+    meta { total nextCursor }
+  }
+}`} />
 
             <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm mb-4">
               <strong className="text-blue-400">Playground available in all environments.</strong>
@@ -2855,6 +2929,120 @@ module.exports = {
           </Section>
 
           {/* ── Self-hosting ───────────────────────────────────────────────── */}
+          {/* ── JS/TS client ───────────────────────────────────────────────── */}
+          <Section id="client" title="JavaScript / TypeScript Client" icon={Code2}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              <IC>@nodepress/client</IC> is a small typed client for the public API — no dependencies, works in Node 18+,
+              browsers and edge runtimes. Pair it with <IC>npx nodepress generate:types</IC> for typed entries and filters.
+            </p>
+            <CodeBlock code={`npm install @nodepress/client
+
+import { createClient } from '@nodepress/client';
+import type { NodePressContentTypes } from './types/nodepress';
+
+const cms = createClient<NodePressContentTypes>({ url: 'https://cms.example.com' });
+
+const { data } = await cms.collection('post').list({
+  where: { featured: { eq: true }, author: { slug: { eq: 'jane' } } },
+  populate: ['author'], locale: 'fr', fallback: true,
+});
+const post = await cms.collection('post').get('hello-world');      // null when missing
+for await (const e of cms.collection('post').all()) { /* every entry, page by page */ }
+await cms.graphql('{ posts(limit: 5) { data { slug } } }');
+cms.imageUrl(post?.data.cover, { w: 800, format: 'auto' });
+
+// Writes need a write API key (keep it server-side); status defaults to "published"
+const admin = createClient({ url: 'https://cms.example.com', apiKey: process.env.NODEPRESS_KEY });
+await admin.collection('post').create({ slug: 'draft-1', data: { title: 'Hi' }, status: 'draft' });`} />
+            <p className="text-muted-foreground text-xs mt-3">
+              The public write API (<IC>POST/PUT /api/:type</IC>) validates <IC>data</IC> against the content type — the same
+              rules as the admin — and accepts <IC>status: "draft" | "published"</IC> on create.
+            </p>
+          </Section>
+
+          {/* ── Releases ──────────────────────────────────────────────────── */}
+          <Section id="releases" title="Content Releases" icon={History}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              A release groups entry changes — <strong className="text-foreground">publish</strong>, <strong className="text-foreground">unpublish</strong> or
+              <strong className="text-foreground"> archive</strong> — and applies them together in one database transaction, now or at a
+              scheduled time (checked every minute, on any instance, exactly once). Each entry goes out as it is when the release is
+              published, so editors keep editing drafts until then. Add entries from the Entries list (select → <em>Add to release</em>)
+              or the entry editor's <em>Release</em> button; manage them under <strong className="text-foreground">Content → Releases</strong>.
+              An entry in two pending releases is flagged; whichever goes out last wins. Editors and admins manage releases.
+            </p>
+            <CodeBlock code={`POST   /api/releases                    { "name": "Spring launch" }
+POST   /api/releases/:id/items          { "entryIds": [12, 13], "action": "publish" }   # or unpublish | archive
+DELETE /api/releases/:id/items/:itemId
+PUT    /api/releases/:id/schedule       { "scheduledAt": "2026-11-01T09:00:00Z" }        # null unschedules
+POST   /api/releases/:id/publish        # now
+GET    /api/releases  |  GET /api/releases/:id   (items + conflicts)`} />
+            <p className="text-muted-foreground text-xs mt-3">
+              Publishing fires the usual entry webhooks and plugin hooks (source <IC>release</IC>) plus a <IC>release.published</IC> webhook.
+              A plugin veto or error fails the whole release with nothing changed.
+            </p>
+          </Section>
+
+          {/* ── Templates ─────────────────────────────────────────────────── */}
+          <Section id="templates" title="Starter Templates" icon={Layers}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              <strong className="text-foreground">Content Types → Start from a template</strong> creates a ready-made set of content
+              types — <IC>blog</IC> (posts, authors, categories), <IC>agency</IC> (services, case studies, team, testimonials, flexible
+              pages) or <IC>docs</IC> (sections and pages) — with working relations and, optionally, sample entries. It refuses to run
+              if any of its content type names already exists. API: <IC>GET /api/templates</IC>, <IC>POST /api/templates/:id/apply</IC>
+              {' '}<IC>{'{ "sampleContent": false }'}</IC> (admin).
+            </p>
+          </Section>
+
+          {/* ── AI ────────────────────────────────────────────────────────── */}
+          <Section id="ai" title="AI Assistant & MCP" icon={Zap}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Set <IC>ANTHROPIC_API_KEY</IC> on the backend (optionally <IC>AI_MODEL</IC>, default <IC>claude-opus-5-5</IC>) to turn on
+              <strong className="text-foreground"> Generate with AI</strong> on the new content type page and
+              <strong className="text-foreground"> Draft with AI</strong> in the entry editor. Suggestions are validated against the field
+              rules and filled into the form — nothing is saved until you save. The prompt and the content type's fields are sent to
+              the Claude API. Endpoints: <IC>GET /api/ai/status</IC>, <IC>POST /api/ai/content-model</IC> (admin),
+              <IC>POST /api/ai/draft</IC> (contributor+), rate-limited.
+            </p>
+            <h3 className="font-semibold mb-2">MCP server</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              The CLI includes a Model Context Protocol server so AI assistants (Claude Desktop, Claude Code, Cursor…) can read your
+              content and draft entries. Tools: <IC>list_content_types</IC>, <IC>list_entries</IC>, <IC>get_entry</IC>,
+              <IC>create_entry</IC> (drafts by default), <IC>update_entry</IC>, <IC>graphql</IC>. Without a key it is read-only.
+            </p>
+            <CodeBlock code={`{
+  "mcpServers": {
+    "nodepress": {
+      "command": "npx",
+      "args": ["-y", "create-nodepress-app", "mcp"],
+      "env": { "NODEPRESS_URL": "https://cms.example.com", "NODEPRESS_API_KEY": "np_..." }
+    }
+  }
+}`} />
+          </Section>
+
+          {/* ── Search ────────────────────────────────────────────────────── */}
+          <Section id="search" title="Search Engine" icon={Database}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              <IC>?search=</IC> uses Postgres full-text search by default — nothing to run. For typo-tolerant ranked search set
+              <IC> SEARCH_DRIVER=meilisearch</IC>, <IC>MEILISEARCH_URL</IC> and <IC>MEILISEARCH_KEY</IC> (or use
+              <IC> docker-compose.search.yml</IC>), then rebuild the index once from <strong className="text-foreground">Settings → Email &amp; storage</strong>
+              (or <IC>POST /api/search/reindex</IC>). Every entry write keeps it current through the job queue. Searches with
+              <IC> fallback=true</IC>, and any search while Meilisearch is unreachable, use Postgres; <IC>meta.searchMode</IC> says which answered.
+            </p>
+          </Section>
+
+          {/* ── Email & storage ───────────────────────────────────────────── */}
+          <Section id="email-storage" title="Email & Storage Settings" icon={Server}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Email (SMTP) and file storage (local disk or any S3-compatible bucket — AWS S3, Cloudflare R2, DigitalOcean Spaces,
+              MinIO, Backblaze B2) can be set up in the setup wizard's optional steps and later under
+              <strong className="text-foreground"> Settings → Email &amp; storage</strong>, with <em>Send test</em> and <em>Test connection</em>
+              buttons. Passwords and secret keys are stored encrypted (key: <IC>SETTINGS_SECRET</IC>, else <IC>JWT_SECRET</IC> — changing
+              it means re-entering them). <IC>SMTP_*</IC> and <IC>STORAGE_*</IC> environment variables still take precedence and make the
+              matching section read-only. Email changes apply at once; a storage change applies after a restart (existing files aren't moved).
+            </p>
+          </Section>
+
           <Section id="self-hosting" title="Self-Hosting" icon={Server}>
             <p className="text-muted-foreground leading-relaxed mb-4">
               NodePress runs anywhere Node.js does. There are two ways to go live —
@@ -2863,7 +3051,17 @@ module.exports = {
               <strong className="text-foreground">S3-compatible storage</strong> for media (see below).
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            <h3 className="font-semibold mb-2">One-line install with automatic HTTPS</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              On a Linux server with Docker (Compose v2.24+), this clones NodePress, writes <IC>.env</IC> and starts the stack. With
+              <IC> DOMAIN</IC>, Caddy gets a Let's Encrypt certificate (<IC>docker-compose.https.yml</IC>) — point the domain's DNS at the
+              server first. Run it again to update. Or use the <strong className="text-foreground">Deploy to Render</strong> button in the
+              README (<IC>render.yaml</IC>).
+            </p>
+            <CodeBlock code={`curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/scripts/install.sh \\
+  | DOMAIN=cms.example.com ACME_EMAIL=you@example.com bash`} />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 mt-6">
               <div className="rounded-xl border border-border p-4">
                 <p className="text-sm font-semibold mb-1">Path A — Docker on your own server</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">

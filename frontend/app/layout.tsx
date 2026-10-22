@@ -5,6 +5,7 @@ import { BrandProvider } from '../context/BrandContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from 'sonner';
+import { AdminIntlProvider } from '@/components/AdminIntlProvider';
 import './globals.css';
 // metadataBase makes relative OG/Twitter image URLs and canonical links
 // absolute. Derived from SITE_URL (the public site origin); falls back to the
@@ -27,14 +28,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <TooltipProvider>
-            <PluginProvider>
-              <BrandProvider>
-                <AuthProvider>{children}</AuthProvider>
-              </BrandProvider>
-            </PluginProvider>
-            <Toaster richColors position="top-right" />
-          </TooltipProvider>
+          <AdminIntlProvider>
+            <TooltipProvider>
+              <PluginProvider>
+                <BrandProvider>
+                  <AuthProvider>{children}</AuthProvider>
+                </BrandProvider>
+              </PluginProvider>
+              <Toaster richColors position="top-right" />
+            </TooltipProvider>
+          </AdminIntlProvider>
         </ThemeProvider>
       </body>
     </html>

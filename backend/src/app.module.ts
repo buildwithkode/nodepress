@@ -21,6 +21,11 @@ import { AuditModule } from './audit/audit.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { JobsModule } from './jobs/jobs.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { ReleasesModule } from './releases/releases.module';
+import { TemplatesModule } from './templates/templates.module';
+import { AiModule } from './ai/ai.module';
+import { SearchModule } from './search/search.module';
+import { ServerSettingsModule } from './server-settings/server-settings.module';
 import { SeoModule } from './seo/seo.module';
 import { AppCacheModule } from './cache/cache.module';
 import { MetricsModule } from './metrics/metrics.module';
@@ -105,6 +110,11 @@ import { LocalesModule } from './locales/locales.module';
     FormsModule,
     HealthModule,
     SchedulerModule,    // Cron: auto-publishes entries when publishAt passes
+    ReleasesModule,     // Content releases: entry changes published together, now or on a schedule
+    TemplatesModule,    // Starter templates (blog, agency, docs)
+    AiModule,           // Optional AI help (ANTHROPIC_API_KEY)
+    SearchModule,       // Global — optional external search (SEARCH_DRIVER=meilisearch)
+    ServerSettingsModule, // Email + storage set up from the admin
     SeoModule,          // GET /sitemap.xml and GET /robots.txt
 
     // DynamicApiModule MUST be last — wildcard /:type routes shadow static routes

@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred in this page. Your data is safe — this is a display error only.",
+    "errorId": "Error ID:",
+    "goToDashboard": "Go to dashboard",
+    "tryAgain": "Try again"
+  },
+  "boundary": {
+    "title": "Something went wrong",
+    "failedToLoad": "{label} failed to load. This has been reported automatically.",
+    "sectionFailed": "This section failed to load. This has been reported automatically.",
+    "unknownError": "Unknown error",
+    "tryAgain": "Try again"
+  }
+}

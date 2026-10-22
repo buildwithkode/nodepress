@@ -5,8 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '../../../lib/axios';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'use-intl';
 
 function ResetPasswordForm() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get('token') ?? '';
@@ -18,18 +20,18 @@ function ResetPasswordForm() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    if (!token) setError('Missing or invalid reset token. Request a new one.');
-  }, [token]);
+    if (!token) setError(t('reset.missingToken'));
+  }, [token, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+      setError(t('reset.passwordTooShort'));
       return;
     }
     if (password !== confirm) {
-      setError('Passwords do not match.');
+      setError(t('reset.passwordMismatch'));
       return;
     }
     setLoading(true);
@@ -38,7 +40,7 @@ function ResetPasswordForm() {
       setDone(true);
       setTimeout(() => router.replace('/login'), 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid or expired token. Request a new reset link.');
+      setError(err.response?.data?.message || t('reset.invalidToken'));
     } finally {
       setLoading(false);
     }
@@ -50,9 +52,9 @@ function ResetPasswordForm() {
         <div className="rounded-xl border border-white/10 bg-[#1a1a1a] px-8 py-10 shadow-2xl">
 
           <div className="text-center mb-8">
-            <h1 className="text-xl font-bold text-white">Set new password</h1>
+            <h1 className="text-xl font-bold text-white">{t('reset.title')}</h1>
             <p className="text-sm text-white/40 mt-1">
-              {done ? 'Password updated! Redirecting to login…' : 'Choose a new password (min 8 characters).'}
+              {done ? t('reset.done') : t('reset.subtitle')}
             </p>
           </div>
 
@@ -60,7 +62,7 @@ function ResetPasswordForm() {
             <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <div className="space-y-1.5">
                 <label htmlFor="password" className="block text-sm font-medium text-white/80">
-                  New password
+                  {t('reset.newPassword')}
                 </label>
                 <input
                   id="password"
@@ -76,7 +78,7 @@ function ResetPasswordForm() {
 
               <div className="space-y-1.5">
                 <label htmlFor="confirm" className="block text-sm font-medium text-white/80">
-                  Confirm password
+                  {t('reset.confirmPassword')}
                 </label>
                 <input
                   id="confirm"
@@ -94,14 +96,14 @@ function ResetPasswordForm() {
               )}
 
               <Button type="submit" disabled={loading || !token} className="w-full">
-                {loading ? 'Updating…' : 'Update password'}
+                {loading ? t('reset.updating') : t('reset.update')}
               </Button>
             </form>
           )}
 
           <p className="mt-5 text-center text-xs text-white/30">
             <Link href="/login" className="hover:text-white/60 transition-colors">
-              Back to sign in
+              {t('backToSignIn')}
             </Link>
           </p>
         </div>

@@ -23,7 +23,7 @@ export const PluginEvents = {
 export type PluginEventName = (typeof PluginEvents)[keyof typeof PluginEvents];
 
 /** Which write path fired the event. */
-export type EntryEventSource = 'admin' | 'api' | 'bulk' | 'import' | 'restore' | 'translation' | 'scheduler' | 'promote';
+export type EntryEventSource = 'admin' | 'api' | 'bulk' | 'import' | 'restore' | 'translation' | 'scheduler' | 'promote' | 'release';
 
 export interface EntryLifecyclePayload {
   /** Absent on before-create (the entry doesn't exist yet). */

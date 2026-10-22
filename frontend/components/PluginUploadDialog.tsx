@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { useTranslations } from 'use-intl';
 
 /** What POST /api/plugins/packages?dryRun=true says about a package. */
 export interface PackageReview {
@@ -31,7 +32,11 @@ export interface PackageReview {
 }
 
 /** The upload goes through fetch: the axios instance defaults to a JSON body. */
-async function postPackage(file: File, dryRun: boolean): Promise<PackageReview> {
+async function postPackage(
+  file: File,
+  dryRun: boolean,
+  fallback: { tooLarge: string; failed: (status: number) => string },
+): Promise<PackageReview> {
   const body = new FormData();
   body.append('file', file);
   const res = await fetch(`/api/plugins/packages${dryRun ? '?dryRun=true' : ''}`, {
@@ -42,29 +47,23 @@ async function postPackage(file: File, dryRun: boolean): Promise<PackageReview> 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const msg = Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    throw new Error(res.status === 413 ? 'The file is too large.' : msg || `Upload failed (${res.status})`);
+    throw new Error(res.status === 413 ? fallback.tooLarge : msg || fallback.failed(res.status));
   }
   return data;
 }
 
-const ACTION_LABEL: Record<PackageReview['action'], string> = {
-  install: 'Install',
-  update: 'Update',
-  reinstall: 'Reinstall',
-  downgrade: 'Downgrade',
-};
-
 function SignatureLine({ review }: { review: PackageReview }) {
-  const key = review.signerKeyId && <span className="font-mono text-muted-foreground/80"> · key {review.signerKeyId}</span>;
+  const t = useTranslations('developer');
+  const key = review.signerKeyId && <span className="font-mono text-muted-foreground/80"> · {t('pluginUpload.signerKey', { id: review.signerKeyId })}</span>;
   switch (review.signature) {
     case 'trusted':
-      return <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><ShieldCheck className="w-4 h-4" />Signed by a trusted publisher{key}</span>;
+      return <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><ShieldCheck className="w-4 h-4" />{t('pluginUpload.sigTrusted')}{key}</span>;
     case 'untrusted':
-      return <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><ShieldAlert className="w-4 h-4" />Signed by a key this server doesn&apos;t trust{key}</span>;
+      return <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><ShieldAlert className="w-4 h-4" />{t('pluginUpload.sigUntrusted')}{key}</span>;
     case 'invalid':
-      return <span className="flex items-center gap-1.5 text-destructive"><XCircle className="w-4 h-4" />Invalid signature — changed after signing{key}</span>;
+      return <span className="flex items-center gap-1.5 text-destructive"><XCircle className="w-4 h-4" />{t('pluginUpload.sigInvalid')}{key}</span>;
     default:
-      return <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><ShieldAlert className="w-4 h-4" />Not signed</span>;
+      return <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><ShieldAlert className="w-4 h-4" />{t('pluginUpload.sigNone')}</span>;
   }
 }
 
@@ -79,12 +78,19 @@ export function PluginUploadDialog({
   maxUploadMb: number;
   onInstalled: () => void;
 }) {
+  const t = useTranslations('developer');
+  const tc = useTranslations('common');
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [review, setReview] = useState<PackageReview | null>(null);
   const [checking, setChecking] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fallback = {
+    tooLarge: t('pluginUpload.tooLarge'),
+    failed: (status: number) => t('pluginUpload.uploadFailed', { status }),
+  };
 
   const reset = () => {
     setFile(null);
@@ -98,12 +104,12 @@ export function PluginUploadDialog({
     if (!picked) return;
     setFile(picked);
     if (picked.size > maxUploadMb * 1024 * 1024) {
-      setError(`The file is ${(picked.size / 1024 / 1024).toFixed(1)} MB — plugins can be at most ${maxUploadMb} MB.`);
+      setError(t('pluginUpload.fileTooBig', { size: (picked.size / 1024 / 1024).toFixed(1), max: maxUploadMb }));
       return;
     }
     setChecking(true);
     try {
-      setReview(await postPackage(picked, true));
+      setReview(await postPackage(picked, true, fallback));
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -115,8 +121,10 @@ export function PluginUploadDialog({
     if (!file || !review) return;
     setInstalling(true);
     try {
-      await postPackage(file, false);
-      toast.success(`${review.name} ${review.version} ${review.action === 'install' ? 'installed' : 'uploaded'} — restart the server to load it`);
+      await postPackage(file, false, fallback);
+      toast.success(review.action === 'install'
+        ? t('pluginUpload.installedToast', { name: review.name, version: review.version })
+        : t('pluginUpload.uploadedToast', { name: review.name, version: review.version }));
       onInstalled();
       onOpenChange(false);
       reset();
@@ -131,10 +139,13 @@ export function PluginUploadDialog({
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Upload plugin</DialogTitle>
+          <DialogTitle>{t('pluginUpload.title')}</DialogTitle>
           <DialogDescription>
-            Choose a plugin <span className="font-mono">.zip</span> (up to {maxUploadMb} MB). It&apos;s checked before anything
-            is installed, and loads after a server restart.
+            {t.rich('pluginUpload.description', {
+              max: maxUploadMb,
+              ext: '.zip',
+              mono: (chunks) => <span className="font-mono">{chunks}</span>,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -153,8 +164,8 @@ export function PluginUploadDialog({
         >
           {checking ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <FileArchive className="w-5 h-5 text-muted-foreground" />}
           <span className="text-sm">
-            {file ? <span className="font-medium text-foreground">{file.name}</span> : <span className="text-muted-foreground">Choose a .zip file…</span>}
-            {checking && <span className="block text-xs text-muted-foreground">Checking package…</span>}
+            {file ? <span className="font-medium text-foreground">{file.name}</span> : <span className="text-muted-foreground">{t('pluginUpload.chooseFile')}</span>}
+            {checking && <span className="block text-xs text-muted-foreground">{t('pluginUpload.checking')}</span>}
           </span>
         </button>
 
@@ -172,11 +183,16 @@ export function PluginUploadDialog({
                 <span className="text-base font-semibold text-foreground">{review.name}</span>
                 <span className="font-mono px-1.5 py-0.5 rounded bg-muted border border-border/50">v{review.version}</span>
                 {review.currentVersion && (
-                  <span className="text-muted-foreground">installed: v{review.currentVersion}</span>
+                  <span className="text-muted-foreground">{t('pluginUpload.installedVersion', { version: review.currentVersion })}</span>
                 )}
               </div>
               <div className="text-muted-foreground mt-0.5">
-                by {review.author} · works with NodePress <span className="font-mono">{review.nodepress}</span> · {review.files} files
+                {t.rich('pluginUpload.meta', {
+                  author: review.author,
+                  range: review.nodepress,
+                  files: review.files,
+                  mono: (chunks) => <span className="font-mono">{chunks}</span>,
+                })}
               </div>
               {review.description && <p className="mt-2 text-muted-foreground">{review.description}</p>}
             </div>
@@ -184,7 +200,7 @@ export function PluginUploadDialog({
             <SignatureLine review={review} />
 
             <div>
-              <div className="font-medium text-foreground mb-1">It asks permission to:</div>
+              <div className="font-medium text-foreground mb-1">{t('pluginUpload.asksPermission')}</div>
               {review.permissionDetails.length ? (
                 <ul className="space-y-1">
                   {review.permissionDetails.map((p) => (
@@ -195,7 +211,7 @@ export function PluginUploadDialog({
                   ))}
                 </ul>
               ) : (
-                <span className="text-muted-foreground">Nothing beyond running inside the server.</span>
+                <span className="text-muted-foreground">{t('pluginUpload.noPermissions')}</span>
               )}
             </div>
 
@@ -212,19 +228,19 @@ export function PluginUploadDialog({
             {review.installable && (
               <p className="flex items-start gap-1.5 text-muted-foreground">
                 <BadgeCheck className="w-4 h-4 shrink-0 text-emerald-500" />
-                Plugins run inside the server with full access to it. {review.action === 'install'
-                  ? 'It will be installed disabled — turn it on after the restart.'
-                  : 'It keeps its current on/off state and settings.'}
+                {t('pluginUpload.fullAccess')} {review.action === 'install'
+                  ? t('pluginUpload.installedDisabled')
+                  : t('pluginUpload.keepsState')}
               </p>
             )}
           </div>
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={installing}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={installing}>{tc('cancel')}</Button>
           <Button onClick={install} disabled={!review?.installable || installing || checking}>
             {installing ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Upload className="w-4 h-4 mr-1.5" />}
-            {review ? `${ACTION_LABEL[review.action]} ${review.name}` : 'Install'}
+            {review ? t(`pluginUpload.actions.${review.action}`, { name: review.name }) : t('pluginUpload.install')}
           </Button>
         </DialogFooter>
       </DialogContent>

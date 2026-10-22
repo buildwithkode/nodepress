@@ -1,0 +1,143 @@
+{
+  "list": {
+    "loadFailed": "Failed to load forms",
+    "deleted": "Form deleted",
+    "deleteFailed": "Delete failed",
+    "statusFailed": "Failed to update form status",
+    "searchPlaceholder": "Search forms…",
+    "newForm": "New Form",
+    "columns": {
+      "slug": "Slug",
+      "fields": "Fields",
+      "submissions": "Submissions"
+    },
+    "noMatches": "No forms match your search.",
+    "empty": "No forms yet. Create your first one.",
+    "toggleActive": "Toggle active",
+    "viewSubmissions": "View submissions",
+    "deleteConfirmTitle": "Delete \"{name}\"?",
+    "deleteConfirmDescription": "{count, plural, one {The <strong>#</strong> submission will also be deleted permanently.} other {All <strong>#</strong> submissions will also be deleted permanently.}}"
+  },
+  "edit": {
+    "notFound": "Form not found."
+  },
+  "submissions": {
+    "empty": "empty",
+    "loadFailed": "Failed to load submissions",
+    "nothingToExport": "No submissions to export",
+    "backToForms": "Back to Forms",
+    "searchPlaceholder": "Search submissions…",
+    "exportCsv": "Export CSV",
+    "count": "{count, plural, one {# submission} other {# submissions}}",
+    "countMatching": "{count, plural, one {# submission} other {# submissions}} matching \"{search}\"",
+    "noneTitle": "No submissions yet",
+    "noneDescription": "Share the form and responses will appear here.",
+    "date": "Date"
+  },
+  "fieldEditor": {
+    "labelPlaceholder": "Label shown to user",
+    "keyCustom": "custom",
+    "keyAuto": "auto",
+    "validationRules": "Validation rules",
+    "removeField": "Remove field",
+    "options": "Options (comma-separated)",
+    "optionsPickMany": "pick many",
+    "optionsRadio": "radio buttons",
+    "optionsDropdown": "dropdown",
+    "optionsPlaceholder": "Option A, Option B, Option C",
+    "validation": "Validation",
+    "rules": {
+      "min": "Min",
+      "max": "Max",
+      "integer": "Whole number only",
+      "minLength": "Min length",
+      "maxLength": "Max length",
+      "pattern": "Pattern (regex)",
+      "minItems": "Min items",
+      "maxItems": "Max items",
+      "message": "Custom error message"
+    },
+    "messagePlaceholder": "Shown when this field fails",
+    "itemFields": "Item fields (repeats)",
+    "subFields": "Sub-fields",
+    "addSubField": "Add sub-field"
+  },
+  "fieldTypes": {
+    "text": "Text",
+    "textarea": "Textarea",
+    "number": "Number",
+    "email": "Email",
+    "url": "URL",
+    "phone": "Phone",
+    "date": "Date",
+    "datetime": "Date & Time",
+    "boolean": "Boolean (yes/no)",
+    "select": "Select (dropdown)",
+    "radio": "Radio (single pick)",
+    "multiselect": "Multi-select",
+    "tags": "Tags (freeform)",
+    "group": "Group (object)",
+    "repeater": "Repeater (list)"
+  },
+  "builder": {
+    "created": "Form created",
+    "updated": "Form updated",
+    "newTitle": "New Form",
+    "editTitle": "Edit Form",
+    "newDescription": "Define your form fields and configure notification actions.",
+    "editDescription": "Update form settings, fields, and actions.",
+    "formName": "Form Name",
+    "formNamePlaceholder": "e.g. Contact Us",
+    "slugPlaceholder": "e.g. contact-us",
+    "submitEndpoint": "Submit endpoint:",
+    "status": {
+      "title": "Form Status",
+      "accepting": "Accepting submissions",
+      "blocked": "Submissions are blocked",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "captcha": {
+      "title": "Spam Protection (Captcha)",
+      "on": "Submissions must include a valid captcha token.",
+      "off": "Honeypot + rate limiting still apply. Turn on for captcha verification.",
+      "requires": "Requires <code>{env}</code> in the backend env."
+    },
+    "fields": {
+      "title": "Fields",
+      "description": "Define the inputs users will fill in. Use Group / Repeater for nested data.",
+      "add": "Add Field"
+    },
+    "actions": {
+      "description": "What happens after a successful submission. Use <code>{token}</code> in subject to insert values.",
+      "email": "Email",
+      "empty": "No actions configured. Submissions will only be stored in the database.",
+      "remove": "Remove action",
+      "sendTo": "Send To",
+      "subject": "Subject",
+      "defaultSubject": "New submission from {field}",
+      "replyToField": "Reply-To Field (optional)",
+      "webhookUrl": "Webhook URL",
+      "method": "Method"
+    },
+    "validation": {
+      "nameRequired": "Form name is required",
+      "slugRequired": "Slug is required",
+      "fieldRequired": "Add at least one field with a name and label"
+    },
+    "creating": "Creating…",
+    "create": "Create Form",
+    "saveChanges": "Save Changes",
+    "preview": {
+      "show": "Show payload",
+      "hide": "Hide payload",
+      "title": "Payload Preview",
+      "live": "live",
+      "disableWrap": "Disable line wrap",
+      "enableWrap": "Wrap long lines",
+      "wrap": "Wrap",
+      "copyJson": "Copy JSON body",
+      "empty": "Add a field (with a key and label) to generate an example payload."
+    }
+  }
+}

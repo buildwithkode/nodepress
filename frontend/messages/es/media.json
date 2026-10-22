@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "No se pudieron cargar los archivos multimedia",
+    "fileDeleted": "Archivo eliminado",
+    "folderDeleted": "Carpeta eliminada",
+    "deleteFailed": "Error al eliminar",
+    "folderRenamed": "Carpeta renombrada",
+    "renameFolderFailed": "No se pudo renombrar la carpeta",
+    "folderCreated": "Carpeta creada",
+    "createFolderFailed": "No se pudo crear la carpeta",
+    "fileMoved": "Archivo movido correctamente",
+    "moveFileFailed": "No se pudo mover el archivo",
+    "urlCopied": "URL copiada",
+    "uploaded": "{name} subido",
+    "uploadFailed": "Error al subir {name}"
+  },
+  "folders": {
+    "title": "Carpetas",
+    "allFiles": "Todos los archivos",
+    "unfiled": "Sin carpeta",
+    "folder": "Carpeta",
+    "rename": "Renombrar carpeta",
+    "delete": "Eliminar carpeta",
+    "deleteConfirmTitle": "¿Eliminar la carpeta «{name}»?",
+    "deleteConfirmDescription": "Los archivos que contiene quedarán sin carpeta. Las subcarpetas se eliminarán.",
+    "namePlaceholder": "Nombre de la carpeta",
+    "new": "Nueva carpeta"
+  },
+  "upload": {
+    "uploading": "Subiendo…",
+    "prompt": "Haz clic o arrastra archivos aquí",
+    "limits": "{formats} — Máx. {size}"
+  },
+  "library": {
+    "empty": "Aún no hay archivos",
+    "fileCount": "{count, plural, one {# archivo} other {# archivos}}",
+    "copyWebpUrl": "Copiar URL WebP",
+    "copyUrl": "Copiar URL",
+    "focalPointAt": "Punto focal {x}, {y}",
+    "setFocalPoint": "Definir punto focal",
+    "moveToFolder": "Mover a carpeta",
+    "deleteConfirmTitle": "¿Eliminar archivo?",
+    "deleteConfirmDescription": "<strong>{name}</strong> se eliminará de forma permanente.",
+    "deleteConfirmWebp": "La versión WebP también se eliminará."
+  },
+  "renameDialog": {
+    "title": "Renombrar carpeta",
+    "description": "Introduce un nuevo nombre para la carpeta «{name}».",
+    "label": "Nombre de la carpeta",
+    "save": "Guardar cambios"
+  },
+  "moveDialog": {
+    "title": "Mover archivo a carpeta",
+    "description": "Elige una carpeta de destino para <strong>{name}</strong>.",
+    "destination": "Carpeta de destino",
+    "selectFolder": "Seleccionar carpeta",
+    "unfiledRoot": "Sin carpeta (raíz)",
+    "submit": "Mover archivo"
+  },
+  "focal": {
+    "title": "Punto focal",
+    "description": "Haz clic en la parte más importante de <strong>{name}</strong>. Las versiones recortadas la mantienen en el encuadre.",
+    "saved": "Punto focal guardado",
+    "cleared": "Punto focal eliminado",
+    "saveFailed": "No se pudo guardar el punto focal",
+    "previewSquare": "Cuadrado",
+    "previewWide": "Panorámico 16:9",
+    "previewTall": "Vertical 3:4",
+    "notSet": "Sin definir — los recortes se centran",
+    "clear": "Borrar"
+  },
+  "picker": {
+    "title": "Biblioteca multimedia",
+    "placeholder": "Elegir imagen de la biblioteca multimedia…",
+    "crop": "Recortar",
+    "cropZoomTitle": "Recortar / Zoom",
+    "cropZoom": "Recortar y zoom",
+    "removeImage": "Quitar imagen",
+    "change": "Cambiar",
+    "browse": "Explorar",
+    "upload": "Subir",
+    "altPrefix": "Alt: {alt}",
+    "empty": "Aún no hay archivos multimedia. Sube uno primero.",
+    "altText": "Texto alternativo",
+    "optionalHint": "(opcional)",
+    "altPlaceholder": "Describe la imagen para la accesibilidad…",
+    "dropPrompt": "Suelta un archivo o haz clic para explorar",
+    "useImage": "Usar imagen"
+  }
+}

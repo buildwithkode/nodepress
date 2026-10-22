@@ -16,11 +16,14 @@ import {
   FileCode,
   FileText,
   Shield,
+  LayoutTemplate,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { canManageSettings } from '@/lib/roles';
+import { TemplatePickerDialog } from '@/components/TemplatePickerDialog';
 import { cn, ctLabel } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -114,10 +117,13 @@ function exportContentType(ct: ContentType) {
 }
 
 export default function ContentTypesPage() {
+  const t = useTranslations('contentTypes');
+  const tc = useTranslations('common');
   const router = useRouter();
   const { user } = useAuth();
   const isAdmin = canManageSettings(user?.role);
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [loading, setLoading]           = useState(false);
   const [duplicating, setDuplicating]   = useState<number | null>(null);
   const [search, setSearch]             = useState('');
@@ -139,7 +145,7 @@ export default function ContentTypesPage() {
       const res = await api.get('/content-types');
       setContentTypes(res.data);
     } catch {
-      toast.error('Failed to load content types');
+      toast.error(t('list.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -159,9 +165,9 @@ export default function ContentTypesPage() {
       a.download = `nodepress-schemas-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('All content type schemas exported');
+      toast.success(t('list.exportedAll'));
     } catch {
-      toast.error('Failed to export schemas');
+      toast.error(t('list.exportFailed'));
     } finally {
       setExportingAll(false);
     }
@@ -182,7 +188,7 @@ export default function ContentTypesPage() {
         : parsed.contentTypes || (parsed.contentType ? [parsed.contentType] : []);
 
       if (list.length === 0) {
-        setImportPreflight({ valid: false, errors: ['No contentTypes array found in JSON'] });
+        setImportPreflight({ valid: false, errors: [t('import.noContentTypes')] });
         return;
       }
 
@@ -194,7 +200,7 @@ export default function ContentTypesPage() {
     } catch (err: any) {
       setImportPreflight({
         valid: false,
-        errors: [err.response?.data?.message || err.message || 'Invalid JSON format'],
+        errors: [err.response?.data?.message || err.message || t('import.invalidJson')],
       });
     } finally {
       setPreflightLoading(false);
@@ -209,7 +215,7 @@ export default function ContentTypesPage() {
       setImportJsonText(text);
       await handlePreflightImport(text);
     } catch {
-      toast.error('Failed to read file');
+      toast.error(t('list.readFileFailed'));
     }
     e.target.value = '';
   };
@@ -230,13 +236,13 @@ export default function ContentTypesPage() {
       });
 
       const { created = 0, updated = 0 } = res.data;
-      toast.success(`Schema migration complete: ${created} created, ${updated} updated`);
+      toast.success(t('list.importComplete', { created, updated }));
       setImportDialogOpen(false);
       setImportJsonText('');
       setImportPreflight(null);
       await fetchContentTypes();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Schema import failed');
+      toast.error(err.response?.data?.message || t('list.importFailed'));
     } finally {
       setImportExecuting(false);
     }
@@ -251,28 +257,28 @@ export default function ContentTypesPage() {
     for (const name of candidates) {
       try {
         const res = await api.post('/content-types', { name, schema: ct.schema });
-        toast.success(`Duplicated as "${name}"`);
+        toast.success(t('list.duplicated', { name }));
         router.push(`/content-types/${res.data.id}/edit`);
         return;
       } catch (err: any) {
         if (err.response?.status !== 409) {
-          toast.error(err.response?.data?.message || 'Duplicate failed');
+          toast.error(err.response?.data?.message || t('list.duplicateFailed'));
           setDuplicating(null);
           return;
         }
       }
     }
-    toast.error('Too many duplicates — delete some first');
+    toast.error(t('list.tooManyDuplicates'));
     setDuplicating(null);
   };
 
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/content-types/${id}`);
-      toast.success('Content type deleted');
+      toast.success(t('list.deleted'));
       await fetchContentTypes();
     } catch {
-      toast.error('Failed to delete content type');
+      toast.error(t('list.deleteFailed'));
     }
   };
 
@@ -289,7 +295,7 @@ export default function ContentTypesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex-1 w-full sm:max-w-xs">
           <SearchInput
-            placeholder="Search content types..."
+            placeholder={t('list.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -303,7 +309,7 @@ export default function ContentTypesPage() {
             onClick={handleExportAll}
           >
             {exportingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Export Schemas
+            {t('list.exportSchemas')}
           </Button>
 
           {isAdmin && (
@@ -314,14 +320,22 @@ export default function ContentTypesPage() {
               onClick={() => setImportDialogOpen(true)}
             >
               <Upload className="h-4 w-4" />
-              Import Schemas
+              {t('list.importSchemas')}
             </Button>
           )}
 
           {isAdmin && (
+            <Button variant="outline" size="sm" onClick={() => setTemplatesOpen(true)}>
+              <LayoutTemplate className="h-4 w-4 mr-1.5" />
+              {t('templates.open')}
+            </Button>
+          )}
+          <TemplatePickerDialog open={templatesOpen} onOpenChange={setTemplatesOpen} onApplied={fetchContentTypes} />
+
+          {isAdmin && (
             <Button onClick={() => router.push('/content-types/new')} size="sm">
               <Plus className="h-4 w-4 mr-1.5" />
-              New Content Type
+              {t('list.newContentType')}
             </Button>
           )}
         </div>
@@ -331,12 +345,12 @@ export default function ContentTypesPage() {
       <Table className="min-w-[1100px]">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-64 min-w-[220px]">Name</TableHead>
-            <TableHead className="min-w-[420px]">Fields</TableHead>
-            <TableHead className="w-56 min-w-[220px]">Endpoints</TableHead>
-            <TableHead className="w-24 min-w-[90px] text-center">Count</TableHead>
-            <TableHead className="w-32 min-w-[120px]">Created</TableHead>
-            <TableHead className="w-36 min-w-[140px] text-right">Actions</TableHead>
+            <TableHead className="w-64 min-w-[220px]">{tc('name')}</TableHead>
+            <TableHead className="min-w-[420px]">{t('list.columns.fields')}</TableHead>
+            <TableHead className="w-56 min-w-[220px]">{t('list.columns.endpoints')}</TableHead>
+            <TableHead className="w-24 min-w-[90px] text-center">{t('list.columns.count')}</TableHead>
+            <TableHead className="w-32 min-w-[120px]">{tc('createdAt')}</TableHead>
+            <TableHead className="w-36 min-w-[140px] text-right">{tc('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -354,7 +368,7 @@ export default function ContentTypesPage() {
           ) : filtered.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
-                {search ? 'No content types match your search.' : 'No content types yet. Create your first one.'}
+                {search ? t('list.noMatch') : t('list.empty')}
               </TableCell>
             </TableRow>
           ) : paginated.map((ct) => (
@@ -364,7 +378,7 @@ export default function ContentTypesPage() {
                   type="button"
                   onClick={() => router.push(`/entries?ct=${ct.name}`)}
                   className="font-semibold text-foreground text-sm flex items-center gap-1.5 hover:text-primary transition-colors text-left"
-                  title={`View ${ctLabel(ct)} entries`}
+                  title={t('list.viewEntriesOf', { name: ctLabel(ct) })}
                 >
                   <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span>{ctLabel(ct)}</span>
@@ -417,7 +431,7 @@ export default function ContentTypesPage() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => router.push(`/entries?ct=${ct.name}`)}
-                    title="View Entries"
+                    title={t('list.viewEntries')}
                   >
                     <FileText className="h-3.5 w-3.5 text-blue-400" />
                   </Button>
@@ -426,13 +440,13 @@ export default function ContentTypesPage() {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => router.push(`/users/permissions?tab=fields&ct=${ct.name}`)}
-                      title="Field Permissions & Access Control"
+                      title={t('list.fieldPermissions')}
                     >
                       <Shield className="h-3.5 w-3.5 text-amber-400" />
                     </Button>
                   )}
                   {isAdmin && (
-                    <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/content-types/${ct.id}/edit`)} title="Edit">
+                    <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/content-types/${ct.id}/edit`)} title={tc('edit')}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                   )}
@@ -440,7 +454,7 @@ export default function ContentTypesPage() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      title="Duplicate"
+                      title={t('list.duplicate')}
                       disabled={duplicating === ct.id}
                       onClick={() => handleDuplicate(ct)}
                     >
@@ -449,25 +463,25 @@ export default function ContentTypesPage() {
                         : <Copy className="h-3.5 w-3.5" />}
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon-sm" onClick={() => exportContentType(ct)} title="Export JSON">
+                  <Button variant="ghost" size="icon-sm" onClick={() => exportContentType(ct)} title={t('list.exportJson')}>
                     <Download className="h-3.5 w-3.5" />
                   </Button>
                   {isAdmin && (
                     <AlertDialog>
-                      <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Delete" />}>
+                      <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title={tc('delete')} />}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete content type?</AlertDialogTitle>
+                          <AlertDialogTitle>{t('list.deleteTitle')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            All entries under <strong>{ctLabel(ct)}</strong> will also be deleted. This action cannot be undone.
+                            {t.rich('list.deleteDescription', { name: ctLabel(ct), strong: (chunks) => <strong>{chunks}</strong> })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                           <AlertDialogAction variant="destructive" onClick={() => handleDelete(ct.id)}>
-                            Delete
+                            {tc('delete')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -487,10 +501,10 @@ export default function ContentTypesPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileCode className="h-5 w-5 text-blue-500" />
-              Import Content Type Schemas
+              {t('import.title')}
             </DialogTitle>
             <DialogDescription>
-              Upload or paste a JSON schema definition to create or update content types. Automatic dry-run validation checks for syntax, reserved names, and field rules.
+              {t('import.description')}
             </DialogDescription>
           </DialogHeader>
 
@@ -498,7 +512,7 @@ export default function ContentTypesPage() {
             <div className="flex items-center gap-2">
               <label className="inline-flex cursor-pointer">
                 <span className="inline-flex items-center gap-1.5 h-8 rounded-md border border-input bg-background px-3 text-xs font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
-                  <Upload className="h-3.5 w-3.5" /> Select Schema .JSON File
+                  <Upload className="h-3.5 w-3.5" /> {t('import.selectFile')}
                 </span>
                 <input
                   type="file"
@@ -507,7 +521,7 @@ export default function ContentTypesPage() {
                   onChange={handleFileUpload}
                 />
               </label>
-              <span className="text-xs text-muted-foreground">or paste JSON payload below:</span>
+              <span className="text-xs text-muted-foreground">{t('import.orPaste')}</span>
             </div>
 
             <Textarea
@@ -524,7 +538,7 @@ export default function ContentTypesPage() {
             {/* Dry-Run Preflight Feedback */}
             {preflightLoading && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Running pre-flight dry-run validation…
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('import.validating')}
               </div>
             )}
 
@@ -542,8 +556,8 @@ export default function ContentTypesPage() {
                     <AlertCircle className="h-4 w-4 text-destructive" />
                   )}
                   {importPreflight.valid
-                    ? `Pre-flight passed: ${importPreflight.total} schemas ready (${importPreflight.toCreate} new, ${importPreflight.toUpdate} updates)`
-                    : `Validation failed: ${importPreflight.errors?.length || 1} error(s)`}
+                    ? t('import.passed', { total: importPreflight.total, toCreate: importPreflight.toCreate, toUpdate: importPreflight.toUpdate })
+                    : t('import.failed', { count: importPreflight.errors?.length || 1 })}
                 </div>
 
                 {importPreflight.errors && importPreflight.errors.length > 0 && (
@@ -565,7 +579,7 @@ export default function ContentTypesPage() {
                           p.isExisting ? 'border-blue-500/40 text-blue-400' : 'border-emerald-500/40 text-emerald-400',
                         )}
                       >
-                        {p.name} ({p.fieldCount} fields) — {p.isExisting ? 'Update' : 'Create'}
+                        {t('import.previewBadge', { name: p.name, count: p.fieldCount, action: p.isExisting ? t('import.actionUpdate') : t('import.actionCreate') })}
                       </Badge>
                     ))}
                   </div>
@@ -582,14 +596,14 @@ export default function ContentTypesPage() {
                           ...c.added.map((f: string) => ({ text: `+ ${f}`, tone: 'text-emerald-400' })),
                           ...c.removed.map((f: string) => ({ text: `− ${f}`, tone: 'text-amber-400' })),
                           ...c.typeChanged.map((t: any) => ({ text: `~ ${t.name}: ${t.from} → ${t.to}`, tone: 'text-amber-400' })),
-                          ...c.nowRequired.map((f: string) => ({ text: `! ${f} now required`, tone: 'text-amber-400' })),
-                          ...c.modified.map((f: string) => ({ text: `• ${f} settings`, tone: 'text-muted-foreground' })),
+                          ...c.nowRequired.map((f: string) => ({ text: t('import.nowRequired', { name: f }), tone: 'text-amber-400' })),
+                          ...c.modified.map((f: string) => ({ text: t('import.settingsChanged', { name: f }), tone: 'text-muted-foreground' })),
                         ];
                         return (
                           <li key={p.name} className="break-words">
                             <span className="text-foreground">{p.name}:</span>{' '}
                             {c.unchanged ? (
-                              <span className="text-muted-foreground">no changes</span>
+                              <span className="text-muted-foreground">{t('import.noChanges')}</span>
                             ) : (
                               parts.map((x, i) => (
                                 <span key={i} className={cn('mr-2', x.tone)}>{x.text}</span>
@@ -600,7 +614,7 @@ export default function ContentTypesPage() {
                       })}
                     {importPreflight.preview.some((p: any) => p.changes?.removed?.length || p.changes?.typeChanged?.length) && (
                       <li className="text-muted-foreground font-sans">
-                        Removed fields keep their data in existing entries; it just stops being shown and validated.
+                        {t('import.removedNote')}
                       </li>
                     )}
                   </ul>
@@ -619,7 +633,7 @@ export default function ContentTypesPage() {
                 setImportPreflight(null);
               }}
             >
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               size="sm"
@@ -628,7 +642,7 @@ export default function ContentTypesPage() {
               className="gap-1.5"
             >
               {importExecuting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-              Import Schemas
+              {t('list.importSchemas')}
             </Button>
           </DialogFooter>
         </DialogContent>

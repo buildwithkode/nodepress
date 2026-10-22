@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'use-intl'
+
 import * as React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -52,6 +54,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ total, page, pageSize, onPage }: PaginationProps) {
+  const tc = useTranslations('common');
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)
@@ -59,7 +62,7 @@ export function Pagination({ total, page, pageSize, onPage }: PaginationProps) {
   return (
     <div className="flex items-center justify-between mt-4 pt-4">
       <p className="text-sm text-muted-foreground">
-        {total === 0 ? "No results" : `Showing ${from}–${to} of ${total}`}
+        {total === 0 ? tc('noResults') : tc('showingRange', { from, to, total })}
       </p>
       <div className="flex items-center rounded-md border border-border overflow-hidden">
         <Button
@@ -69,7 +72,7 @@ export function Pagination({ total, page, pageSize, onPage }: PaginationProps) {
           disabled={page <= 1}
           className="rounded-none border-r border-border h-8 px-3 text-muted-foreground hover:text-foreground disabled:opacity-40"
         >
-          Previous
+          {tc('previous')}
         </Button>
         <span className="h-8 px-3 flex items-center text-sm text-muted-foreground border-r border-border">
           {page} / {totalPages}
@@ -81,7 +84,7 @@ export function Pagination({ total, page, pageSize, onPage }: PaginationProps) {
           disabled={page >= totalPages}
           className="rounded-none h-8 px-3 text-muted-foreground hover:text-foreground disabled:opacity-40"
         >
-          Next
+          {tc('next')}
         </Button>
       </div>
     </div>

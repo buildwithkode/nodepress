@@ -1,0 +1,136 @@
+{
+  "brand": {
+    "title": "Marke",
+    "subtitle": "Ihr Name, Logo und Ihre Akzentfarbe — verwendet im Admin-Panel, im Browser-Tab/Favicon, auf dem Anmeldebildschirm und in E-Mails zu Formulareinsendungen.",
+    "identity": {
+      "title": "Identität",
+      "description": "Gilt überall, wo diese Installation Ihre Marke anzeigt.",
+      "name": "Markenname",
+      "logo": "Logo",
+      "logoHelp": "Quadratische Bilder eignen sich am besten. Wird in der Seitenleiste, auf der Anmeldeseite, als Favicon und in E-Mails angezeigt.",
+      "accent": "Akzentfarbe",
+      "accentPicker": "Akzentfarbe auswählen",
+      "previewHelp": "So sieht der Kopf der Seitenleiste aus."
+    },
+    "preview": "Vorschau",
+    "theme": {
+      "title": "Design",
+      "description": "Optional. Färben Sie primäre Schaltflächen und Eingabefelder im gesamten Admin-Panel um. Leer lassen, um das Standarddesign zu verwenden.",
+      "button": "Schaltflächenfarbe",
+      "buttonHelp": "Primäre Schaltflächen. Die Textfarbe passt sich automatisch für ausreichenden Kontrast an.",
+      "buttonPicker": "Schaltflächenfarbe auswählen",
+      "input": "Eingabefeldfarbe",
+      "inputHelp": "Rahmen und Fokusring der Eingabefelder.",
+      "inputPicker": "Eingabefeldfarbe auswählen",
+      "defaultPlaceholder": "(Standard)",
+      "reset": "Zurücksetzen",
+      "sampleButton": "Beispielschaltfläche",
+      "sampleInput": "Beispieleingabe"
+    },
+    "invalidHex": "Ungültiger Hex-Wert",
+    "saveChanges": "Änderungen speichern",
+    "noChanges": "Keine Änderungen",
+    "confirm": {
+      "title": "Markenänderungen speichern?",
+      "description": "Dies aktualisiert Ihre Marke und Ihr Design überall — Admin-Seitenleiste, Browser-Tab & Favicon, Anmeldebildschirm und E-Mails zu Formulareinsendungen — für alle Benutzer."
+    },
+    "toasts": {
+      "nameRequired": "Markenname ist erforderlich",
+      "accentInvalid": "Geben Sie eine gültige Hex-Akzentfarbe ein, z. B. {example}",
+      "buttonInvalid": "Die Schaltflächenfarbe muss ein gültiger Hex-Wert sein (oder leer)",
+      "inputInvalid": "Die Eingabefeldfarbe muss ein gültiger Hex-Wert sein (oder leer)",
+      "saved": "Marke aktualisiert",
+      "saveFailed": "Marke konnte nicht aktualisiert werden"
+    }
+  },
+  "languages": {
+    "title": "Inhaltssprachen",
+    "subtitle": "Die Sprachen, in denen Redakteure Inhalte verfassen können. Jeder Eintrag kann eine Übersetzung pro Sprache haben; die Standardsprache wird verwendet, wenn eine API-Anfrage keine Sprache angibt, und als Fallback mit <code></code>.",
+    "enabled": {
+      "title": "Aktivierte Sprachen",
+      "description": "Beim Entfernen einer Sprache bleiben ihre Einträge erhalten; sie wird im Editor nur nicht mehr angeboten.",
+      "entryCount": "{count, plural, one {# Eintrag} other {# Einträge}}",
+      "default": "Standard",
+      "makeDefault": "Als Standard festlegen",
+      "removeWithEntries": "{count, plural, one {# Eintrag bleibt erhalten} other {# Einträge bleiben erhalten}}, aber die Sprache wird nicht mehr angeboten",
+      "removeLabel": "{language} entfernen",
+      "orphaned": "Es gibt Einträge in nicht aktivierten Sprachen:",
+      "orphanedHint": ". Klicken Sie auf eine, um sie zu aktivieren."
+    },
+    "saveChanges": "Änderungen speichern",
+    "add": {
+      "title": "Sprache hinzufügen",
+      "description": "Verwenden Sie einen Sprachcode wie <code>fr</code>, <code>pt-BR</code> oder <code>zh-Hant</code>.",
+      "placeholder": "z. B. {example}",
+      "codeLabel": "Sprachcode",
+      "willAdd": "Fügt {language} hinzu",
+      "alreadyEnabled": "Bereits aktiviert",
+      "invalidCode": "Kein gültiger Sprachcode"
+    },
+    "toasts": {
+      "saved": "Sprachen gespeichert",
+      "saveFailed": "Sprachen konnten nicht gespeichert werden"
+    }
+  },
+  "server": {
+    "title": "E-Mail & Speicher",
+    "subtitle": "Von wo E-Mails gesendet und wo hochgeladene Dateien gespeichert werden.",
+    "loadFailed": "Einstellungen konnten nicht geladen werden",
+    "saveFailed": "Speichern fehlgeschlagen",
+    "save": "Speichern",
+    "keepSecret": "Gespeichert — leer lassen, um es beizubehalten.",
+    "envNotice": "Über die Umgebungsvariablen <code>{what}</code> auf dem Server festgelegt — dort ändern.",
+    "mail": {
+      "title": "E-Mail",
+      "description": "Für Passwort-Zurücksetzungen, Team-Einladungen und Formular-Benachrichtigungen.",
+      "enabled": "E-Mails senden",
+      "host": "SMTP-Server",
+      "port": "Port",
+      "security": "Sicherheit",
+      "starttls": "STARTTLS (587)",
+      "ssl": "SSL/TLS (465)",
+      "user": "Benutzername",
+      "password": "Passwort",
+      "from": "Absenderadresse",
+      "fromHint": "Wird als Absender angezeigt, z. B. Acme <noreply@acme.com>. Standard: der Benutzername.",
+      "testTo": "Test senden an",
+      "sendTest": "Test senden",
+      "testSent": "Test-E-Mail an {to} gesendet",
+      "testFailed": "Die Test-E-Mail konnte nicht gesendet werden",
+      "saved": "E-Mail-Einstellungen gespeichert — sofort aktiv",
+      "turnedOff": "E-Mail deaktiviert"
+    },
+    "storage": {
+      "title": "Dateispeicher",
+      "description": "Hochgeladene Bilder und Dateien.",
+      "where": "Uploads speichern auf",
+      "local": "Der Festplatte dieses Servers",
+      "s3": "S3-kompatiblem Speicher",
+      "localHint": "Geeignet für einen einzelnen Server mit dauerhafter Festplatte.",
+      "localProductionWarning": "Bei den meisten Hostern und in Containern wird diese Festplatte bei jedem Deployment gelöscht — Uploads gingen verloren. Nutzen Sie S3-kompatiblen Speicher.",
+      "provider": "Anbieter",
+      "otherProvider": "Andere (MinIO, Backblaze B2…)",
+      "bucket": "Bucket",
+      "endpoint": "Endpunkt",
+      "region": "Region",
+      "accessKey": "Access-Key-ID",
+      "secretKey": "Geheimer Zugriffsschlüssel",
+      "publicUrl": "Öffentliche URL (optional)",
+      "publicUrlHint": "Ihr CDN oder eigene Domain für den Bucket. Der Bucket muss öffentliches Lesen erlauben.",
+      "test": "Verbindung testen",
+      "testOk": "Verbunden — eine Testdatei wurde geschrieben und gelöscht",
+      "testFailed": "Keine Verbindung zum Bucket",
+      "saved": "Speichereinstellungen gespeichert",
+      "restartRequired": "Speicheränderungen gelten nach einem Neustart des Servers. Vorhandene Dateien werden nicht verschoben.",
+      "restart": "Jetzt neu starten",
+      "restarting": "Neustart — die Verwaltung verbindet sich gleich wieder"
+    },
+    "search": {
+      "title": "Suche",
+      "postgres": "Suchen nutzen den Volltextindex der Datenbank (<code>?search=</code>). Für fehlertolerante, gerankte Suche Meilisearch betreiben und SEARCH_DRIVER=meilisearch setzen.",
+      "meilisearch": "Suchen nutzen Meilisearch (Index „{index}“). Er wird bei Inhaltsänderungen aktualisiert.",
+      "reindex": "Index neu aufbauen",
+      "reindexQueued": "Der Suchindex wird im Hintergrund neu aufgebaut"
+    }
+  }
+}

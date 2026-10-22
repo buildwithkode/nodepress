@@ -9,6 +9,8 @@ import {
   FlexibleFieldDef,
   GroupFieldDef,
   ContentSchema,
+  isReverseRelation,
+  RelationFieldDef,
 } from './field.types';
 
 /**
@@ -81,7 +83,12 @@ export class DataValidator {
           this.validateImage(value, path, errors);
           break;
         case 'relation':
-          this.validateRelation(value, path, errors);
+          if (isReverseRelation(field)) {
+            const { relatedContentType, mappedBy } = (field as RelationFieldDef).options;
+            errors.push(`${path}: is read-only — it lists the ${relatedContentType} entries whose "${mappedBy}" points here`);
+          } else {
+            this.validateRelation(value, path, errors);
+          }
           break;
         case 'color':
           this.validateColor(value, path, errors);

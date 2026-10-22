@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Auf dieser Seite ist ein unerwarteter Fehler aufgetreten. Ihre Daten sind sicher — es handelt sich nur um einen Anzeigefehler.",
+    "errorId": "Fehler-ID:",
+    "goToDashboard": "Zum Dashboard",
+    "tryAgain": "Erneut versuchen"
+  },
+  "boundary": {
+    "title": "Etwas ist schiefgelaufen",
+    "failedToLoad": "„{label}“ konnte nicht geladen werden. Der Fehler wurde automatisch gemeldet.",
+    "sectionFailed": "Dieser Bereich konnte nicht geladen werden. Der Fehler wurde automatisch gemeldet.",
+    "unknownError": "Unbekannter Fehler",
+    "tryAgain": "Erneut versuchen"
+  }
+}

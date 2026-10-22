@@ -11,6 +11,8 @@ import { PluginInitializer } from '@/components/PluginInitializer';
 import { canManageSettings } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
+import { useTranslations } from 'use-intl';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -30,60 +32,71 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks, Languages } from 'lucide-react';
+  X, ListChecks, Languages, Package, Mail } from 'lucide-react';
 
-const ALL_NAV_GROUPS = [
+interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
+interface NavGroup { label: string; adminOnly: boolean; items: NavLink[]; externalLinks?: NavLink[] }
+
+/** Labels are keys into messages/<locale>/nav.json (groups.* and items.*). */
+const ALL_NAV_GROUPS: Array<{
+  labelKey: string;
+  adminOnly: boolean;
+  items: Array<{ href: string; labelKey: string; icon: NavLink['icon'] }>;
+  externalLinks?: Array<{ href: string; labelKey: string; icon: NavLink['icon'] }>;
+}> = [
   {
-    label: 'Content',
+    labelKey: 'content',
     adminOnly: false,
     items: [
-      { href: '/',              label: 'Dashboard',     icon: LayoutDashboard },
-      { href: '/content-types', label: 'Content Types', icon: Layers },
-      { href: '/entries',       label: 'Entries',        icon: FileText },
-      { href: '/forms',         label: 'Forms',          icon: ClipboardList },
+      { href: '/',              labelKey: 'dashboard',     icon: LayoutDashboard },
+      { href: '/content-types', labelKey: 'contentTypes', icon: Layers },
+      { href: '/entries',       labelKey: 'entries',        icon: FileText },
+      { href: '/releases',      labelKey: 'releases',       icon: Package },
+      { href: '/forms',         labelKey: 'forms',          icon: ClipboardList },
     ],
   },
   {
-    label: 'Assets',
+    labelKey: 'assets',
     adminOnly: false,
     items: [
-      { href: '/media', label: 'Media', icon: Image },
+      { href: '/media', labelKey: 'media', icon: Image },
     ],
   },
   {
-    label: 'Developer',
+    labelKey: 'developer',
     adminOnly: true,
     items: [
-      { href: '/plugins',   label: 'Plugins',   icon: Puzzle },
-      { href: '/api-keys',  label: 'API Keys',  icon: Key },
-      { href: '/webhooks',  label: 'Webhooks',  icon: Zap },
-      { href: '/jobs',      label: 'Jobs',      icon: ListChecks },
-      { href: '/audit-log', label: 'Audit Log', icon: ScrollText },
+      { href: '/plugins',   labelKey: 'plugins',   icon: Puzzle },
+      { href: '/api-keys',  labelKey: 'apiKeys',  icon: Key },
+      { href: '/webhooks',  labelKey: 'webhooks',  icon: Zap },
+      { href: '/jobs',      labelKey: 'jobs',      icon: ListChecks },
+      { href: '/audit-log', labelKey: 'auditLog', icon: ScrollText },
     ],
     externalLinks: [
-      { href: '/graphql', label: 'GraphQL Playground', icon: Code2 },
+      { href: '/graphql', labelKey: 'graphql', icon: Code2 },
     ],
   },
   {
-    label: 'Team',
+    labelKey: 'team',
     adminOnly: true,
     items: [
-      { href: '/users', label: 'Users', icon: Users },
+      { href: '/users', labelKey: 'users', icon: Users },
     ],
   },
   {
-    label: 'Settings',
+    labelKey: 'settings',
     adminOnly: true,
     items: [
-      { href: '/brand', label: 'Brand', icon: Palette },
-      { href: '/languages', label: 'Languages', icon: Languages },
+      { href: '/brand', labelKey: 'brand', icon: Palette },
+      { href: '/languages', labelKey: 'languages', icon: Languages },
+      { href: '/server-settings', labelKey: 'serverSettings', icon: Mail },
     ],
   },
   {
-    label: 'Help',
+    labelKey: 'help',
     adminOnly: false,
     items: [
-      { href: '/docs', label: 'Documentation', icon: BookOpen },
+      { href: '/docs', labelKey: 'docs', icon: BookOpen },
     ],
   },
 ];
@@ -100,6 +113,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useTranslations('nav');
+  const tc = useTranslations('common');
 
   // Close mobile drawer automatically when route changes
   useEffect(() => {
@@ -123,14 +138,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user) return null;
 
   const admin = canManageSettings(user?.role);
-  const baseGroups = ALL_NAV_GROUPS.filter((g) => !g.adminOnly || admin);
+  const baseGroups: NavGroup[] = ALL_NAV_GROUPS.filter((g) => !g.adminOnly || admin).map((g) => ({
+    adminOnly: g.adminOnly,
+    label: t(`groups.${g.labelKey}`),
+    items: g.items.map((i) => ({ ...i, label: t(`items.${i.labelKey}`) })),
+    externalLinks: g.externalLinks?.map((i) => ({ ...i, label: t(`items.${i.labelKey}`) })),
+  }));
 
   // Merge plugin-contributed nav items into a 'Plugins' group
-  const allNavGroups = pluginNavItems.length > 0
+  const allNavGroups: NavGroup[] = pluginNavItems.length > 0
     ? [
         ...baseGroups,
         {
-          label: 'Plugins',
+          label: t('groups.plugins'),
           adminOnly: false,
           items: pluginNavItems.map((item) => ({ ...item, icon: item.icon ?? Puzzle })),
         },
@@ -147,7 +167,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     .slice()
     .sort((a, b) => b.href.length - a.href.length)
     .find((item) => pathname === item.href || (pathname?.startsWith(item.href + '/') ?? false))
-    ?.label ?? 'Dashboard';
+    ?.label ?? t('items.dashboard');
 
   return (
     <div className="flex min-h-screen bg-background relative">
@@ -183,7 +203,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             size="icon"
             onClick={() => setMobileMenuOpen(false)}
             className="md:hidden h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
-            aria-label="Close sidebar"
+            aria-label={t('closeMenu')}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -218,7 +238,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </Link>
                   );
                 })}
-                {(group as any).externalLinks?.map(({ href, label, icon: Icon }: any) => (
+                {group.externalLinks?.map(({ href, label, icon: Icon }) => (
                   <a
                     key={href}
                     href={href}
@@ -240,7 +260,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
           <div className="mb-4 px-1">
             <p className="text-sm font-bold text-sidebar-foreground truncate">
-              {user?.email?.split('@')[0] ?? 'User'}
+              {user?.email?.split('@')[0] ?? t('user')}
             </p>
             <p className="text-xs text-muted-foreground truncate mt-0.5">
               {user?.email ?? '—'}
@@ -252,7 +272,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 ? 'border-blue-500/60 text-blue-400'
                 : 'border-muted-foreground/40 text-muted-foreground'
             }`}>
-              {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Viewer'}
+              {tc(`roles.${user?.role ?? 'viewer'}`)}
             </span>
           </div>
           <Button
@@ -261,7 +281,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="w-full justify-start gap-1.5 px-2 text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-border/50"
           >
             <ArrowRight className="h-4 w-4 shrink-0" />
-            Sign out
+            {t('signOut')}
           </Button>
         </div>
       </aside>
@@ -276,13 +296,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               size="icon"
               onClick={() => setMobileMenuOpen(true)}
               className="md:hidden h-8 w-8 -ml-1 text-foreground"
-              aria-label="Open navigation menu"
+              aria-label={t('openMenu')}
             >
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="text-base font-semibold text-foreground truncate">{pageTitle}</h1>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <AdminLanguageSwitcher className="w-auto" />
+            <ThemeToggle />
+          </div>
         </div>
         <div className="flex-1 bg-muted/20 p-3 sm:p-4 md:p-6 min-w-0 overflow-x-auto">
           <ErrorBoundary label={pageTitle}>

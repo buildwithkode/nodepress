@@ -36,6 +36,7 @@ export class DynamicApiController {
   @ApiQuery({ name: 'filter', required: false, description: 'Legacy filter[fieldName]=value — partial match on data field' })
   @ApiQuery({ name: 'search', required: false, type: String, description: 'Full-text search on slug and all data fields' })
   @ApiQuery({ name: 'locale', required: false, type: String, description: 'Filter by locale (e.g. en, fr, de). Default: all locales.' })
+  @ApiQuery({ name: 'fallback', required: false, type: Boolean, description: 'With locale: also list default-language entries that have no translation in it (each entry\'s locale says which was served)' })
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiQuery({ name: 'fields', required: false, type: String, description: 'Comma-separated data field names to include (projection). Omit for all fields.' })
   @ApiHeader({ name: 'x-nodepress-environment', required: false, description: 'Target environment: "staging" or "production"' })
@@ -57,10 +58,12 @@ export class DynamicApiController {
     @Query('locale') locale?: string,
     @Query('populate') populate?: string,
     @Query('fields') fields?: string,
+    @Query('fallback') fallback?: string,
     @Headers('x-nodepress-environment') envHeader?: string,
   ) {
     const effectiveStage = stage || (envHeader === 'staging' ? 'staging' : undefined);
     const result = await this.dynamicApiService.findAll(type, {
+      fallback: fallback === 'true' || fallback === '1',
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       cursor: cursor || undefined,
@@ -166,6 +169,7 @@ export class DynamicApiController {
       example: {
         slug: 'my-first-post',
         data: { title: 'My Post', content: 'Hello world' },
+        status: 'published', // or 'draft' — default published
       },
     },
   })
@@ -174,10 +178,14 @@ export class DynamicApiController {
     @Body('slug') slug: string,
     @Body('data') data: Record<string, any>,
     @Body('locale') locale?: string,
+    @Body('status') status?: string,
   ) {
     if (!slug) throw new BadRequestException('slug is required');
     if (!data) throw new BadRequestException('data is required');
-    return this.dynamicApiService.create(type, assertValidSlug(slug), data, canonicalLocale(locale));
+    if (status !== undefined && status !== 'draft' && status !== 'published') {
+      throw new BadRequestException('status must be "draft" or "published"');
+    }
+    return this.dynamicApiService.create(type, assertValidSlug(slug), data, canonicalLocale(locale), (status as 'draft' | 'published' | undefined) ?? 'published');
   }
 
   @UseGuards(JwtOrApiKeyGuard)

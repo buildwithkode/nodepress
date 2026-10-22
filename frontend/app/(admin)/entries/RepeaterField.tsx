@@ -2,6 +2,7 @@
 
 import { useFieldArray, Controller } from 'react-hook-form';
 import { Trash2, Plus } from 'lucide-react';
+import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -152,6 +153,7 @@ export default function RepeaterField({
   register,
   errors,
 }: Props) {
+  const t = useTranslations('entryEditor');
   const { fields, append, remove } = useFieldArray({ control, name: fieldName });
 
   const toLabel = (name: string) =>
@@ -170,7 +172,7 @@ export default function RepeaterField({
           {/* Card header */}
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">
-              Item {index + 1}
+              {t('repeater.item', { number: index + 1 })}
             </span>
             <Button
               type="button"
@@ -178,7 +180,8 @@ export default function RepeaterField({
               size="icon-xs"
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => remove(index)}
-              title="Remove item"
+              title={t('repeater.removeItem')}
+              aria-label={t('repeater.removeItem')}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -217,7 +220,7 @@ export default function RepeaterField({
         onClick={() => append({})}
       >
         <Plus className="mr-1.5 h-3.5 w-3.5" />
-        Add Item
+        {t('repeater.addItem')}
       </Button>
     </div>
   );

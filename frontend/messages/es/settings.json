@@ -1,0 +1,136 @@
+{
+  "brand": {
+    "title": "Marca",
+    "subtitle": "Tu nombre, logotipo y color de acento — se usan en el panel de administración, la pestaña y el favicon del navegador, la pantalla de inicio de sesión y los correos de envío de formularios.",
+    "identity": {
+      "title": "Identidad",
+      "description": "Se aplica en todos los lugares donde esta instalación muestra tu marca.",
+      "name": "Nombre de la marca",
+      "logo": "Logotipo",
+      "logoHelp": "Las imágenes cuadradas funcionan mejor. Se muestra en la barra lateral, la página de inicio de sesión, el favicon y los correos.",
+      "accent": "Color de acento",
+      "accentPicker": "Selector del color de acento",
+      "previewHelp": "Así se verá la cabecera de la barra lateral."
+    },
+    "preview": "Vista previa",
+    "theme": {
+      "title": "Tema",
+      "description": "Opcional. Cambia el color de los botones principales y los campos de entrada en todo el panel de administración. Déjalo vacío para usar el tema predeterminado.",
+      "button": "Color de los botones",
+      "buttonHelp": "Botones principales. El color del texto se ajusta automáticamente para mantener el contraste.",
+      "buttonPicker": "Selector del color de los botones",
+      "input": "Color de los campos",
+      "inputHelp": "Borde de los campos y anillo de foco.",
+      "inputPicker": "Selector del color de los campos",
+      "defaultPlaceholder": "(predeterminado)",
+      "reset": "Restablecer",
+      "sampleButton": "Botón de ejemplo",
+      "sampleInput": "Campo de ejemplo"
+    },
+    "invalidHex": "Hex no válido",
+    "saveChanges": "Guardar cambios",
+    "noChanges": "Sin cambios",
+    "confirm": {
+      "title": "¿Guardar los cambios de la marca?",
+      "description": "Esto actualiza tu marca y tu tema en todas partes — la barra lateral, la pestaña y el favicon del navegador, la pantalla de inicio de sesión y los correos de envío de formularios — para todos los usuarios."
+    },
+    "toasts": {
+      "nameRequired": "El nombre de la marca es obligatorio",
+      "accentInvalid": "Introduce un color de acento hexadecimal válido, p. ej. {example}",
+      "buttonInvalid": "El color de los botones debe ser un hex válido (o estar vacío)",
+      "inputInvalid": "El color de los campos debe ser un hex válido (o estar vacío)",
+      "saved": "Marca actualizada",
+      "saveFailed": "No se pudo actualizar la marca"
+    }
+  },
+  "languages": {
+    "title": "Idiomas del contenido",
+    "subtitle": "Los idiomas en los que los editores pueden escribir contenido. Cada entrada puede tener una traducción por idioma; el idioma predeterminado se usa cuando una solicitud a la API no indica ninguno, y como respaldo con <code></code>.",
+    "enabled": {
+      "title": "Idiomas activados",
+      "description": "Al quitar un idioma se conservan sus entradas; simplemente deja de ofrecerse en el editor.",
+      "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+      "default": "Predeterminado",
+      "makeDefault": "Establecer como predeterminado",
+      "removeWithEntries": "{count, plural, one {# entrada se conserva} other {# entradas se conservan}}, pero el idioma deja de ofrecerse",
+      "removeLabel": "Quitar {language}",
+      "orphaned": "Hay entradas en idiomas que no están activados:",
+      "orphanedHint": ". Haz clic en uno para activarlo."
+    },
+    "saveChanges": "Guardar cambios",
+    "add": {
+      "title": "Añadir un idioma",
+      "description": "Usa un código de idioma como <code>fr</code>, <code>pt-BR</code> o <code>zh-Hant</code>.",
+      "placeholder": "p. ej. {example}",
+      "codeLabel": "Código de idioma",
+      "willAdd": "Añade {language}",
+      "alreadyEnabled": "Ya está activado",
+      "invalidCode": "No es un código de idioma válido"
+    },
+    "toasts": {
+      "saved": "Idiomas guardados",
+      "saveFailed": "No se pudieron guardar los idiomas"
+    }
+  },
+  "server": {
+    "title": "Correo y almacenamiento",
+    "subtitle": "Desde dónde se envían los correos y dónde se guardan los archivos subidos.",
+    "loadFailed": "No se pudieron cargar los ajustes",
+    "saveFailed": "No se pudo guardar",
+    "save": "Guardar",
+    "keepSecret": "Guardado — déjalo en blanco para conservarlo.",
+    "envNotice": "Definido por las variables de entorno <code>{what}</code> del servidor — cámbialo allí.",
+    "mail": {
+      "title": "Correo",
+      "description": "Se usa para restablecer contraseñas, invitaciones al equipo y avisos de formularios.",
+      "enabled": "Enviar correos",
+      "host": "Servidor SMTP",
+      "port": "Puerto",
+      "security": "Seguridad",
+      "starttls": "STARTTLS (587)",
+      "ssl": "SSL/TLS (465)",
+      "user": "Usuario",
+      "password": "Contraseña",
+      "from": "Dirección del remitente",
+      "fromHint": "Se muestra como remitente, p. ej. Acme <noreply@acme.com>. Por defecto, el usuario.",
+      "testTo": "Enviar una prueba a",
+      "sendTest": "Enviar prueba",
+      "testSent": "Correo de prueba enviado a {to}",
+      "testFailed": "No se pudo enviar el correo de prueba",
+      "saved": "Ajustes de correo guardados — ya en uso",
+      "turnedOff": "Correo desactivado"
+    },
+    "storage": {
+      "title": "Almacenamiento de archivos",
+      "description": "Imágenes y archivos subidos.",
+      "where": "Guardar los archivos en",
+      "local": "El disco de este servidor",
+      "s3": "Almacenamiento compatible con S3",
+      "localHint": "Sirve para un único servidor con disco persistente.",
+      "localProductionWarning": "En la mayoría de proveedores y contenedores este disco se borra en cada despliegue — se perderían los archivos. Usa almacenamiento compatible con S3.",
+      "provider": "Proveedor",
+      "otherProvider": "Otro (MinIO, Backblaze B2…)",
+      "bucket": "Bucket",
+      "endpoint": "Endpoint",
+      "region": "Región",
+      "accessKey": "ID de clave de acceso",
+      "secretKey": "Clave de acceso secreta",
+      "publicUrl": "URL pública (opcional)",
+      "publicUrlHint": "Tu CDN o dominio propio para el bucket. El bucket debe permitir lectura pública.",
+      "test": "Probar conexión",
+      "testOk": "Conectado — se escribió y borró un archivo de prueba",
+      "testFailed": "No se pudo conectar con el bucket",
+      "saved": "Ajustes de almacenamiento guardados",
+      "restartRequired": "Los cambios de almacenamiento se aplican tras reiniciar el servidor. Los archivos existentes no se mueven.",
+      "restart": "Reiniciar ahora",
+      "restarting": "Reiniciando — la administración se reconectará en un momento"
+    },
+    "search": {
+      "title": "Búsqueda",
+      "postgres": "Las búsquedas usan el índice de texto completo de la base de datos (<code>?search=</code>). Para una búsqueda ordenada y tolerante a errores, ejecuta Meilisearch y define SEARCH_DRIVER=meilisearch.",
+      "meilisearch": "Las búsquedas usan Meilisearch (índice «{index}»). Se actualiza cuando cambia el contenido.",
+      "reindex": "Reconstruir índice",
+      "reindexQueued": "Reconstruyendo el índice de búsqueda en segundo plano"
+    }
+  }
+}

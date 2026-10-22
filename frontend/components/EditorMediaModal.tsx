@@ -6,6 +6,7 @@ import {
   Globe, AlertCircle, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import Cookies from 'js-cookie';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,8 @@ interface Props {
 }
 
 export function EditorMediaModal({ open, onClose, onInsert }: Props) {
+  const t = useTranslations('entryEditor');
+  const tc = useTranslations('common');
   const [tab, setTab] = useState<'library' | 'upload' | 'url'>('library');
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,7 +68,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
       );
       setFiles(imageFiles);
     } catch {
-      toast.error('Failed to load media library');
+      toast.error(t('mediaModal.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -101,7 +104,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
 
   const uploadFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file (.png, .jpg, .webp, .svg, .gif)');
+      toast.error(t('mediaModal.notImage'));
       return;
     }
     setUploading(true);
@@ -116,14 +119,14 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
       });
       if (!res.ok) throw new Error('Upload failed');
       const uploaded = await res.json();
-      toast.success(`"${file.name}" uploaded successfully`);
+      toast.success(t('mediaModal.uploaded', { name: file.name }));
       await fetchFiles();
       const targetUrl = uploaded.url || uploaded.webpUrl;
       setSelectedUrl(targetUrl);
       setAlt(file.name.replace(/\.[^/.]+$/, ''));
       setTab('library');
     } catch {
-      toast.error(`Upload failed for "${file.name}"`);
+      toast.error(t('mediaModal.uploadFailed', { name: file.name }));
     } finally {
       setUploading(false);
     }
@@ -139,7 +142,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
   const handleConfirm = () => {
     const finalUrl = tab === 'url' ? urlInput.trim() : selectedUrl;
     if (!finalUrl) {
-      toast.error('Please select or enter an image URL');
+      toast.error(t('mediaModal.noUrl'));
       return;
     }
     onInsert({
@@ -163,7 +166,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
         <DialogHeader className="px-6 py-4 border-b border-border bg-muted/20">
           <DialogTitle className="text-base font-semibold flex items-center gap-2">
             <ImageIcon className="h-4 w-4 text-primary" />
-            Insert Media Image
+            {t('mediaModal.title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -172,13 +175,13 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
             <TabsList className="grid grid-cols-3 mb-4 bg-muted/60">
               <TabsTrigger value="library" className="gap-1.5 text-xs font-medium">
-                <ImageIcon className="h-3.5 w-3.5" /> Media Library ({files.length})
+                <ImageIcon className="h-3.5 w-3.5" /> {t('mediaModal.tabLibrary', { count: files.length })}
               </TabsTrigger>
               <TabsTrigger value="upload" className="gap-1.5 text-xs font-medium">
-                <Upload className="h-3.5 w-3.5" /> Upload Image
+                <Upload className="h-3.5 w-3.5" /> {t('mediaModal.tabUpload')}
               </TabsTrigger>
               <TabsTrigger value="url" className="gap-1.5 text-xs font-medium">
-                <Globe className="h-3.5 w-3.5" /> Web URL
+                <Globe className="h-3.5 w-3.5" /> {t('mediaModal.tabUrl')}
               </TabsTrigger>
             </TabsList>
 
@@ -187,7 +190,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search media files by name…"
+                  placeholder={t('mediaModal.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-8 text-xs h-9 bg-muted/30"
@@ -196,6 +199,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
                   <button
                     type="button"
                     onClick={() => setSearch('')}
+                    aria-label={t('mediaModal.clearSearch')}
                     className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
@@ -206,14 +210,14 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  <span className="text-xs">Loading media files…</span>
+                  <span className="text-xs">{t('mediaModal.loading')}</span>
                 </div>
               ) : filteredFiles.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-center border border-dashed rounded-lg">
                   <ImageIcon className="h-8 w-8 text-muted-foreground/40 mb-2" />
-                  <p className="text-xs font-medium">No images found</p>
+                  <p className="text-xs font-medium">{t('mediaModal.empty')}</p>
                   <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-                    {search ? 'Try a different search term' : 'Upload your first image in the Upload tab'}
+                    {search ? t('mediaModal.emptySearch') : t('mediaModal.emptyHint')}
                   </p>
                   <Button
                     size="sm"
@@ -221,7 +225,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
                     className="mt-3 text-xs h-8"
                     onClick={() => setTab('upload')}
                   >
-                    <Upload className="h-3.5 w-3.5 mr-1" /> Upload Image
+                    <Upload className="h-3.5 w-3.5 mr-1" /> {t('mediaModal.tabUpload')}
                   </Button>
                 </div>
               ) : (
@@ -296,7 +300,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
                 {uploading ? (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-xs font-medium text-foreground">Uploading image to server…</p>
+                    <p className="text-xs font-medium text-foreground">{t('mediaModal.uploading')}</p>
                   </div>
                 ) : (
                   <>
@@ -304,13 +308,13 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
                       <Upload className="h-6 w-6 text-primary" />
                     </div>
                     <p className="text-sm font-semibold text-foreground">
-                      Click to upload or drag & drop
+                      {t('mediaModal.dropzone')}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      PNG, JPG, WebP, GIF, or SVG (Up to 10 MB)
+                      {t('mediaModal.dropzoneHint')}
                     </p>
                     <Button size="sm" variant="secondary" className="mt-4 text-xs">
-                      Select File
+                      {t('mediaModal.selectFile')}
                     </Button>
                   </>
                 )}
@@ -321,13 +325,13 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
             <TabsContent value="url" className="space-y-3 mt-0">
               <div className="space-y-1.5">
                 <Label htmlFor="img-url-input" className="text-xs font-medium">
-                  Direct Image URL
+                  {t('mediaModal.directUrl')}
                 </Label>
                 <div className="relative">
                   <LinkIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="img-url-input"
-                    placeholder="https://images.unsplash.com/... or CDN link"
+                    placeholder={t('mediaModal.directUrlPlaceholder')}
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
                     className="pl-8 text-xs font-mono h-9"
@@ -339,27 +343,27 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
               {urlInput.trim() && (
                 <div className="border rounded-lg p-3 bg-muted/20 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground">Image Preview</span>
+                    <span className="text-xs font-medium text-muted-foreground">{t('mediaModal.preview')}</span>
                     {urlValid === true && (
                       <span className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
-                        <Check className="h-3 w-3" /> Valid Image
+                        <Check className="h-3 w-3" /> {t('mediaModal.valid')}
                       </span>
                     )}
                     {urlValid === false && (
                       <span className="text-[11px] text-destructive font-semibold flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" /> Unable to load image
+                        <AlertCircle className="h-3 w-3" /> {t('mediaModal.invalid')}
                       </span>
                     )}
                     {urlValid === null && (
                       <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                        <Loader2 className="h-3 w-3 animate-spin" /> Verifying…
+                        <Loader2 className="h-3 w-3 animate-spin" /> {t('mediaModal.verifying')}
                       </span>
                     )}
                   </div>
                   <div className="aspect-video max-h-40 rounded border bg-black/40 overflow-hidden flex items-center justify-center">
                     <img
                       src={urlInput.trim()}
-                      alt="URL preview"
+                      alt={t('mediaModal.previewAlt')}
                       className="max-h-full w-auto object-contain"
                       onError={() => setUrlValid(false)}
                       onLoad={() => setUrlValid(true)}
@@ -375,12 +379,12 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
             <div className="mt-4 pt-4 border-t border-border space-y-3 bg-muted/10 rounded-lg p-3">
               <div className="space-y-1">
                 <Label htmlFor="img-alt-input" className="text-xs font-semibold flex items-center justify-between">
-                  <span>Alt Text (Recommended for SEO)</span>
-                  <span className="text-[10px] text-muted-foreground font-normal">Accessibility & Google Ranking</span>
+                  <span>{t('mediaModal.alt')}</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">{t('mediaModal.altHint')}</span>
                 </Label>
                 <Input
                   id="img-alt-input"
-                  placeholder="e.g. Performance benchmark comparison between NodePress and WordPress"
+                  placeholder={t('mediaModal.altPlaceholder')}
                   value={alt}
                   onChange={(e) => setAlt(e.target.value)}
                   className="text-xs h-8"
@@ -389,12 +393,12 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
 
               <div className="space-y-1">
                 <Label htmlFor="img-caption-input" className="text-xs font-semibold flex items-center justify-between">
-                  <span>Caption (Optional)</span>
-                  <span className="text-[10px] text-muted-foreground font-normal">Displayed below the image</span>
+                  <span>{t('mediaModal.caption')}</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">{t('mediaModal.captionHint')}</span>
                 </Label>
                 <Input
                   id="img-caption-input"
-                  placeholder="e.g. Figure 1: TTFB benchmark under 1,000 concurrent requests"
+                  placeholder={t('mediaModal.captionPlaceholder')}
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   className="text-xs h-8"
@@ -409,15 +413,15 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
           <div className="text-xs text-muted-foreground truncate max-w-[340px]">
             {activeUrl ? (
               <span className="font-mono text-[11px] truncate block text-foreground/80">
-                Selected: {activeUrl.split('/').pop()}
+                {t('mediaModal.selected', { name: activeUrl.split('/').pop() ?? '' })}
               </span>
             ) : (
-              <span>Select or upload an image to insert</span>
+              <span>{t('mediaModal.nothingSelected')}</span>
             )}
           </div>
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" size="sm" onClick={onClose}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               type="button"
@@ -427,7 +431,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
               className="gap-1.5"
             >
               <ImageIcon className="h-3.5 w-3.5" />
-              Insert Image
+              {t('mediaModal.insert')}
             </Button>
           </div>
         </DialogFooter>

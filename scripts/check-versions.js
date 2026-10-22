@@ -23,7 +23,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const MANIFESTS = ['package.json', 'backend/package.json', 'frontend/package.json', 'cli/package.json'];
+const MANIFESTS = ['package.json', 'backend/package.json', 'frontend/package.json', 'cli/package.json', 'client/package.json'];
 
 const problems = [];
 const note = (m) => problems.push(m);

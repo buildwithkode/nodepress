@@ -117,6 +117,45 @@ describe('populate.util', () => {
     });
   });
 
+  describe('reverse fields (mappedBy)', () => {
+    const personSchema: FieldDef[] = [
+      { name: 'name', type: 'text' },
+      { name: 'posts', type: 'relation', options: { relatedContentType: 'post', cardinality: 'many', mappedBy: 'author' } },
+    ];
+
+    it('lists the entries whose relation points at each owner', async () => {
+      const mockPrisma = {
+        contentType: { findUnique: jest.fn().mockResolvedValue({ id: 3, name: 'post', schema: [] }) },
+        $queryRaw: jest.fn().mockResolvedValue([{ owner: 'p-1', id: 10 }, { owner: 'p-1', id: 11 }, { owner: 'p-2', id: 12 }]),
+        entry: {
+          findMany: jest.fn().mockResolvedValue([
+            { id: 10, publicId: 'e10', data: { title: 'A' } },
+            { id: 11, publicId: 'e11', data: { title: 'B' } },
+            { id: 12, publicId: 'e12', data: { title: 'C' } },
+          ]),
+        },
+      };
+      const result = await populateManyDeep(
+        [{ name: 'Jane' }, { name: 'Joe' }, { name: 'Nobody' }],
+        personSchema, ['posts'], mockPrisma as any, 0,
+        { ownerIds: ['p-1', 'p-2', 'p-3'], publishedOnly: true },
+      );
+      expect(result.map((r) => r.posts.map((p: any) => p.data.title))).toEqual([['A', 'B'], ['C'], []]);
+      expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.entry.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('is empty without owner ids, and forward lookups honour publishedOnly', async () => {
+      const mockPrisma = { contentType: { findUnique: jest.fn() }, entry: { findMany: jest.fn().mockResolvedValue([]) } };
+      const [r] = await populateManyDeep([{ name: 'Jane' }], personSchema, ['posts'], mockPrisma as any);
+      expect(r.posts).toEqual([]);
+      await populateManyDeep([{ author: 'a-1' }], [
+        { name: 'author', type: 'relation', options: { relatedContentType: 'person', cardinality: 'one' } },
+      ], ['author'], mockPrisma as any, 0, { publishedOnly: true });
+      expect(mockPrisma.entry.findMany.mock.calls[0][0].where).toEqual({ publicId: { in: ['a-1'] }, deletedAt: null, status: 'published' });
+    });
+  });
+
   describe('populateDeep (Single Entry Resolution)', () => {
     const authorSchema: FieldDef[] = [{ name: 'name', type: 'text' }];
     const postSchema: FieldDef[] = [

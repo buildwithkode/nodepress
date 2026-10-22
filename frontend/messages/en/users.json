@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "Failed to load users",
+    "createdNoEmail": "User created — no email server configured",
+    "createdInviteCopied": "Invite link copied to clipboard. Send it to {email}: {url}",
+    "noEmailServer": "No email server configured",
+    "inviteCopied": "Invite link copied. Send it to {email}: {url}",
+    "inviteSent": "Invitation sent to {email}",
+    "createFailed": "Failed to create user",
+    "roleUpdated": "Role updated",
+    "roleUpdateFailed": "Failed to update role",
+    "deleted": "User deleted",
+    "deleteFailed": "Failed to delete user",
+    "inviteFailed": "Failed to send invitation",
+    "passwordUpdated": "Password updated",
+    "passwordUpdateFailed": "Failed to update password",
+    "twoFactorSetupFailed": "Failed to start 2FA setup",
+    "twoFactorActivated": "Two-Factor Authentication activated successfully!",
+    "twoFactorInvalidCode": "Invalid verification code. Please try again.",
+    "twoFactorDisabled": "Two-Factor Authentication disabled",
+    "twoFactorDisableInvalid": "Invalid 2FA code or recovery code",
+    "recoveryCopied": "Recovery codes copied to clipboard",
+    "recoveryCopyFailed": "Failed to copy recovery codes",
+    "secretCopied": "Secret key copied",
+    "secretCopyFailed": "Failed to copy secret"
+  },
+  "list": {
+    "title": "Team Members",
+    "description": "Manage who has access to the admin panel and what they can do.",
+    "email": "Email",
+    "role": "Role",
+    "joined": "Joined",
+    "empty": "No users found",
+    "you": "(you)",
+    "viewPermissions": "View {role} permissions matrix",
+    "sendInvite": "Send invitation email",
+    "deleteTitle": "Delete {email}?",
+    "deleteDescription": "This will permanently remove their access. This cannot be undone."
+  },
+  "roleGuide": {
+    "title": "Role Permissions",
+    "manage": "Manage permissions",
+    "admin": {
+      "p1": "Full access to everything",
+      "p2": "Manage users & roles",
+      "p3": "Content types & API keys",
+      "p4": "Audit log & webhooks"
+    },
+    "editor": {
+      "p1": "Create / edit / delete entries",
+      "p2": "Publish & archive entries",
+      "p3": "Forms, media upload/delete",
+      "p4": "Read content types"
+    },
+    "contributor": {
+      "p1": "Create & edit entries",
+      "p2": "Cannot delete entries",
+      "p3": "Cannot publish or archive",
+      "p4": "Media upload only"
+    },
+    "viewer": {
+      "p1": "Read-only dashboard",
+      "p2": "View entries & forms",
+      "p3": "View media library",
+      "p4": "Cannot modify anything"
+    }
+  },
+  "add": {
+    "title": "Add User",
+    "description": "Invite a teammate by email — they'll get a link to set their own password. No password needed here.",
+    "sending": "Sending invite…",
+    "submit": "Send Invite"
+  },
+  "twoFactor": {
+    "title": "Two-Factor Authentication (2FA)",
+    "description": "Protect your account with an extra security layer using Google Authenticator, 1Password, or Authy.",
+    "enabledHeading": "2FA is currently protecting your account",
+    "disabledHeading": "Enhance your login security with TOTP",
+    "enabledHelp": "You will be prompted for a 6-digit code or emergency backup recovery code upon login.",
+    "disabledHelp": "Requires scanning a QR code with an authenticator app and keeping backup recovery codes.",
+    "enable": "Enable 2FA",
+    "disable": "Disable 2FA",
+    "disabling": "Disabling…",
+    "setupTitle": "Set Up Two-Factor Authentication",
+    "setupDescription": "Scan the QR code with Google Authenticator, 1Password, or Authy.",
+    "qrAlt": "2FA QR Code",
+    "manualKey": "Manual Entry Key",
+    "recoveryCodes": "Emergency Backup Recovery Codes",
+    "copyCodes": "Copy Codes",
+    "recoveryHelp": "Save these codes safely. If you lose your authenticator app, each code can be used once to log in.",
+    "verificationCode": "Verification Code",
+    "verificationPlaceholder": "Enter 6-digit code",
+    "activating": "Activating…",
+    "activate": "Activate 2FA",
+    "disableTitle": "Disable Two-Factor Authentication",
+    "disableDescription": "Enter a 6-digit code from your authenticator app or an emergency recovery code to confirm.",
+    "disableCodeLabel": "Authenticator or Recovery Code",
+    "disableCodePlaceholder": "6-digit code or XXXX-XXXX"
+  },
+  "password": {
+    "title": "Change Your Password",
+    "current": "Current Password",
+    "new": "New Password",
+    "newPlaceholder": "Min 8 chars",
+    "updating": "Updating…",
+    "submit": "Update Password"
+  },
+  "permissions": {
+    "loading": "Loading permissions…",
+    "toasts": {
+      "loadFailed": "Failed to load permissions",
+      "schemaLoadFailed": "Failed to load schema for \"{name}\"",
+      "roleLoadFailed": "Failed to load role permissions",
+      "updated": "Permission updated",
+      "updateFailed": "Failed to update permission",
+      "reset": "Permissions reset to defaults",
+      "resetFailed": "Failed to reset permissions",
+      "fieldsSaved": "Field permissions saved for \"{name}\"",
+      "fieldsSaveFailed": "Failed to save field permissions"
+    },
+    "backToUsers": "Users",
+    "title": "Access Control & Permissions",
+    "resetDefaults": "Reset to defaults",
+    "tabs": {
+      "contentTypes": "Content-Type Actions Matrix",
+      "fields": "Field-Level Permissions Matrix"
+    },
+    "actions": {
+      "create": "Create",
+      "read": "Read",
+      "update": "Update",
+      "delete": "Delete",
+      "publish": "Publish"
+    },
+    "roleDescriptions": {
+      "editor": "Manages all content — can create, edit, delete, and publish.",
+      "contributor": "Creates and edits content — cannot delete or publish.",
+      "viewer": "Read-only access to the admin panel."
+    },
+    "clickToDeselect": "click to deselect",
+    "defaultRow": "Default *",
+    "summary": {
+      "title": "Permission Summary",
+      "description": "Overrides configured for this role. Rows not listed here fall back to the wildcard default.",
+      "empty": "No overrides — using factory defaults for all content types."
+    },
+    "matrix": {
+      "title": "Content Type Permission Matrix",
+      "description": "Set allowed actions per role. The <strong>*</strong> row is the default for all content types. Override individual content types by toggling actions in their specific row. Greyed checkboxes are inherited from the wildcard row.",
+      "contentType": "Content Type",
+      "inherited": "Inherited from {role}/* — click to override"
+    },
+    "fields": {
+      "title": "Field-Level Access Control Matrix",
+      "description": "Restrict read visibility and write mutations for specific attributes (e.g., hide salary, margin, or internal notes from non-admin roles).",
+      "selectContentType": "Select content type",
+      "save": "Save Permissions",
+      "loading": "Loading fields schema…",
+      "emptyTitle": "No fields defined for this content type",
+      "emptyHelp": "Add fields to this content type in the Schema Builder first.",
+      "field": "Field",
+      "readVisibility": "Read Visibility",
+      "writeAccess": "Write / Mutation Access",
+      "nameAndType": "Name & Type",
+      "restricted": "Restricted",
+      "adminRead": "Admin always has full read access",
+      "adminWrite": "Admin always has full write access"
+    },
+    "enforcement": {
+      "title": "Zero-Leak Security Enforcement:",
+      "read": "When a role is unchecked from <strong>Read Visibility</strong>, the backend automatically strips the field from all REST (<path></path>) and GraphQL responses before sending to the client.",
+      "write": "When a role is unchecked from <strong>Write Access</strong>, the backend rejects unauthorized mutation attempts with HTTP 403 Forbidden."
+    },
+    "adminNote": "Note: Admin always has universal access across all schema fields and cannot be restricted."
+  }
+}

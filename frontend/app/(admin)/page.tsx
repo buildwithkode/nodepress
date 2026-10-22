@@ -6,6 +6,7 @@ import {
   Layers, FileText, Image, Key, ArrowRight, LayoutGrid, Plus,
   Clock, Globe, Copy, Check, ClipboardList, Inbox, ToggleRight, ToggleLeft,
 } from 'lucide-react';
+import { useLocale, useTranslations } from 'use-intl';
 import { useFetch } from '../../lib/useFetch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,9 @@ function StatCard({ label, sub, value, icon: Icon, loading, href }: {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard');
+  const tc = useTranslations('common');
+  const locale = useLocale();
   const [selectedCT,  setSelectedCT]   = useState<ContentType | null>(null);
   const [copiedUrl,   setCopiedUrl]    = useState<string | null>(null);
 
@@ -116,28 +120,28 @@ export default function DashboardPage() {
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Here&apos;s what&apos;s happening with your content.
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={() => router.push('/entries/new')}>
-            <Plus className="h-4 w-4 mr-1.5" /> New Entry
+            <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
           </Button>
         </div>
       </div>
 
       {/* ── Stat cards (6) ── */}
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Overview</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">{t('overview')}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          <StatCard label="Content Types"    sub="total schemas"      value={contentTypes.length} icon={Layers}        loading={loading} href="/content-types" />
-          <StatCard label="Total Entries"    sub="across all types"   value={totalEntriesCount}   icon={FileText}      loading={loading} href="/entries" />
-          <StatCard label="Media Files"      sub="uploaded files"     value={media.length}        icon={Image}         loading={loading} href="/media" />
-          <StatCard label="API Keys"         sub="active keys"        value={apiKeyCount}         icon={Key}           loading={loading} href="/api-keys" />
-          <StatCard label="Forms"            sub="active forms"       value={activeForms}         icon={ClipboardList} loading={loading} href="/forms" />
-          <StatCard label="Submissions"      sub="total responses"    value={totalSubmissions}    icon={Inbox}         loading={loading} href="/forms" />
+          <StatCard label={t('stats.contentTypes')} sub={t('stats.contentTypesSub')}      value={contentTypes.length} icon={Layers}        loading={loading} href="/content-types" />
+          <StatCard label={t('stats.totalEntries')} sub={t('stats.totalEntriesSub')}   value={totalEntriesCount}   icon={FileText}      loading={loading} href="/entries" />
+          <StatCard label={t('stats.mediaFiles')} sub={t('stats.mediaFilesSub')}     value={media.length}        icon={Image}         loading={loading} href="/media" />
+          <StatCard label={t('stats.apiKeys')} sub={t('stats.apiKeysSub')}        value={apiKeyCount}         icon={Key}           loading={loading} href="/api-keys" />
+          <StatCard label={t('stats.forms')} sub={t('stats.formsSub')}       value={activeForms}         icon={ClipboardList} loading={loading} href="/forms" />
+          <StatCard label={t('stats.submissions')} sub={t('stats.submissionsSub')}    value={totalSubmissions}    icon={Inbox}         loading={loading} href="/forms" />
         </div>
       </div>
 
@@ -153,10 +157,13 @@ export default function DashboardPage() {
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
             </span>
             <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-              <span className="font-bold">{pendingReviewCount}</span> {pendingReviewCount === 1 ? 'entry is' : 'entries are'} awaiting review
+              {t.rich('pendingReview.message', {
+                count: pendingReviewCount,
+                b: (chunks) => <span className="font-bold">{chunks}</span>,
+              })}
             </p>
           </div>
-          <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 underline underline-offset-2 shrink-0">Review now →</span>
+          <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 underline underline-offset-2 shrink-0">{t('pendingReview.action')}</span>
         </div>
       )}
 
@@ -166,10 +173,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <LayoutGrid className="h-4 w-4 text-muted-foreground" /> Content Types
+              <LayoutGrid className="h-4 w-4 text-muted-foreground" /> {t('contentTypes.title')}
             </CardTitle>
             <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/content-types')}>
-              View all <ArrowRight className="h-3.5 w-3.5" />
+              {t('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
           <CardContent>
@@ -177,8 +184,8 @@ export default function DashboardPage() {
               <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : contentTypes.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                No content types yet.{' '}
-                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/content-types/new')}>Create one</button>
+                {t('contentTypes.empty')}{' '}
+                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/content-types/new')}>{t('createOne')}</button>
               </div>
             ) : (
               <div className="space-y-1">
@@ -192,20 +199,20 @@ export default function DashboardPage() {
                       <div className="size-2 rounded-full bg-primary/60" />
                       <span className="text-sm font-medium">{ct.name.replace(/_/g, ' ')}</span>
                       {ctPendingCounts[ct.id] > 0 && (
-                        <span className="relative flex h-2 w-2" title={`${ctPendingCounts[ct.id]} pending review`}>
+                        <span className="relative flex h-2 w-2" title={t('contentTypes.pendingReview', { count: ctPendingCounts[ct.id] })}>
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                         </span>
                       )}
-                      <span className="text-xs text-muted-foreground">{ct.schema.length} field{ct.schema.length !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-muted-foreground">{t('fieldCount', { count: ct.schema.length })}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {ctPendingCounts[ct.id] > 0 && (
                         <Badge variant="outline" className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 gap-1 text-[10px] font-semibold py-0.5">
-                          <Clock className="h-2.5 w-2.5" /> {ctPendingCounts[ct.id]} Pending
+                          <Clock className="h-2.5 w-2.5" /> {t('contentTypes.pendingBadge', { count: ctPendingCounts[ct.id] })}
                         </Badge>
                       )}
-                      <Badge variant="secondary">{ctEntryCounts[ct.id] ?? 0} entries</Badge>
+                      <Badge variant="secondary">{t('entryCount', { count: ctEntryCounts[ct.id] ?? 0 })}</Badge>
                     </div>
                   </div>
                 ))}
@@ -217,10 +224,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" /> Recent Entries
+              <Clock className="h-4 w-4 text-muted-foreground" /> {t('recentEntries.title')}
             </CardTitle>
             <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/entries')}>
-              View all <ArrowRight className="h-3.5 w-3.5" />
+              {t('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
           <CardContent>
@@ -228,8 +235,8 @@ export default function DashboardPage() {
               <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : entries.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                No entries yet.{' '}
-                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/entries/new')}>Create one</button>
+                {t('recentEntries.empty')}{' '}
+                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/entries/new')}>{t('createOne')}</button>
               </div>
             ) : (
               <div className="space-y-1">
@@ -247,7 +254,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-medium font-mono">{entry.slug}</span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(entry.createdAt).toLocaleDateString()}
+                        {new Date(entry.createdAt).toLocaleDateString(locale)}
                       </span>
                     </div>
                   ))}
@@ -264,10 +271,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <ClipboardList className="h-4 w-4 text-muted-foreground" /> Forms
+              <ClipboardList className="h-4 w-4 text-muted-foreground" /> {t('forms.title')}
             </CardTitle>
             <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/forms')}>
-              View all <ArrowRight className="h-3.5 w-3.5" />
+              {t('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
           <CardContent>
@@ -275,8 +282,8 @@ export default function DashboardPage() {
               <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : forms.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                No forms yet.{' '}
-                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/forms/new')}>Create one</button>
+                {t('forms.empty')}{' '}
+                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/forms/new')}>{t('createOne')}</button>
               </div>
             ) : (
               <div className="space-y-1">
@@ -291,9 +298,9 @@ export default function DashboardPage() {
                         ? <ToggleRight className="h-4 w-4 text-emerald-400 shrink-0" />
                         : <ToggleLeft  className="h-4 w-4 text-muted-foreground/40 shrink-0" />}
                       <span className="text-sm font-medium">{form.name}</span>
-                      <span className="text-xs text-muted-foreground">{form.fields.length} field{form.fields.length !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-muted-foreground">{t('fieldCount', { count: form.fields.length })}</span>
                     </div>
-                    <Badge variant="secondary">{form._count.submissions} {form._count.submissions === 1 ? 'submission' : 'submissions'}</Badge>
+                    <Badge variant="secondary">{t('forms.submissionCount', { count: form._count.submissions })}</Badge>
                   </div>
                 ))}
               </div>
@@ -305,10 +312,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Inbox className="h-4 w-4 text-muted-foreground" /> Recent Submissions
+              <Inbox className="h-4 w-4 text-muted-foreground" /> {t('recentSubmissions.title')}
             </CardTitle>
             <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push(recentSubs[0] ? `/forms/${recentSubs[0].form.id}/submissions` : '/forms')}>
-              View all <ArrowRight className="h-3.5 w-3.5" />
+              {t('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
           <CardContent>
@@ -316,7 +323,7 @@ export default function DashboardPage() {
               <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : recentSubs.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                No submissions yet. Share a form to start collecting responses.
+                {t('recentSubmissions.empty')}
               </div>
             ) : (
               <div className="space-y-1">
@@ -333,7 +340,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2 shrink-0 ml-2">
                       <Badge variant="outline" className="text-xs">{sub.form.name}</Badge>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(sub.createdAt).toLocaleDateString()}
+                        {new Date(sub.createdAt).toLocaleDateString(locale)}
                       </span>
                     </div>
                   </div>
@@ -349,10 +356,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Globe className="h-4 w-4 text-muted-foreground" /> API Endpoints
+              <Globe className="h-4 w-4 text-muted-foreground" /> {t('endpoints.title')}
             </CardTitle>
             <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/docs')}>
-              Full docs <ArrowRight className="h-3.5 w-3.5" />
+              {t('endpoints.fullDocs')} <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
           <CardContent>
@@ -360,8 +367,8 @@ export default function DashboardPage() {
               <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
             ) : contentTypes.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                No content types yet.{' '}
-                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/content-types/new')}>Create one</button>
+                {t('contentTypes.empty')}{' '}
+                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/content-types/new')}>{t('createOne')}</button>
               </div>
             ) : (
               <>
@@ -403,13 +410,13 @@ export default function DashboardPage() {
                         >
                           <span className={`text-xs font-bold font-mono w-14 shrink-0 ${allowed ? colors[method] : 'text-muted-foreground'}`}>{method}</span>
                           <code className="text-xs font-mono text-foreground flex-1 truncate">{path}</code>
-                          {!allowed && <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">Disabled</span>}
-                          {allowed && auth && <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">Auth</span>}
+                          {!allowed && <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">{tc('disabled')}</span>}
+                          {allowed && auth && <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 shrink-0">{t('endpoints.auth')}</span>}
                           {allowed && (
                             <button
                               onClick={() => copyUrl(fullUrl)}
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted shrink-0"
-                              title="Copy URL"
+                              title={t('endpoints.copyUrl')}
                             >
                               {copied
                                 ? <Check className="h-3.5 w-3.5 text-green-400" />
@@ -432,10 +439,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Image className="h-4 w-4 text-muted-foreground" /> Recent Media
+              <Image className="h-4 w-4 text-muted-foreground" /> {t('recentMedia.title')}
             </CardTitle>
             <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/media')}>
-              View all <ArrowRight className="h-3.5 w-3.5" />
+              {t('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
           <CardContent>

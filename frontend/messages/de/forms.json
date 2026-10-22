@@ -1,0 +1,143 @@
+{
+  "list": {
+    "loadFailed": "Formulare konnten nicht geladen werden",
+    "deleted": "Formular gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "statusFailed": "Formularstatus konnte nicht aktualisiert werden",
+    "searchPlaceholder": "Formulare suchen…",
+    "newForm": "Neues Formular",
+    "columns": {
+      "slug": "Slug",
+      "fields": "Felder",
+      "submissions": "Einsendungen"
+    },
+    "noMatches": "Keine Formulare entsprechen Ihrer Suche.",
+    "empty": "Noch keine Formulare. Erstellen Sie Ihr erstes.",
+    "toggleActive": "Aktiv umschalten",
+    "viewSubmissions": "Einsendungen anzeigen",
+    "deleteConfirmTitle": "„{name}“ löschen?",
+    "deleteConfirmDescription": "{count, plural, one {Die <strong>#</strong> Einsendung wird ebenfalls endgültig gelöscht.} other {Alle <strong>#</strong> Einsendungen werden ebenfalls endgültig gelöscht.}}"
+  },
+  "edit": {
+    "notFound": "Formular nicht gefunden."
+  },
+  "submissions": {
+    "empty": "leer",
+    "loadFailed": "Einsendungen konnten nicht geladen werden",
+    "nothingToExport": "Keine Einsendungen zum Exportieren",
+    "backToForms": "Zurück zu den Formularen",
+    "searchPlaceholder": "Einsendungen suchen…",
+    "exportCsv": "Als CSV exportieren",
+    "count": "{count, plural, one {# Einsendung} other {# Einsendungen}}",
+    "countMatching": "{count, plural, one {# Einsendung} other {# Einsendungen}} für „{search}“",
+    "noneTitle": "Noch keine Einsendungen",
+    "noneDescription": "Teilen Sie das Formular – Antworten erscheinen dann hier.",
+    "date": "Datum"
+  },
+  "fieldEditor": {
+    "labelPlaceholder": "Für Nutzer angezeigte Bezeichnung",
+    "keyCustom": "eigen",
+    "keyAuto": "auto",
+    "validationRules": "Validierungsregeln",
+    "removeField": "Feld entfernen",
+    "options": "Optionen (kommagetrennt)",
+    "optionsPickMany": "Mehrfachauswahl",
+    "optionsRadio": "Optionsfelder",
+    "optionsDropdown": "Dropdown",
+    "optionsPlaceholder": "Option A, Option B, Option C",
+    "validation": "Validierung",
+    "rules": {
+      "min": "Min.",
+      "max": "Max.",
+      "integer": "Nur ganze Zahlen",
+      "minLength": "Min. Länge",
+      "maxLength": "Max. Länge",
+      "pattern": "Muster (Regex)",
+      "minItems": "Min. Einträge",
+      "maxItems": "Max. Einträge",
+      "message": "Eigene Fehlermeldung"
+    },
+    "messagePlaceholder": "Wird angezeigt, wenn dieses Feld ungültig ist",
+    "itemFields": "Eintragsfelder (wiederholt)",
+    "subFields": "Unterfelder",
+    "addSubField": "Unterfeld hinzufügen"
+  },
+  "fieldTypes": {
+    "text": "Text",
+    "textarea": "Textbereich",
+    "number": "Zahl",
+    "email": "E-Mail",
+    "url": "URL",
+    "phone": "Telefon",
+    "date": "Datum",
+    "datetime": "Datum & Uhrzeit",
+    "boolean": "Boolesch (ja/nein)",
+    "select": "Auswahl (Dropdown)",
+    "radio": "Optionsfeld (Einzelauswahl)",
+    "multiselect": "Mehrfachauswahl",
+    "tags": "Tags (frei)",
+    "group": "Gruppe (Objekt)",
+    "repeater": "Wiederholung (Liste)"
+  },
+  "builder": {
+    "created": "Formular erstellt",
+    "updated": "Formular aktualisiert",
+    "newTitle": "Neues Formular",
+    "editTitle": "Formular bearbeiten",
+    "newDescription": "Legen Sie die Formularfelder fest und konfigurieren Sie Benachrichtigungsaktionen.",
+    "editDescription": "Formulareinstellungen, Felder und Aktionen aktualisieren.",
+    "formName": "Formularname",
+    "formNamePlaceholder": "z. B. Kontakt",
+    "slugPlaceholder": "z. B. kontakt",
+    "submitEndpoint": "Endpunkt zum Absenden:",
+    "status": {
+      "title": "Formularstatus",
+      "accepting": "Nimmt Einsendungen an",
+      "blocked": "Einsendungen sind gesperrt",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "captcha": {
+      "title": "Spamschutz (Captcha)",
+      "on": "Einsendungen müssen ein gültiges Captcha-Token enthalten.",
+      "off": "Honeypot und Ratenbegrenzung gelten weiterhin. Einschalten für Captcha-Prüfung.",
+      "requires": "Erfordert <code>{env}</code> in der Backend-Umgebung."
+    },
+    "fields": {
+      "title": "Felder",
+      "description": "Legen Sie die Eingaben fest, die Nutzer ausfüllen. Verwenden Sie Gruppe / Wiederholung für verschachtelte Daten.",
+      "add": "Feld hinzufügen"
+    },
+    "actions": {
+      "description": "Was nach einer erfolgreichen Einsendung passiert. Verwenden Sie <code>{token}</code> im Betreff, um Werte einzufügen.",
+      "email": "E-Mail",
+      "empty": "Keine Aktionen konfiguriert. Einsendungen werden nur in der Datenbank gespeichert.",
+      "remove": "Aktion entfernen",
+      "sendTo": "Senden an",
+      "subject": "Betreff",
+      "defaultSubject": "Neue Einsendung von {field}",
+      "replyToField": "Antwort-an-Feld (optional)",
+      "webhookUrl": "Webhook-URL",
+      "method": "Methode"
+    },
+    "validation": {
+      "nameRequired": "Formularname ist erforderlich",
+      "slugRequired": "Slug ist erforderlich",
+      "fieldRequired": "Fügen Sie mindestens ein Feld mit Schlüssel und Bezeichnung hinzu"
+    },
+    "creating": "Wird erstellt…",
+    "create": "Formular erstellen",
+    "saveChanges": "Änderungen speichern",
+    "preview": {
+      "show": "Payload anzeigen",
+      "hide": "Payload ausblenden",
+      "title": "Payload-Vorschau",
+      "live": "live",
+      "disableWrap": "Zeilenumbruch deaktivieren",
+      "enableWrap": "Lange Zeilen umbrechen",
+      "wrap": "Umbruch",
+      "copyJson": "JSON-Body kopieren",
+      "empty": "Fügen Sie ein Feld (mit Schlüssel und Bezeichnung) hinzu, um eine Beispiel-Payload zu erzeugen."
+    }
+  }
+}

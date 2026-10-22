@@ -1,0 +1,144 @@
+{
+  "newEntry": "Neuer Eintrag",
+  "stages": {
+    "production": "Produktion",
+    "staging": "Staging (QA)",
+    "pendingReview": "Prüfung ausstehend"
+  },
+  "cards": {
+    "noContentTypes": "Noch keine Inhaltstypen",
+    "noContentTypesHint": "Erstellen Sie zuerst einen Inhaltstyp, um Einträge hinzuzufügen.",
+    "newContentType": "Neuer Inhaltstyp",
+    "pendingTitle": "{count, plural, one {# Eintrag wartet auf Prüfung} other {# Einträge warten auf Prüfung}}",
+    "pendingBadgeTitle": "Klicken, um Einträge anzuzeigen, die auf Prüfung warten",
+    "pendingBadge": "{count} zur Prüfung",
+    "entryCount": "{count, plural, one {# Eintrag} other {# Einträge}}",
+    "moreFields": "+{count} weitere",
+    "noFields": "Keine Felder definiert",
+    "viewEntries": "Einträge anzeigen"
+  },
+  "toolbar": {
+    "backToEntries": "Zurück zu den Einträgen",
+    "allTypes": "Alle Typen",
+    "editSchemaTitle": "Schema des Inhaltstyps bearbeiten",
+    "editSchema": "Schema bearbeiten",
+    "permissionsTitle": "Berechtigungen auf Feldebene konfigurieren",
+    "permissions": "Berechtigungen"
+  },
+  "filters": {
+    "allLanguages": "Alle Sprachen",
+    "allStatuses": "Alle Status",
+    "production": "Produktion (veröffentlicht)",
+    "searchPlaceholder": "Einträge suchen…"
+  },
+  "export": {
+    "jsonTitle": "Nicht gelöschte Einträge als JSON exportieren",
+    "csvTitle": "Nicht gelöschte Einträge als CSV-Tabelle exportieren"
+  },
+  "trash": {
+    "title": "Papierkorb",
+    "button": "Papierkorb ({count})",
+    "banner": "<strong>Papierkorb:</strong> Gelöschte Einträge werden angezeigt. Sie können sie wiederherstellen oder endgültig löschen."
+  },
+  "pending": {
+    "banner": "{count, plural, one {<strong>#</strong> Eintrag in dieser Sammlung wartet auf Prüfung.} other {<strong>#</strong> Einträge in dieser Sammlung warten auf Prüfung.}}",
+    "showAll": "Ausstehende Prüfungen anzeigen ({count}) →"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# Eintrag ausgewählt} other {# Einträge ausgewählt}}",
+    "stage": "Staging (QA)",
+    "publish": "Veröffentlichen (Prod)",
+    "submitReview": "Zur Prüfung einreichen",
+    "archive": "Archivieren",
+    "addToRelease": "Zu Release hinzufügen",
+    "deleteTitle": "{count, plural, one {# Eintrag löschen?} other {# Einträge löschen?}}",
+    "deleteDescription": "Die ausgewählten Einträge werden in den Papierkorb verschoben. Sie können sie später wiederherstellen.",
+    "done": {
+      "deleted": "{count, plural, one {# Eintrag gelöscht} other {# Einträge gelöscht}}",
+      "published": "{count, plural, one {# Eintrag in Produktion veröffentlicht} other {# Einträge in Produktion veröffentlicht}}",
+      "staged": "{count, plural, one {# Eintrag nach Staging übernommen} other {# Einträge nach Staging übernommen}}",
+      "submitted": "{count, plural, one {# Eintrag zur Prüfung eingereicht} other {# Einträge zur Prüfung eingereicht}}",
+      "archived": "{count, plural, one {# Eintrag archiviert} other {# Einträge archiviert}}"
+    }
+  },
+  "table": {
+    "selectAll": "Alle auf dieser Seite auswählen",
+    "slug": "Slug",
+    "trashEmpty": "Der Papierkorb ist leer.",
+    "noMatches": "Keine Einträge entsprechen Ihrer Suche.",
+    "empty": "Noch keine Einträge. Erstellen Sie den ersten.",
+    "returnToActive": "Zurück zu den aktiven Einträgen",
+    "localeOwn": "{language}: dieser Eintrag",
+    "localeTranslated": "{language}: übersetzt",
+    "localeMissing": "{language}: Übersetzung fehlt",
+    "scheduledTitle": "Veröffentlichung geplant: {date}",
+    "scheduled": "Geplant · {date} {time}",
+    "items": "{count, plural, one {# Element} other {# Elemente}}",
+    "richText": "Rich Text"
+  },
+  "actions": {
+    "restore": "Wiederherstellen",
+    "purgeTitle": "Endgültig löschen",
+    "purgeConfirmTitle": "Endgültig löschen?",
+    "purgeConfirmDescription": "<strong>{slug}</strong> und alle Versionen werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
+    "purge": "Endgültig löschen",
+    "promoteStaging": "Nach Staging (QA) übernehmen",
+    "publishProduction": "In Produktion veröffentlichen",
+    "duplicate": "Duplizieren",
+    "viewLive": "Live-Beitrag auf der Website ansehen",
+    "copyApiUrl": "API-URL kopieren",
+    "deleteConfirmTitle": "Diesen Eintrag löschen?",
+    "deleteConfirmDescription": "<strong>{slug}</strong> wird in den Papierkorb verschoben. Sie können ihn später wiederherstellen."
+  },
+  "import": {
+    "button": "Importieren",
+    "title": "Einträge importieren — {name}",
+    "description": "Laden Sie eine .JSON- oder .CSV-Datei hoch oder fügen Sie Daten direkt ein. Eine Probelauf-Validierung in Echtzeit prüft Slugs, Sprachen und Felder vor dem Speichern gegen das Schema.",
+    "selectFile": "Datei auswählen (.csv / .json)",
+    "updateDuplicates": "Doppelte Einträge aktualisieren",
+    "updateDuplicatesHint": "Existiert ein Eintrag mit gleichem Slug und gleicher Sprache, wird sein Inhalt aktualisiert statt übersprungen.",
+    "preflightRunning": "Probelauf-Validierung läuft…",
+    "preflightPassed": "Prüfung bestanden: {total, plural, one {# Zeile} other {# Zeilen}} bereit ({toCreate} neu, {toUpdate} Aktualisierungen)",
+    "preflightErrors": "Validierungsfehler gefunden ({count})",
+    "moreErrors": "…und {count} weitere",
+    "invalidFormat": "Ungültiges Format",
+    "columns": {
+      "row": "Zeile",
+      "slug": "Slug",
+      "locale": "Sprache",
+      "status": "Status",
+      "action": "Aktion"
+    },
+    "actionUpdate": "Aktualisieren",
+    "actionCreate": "Erstellen",
+    "submit": "Einträge importieren",
+    "submitCount": "{count, plural, one {# Eintrag importieren} other {# Einträge importieren}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "Inhaltstypen konnten nicht geladen werden",
+    "loadEntriesFailed": "Einträge konnten nicht geladen werden",
+    "movedToTrash": "Eintrag in den Papierkorb verschoben",
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "restored": "Eintrag wiederhergestellt",
+    "restoreFailed": "Wiederherstellen fehlgeschlagen",
+    "purged": "Eintrag endgültig gelöscht",
+    "purgeFailed": "Endgültiges Löschen fehlgeschlagen",
+    "promoted": "Eintrag übernommen nach {stage}",
+    "promoteFailed": "Eintrag konnte nicht übernommen werden",
+    "exportDownloaded": "{format}-Export heruntergeladen",
+    "exportFailed": "Export fehlgeschlagen",
+    "readFileFailed": "Datei konnte nicht gelesen werden",
+    "importCreated": "{count} erstellt",
+    "importUpdated": "{count} aktualisiert",
+    "importNoChanges": "keine Änderungen",
+    "importComplete": "Import abgeschlossen: {summary}",
+    "importSkipped": "({count} übersprungen)",
+    "importFailed": "Import fehlgeschlagen",
+    "bulkFailed": "Massenaktion fehlgeschlagen",
+    "duplicated": "Dupliziert als „{slug}“",
+    "duplicateFailed": "Duplizieren fehlgeschlagen",
+    "noUniqueSlug": "Für das Duplikat wurde kein eindeutiger Slug gefunden",
+    "urlCopied": "API-URL in die Zwischenablage kopiert",
+    "copyUrlFailed": "URL konnte nicht kopiert werden"
+  }
+}

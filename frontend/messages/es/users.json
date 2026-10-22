@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "No se pudieron cargar los usuarios",
+    "createdNoEmail": "Usuario creado — no hay servidor de correo configurado",
+    "createdInviteCopied": "Enlace de invitación copiado al portapapeles. Envíalo a {email}: {url}",
+    "noEmailServer": "No hay servidor de correo configurado",
+    "inviteCopied": "Enlace de invitación copiado. Envíalo a {email}: {url}",
+    "inviteSent": "Invitación enviada a {email}",
+    "createFailed": "No se pudo crear el usuario",
+    "roleUpdated": "Rol actualizado",
+    "roleUpdateFailed": "No se pudo actualizar el rol",
+    "deleted": "Usuario eliminado",
+    "deleteFailed": "No se pudo eliminar el usuario",
+    "inviteFailed": "No se pudo enviar la invitación",
+    "passwordUpdated": "Contraseña actualizada",
+    "passwordUpdateFailed": "No se pudo actualizar la contraseña",
+    "twoFactorSetupFailed": "No se pudo iniciar la configuración de 2FA",
+    "twoFactorActivated": "¡Autenticación de dos factores activada correctamente!",
+    "twoFactorInvalidCode": "Código de verificación no válido. Inténtalo de nuevo.",
+    "twoFactorDisabled": "Autenticación de dos factores desactivada",
+    "twoFactorDisableInvalid": "Código 2FA o código de recuperación no válido",
+    "recoveryCopied": "Códigos de recuperación copiados al portapapeles",
+    "recoveryCopyFailed": "No se pudieron copiar los códigos de recuperación",
+    "secretCopied": "Clave secreta copiada",
+    "secretCopyFailed": "No se pudo copiar la clave secreta"
+  },
+  "list": {
+    "title": "Miembros del equipo",
+    "description": "Gestiona quién tiene acceso al panel de administración y qué puede hacer.",
+    "email": "Correo electrónico",
+    "role": "Rol",
+    "joined": "Alta",
+    "empty": "No se encontraron usuarios",
+    "you": "(tú)",
+    "viewPermissions": "Ver matriz de permisos: {role}",
+    "sendInvite": "Enviar correo de invitación",
+    "deleteTitle": "¿Eliminar a {email}?",
+    "deleteDescription": "Se eliminará su acceso de forma permanente. Esta acción no se puede deshacer."
+  },
+  "roleGuide": {
+    "title": "Permisos de los roles",
+    "manage": "Gestionar permisos",
+    "admin": {
+      "p1": "Acceso completo a todo",
+      "p2": "Gestionar usuarios y roles",
+      "p3": "Tipos de contenido y claves API",
+      "p4": "Registro de auditoría y webhooks"
+    },
+    "editor": {
+      "p1": "Crear / editar / eliminar entradas",
+      "p2": "Publicar y archivar entradas",
+      "p3": "Formularios, subir/eliminar medios",
+      "p4": "Leer tipos de contenido"
+    },
+    "contributor": {
+      "p1": "Crear y editar entradas",
+      "p2": "No puede eliminar entradas",
+      "p3": "No puede publicar ni archivar",
+      "p4": "Solo subir medios"
+    },
+    "viewer": {
+      "p1": "Panel de solo lectura",
+      "p2": "Ver entradas y formularios",
+      "p3": "Ver la biblioteca de medios",
+      "p4": "No puede modificar nada"
+    }
+  },
+  "add": {
+    "title": "Añadir usuario",
+    "description": "Invita a un compañero por correo — recibirá un enlace para establecer su propia contraseña. Aquí no hace falta contraseña.",
+    "sending": "Enviando invitación…",
+    "submit": "Enviar invitación"
+  },
+  "twoFactor": {
+    "title": "Autenticación de dos factores (2FA)",
+    "description": "Protege tu cuenta con una capa extra de seguridad usando Google Authenticator, 1Password o Authy.",
+    "enabledHeading": "La 2FA está protegiendo tu cuenta",
+    "disabledHeading": "Mejora la seguridad de tu inicio de sesión con TOTP",
+    "enabledHelp": "Al iniciar sesión se te pedirá un código de 6 dígitos o un código de recuperación de emergencia.",
+    "disabledHelp": "Requiere escanear un código QR con una app de autenticación y guardar códigos de recuperación.",
+    "enable": "Activar 2FA",
+    "disable": "Desactivar 2FA",
+    "disabling": "Desactivando…",
+    "setupTitle": "Configurar la autenticación de dos factores",
+    "setupDescription": "Escanea el código QR con Google Authenticator, 1Password o Authy.",
+    "qrAlt": "Código QR de 2FA",
+    "manualKey": "Clave de introducción manual",
+    "recoveryCodes": "Códigos de recuperación de emergencia",
+    "copyCodes": "Copiar códigos",
+    "recoveryHelp": "Guarda estos códigos en un lugar seguro. Si pierdes tu app de autenticación, cada código sirve una vez para iniciar sesión.",
+    "verificationCode": "Código de verificación",
+    "verificationPlaceholder": "Introduce el código de 6 dígitos",
+    "activating": "Activando…",
+    "activate": "Activar 2FA",
+    "disableTitle": "Desactivar la autenticación de dos factores",
+    "disableDescription": "Introduce un código de 6 dígitos de tu app de autenticación o un código de recuperación de emergencia para confirmar.",
+    "disableCodeLabel": "Código de autenticación o de recuperación",
+    "disableCodePlaceholder": "Código de 6 dígitos o XXXX-XXXX"
+  },
+  "password": {
+    "title": "Cambiar tu contraseña",
+    "current": "Contraseña actual",
+    "new": "Nueva contraseña",
+    "newPlaceholder": "Mín. 8 caracteres",
+    "updating": "Actualizando…",
+    "submit": "Actualizar contraseña"
+  },
+  "permissions": {
+    "loading": "Cargando permisos…",
+    "toasts": {
+      "loadFailed": "No se pudieron cargar los permisos",
+      "schemaLoadFailed": "No se pudo cargar el esquema de «{name}»",
+      "roleLoadFailed": "No se pudieron cargar los permisos del rol",
+      "updated": "Permiso actualizado",
+      "updateFailed": "No se pudo actualizar el permiso",
+      "reset": "Permisos restablecidos a los valores predeterminados",
+      "resetFailed": "No se pudieron restablecer los permisos",
+      "fieldsSaved": "Permisos de campos guardados para «{name}»",
+      "fieldsSaveFailed": "No se pudieron guardar los permisos de campos"
+    },
+    "backToUsers": "Usuarios",
+    "title": "Control de acceso y permisos",
+    "resetDefaults": "Restablecer valores predeterminados",
+    "tabs": {
+      "contentTypes": "Matriz de acciones por tipo de contenido",
+      "fields": "Matriz de permisos por campo"
+    },
+    "actions": {
+      "create": "Crear",
+      "read": "Leer",
+      "update": "Editar",
+      "delete": "Eliminar",
+      "publish": "Publicar"
+    },
+    "roleDescriptions": {
+      "editor": "Gestiona todo el contenido — puede crear, editar, eliminar y publicar.",
+      "contributor": "Crea y edita contenido — no puede eliminar ni publicar.",
+      "viewer": "Acceso de solo lectura al panel de administración."
+    },
+    "clickToDeselect": "haz clic para deseleccionar",
+    "defaultRow": "Predeterminado *",
+    "summary": {
+      "title": "Resumen de permisos",
+      "description": "Excepciones configuradas para este rol. Las filas que no aparecen usan el valor predeterminado comodín.",
+      "empty": "Sin excepciones — se usan los valores de fábrica para todos los tipos de contenido."
+    },
+    "matrix": {
+      "title": "Matriz de permisos por tipo de contenido",
+      "description": "Define las acciones permitidas por rol. La fila <strong>*</strong> es el valor predeterminado para todos los tipos de contenido. Personaliza un tipo de contenido activando acciones en su propia fila. Las casillas atenuadas se heredan de la fila comodín.",
+      "contentType": "Tipo de contenido",
+      "inherited": "Heredado de {role}/* — haz clic para personalizar"
+    },
+    "fields": {
+      "title": "Matriz de control de acceso por campo",
+      "description": "Restringe la visibilidad de lectura y la escritura de atributos concretos (p. ej., ocultar el salario, el margen o notas internas a los roles que no son administradores).",
+      "selectContentType": "Selecciona un tipo de contenido",
+      "save": "Guardar permisos",
+      "loading": "Cargando el esquema de campos…",
+      "emptyTitle": "Este tipo de contenido no tiene campos definidos",
+      "emptyHelp": "Primero añade campos a este tipo de contenido en el Schema Builder.",
+      "field": "Campo",
+      "readVisibility": "Visibilidad de lectura",
+      "writeAccess": "Acceso de escritura / modificación",
+      "nameAndType": "Nombre y tipo",
+      "restricted": "Restringido",
+      "adminRead": "El administrador siempre tiene acceso completo de lectura",
+      "adminWrite": "El administrador siempre tiene acceso completo de escritura"
+    },
+    "enforcement": {
+      "title": "Seguridad sin fugas:",
+      "read": "Cuando se desmarca un rol en <strong>Visibilidad de lectura</strong>, el backend elimina automáticamente el campo de todas las respuestas REST (<path></path>) y GraphQL antes de enviarlas al cliente.",
+      "write": "Cuando se desmarca un rol en <strong>Acceso de escritura</strong>, el backend rechaza los intentos de modificación no autorizados con HTTP 403 Forbidden."
+    },
+    "adminNote": "Nota: el administrador siempre tiene acceso universal a todos los campos del esquema y no se puede restringir."
+  }
+}

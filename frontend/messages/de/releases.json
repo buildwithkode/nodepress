@@ -1,0 +1,70 @@
+{
+  "entryCount": "{count, plural, one {# Eintrag} other {# Einträge}}",
+  "statuses": {
+    "open": "Offen",
+    "scheduled": "Geplant",
+    "publishing": "Wird veröffentlicht",
+    "published": "Veröffentlicht",
+    "failed": "Fehlgeschlagen"
+  },
+  "actions": {
+    "publish": "Veröffentlichen",
+    "unpublish": "Zurückziehen",
+    "archive": "Archivieren"
+  },
+  "list": {
+    "title": "Releases",
+    "description": "Bündeln Sie Änderungen an Einträgen — veröffentlichen, zurückziehen, archivieren — und schalten Sie sie gemeinsam live, sofort oder zu einem festen Zeitpunkt. Einträge fügen Sie über die Eintragsliste oder den Editor eines Eintrags hinzu.",
+    "namePlaceholder": "Name des neuen Release, z. B. Frühjahrsstart",
+    "empty": "Noch keine Releases.",
+    "upcoming": "Anstehend",
+    "published": "Veröffentlicht",
+    "publishedAt": "veröffentlicht am {date}",
+    "loadFailed": "Releases konnten nicht geladen werden",
+    "createFailed": "Release konnte nicht erstellt werden"
+  },
+  "detail": {
+    "notFound": "Release nicht gefunden",
+    "publishedAt": "Veröffentlicht am {date}",
+    "publishNow": "Jetzt veröffentlichen",
+    "publish": "Veröffentlichen",
+    "publishConfirmTitle": "„{name}“ veröffentlichen?",
+    "publishConfirmDescription": "{count, plural, one {# Änderung geht} other {# Änderungen gehen}} gemeinsam in einem Schritt live. Das lässt sich nicht als Ganzes rückgängig machen.",
+    "publishedToast": "Release veröffentlicht",
+    "publishFailed": "Veröffentlichung fehlgeschlagen — nichts wurde geändert. {error}",
+    "schedule": "Planen",
+    "scheduledFor": "Geht automatisch am {date} live.",
+    "scheduleHint": "Wählen Sie einen Zeitpunkt, und das Release geht von selbst live (wird jede Minute geprüft).",
+    "scheduledToast": "Release geplant",
+    "unschedule": "Planung aufheben",
+    "unscheduledToast": "Planung entfernt",
+    "entriesTitle": "Einträge ({count})",
+    "entriesDescription": "Jeder Eintrag geht so live, wie er zum Veröffentlichungszeitpunkt ist — bis dahin können Sie weiter bearbeiten. Einträge fügen Sie über die <link>Eintragsliste</link> hinzu.",
+    "noEntries": "Noch keine Einträge.",
+    "currentStatus": "derzeit {status}",
+    "deletedSkipped": "gelöscht — wird übersprungen",
+    "conflicts": "Auch in {releases} — was zuletzt live geht, gewinnt.",
+    "conflictItem": "„{name}“ ({action})",
+    "removeItem": "Aus dem Release entfernen",
+    "deleteRelease": "Release löschen",
+    "deleteConfirmTitle": "„{name}“ löschen?",
+    "deleteConfirmDescription": "Das Release wird entfernt. Seine Einträge bleiben unverändert.",
+    "deleteFailed": "Löschen fehlgeschlagen"
+  },
+  "addDialog": {
+    "title": "Zu Release hinzufügen",
+    "description": "Ein Release wendet alle Änderungen auf einmal an — wenn Sie es veröffentlichen oder zum geplanten Zeitpunkt.",
+    "release": "Release",
+    "newRelease": "Neues Release…",
+    "namePlaceholder": "z. B. Frühjahrsstart",
+    "nameRequired": "Geben Sie dem Release einen Namen",
+    "whenGoesOut": "Wenn das Release live geht",
+    "actionOption": {
+      "publish": "{count, plural, one {Diesen Eintrag veröffentlichen} other {Diese Einträge veröffentlichen}}",
+      "unpublish": "{count, plural, one {Diesen Eintrag zurückziehen} other {Diese Einträge zurückziehen}}",
+      "archive": "{count, plural, one {Diesen Eintrag archivieren} other {Diese Einträge archivieren}}"
+    },
+    "added": "{count, plural, one {# Eintrag hinzugefügt} other {# Einträge hinzugefügt}} — <link>Release öffnen</link>",
+    "addFailed": "Konnte nicht zum Release hinzugefügt werden"
+  }
+}

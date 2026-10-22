@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "Mediendateien konnten nicht geladen werden",
+    "fileDeleted": "Datei gelöscht",
+    "folderDeleted": "Ordner gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "folderRenamed": "Ordner umbenannt",
+    "renameFolderFailed": "Ordner konnte nicht umbenannt werden",
+    "folderCreated": "Ordner erstellt",
+    "createFolderFailed": "Ordner konnte nicht erstellt werden",
+    "fileMoved": "Datei verschoben",
+    "moveFileFailed": "Datei konnte nicht verschoben werden",
+    "urlCopied": "URL kopiert",
+    "uploaded": "{name} hochgeladen",
+    "uploadFailed": "Hochladen von {name} fehlgeschlagen"
+  },
+  "folders": {
+    "title": "Ordner",
+    "allFiles": "Alle Dateien",
+    "unfiled": "Ohne Ordner",
+    "folder": "Ordner",
+    "rename": "Ordner umbenennen",
+    "delete": "Ordner löschen",
+    "deleteConfirmTitle": "Ordner „{name}“ löschen?",
+    "deleteConfirmDescription": "Enthaltene Dateien sind danach keinem Ordner zugeordnet. Unterordner werden gelöscht.",
+    "namePlaceholder": "Ordnername",
+    "new": "Neuer Ordner"
+  },
+  "upload": {
+    "uploading": "Wird hochgeladen…",
+    "prompt": "Klicken oder Dateien hierher ziehen",
+    "limits": "{formats} — max. {size}"
+  },
+  "library": {
+    "empty": "Noch keine Dateien vorhanden",
+    "fileCount": "{count, plural, one {# Datei} other {# Dateien}}",
+    "copyWebpUrl": "WebP-URL kopieren",
+    "copyUrl": "URL kopieren",
+    "focalPointAt": "Fokuspunkt {x}, {y}",
+    "setFocalPoint": "Fokuspunkt festlegen",
+    "moveToFolder": "In Ordner verschieben",
+    "deleteConfirmTitle": "Datei löschen?",
+    "deleteConfirmDescription": "<strong>{name}</strong> wird endgültig gelöscht.",
+    "deleteConfirmWebp": "Die WebP-Version wird ebenfalls gelöscht."
+  },
+  "renameDialog": {
+    "title": "Ordner umbenennen",
+    "description": "Geben Sie einen neuen Namen für den Ordner „{name}“ ein.",
+    "label": "Ordnername",
+    "save": "Änderungen speichern"
+  },
+  "moveDialog": {
+    "title": "Datei in Ordner verschieben",
+    "description": "Wählen Sie einen Zielordner für <strong>{name}</strong>.",
+    "destination": "Zielordner",
+    "selectFolder": "Ordner auswählen",
+    "unfiledRoot": "Ohne Ordner (Stammverzeichnis)",
+    "submit": "Datei verschieben"
+  },
+  "focal": {
+    "title": "Fokuspunkt",
+    "description": "Klicken Sie auf den wichtigsten Bereich von <strong>{name}</strong>. Zugeschnittene Versionen behalten ihn im Bild.",
+    "saved": "Fokuspunkt gespeichert",
+    "cleared": "Fokuspunkt entfernt",
+    "saveFailed": "Fokuspunkt konnte nicht gespeichert werden",
+    "previewSquare": "Quadrat",
+    "previewWide": "Breit 16:9",
+    "previewTall": "Hoch 3:4",
+    "notSet": "Nicht festgelegt — Zuschnitte sind zentriert",
+    "clear": "Entfernen"
+  },
+  "picker": {
+    "title": "Mediathek",
+    "placeholder": "Bild aus der Mediathek auswählen…",
+    "crop": "Zuschneiden",
+    "cropZoomTitle": "Zuschneiden / Zoomen",
+    "cropZoom": "Zuschneiden & Zoomen",
+    "removeImage": "Bild entfernen",
+    "change": "Ändern",
+    "browse": "Durchsuchen",
+    "upload": "Hochladen",
+    "altPrefix": "Alt: {alt}",
+    "empty": "Noch keine Mediendateien. Laden Sie zuerst eine hoch.",
+    "altText": "Alternativtext",
+    "optionalHint": "(optional)",
+    "altPlaceholder": "Beschreiben Sie das Bild für die Barrierefreiheit…",
+    "dropPrompt": "Datei ablegen oder zum Durchsuchen klicken",
+    "useImage": "Bild verwenden"
+  }
+}

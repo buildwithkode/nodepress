@@ -18,6 +18,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { useTranslations } from 'use-intl';
 
 interface MediaFile {
   filename: string;
@@ -37,6 +38,8 @@ interface Props {
 }
 
 export function MediaPickerModal({ value, onChange }: Props) {
+  const t = useTranslations('media');
+  const tc = useTranslations('common');
   const [open, setOpen]               = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [files, setFiles]             = useState<MediaFile[]>([]);
@@ -54,7 +57,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
       const res = await api.get('/media?limit=100');
       setFiles(Array.isArray(res.data) ? res.data : (res.data.data ?? []));
     } catch {
-      toast.error('Failed to load media');
+      toast.error(t('toasts.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -87,14 +90,14 @@ export function MediaPickerModal({ value, onChange }: Props) {
       });
       if (!res.ok) throw new Error('Upload failed');
       const uploaded = await res.json();
-      toast.success(`${file.name} uploaded`);
+      toast.success(t('toasts.uploaded', { name: file.name }));
       await fetchFiles();
       const targetUrl = uploaded.url || uploaded.webpUrl;
       setSelectedUrl(targetUrl);
       setAlt('');
       setTab('browse');
     } catch {
-      toast.error(`${file.name} upload failed`);
+      toast.error(t('toasts.uploadFailed', { name: file.name }));
     } finally {
       setUploading(false);
     }
@@ -122,7 +125,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
               <ImageIcon className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-foreground transition-colors" />
             )}
             <span className={cn("truncate text-xs sm:text-sm font-normal", value?.url ? "text-foreground font-medium" : "text-muted-foreground")}>
-              {value?.url ? (value.alt ? `${value.alt} (${value.url.split('/').pop()})` : value.url.split('/').pop() || value.url) : 'Choose image from media library…'}
+              {value?.url ? (value.alt ? `${value.alt} (${value.url.split('/').pop()})` : value.url.split('/').pop() || value.url) : t('picker.placeholder')}
             </span>
           </div>
 
@@ -138,10 +141,10 @@ export function MediaPickerModal({ value, onChange }: Props) {
                     setCropModalOpen(true);
                   }}
                   className="rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  title="Crop / Zoom"
+                  title={t('picker.cropZoomTitle')}
                 >
                   <Crop className="h-3 w-3 inline mr-1" />
-                  Crop
+                  {t('picker.crop')}
                 </button>
                 <button
                   type="button"
@@ -150,7 +153,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
                     onChange(null);
                   }}
                   className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  title="Remove image"
+                  title={t('picker.removeImage')}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -166,7 +169,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
                 setOpen(true);
               }}
             >
-              {value?.url ? 'Change' : 'Browse'}
+              {value?.url ? t('picker.change') : t('picker.browse')}
             </Button>
           </div>
         </div>
@@ -185,7 +188,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
               </p>
               {value.alt && (
                 <p className="text-[11px] text-muted-foreground truncate max-w-[240px]">
-                  Alt: {value.alt}
+                  {t('picker.altPrefix', { alt: value.alt })}
                 </p>
               )}
               <div className="flex items-center gap-2 pt-0.5">
@@ -199,7 +202,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
                   className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
                 >
                   <Crop className="h-3 w-3" />
-                  Crop
+                  {t('picker.crop')}
                 </button>
                 <span className="text-muted-foreground/40">·</span>
                 <button
@@ -207,7 +210,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
                   onClick={() => onChange(null)}
                   className="text-[11px] text-destructive/80 hover:text-destructive font-medium"
                 >
-                  Remove
+                  {tc('remove')}
                 </button>
               </div>
             </div>
@@ -218,13 +221,13 @@ export function MediaPickerModal({ value, onChange }: Props) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Media Library</DialogTitle>
+            <DialogTitle>{t('picker.title')}</DialogTitle>
           </DialogHeader>
 
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList>
-              <TabsTrigger value="browse">Browse</TabsTrigger>
-              <TabsTrigger value="upload">Upload</TabsTrigger>
+              <TabsTrigger value="browse">{t('picker.browse')}</TabsTrigger>
+              <TabsTrigger value="upload">{t('picker.upload')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="browse">
@@ -236,7 +239,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
                 </div>
               ) : files.length === 0 ? (
                 <div className="py-16 text-center text-sm text-muted-foreground">
-                  No media files yet. Upload one first.
+                  {t('picker.empty')}
                 </div>
               ) : (
                 <div className="mt-3 grid grid-cols-4 gap-3 max-h-64 overflow-y-auto pr-1">
@@ -281,11 +284,11 @@ export function MediaPickerModal({ value, onChange }: Props) {
               {selectedUrl && (
                 <div className="mt-4 space-y-1.5">
                   <Label htmlFor="media-alt" className="text-sm">
-                    Alt text <span className="text-muted-foreground font-normal">(optional)</span>
+                    {t('picker.altText')} <span className="text-muted-foreground font-normal">{t('picker.optionalHint')}</span>
                   </Label>
                   <Input
                     id="media-alt"
-                    placeholder="Describe the image for accessibility…"
+                    placeholder={t('picker.altPlaceholder')}
                     value={alt}
                     onChange={(e) => setAlt(e.target.value)}
                   />
@@ -315,8 +318,8 @@ export function MediaPickerModal({ value, onChange }: Props) {
                 ) : (
                   <>
                     <Upload className="h-8 w-8 text-muted-foreground mb-3" />
-                    <p className="text-sm font-medium">Drop a file or click to browse</p>
-                    <p className="text-xs text-muted-foreground mt-1">JPG, PNG, GIF, WebP — max 10 MB</p>
+                    <p className="text-sm font-medium">{t('picker.dropPrompt')}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('upload.limits', { formats: 'JPG, PNG, GIF, WebP', size: '10 MB' })}</p>
                   </>
                 )}
               </div>
@@ -336,7 +339,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
 
           <DialogFooter className="flex items-center justify-between sm:justify-between w-full">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <div className="flex items-center gap-2">
               <Button
@@ -351,10 +354,10 @@ export function MediaPickerModal({ value, onChange }: Props) {
                 className="gap-1.5 text-indigo-400 hover:text-indigo-300"
               >
                 <Crop className="h-3.5 w-3.5" />
-                Crop & Zoom
+                {t('picker.cropZoom')}
               </Button>
               <Button type="button" onClick={confirm} disabled={!selectedUrl}>
-                Use Image
+                {t('picker.useImage')}
               </Button>
             </div>
           </DialogFooter>

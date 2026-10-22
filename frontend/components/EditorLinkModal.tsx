@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link2, ExternalLink, ShieldCheck, Trash2 } from 'lucide-react';
+import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +38,8 @@ export function EditorLinkModal({
   onSave,
   onRemove,
 }: Props) {
+  const t = useTranslations('entryEditor');
+  const tc = useTranslations('common');
   const [url, setUrl] = useState(initialUrl);
   const [text, setText] = useState(initialText);
   const [newTab, setNewTab] = useState(initialNewTab);
@@ -74,7 +77,7 @@ export function EditorLinkModal({
         <DialogHeader className="px-5 py-3.5 border-b border-border bg-muted/20">
           <DialogTitle className="text-sm font-semibold flex items-center gap-2">
             <Link2 className="h-4 w-4 text-primary" />
-            {hasLink ? 'Edit Hyperlink' : 'Insert Hyperlink'}
+            {hasLink ? t('linkModal.editTitle') : t('linkModal.insertTitle')}
           </DialogTitle>
         </DialogHeader>
 
@@ -82,11 +85,11 @@ export function EditorLinkModal({
         <div className="p-5 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="link-url-input" className="text-xs font-medium">
-              Destination URL
+              {t('linkModal.url')}
             </Label>
             <Input
               id="link-url-input"
-              placeholder="https://example.com or /posts/my-article"
+              placeholder={t('linkModal.urlPlaceholder')}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => {
@@ -103,11 +106,11 @@ export function EditorLinkModal({
           {initialText !== undefined && (
             <div className="space-y-1.5">
               <Label htmlFor="link-text-input" className="text-xs font-medium">
-                Link Text
+                {t('linkModal.text')}
               </Label>
               <Input
                 id="link-text-input"
-                placeholder="Display text for this link"
+                placeholder={t('linkModal.textPlaceholder')}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className="text-xs h-9"
@@ -121,10 +124,10 @@ export function EditorLinkModal({
               <div className="space-y-0.5">
                 <Label htmlFor="new-tab-toggle" className="text-xs font-medium flex items-center gap-1.5 cursor-pointer">
                   <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                  Open link in new tab
+                  {t('linkModal.newTab')}
                 </Label>
                 <p className="text-[10px] text-muted-foreground">
-                  Adds target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;
+                  {t('linkModal.newTabHelp')}
                 </p>
               </div>
               <Switch
@@ -138,10 +141,10 @@ export function EditorLinkModal({
               <div className="space-y-0.5">
                 <Label htmlFor="nofollow-toggle" className="text-xs font-medium flex items-center gap-1.5 cursor-pointer">
                   <ShieldCheck className="h-3 w-3 text-muted-foreground" />
-                  Add nofollow attribute (SEO)
+                  {t('linkModal.noFollow')}
                 </Label>
                 <p className="text-[10px] text-muted-foreground">
-                  Signals search engines not to pass SEO authority (affiliate / sponsored)
+                  {t('linkModal.noFollowHelp')}
                 </p>
               </div>
               <Switch
@@ -167,13 +170,13 @@ export function EditorLinkModal({
                 }}
                 className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs h-8 gap-1"
               >
-                <Trash2 className="h-3.5 w-3.5" /> Remove Link
+                <Trash2 className="h-3.5 w-3.5" /> {t('linkModal.remove')}
               </Button>
             )}
           </div>
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" size="sm" onClick={onClose} className="text-xs h-8">
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               type="button"
@@ -182,7 +185,7 @@ export function EditorLinkModal({
               onClick={handleSave}
               className="text-xs h-8 gap-1"
             >
-              Apply Link
+              {t('linkModal.apply')}
             </Button>
           </div>
         </DialogFooter>

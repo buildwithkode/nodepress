@@ -37,17 +37,20 @@ import { PluginUploadDialog } from '@/components/PluginUploadDialog';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { usePlugins } from '@/context/PluginContext';
+import { useTranslations } from 'use-intl';
 
 const CATEGORY_TABS = [
-  { id: 'all', label: 'All Plugins' },
-  { id: 'content', label: 'Content' },
-  { id: 'seo', label: 'SEO' },
-  { id: 'utilities', label: 'Utilities' },
-  { id: 'integrations', label: 'Integrations' },
-  { id: 'security', label: 'Security' },
-];
+  { id: 'all' },
+  { id: 'content' },
+  { id: 'seo' },
+  { id: 'utilities' },
+  { id: 'integrations' },
+  { id: 'security' },
+] as const;
 
 export default function PluginsPage() {
+  const t = useTranslations('developer');
+  const tc = useTranslations('common');
   const { refreshPlugins } = usePlugins();
   const [plugins, setPlugins] = useState<PluginItem[]>([]);
   const [meta, setMeta] = useState<{
@@ -113,7 +116,7 @@ export default function PluginsPage() {
       }));
       await refreshPlugins();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? `Could not ${newStatus ? 'enable' : 'disable'} ${plugin.name}`);
+      toast.error(err?.response?.data?.message ?? (newStatus ? t('plugins.enableFailed', { name: plugin.name }) : t('plugins.disableFailed', { name: plugin.name })));
       // Revert optimistic update
       setPlugins((prev) =>
         prev.map((p) => (p.id === plugin.id ? { ...p, enabled: plugin.enabled } : p)),
@@ -126,10 +129,10 @@ export default function PluginsPage() {
   const handleDelete = async (plugin: PluginItem) => {
     try {
       await api.delete(`/plugins/packages/${plugin.id}`);
-      toast.success(`${plugin.name} deleted — restart the server to unload it`);
+      toast.success(t('plugins.deletedToast', { name: plugin.name }));
       await fetchPlugins();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? `Could not delete ${plugin.name}`);
+      toast.error(err?.response?.data?.message ?? t('plugins.deleteFailed', { name: plugin.name }));
     }
   };
 
@@ -139,7 +142,7 @@ export default function PluginsPage() {
     try {
       await api.post('/plugins/restart');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'Could not restart the server');
+      toast.error(err?.response?.data?.message ?? t('plugins.restartFailed'));
       setRestarting(false);
       return;
     }
@@ -151,7 +154,7 @@ export default function PluginsPage() {
         await api.get('/health', { timeout: 3000 });
         await fetchPlugins();
         await refreshPlugins();
-        toast.success('Server restarted — plugin changes are loaded');
+        toast.success(t('plugins.restarted'));
         setRestarting(false);
         return;
       } catch {
@@ -160,7 +163,7 @@ export default function PluginsPage() {
     }
     setRestarting(false);
     toast.error(
-      "The server hasn't come back. If nothing restarts it automatically (Docker, PM2, systemd), start it again — e.g. npm run start:dev.",
+      t('plugins.restartTimeout', { command: 'npm run start:dev' }),
       { duration: 15000 },
     );
   };
@@ -218,28 +221,28 @@ export default function PluginsPage() {
               <Puzzle className="w-5 h-5" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Plugin Architecture & Extensions
+              {t('plugins.title')}
             </h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Manage, configure, and monitor live extensions, sandboxed lifecycle hooks, and data pipeline filters.
+            {t('plugins.subtitle')}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={fetchPlugins} disabled={loading}>
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {tc('refresh')}
           </Button>
           {meta.uploads && (
             <Button
               size="sm"
               onClick={() => setUploadOpen(true)}
               disabled={meta.uploads.mode === 'off'}
-              title={meta.uploads.mode === 'off' ? 'Uploads are turned off on this server (PLUGIN_UPLOADS=off)' : undefined}
+              title={meta.uploads.mode === 'off' ? t('plugins.uploadsOff', { env: 'PLUGIN_UPLOADS=off' }) : undefined}
             >
               <Upload className="w-3.5 h-3.5 mr-1.5" />
-              Upload plugin
+              {t('plugins.uploadPlugin')}
             </Button>
           )}
         </div>
@@ -251,16 +254,16 @@ export default function PluginsPage() {
           <div className="flex items-start gap-2.5 text-sm">
             <Clock className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" />
             <div>
-              <div className="font-medium text-foreground">Restart needed to load plugin changes</div>
+              <div className="font-medium text-foreground">{t('plugins.restartNeeded')}</div>
               <div className="text-xs text-muted-foreground">
-                Takes a few seconds. With several servers, restart each one (e.g. a rolling restart).
+                {t('plugins.restartNeededHint')}
               </div>
             </div>
           </div>
           {meta.uploads && (
             <Button size="sm" onClick={handleRestart} disabled={restarting}>
               {restarting ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Power className="w-3.5 h-3.5 mr-1.5" />}
-              {restarting ? 'Restarting…' : 'Restart now'}
+              {restarting ? t('plugins.restarting') : t('plugins.restartNow')}
             </Button>
           )}
         </div>
@@ -274,7 +277,7 @@ export default function PluginsPage() {
           </div>
           <div>
             <div className="text-2xl font-bold text-foreground">{meta.totalPlugins}</div>
-            <div className="text-xs text-muted-foreground font-medium">Installed Plugins</div>
+            <div className="text-xs text-muted-foreground font-medium">{t('plugins.statInstalled')}</div>
           </div>
         </div>
 
@@ -284,7 +287,7 @@ export default function PluginsPage() {
           </div>
           <div>
             <div className="text-2xl font-bold text-foreground">{meta.enabledPlugins}</div>
-            <div className="text-xs text-muted-foreground font-medium">Active & Running</div>
+            <div className="text-xs text-muted-foreground font-medium">{t('plugins.statActive')}</div>
           </div>
         </div>
 
@@ -294,7 +297,7 @@ export default function PluginsPage() {
           </div>
           <div>
             <div className="text-2xl font-bold text-foreground">{meta.totalHooks}</div>
-            <div className="text-xs text-muted-foreground font-medium">Lifecycle Action Hooks</div>
+            <div className="text-xs text-muted-foreground font-medium">{t('plugins.statHooks')}</div>
           </div>
         </div>
 
@@ -304,7 +307,7 @@ export default function PluginsPage() {
           </div>
           <div>
             <div className="text-2xl font-bold text-foreground">{meta.totalFilters}</div>
-            <div className="text-xs text-muted-foreground font-medium">Data Pipeline Filters</div>
+            <div className="text-xs text-muted-foreground font-medium">{t('plugins.statFilters')}</div>
           </div>
         </div>
       </div>
@@ -323,7 +326,7 @@ export default function PluginsPage() {
                   : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
-              {tab.label}
+              {t(`plugins.categories.${tab.id}`)}
             </button>
           ))}
         </div>
@@ -333,7 +336,7 @@ export default function PluginsPage() {
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search extensions..."
+            placeholder={t('plugins.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-xs bg-background border border-input rounded-lg focus:outline-hidden focus:ring-2 focus:ring-primary text-foreground placeholder:text-muted-foreground"
@@ -345,16 +348,16 @@ export default function PluginsPage() {
       {loading ? (
         <div className="p-16 text-center text-muted-foreground flex flex-col items-center justify-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm">Loading installed extensions...</span>
+          <span className="text-sm">{t('plugins.loading')}</span>
         </div>
       ) : filteredPlugins.length === 0 ? (
         <div className="p-16 text-center rounded-xl border border-dashed border-border bg-card/50">
           <Puzzle className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-foreground">No plugins found</h3>
+          <h3 className="text-base font-semibold text-foreground">{t('plugins.noneFound')}</h3>
           <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
             {searchQuery
-              ? `No installed plugins matched "${searchQuery}".`
-              : 'No plugins registered in this category.'}
+              ? t('plugins.noMatch', { query: searchQuery })
+              : t('plugins.noneInCategory')}
           </p>
         </div>
       ) : (
@@ -392,17 +395,17 @@ export default function PluginsPage() {
                         {plugin.source === 'uploaded' && (
                           <span
                             className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-border/60 text-muted-foreground flex items-center gap-1"
-                            title={plugin.signature === 'trusted' ? 'Signed by a trusted publisher' : 'Not signed by a trusted publisher'}
+                            title={plugin.signature === 'trusted' ? t('plugins.signedTrusted') : t('plugins.notSignedTrusted')}
                           >
                             {plugin.signature === 'trusted'
                               ? <ShieldCheck className="w-3 h-3 text-emerald-500" />
                               : <ShieldAlert className="w-3 h-3 text-amber-500" />}
-                            Uploaded
+                            {t('plugins.uploaded')}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        <span>by {plugin.author}</span>
+                        <span>{t('plugins.byAuthor', { author: plugin.author })}</span>
                         <span>•</span>
                         <span className="capitalize">{plugin.category}</span>
                       </div>
@@ -415,13 +418,13 @@ export default function PluginsPage() {
                       type="button"
                       role="switch"
                       aria-checked={plugin.enabled}
-                      aria-label={`Toggle ${plugin.name}`}
+                      aria-label={t('plugins.toggleAria', { name: plugin.name })}
                       disabled={
                         togglingId === plugin.id ||
                         plugin.pending === 'install' ||
                         (!!(plugin.incompatible || plugin.loadError) && !plugin.enabled)
                       }
-                      title={plugin.pending === 'install' ? 'Restart the server to load it first' : plugin.loadError ?? plugin.incompatible ?? undefined}
+                      title={plugin.pending === 'install' ? t('plugins.restartToLoad') : plugin.loadError ?? plugin.incompatible ?? undefined}
                       onClick={() => handleToggle(plugin)}
                       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                         plugin.enabled ? 'bg-emerald-500 dark:bg-emerald-600' : 'bg-zinc-300 dark:bg-zinc-700'
@@ -440,9 +443,9 @@ export default function PluginsPage() {
                   <div className="mb-3 flex items-start gap-1.5 rounded-md border border-blue-500/30 bg-blue-500/10 px-2.5 py-2 text-xs text-blue-700 dark:text-blue-400">
                     <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                     <span>
-                      {plugin.pending === 'install' && 'Installed — loads when the server restarts.'}
-                      {plugin.pending === 'update' && `Updates to v${plugin.pendingVersion} when the server restarts.`}
-                      {plugin.pending === 'remove' && 'Deleted — unloads when the server restarts.'}
+                      {plugin.pending === 'install' && t('plugins.pendingInstall')}
+                      {plugin.pending === 'update' && t('plugins.pendingUpdate', { version: plugin.pendingVersion ?? '' })}
+                      {plugin.pending === 'remove' && t('plugins.pendingRemove')}
                     </span>
                   </div>
                 )}
@@ -450,14 +453,14 @@ export default function PluginsPage() {
                 {plugin.loadError && (
                   <div className="mb-3 flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-2.5 py-2 text-xs text-destructive">
                     <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                    <span>{plugin.loadError} Upload a fixed version or delete it.</span>
+                    <span>{plugin.loadError} {t('plugins.loadErrorHint')}</span>
                   </div>
                 )}
 
                 {plugin.incompatible && (
                   <div className="mb-3 flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-xs text-amber-700 dark:text-amber-400">
                     <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                    <span>{plugin.incompatible}. Update the plugin or NodePress to enable it.</span>
+                    <span>{plugin.incompatible}. {t('plugins.incompatibleHint')}</span>
                   </div>
                 )}
 
@@ -470,7 +473,7 @@ export default function PluginsPage() {
                 <div>
                   <div className="text-[11px] font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                    Permissions:
+                    {t('plugins.permissions')}
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {plugin.permissions.map((perm) => (
@@ -494,7 +497,7 @@ export default function PluginsPage() {
                     }`}
                   />
                   <span className="text-[11px] font-medium text-muted-foreground">
-                    {plugin.enabled ? 'Enabled' : plugin.loadError ? 'Not running' : plugin.incompatible ? 'Incompatible' : 'Disabled'}
+                    {plugin.enabled ? tc('enabled') : plugin.loadError ? t('plugins.notRunning') : plugin.incompatible ? t('plugins.incompatible') : tc('disabled')}
                     {plugin.nodepress && <span className="ml-1.5 font-mono text-muted-foreground/70">NodePress {plugin.nodepress}</span>}
                   </span>
                 </div>
@@ -509,25 +512,24 @@ export default function PluginsPage() {
                             size="sm"
                             className="h-7 text-xs px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
                             disabled={plugin.enabled}
-                            title={plugin.enabled ? 'Disable it before deleting' : undefined}
+                            title={plugin.enabled ? t('plugins.disableBeforeDelete') : undefined}
                           />
                         }
                       >
                         <Trash2 className="w-3.5 h-3.5 mr-1" />
-                        Delete
+                        {tc('delete')}
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete {plugin.name}?</AlertDialogTitle>
+                          <AlertDialogTitle>{t('plugins.deleteTitle', { name: plugin.name })}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            The package and its settings are removed. It unloads when the server restarts. Content it
-                            created stays.
+                            {t('plugins.deleteDescription')}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                           <AlertDialogAction variant="destructive" onClick={() => handleDelete(plugin)}>
-                            Delete
+                            {tc('delete')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -541,7 +543,7 @@ export default function PluginsPage() {
                     onClick={() => handleOpenSettings(plugin)}
                   >
                     <Settings2 className="w-3.5 h-3.5 mr-1" />
-                    Configure
+                    {t('plugins.configure')}
                   </Button>
                 </div>
               </div>
@@ -557,15 +559,11 @@ export default function PluginsPage() {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-foreground">How plugins run</h4>
+            <h4 className="text-sm font-semibold text-foreground">{t('plugins.howTitle')}</h4>
             <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-              Plugins run inside the NodePress server, so only install plugins you trust. The core still limits what
-              they hook into: a plugin can only subscribe to the events its{' '}
-              <strong className="text-foreground">declared permissions</strong> allow, a failing hook is logged without
-              breaking the request, each hook has a <strong className="text-foreground">5-second timeout</strong>, and
-              turning a plugin off stops its hooks, jobs and API routes immediately — no restart. Installing, updating
-              or deleting an uploaded plugin takes effect after a restart; one that breaks startup is switched off
-              automatically.
+              {t.rich('plugins.howBody', {
+                strong: (chunks) => <strong className="text-foreground">{chunks}</strong>,
+              })}
             </p>
           </div>
         </div>

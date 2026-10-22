@@ -12,7 +12,7 @@ import { UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { SchemaValidator } from '../fields/schema.validator';
 import { FormGenerator } from '../fields/form.generator';
 import { FieldIndexService } from './field-index.service';
-import { FieldDef } from '../fields/field.types';
+import { FieldDef, RelationFieldDef, isReverseRelation } from '../fields/field.types';
 import { normalizeKey } from '../common/normalize';
 
 const ctCacheKey = (name: string) => `ct:meta:${name}`;
@@ -80,6 +80,7 @@ export class ContentTypeService {
 
     // Normalize field names first, then validate
     const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
+    await this.assertReverseFields(name, validatedSchema);
 
     const created = await this.prisma.contentType.create({
       data: {
@@ -152,6 +153,7 @@ export class ContentTypeService {
 
     if (dto.schema !== undefined) {
       const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
+      await this.assertReverseFields(updateData.name ?? current.name, validatedSchema);
       updateData.schema = validatedSchema as any;
     }
 
@@ -186,6 +188,31 @@ export class ContentTypeService {
     }
 
     return warnings.length > 0 ? { ...updated, warnings } : updated;
+  }
+
+  /**
+   * A reverse field (`options.mappedBy`) must name a forward relation field on
+   * the related type that points back at this one.
+   */
+  private async assertReverseFields(typeName: string, schema: FieldDef[]) {
+    const errors: string[] = [];
+    for (const field of schema.filter((f): f is RelationFieldDef => isReverseRelation(f))) {
+      const { relatedContentType, mappedBy } = field.options;
+      const related = relatedContentType === typeName
+        ? { schema }
+        : await this.prisma.contentType.findUnique({ where: { name: relatedContentType } });
+      if (!related) {
+        errors.push(`${field.name}: content type "${relatedContentType}" doesn't exist`);
+        continue;
+      }
+      const back = (related.schema as unknown as FieldDef[]).find((f) => f.name === mappedBy);
+      if (!back || back.type !== 'relation' || isReverseRelation(back)) {
+        errors.push(`${field.name}: "${relatedContentType}" has no relation field "${mappedBy}"`);
+      } else if ((back as RelationFieldDef).options?.relatedContentType !== typeName) {
+        errors.push(`${field.name}: "${relatedContentType}.${mappedBy}" links to "${(back as RelationFieldDef).options?.relatedContentType}", not "${typeName}"`);
+      }
+    }
+    if (errors.length) throw new BadRequestException({ message: 'Invalid schema', errors });
   }
 
   /**

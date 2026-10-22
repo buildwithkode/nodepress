@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
+import { useTranslations } from 'use-intl';
 
 type Delivery = {
   id: number;
@@ -23,6 +24,8 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function WebhookDeliveriesPage() {
+  const t = useTranslations('developer');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [total, setTotal] = useState(0);
@@ -50,31 +53,31 @@ export default function WebhookDeliveriesPage() {
           onClick={() => router.push('/webhooks')}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          ← Webhooks
+          ← {t('deliveries.back')}
         </button>
-        <h1 className="text-xl font-semibold">Delivery Log</h1>
+        <h1 className="text-xl font-semibold">{t('deliveries.title')}</h1>
         <span className="text-xs text-muted-foreground border border-border rounded-full px-2 py-0.5">
-          {total} total
+          {t('deliveries.total', { count: total })}
         </span>
       </div>
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
+        <div className="text-sm text-muted-foreground">{tc('loading')}</div>
       ) : deliveries.length === 0 ? (
         <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
-          No deliveries yet. Webhook events will appear here once fired.
+          {t('deliveries.empty')}
         </div>
       ) : (
         <div className="rounded-xl border border-border overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-muted/40 border-b border-border">
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Event</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Attempts</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t('deliveries.colEvent')}</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{tc('status')}</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">{t('deliveries.colAttempts')}</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">HTTP</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Next retry</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Time</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">{t('deliveries.colNextRetry')}</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">{t('deliveries.colTime')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -90,7 +93,7 @@ export default function WebhookDeliveriesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_STYLES[d.status] ?? ''}`}>
-                      {d.status}
+                      {t(`deliveries.status.${d.status}`)}
                     </span>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">{d.attempts}/3</td>
@@ -100,7 +103,7 @@ export default function WebhookDeliveriesPage() {
                   <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">
                     {d.nextRetryAt
                       ? new Date(d.nextRetryAt).toLocaleString()
-                      : d.status === 'delivered' ? '—' : 'exhausted'}
+                      : d.status === 'delivered' ? '—' : t('deliveries.exhausted')}
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-muted-foreground text-xs">
                     {new Date(d.createdAt).toLocaleString()}
@@ -114,21 +117,21 @@ export default function WebhookDeliveriesPage() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4 text-sm">
-          <span className="text-muted-foreground">Page {page} of {totalPages}</span>
+          <span className="text-muted-foreground">{tc('page', { page, total: totalPages })}</span>
           <div className="flex gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
               className="px-3 py-1.5 rounded border border-border disabled:opacity-40 hover:bg-muted/40 transition-colors"
             >
-              Previous
+              {tc('previous')}
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-3 py-1.5 rounded border border-border disabled:opacity-40 hover:bg-muted/40 transition-colors"
             >
-              Next
+              {tc('next')}
             </button>
           </div>
         </div>

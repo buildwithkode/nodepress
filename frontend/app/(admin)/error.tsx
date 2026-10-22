@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
+import { useTranslations } from 'use-intl';
 
 export default function AdminError({
   error,
@@ -13,6 +14,7 @@ export default function AdminError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations('errors');
   const router = useRouter();
 
   useEffect(() => {
@@ -26,10 +28,10 @@ export default function AdminError({
         <CardHeader>
           <div className="flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
-            <CardTitle>Something went wrong</CardTitle>
+            <CardTitle>{t('page.title')}</CardTitle>
           </div>
           <CardDescription>
-            An unexpected error occurred in this page. Your data is safe — this is a display error only.
+            {t('page.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -41,15 +43,15 @@ export default function AdminError({
           )}
           {error.digest && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Error ID: <span className="font-mono">{error.digest}</span>
+              {t('page.errorId')} <span className="font-mono">{error.digest}</span>
             </p>
           )}
         </CardContent>
         <CardFooter className="gap-2">
           <Button variant="outline" onClick={() => router.push('/')}>
-            Go to Dashboard
+            {t('page.goToDashboard')}
           </Button>
-          <Button onClick={reset}>Try Again</Button>
+          <Button onClick={reset}>{t('page.tryAgain')}</Button>
         </CardFooter>
       </Card>
     </div>

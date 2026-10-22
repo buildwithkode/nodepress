@@ -1,0 +1,70 @@
+{
+  "entryCount": "{count, plural, one {# entry} other {# entries}}",
+  "statuses": {
+    "open": "Open",
+    "scheduled": "Scheduled",
+    "publishing": "Publishing",
+    "published": "Published",
+    "failed": "Failed"
+  },
+  "actions": {
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "archive": "Archive"
+  },
+  "list": {
+    "title": "Releases",
+    "description": "Group entry changes — publish, unpublish, archive — and put them live together, now or at a set time. Add entries from the Entries list or an entry’s editor.",
+    "namePlaceholder": "New release name, e.g. Spring launch",
+    "empty": "No releases yet.",
+    "upcoming": "Upcoming",
+    "published": "Published",
+    "publishedAt": "published {date}",
+    "loadFailed": "Failed to load releases",
+    "createFailed": "Could not create the release"
+  },
+  "detail": {
+    "notFound": "Release not found",
+    "publishedAt": "Published {date}",
+    "publishNow": "Publish now",
+    "publish": "Publish",
+    "publishConfirmTitle": "Publish “{name}”?",
+    "publishConfirmDescription": "{count, plural, one {# change goes} other {# changes go}} live together, in one step. This can’t be undone as a whole.",
+    "publishedToast": "Release published",
+    "publishFailed": "Publishing failed — nothing was changed. {error}",
+    "schedule": "Schedule",
+    "scheduledFor": "Goes live automatically on {date}.",
+    "scheduleHint": "Pick a time and the release goes live by itself (checked every minute).",
+    "scheduledToast": "Release scheduled",
+    "unschedule": "Unschedule",
+    "unscheduledToast": "Schedule removed",
+    "entriesTitle": "Entries ({count})",
+    "entriesDescription": "Each entry goes out as it is at publish time — keep editing until then. Add entries from the <link>Entries</link> list.",
+    "noEntries": "No entries yet.",
+    "currentStatus": "now {status}",
+    "deletedSkipped": "deleted — will be skipped",
+    "conflicts": "Also in {releases} — whichever goes out last wins.",
+    "conflictItem": "“{name}” ({action})",
+    "removeItem": "Remove from release",
+    "deleteRelease": "Delete release",
+    "deleteConfirmTitle": "Delete “{name}”?",
+    "deleteConfirmDescription": "The release is removed. Its entries stay exactly as they are.",
+    "deleteFailed": "Could not delete"
+  },
+  "addDialog": {
+    "title": "Add to release",
+    "description": "A release applies all its changes at once — when you publish it, or at its scheduled time.",
+    "release": "Release",
+    "newRelease": "New release…",
+    "namePlaceholder": "e.g. Spring launch",
+    "nameRequired": "Name the release",
+    "whenGoesOut": "When the release goes out",
+    "actionOption": {
+      "publish": "{count, plural, one {Publish this entry} other {Publish these entries}}",
+      "unpublish": "{count, plural, one {Unpublish this entry} other {Unpublish these entries}}",
+      "archive": "{count, plural, one {Archive this entry} other {Archive these entries}}"
+    },
+    "added": "{count, plural, one {Added # entry} other {Added # entries}} — <link>open release</link>",
+    "addFailed": "Could not add to the release"
+  }
+}

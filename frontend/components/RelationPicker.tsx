@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { X, ChevronDown, Loader2, Link2 } from 'lucide-react';
+import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,12 +25,13 @@ interface Props {
   onChange: (val: string | string[] | null) => void;
 }
 
-function firstTextField(data: Record<string, any>): string {
+export function firstTextField(data: Record<string, any>): string {
   const val = Object.values(data).find((v) => typeof v === 'string' && v.length > 0);
   return typeof val === 'string' ? val.slice(0, 50) : '';
 }
 
 export function RelationPicker({ relatedContentType, cardinality, value, onChange }: Props) {
+  const t = useTranslations('entryEditor');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -128,6 +130,7 @@ export function RelationPicker({ relatedContentType, cardinality, value, onChang
                 )}
                 <button
                   type="button"
+                  aria-label={t('relation.remove')}
                   onClick={() => remove(id)}
                   className="ml-0.5 rounded hover:text-destructive"
                 >
@@ -149,8 +152,8 @@ export function RelationPicker({ relatedContentType, cardinality, value, onChang
             onClick={() => setOpen((o) => !o)}
           >
             {relatedContentType
-              ? `Pick ${relatedContentType.replace(/_/g, ' ')}…`
-              : 'Select content type first'}
+              ? t('relation.pick', { type: relatedContentType.replace(/_/g, ' ') })
+              : t('relation.selectTypeFirst')}
             <ChevronDown className="h-3.5 w-3.5 ml-2" />
           </Button>
 
@@ -159,7 +162,7 @@ export function RelationPicker({ relatedContentType, cardinality, value, onChang
               <div className="p-2 border-b">
                 <Input
                   autoFocus
-                  placeholder={`Search ${relatedContentType}…`}
+                  placeholder={t('relation.search', { type: relatedContentType })}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="h-7 text-xs"
@@ -172,7 +175,7 @@ export function RelationPicker({ relatedContentType, cardinality, value, onChang
                   </div>
                 )}
                 {!loading && entries.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-4">No entries found</p>
+                  <p className="text-xs text-muted-foreground text-center py-4">{t('relation.noEntries')}</p>
                 )}
                 {entries.map((entry) => {
                   const isSelected = selectedIds.includes(entry.publicId);
@@ -194,7 +197,7 @@ export function RelationPicker({ relatedContentType, cardinality, value, onChang
               </div>
               <div className="border-t p-1.5 flex justify-end">
                 <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setOpen(false)}>
-                  Done
+                  {t('relation.done')}
                 </Button>
               </div>
             </div>
@@ -203,7 +206,7 @@ export function RelationPicker({ relatedContentType, cardinality, value, onChang
       )}
 
       {!relatedContentType && (
-        <p className="text-xs text-muted-foreground/60 italic">Configure a related content type in the schema first.</p>
+        <p className="text-xs text-muted-foreground/60 italic">{t('relation.configureFirst')}</p>
       )}
     </div>
   );

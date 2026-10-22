@@ -14,6 +14,7 @@ export type WebhookEvent =
   | 'entry.staged'
   | 'entry.published'
   | 'entry.promoted'
+  | 'release.published'
   | 'media.uploaded'
   | 'media.deleted'
   | '*';

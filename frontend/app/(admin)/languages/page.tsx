@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import { Languages, Loader2, Plus, Star, X } from 'lucide-react';
 import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/axios';
@@ -15,6 +16,8 @@ const CODE_RE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
 
 /** Settings → Languages: which content languages editors can write in, and the default. */
 export default function LanguagesPage() {
+  const t = useTranslations('settings.languages');
+  const tc = useTranslations('common');
   const [saved, setSaved] = useState<LocalesConfig | null>(null);
   const [locales, setLocales] = useState<string[]>([]);
   const [defaultLocale, setDefaultLocale] = useState('en');
@@ -55,9 +58,9 @@ export default function LanguagesPage() {
       setSaved(res.data);
       setLocales(res.data.locales);
       await loadLocales(true); // refresh the shared cache used by the editors
-      toast.success('Languages saved');
+      toast.success(t('toasts.saved'));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'Could not save languages');
+      toast.error(err?.response?.data?.message ?? t('toasts.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -71,24 +74,22 @@ export default function LanguagesPage() {
       <div className="w-full space-y-6">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Languages className="h-5 w-5" /> Languages
+            <Languages className="h-5 w-5" /> {t('title')}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            The languages editors can write content in. Each entry can have one translation per language; the
-            default language is used when an API request doesn&apos;t ask for one, and as the fallback with{' '}
-            <code className="text-xs">?fallback=true</code>.
+            {t.rich('subtitle', { code: () => <code className="text-xs">?fallback=true</code> })}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <Card>
             <CardHeader>
-              <CardTitle>Enabled languages</CardTitle>
-              <CardDescription>Removing a language keeps its entries; it just stops being offered in the editor.</CardDescription>
+              <CardTitle>{t('enabled.title')}</CardTitle>
+              <CardDescription>{t('enabled.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {!saved ? (
-                <div className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {tc('loading')}</div>
               ) : (
                 <ul className="divide-y divide-border rounded-md border border-border">
                   {locales.map((code) => (
@@ -96,25 +97,25 @@ export default function LanguagesPage() {
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{localeLabel(code)}</p>
                         <p className="text-xs text-muted-foreground font-mono">
-                          {code} · {usage[code] ?? 0} {usage[code] === 1 ? 'entry' : 'entries'}
+                          {code} · {t('enabled.entryCount', { count: usage[code] ?? 0 })}
                         </p>
                       </div>
                       {code === defaultLocale ? (
                         <span className="inline-flex items-center gap-1 text-xs text-primary font-medium">
-                          <Star className="h-3.5 w-3.5 fill-current" /> Default
+                          <Star className="h-3.5 w-3.5 fill-current" /> {t('enabled.default')}
                         </span>
                       ) : (
                         <>
                           <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setDefaultLocale(code)}>
-                            Make default
+                            {t('enabled.makeDefault')}
                           </Button>
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon-xs"
                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                            title={usage[code] ? `${usage[code]} entries stay, but the language is no longer offered` : 'Remove'}
-                            aria-label={`Remove ${localeLabel(code)}`}
+                            title={usage[code] ? t('enabled.removeWithEntries', { count: usage[code] }) : tc('remove')}
+                            aria-label={t('enabled.removeLabel', { language: localeLabel(code) })}
                             onClick={() => remove(code)}
                           >
                             <X className="h-3.5 w-3.5" />
@@ -128,7 +129,7 @@ export default function LanguagesPage() {
 
               {orphaned.length > 0 && (
                 <p className="text-xs text-amber-500">
-                  Entries exist in languages that aren&apos;t enabled:{' '}
+                  {t('enabled.orphaned')}{' '}
                   {orphaned.map((c, i) => (
                     <span key={c}>
                       {i > 0 && ', '}
@@ -137,14 +138,14 @@ export default function LanguagesPage() {
                       </button>
                     </span>
                   ))}
-                  . Click one to enable it.
+                  {t('enabled.orphanedHint')}
                 </p>
               )}
 
               <div className="flex justify-end">
                 <Button type="button" onClick={save} disabled={!dirty || saving}>
                   {saving && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
-                  Save changes
+                  {t('saveChanges')}
                 </Button>
               </div>
             </CardContent>
@@ -152,8 +153,8 @@ export default function LanguagesPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Add a language</CardTitle>
-              <CardDescription>Use a language code such as <code>fr</code>, <code>pt-BR</code> or <code>zh-Hant</code>.</CardDescription>
+              <CardTitle>{t('add.title')}</CardTitle>
+              <CardDescription>{t.rich('add.description', { code: (chunks) => <code>{chunks}</code> })}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <form
@@ -162,11 +163,11 @@ export default function LanguagesPage() {
               >
                 <input
                   className={inputCls + ' font-mono'}
-                  placeholder="e.g. fr"
+                  placeholder={t('add.placeholder', { example: 'fr' })}
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value)}
                   list="language-suggestions"
-                  aria-label="Language code"
+                  aria-label={t('add.codeLabel')}
                 />
                 <datalist id="language-suggestions">
                   {COMMON.filter((c) => !locales.includes(c)).map((c) => (
@@ -174,11 +175,11 @@ export default function LanguagesPage() {
                   ))}
                 </datalist>
                 <Button type="submit" variant="outline" disabled={!candidateValid}>
-                  <Plus className="h-4 w-4 mr-1" /> Add
+                  <Plus className="h-4 w-4 mr-1" /> {tc('add')}
                 </Button>
               </form>
               <p className="text-xs text-muted-foreground min-h-4">
-                {candidate && (candidateValid ? `Adds ${localeLabel(candidate)}` : locales.includes(candidate) ? 'Already enabled' : 'Not a valid language code')}
+                {candidate && (candidateValid ? t('add.willAdd', { language: localeLabel(candidate) }) : locales.includes(candidate) ? t('add.alreadyEnabled') : t('add.invalidCode'))}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {COMMON.filter((c) => !locales.includes(c)).slice(0, 14).map((c) => (

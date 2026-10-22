@@ -13,6 +13,7 @@ import {
   Move,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import Cookies from 'js-cookie';
 import {
   Dialog,
@@ -41,6 +42,8 @@ export function ImageCropModal({
   altText = '',
   onCropComplete,
 }: Props) {
+  const t = useTranslations('entryEditor');
+  const tc = useTranslations('common');
   const [targetWidth, setTargetWidth] = useState<number>(800);
   const [targetHeight, setTargetHeight] = useState<number>(600);
   const [aspectLocked, setAspectLocked] = useState<boolean>(false);
@@ -129,7 +132,7 @@ export function ImageCropModal({
     setTargetHeight(naturalDim.height);
     setAspectRatio(naturalDim.width / (naturalDim.height || 1));
     setAspectLocked(false);
-    toast.info('Reset to 100% size & original dimensions');
+    toast.info(t('cropModal.resetToast'));
   };
 
   // Pan / Drag Handlers
@@ -178,7 +181,7 @@ export function ImageCropModal({
     try {
       const container = containerRef.current;
       const img = imageRef.current;
-      if (!container || !img) throw new Error('Preview not ready');
+      if (!container || !img) throw new Error(t('cropModal.errorPreview'));
 
       const containerRect = container.getBoundingClientRect();
       const imgRect = img.getBoundingClientRect();
@@ -191,7 +194,7 @@ export function ImageCropModal({
       canvas.width = outW;
       canvas.height = outH;
       const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not create canvas context');
+      if (!ctx) throw new Error(t('cropModal.errorCanvas'));
 
       // Calculate source image coordinates corresponding to the visible container box
       const scaleX = naturalDim.width / imgRect.width;
@@ -233,7 +236,7 @@ export function ImageCropModal({
         canvas.toBlob((b) => resolve(b), 'image/webp', 0.9);
       });
 
-      if (!blob) throw new Error('Failed to generate image file');
+      if (!blob) throw new Error(t('cropModal.errorGenerate'));
 
       // Upload cropped derivative
       const ext = 'webp';
@@ -250,10 +253,10 @@ export function ImageCropModal({
         body: formData,
       });
 
-      if (!res.ok) throw new Error('Failed to save cropped image');
+      if (!res.ok) throw new Error(t('cropModal.errorSave'));
       const uploaded = await res.json();
 
-      toast.success('Image cropped and saved successfully');
+      toast.success(t('cropModal.saved'));
       onCropComplete({
         url: uploaded.url || uploaded.webpUrl,
         alt: altText,
@@ -262,7 +265,7 @@ export function ImageCropModal({
       });
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err.message || 'Crop failed');
+      toast.error(err.message || t('cropModal.failed'));
     } finally {
       setSaving(false);
     }
@@ -274,10 +277,10 @@ export function ImageCropModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Crop className="h-5 w-5 text-indigo-400" />
-            Image Crop & Resize
+            {t('cropModal.title')}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Adjust custom width & height, zoom level (0% to 300%), and drag to frame your image perfectly.
+            {t('cropModal.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -287,10 +290,10 @@ export function ImageCropModal({
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <Move className="h-3.5 w-3.5" />
-                Drag to Reposition
+                {t('cropModal.drag')}
               </span>
               <span className="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                Output: {currentW} × {currentH} px
+                {t('cropModal.output', { width: currentW, height: currentH })}
               </span>
             </div>
 
@@ -339,7 +342,7 @@ export function ImageCropModal({
                   <img
                     ref={imageRef}
                     src={imageUrl}
-                    alt="Crop preview"
+                    alt={t('cropModal.previewAlt')}
                     draggable={false}
                     style={{
                       aspectRatio: `${naturalDim.width} / ${naturalDim.height}`,
@@ -352,7 +355,7 @@ export function ImageCropModal({
                     className="object-contain pointer-events-none select-none shrink-0"
                   />
                 ) : (
-                  <div className="text-xs text-muted-foreground">No image loaded</div>
+                  <div className="text-xs text-muted-foreground">{t('cropModal.noImage')}</div>
                 )}
               </div>
             </div>
@@ -362,7 +365,7 @@ export function ImageCropModal({
               <div className="flex items-center justify-between text-xs">
                 <Label className="text-xs font-medium flex items-center gap-1.5">
                   <ZoomIn className="h-3.5 w-3.5 text-indigo-400" />
-                  Zoom Level
+                  {t('cropModal.zoom')}
                 </Label>
                 <span className="font-mono font-medium px-1.5 py-0.5 rounded bg-muted text-foreground">
                   {Math.round(zoom * 100)}%
@@ -376,6 +379,7 @@ export function ImageCropModal({
                   size="icon-xs"
                   className="h-7 w-7 shrink-0"
                   onClick={() => setZoom((z) => Math.max(0, Number((z - 0.1).toFixed(2))))}
+                  aria-label={t('cropModal.zoomOut')}
                 >
                   <ZoomOut className="h-3.5 w-3.5" />
                 </Button>
@@ -388,6 +392,7 @@ export function ImageCropModal({
                   value={zoom}
                   onChange={(e) => setZoom(Number(e.target.value))}
                   className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  aria-label={t('cropModal.zoom')}
                 />
 
                 <Button
@@ -396,6 +401,7 @@ export function ImageCropModal({
                   size="icon-xs"
                   className="h-7 w-7 shrink-0"
                   onClick={() => setZoom((z) => Math.min(3, Number((z + 0.1).toFixed(2))))}
+                  aria-label={t('cropModal.zoomIn')}
                 >
                   <ZoomIn className="h-3.5 w-3.5" />
                 </Button>
@@ -407,12 +413,12 @@ export function ImageCropModal({
           <div className="flex flex-col justify-between space-y-4 rounded-lg border border-border/60 bg-muted/10 p-4">
             <div className="space-y-4">
               <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wider block">
-                Crop Dimensions
+                {t('cropModal.dimensions')}
               </span>
 
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="crop-w" className="text-xs font-medium">Width (px)</Label>
+                  <Label htmlFor="crop-w" className="text-xs font-medium">{t('cropModal.width')}</Label>
                   <Input
                     id="crop-w"
                     type="number"
@@ -424,7 +430,7 @@ export function ImageCropModal({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="crop-h" className="text-xs font-medium">Height (px)</Label>
+                  <Label htmlFor="crop-h" className="text-xs font-medium">{t('cropModal.height')}</Label>
                   <Input
                     id="crop-h"
                     type="number"
@@ -443,13 +449,13 @@ export function ImageCropModal({
                   className="w-full text-xs gap-1.5 h-8 font-medium justify-start"
                 >
                   {aspectLocked ? <Lock className="h-3.5 w-3.5 text-indigo-400" /> : <Unlock className="h-3.5 w-3.5 text-muted-foreground" />}
-                  {aspectLocked ? 'Aspect Ratio Locked' : 'Lock Aspect Ratio'}
+                  {aspectLocked ? t('cropModal.aspectLocked') : t('cropModal.lockAspect')}
                 </Button>
               </div>
 
               {/* Quick Aspect Presets */}
               <div className="space-y-1.5 pt-1">
-                <Label className="text-[11px] text-muted-foreground block">Preset Ratios</Label>
+                <Label className="text-[11px] text-muted-foreground block">{t('cropModal.presets')}</Label>
                 <div className="grid grid-cols-2 gap-1.5">
                   <Button
                     type="button"
@@ -463,7 +469,7 @@ export function ImageCropModal({
                       setAspectLocked(true);
                     }}
                   >
-                    1:1 Square
+                    {t('cropModal.presetSquare')}
                   </Button>
                   <Button
                     type="button"
@@ -477,7 +483,7 @@ export function ImageCropModal({
                       setAspectLocked(true);
                     }}
                   >
-                    4:3 Standard
+                    {t('cropModal.presetStandard')}
                   </Button>
                   <Button
                     type="button"
@@ -491,7 +497,7 @@ export function ImageCropModal({
                       setAspectLocked(true);
                     }}
                   >
-                    16:9 Banner
+                    {t('cropModal.presetBanner')}
                   </Button>
                   <Button
                     type="button"
@@ -506,9 +512,9 @@ export function ImageCropModal({
                       setZoom(1);
                       setPosition({ x: 0, y: 0 });
                     }}
-                    title={`Original Exact Dimensions (${naturalDim.width}×${naturalDim.height}px)`}
+                    title={t('cropModal.presetOriginalTitle', { width: naturalDim.width, height: naturalDim.height })}
                   >
-                    OG Image
+                    {t('cropModal.presetOriginal')}
                   </Button>
                 </div>
               </div>
@@ -523,7 +529,7 @@ export function ImageCropModal({
                 onClick={handleReset}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                Reset to OG Size
+                {t('cropModal.reset')}
               </Button>
             </div>
           </div>
@@ -531,7 +537,7 @@ export function ImageCropModal({
 
         <DialogFooter className="pt-2 flex items-center justify-between sm:justify-between w-full">
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>
-            Cancel
+            {tc('cancel')}
           </Button>
 
           <Button
@@ -541,7 +547,7 @@ export function ImageCropModal({
             disabled={saving || !imageUrl}
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-            {saving ? 'Cropping & Saving…' : 'Apply & Save Crop'}
+            {saving ? t('cropModal.saving') : t('cropModal.apply')}
           </Button>
         </DialogFooter>
       </DialogContent>

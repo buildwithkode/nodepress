@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import {
   Plus,
   ArrowRight,
@@ -32,6 +33,7 @@ import {
   Clock,
   ExternalLink,
   FileText,
+  Package,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -62,16 +64,17 @@ import { useLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
 import { cn, ctLabel } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { canManageContent, canManageSettings } from '@/lib/roles';
+import { AddToReleaseDialog } from '@/components/AddToReleaseDialog';
+import { canManageContent, canManageSettings, canPublishContent } from '@/lib/roles';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
-function truncate(val: any, max = 60): string {
+function truncate(val: any, itemsLabel: (count: number) => string, max = 60): string {
   if (val === null || val === undefined) return '—';
-  if (Array.isArray(val)) return `${val.length} item${val.length !== 1 ? 's' : ''}`;
+  if (Array.isArray(val)) return itemsLabel(val.length);
   if (typeof val === 'object') {
     // ImageValue: { url, alt }
     if (typeof val.url === 'string') return val.url;
@@ -85,12 +88,13 @@ function truncate(val: any, max = 60): string {
   return str.length > max ? str.slice(0, max) + '…' : str;
 }
 
-const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  published:      { label: 'Production',     className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' },
-  staging:        { label: 'Staging (QA)',   className: 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800' },
-  pending_review: { label: 'Pending Review', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40 font-medium' },
-  draft:          { label: 'Draft',          className: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700' },
-  archived:       { label: 'Archived',       className: 'bg-muted text-muted-foreground border border-border' },
+// labelKey is in the `entries` namespace; commonKey in `common`.
+const STATUS_LABELS: Record<string, { labelKey?: string; commonKey?: string; className: string }> = {
+  published:      { labelKey: 'stages.production',    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' },
+  staging:        { labelKey: 'stages.staging',       className: 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800' },
+  pending_review: { labelKey: 'stages.pendingReview', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40 font-medium' },
+  draft:          { commonKey: 'statuses.draft',      className: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700' },
+  archived:       { commonKey: 'statuses.archived',   className: 'bg-muted text-muted-foreground border border-border' },
 };
 
 interface Field { name: string; label?: string; type: string; options?: any }
@@ -104,6 +108,8 @@ interface Entry {
 }
 
 export default function EntriesPage() {
+  const t = useTranslations('entries');
+  const tc = useTranslations('common');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -133,6 +139,7 @@ export default function EntriesPage() {
   // Bulk selection
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [releaseOpen, setReleaseOpen] = useState(false);
 
   // Trash / Recycle Bin view
   const [showTrash, setShowTrash] = useState(false);
@@ -199,7 +206,7 @@ export default function EntriesPage() {
           setPendingCounts(Object.fromEntries(counts.map((c) => [c.id, c.pendingCount])));
         }
       } catch {
-        toast.error('Failed to load content types');
+        toast.error(t('toasts.loadContentTypesFailed'));
       } finally {
         if (mounted) setLoadingCTs(false);
       }
@@ -226,7 +233,7 @@ export default function EntriesPage() {
     }
     api.get('/entries', { params })
       .then((res) => setEntries(res.data.data ?? res.data))
-      .catch(() => toast.error('Failed to load entries'))
+      .catch(() => toast.error(t('toasts.loadEntriesFailed')))
       .finally(() => setLoadingEntries(false));
   }, [selectedCT?.id, statusFilter, localeFilter, showTrash]);
 
@@ -267,10 +274,10 @@ export default function EntriesPage() {
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/entries/${id}`);
-      toast.success('Entry moved to recycle bin');
+      toast.success(t('toasts.movedToTrash'));
       await refreshEntries(false);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Delete failed');
+      toast.error(err.response?.data?.message || t('toasts.deleteFailed'));
     }
   };
 
@@ -278,20 +285,20 @@ export default function EntriesPage() {
   const handleRestore = async (id: number) => {
     try {
       await api.post(`/entries/${id}/restore`);
-      toast.success('Entry restored');
+      toast.success(t('toasts.restored'));
       await refreshEntries(true);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Restore failed');
+      toast.error(err.response?.data?.message || t('toasts.restoreFailed'));
     }
   };
 
   const handlePurge = async (id: number) => {
     try {
       await api.delete(`/entries/${id}/purge`);
-      toast.success('Entry permanently deleted');
+      toast.success(t('toasts.purged'));
       await refreshEntries(true);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Purge failed');
+      toast.error(err.response?.data?.message || t('toasts.purgeFailed'));
     }
   };
 
@@ -299,13 +306,13 @@ export default function EntriesPage() {
   const handlePromote = async (entryId: number, targetStatus: string) => {
     try {
       await api.post(`/entries/${entryId}/promote`, { status: targetStatus });
-      const stageName = targetStatus === 'published' ? 'Production' : targetStatus === 'staging' ? 'Staging (QA)' : targetStatus;
-      toast.success(`Entry promoted to ${stageName}`);
+      const stageName = targetStatus === 'published' ? t('stages.production') : targetStatus === 'staging' ? t('stages.staging') : targetStatus;
+      toast.success(t('toasts.promoted', { stage: stageName }));
       setEntries((prev) =>
         prev.map((e) => (e.id === entryId ? { ...e, status: targetStatus } : e)),
       );
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to promote entry');
+      toast.error(err?.response?.data?.message || t('toasts.promoteFailed'));
     }
   };
 
@@ -344,9 +351,9 @@ export default function EntriesPage() {
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(`${format.toUpperCase()} export downloaded`);
+      toast.success(t('toasts.exportDownloaded', { format: format.toUpperCase() }));
     } catch {
-      toast.error('Export failed');
+      toast.error(t('toasts.exportFailed'));
     } finally {
       setExportingFormat(null);
     }
@@ -383,7 +390,7 @@ export default function EntriesPage() {
     } catch (err: any) {
       setImportPreflight({
         valid: false,
-        errors: [err.response?.data?.message || err.message || 'Invalid format'],
+        errors: [err.response?.data?.message || err.message || t('import.invalidFormat')],
       });
     } finally {
       setPreflightLoading(false);
@@ -400,7 +407,7 @@ export default function EntriesPage() {
       setImportPayloadText(text);
       await runPreflightImport(text, detectedFormat, importUpdateDuplicates);
     } catch {
-      toast.error('Failed to read file');
+      toast.error(t('toasts.readFileFailed'));
     }
     e.target.value = '';
   };
@@ -432,17 +439,17 @@ export default function EntriesPage() {
 
       const { created = 0, updated = 0, errors = [] } = res.data ?? {};
       const parts: string[] = [];
-      if (created) parts.push(`created ${created}`);
-      if (updated) parts.push(`updated ${updated}`);
-      const summary = parts.length ? parts.join(', ') : 'no changes';
-      toast.success(`Import complete: ${summary}${errors.length ? ` (${errors.length} skipped)` : ''}`);
+      if (created) parts.push(t('toasts.importCreated', { count: created }));
+      if (updated) parts.push(t('toasts.importUpdated', { count: updated }));
+      const summary = parts.length ? parts.join(', ') : t('toasts.importNoChanges');
+      toast.success(`${t('toasts.importComplete', { summary })}${errors.length ? ` ${t('toasts.importSkipped', { count: errors.length })}` : ''}`);
 
       setImportDialogOpen(false);
       setImportPayloadText('');
       setImportPreflight(null);
       await refreshEntries();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Import execution failed');
+      toast.error(err.response?.data?.message || t('toasts.importFailed'));
     } finally {
       setImportExecuting(false);
     }
@@ -454,11 +461,11 @@ export default function EntriesPage() {
     setBulkLoading(true);
     try {
       const res = await api.post(`/entries/${action}`, { ids: Array.from(selected) });
-      const label = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published to production' : action === 'bulk-stage' ? 'promoted to staging' : action === 'bulk-pending-review' ? 'submitted for review' : 'archived';
-      toast.success(`${res.data.affected} ${res.data.affected === 1 ? 'entry' : 'entries'} ${label}`);
+      const key = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published' : action === 'bulk-stage' ? 'staged' : action === 'bulk-pending-review' ? 'submitted' : 'archived';
+      toast.success(t(`bulk.done.${key}`, { count: res.data.affected }));
       await refreshEntries();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Bulk action failed');
+      toast.error(err.response?.data?.message || t('toasts.bulkFailed'));
     } finally {
       setBulkLoading(false);
     }
@@ -487,18 +494,18 @@ export default function EntriesPage() {
           data: entry.data,
           contentTypeId: entry.contentTypeId,
         });
-        toast.success(`Duplicated as "${slug}"`);
+        toast.success(t('toasts.duplicated', { slug }));
         router.push(`/entries/${res.data.id}/edit`);
         return;
       } catch (err: any) {
         if (err.response?.status !== 409) {
-          toast.error(err.response?.data?.message || 'Duplicate failed');
+          toast.error(err.response?.data?.message || t('toasts.duplicateFailed'));
           setDuplicating(null);
           return;
         }
       }
     }
-    toast.error('Could not find a unique slug for the duplicate');
+    toast.error(t('toasts.noUniqueSlug'));
     setDuplicating(null);
   };
 
@@ -511,9 +518,9 @@ export default function EntriesPage() {
     const url = `${window.location.origin}/api/${typeName.replace(/_/g, '-')}/${entry.slug}`;
     try {
       await navigator.clipboard.writeText(url);
-      toast.success('API URL copied to clipboard');
+      toast.success(t('toasts.urlCopied'));
     } catch {
-      toast.error('Could not copy URL');
+      toast.error(t('toasts.copyUrlFailed'));
     }
   };
 
@@ -542,12 +549,12 @@ export default function EntriesPage() {
       return (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Layers className="h-10 w-10 text-muted-foreground/40 mb-3" />
-          <p className="text-sm font-medium text-muted-foreground">No content types yet</p>
+          <p className="text-sm font-medium text-muted-foreground">{t('cards.noContentTypes')}</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
-            Create a content type first to start adding entries.
+            {t('cards.noContentTypesHint')}
           </p>
           <Button className="mt-4" size="sm" onClick={() => router.push('/content-types/new')}>
-            <Plus className="h-4 w-4 mr-1.5" /> New Content Type
+            <Plus className="h-4 w-4 mr-1.5" /> {t('cards.newContentType')}
           </Button>
         </div>
       );
@@ -573,7 +580,7 @@ export default function EntriesPage() {
                     <CardTitle className="text-base flex items-center gap-2">
                       {ctLabel(ct)}
                       {pendingCount > 0 && (
-                        <span className="relative flex h-2 w-2" title={`${pendingCount} ${pendingCount === 1 ? 'entry' : 'entries'} pending review`}>
+                        <span className="relative flex h-2 w-2" title={t('cards.pendingTitle', { count: pendingCount })}>
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                         </span>
@@ -586,34 +593,34 @@ export default function EntriesPage() {
                         variant="outline"
                         className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 gap-1 text-[11px] font-semibold py-0.5 px-2 cursor-pointer hover:bg-amber-500/25 transition-colors"
                         onClick={() => router.push(`/entries?ct=${ct.name}&status=pending_review`)}
-                        title="Click to view entries awaiting review"
+                        title={t('cards.pendingBadgeTitle')}
                       >
                         <Clock className="h-3 w-3" />
-                        {pendingCount} Pending Review
+                        {t('cards.pendingBadge', { count: pendingCount })}
                       </Badge>
                     )}
                     <Badge variant="secondary" className="shrink-0 tabular-nums">
-                      {count === undefined ? '…' : `${count} ${count === 1 ? 'entry' : 'entries'}`}
+                      {count === undefined ? '…' : t('cards.entryCount', { count })}
                     </Badge>
                   </div>
                 </div>
                 <CardDescription className="text-xs truncate">
                   {fields.length > 0
-                    ? fields.join(', ') + (ct.schema.length > 3 ? ` +${ct.schema.length - 3} more` : '')
-                    : 'No fields defined'}
+                    ? fields.join(', ') + (ct.schema.length > 3 ? ` ${t('cards.moreFields', { count: ct.schema.length - 3 })}` : '')
+                    : t('cards.noFields')}
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto gap-2">
                 {canEdit && (
                   <Button onClick={() => router.push(`/entries/new?ct=${ct.id}`)}>
-                    <Plus className="h-4 w-4 mr-1.5" /> New Entry
+                    <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
                   </Button>
                 )}
                 <Button
                   variant="outline"
                   onClick={() => router.push(`/entries?ct=${ct.name}`)}
                 >
-                  View Entries <ArrowRight className="h-4 w-4 ml-1" />
+                  {t('cards.viewEntries')} <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardFooter>
             </Card>
@@ -658,7 +665,7 @@ export default function EntriesPage() {
             className="gap-1.5 font-medium bg-background text-foreground hover:bg-muted border-border shadow-sm h-8 text-xs"
             onClick={() => { setShowTrash(false); setSelected(new Set()); }}
           >
-            <ArrowLeft className="h-3.5 w-3.5 text-amber-500" /> Back to Entries
+            <ArrowLeft className="h-3.5 w-3.5 text-amber-500" /> {t('toolbar.backToEntries')}
           </Button>
         ) : (
           <Button
@@ -667,7 +674,7 @@ export default function EntriesPage() {
             className="gap-1.5 text-muted-foreground"
             onClick={() => router.push('/entries')}
           >
-            <ArrowLeft className="h-4 w-4" /> All Types
+            <ArrowLeft className="h-4 w-4" /> {t('toolbar.allTypes')}
           </Button>
         )}
         <span className="text-muted-foreground/40 text-sm">/</span>
@@ -676,7 +683,7 @@ export default function EntriesPage() {
           <>
             <span className="text-muted-foreground/40 text-sm">/</span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">
-              <RotateCcw className="h-3 w-3" /> Recycle Bin
+              <RotateCcw className="h-3 w-3" /> {t('trash.title')}
             </span>
           </>
         )}
@@ -688,20 +695,20 @@ export default function EntriesPage() {
               size="sm"
               className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
               onClick={() => router.push(`/content-types/${selectedCT.id}/edit`)}
-              title="Edit Content Type Schema"
+              title={t('toolbar.editSchemaTitle')}
             >
               <Settings className="h-3.5 w-3.5 text-indigo-400" />
-              Edit Schema
+              {t('toolbar.editSchema')}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
               onClick={() => router.push(`/users/permissions?tab=fields&ct=${selectedCT.name}`)}
-              title="Configure Field-Level Permissions"
+              title={t('toolbar.permissionsTitle')}
             >
               <Shield className="h-3.5 w-3.5 text-amber-400" />
-              Permissions
+              {t('toolbar.permissions')}
             </Button>
           </div>
         )}
@@ -711,10 +718,10 @@ export default function EntriesPage() {
               <Select value={localeFilter} onValueChange={(v) => { if (v) { setLocaleFilter(v); setPage(1); } }}>
                 <SelectTrigger className="h-8 w-36 text-xs">
                   <Globe className="h-3.5 w-3.5 text-muted-foreground mr-1 shrink-0" />
-                  <SelectValue placeholder="All languages" />
+                  <SelectValue placeholder={t('filters.allLanguages')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All languages</SelectItem>
+                  <SelectItem value="all">{t('filters.allLanguages')}</SelectItem>
                   {SUPPORTED_LOCALES.map((l) => (
                     <SelectItem key={l.code} value={l.code}>
                       <div className="flex items-center gap-1.5">
@@ -728,23 +735,23 @@ export default function EntriesPage() {
 
               <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setPage(1); } }}>
                 <SelectTrigger className="h-8 w-44 text-xs">
-                  <SelectValue placeholder="All statuses" />
+                  <SelectValue placeholder={t('filters.allStatuses')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="published">Production (Published)</SelectItem>
-                  <SelectItem value="staging">Staging (QA)</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="all">{t('filters.allStatuses')}</SelectItem>
+                  <SelectItem value="published">{t('filters.production')}</SelectItem>
+                  <SelectItem value="staging">{t('stages.staging')}</SelectItem>
+                  <SelectItem value="draft">{tc('statuses.draft')}</SelectItem>
                   <SelectItem value="pending_review">
-                    Pending Review {selectedCTPendingCount > 0 ? `(${selectedCTPendingCount})` : ''}
+                    {t('stages.pendingReview')} {selectedCTPendingCount > 0 ? `(${selectedCTPendingCount})` : ''}
                   </SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
+                  <SelectItem value="archived">{tc('statuses.archived')}</SelectItem>
                 </SelectContent>
               </Select>
             </>
           )}
           <SearchInput
-            placeholder="Search entries…"
+            placeholder={t('filters.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -758,7 +765,7 @@ export default function EntriesPage() {
                   className="h-7 px-2 text-xs gap-1"
                   disabled={exportingFormat !== null}
                   onClick={() => handleExport('json')}
-                  title="Export non-deleted entries as JSON"
+                  title={t('export.jsonTitle')}
                 >
                   {exportingFormat === 'json' ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -774,7 +781,7 @@ export default function EntriesPage() {
                   className="h-7 px-2 text-xs gap-1"
                   disabled={exportingFormat !== null}
                   onClick={() => handleExport('csv')}
-                  title="Export non-deleted entries as CSV spreadsheet"
+                  title={t('export.csvTitle')}
                 >
                   {exportingFormat === 'csv' ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -792,7 +799,7 @@ export default function EntriesPage() {
                 onClick={() => setImportDialogOpen(true)}
               >
                 <Upload className="h-3.5 w-3.5" />
-                Import
+                {t('import.button')}
               </Button>
             </>
           )}
@@ -804,12 +811,12 @@ export default function EntriesPage() {
               onClick={() => { setShowTrash(true); setSelected(new Set()); }}
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              Recycle Bin ({deletedCount})
+              {t('trash.button', { count: deletedCount })}
             </Button>
           )}
           {canEdit && !showTrash && (
             <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
-              <Plus className="h-4 w-4 mr-1.5" /> New Entry
+              <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
             </Button>
           )}
         </div>
@@ -824,7 +831,7 @@ export default function EntriesPage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
             </span>
             <span>
-              <strong>{selectedCTPendingCount}</strong> {selectedCTPendingCount === 1 ? 'entry is' : 'entries are'} pending review in this collection.
+              {t.rich('pending.banner', { count: selectedCTPendingCount, strong: (chunks) => <strong>{chunks}</strong> })}
             </span>
           </div>
           <Button
@@ -833,7 +840,7 @@ export default function EntriesPage() {
             className="h-6 px-2 text-xs font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 gap-1"
             onClick={() => { setStatusFilter('pending_review'); setPage(1); }}
           >
-            <Clock className="h-3 w-3" /> Show Pending Reviews ({selectedCTPendingCount}) →
+            <Clock className="h-3 w-3" /> {t('pending.showAll', { count: selectedCTPendingCount })}
           </Button>
         </div>
       )}
@@ -843,17 +850,24 @@ export default function EntriesPage() {
         <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
           <RotateCcw className="h-4 w-4 shrink-0 text-amber-500" />
           <span>
-            <strong>Recycle Bin:</strong> Showing deleted entries. You can restore them to active or permanently purge them.
+            {t.rich('trash.banner', { strong: (chunks) => <strong>{chunks}</strong> })}
           </span>
         </div>
       )}
+
+      <AddToReleaseDialog
+        entryIds={[...selected]}
+        open={releaseOpen}
+        onOpenChange={setReleaseOpen}
+        onAdded={() => setSelected(new Set())}
+      />
 
       {/* Bulk action bar */}
       {canEdit && selected.size > 0 && !showTrash && (
         <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2.5">
           <CheckSquare className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">
-            {selected.size} {selected.size === 1 ? 'entry' : 'entries'} selected
+            {t('bulk.selected', { count: selected.size })}
           </span>
           <div className="ml-auto flex items-center gap-2">
             <Button
@@ -864,7 +878,7 @@ export default function EntriesPage() {
               onClick={() => handleBulkAction('bulk-stage')}
             >
               <Rocket className="h-3.5 w-3.5 mr-1" />
-              Stage (QA)
+              {t('bulk.stage')}
             </Button>
             <Button
               size="sm"
@@ -873,7 +887,7 @@ export default function EntriesPage() {
               onClick={() => handleBulkAction('bulk-publish')}
             >
               {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
-              Publish (Prod)
+              {t('bulk.publish')}
             </Button>
             <Button
               size="sm"
@@ -881,7 +895,7 @@ export default function EntriesPage() {
               disabled={bulkLoading}
               onClick={() => handleBulkAction('bulk-pending-review')}
             >
-              Submit for Review
+              {t('bulk.submitReview')}
             </Button>
             <Button
               size="sm"
@@ -889,8 +903,14 @@ export default function EntriesPage() {
               disabled={bulkLoading}
               onClick={() => handleBulkAction('bulk-archive')}
             >
-              Archive
+              {t('bulk.archive')}
             </Button>
+            {canPublishContent(user?.role) && (
+              <Button size="sm" variant="outline" disabled={bulkLoading} onClick={() => setReleaseOpen(true)}>
+                <Package className="h-3.5 w-3.5 mr-1" />
+                {t('bulk.addToRelease')}
+              </Button>
+            )}
             <AlertDialog>
               <AlertDialogTrigger render={
                 <Button
@@ -899,19 +919,19 @@ export default function EntriesPage() {
                   disabled={bulkLoading}
                 />
               }>
-                Delete
+                {tc('delete')}
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete {selected.size} {selected.size === 1 ? 'entry' : 'entries'}?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('bulk.deleteTitle', { count: selected.size })}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Selected entries will be moved to trash. You can restore them later.
+                    {t('bulk.deleteDescription')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                   <AlertDialogAction variant="destructive" onClick={() => handleBulkAction('bulk-delete')}>
-                    Delete
+                    {tc('delete')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -931,19 +951,19 @@ export default function EntriesPage() {
                   className="h-4 w-4 rounded border-border cursor-pointer accent-primary"
                   checked={allPageSelected}
                   onChange={toggleSelectAll}
-                  title="Select all on this page"
+                  title={t('table.selectAll')}
                 />
               </TableHead>
             )}
-            <TableHead>Slug</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{t('table.slug')}</TableHead>
+            <TableHead>{tc('status')}</TableHead>
             {schemaColumns.map((col) => (
               <TableHead key={col.name}>
                 {col.label?.trim() || col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </TableHead>
             ))}
-            <TableHead>Updated</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{tc('updatedAt')}</TableHead>
+            <TableHead className="text-right">{tc('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -967,7 +987,7 @@ export default function EntriesPage() {
                 className="py-12 text-center text-muted-foreground"
               >
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <p>{showTrash ? 'Recycle Bin is empty.' : search ? 'No entries match your search.' : 'No entries yet. Create the first one.'}</p>
+                  <p>{showTrash ? t('table.trashEmpty') : search ? t('table.noMatches') : t('table.empty')}</p>
                   {showTrash && (
                     <Button
                       variant="outline"
@@ -975,7 +995,7 @@ export default function EntriesPage() {
                       className="gap-1.5 h-7 text-xs mt-1"
                       onClick={() => { setShowTrash(false); setSelected(new Set()); }}
                     >
-                      <ArrowLeft className="h-3 w-3" /> Return to Active Entries
+                      <ArrowLeft className="h-3 w-3" /> {t('table.returnToActive')}
                     </Button>
                   )}
                 </div>
@@ -1006,7 +1026,7 @@ export default function EntriesPage() {
                         return (
                           <span
                             key={code}
-                            title={`${label}: ${own ? 'this entry' : exists ? 'translated' : 'missing translation'}`}
+                            title={t(own ? 'table.localeOwn' : exists ? 'table.localeTranslated' : 'table.localeMissing', { language: label })}
                             className={cn(
                               'text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
                               own && 'bg-primary/15 border-primary/40 text-primary font-semibold',
@@ -1030,21 +1050,21 @@ export default function EntriesPage() {
                 {entry.status === 'draft' && entry.publishAt ? (
                   <span
                     className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/40"
-                    title={`Scheduled to publish: ${new Date(entry.publishAt).toLocaleString()}`}
+                    title={t('table.scheduledTitle', { date: new Date(entry.publishAt).toLocaleString() })}
                   >
                     <Clock className="h-3 w-3" />
-                    Scheduled · {new Date(entry.publishAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} {new Date(entry.publishAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {t('table.scheduled', { date: new Date(entry.publishAt).toLocaleDateString([], { month: 'short', day: 'numeric' }), time: new Date(entry.publishAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) })}
                   </span>
                 ) : entry.status === 'pending_review' ? (
                   <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40">
                     <Clock className="h-3 w-3" />
-                    Pending Review
+                    {t('stages.pendingReview')}
                   </span>
                 ) : (() => {
                   const s = STATUS_LABELS[entry.status] ?? STATUS_LABELS.published;
                   return (
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.className}`}>
-                      {s.label}
+                      {s.commonKey ? tc(s.commonKey) : t(s.labelKey!)}
                     </span>
                   );
                 })()}
@@ -1062,16 +1082,16 @@ export default function EntriesPage() {
                       <img src={imgSrc} alt={val?.alt ?? ''} className="h-9 w-12 rounded object-cover" />
                     ) : col.type === 'boolean' ? (
                       <Badge variant={val ? 'default' : 'outline'} className="text-xs">
-                        {val ? 'Yes' : 'No'}
+                        {val ? tc('yes') : tc('no')}
                       </Badge>
                     ) : col.type === 'repeater' || col.type === 'flexible' ? (
                       <Badge variant="secondary" className="text-xs">
-                        {Array.isArray(val) ? `${val.length} item${val.length !== 1 ? 's' : ''}` : '—'}
+                        {Array.isArray(val) ? t('table.items', { count: val.length }) : '—'}
                       </Badge>
                     ) : col.type === 'richtext' ? (
-                      <span className="text-muted-foreground/60 text-xs italic">Rich text</span>
+                      <span className="text-muted-foreground/60 text-xs italic">{t('table.richText')}</span>
                     ) : (
-                      truncate(val)
+                      truncate(val, (count) => t('table.items', { count }))
                     )}
                   </TableCell>
                 );
@@ -1084,7 +1104,7 @@ export default function EntriesPage() {
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        title="Restore"
+                        title={t('actions.restore')}
                         className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
                         onClick={() => handleRestore(entry.id)}
                       >
@@ -1095,7 +1115,7 @@ export default function EntriesPage() {
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            title="Purge permanently"
+                            title={t('actions.purgeTitle')}
                             className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           />
                         }>
@@ -1103,15 +1123,15 @@ export default function EntriesPage() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Permanently delete?</AlertDialogTitle>
+                            <AlertDialogTitle>{t('actions.purgeConfirmTitle')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              <strong>{entry.slug}</strong> and all its versions will be erased forever. This cannot be undone.
+                              {t.rich('actions.purgeConfirmDescription', { slug: entry.slug, strong: (chunks) => <strong>{chunks}</strong> })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                             <AlertDialogAction variant="destructive" onClick={() => handlePurge(entry.id)}>
-                              Purge
+                              {t('actions.purge')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -1123,7 +1143,7 @@ export default function EntriesPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          title="Promote to Staging (QA)"
+                          title={t('actions.promoteStaging')}
                           className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-950/30"
                           onClick={() => handlePromote(entry.id, 'staging')}
                         >
@@ -1134,7 +1154,7 @@ export default function EntriesPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          title="Publish to Production"
+                          title={t('actions.publishProduction')}
                           className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
                           onClick={() => handlePromote(entry.id, 'published')}
                         >
@@ -1145,7 +1165,7 @@ export default function EntriesPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          title="Edit"
+                          title={tc('edit')}
                           onClick={() => router.push(`/entries/${entry.id}/edit`)}
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -1155,7 +1175,7 @@ export default function EntriesPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          title="Duplicate"
+                          title={t('actions.duplicate')}
                           disabled={duplicating === entry.id}
                           onClick={() => handleDuplicate(entry)}
                         >
@@ -1168,7 +1188,7 @@ export default function EntriesPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          title="View Live Post on Website"
+                          title={t('actions.viewLive')}
                           className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30"
                           onClick={() => window.open(`/${selectedCT.name}/${entry.slug}`, '_blank')}
                         >
@@ -1178,7 +1198,7 @@ export default function EntriesPage() {
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        title="Copy API URL"
+                        title={t('actions.copyApiUrl')}
                         onClick={() => handleCopyUrl(entry)}
                       >
                         <Link2 className="h-3.5 w-3.5" />
@@ -1189,7 +1209,7 @@ export default function EntriesPage() {
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              title="Delete"
+                              title={tc('delete')}
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
                             />
                           }>
@@ -1197,15 +1217,15 @@ export default function EntriesPage() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                              <AlertDialogTitle>{t('actions.deleteConfirmTitle')}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                <strong>{entry.slug}</strong> will be moved to trash. You can restore it later.
+                                {t.rich('actions.deleteConfirmDescription', { slug: entry.slug, strong: (chunks) => <strong>{chunks}</strong> })}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                               <AlertDialogAction variant="destructive" onClick={() => handleDelete(entry.id)}>
-                                Delete
+                                {tc('delete')}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -1233,10 +1253,10 @@ export default function EntriesPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5 text-blue-500" />
-              Import Entries — {selectedCT?.displayName || selectedCT?.name}
+              {t('import.title', { name: selectedCT?.displayName || selectedCT?.name || '' })}
             </DialogTitle>
             <DialogDescription>
-              Upload a .JSON or .CSV file, or paste data directly. Real-time dry-run validation checks slugs, locales, and fields against the schema before saving.
+              {t('import.description')}
             </DialogDescription>
           </DialogHeader>
 
@@ -1246,7 +1266,7 @@ export default function EntriesPage() {
               <div className="flex items-center gap-2">
                 <label className="inline-flex cursor-pointer">
                   <span className="inline-flex items-center gap-1.5 h-8 rounded-md border border-input bg-background px-3 text-xs font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <Upload className="h-3.5 w-3.5" /> Select File (.csv / .json)
+                    <Upload className="h-3.5 w-3.5" /> {t('import.selectFile')}
                   </span>
                   <input
                     type="file"
@@ -1300,9 +1320,9 @@ export default function EntriesPage() {
             {/* Conflict resolution option */}
             <div className="flex items-center justify-between rounded-lg border p-2.5 bg-muted/20">
               <div className="space-y-0.5">
-                <div className="text-xs font-medium">Update duplicate entries</div>
+                <div className="text-xs font-medium">{t('import.updateDuplicates')}</div>
                 <div className="text-[11px] text-muted-foreground">
-                  If an entry with matching (slug + locale) exists, update its content instead of skipping it.
+                  {t('import.updateDuplicatesHint')}
                 </div>
               </div>
               <Switch
@@ -1317,7 +1337,7 @@ export default function EntriesPage() {
             {/* Dry-Run Preflight Feedback */}
             {preflightLoading && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Running pre-flight dry-run validation…
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('import.preflightRunning')}
               </div>
             )}
 
@@ -1335,8 +1355,8 @@ export default function EntriesPage() {
                     <AlertCircle className="h-4 w-4 text-destructive" />
                   )}
                   {importPreflight.valid
-                    ? `Pre-flight passed: ${importPreflight.total} rows ready (${importPreflight.toCreate} new, ${importPreflight.toUpdate} updates)`
-                    : `Pre-flight errors detected (${importPreflight.errors?.length || 1})`}
+                    ? t('import.preflightPassed', { total: importPreflight.total, toCreate: importPreflight.toCreate, toUpdate: importPreflight.toUpdate })
+                    : t('import.preflightErrors', { count: importPreflight.errors?.length || 1 })}
                 </div>
 
                 {importPreflight.errors && importPreflight.errors.length > 0 && (
@@ -1345,7 +1365,7 @@ export default function EntriesPage() {
                       <li key={idx}>{err}</li>
                     ))}
                     {importPreflight.errors.length > 5 && (
-                      <li>...and {importPreflight.errors.length - 5} more</li>
+                      <li>{t('import.moreErrors', { count: importPreflight.errors.length - 5 })}</li>
                     )}
                   </ul>
                 )}
@@ -1355,11 +1375,11 @@ export default function EntriesPage() {
                     <table className="w-full text-left text-[10px]">
                       <thead className="border-b bg-muted/40 font-mono text-muted-foreground">
                         <tr>
-                          <th className="p-1.5">Row</th>
-                          <th className="p-1.5">Slug</th>
-                          <th className="p-1.5">Locale</th>
-                          <th className="p-1.5">Status</th>
-                          <th className="p-1.5">Action</th>
+                          <th className="p-1.5">{t('import.columns.row')}</th>
+                          <th className="p-1.5">{t('import.columns.slug')}</th>
+                          <th className="p-1.5">{t('import.columns.locale')}</th>
+                          <th className="p-1.5">{t('import.columns.status')}</th>
+                          <th className="p-1.5">{t('import.columns.action')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40 font-mono">
@@ -1379,7 +1399,7 @@ export default function EntriesPage() {
                                     : 'border-emerald-500/40 text-emerald-400',
                                 )}
                               >
-                                {p.isExisting ? 'Update' : 'Create'}
+                                {p.isExisting ? t('import.actionUpdate') : t('import.actionCreate')}
                               </Badge>
                             </td>
                           </tr>
@@ -1402,7 +1422,7 @@ export default function EntriesPage() {
                 setImportPreflight(null);
               }}
             >
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               size="sm"
@@ -1411,7 +1431,7 @@ export default function EntriesPage() {
               className="gap-1.5"
             >
               {importExecuting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-              Import {importPreflight?.total ? `${importPreflight.total} Entries` : 'Entries'}
+              {importPreflight?.total ? t('import.submitCount', { count: importPreflight.total }) : t('import.submit')}
             </Button>
           </DialogFooter>
         </DialogContent>

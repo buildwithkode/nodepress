@@ -3,10 +3,32 @@ import { readFileSync, unlinkSync, existsSync } from 'fs';
 import {
   S3Client,
   DeleteObjectCommand,
+  PutObjectCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { createReadStream } from 'fs';
 import { StorageAdapter } from './storage.adapter';
+
+/** S3-compatible storage settings, from STORAGE_S3_* env vars or saved in the admin. */
+export interface S3Config {
+  bucket?: string;
+  region?: string;
+  accessKey?: string;
+  secretKey?: string;
+  endpoint?: string;
+  publicUrl?: string;
+}
+
+export function s3ConfigFromEnv(): S3Config {
+  return {
+    bucket: process.env.STORAGE_S3_BUCKET,
+    region: process.env.STORAGE_S3_REGION,
+    accessKey: process.env.STORAGE_S3_ACCESS_KEY,
+    secretKey: process.env.STORAGE_S3_SECRET_KEY,
+    endpoint: process.env.STORAGE_S3_ENDPOINT,
+    publicUrl: process.env.STORAGE_S3_PUBLIC_URL,
+  };
+}
 
 /**
  * S3-compatible storage adapter.
@@ -30,12 +52,9 @@ export class S3StorageAdapter implements StorageAdapter {
   private readonly bucket: string;
   private readonly publicUrl: string;
 
-  constructor() {
-    const bucket = process.env.STORAGE_S3_BUCKET;
-    const region = process.env.STORAGE_S3_REGION ?? 'us-east-1';
-    const accessKey = process.env.STORAGE_S3_ACCESS_KEY;
-    const secretKey = process.env.STORAGE_S3_SECRET_KEY;
-    const endpoint = process.env.STORAGE_S3_ENDPOINT;
+  constructor(config: S3Config = s3ConfigFromEnv()) {
+    const { bucket, accessKey, secretKey, endpoint } = config;
+    const region = config.region || 'us-east-1';
 
     if (!bucket || !accessKey || !secretKey) {
       throw new InternalServerErrorException(
@@ -52,10 +71,18 @@ export class S3StorageAdapter implements StorageAdapter {
 
     // Public URL: use custom CDN domain or build from endpoint/bucket
     this.publicUrl =
-      process.env.STORAGE_S3_PUBLIC_URL?.replace(/\/$/, '') ??
+      config.publicUrl?.replace(/\/$/, '') ||
       (endpoint
         ? `${endpoint.replace(/\/$/, '')}/${bucket}`
         : `https://${bucket}.s3.${region}.amazonaws.com`);
+  }
+
+  /** Write and delete a small object with these settings. Throws with the provider's error. */
+  static async test(config: S3Config): Promise<void> {
+    const adapter = new S3StorageAdapter(config);
+    const key = `.nodepress-storage-test-${Date.now().toString(36)}.txt`;
+    await adapter.client.send(new PutObjectCommand({ Bucket: adapter.bucket, Key: key, Body: 'ok', ContentType: 'text/plain' }));
+    await adapter.client.send(new DeleteObjectCommand({ Bucket: adapter.bucket, Key: key }));
   }
 
   async save(localPath: string, filename: string, mimetype: string): Promise<string> {

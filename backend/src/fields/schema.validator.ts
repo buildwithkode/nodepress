@@ -121,6 +121,9 @@ export class SchemaValidator {
       case 'image':
         // no structured options
         break;
+      case 'relation':
+        this.validateRelationOptions(field, path, errors, isSubField);
+        break;
       case 'repeater':
         this.validateRepeaterOptions(field.options, path, errors);
         break;
@@ -217,6 +220,29 @@ export class SchemaValidator {
     if (options.multiple !== undefined && typeof options.multiple !== 'boolean') {
       errors.push(`${path}.options.multiple: must be boolean`);
     }
+  }
+
+  private validateRelationOptions(field: any, path: string, errors: string[], isSubField: boolean): void {
+    const options = field.options;
+    if (options === undefined || options === null) return;
+    if (typeof options !== 'object') {
+      errors.push(`${path}.options: must be an object`);
+      return;
+    }
+    if (options.cardinality !== undefined && options.cardinality !== 'one' && options.cardinality !== 'many') {
+      errors.push(`${path}.options.cardinality: must be "one" or "many"`);
+    }
+    if (options.mappedBy === undefined || options.mappedBy === '') return;
+    // Reverse field: read-only, resolved from the other side's relation field.
+    if (typeof options.mappedBy !== 'string' || !SchemaValidator.NAME_RE.test(options.mappedBy)) {
+      errors.push(`${path}.options.mappedBy: must be the name of a relation field`);
+    }
+    if (typeof options.relatedContentType !== 'string' || !options.relatedContentType) {
+      errors.push(`${path}.options.relatedContentType: required for a reverse field`);
+    }
+    if (isSubField) errors.push(`${path}: reverse fields (mappedBy) must be top-level`);
+    if (field.required) errors.push(`${path}.required: a reverse field is read-only and can't be required`);
+    if (field.indexed) errors.push(`${path}.indexed: index the forward field instead`);
   }
 
   private validateRepeaterOptions(options: any, path: string, errors: string[]): void {

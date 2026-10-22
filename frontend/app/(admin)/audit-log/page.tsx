@@ -13,6 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from 'use-intl';
 
 interface AuditEntry {
   id: number;
@@ -36,6 +37,8 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 export default function AuditLogPage() {
+  const t = useTranslations('developer');
+  const tc = useTranslations('common');
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -49,7 +52,7 @@ export default function AuditLogPage() {
     if (res) params.resource = res;
     api.get('/audit-log', { params })
       .then((r) => { setLogs(r.data.data); setTotal(r.data.meta.total); })
-      .catch(() => toast.error('Failed to load audit log'))
+      .catch(() => toast.error(t('auditLog.loadFailed')))
       .finally(() => setLoading(false));
   };
 
@@ -65,24 +68,24 @@ export default function AuditLogPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <ScrollText className="h-4 w-4" /> Audit Log
+                <ScrollText className="h-4 w-4" /> {t('auditLog.title')}
               </CardTitle>
               <CardDescription className="mt-1">
-                Every create, update, and delete operation recorded with actor and timestamp.
+                {t('auditLog.description')}
               </CardDescription>
             </div>
             <Select value={resource || 'all'} onValueChange={(v: string | null) => setResource(v === 'all' ? '' : (v ?? ''))}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="All resources" />
+                <SelectValue placeholder={t('auditLog.allResources')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All resources</SelectItem>
-                <SelectItem value="entry">Entries</SelectItem>
-                <SelectItem value="content_type">Content Types</SelectItem>
-                <SelectItem value="user">Users</SelectItem>
-                <SelectItem value="api_key">API Keys</SelectItem>
-                <SelectItem value="form">Forms</SelectItem>
-                <SelectItem value="media">Media</SelectItem>
+                <SelectItem value="all">{t('auditLog.allResources')}</SelectItem>
+                <SelectItem value="entry">{t('auditLog.resources.entry')}</SelectItem>
+                <SelectItem value="content_type">{t('auditLog.resources.content_type')}</SelectItem>
+                <SelectItem value="user">{t('auditLog.resources.user')}</SelectItem>
+                <SelectItem value="api_key">{t('auditLog.resources.api_key')}</SelectItem>
+                <SelectItem value="form">{t('auditLog.resources.form')}</SelectItem>
+                <SelectItem value="media">{t('auditLog.resources.media')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -91,11 +94,11 @@ export default function AuditLogPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Resource</TableHead>
-                <TableHead>ID / Name</TableHead>
+                <TableHead>{t('auditLog.colTime')}</TableHead>
+                <TableHead>{t('auditLog.colUser')}</TableHead>
+                <TableHead>{t('auditLog.colAction')}</TableHead>
+                <TableHead>{t('auditLog.colResource')}</TableHead>
+                <TableHead>{t('auditLog.colIdName')}</TableHead>
                 <TableHead>IP</TableHead>
               </TableRow>
             </TableHeader>
@@ -112,7 +115,7 @@ export default function AuditLogPage() {
                   </TableRow>
                 ))
               ) : logs.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No audit events yet.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">{t('auditLog.empty')}</TableCell></TableRow>
               ) : logs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
@@ -143,22 +146,22 @@ export default function AuditLogPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-              <span>{total} events</span>
+              <span>{t('auditLog.events', { count: total })}</span>
               <div className="flex items-center gap-2">
                 <button
                   disabled={page <= 1}
                   onClick={() => { setPage(page - 1); load(page - 1); }}
                   className="px-3 py-1 rounded border disabled:opacity-40 hover:bg-muted"
                 >
-                  Previous
+                  {tc('previous')}
                 </button>
-                <span>Page {page} of {totalPages}</span>
+                <span>{tc('page', { page, total: totalPages })}</span>
                 <button
                   disabled={page >= totalPages}
                   onClick={() => { setPage(page + 1); load(page + 1); }}
                   className="px-3 py-1 rounded border disabled:opacity-40 hover:bg-muted"
                 >
-                  Next
+                  {tc('next')}
                 </button>
               </div>
             </div>

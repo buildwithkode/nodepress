@@ -113,7 +113,18 @@ export interface RelationFieldDef extends BaseField {
     relatedContentType: string;
     /** 'one' → single UUID; 'many' → array of UUIDs */
     cardinality: 'one' | 'many';
+    /**
+     * Makes this a reverse field: it lists the `relatedContentType` entries whose
+     * relation field `mappedBy` points at this entry. Read-only and not stored —
+     * resolved with ?populate= like a normal relation.
+     */
+    mappedBy?: string;
   };
+}
+
+/** A read-only reverse relation (`options.mappedBy`) — never stored in entry data. */
+export function isReverseRelation(field: { type?: string; options?: any }): boolean {
+  return field?.type === 'relation' && typeof field.options?.mappedBy === 'string' && field.options.mappedBy !== '';
 }
 
 export interface ColorFieldDef extends BaseField {

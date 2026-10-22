@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import { transformUrl } from '@/lib/media-url';
+import { useTranslations } from 'use-intl';
 
 export interface FocalTarget {
   filename: string;
@@ -31,6 +32,8 @@ export function FocalPointDialog({
   onClose: () => void;
   onSaved: (filename: string, focalX: number | null, focalY: number | null) => void;
 }) {
+  const t = useTranslations('media');
+  const tc = useTranslations('common');
   const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -47,10 +50,10 @@ export function FocalPointDialog({
         y: next?.y ?? null,
       });
       onSaved(file.filename, res.data.focalX, res.data.focalY);
-      toast.success(next ? 'Focal point saved' : 'Focal point cleared');
+      toast.success(next ? t('focal.saved') : t('focal.cleared'));
       onClose();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'Could not save the focal point');
+      toast.error(err?.response?.data?.message ?? t('focal.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -71,11 +74,13 @@ export function FocalPointDialog({
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-            <Crosshair className="h-4 w-4 text-indigo-400" /> Focal point
+            <Crosshair className="h-4 w-4 text-indigo-400" /> {t('focal.title')}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Click the most important part of <span className="font-semibold text-foreground">{file?.originalName || file?.filename}</span>.
-            Cropped versions keep it in frame.
+            {t.rich('focal.description', {
+              name: file?.originalName || file?.filename || '',
+              strong: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -85,7 +90,7 @@ export function FocalPointDialog({
               className="relative w-full cursor-crosshair select-none rounded-md overflow-hidden border border-border bg-muted/40"
               onClick={pick}
               role="button"
-              aria-label="Set focal point"
+              aria-label={t('library.setFocalPoint')}
             >
               <img src={transformUrl(file.filename, { w: 1200 })} alt="" className="block w-full h-auto" draggable={false} />
               {point && (
@@ -98,9 +103,9 @@ export function FocalPointDialog({
 
             <div className="flex flex-wrap gap-3 items-end">
               {[
-                { label: 'Square', w: 'w-20', h: 'h-20' },
-                { label: 'Wide 16:9', w: 'w-36', h: 'h-20' },
-                { label: 'Tall 3:4', w: 'w-16', h: 'h-20' },
+                { label: t('focal.previewSquare'), w: 'w-20', h: 'h-20' },
+                { label: t('focal.previewWide'), w: 'w-36', h: 'h-20' },
+                { label: t('focal.previewTall'), w: 'w-16', h: 'h-20' },
               ].map((p) => (
                 <div key={p.label} className="text-center">
                   <img
@@ -113,7 +118,7 @@ export function FocalPointDialog({
                 </div>
               ))}
               <span className="text-xs text-muted-foreground ml-auto">
-                {point ? `x ${point.x} · y ${point.y}` : 'Not set — crops are centred'}
+                {point ? `x ${point.x} · y ${point.y}` : t('focal.notSet')}
               </span>
             </div>
           </div>
@@ -122,13 +127,13 @@ export function FocalPointDialog({
         <DialogFooter className="gap-2">
           {file?.focalX != null && (
             <Button type="button" variant="ghost" size="sm" disabled={saving} onClick={() => save(null)}>
-              Clear
+              {t('focal.clear')}
             </Button>
           )}
-          <Button type="button" variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="ghost" size="sm" onClick={onClose}>{tc('cancel')}</Button>
           <Button type="button" size="sm" disabled={!point || saving} onClick={() => save(point)}>
             {saving && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-            Save
+            {tc('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

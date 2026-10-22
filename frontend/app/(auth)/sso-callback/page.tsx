@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '../../../lib/axios';
 import { useAuth } from '../../../context/AuthContext';
+import { useTranslations } from 'use-intl';
 
 /** Same-site paths only — never redirect to another origin. */
 function safeReturnTo(raw: string | null | undefined): string {
@@ -17,6 +18,7 @@ function safeReturnTo(raw: string | null | undefined): string {
  * normal access token + refresh cookie.
  */
 function SsoCallback() {
+  const t = useTranslations('auth');
   const { login } = useAuth();
   const searchParams = useSearchParams();
   const [error, setError] = useState('');
@@ -29,7 +31,7 @@ function SsoCallback() {
     // Drop the code from the address bar and history right away.
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
     if (!code) {
-      setError('This sign-in link is incomplete. Please sign in again.');
+      setError(t('sso.incomplete'));
       return;
     }
     api
@@ -38,7 +40,7 @@ function SsoCallback() {
         login(res.data.access_token, res.data.user);
         window.location.href = safeReturnTo(searchParams?.get('returnTo'));
       })
-      .catch((err) => setError(err?.response?.data?.message ?? 'Sign-in failed. Please try again.'));
+      .catch((err) => setError(err?.response?.data?.message ?? t('sso.failed')));
   }, []);
 
   return (
@@ -47,10 +49,10 @@ function SsoCallback() {
         {error ? (
           <>
             <p className="text-red-300">{error}</p>
-            <Link href="/login" className="text-blue-400 hover:underline">Back to sign in</Link>
+            <Link href="/login" className="text-blue-400 hover:underline">{t('backToSignIn')}</Link>
           </>
         ) : (
-          <p>Signing you in…</p>
+          <p>{t('sso.signingIn')}</p>
         )}
       </div>
     </div>

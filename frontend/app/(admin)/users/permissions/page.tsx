@@ -16,6 +16,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'use-intl';
 import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -30,12 +31,13 @@ type Role = typeof ROLES[number];
 const ALL_ACTIONS = ['create', 'read', 'update', 'delete', 'publish'] as const;
 type Action = typeof ALL_ACTIONS[number];
 
+/** Message keys (users.permissions.actions.*) — translated at render. */
 const ACTION_LABELS: Record<Action, string> = {
-  create:  'Create',
-  read:    'Read',
-  update:  'Update',
-  delete:  'Delete',
-  publish: 'Publish',
+  create:  'actions.create',
+  read:    'actions.read',
+  update:  'actions.update',
+  delete:  'actions.delete',
+  publish: 'actions.publish',
 };
 
 const ROLE_COLORS: Record<Role, string> = {
@@ -44,10 +46,11 @@ const ROLE_COLORS: Record<Role, string> = {
   viewer:      'bg-muted text-muted-foreground',
 };
 
+/** Message keys (users.permissions.roleDescriptions.*) — translated at render. */
 const ROLE_DESCRIPTIONS: Record<Role, string> = {
-  editor:      'Manages all content — can create, edit, delete, and publish.',
-  contributor: 'Creates and edits content — cannot delete or publish.',
-  viewer:      'Read-only access to the admin panel.',
+  editor:      'roleDescriptions.editor',
+  contributor: 'roleDescriptions.contributor',
+  viewer:      'roleDescriptions.viewer',
 };
 
 interface SchemaField {
@@ -82,6 +85,8 @@ interface PermRow {
 type MatrixKey = `${Role}::${string}`;
 
 function PermissionsPageContent() {
+  const t = useTranslations('users.permissions');
+  const tc = useTranslations('common');
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialCt = searchParams.get('ct') ?? '';
@@ -128,7 +133,7 @@ function PermissionsPageContent() {
         }
       }
     } catch {
-      toast.error('Failed to load permissions');
+      toast.error(t('toasts.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -151,7 +156,7 @@ function PermissionsPageContent() {
         setFieldsState(JSON.parse(JSON.stringify(schema)));
         setHasFieldChanges(false);
       })
-      .catch(() => toast.error(`Failed to load schema for "${selectedContentTypeName}"`))
+      .catch(() => toast.error(t('toasts.schemaLoadFailed', { name: selectedContentTypeName })))
       .finally(() => setLoadingSchema(false));
   }, [selectedContentTypeName, contentTypes]);
 
@@ -163,7 +168,7 @@ function PermissionsPageContent() {
       const res = await api.get(`/permissions/${role}`);
       setRolePerms(res.data ?? []);
     } catch {
-      toast.error('Failed to load role permissions');
+      toast.error(t('toasts.roleLoadFailed'));
     } finally {
       setRoleLoading(false);
     }
@@ -191,9 +196,9 @@ function PermissionsPageContent() {
     try {
       await api.put(`/permissions/${role}/${contentType}`, { actions: next });
       await load();
-      toast.success('Permission updated');
+      toast.success(t('toasts.updated'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update permission');
+      toast.error(err.response?.data?.message || t('toasts.updateFailed'));
     } finally {
       setSaving(null);
     }
@@ -204,9 +209,9 @@ function PermissionsPageContent() {
     try {
       await api.put('/permissions/reset/all');
       await load();
-      toast.success('Permissions reset to defaults');
+      toast.success(t('toasts.reset'));
     } catch {
-      toast.error('Failed to reset permissions');
+      toast.error(t('toasts.resetFailed'));
     } finally {
       setResetting(false);
     }
@@ -281,10 +286,10 @@ function PermissionsPageContent() {
       await api.put(`/content-types/${selectedContentType.id}`, {
         schema: fieldsState,
       });
-      toast.success(`Field permissions saved for "${selectedContentType.name}"`);
+      toast.success(t('toasts.fieldsSaved', { name: selectedContentType.name }));
       setHasFieldChanges(false);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to save field permissions');
+      toast.error(err.response?.data?.message || t('toasts.fieldsSaveFailed'));
     } finally {
       setSavingFields(false);
     }
@@ -303,10 +308,10 @@ function PermissionsPageContent() {
             className="gap-1.5 text-muted-foreground"
             onClick={() => router.push('/users')}
           >
-            <ArrowLeft className="h-4 w-4" /> Users
+            <ArrowLeft className="h-4 w-4" /> {t('backToUsers')}
           </Button>
           <span className="text-muted-foreground/40">/</span>
-          <span className="text-sm font-medium">Access Control & Permissions</span>
+          <span className="text-sm font-medium">{t('title')}</span>
           <div className="ml-auto">
             {activeTab === 'content-types' && (
               <Button
@@ -318,7 +323,7 @@ function PermissionsPageContent() {
                 {resetting
                   ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
                   : <RotateCcw className="h-3.5 w-3.5 mr-1.5" />}
-                Reset to defaults
+                {t('resetDefaults')}
               </Button>
             )}
           </div>
@@ -329,11 +334,11 @@ function PermissionsPageContent() {
           <TabsList className="bg-muted/50 p-1 mb-2">
             <TabsTrigger value="content-types" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              <span>Content-Type Actions Matrix</span>
+              <span>{t('tabs.contentTypes')}</span>
             </TabsTrigger>
             <TabsTrigger value="fields" className="flex items-center gap-2">
               <Sliders className="h-4 w-4" />
-              <span>Field-Level Permissions Matrix</span>
+              <span>{t('tabs.fields')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -350,13 +355,13 @@ function PermissionsPageContent() {
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r]}`}>
-                        {r}
+                        {tc(`roles.${r}`)}
                       </span>
                       {focusedRole === r && (
-                        <span className="text-[10px] text-muted-foreground">click to deselect</span>
+                        <span className="text-[10px] text-muted-foreground">{t('clickToDeselect')}</span>
                       )}
                     </div>
-                    <CardDescription className="text-xs mt-1">{ROLE_DESCRIPTIONS[r]}</CardDescription>
+                    <CardDescription className="text-xs mt-1">{t(ROLE_DESCRIPTIONS[r])}</CardDescription>
                   </CardHeader>
                 </Card>
               ))}
@@ -368,25 +373,25 @@ function PermissionsPageContent() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[focusedRole]}`}>
-                      {focusedRole}
+                      {tc(`roles.${focusedRole}`)}
                     </span>
-                    — Permission Summary
+                    — {t('summary.title')}
                   </CardTitle>
-                  <CardDescription>Overrides configured for this role. Rows not listed here fall back to the wildcard default.</CardDescription>
+                  <CardDescription>{t('summary.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {roleLoading ? (
                     <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+                      <Loader2 className="h-4 w-4 animate-spin" /> {tc('loading')}
                     </div>
                   ) : !rolePerms || rolePerms.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-2">No overrides — using factory defaults for all content types.</p>
+                    <p className="text-sm text-muted-foreground py-2">{t('summary.empty')}</p>
                   ) : (
                     <div className="space-y-2">
                       {rolePerms.map((p) => (
                         <div key={p.contentType} className="flex items-center gap-3 rounded-md border border-border px-3 py-2 text-sm">
                           <span className="w-28 font-medium text-foreground capitalize shrink-0">
-                            {p.contentType === '*' ? <Badge variant="secondary" className="text-xs">Default *</Badge> : p.contentType.replace(/_/g, ' ')}
+                            {p.contentType === '*' ? <Badge variant="secondary" className="text-xs">{t('defaultRow')}</Badge> : p.contentType.replace(/_/g, ' ')}
                           </span>
                           <div className="flex flex-wrap gap-1">
                             {ALL_ACTIONS.map((a) => (
@@ -398,7 +403,7 @@ function PermissionsPageContent() {
                                     : 'bg-muted text-muted-foreground line-through opacity-50'
                                 }`}
                               >
-                                {ACTION_LABELS[a]}
+                                {t(ACTION_LABELS[a])}
                               </span>
                             ))}
                           </div>
@@ -413,11 +418,9 @@ function PermissionsPageContent() {
             {/* Permission matrix */}
             <Card>
               <CardHeader>
-                <CardTitle>Content Type Permission Matrix</CardTitle>
+                <CardTitle>{t('matrix.title')}</CardTitle>
                 <CardDescription>
-                  Set allowed actions per role. The <strong>*</strong> row is the default for all content types.
-                  Override individual content types by toggling actions in their specific row.
-                  Greyed checkboxes are inherited from the wildcard row.
+                  {t.rich('matrix.description', { strong: (chunks) => <strong>{chunks}</strong> })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -430,11 +433,11 @@ function PermissionsPageContent() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-2 pr-4 font-medium text-muted-foreground w-36">Content Type</th>
+                          <th className="text-left py-2 pr-4 font-medium text-muted-foreground w-36">{t('matrix.contentType')}</th>
                           {ROLES.map((r) => (
                             <th key={r} colSpan={ALL_ACTIONS.length} className="text-center py-2 px-2 font-medium">
                               <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r]}`}>
-                                {r}
+                                {tc(`roles.${r}`)}
                               </span>
                             </th>
                           ))}
@@ -444,7 +447,7 @@ function PermissionsPageContent() {
                           {ROLES.flatMap((r) =>
                             ALL_ACTIONS.map((a) => (
                               <th key={`${r}-${a}`} className="py-1.5 px-1.5 text-center text-xs font-normal text-muted-foreground min-w-[52px]">
-                                {ACTION_LABELS[a]}
+                                {t(ACTION_LABELS[a])}
                               </th>
                             ))
                           )}
@@ -458,7 +461,7 @@ function PermissionsPageContent() {
                               <td className="py-2 pr-4">
                                 {isWildcard ? (
                                   <span className="flex items-center gap-1.5">
-                                    <Badge variant="secondary" className="text-xs">Default *</Badge>
+                                    <Badge variant="secondary" className="text-xs">{t('defaultRow')}</Badge>
                                   </span>
                                 ) : (
                                   <span className="text-xs capitalize">{ct.replace(/_/g, ' ')}</span>
@@ -482,7 +485,7 @@ function PermissionsPageContent() {
                                           checked={checked}
                                           onChange={() => toggleAction(role, ct, action)}
                                           className={`h-4 w-4 rounded cursor-pointer accent-primary ${inherited ? 'opacity-40' : ''}`}
-                                          title={inherited ? `Inherited from ${role}/* — click to override` : undefined}
+                                          title={inherited ? t('matrix.inherited', { role }) : undefined}
                                         />
                                       )}
                                     </td>
@@ -508,10 +511,10 @@ function PermissionsPageContent() {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <Layers className="h-5 w-5 text-blue-500" />
-                      Field-Level Access Control Matrix
+                      {t('fields.title')}
                     </CardTitle>
                     <CardDescription>
-                      Restrict read visibility and write mutations for specific attributes (e.g., hide salary, margin, or internal notes from non-admin roles).
+                      {t('fields.description')}
                     </CardDescription>
                   </div>
 
@@ -522,7 +525,7 @@ function PermissionsPageContent() {
                         onValueChange={(val) => val && setSelectedContentTypeName(val)}
                       >
                         <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="Select content type" />
+                          <SelectValue placeholder={t('fields.selectContentType')} />
                         </SelectTrigger>
                         <SelectContent>
                           {contentTypes.map((ct) => (
@@ -545,7 +548,7 @@ function PermissionsPageContent() {
                       ) : (
                         <Save className="h-3.5 w-3.5" />
                       )}
-                      Save Permissions
+                      {t('fields.save')}
                     </Button>
                   </div>
                 </div>
@@ -553,41 +556,41 @@ function PermissionsPageContent() {
               <CardContent>
                 {loadingSchema ? (
                   <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading fields schema…
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('fields.loading')}
                   </div>
                 ) : fieldsState.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-xl">
-                    <p className="text-sm font-medium">No fields defined for this content type</p>
-                    <p className="text-xs mt-1">Add fields to this content type in the Schema Builder first.</p>
+                    <p className="text-sm font-medium">{t('fields.emptyTitle')}</p>
+                    <p className="text-xs mt-1">{t('fields.emptyHelp')}</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-2 pr-4 font-medium text-muted-foreground w-48">Field</th>
+                          <th className="text-left py-2 pr-4 font-medium text-muted-foreground w-48">{t('fields.field')}</th>
                           <th colSpan={4} className="text-center py-2 px-2 font-medium bg-muted/20 border-r border-border">
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground">
-                              <Eye className="h-3.5 w-3.5 text-blue-400" /> Read Visibility
+                              <Eye className="h-3.5 w-3.5 text-blue-400" /> {t('fields.readVisibility')}
                             </span>
                           </th>
                           <th colSpan={3} className="text-center py-2 px-2 font-medium bg-muted/10">
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground">
-                              <Edit3 className="h-3.5 w-3.5 text-amber-400" /> Write / Mutation Access
+                              <Edit3 className="h-3.5 w-3.5 text-amber-400" /> {t('fields.writeAccess')}
                             </span>
                           </th>
                         </tr>
                         <tr className="border-b bg-muted/30 text-xs text-muted-foreground">
-                          <th className="py-1.5 pr-4 text-left font-normal">Name & Type</th>
+                          <th className="py-1.5 pr-4 text-left font-normal">{t('fields.nameAndType')}</th>
                           {/* Read subheaders */}
-                          <th className="py-1.5 px-2 text-center font-normal">Admin</th>
-                          <th className="py-1.5 px-2 text-center font-normal">Editor</th>
-                          <th className="py-1.5 px-2 text-center font-normal">Contributor</th>
-                          <th className="py-1.5 px-2 text-center font-normal border-r border-border">Viewer</th>
+                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.admin')}</th>
+                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.editor')}</th>
+                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.contributor')}</th>
+                          <th className="py-1.5 px-2 text-center font-normal border-r border-border">{tc('roles.viewer')}</th>
                           {/* Write subheaders */}
-                          <th className="py-1.5 px-2 text-center font-normal">Admin</th>
-                          <th className="py-1.5 px-2 text-center font-normal">Editor</th>
-                          <th className="py-1.5 px-2 text-center font-normal">Contributor</th>
+                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.admin')}</th>
+                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.editor')}</th>
+                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.contributor')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -608,7 +611,7 @@ function PermissionsPageContent() {
                                   </Badge>
                                   {(isRestrictedRead || isRestrictedWrite) && (
                                     <Badge variant="secondary" className="text-[9px] bg-amber-500/15 text-amber-400 border border-amber-500/30 gap-0.5 px-1 py-0">
-                                      <Lock className="h-2.5 w-2.5" /> Restricted
+                                      <Lock className="h-2.5 w-2.5" /> {t('fields.restricted')}
                                     </Badge>
                                   )}
                                 </div>
@@ -616,7 +619,7 @@ function PermissionsPageContent() {
 
                               {/* Read: Admin (Locked) */}
                               <td className="py-3 px-2 text-center">
-                                <span className="inline-flex items-center justify-center text-xs text-emerald-400" title="Admin always has full read access">
+                                <span className="inline-flex items-center justify-center text-xs text-emerald-400" title={t('fields.adminRead')}>
                                   <Lock className="h-3.5 w-3.5 opacity-50" />
                                 </span>
                               </td>
@@ -653,7 +656,7 @@ function PermissionsPageContent() {
 
                               {/* Write: Admin (Locked) */}
                               <td className="py-3 px-2 text-center">
-                                <span className="inline-flex items-center justify-center text-xs text-emerald-400" title="Admin always has full write access">
+                                <span className="inline-flex items-center justify-center text-xs text-emerald-400" title={t('fields.adminWrite')}>
                                   <Lock className="h-3.5 w-3.5 opacity-50" />
                                 </span>
                               </td>
@@ -690,30 +693,38 @@ function PermissionsPageContent() {
             <div className="p-4 rounded-lg bg-card/60 border border-border text-xs text-muted-foreground space-y-1">
               <p className="font-semibold text-foreground flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                Zero-Leak Security Enforcement:
+                {t('enforcement.title')}
               </p>
-              <p>• When a role is unchecked from <strong>Read Visibility</strong>, the backend automatically strips the field from all REST (<code className="text-[11px] font-mono">/api/:type/:slug</code>) and GraphQL responses before sending to the client.</p>
-              <p>• When a role is unchecked from <strong>Write Access</strong>, the backend rejects unauthorized mutation attempts with HTTP 403 Forbidden.</p>
+              <p>• {t.rich('enforcement.read', {
+                strong: (chunks) => <strong>{chunks}</strong>,
+                path: () => <code className="text-[11px] font-mono">/api/:type/:slug</code>,
+              })}</p>
+              <p>• {t.rich('enforcement.write', { strong: (chunks) => <strong>{chunks}</strong> })}</p>
             </div>
           </TabsContent>
         </Tabs>
 
         <p className="text-xs text-muted-foreground">
-          Note: Admin always has universal access across all schema fields and cannot be restricted.
+          {t('adminNote')}
         </p>
       </div>
     </AdminGuard>
   );
 }
 
+function PermissionsFallback() {
+  const t = useTranslations('users.permissions');
+  return (
+    <div className="flex items-center justify-center py-20 text-muted-foreground">
+      <Loader2 className="h-6 w-6 animate-spin mr-2" /> {t('loading')}
+    </div>
+  );
+}
+
 export default function PermissionsPage() {
   return (
     <Suspense
-      fallback={
-        <div className="flex items-center justify-center py-20 text-muted-foreground">
-          <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading permissions…
-        </div>
-      }
+      fallback={<PermissionsFallback />}
     >
       <PermissionsPageContent />
     </Suspense>

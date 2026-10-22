@@ -1,0 +1,34 @@
+{
+  "groups": {
+    "content": "Inhalt",
+    "assets": "Medien",
+    "developer": "Entwickler",
+    "team": "Team",
+    "settings": "Einstellungen",
+    "help": "Hilfe",
+    "plugins": "Plugins"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "contentTypes": "Inhaltstypen",
+    "entries": "Einträge",
+    "releases": "Releases",
+    "forms": "Formulare",
+    "media": "Medien",
+    "plugins": "Plugins",
+    "apiKeys": "API-Schlüssel",
+    "webhooks": "Webhooks",
+    "jobs": "Jobs",
+    "auditLog": "Audit-Protokoll",
+    "graphql": "GraphQL-Playground",
+    "users": "Benutzer",
+    "brand": "Marke",
+    "languages": "Sprachen",
+    "docs": "Dokumentation",
+    "serverSettings": "E-Mail & Speicher"
+  },
+  "signOut": "Abmelden",
+  "user": "Benutzer",
+  "openMenu": "Navigation öffnen",
+  "closeMenu": "Seitenleiste schließen"
+}

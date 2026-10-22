@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { cn, humanizeName } from '@/lib/utils';
@@ -36,24 +37,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { INDEXABLE_FIELD_TYPES, INDEXED_HINT } from '@/lib/indexable-fields';
+import { INDEXABLE_FIELD_TYPES } from '@/lib/indexable-fields';
+import { RelationFieldOptions } from '@/components/RelationFieldOptions';
+import { optionsForEditor, optionsForSave } from '@/lib/field-options';
 
+// Labels come from contentTypes.fieldTypes.<value>.
 const FIELD_TYPES = [
-  { value: 'text',     label: 'Text' },
-  { value: 'textarea', label: 'Textarea' },
-  { value: 'richtext', label: 'Rich Text' },
-  { value: 'number',   label: 'Number' },
-  { value: 'boolean',  label: 'Boolean' },
-  { value: 'select',   label: 'Select' },
-  { value: 'image',    label: 'Image' },
-  { value: 'color',    label: 'Color' },
-  { value: 'date',     label: 'Date' },
-  { value: 'datetime', label: 'Date & Time' },
-  { value: 'json',     label: 'JSON' },
-  { value: 'relation', label: 'Relation' },
-  { value: 'repeater', label: 'Repeater' },
-  { value: 'flexible', label: 'Flexible Content' },
-  { value: 'group',    label: 'Group' },
+  { value: 'text' },
+  { value: 'textarea' },
+  { value: 'richtext' },
+  { value: 'number' },
+  { value: 'boolean' },
+  { value: 'select' },
+  { value: 'image' },
+  { value: 'color' },
+  { value: 'date' },
+  { value: 'datetime' },
+  { value: 'json' },
+  { value: 'relation' },
+  { value: 'repeater' },
+  { value: 'flexible' },
+  { value: 'group' },
 ];
 
 const SIMPLE_FIELD_TYPES = FIELD_TYPES.filter(
@@ -71,7 +75,7 @@ interface Field {
   indexed?:    boolean;
   readRoles?:  string[];
   writeRoles?: string[];
-  options?:    { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
+  options?:    { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string };
 }
 
 let _counter = 0;
@@ -90,7 +94,7 @@ const buildSchemaField = (f: { name: string; type: string; required: boolean; in
   ...(f.indexed && INDEXABLE_FIELD_TYPES.has(f.type) ? { indexed: true } : {}),
   ...(f.readRoles ? { readRoles: f.readRoles } : {}),
   ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}),
-  ...(f.options ? { options: f.options } : {}),
+  ...(f.options ? { options: optionsForSave(f.options) } : {}),
 });
 
 function FieldTypeSelect({
@@ -99,11 +103,12 @@ function FieldTypeSelect({
   value: string; onChange: (v: string) => void;
   types?: typeof FIELD_TYPES; className?: string;
 }) {
+  const t = useTranslations('contentTypes');
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className={className}><SelectValue /></SelectTrigger>
       <SelectContent>
-        {types.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+        {types.map((ft) => <SelectItem key={ft.value} value={ft.value}>{t(`fieldTypes.${ft.value}`)}</SelectItem>)}
       </SelectContent>
     </Select>
   );
@@ -135,11 +140,11 @@ function SortableFieldCard({ id, disabled, children }: { id: string; disabled?: 
 }
 
 const ALL_METHODS = [
-  { key: 'list',   label: 'List',   verb: 'GET',    path: '' },
-  { key: 'read',   label: 'Read',   verb: 'GET',    path: '/:slug' },
-  { key: 'create', label: 'Create', verb: 'POST',   path: '' },
-  { key: 'update', label: 'Update', verb: 'PUT',    path: '/:slug' },
-  { key: 'delete', label: 'Delete', verb: 'DELETE', path: '/:slug' },
+  { key: 'list',   verb: 'GET',    path: '' },
+  { key: 'read',   verb: 'GET',    path: '/:slug' },
+  { key: 'create', verb: 'POST',   path: '' },
+  { key: 'update', verb: 'PUT',    path: '/:slug' },
+  { key: 'delete', verb: 'DELETE', path: '/:slug' },
 ];
 
 const VERB_COLOR: Record<string, string> = {
@@ -150,6 +155,8 @@ const VERB_COLOR: Record<string, string> = {
 };
 
 export default function EditContentTypePage() {
+  const t = useTranslations('contentTypes');
+  const tc = useTranslations('common');
   const router = useRouter();
   const params = useParams() ?? {};
   const id = (params.id ?? '') as string;
@@ -183,7 +190,7 @@ export default function EditContentTypePage() {
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   }, []);
-  const [allContentTypes, setAllContentTypes] = useState<{ id: number; name: string }[]>([]);
+  const [allContentTypes, setAllContentTypes] = useState<{ id: number; name: string; schema?: any[] }[]>([]);
 
   useEffect(() => {
     api.get('/content-types').then((r) => setAllContentTypes(r.data ?? [])).catch(() => {});
@@ -215,11 +222,11 @@ export default function EditContentTypePage() {
         setAllowedMethods(ct.allowedMethods ?? ['list', 'read', 'create', 'update', 'delete']);
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => ({ _id: uid(), ...f, name: f.label ?? humanizeName(f.name), required: f.required ?? false }))
+            ? ct.schema.map((f: any) => ({ _id: uid(), ...f, name: f.label ?? humanizeName(f.name), required: f.required ?? false, options: optionsForEditor(f.options) }))
             : [{ _id: uid(), name: '', type: 'text', required: false }],
         );
       })
-      .catch(() => { toast.error('Failed to load content type'); router.push('/content-types'); })
+      .catch(() => { toast.error(t('editor.loadFailed')); router.push('/content-types'); })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -271,17 +278,17 @@ export default function EditContentTypePage() {
   /* ── Submit ──────────────────────────────────────────────────────────────── */
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { setNameError('Name is required'); return; }
+    if (!name.trim()) { setNameError(t('editor.nameRequired')); return; }
     setNameError('');
     const validFields = fields.filter((f) => f.name.trim()).map(buildSchemaField);
-    if (validFields.length === 0) { toast.error('Add at least one field'); return; }
+    if (validFields.length === 0) { toast.error(t('editor.atLeastOneField')); return; }
     setSubmitting(true);
     try {
       await api.put(`/content-types/${id}`, { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods });
-      toast.success('Content type updated');
+      toast.success(t('editor.updated'));
       router.push('/content-types');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Something went wrong');
+      toast.error(err.response?.data?.errors?.join('; ') || err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -331,7 +338,7 @@ export default function EditContentTypePage() {
           className="gap-1.5 text-muted-foreground"
           onClick={() => router.push('/content-types')}
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Content Types
+          <ArrowLeft className="h-4 w-4" /> {t('editor.backToList')}
         </Button>
         <div className="flex items-center gap-2">
           {!loading && (
@@ -343,20 +350,20 @@ export default function EditContentTypePage() {
                     size="sm"
                     className="gap-1.5"
                     onClick={() => router.push(`/entries?ct=${computedName}`)}
-                    title="View entries for this content type"
+                    title={t('editor.viewEntriesTitle')}
                   >
                     <FileText className="h-4 w-4 text-blue-400" />
-                    View Entries
+                    {t('editor.viewEntries')}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     className="gap-1.5"
                     onClick={() => router.push(`/users/permissions?tab=fields&ct=${computedName}`)}
-                    title="Configure field-level permissions & access control"
+                    title={t('editor.fieldPermissionsTitle')}
                   >
                     <Shield className="h-4 w-4 text-amber-400" />
-                    Field Permissions
+                    {t('editor.fieldPermissions')}
                   </Button>
                 </>
               )}
@@ -379,7 +386,7 @@ export default function EditContentTypePage() {
                   URL.revokeObjectURL(url);
                 }}
               >
-                <Download className="h-4 w-4" /> Export JSON
+                <Download className="h-4 w-4" /> {t('editor.exportJson')}
               </Button>
             </>
           )}
@@ -390,9 +397,9 @@ export default function EditContentTypePage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div>
-              <CardTitle>Edit Content Type</CardTitle>
+              <CardTitle>{t('editor.editTitle')}</CardTitle>
               <CardDescription>
-                Removing a field will not delete existing entry data.
+                {t('editor.editDescription')}
               </CardDescription>
             </div>
             <Button
@@ -403,7 +410,7 @@ export default function EditContentTypePage() {
               onClick={() => setJsonOpen((v) => !v)}
             >
               <PanelRight className="h-3.5 w-3.5" />
-              {jsonOpen ? 'Hide JSON' : 'Show JSON'}
+              {jsonOpen ? t('editor.hideJson') : t('editor.showJson')}
             </Button>
           </div>
         </CardHeader>
@@ -414,9 +421,9 @@ export default function EditContentTypePage() {
           <form id="ct-form" onSubmit={onSubmit} className="space-y-6">
             {/* Name */}
             <div className="space-y-1.5">
-              <Label>Name <span className="text-destructive">*</span></Label>
+              <Label>{tc('name')} <span className="text-destructive">*</span></Label>
               <Input
-                placeholder="e.g. blog, product, page"
+                placeholder={t('editor.namePlaceholderEdit')}
                 value={name}
                 onChange={(e) => { setName(e.target.value); setNameError(''); }}
               />
@@ -424,7 +431,7 @@ export default function EditContentTypePage() {
                 ? <p className="text-xs text-destructive">{nameError}</p>
                 : computedName && (
                   <p className="text-xs text-muted-foreground">
-                    API endpoint:{' '}
+                    {t('editor.apiEndpoint')}{' '}
                     <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
                       GET /api/<strong>{computedName.replace(/_/g, '-')}</strong>
                     </code>
@@ -434,10 +441,10 @@ export default function EditContentTypePage() {
 
             {/* API Endpoints */}
             <div className="space-y-2">
-              <Label>API Endpoints</Label>
-              <p className="text-xs text-muted-foreground">Choose which endpoints are publicly accessible for this content type.</p>
+              <Label>{t('editor.apiEndpoints')}</Label>
+              <p className="text-xs text-muted-foreground">{t('editor.apiEndpointsHint')}</p>
               <div className="rounded-md border bg-muted/20 divide-y divide-border">
-                {ALL_METHODS.map(({ key, label, verb, path }) => (
+                {ALL_METHODS.map(({ key, verb, path }) => (
                   <label key={key} className="flex items-center gap-3 px-3 py-2 cursor-pointer select-none hover:bg-muted/40">
                     <Checkbox
                       checked={allowedMethods.includes(key)}
@@ -447,7 +454,7 @@ export default function EditContentTypePage() {
                     <code className="text-xs font-mono text-muted-foreground flex-1">
                       /api/{(computedName || ':type').replace(/_/g, '-')}{path}
                     </code>
-                    <span className="text-xs text-foreground shrink-0">{label}</span>
+                    <span className="text-xs text-foreground shrink-0">{t(`methods.${key}`)}</span>
                   </label>
                 ))}
               </div>
@@ -456,17 +463,17 @@ export default function EditContentTypePage() {
             {/* Fields */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <Label>Fields</Label>
+                <Label>{t('editor.fields')}</Label>
                 <div className="flex items-center gap-2">
                   <Button
                     variant={reorderMode ? 'secondary' : 'outline'}
                     onClick={() => setReorderMode((v) => !v)}
                   >
                     <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                    {reorderMode ? 'Done' : 'Reorder'}
+                    {reorderMode ? t('editor.done') : t('editor.reorder')}
                   </Button>
                   <Button variant="outline" onClick={addField} disabled={reorderMode}>
-                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                    <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
                 </div>
               </div>
@@ -486,13 +493,13 @@ export default function EditContentTypePage() {
                     </span>
                     <div className="flex-1 space-y-1">
                       <Input
-                        placeholder="Field name"
+                        placeholder={t('editor.fieldNamePlaceholder')}
                         value={field.name}
                         onChange={(e) => updateField(fi, 'name', e.target.value)}
                       />
                       {field.name.trim() && (
                         <p className="text-xs text-muted-foreground px-0.5">
-                          Field key: <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
+                          {t('editor.fieldKey')} <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
                         </p>
                       )}
                     </div>
@@ -506,18 +513,18 @@ export default function EditContentTypePage() {
                         checked={!!field.required}
                         onCheckedChange={(c) => updateField(fi, 'required', c === true)}
                       />
-                      Required
+                      {t('editor.required')}
                     </label>
                     {INDEXABLE_FIELD_TYPES.has(field.type) && (
                       <label
                         className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none"
-                        title={INDEXED_HINT}
+                        title={t('editor.indexedHint')}
                       >
                         <Checkbox
                           checked={!!field.indexed}
                           onCheckedChange={(c) => updateField(fi, 'indexed', c === true)}
                         />
-                        Indexed
+                        {t('editor.indexed')}
                       </label>
                     )}
                     <div className="flex items-center gap-0.5 shrink-0">
@@ -532,7 +539,7 @@ export default function EditContentTypePage() {
                               ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
                               : 'text-muted-foreground hover:text-foreground'
                           )}
-                          title="Configure field-level access control & permissions"
+                          title={t('editor.fieldAccessTitle')}
                           onClick={() => router.push(`/users/permissions?tab=fields&ct=${computedName}`)}
                         >
                           <Shield className="h-4 w-4" />
@@ -545,7 +552,7 @@ export default function EditContentTypePage() {
                         className="h-4 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                         disabled={fields.length === 1}
                         onClick={() => removeField(fi)}
-                        title="Delete field"
+                        title={t('editor.deleteField')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -555,9 +562,9 @@ export default function EditContentTypePage() {
                   {/* Select choices */}
                   {field.type === 'select' && (
                     <div className="pl-7 space-y-1">
-                      <Label className="text-xs text-muted-foreground">Choices (comma-separated)</Label>
+                      <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
                       <Textarea
-                        placeholder="option1, option2, option3"
+                        placeholder={t('editor.choicesPlaceholder')}
                         value={field.options?.choices ?? ''}
                         onChange={(e) => updateField(fi, 'options', { ...field.options, choices: e.target.value })}
                         rows={2}
@@ -567,46 +574,23 @@ export default function EditContentTypePage() {
                   )}
 
                   {field.type === 'relation' && (
-                    <div className="pl-7 grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Related Content Type</Label>
-                        <Select
-                          value={field.options?.relatedContentType ?? ''}
-                          onValueChange={(v) => updateField(fi, 'options', { ...field.options, relatedContentType: v })}
-                        >
-                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select type…" /></SelectTrigger>
-                          <SelectContent>
-                            {allContentTypes.map((ct) => (
-                              <SelectItem key={ct.id} value={ct.name} className="text-xs capitalize">{ct.name.replace(/_/g, ' ')}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Cardinality</Label>
-                        <Select
-                          value={field.options?.cardinality ?? 'one'}
-                          onValueChange={(v) => updateField(fi, 'options', { ...field.options, cardinality: v })}
-                        >
-                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="one" className="text-xs">One (single entry)</SelectItem>
-                            <SelectItem value="many" className="text-xs">Many (multiple entries)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    <RelationFieldOptions
+                      options={field.options}
+                      onChange={(o) => updateField(fi, 'options', { ...field.options, ...o })}
+                      contentTypes={allContentTypes}
+                      currentType={computedName}
+                    />
                   )}
 
                   {/* Repeater sub-fields */}
                   {field.type === 'repeater' && field.options?.subFields && (
                     <div className="pl-7">
                       <div className="border-l-2 border-orange-400 pl-3 space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">Sub Fields</p>
+                        <p className="text-xs font-medium text-muted-foreground">{t('editor.subFields')}</p>
                         {field.options.subFields.map((sf, si) => (
                           <div key={si} className="flex items-center gap-2">
                             <Input
-                              placeholder="sub-field name"
+                              placeholder={t('editor.subFieldPlaceholder')}
                               value={sf.name}
                               onChange={(e) => updateSubField(fi, si, 'name', e.target.value)}
                               className="flex-1"
@@ -632,7 +616,7 @@ export default function EditContentTypePage() {
                           variant="outline"
                           onClick={() => addSubField(fi)}
                         >
-                          <Plus className="h-4 w-4 mr-1.5" /> Add Sub Field
+                          <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addSubField')}
                         </Button>
                       </div>
                     </div>
@@ -642,11 +626,11 @@ export default function EditContentTypePage() {
                   {field.type === 'group' && field.options?.subFields && (
                     <div className="pl-7">
                       <div className="border-l-2 border-violet-400 pl-3 space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">Fields</p>
+                        <p className="text-xs font-medium text-muted-foreground">{t('editor.fields')}</p>
                         {field.options.subFields.map((sf, si) => (
                           <div key={si} className="flex items-center gap-2">
                             <Input
-                              placeholder="field name"
+                              placeholder={t('editor.nestedFieldPlaceholder')}
                               value={sf.name}
                               onChange={(e) => updateSubField(fi, si, 'name', e.target.value)}
                               className="flex-1"
@@ -672,7 +656,7 @@ export default function EditContentTypePage() {
                           variant="outline"
                           onClick={() => addSubField(fi)}
                         >
-                          <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                          <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                         </Button>
                       </div>
                     </div>
@@ -682,7 +666,7 @@ export default function EditContentTypePage() {
                   {field.type === 'flexible' && field.options?.layouts && (
                     <div className="pl-7">
                       <div className="border-l-2 border-pink-400 pl-3 space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">Layouts</p>
+                        <p className="text-xs font-medium text-muted-foreground">{t('editor.layouts')}</p>
                         {field.options.layouts.map((layout, li) => {
                           const key = `${fi}-${li}`;
                           const isOpen = openLayouts[key] ?? false;
@@ -701,13 +685,13 @@ export default function EditContentTypePage() {
                                     : <ChevronRight className="h-3.5 w-3.5" />}
                                 </Button>
                                 <Input
-                                  placeholder="layout name"
+                                  placeholder={t('editor.layoutNamePlaceholder')}
                                   value={layout.name}
                                   onChange={(e) => updateLayout(fi, li, 'name', e.target.value)}
                                   className="w-32"
                                 />
                                 <Input
-                                  placeholder="label"
+                                  placeholder={t('editor.layoutLabelPlaceholder')}
                                   value={layout.label}
                                   onChange={(e) => updateLayout(fi, li, 'label', e.target.value)}
                                   className="flex-1"
@@ -727,7 +711,7 @@ export default function EditContentTypePage() {
                                   {layout.fields.map((lf, fli) => (
                                     <div key={fli} className="flex items-center gap-2">
                                       <Input
-                                        placeholder="field name"
+                                        placeholder={t('editor.nestedFieldPlaceholder')}
                                         value={lf.name}
                                         onChange={(e) => updateLayoutField(fi, li, fli, 'name', e.target.value)}
                                         className="flex-1"
@@ -753,7 +737,7 @@ export default function EditContentTypePage() {
                                     variant="outline"
                                     onClick={() => addLayoutField(fi, li)}
                                   >
-                                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                                    <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                                   </Button>
                                 </div>
                               )}
@@ -764,7 +748,7 @@ export default function EditContentTypePage() {
                           variant="outline"
                           onClick={() => addLayout(fi)}
                         >
-                          <Plus className="h-4 w-4 mr-1.5" /> Add Layout
+                          <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addLayout')}
                         </Button>
                       </div>
                     </div>
@@ -786,10 +770,10 @@ export default function EditContentTypePage() {
                     onClick={() => setReorderMode((v) => !v)}
                   >
                     <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                    {reorderMode ? 'Done' : 'Reorder'}
+                    {reorderMode ? t('editor.done') : t('editor.reorder')}
                   </Button>
                   <Button variant="outline" onClick={addField} disabled={reorderMode}>
-                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                    <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
                 </div>
               )}
@@ -822,18 +806,18 @@ export default function EditContentTypePage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs font-medium">JSON Schema Preview</span>
-                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
+                      <span className="text-xs font-medium">{t('editor.jsonPreview')}</span>
+                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">{t('editor.live')}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         onClick={() => setJsonWrap((w) => !w)}
                         className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                        title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                        title={jsonWrap ? t('editor.disableWrap') : t('editor.wrapLines')}
                       >
                         <WrapText className="h-3.5 w-3.5" />
-                        Wrap
+                        {t('editor.wrap')}
                       </button>
                       <button
                         type="button"
@@ -843,10 +827,10 @@ export default function EditContentTypePage() {
                           setTimeout(() => setJsonCopied(false), 2000);
                         }}
                         className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                        title="Copy JSON"
+                        title={t('editor.copyJson')}
                       >
                         {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                        {jsonCopied ? 'Copied' : 'Copy'}
+                        {jsonCopied ? tc('copied') : tc('copy')}
                       </button>
                     </div>
                   </div>
@@ -858,9 +842,9 @@ export default function EditContentTypePage() {
         </div>
 
         <CardFooter className="justify-end gap-2">
-          <Button variant="outline" onClick={() => router.push('/content-types')}>Cancel</Button>
+          <Button variant="outline" onClick={() => router.push('/content-types')}>{tc('cancel')}</Button>
           <Button type="submit" form="ct-form" disabled={submitting}>
-            {submitting ? 'Saving…' : 'Save Changes'}
+            {submitting ? tc('saving') : t('editor.saveChanges')}
           </Button>
         </CardFooter>
       </Card>

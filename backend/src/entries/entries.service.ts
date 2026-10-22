@@ -379,7 +379,7 @@ export class EntriesService {
 
     if (populate.length && entry.contentType) {
       const schema = entry.contentType.schema as unknown as FieldDef[];
-      data = await populateDeep(data, schema, populate, this.prisma);
+      data = await populateDeep(data, schema, populate, this.prisma, 0, { ownerId: entry.publicId });
     }
 
     if (entry.contentType?.schema) {

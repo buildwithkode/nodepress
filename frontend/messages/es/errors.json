@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "Algo ha salido mal",
+    "description": "Se ha producido un error inesperado en esta página. Tus datos están a salvo: es solo un error de visualización.",
+    "errorId": "ID del error:",
+    "goToDashboard": "Ir al panel",
+    "tryAgain": "Reintentar"
+  },
+  "boundary": {
+    "title": "Algo ha salido mal",
+    "failedToLoad": "No se ha podido cargar «{label}». El error se ha notificado automáticamente.",
+    "sectionFailed": "No se ha podido cargar esta sección. El error se ha notificado automáticamente.",
+    "unknownError": "Error desconocido",
+    "tryAgain": "Reintentar"
+  }
+}

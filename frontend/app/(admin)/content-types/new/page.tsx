@@ -4,6 +4,7 @@ import { useCallback, useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, Upload, Braces, Copy, Check, PanelRight, WrapText } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { Button } from '@/components/ui/button';
@@ -19,24 +20,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { INDEXABLE_FIELD_TYPES, INDEXED_HINT } from '@/lib/indexable-fields';
+import { INDEXABLE_FIELD_TYPES } from '@/lib/indexable-fields';
+import { RelationFieldOptions } from '@/components/RelationFieldOptions';
+import { optionsForEditor, optionsForSave } from '@/lib/field-options';
+import { AiContentModelButton } from '@/components/AiAssist';
 
+// Labels come from contentTypes.fieldTypes.<value>.
 const FIELD_TYPES = [
-  { value: 'text',     label: 'Text' },
-  { value: 'textarea', label: 'Textarea' },
-  { value: 'richtext', label: 'Rich Text' },
-  { value: 'number',   label: 'Number' },
-  { value: 'boolean',  label: 'Boolean' },
-  { value: 'select',   label: 'Select' },
-  { value: 'image',    label: 'Image' },
-  { value: 'color',    label: 'Color' },
-  { value: 'date',     label: 'Date' },
-  { value: 'datetime', label: 'Date & Time' },
-  { value: 'json',     label: 'JSON' },
-  { value: 'relation', label: 'Relation' },
-  { value: 'repeater', label: 'Repeater' },
-  { value: 'flexible', label: 'Flexible Content' },
-  { value: 'group',    label: 'Group' },
+  { value: 'text' },
+  { value: 'textarea' },
+  { value: 'richtext' },
+  { value: 'number' },
+  { value: 'boolean' },
+  { value: 'select' },
+  { value: 'image' },
+  { value: 'color' },
+  { value: 'date' },
+  { value: 'datetime' },
+  { value: 'json' },
+  { value: 'relation' },
+  { value: 'repeater' },
+  { value: 'flexible' },
+  { value: 'group' },
 ];
 
 const SIMPLE_FIELD_TYPES = FIELD_TYPES.filter(
@@ -50,7 +55,7 @@ interface Field {
   type:     string;
   required: boolean;
   indexed?: boolean;
-  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
+  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string };
 }
 
 const toSnakeCase = (name: string) =>
@@ -64,7 +69,7 @@ const buildSchemaField = (f: { name: string; type: string; required: boolean; in
   label: f.name.trim(),
   required: f.required,
   ...(f.indexed && INDEXABLE_FIELD_TYPES.has(f.type) ? { indexed: true } : {}),
-  ...(f.options ? { options: f.options } : {}),
+  ...(f.options ? { options: optionsForSave(f.options) } : {}),
 });
 
 function FieldTypeSelect({
@@ -73,22 +78,23 @@ function FieldTypeSelect({
   value: string; onChange: (v: string) => void;
   types?: typeof FIELD_TYPES; className?: string;
 }) {
+  const t = useTranslations('contentTypes');
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className={className}><SelectValue /></SelectTrigger>
       <SelectContent>
-        {types.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+        {types.map((ft) => <SelectItem key={ft.value} value={ft.value}>{t(`fieldTypes.${ft.value}`)}</SelectItem>)}
       </SelectContent>
     </Select>
   );
 }
 
 const ALL_METHODS = [
-  { key: 'list',   label: 'List',   verb: 'GET',    path: '' },
-  { key: 'read',   label: 'Read',   verb: 'GET',    path: '/:slug' },
-  { key: 'create', label: 'Create', verb: 'POST',   path: '' },
-  { key: 'update', label: 'Update', verb: 'PUT',    path: '/:slug' },
-  { key: 'delete', label: 'Delete', verb: 'DELETE', path: '/:slug' },
+  { key: 'list',   verb: 'GET',    path: '' },
+  { key: 'read',   verb: 'GET',    path: '/:slug' },
+  { key: 'create', verb: 'POST',   path: '' },
+  { key: 'update', verb: 'PUT',    path: '/:slug' },
+  { key: 'delete', verb: 'DELETE', path: '/:slug' },
 ];
 
 const VERB_COLOR: Record<string, string> = {
@@ -99,6 +105,8 @@ const VERB_COLOR: Record<string, string> = {
 };
 
 export default function NewContentTypePage() {
+  const t = useTranslations('contentTypes');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [name, setName] = useState('');
@@ -127,7 +135,7 @@ export default function NewContentTypePage() {
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   }, []);
-  const [allContentTypes, setAllContentTypes] = useState<{ id: number; name: string }[]>([]);
+  const [allContentTypes, setAllContentTypes] = useState<{ id: number; name: string; schema?: any[] }[]>([]);
 
   useEffect(() => {
     api.get('/content-types').then((r) => setAllContentTypes(r.data ?? [])).catch(() => {});
@@ -148,20 +156,20 @@ export default function NewContentTypePage() {
         const json = JSON.parse(ev.target?.result as string);
         const ct = json.contentType;
         if (!ct || typeof ct.name !== 'string' || !Array.isArray(ct.schema)) {
-          toast.error('Invalid file: missing contentType.name or contentType.schema');
+          toast.error(t('editor.invalidImportFile'));
           return;
         }
         setName(ct.displayName || ct.name);
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, options: f.options }))
+            ? ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, options: optionsForEditor(f.options) }))
             : [{ name: '', type: 'text', required: false }],
         );
         if (Array.isArray(ct.allowedMethods)) setAllowedMethods(ct.allowedMethods);
         setOpenLayouts({});
-        toast.success(`Imported "${ct.name}" — review and save`);
+        toast.success(t('editor.imported', { name: ct.name }));
       } catch {
-        toast.error('Failed to parse JSON file');
+        toast.error(t('editor.parseFailed'));
       } finally {
         e.target.value = '';
       }
@@ -215,21 +223,21 @@ export default function NewContentTypePage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { setNameError('Name is required'); return; }
+    if (!name.trim()) { setNameError(t('editor.nameRequired')); return; }
     setNameError('');
     // Keep the user's exact wording as the human label; the backend derives the
     // snake_case field key from `name`.
     const validFields = fields
       .filter((f) => f.name.trim())
       .map(buildSchemaField);
-    if (validFields.length === 0) { toast.error('Add at least one field'); return; }
+    if (validFields.length === 0) { toast.error(t('editor.atLeastOneField')); return; }
     setSubmitting(true);
     try {
       await api.post('/content-types', { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods });
-      toast.success('Content type created');
+      toast.success(t('editor.created'));
       router.push('/content-types');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Something went wrong');
+      toast.error(err.response?.data?.errors?.join('; ') || err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -239,10 +247,10 @@ export default function NewContentTypePage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/content-types')}>
-          <ArrowLeft className="h-4 w-4" /> Back to Content Types
+          <ArrowLeft className="h-4 w-4" /> {t('editor.backToList')}
         </Button>
         <Button variant="outline" size="sm" className="gap-1.5" onClick={() => importRef.current?.click()}>
-          <Upload className="h-4 w-4" /> Import JSON
+          <Upload className="h-4 w-4" /> {t('editor.importJson')}
         </Button>
         <input ref={importRef} type="file" accept=".json,application/json" className="hidden" onChange={handleImport} />
       </div>
@@ -251,8 +259,8 @@ export default function NewContentTypePage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div>
-              <CardTitle>New Content Type</CardTitle>
-              <CardDescription>Define a schema with typed fields.</CardDescription>
+              <CardTitle>{t('editor.newTitle')}</CardTitle>
+              <CardDescription>{t('editor.newDescription')}</CardDescription>
             </div>
             <Button
               type="button"
@@ -262,7 +270,7 @@ export default function NewContentTypePage() {
               onClick={() => setJsonOpen((v) => !v)}
             >
               <PanelRight className="h-3.5 w-3.5" />
-              {jsonOpen ? 'Hide JSON' : 'Show JSON'}
+              {jsonOpen ? t('editor.hideJson') : t('editor.showJson')}
             </Button>
           </div>
         </CardHeader>
@@ -271,11 +279,18 @@ export default function NewContentTypePage() {
           {/* Left pane: form */}
           <div style={{ width: jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
           <form id="ct-form" onSubmit={onSubmit} className="space-y-6">
+            <AiContentModelButton
+              onSuggested={(ct) => {
+                setName(ct.displayName || ct.name);
+                setFields(ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, options: optionsForEditor(f.options) })));
+                setOpenLayouts({});
+              }}
+            />
             {/* Name */}
             <div className="space-y-1.5">
-              <Label>Name <span className="text-destructive">*</span></Label>
+              <Label>{tc('name')} <span className="text-destructive">*</span></Label>
               <Input
-                placeholder="e.g. blog, team member, product"
+                placeholder={t('editor.namePlaceholderNew')}
                 value={name}
                 onChange={(e) => { setName(e.target.value); setNameError(''); }}
               />
@@ -283,7 +298,7 @@ export default function NewContentTypePage() {
                 ? <p className="text-xs text-destructive">{nameError}</p>
                 : computedName && (
                   <p className="text-xs text-muted-foreground">
-                    API endpoint:{' '}
+                    {t('editor.apiEndpoint')}{' '}
                     <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
                       GET /api/<strong>{computedName.replace(/_/g, '-')}</strong>
                     </code>
@@ -293,10 +308,10 @@ export default function NewContentTypePage() {
 
             {/* API Endpoints */}
             <div className="space-y-2">
-              <Label>API Endpoints</Label>
-              <p className="text-xs text-muted-foreground">Choose which endpoints are publicly accessible for this content type.</p>
+              <Label>{t('editor.apiEndpoints')}</Label>
+              <p className="text-xs text-muted-foreground">{t('editor.apiEndpointsHint')}</p>
               <div className="rounded-md border bg-muted/20 divide-y divide-border">
-                {ALL_METHODS.map(({ key, label, verb, path }) => (
+                {ALL_METHODS.map(({ key, verb, path }) => (
                   <label key={key} className="flex items-center gap-3 px-3 py-2 cursor-pointer select-none hover:bg-muted/40">
                     <Checkbox
                       checked={allowedMethods.includes(key)}
@@ -306,7 +321,7 @@ export default function NewContentTypePage() {
                     <code className="text-xs font-mono text-muted-foreground flex-1">
                       /api/{(computedName || ':type').replace(/_/g, '-')}{path}
                     </code>
-                    <span className="text-xs text-foreground shrink-0">{label}</span>
+                    <span className="text-xs text-foreground shrink-0">{t(`methods.${key}`)}</span>
                   </label>
                 ))}
               </div>
@@ -315,9 +330,9 @@ export default function NewContentTypePage() {
             {/* Fields */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <Label>Fields</Label>
+                <Label>{t('editor.fields')}</Label>
                 <Button variant="outline" onClick={addField}>
-                  <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                  <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                 </Button>
               </div>
 
@@ -330,25 +345,25 @@ export default function NewContentTypePage() {
                       </span>
                       <div className="flex-1 space-y-1">
                         <Input
-                          placeholder="Field name"
+                          placeholder={t('editor.fieldNamePlaceholder')}
                           value={field.name}
                           onChange={(e) => updateField(fi, 'name', e.target.value)}
                         />
                         {field.name.trim() && (
                           <p className="text-xs text-muted-foreground px-0.5">
-                            Field key: <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
+                            {t('editor.fieldKey')} <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
                           </p>
                         )}
                       </div>
                       <FieldTypeSelect value={field.type} onChange={(val) => updateField(fi, 'type', val)} className="w-40" />
                       <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none">
                         <Checkbox checked={!!field.required} onCheckedChange={(c) => updateField(fi, 'required', c === true)} />
-                        Required
+                        {t('editor.required')}
                       </label>
                       {INDEXABLE_FIELD_TYPES.has(field.type) && (
-                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none" title={INDEXED_HINT}>
+                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none" title={t('editor.indexedHint')}>
                           <Checkbox checked={!!field.indexed} onCheckedChange={(c) => updateField(fi, 'indexed', c === true)} />
-                          Indexed
+                          {t('editor.indexed')}
                         </label>
                       )}
                       <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={fields.length === 1} onClick={() => removeField(fi)}>
@@ -358,50 +373,27 @@ export default function NewContentTypePage() {
 
                     {field.type === 'select' && (
                       <div className="pl-7 space-y-1">
-                        <Label className="text-xs text-muted-foreground">Choices (comma-separated)</Label>
-                        <Textarea placeholder="option1, option2, option3" value={field.options?.choices ?? ''} onChange={(e) => updateField(fi, 'options', { ...field.options, choices: e.target.value })} rows={2} className="resize-none" />
+                        <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
+                        <Textarea placeholder={t('editor.choicesPlaceholder')} value={field.options?.choices ?? ''} onChange={(e) => updateField(fi, 'options', { ...field.options, choices: e.target.value })} rows={2} className="resize-none" />
                       </div>
                     )}
 
                     {field.type === 'relation' && (
-                      <div className="pl-7 grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Related Content Type</Label>
-                          <Select
-                            value={field.options?.relatedContentType ?? ''}
-                            onValueChange={(v) => updateField(fi, 'options', { ...field.options, relatedContentType: v })}
-                          >
-                            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select type…" /></SelectTrigger>
-                            <SelectContent>
-                              {allContentTypes.map((ct) => (
-                                <SelectItem key={ct.id} value={ct.name} className="text-xs capitalize">{ct.name.replace(/_/g, ' ')}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Cardinality</Label>
-                          <Select
-                            value={field.options?.cardinality ?? 'one'}
-                            onValueChange={(v) => updateField(fi, 'options', { ...field.options, cardinality: v })}
-                          >
-                            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="one" className="text-xs">One (single entry)</SelectItem>
-                              <SelectItem value="many" className="text-xs">Many (multiple entries)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                      <RelationFieldOptions
+                        options={field.options}
+                        onChange={(o) => updateField(fi, 'options', { ...field.options, ...o })}
+                        contentTypes={allContentTypes}
+                        currentType={computedName}
+                      />
                     )}
 
                     {field.type === 'repeater' && field.options?.subFields && (
                       <div className="pl-7">
                         <div className="border-l-2 border-orange-400 pl-3 space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground">Sub Fields</p>
+                          <p className="text-xs font-medium text-muted-foreground">{t('editor.subFields')}</p>
                           {field.options.subFields.map((sf, si) => (
                             <div key={si} className="flex items-center gap-2">
-                              <Input placeholder="sub-field name" value={sf.name} onChange={(e) => updateSubField(fi, si, 'name', e.target.value)} className="flex-1" />
+                              <Input placeholder={t('editor.subFieldPlaceholder')} value={sf.name} onChange={(e) => updateSubField(fi, si, 'name', e.target.value)} className="flex-1" />
                               <FieldTypeSelect value={sf.type} onChange={(val) => updateSubField(fi, si, 'type', val)} types={SIMPLE_FIELD_TYPES} className="w-32" />
                               <Button variant="ghost" size="icon-xs" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={field.options!.subFields!.length === 1} onClick={() => removeSubField(fi, si)}>
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -409,7 +401,7 @@ export default function NewContentTypePage() {
                             </div>
                           ))}
                           <Button variant="outline" onClick={() => addSubField(fi)}>
-                            <Plus className="h-4 w-4 mr-1.5" /> Add Sub Field
+                            <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addSubField')}
                           </Button>
                         </div>
                       </div>
@@ -418,10 +410,10 @@ export default function NewContentTypePage() {
                     {field.type === 'group' && field.options?.subFields && (
                       <div className="pl-7">
                         <div className="border-l-2 border-violet-400 pl-3 space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground">Fields</p>
+                          <p className="text-xs font-medium text-muted-foreground">{t('editor.fields')}</p>
                           {field.options.subFields.map((sf, si) => (
                             <div key={si} className="flex items-center gap-2">
-                              <Input placeholder="field name" value={sf.name} onChange={(e) => updateSubField(fi, si, 'name', e.target.value)} className="flex-1" />
+                              <Input placeholder={t('editor.nestedFieldPlaceholder')} value={sf.name} onChange={(e) => updateSubField(fi, si, 'name', e.target.value)} className="flex-1" />
                               <FieldTypeSelect value={sf.type} onChange={(val) => updateSubField(fi, si, 'type', val)} types={SIMPLE_FIELD_TYPES} className="w-32" />
                               <Button variant="ghost" size="icon-xs" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={field.options!.subFields!.length === 1} onClick={() => removeSubField(fi, si)}>
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -429,7 +421,7 @@ export default function NewContentTypePage() {
                             </div>
                           ))}
                           <Button variant="outline" onClick={() => addSubField(fi)}>
-                            <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                            <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                           </Button>
                         </div>
                       </div>
@@ -438,7 +430,7 @@ export default function NewContentTypePage() {
                     {field.type === 'flexible' && field.options?.layouts && (
                       <div className="pl-7">
                         <div className="border-l-2 border-pink-400 pl-3 space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground">Layouts</p>
+                          <p className="text-xs font-medium text-muted-foreground">{t('editor.layouts')}</p>
                           {field.options.layouts.map((layout, li) => {
                             const key = `${fi}-${li}`;
                             const isOpen = openLayouts[key] ?? false;
@@ -448,8 +440,8 @@ export default function NewContentTypePage() {
                                   <Button type="button" variant="ghost" size="icon-sm" onClick={() => toggleLayout(key)} className="shrink-0 h-6 w-6">
                                     {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                                   </Button>
-                                  <Input placeholder="layout name" value={layout.name} onChange={(e) => updateLayout(fi, li, 'name', e.target.value)} className="w-32" />
-                                  <Input placeholder="label" value={layout.label} onChange={(e) => updateLayout(fi, li, 'label', e.target.value)} className="flex-1" />
+                                  <Input placeholder={t('editor.layoutNamePlaceholder')} value={layout.name} onChange={(e) => updateLayout(fi, li, 'name', e.target.value)} className="w-32" />
+                                  <Input placeholder={t('editor.layoutLabelPlaceholder')} value={layout.label} onChange={(e) => updateLayout(fi, li, 'label', e.target.value)} className="flex-1" />
                                   <Button variant="ghost" size="icon-xs" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={field.options!.layouts!.length === 1} onClick={() => removeLayout(fi, li)}>
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </Button>
@@ -458,7 +450,7 @@ export default function NewContentTypePage() {
                                   <div className="px-3 py-2 space-y-1.5 border-t">
                                     {layout.fields.map((lf, fli) => (
                                       <div key={fli} className="flex items-center gap-2">
-                                        <Input placeholder="field name" value={lf.name} onChange={(e) => updateLayoutField(fi, li, fli, 'name', e.target.value)} className="flex-1" />
+                                        <Input placeholder={t('editor.nestedFieldPlaceholder')} value={lf.name} onChange={(e) => updateLayoutField(fi, li, fli, 'name', e.target.value)} className="flex-1" />
                                         <FieldTypeSelect value={lf.type} onChange={(val) => updateLayoutField(fi, li, fli, 'type', val)} types={SIMPLE_FIELD_TYPES} className="w-32" />
                                         <Button variant="ghost" size="icon-xs" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={layout.fields.length === 1} onClick={() => removeLayoutField(fi, li, fli)}>
                                           <Trash2 className="h-3.5 w-3.5" />
@@ -466,7 +458,7 @@ export default function NewContentTypePage() {
                                       </div>
                                     ))}
                                     <Button variant="outline" onClick={() => addLayoutField(fi, li)}>
-                                      <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                                      <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                                     </Button>
                                   </div>
                                 )}
@@ -474,7 +466,7 @@ export default function NewContentTypePage() {
                             );
                           })}
                           <Button variant="outline" onClick={() => addLayout(fi)}>
-                            <Plus className="h-4 w-4 mr-1.5" /> Add Layout
+                            <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addLayout')}
                           </Button>
                         </div>
                       </div>
@@ -488,7 +480,7 @@ export default function NewContentTypePage() {
               {fields.length >= 4 && (
                 <div className="flex items-center justify-end mt-3">
                   <Button variant="outline" onClick={addField}>
-                    <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                    <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
                 </div>
               )}
@@ -521,18 +513,18 @@ export default function NewContentTypePage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs font-medium">JSON Schema Preview</span>
-                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
+                      <span className="text-xs font-medium">{t('editor.jsonPreview')}</span>
+                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">{t('editor.live')}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         onClick={() => setJsonWrap((w) => !w)}
                         className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                        title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                        title={jsonWrap ? t('editor.disableWrap') : t('editor.wrapLines')}
                       >
                         <WrapText className="h-3.5 w-3.5" />
-                        Wrap
+                        {t('editor.wrap')}
                       </button>
                       <button
                         type="button"
@@ -542,10 +534,10 @@ export default function NewContentTypePage() {
                           setTimeout(() => setJsonCopied(false), 2000);
                         }}
                         className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                        title="Copy JSON"
+                        title={t('editor.copyJson')}
                       >
                         {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                        {jsonCopied ? 'Copied' : 'Copy'}
+                        {jsonCopied ? tc('copied') : tc('copy')}
                       </button>
                     </div>
                   </div>
@@ -557,9 +549,9 @@ export default function NewContentTypePage() {
         </div>
 
         <CardFooter className="justify-end gap-2">
-          <Button variant="outline" onClick={() => router.push('/content-types')}>Cancel</Button>
+          <Button variant="outline" onClick={() => router.push('/content-types')}>{tc('cancel')}</Button>
           <Button type="submit" form="ct-form" disabled={submitting}>
-            {submitting ? 'Creating…' : 'Create'}
+            {submitting ? t('editor.creating') : tc('create')}
           </Button>
         </CardFooter>
       </Card>

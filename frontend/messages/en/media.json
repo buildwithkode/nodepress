@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "Failed to load media files",
+    "fileDeleted": "File deleted",
+    "folderDeleted": "Folder deleted",
+    "deleteFailed": "Delete failed",
+    "folderRenamed": "Folder renamed",
+    "renameFolderFailed": "Failed to rename folder",
+    "folderCreated": "Folder created",
+    "createFolderFailed": "Failed to create folder",
+    "fileMoved": "File moved successfully",
+    "moveFileFailed": "Failed to move file",
+    "urlCopied": "URL copied",
+    "uploaded": "{name} uploaded",
+    "uploadFailed": "{name} upload failed"
+  },
+  "folders": {
+    "title": "Folders",
+    "allFiles": "All Files",
+    "unfiled": "Unfiled",
+    "folder": "Folder",
+    "rename": "Rename folder",
+    "delete": "Delete folder",
+    "deleteConfirmTitle": "Delete folder \"{name}\"?",
+    "deleteConfirmDescription": "Files inside will become unfiled. Sub-folders will be deleted.",
+    "namePlaceholder": "Folder name",
+    "new": "New Folder"
+  },
+  "upload": {
+    "uploading": "Uploading…",
+    "prompt": "Click or drag files here",
+    "limits": "{formats} — Max {size}"
+  },
+  "library": {
+    "empty": "No files here yet",
+    "fileCount": "{count, plural, one {# file} other {# files}}",
+    "copyWebpUrl": "Copy WebP URL",
+    "copyUrl": "Copy URL",
+    "focalPointAt": "Focal point {x}, {y}",
+    "setFocalPoint": "Set focal point",
+    "moveToFolder": "Move to Folder",
+    "deleteConfirmTitle": "Delete file?",
+    "deleteConfirmDescription": "<strong>{name}</strong> will be permanently deleted.",
+    "deleteConfirmWebp": "The WebP version will also be deleted."
+  },
+  "renameDialog": {
+    "title": "Rename Folder",
+    "description": "Enter a new name for folder \"{name}\".",
+    "label": "Folder Name",
+    "save": "Save Changes"
+  },
+  "moveDialog": {
+    "title": "Move File to Folder",
+    "description": "Choose a destination folder for <strong>{name}</strong>.",
+    "destination": "Destination Folder",
+    "selectFolder": "Select folder",
+    "unfiledRoot": "Unfiled (Root)",
+    "submit": "Move File"
+  },
+  "focal": {
+    "title": "Focal point",
+    "description": "Click the most important part of <strong>{name}</strong>. Cropped versions keep it in frame.",
+    "saved": "Focal point saved",
+    "cleared": "Focal point cleared",
+    "saveFailed": "Could not save the focal point",
+    "previewSquare": "Square",
+    "previewWide": "Wide 16:9",
+    "previewTall": "Tall 3:4",
+    "notSet": "Not set — crops are centred",
+    "clear": "Clear"
+  },
+  "picker": {
+    "title": "Media Library",
+    "placeholder": "Choose image from media library…",
+    "crop": "Crop",
+    "cropZoomTitle": "Crop / Zoom",
+    "cropZoom": "Crop & Zoom",
+    "removeImage": "Remove image",
+    "change": "Change",
+    "browse": "Browse",
+    "upload": "Upload",
+    "altPrefix": "Alt: {alt}",
+    "empty": "No media files yet. Upload one first.",
+    "altText": "Alt text",
+    "optionalHint": "(optional)",
+    "altPlaceholder": "Describe the image for accessibility…",
+    "dropPrompt": "Drop a file or click to browse",
+    "useImage": "Use Image"
+  }
+}

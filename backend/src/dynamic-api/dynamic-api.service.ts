@@ -25,9 +25,12 @@ import { PluginEvents } from '../plugin/plugin.events';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 import { sanitizeEntryData } from '../common/sanitize';
 import { FieldDef } from '../fields/field.types';
+import { DataValidator } from '../fields/data.validator';
+import { SearchService } from '../search/search.service';
 import { populateDeep, populateManyDeep } from '../common/populate.util';
 import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
 import { buildAdvancedWhere } from '../common/filter-query.util';
+import { extractRelationFilters } from '../common/relation-filter.util';
 
 type MethodKey = 'list' | 'read' | 'create' | 'update' | 'delete';
 
@@ -43,6 +46,8 @@ export interface PublicListQuery {
   where?: Record<string, any>;      // advanced where query e.g. { price: { gte: 100 }, category: { in: ["tech", "news"] } }
   search?: string;                  // full-text search on slug + data
   locale?: string;                  // filter by locale (e.g. "en", "fr")
+  /** With `locale`: also list default-locale entries that have no translation in it. */
+  fallback?: boolean;
   stage?: 'published' | 'staging' | 'draft' | 'all'; // Environment stage targeting
   populate?: string[];              // relation field names to inline-populate
   fields?: string[];                // field projection — only return listed data keys
@@ -69,7 +74,7 @@ export interface PaginatedResult<T> {
     nextCursor?: string | null;
     /** Present when a search was executed. "fulltext" = PostgreSQL GIN index used.
      *  "fallback" = fell back to LIKE (e.g. single character or special syntax). */
-    searchMode?: 'fulltext' | 'fallback';
+    searchMode?: 'fulltext' | 'fallback' | 'meilisearch';
   };
 }
 
@@ -215,13 +220,15 @@ export class DynamicApiService implements OnModuleInit {
     @Optional() private hookBus?: PluginHookBus,
     @Optional() private cdn?: CdnPurgeService,
     @Optional() private locales?: LocalesService,
+    @Optional() private dataValidator?: DataValidator,
+    @Optional() private searchEngine?: SearchService,
   ) {}
 
   onModuleInit() {
-    // Prisma middleware sees every Entry/ContentType write in the process,
-    // whichever service makes it, so no write path can forget to invalidate.
-    if (typeof this.prisma.$use !== 'function') return; // mocked in unit tests
-    this.prisma.$use((params, next) => this.invalidatingWrite(params, next));
+    // The Prisma operation hook sees every Entry/ContentType write in the
+    // process, whichever service makes it, so no write path can forget to invalidate.
+    if (typeof this.prisma.onOperation !== 'function') return; // mocked in unit tests
+    this.prisma.onOperation((params, next) => this.invalidatingWrite(params, next));
   }
 
   /** Run a write, then drop the cached responses of the content types it touched. */
@@ -352,6 +359,9 @@ export class DynamicApiService implements OnModuleInit {
       throw new BadRequestException('cursor cannot be combined with search — use page instead');
     }
     const cursor = query.cursor ? decodeCursor(query.cursor, sortField, sortDir) : null;
+    const defaultLocale = (await this.locales?.get())?.defaultLocale ?? 'en';
+    // Fallback only means something for a locale other than the default.
+    const fallbackLocale = query.fallback && query.locale && query.locale !== defaultLocale ? defaultLocale : undefined;
 
     // ── Cache lookup ──────────────────────────────────────────────────────────
     // populate/fields responses vary per request and aren't cached, so they must
@@ -359,7 +369,7 @@ export class DynamicApiService implements OnModuleInit {
     // populated list could be served raw, or vice versa.
     const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
     const state = await this.cacheState(contentType.id);
-    const cacheKey = `${state.prefix}list:${JSON.stringify({ page, limit, cursor: query.cursor, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale, stage: query.stage })}`;
+    const cacheKey = `${state.prefix}list:${JSON.stringify({ page, limit, cursor: query.cursor, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale, fallback: fallbackLocale, stage: query.stage })}`;
     if (cacheable) {
       const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
       if (cached) return cached;
@@ -377,12 +387,26 @@ export class DynamicApiService implements OnModuleInit {
           : 'published';
 
     // Build where: filtered by stage + non-deleted entries
-    const advancedWhere = buildAdvancedWhere(query.where, query.filter);
+    const publishedOnly = !query.stage || query.stage === 'published';
+    const relationFilters = await extractRelationFilters(
+      query.where, contentType.schema as unknown as FieldDef[], db, { publishedOnly },
+    );
+    const advancedWhere = [...buildAdvancedWhere(relationFilters.where, query.filter), ...relationFilters.conditions];
+    const visible = { ...(statusFilter ? { status: statusFilter } : {}), deletedAt: null };
+    // ?fallback=true: the locale's entries, plus default-locale entries with no
+    // visible translation in it (translations share contentTypeId + slug).
+    const localeWhere = fallbackLocale
+      ? {
+          OR: [
+            { locale: query.locale },
+            { locale: fallbackLocale, slugGroup: { entries: { none: { locale: query.locale, ...visible } } } },
+          ],
+        }
+      : query.locale ? { locale: query.locale } : {};
     const where: any = {
       contentTypeId: contentType.id,
-      ...(statusFilter ? { status: statusFilter } : {}),
-      deletedAt: null,
-      ...(query.locale ? { locale: query.locale } : {}),
+      ...visible,
+      ...localeWhere,
       ...(advancedWhere.length > 0 ? { AND: advancedWhere } : {}),
     };
 
@@ -390,66 +414,86 @@ export class DynamicApiService implements OnModuleInit {
     // Uses the entries_search_vector_idx GIN index (generated search_vector column) with DB-level pagination
     // to prevent memory exhaustion and Postgres parameter overflow on large datasets.
     // Falls back to LIKE for short/special-char queries tsquery rejects.
-    let searchMode: 'fulltext' | 'fallback' | undefined;
+    let searchMode: 'fulltext' | 'fallback' | 'meilisearch' | undefined;
     let total = 0;
     let entries: any[] = [];
     let hasMore = false;
 
     if (query.search && query.search.trim()) {
       const term = query.search.trim();
+      const localeSql = fallbackLocale
+        ? Prisma.sql`AND (locale = ${query.locale} OR (locale = ${fallbackLocale} AND NOT EXISTS (
+            SELECT 1 FROM entries t
+            WHERE t."contentTypeId" = entries."contentTypeId" AND t.slug = entries.slug
+              AND t.locale = ${query.locale} AND t.status = 'published' AND t."deletedAt" IS NULL)))`
+        : query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty;
       let matches: { id: number }[] = [];
-      try {
-        const countResult = await db.$queryRaw<any[]>`
-          SELECT count(*)::int AS count FROM entries
-          WHERE "contentTypeId" = ${contentType.id}
-            AND status = 'published'
-            AND "deletedAt" IS NULL
-            ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
-            AND search_vector @@ websearch_to_tsquery('english', ${term})
-        `;
-        total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
-
-        if (total > 0) {
-          const res = await db.$queryRaw<{ id: number }[]>`
-            SELECT id FROM entries
+      // An external engine (SEARCH_DRIVER) answers plain searches; language
+      // fallback, and any engine error, use the Postgres index below.
+      if (this.searchEngine?.external && !fallbackLocale) {
+        try {
+          const found = await this.searchEngine.search(contentType.id, term, { locale: query.locale, limit, offset: skip });
+          matches = found.ids.map((id) => ({ id }));
+          total = found.total;
+          searchMode = 'meilisearch';
+        } catch (err: any) {
+          this.logger.warn(`External search failed, using Postgres: ${err?.message}`);
+        }
+      }
+      if (!searchMode) {
+        try {
+          const countResult = await db.$queryRaw<any[]>`
+            SELECT count(*)::int AS count FROM entries
             WHERE "contentTypeId" = ${contentType.id}
               AND status = 'published'
               AND "deletedAt" IS NULL
-              ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
+              ${localeSql}
               AND search_vector @@ websearch_to_tsquery('english', ${term})
-            ORDER BY "createdAt" DESC
-            LIMIT ${limit} OFFSET ${skip}
           `;
-          matches = Array.isArray(res) ? res : (countResult[0]?.id != null ? countResult : []);
-        }
-        searchMode = 'fulltext';
-      } catch {
-        // Fallback: plain LIKE for short/special-char queries that tsquery can't parse
-        const like = `%${term}%`;
-        const countResult = await db.$queryRaw<any[]>`
-          SELECT count(*)::int AS count FROM entries
-          WHERE "contentTypeId" = ${contentType.id}
-            AND status = 'published'
-            AND "deletedAt" IS NULL
-            ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
-            AND (LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))
-        `;
-        total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
+          total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
 
-        if (total > 0) {
-          const res = await db.$queryRaw<{ id: number }[]>`
-            SELECT id FROM entries
+          if (total > 0) {
+            const res = await db.$queryRaw<{ id: number }[]>`
+              SELECT id FROM entries
+              WHERE "contentTypeId" = ${contentType.id}
+                AND status = 'published'
+                AND "deletedAt" IS NULL
+                ${localeSql}
+                AND search_vector @@ websearch_to_tsquery('english', ${term})
+              ORDER BY "createdAt" DESC
+              LIMIT ${limit} OFFSET ${skip}
+            `;
+            matches = Array.isArray(res) ? res : (countResult[0]?.id != null ? countResult : []);
+          }
+          searchMode = 'fulltext';
+        } catch {
+          // Fallback: plain LIKE for short/special-char queries that tsquery can't parse
+          const like = `%${term}%`;
+          const countResult = await db.$queryRaw<any[]>`
+            SELECT count(*)::int AS count FROM entries
             WHERE "contentTypeId" = ${contentType.id}
               AND status = 'published'
               AND "deletedAt" IS NULL
-              ${query.locale ? Prisma.sql`AND locale = ${query.locale}` : Prisma.empty}
+              ${localeSql}
               AND (LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))
-            ORDER BY "createdAt" DESC
-            LIMIT ${limit} OFFSET ${skip}
           `;
-          matches = Array.isArray(res) ? res : (countResult[0]?.id != null ? countResult : []);
+          total = countResult[0]?.count != null ? Number(countResult[0].count) : countResult.length;
+
+          if (total > 0) {
+            const res = await db.$queryRaw<{ id: number }[]>`
+              SELECT id FROM entries
+              WHERE "contentTypeId" = ${contentType.id}
+                AND status = 'published'
+                AND "deletedAt" IS NULL
+                ${localeSql}
+                AND (LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))
+              ORDER BY "createdAt" DESC
+              LIMIT ${limit} OFFSET ${skip}
+            `;
+            matches = Array.isArray(res) ? res : (countResult[0]?.id != null ? countResult : []);
+          }
+          searchMode = 'fallback';
         }
-        searchMode = 'fallback';
       }
 
       if (matches && matches.length > 0) {
@@ -514,7 +558,10 @@ export class DynamicApiService implements OnModuleInit {
 
     if (query.populate?.length) {
       const dataList = processed.map((p) => p.entryData);
-      populatedDataList = await populateManyDeep(dataList, schema, query.populate, db);
+      populatedDataList = await populateManyDeep(dataList, schema, query.populate, db, 0, {
+        publishedOnly,
+        ownerIds: processed.map((p) => p.e.publicId),
+      });
     } else {
       populatedDataList = processed.map((p) => p.entryData);
     }
@@ -609,7 +656,10 @@ export class DynamicApiService implements OnModuleInit {
 
     const schema = contentType.schema as unknown as FieldDef[];
     if (query.populate?.length) {
-      data = await populateDeep(data, schema, query.populate, db);
+      data = await populateDeep(data, schema, query.populate, db, 0, {
+        publishedOnly: !query.stage || query.stage === 'published',
+        ownerId: entry.publicId,
+      });
     }
 
     data = filterUnauthorizedReadFields(data, schema, undefined);
@@ -622,10 +672,17 @@ export class DynamicApiService implements OnModuleInit {
     return result;
   }
 
-  async create(typeName: string, slug: string, data: Record<string, any>, locale = 'en') {
+  async create(
+    typeName: string,
+    slug: string,
+    data: Record<string, any>,
+    locale = 'en',
+    status: 'draft' | 'published' = 'published',
+  ) {
     const contentType = await this.resolveContentType(typeName, 'create');
     const schema = contentType.schema as unknown as FieldDef[];
     validateFieldWritePermissions(data, undefined, schema, undefined);
+    this.dataValidator?.validate(data, schema);
 
     const existing = await this.prisma.entry.findUnique({
       where: { contentTypeId_slug_locale: { contentTypeId: contentType.id, slug, locale } },
@@ -635,14 +692,14 @@ export class DynamicApiService implements OnModuleInit {
     }
 
     // Same before-hook as an admin create: plugins may change `data` or veto.
-    const before = { slug, status: 'published', contentType: contentType.name, locale, data, source: 'api' as const };
+    const before = { slug, status, contentType: contentType.name, locale, data, source: 'api' as const };
     await this.hookBus?.emit(PluginEvents.ENTRY_BEFORE_CREATE, before);
 
     const created = await this.prisma.entry.create({
       data: {
         slug,
         locale,
-        status: 'published',
+        status,
         data: normalizeDataKeys(
           sanitizeEntryData(injectRepeaterIds(before.data), schema),
         ) as Prisma.InputJsonValue,
@@ -678,6 +735,7 @@ export class DynamicApiService implements OnModuleInit {
     }
 
     validateFieldWritePermissions(data, entry.data as Record<string, any>, schema, undefined);
+    this.dataValidator?.validate(data, schema, { partial: true });
 
     const before = {
       id: entry.id, slug, status: entry.status, contentType: contentType.name, locale, data, source: 'api' as const,

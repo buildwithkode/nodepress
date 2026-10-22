@@ -1,0 +1,33 @@
+# NodePress — Meilisearch for ?search= (typo-tolerant, ranked search).
+#
+#   MEILI_MASTER_KEY=$(openssl rand -hex 24) \
+#     docker compose -f docker-compose.yml -f docker-compose.search.yml up -d --build
+#
+# Then build the index once (later writes keep it current):
+#   curl -X POST -H "Authorization: Bearer <admin JWT>" http://localhost/api/search/reindex
+# Combine with docker-compose.https.yml by adding another -f.
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    container_name: nodepress_meilisearch
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?Set MEILI_MASTER_KEY (16+ characters) in .env}
+      MEILI_ENV: production
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meili_data:/meili_data
+    restart: unless-stopped
+    networks:
+      - nodepress-net
+
+  backend:
+    depends_on:
+      - meilisearch
+    environment:
+      SEARCH_DRIVER: meilisearch
+      MEILISEARCH_URL: http://meilisearch:7700
+      MEILISEARCH_KEY: ${MEILI_MASTER_KEY}
+
+volumes:
+  meili_data:

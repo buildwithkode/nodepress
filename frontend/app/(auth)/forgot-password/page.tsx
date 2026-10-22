@@ -4,8 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import api from '../../../lib/axios';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'use-intl';
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [devResetUrl, setDevResetUrl] = useState('');
@@ -17,7 +19,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError('');
     if (!email.trim()) {
-      setError('Please enter your email address.');
+      setError(t('forgot.emailRequired'));
       return;
     }
     setLoading(true);
@@ -27,11 +29,11 @@ export default function ForgotPasswordPage() {
       setSubmitted(true);
     } catch (err: any) {
       if (!err.response) {
-        setError('Cannot connect to the server. Is the backend running?');
+        setError(t('forgot.unreachable'));
       } else if (err.response.status === 429) {
-        setError('Too many attempts. Please wait a minute and try again.');
+        setError(t('forgot.tooManyAttempts'));
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(t('forgot.generic'));
       }
     } finally {
       setLoading(false);
@@ -50,13 +52,13 @@ export default function ForgotPasswordPage() {
         <div className="rounded-xl border border-white/10 bg-[#1a1a1a] px-8 py-10 shadow-2xl">
 
           <div className="text-center mb-8">
-            <h1 className="text-xl font-bold text-white">Reset your password</h1>
+            <h1 className="text-xl font-bold text-white">{t('forgot.title')}</h1>
             <p className="text-sm text-white/40 mt-1">
               {submitted
                 ? devResetUrl
-                  ? 'SMTP not configured — use the link below.'
-                  : 'Check your email for the reset link.'
-                : "Enter your email and we'll send you a reset link."}
+                  ? t('forgot.subtitleDevLink')
+                  : t('forgot.subtitleSent')
+                : t('forgot.subtitle')}
             </p>
           </div>
 
@@ -66,8 +68,7 @@ export default function ForgotPasswordPage() {
                 /* Dev mode: no SMTP — show the link directly */
                 <div className="space-y-3">
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-300">
-                    <strong>Development mode:</strong> No SMTP is configured, so no email was sent.
-                    Use this link to reset your password (valid 15 minutes):
+                    {t.rich('forgot.devModeNotice', { strong: (chunks) => <strong>{chunks}</strong> })}
                   </div>
                   <div className="rounded-lg bg-[#2a2a2a] border border-white/10 px-3 py-2 text-xs text-white/60 break-all">
                     {devResetUrl}
@@ -79,21 +80,21 @@ export default function ForgotPasswordPage() {
                       className="flex-1 text-xs"
                       onClick={handleCopy}
                     >
-                      {copied ? 'Copied!' : 'Copy link'}
+                      {copied ? t('forgot.copied') : t('forgot.copyLink')}
                     </Button>
                     <Button
                       size="sm"
                       className="flex-1 text-xs"
                       onClick={() => window.open(devResetUrl, '_self')}
                     >
-                      Open link
+                      {t('forgot.openLink')}
                     </Button>
                   </div>
                 </div>
               ) : (
                 /* Production mode: SMTP configured */
                 <p className="text-center text-sm text-white/50">
-                  If that email is registered, a reset link valid for 15 minutes has been sent.
+                  {t('forgot.sentNotice')}
                 </p>
               )}
             </div>
@@ -101,7 +102,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <div className="space-y-1.5">
                 <label htmlFor="email" className="block text-sm font-medium text-white/80">
-                  Email
+                  {t('login.email')}
                 </label>
                 <input
                   id="email"
@@ -120,14 +121,14 @@ export default function ForgotPasswordPage() {
               )}
 
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Sending…' : 'Send reset link'}
+                {loading ? t('forgot.sending') : t('forgot.send')}
               </Button>
             </form>
           )}
 
           <p className="mt-5 text-center text-xs text-white/30">
             <Link href="/login" className="hover:text-white/60 transition-colors">
-              Back to sign in
+              {t('backToSignIn')}
             </Link>
           </p>
         </div>

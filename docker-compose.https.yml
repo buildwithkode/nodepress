@@ -1,0 +1,42 @@
+# NodePress — automatic HTTPS with Caddy (Let's Encrypt).
+#
+#   DOMAIN=cms.example.com ACME_EMAIL=you@example.com \
+#     docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build
+#
+# (scripts/install.sh writes DOMAIN/ACME_EMAIL/SITE_URL/APP_URL into .env for you.)
+# Caddy takes ports 80/443; nginx stays behind it on the internal network.
+# Needs Docker Compose v2.24+ for `!reset`.
+
+services:
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: nodepress_caddy
+    depends_on:
+      - nginx
+    environment:
+      DOMAIN:     ${DOMAIN:?Set DOMAIN (e.g. cms.example.com) in .env}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    networks:
+      - nodepress-net
+
+  nginx:
+    ports: !reset []
+
+  backend:
+    environment:
+      SITE_URL:    https://${DOMAIN}
+      APP_URL:     https://${DOMAIN}/api
+      CORS_ORIGIN: https://${DOMAIN}
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,56 @@
+{
+  "title": "Dashboard",
+  "subtitle": "Here’s what’s happening with your content.",
+  "newEntry": "New Entry",
+  "overview": "Overview",
+  "viewAll": "View all",
+  "createOne": "Create one",
+  "fieldCount": "{count, plural, one {# field} other {# fields}}",
+  "entryCount": "{count, plural, one {# entry} other {# entries}}",
+  "stats": {
+    "contentTypes": "Content Types",
+    "contentTypesSub": "total schemas",
+    "totalEntries": "Total Entries",
+    "totalEntriesSub": "across all types",
+    "mediaFiles": "Media Files",
+    "mediaFilesSub": "uploaded files",
+    "apiKeys": "API Keys",
+    "apiKeysSub": "active keys",
+    "forms": "Forms",
+    "formsSub": "active forms",
+    "submissions": "Submissions",
+    "submissionsSub": "total responses"
+  },
+  "pendingReview": {
+    "message": "{count, plural, one {<b>#</b> entry is awaiting review} other {<b>#</b> entries are awaiting review}}",
+    "action": "Review now →"
+  },
+  "contentTypes": {
+    "title": "Content Types",
+    "empty": "No content types yet.",
+    "pendingReview": "{count} pending review",
+    "pendingBadge": "{count} Pending"
+  },
+  "recentEntries": {
+    "title": "Recent Entries",
+    "empty": "No entries yet."
+  },
+  "forms": {
+    "title": "Forms",
+    "empty": "No forms yet.",
+    "submissionCount": "{count, plural, one {# submission} other {# submissions}}"
+  },
+  "recentSubmissions": {
+    "title": "Recent Submissions",
+    "empty": "No submissions yet. Share a form to start collecting responses."
+  },
+  "endpoints": {
+    "title": "API Endpoints",
+    "fullDocs": "Full docs",
+    "auth": "Auth",
+    "copyUrl": "Copy URL"
+  },
+  "recentMedia": {
+    "title": "Recent Media"
+  }
+}

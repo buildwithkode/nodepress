@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/tooltip';
 import { SearchInput } from '@/components/ui/search-input';
 import { Pagination } from '@/components/ui/data-table';
+import { useTranslations } from 'use-intl';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -59,6 +60,8 @@ const ACCESS_BADGE: Record<string, 'blue' | 'orange' | 'green'> = {
 // Page
 // ---------------------------------------------------------------------------
 export default function ApiKeysPage() {
+  const t = useTranslations('developer');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [keys, setKeys]               = useState<ApiKey[]>([]);
   const [loading, setLoading]         = useState(false);
@@ -75,7 +78,7 @@ export default function ApiKeysPage() {
       const res = await api.get('/api-keys');
       setKeys(res.data);
     } catch {
-      toast.error('Failed to load data');
+      toast.error(t('apiKeys.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -86,17 +89,17 @@ export default function ApiKeysPage() {
   // ---- helpers ----
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast.success(t('apiKeys.copiedToClipboard'));
   };
 
   // ---- revoke ----
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/api-keys/${id}`);
-      toast.success('API key revoked');
+      toast.success(t('apiKeys.revoked'));
       load();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to revoke key');
+      toast.error(err.response?.data?.message || t('apiKeys.revokeFailed'));
     }
   };
 
@@ -115,20 +118,19 @@ export default function ApiKeysPage() {
       <div>
         {/* Description */}
         <p className="text-sm text-muted-foreground mb-5">
-          API keys let external applications access your content without a user login.{' '}
-          Use{' '}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">
-            X-API-Key: &lt;key&gt;
-          </code>{' '}
-          in the request header. Read-only keys can only call GET endpoints; write/all keys can
-          also POST, PUT, DELETE.
+          {t.rich('apiKeys.intro', {
+            header: 'X-API-Key: <key>',
+            code: (chunks) => (
+              <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">{chunks}</code>
+            ),
+          })}
         </p>
 
         {/* Toolbar */}
         <div className="flex items-center gap-2 mb-6">
           <div className="flex-1 max-w-xs">
             <SearchInput
-              placeholder="Search API keys..."
+              placeholder={t('apiKeys.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -136,7 +138,7 @@ export default function ApiKeysPage() {
           <div className="ml-auto">
             <Button onClick={() => router.push('/api-keys/new')}>
               <Plus className="h-4 w-4 mr-1.5" />
-              New API Key
+              {t('apiKeys.newKey')}
             </Button>
           </div>
         </div>
@@ -145,12 +147,12 @@ export default function ApiKeysPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Key</TableHead>
-              <TableHead className="w-24">Access</TableHead>
-              <TableHead>Content Types</TableHead>
-              <TableHead className="w-36">Last Used</TableHead>
-              <TableHead className="w-28">Actions</TableHead>
+              <TableHead>{tc('name')}</TableHead>
+              <TableHead>{t('apiKeys.colKey')}</TableHead>
+              <TableHead className="w-24">{t('apiKeys.colAccess')}</TableHead>
+              <TableHead>{t('apiKeys.colContentTypes')}</TableHead>
+              <TableHead className="w-36">{t('apiKeys.colLastUsed')}</TableHead>
+              <TableHead className="w-28">{tc('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -168,7 +170,7 @@ export default function ApiKeysPage() {
             ) : paginatedKeys.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
-                  {search ? 'No API keys match your search.' : 'No API keys yet. Create your first one.'}
+                  {search ? t('apiKeys.noMatch') : t('apiKeys.empty')}
                 </TableCell>
               </TableRow>
             ) : paginatedKeys.map((k) => (
@@ -194,7 +196,7 @@ export default function ApiKeysPage() {
                       <TooltipTrigger render={<Button variant="ghost" size="icon-xs" onClick={() => copyToClipboard(k.key)} />}>
                         <Copy className="h-3 w-3" />
                       </TooltipTrigger>
-                      <TooltipContent>Copy full key</TooltipContent>
+                      <TooltipContent>{t('apiKeys.copyFullKey')}</TooltipContent>
                     </Tooltip>
                   </span>
                 </TableCell>
@@ -209,7 +211,7 @@ export default function ApiKeysPage() {
                 {/* Content types */}
                 <TableCell>
                   {k.permissions.contentTypes[0] === '*' ? (
-                    <Badge variant="purple">ALL</Badge>
+                    <Badge variant="purple">{t('apiKeys.allBadge')}</Badge>
                   ) : (
                     <div className="flex flex-wrap gap-1">
                       {k.permissions.contentTypes.map((ct) => (
@@ -223,27 +225,29 @@ export default function ApiKeysPage() {
                 <TableCell className="text-muted-foreground">
                   {k.lastUsedAt
                     ? new Date(k.lastUsedAt).toLocaleString()
-                    : <span className="italic">Never</span>}
+                    : <span className="italic">{t('apiKeys.never')}</span>}
                 </TableCell>
 
                 {/* Revoke */}
                 <TableCell>
                   <AlertDialog>
-                    <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Revoke" />}>
+                    <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title={t('apiKeys.revoke')} />}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Revoke API key?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('apiKeys.revokeTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Any application using <strong>{k.name}</strong> will immediately lose
-                          access. This action cannot be undone.
+                          {t.rich('apiKeys.revokeDescription', {
+                            name: k.name,
+                            strong: (chunks) => <strong>{chunks}</strong>,
+                          })}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                         <AlertDialogAction variant="destructive" onClick={() => handleDelete(k.id)}>
-                          Revoke
+                          {t('apiKeys.revoke')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

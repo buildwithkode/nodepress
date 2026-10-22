@@ -37,6 +37,12 @@ echo "[pre-push] backend unit tests…"
   NODE_ENV="test" \
   npm test --silent )
 
+echo "[pre-push] admin interface translations…"
+( cd "$ROOT" && node scripts/check-i18n.js )
+
+echo "[pre-push] @nodepress/client build, types and tests…"
+( cd "$ROOT/client" && npm test --silent )
+
 echo "[pre-push] production dependency audit (all workspaces)…"
 # Runtime deps only. A critical tar RCE and 17 highs sat on main for months
 # because nothing checked, and auditing only the backend let two critical

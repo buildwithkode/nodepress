@@ -7,9 +7,10 @@ import { AppCacheModule } from '../cache/cache.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { CdnModule } from '../cdn/cdn.module';
 import { StageAccessGuard } from './stage-access.guard';
+import { FieldsModule } from '../fields/fields.module';
 
 @Module({
-  imports: [ApiKeysModule, AuthModule, AppCacheModule, RealtimeModule, CdnModule],
+  imports: [ApiKeysModule, AuthModule, AppCacheModule, RealtimeModule, CdnModule, FieldsModule],
   controllers: [DynamicApiController],
   providers: [DynamicApiService, StageAccessGuard],
 })

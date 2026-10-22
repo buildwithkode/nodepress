@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useLocale, useTranslations } from 'use-intl';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -22,12 +23,6 @@ export interface DateTimePickerProps {
   disabled?: boolean;
 }
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
-const DAYS_OF_WEEK = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 function pad(n: number): string {
   return String(n).padStart(2, '0');
@@ -70,10 +65,17 @@ function getRelativeTimePreview(target: Date): string {
 export function DateTimePicker({
   value,
   onChange,
-  placeholder = 'Select date and time…',
+  placeholder,
   className,
   disabled = false,
 }: DateTimePickerProps) {
+  const tc = useTranslations('common');
+  const locale = useLocale();
+  // Sunday-first short weekday names in the interface language (2024-01-07 was a Sunday).
+  const weekdays = React.useMemo(
+    () => Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(2024, 0, 7 + i))),
+    [locale],
+  );
   const [open, setOpen] = React.useState(false);
 
   const selectedDate = React.useMemo(() => parseValue(value), [value]);
@@ -266,7 +268,7 @@ export function DateTimePicker({
                 </div>
               ) : (
                 <span className="text-muted-foreground text-xs sm:text-sm truncate">
-                  {placeholder}
+                  {placeholder ?? tc('dateTime.placeholder')}
                 </span>
               )}
             </div>
@@ -277,7 +279,7 @@ export function DateTimePicker({
                   type="button"
                   onClick={handleClear}
                   className="rounded-full p-1 text-muted-foreground/80 hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  title="Clear scheduled date"
+                  title={tc('dateTime.clear')}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -297,14 +299,14 @@ export function DateTimePicker({
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-amber-500" />
-                Quick Schedule
+                {tc('dateTime.quickSchedule')}
               </span>
               <button
                 type="button"
                 onClick={goToToday}
                 className="text-[11px] text-primary hover:underline font-medium"
               >
-                Today
+                {tc('dateTime.today')}
               </button>
             </div>
             <div className="grid grid-cols-3 gap-1">
@@ -324,7 +326,7 @@ export function DateTimePicker({
                 className="h-7 text-[11px] px-1 font-normal bg-muted/30 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-colors"
                 onClick={() => applyPreset('tonight')}
               >
-                Tonight 8 PM
+                {tc('dateTime.tonight')}
               </Button>
               <Button
                 type="button"
@@ -333,7 +335,7 @@ export function DateTimePicker({
                 className="h-7 text-[11px] px-1 font-normal bg-muted/30 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-colors"
                 onClick={() => applyPreset('tomorrow-9am')}
               >
-                Tmrw 9 AM
+                {tc('dateTime.tomorrowMorning')}
               </Button>
             </div>
           </div>
@@ -343,7 +345,7 @@ export function DateTimePicker({
           {/* Calendar Month Header */}
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-foreground tracking-tight">
-              {MONTH_NAMES[viewMonth]} {viewYear}
+              {new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(viewYear, viewMonth, 1))}
             </span>
             <div className="flex items-center gap-0.5">
               <Button
@@ -371,7 +373,7 @@ export function DateTimePicker({
 
           {/* Weekday headers */}
           <div className="grid grid-cols-7 gap-1 text-center mb-1">
-            {DAYS_OF_WEEK.map((w) => (
+            {weekdays.map((w) => (
               <span key={w} className="text-[11px] font-medium text-muted-foreground/70">
                 {w}
               </span>
@@ -414,7 +416,7 @@ export function DateTimePicker({
             <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
-                Publish Time
+                {tc('dateTime.time')}
               </span>
               <span className="text-[11px] text-muted-foreground/80 font-mono">
                 {period}
@@ -496,7 +498,7 @@ export function DateTimePicker({
                   onClick={handleClear}
                   className="text-xs text-muted-foreground hover:text-destructive transition-colors font-medium"
                 >
-                  Clear schedule
+                  {tc('dateTime.clear')}
                 </button>
                 <Button
                   type="button"
@@ -505,7 +507,7 @@ export function DateTimePicker({
                   onClick={() => setOpen(false)}
                 >
                   <Check className="h-3 w-3" />
-                  Done
+                  {tc('dateTime.done')}
                 </Button>
               </div>
             </div>

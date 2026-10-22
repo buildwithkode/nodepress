@@ -40,6 +40,8 @@ function mapSimpleFieldType(field: SimpleFieldDef): string {
     }
     case 'relation': {
       const isMany = (field as any).options?.cardinality === 'many';
+      // Reverse fields (mappedBy) hold populated entries — they're only present with ?populate=.
+      if ((field as any).options?.mappedBy) return isMany ? 'Array<BaseEntry>' : 'BaseEntry | null';
       return isMany ? 'string[]' : 'string';
     }
     case 'json':
@@ -149,7 +151,7 @@ export function generateTypeScriptDefinitions(contentTypes: ContentTypeSchemaInp
     for (const field of rawSchema) {
       if (!field || !field.name) continue;
       const tsType = mapFieldType(field, pascalName);
-      const optional = field.required ? '' : '?';
+      const optional = field.required && !(field as any).options?.mappedBy ? '' : '?';
       const comment = field.description ? `  /** ${field.description} */\n` : '';
       lines.push(`${comment}  ${field.name}${optional}: ${tsType};`);
     }

@@ -1,0 +1,56 @@
+{
+  "title": "Panel",
+  "subtitle": "Esto es lo que está pasando con tu contenido.",
+  "newEntry": "Nueva entrada",
+  "overview": "Resumen",
+  "viewAll": "Ver todo",
+  "createOne": "Crear uno",
+  "fieldCount": "{count, plural, one {# campo} other {# campos}}",
+  "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+  "stats": {
+    "contentTypes": "Tipos de contenido",
+    "contentTypesSub": "esquemas en total",
+    "totalEntries": "Entradas totales",
+    "totalEntriesSub": "de todos los tipos",
+    "mediaFiles": "Archivos multimedia",
+    "mediaFilesSub": "archivos subidos",
+    "apiKeys": "Claves API",
+    "apiKeysSub": "claves activas",
+    "forms": "Formularios",
+    "formsSub": "formularios activos",
+    "submissions": "Envíos",
+    "submissionsSub": "respuestas en total"
+  },
+  "pendingReview": {
+    "message": "{count, plural, one {<b>#</b> entrada pendiente de revisión} other {<b>#</b> entradas pendientes de revisión}}",
+    "action": "Revisar ahora →"
+  },
+  "contentTypes": {
+    "title": "Tipos de contenido",
+    "empty": "Aún no hay tipos de contenido.",
+    "pendingReview": "{count} pendientes de revisión",
+    "pendingBadge": "{count} pendientes"
+  },
+  "recentEntries": {
+    "title": "Entradas recientes",
+    "empty": "Aún no hay entradas."
+  },
+  "forms": {
+    "title": "Formularios",
+    "empty": "Aún no hay formularios.",
+    "submissionCount": "{count, plural, one {# envío} other {# envíos}}"
+  },
+  "recentSubmissions": {
+    "title": "Envíos recientes",
+    "empty": "Aún no hay envíos. Comparte un formulario para empezar a recibir respuestas."
+  },
+  "endpoints": {
+    "title": "Endpoints de la API",
+    "fullDocs": "Documentación completa",
+    "auth": "Auth",
+    "copyUrl": "Copiar URL"
+  },
+  "recentMedia": {
+    "title": "Multimedia reciente"
+  }
+}

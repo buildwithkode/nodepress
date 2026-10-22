@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { Controller } from 'react-hook-form';
+import { useTranslations } from 'use-intl';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -19,18 +20,24 @@ import FlexibleField from './FlexibleField';
 import GroupField from './GroupField';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
 import { RelationPicker } from '@/components/RelationPicker';
+import { ReverseRelationList } from '@/components/ReverseRelationList';
 
 const RichTextEditor = dynamic(
   () => import('@/components/RichTextEditor'),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-44 w-full rounded-md border border-input bg-muted/20 animate-pulse flex items-center justify-center text-xs text-muted-foreground">
-        Loading editor…
-      </div>
-    ),
+    loading: () => <EditorLoading />,
   },
 );
+
+function EditorLoading() {
+  const t = useTranslations('entryEditor');
+  return (
+    <div className="h-44 w-full rounded-md border border-input bg-muted/20 animate-pulse flex items-center justify-center text-xs text-muted-foreground">
+      {t('form.loadingEditor')}
+    </div>
+  );
+}
 
 interface SubField {
   name: string;
@@ -48,7 +55,7 @@ interface Field {
   label?: string;
   type: string;
   required?: boolean;
-  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string };
+  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string };
 }
 
 interface Props {
@@ -57,6 +64,8 @@ interface Props {
   register: any;
   errors: any;
   watch?: any;
+  /** The entry being edited — reverse relation fields list what links to it. */
+  entryId?: number;
 }
 
 function toLabel(name: string) {
@@ -69,7 +78,10 @@ export default function DynamicFormField({
   register,
   errors,
   watch,
+  entryId,
 }: Props) {
+  const t = useTranslations('entryEditor');
+  const tc = useTranslations('common');
   const label = field.label?.trim() || toLabel(field.name);
   const error = errors?.[field.name];
 
@@ -150,8 +162,8 @@ export default function DynamicFormField({
         return (
           <Input
             id={field.name}
-            placeholder={`Enter ${label}…`}
-            {...register(field.name, { required: field.required ? `${label} is required` : false })}
+            placeholder={t('form.enterValue', { field: label })}
+            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -161,8 +173,8 @@ export default function DynamicFormField({
           <Textarea
             id={field.name}
             rows={3}
-            placeholder={`Enter ${label}…`}
-            {...register(field.name, { required: field.required ? `${label} is required` : false })}
+            placeholder={t('form.enterValue', { field: label })}
+            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -176,7 +188,7 @@ export default function DynamicFormField({
               <RichTextEditor
                 value={f.value || ''}
                 onChange={f.onChange}
-                placeholder={`Enter ${label}`}
+                placeholder={t('form.enterRichText', { field: label })}
               />
             )}
           />
@@ -187,8 +199,8 @@ export default function DynamicFormField({
           <Input
             id={field.name}
             type="number"
-            placeholder={`Enter ${label}…`}
-            {...register(field.name, { valueAsNumber: true, required: field.required ? `${label} is required` : false })}
+            placeholder={t('form.enterValue', { field: label })}
+            {...register(field.name, { valueAsNumber: true, required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -201,7 +213,7 @@ export default function DynamicFormField({
             render={({ field: f }) => (
               <div className="flex h-9 items-center justify-between rounded-md border border-input bg-background px-3">
                 <span className="text-xs text-muted-foreground">
-                  {f.value ? 'Enabled' : 'Disabled'}
+                  {f.value ? tc('enabled') : tc('disabled')}
                 </span>
                 <Switch
                   id={`switch-${field.name}`}
@@ -233,7 +245,7 @@ export default function DynamicFormField({
                 <SelectTrigger
                   className={cn(error && 'border-destructive focus:ring-destructive')}
                 >
-                  <SelectValue placeholder={`Select ${label}`} />
+                  <SelectValue placeholder={t('form.selectValue', { field: label })} />
                 </SelectTrigger>
                 <SelectContent>
                   {selectOptions.map((opt) => (
@@ -260,7 +272,17 @@ export default function DynamicFormField({
         );
 
       case 'relation': {
-        const relOpts = field.options as { relatedContentType?: string; cardinality?: string } | undefined;
+        const relOpts = field.options as { relatedContentType?: string; cardinality?: string; mappedBy?: string } | undefined;
+        if (relOpts?.mappedBy) {
+          return (
+            <ReverseRelationList
+              entryId={entryId}
+              field={field.name}
+              relatedContentType={relOpts.relatedContentType ?? ''}
+              mappedBy={relOpts.mappedBy}
+            />
+          );
+        }
         return (
           <Controller
             control={control}
@@ -306,7 +328,7 @@ export default function DynamicFormField({
           <Input
             id={field.name}
             type="date"
-            {...register(field.name, { required: field.required ? `${label} is required` : false })}
+            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -316,7 +338,7 @@ export default function DynamicFormField({
           <Input
             id={field.name}
             type="datetime-local"
-            {...register(field.name, { required: field.required ? `${label} is required` : false })}
+            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -360,8 +382,8 @@ export default function DynamicFormField({
         return (
           <Input
             id={field.name}
-            placeholder={`Enter ${label}…`}
-            {...register(field.name, { required: field.required ? `${label} is required` : false })}
+            placeholder={t('form.enterValue', { field: label })}
+            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -375,12 +397,12 @@ export default function DynamicFormField({
         className="text-xs font-semibold text-foreground/90 flex items-center gap-1"
       >
         <span>{label}</span>
-        {field.required && <span className="text-destructive font-normal" title="Required">*</span>}
+        {field.required && <span className="text-destructive font-normal" title={tc('required')}>*</span>}
       </Label>
       {renderControl()}
       {error && (
         <p className="mt-1 text-xs text-destructive">
-          {error.message || 'This field is required'}
+          {error.message || t('form.required')}
         </p>
       )}
     </div>

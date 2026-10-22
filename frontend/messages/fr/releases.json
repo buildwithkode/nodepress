@@ -1,0 +1,70 @@
+{
+  "entryCount": "{count, plural, one {# entrée} other {# entrées}}",
+  "statuses": {
+    "open": "Ouverte",
+    "scheduled": "Planifiée",
+    "publishing": "Publication en cours",
+    "published": "Publiée",
+    "failed": "Échec"
+  },
+  "actions": {
+    "publish": "Publier",
+    "unpublish": "Dépublier",
+    "archive": "Archiver"
+  },
+  "list": {
+    "title": "Publications groupées",
+    "description": "Regroupez des modifications d’entrées — publier, dépublier, archiver — et mettez-les en ligne ensemble, maintenant ou à une heure précise. Ajoutez des entrées depuis la liste des entrées ou l’éditeur d’une entrée.",
+    "namePlaceholder": "Nom de la nouvelle publication, ex. Lancement du printemps",
+    "empty": "Aucune publication groupée pour l’instant.",
+    "upcoming": "À venir",
+    "published": "Publiées",
+    "publishedAt": "publiée le {date}",
+    "loadFailed": "Impossible de charger les publications groupées",
+    "createFailed": "Impossible de créer la publication groupée"
+  },
+  "detail": {
+    "notFound": "Publication groupée introuvable",
+    "publishedAt": "Publiée le {date}",
+    "publishNow": "Publier maintenant",
+    "publish": "Publier",
+    "publishConfirmTitle": "Publier « {name} » ?",
+    "publishConfirmDescription": "{count, plural, one {# modification sera mise} other {# modifications seront mises}} en ligne ensemble, en une seule étape. L’opération ne peut pas être annulée dans son ensemble.",
+    "publishedToast": "Publication groupée publiée",
+    "publishFailed": "Échec de la publication — rien n’a été modifié. {error}",
+    "schedule": "Planifier",
+    "scheduledFor": "Mise en ligne automatique le {date}.",
+    "scheduleHint": "Choisissez une heure et la publication sera mise en ligne automatiquement (vérification toutes les minutes).",
+    "scheduledToast": "Publication groupée planifiée",
+    "unschedule": "Annuler la planification",
+    "unscheduledToast": "Planification supprimée",
+    "entriesTitle": "Entrées ({count})",
+    "entriesDescription": "Chaque entrée est publiée telle qu’elle est au moment de la publication — vous pouvez la modifier d’ici là. Ajoutez des entrées depuis la liste des <link>entrées</link>.",
+    "noEntries": "Aucune entrée pour l’instant.",
+    "currentStatus": "actuellement {status}",
+    "deletedSkipped": "supprimée — sera ignorée",
+    "conflicts": "Figure aussi dans {releases} — la dernière publiée l’emporte.",
+    "conflictItem": "« {name} » ({action})",
+    "removeItem": "Retirer de la publication groupée",
+    "deleteRelease": "Supprimer la publication groupée",
+    "deleteConfirmTitle": "Supprimer « {name} » ?",
+    "deleteConfirmDescription": "La publication groupée est supprimée. Ses entrées restent telles quelles.",
+    "deleteFailed": "Suppression impossible"
+  },
+  "addDialog": {
+    "title": "Ajouter à une publication groupée",
+    "description": "Une publication groupée applique toutes ses modifications en une fois — quand vous la publiez ou à l’heure planifiée.",
+    "release": "Publication groupée",
+    "newRelease": "Nouvelle publication groupée…",
+    "namePlaceholder": "ex. Lancement du printemps",
+    "nameRequired": "Donnez un nom à la publication groupée",
+    "whenGoesOut": "Lors de la mise en ligne",
+    "actionOption": {
+      "publish": "{count, plural, one {Publier cette entrée} other {Publier ces entrées}}",
+      "unpublish": "{count, plural, one {Dépublier cette entrée} other {Dépublier ces entrées}}",
+      "archive": "{count, plural, one {Archiver cette entrée} other {Archiver ces entrées}}"
+    },
+    "added": "{count, plural, one {# entrée ajoutée} other {# entrées ajoutées}} — <link>ouvrir la publication groupée</link>",
+    "addFailed": "Impossible d’ajouter à la publication groupée"
+  }
+}

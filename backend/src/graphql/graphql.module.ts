@@ -29,27 +29,40 @@ import { ContentTypeModule } from '../content-type/content-type.module';
 import { MediaModule } from '../media/media.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
 import { JwtModule } from '@nestjs/jwt';
+import { ContentGraphqlService } from './content-graphql.service';
+
+/** Provides the typed-content gateway to GraphQLModule's options factory. */
+@Module({ providers: [ContentGraphqlService], exports: [ContentGraphqlService] })
+export class ContentGraphqlModule {}
 
 @Module({
   imports: [
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      // Code-first: auto-generate schema from decorators
-      autoSchemaFile: join(process.cwd(), 'src/graphql/schema.gql'),
-      sortSchema: true,
-      // Path is relative to the Express root, NOT to the NestJS global prefix.
-      // Global prefix 'api' is applied to NestJS controllers only, not Apollo middleware.
-      // Using '/graphql' here makes Apollo register at '/graphql' (Express-level),
-      // while DynamicApiController's /:type wildcard (at /api/:type) cannot shadow it.
-      path: '/graphql',
-      resolvers: { JSON: GraphQLJSON },
-      // Pass HTTP request into GraphQL context for auth guards
-      context: ({ req }: { req: any }) => ({ req }),
-      introspection: true,
-      playground: true,
-      // Prevent deeply nested queries from overloading the server.
-      // Depth 6 allows: query { entries { data { ... } } } comfortably.
-      validationRules: [depthLimit(6)],
+      imports: [ContentGraphqlModule],
+      inject: [ContentGraphqlService],
+      useFactory: (content: ContentGraphqlService) => ({
+        // Code-first: auto-generate schema from decorators
+        autoSchemaFile: join(process.cwd(), 'src/graphql/schema.gql'),
+        sortSchema: true,
+        // Path is relative to the Express root, NOT to the NestJS global prefix.
+        // Global prefix 'api' is applied to NestJS controllers only, not Apollo middleware.
+        // Using '/graphql' here makes Apollo register at '/graphql' (Express-level),
+        // while DynamicApiController's /:type wildcard (at /api/:type) cannot shadow it.
+        path: '/graphql',
+        resolvers: { JSON: GraphQLJSON },
+        // Pass HTTP request into GraphQL context for auth guards
+        context: ({ req }: { req: any }) => ({ req }),
+        introspection: true,
+        playground: true,
+        // Prevent deeply nested queries from overloading the server. Depth 8 allows
+        // blogPosts { data { data { author { data { company { data { name } } } } } } }.
+        validationRules: [depthLimit(8)],
+        // The code-first schema plus one typed query pair per content type,
+        // swapped in by ContentGraphqlService when content types change.
+        transformSchema: content.captureBase,
+        gateway: content.gateway as any,
+      }),
     }),
     EntriesModule,
     ContentTypeModule,

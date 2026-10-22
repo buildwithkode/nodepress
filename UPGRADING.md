@@ -58,10 +58,23 @@ in one transaction, so a failed restore leaves the database as it was.
 
 - **Run migrations.** New: `add_two_factor_and_installed_plugins`,
   `add_entry_search_vector`, `add_entry_list_index`, `add_jobs`,
-  `add_media_focal_point`, `add_content_locales`. All use
+  `add_media_focal_point`, `add_content_locales`, `add_plugin_packages`,
+  `add_entry_slugs`, `add_releases`, `add_server_settings`. All use
   `IF NOT EXISTS`. A database created with `prisma db push` has no migration
   history: apply each new `migration.sql` with `psql -f` instead (see
   `backend/prisma/migrations/`).
+- **Prisma 6** (from 5). `npm install` regenerates the client. Custom code or
+  plugins that used `prisma.$use(...)` must switch to `prisma.onOperation(...)`
+  (same `(params, next)` signature), and code reading `Bytes` columns gets a
+  `Uint8Array` instead of a `Buffer`. Node.js 18.18 or newer is required.
+- **The public write API validates entry data.** `POST`/`PUT /api/:type` now
+  reject data that doesn't match the content type (422, same rules as the admin):
+  wrong types, missing required fields on create, unknown select choices. Check
+  scripts that write through API keys.
+- **Public `?populate=` returns published linked entries only.** Previews that
+  relied on drafts appearing there should use `?stage=draft` with credentials.
+- **Prisma CLI is a runtime dependency** of the backend (for `migrate deploy` in
+  Docker); rebuild the backend image.
 - **Admin frontend is now on Next.js 15** (from 14), which fixes two critical
   remote-code-execution advisories and many high ones. No configuration change
   is needed; custom pages that read route `params` in server components must
@@ -83,6 +96,10 @@ in one transaction, so a failed restore leaves the database as it was.
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATABASE_REPLICA_URL` | — | Read replica for public API reads |
+| `SEARCH_DRIVER` | `postgres` | `meilisearch` to answer `?search=` with Meilisearch (`MEILISEARCH_URL`, `MEILISEARCH_KEY`, `MEILISEARCH_INDEX`) |
+| `ANTHROPIC_API_KEY` | — | Turns on the admin's AI assistant (`AI_MODEL`, default `claude-opus-5-5`) |
+| `SETTINGS_SECRET` | `JWT_SECRET` | Key for secrets saved in Settings → Email & storage |
+| `GRAPHQL_SCHEMA_POLL_MS` | `10000` | How often an instance checks for content type changes made elsewhere |
 | `REPLICA_READ_AFTER_WRITE_MS` | `5000` | Read the primary this long after a write |
 | `QUEUE_WORKER` | `true` | `false` stops background workers on this instance |
 | `QUEUE_POLL_MS` | `1000` | How often idle workers check for work |

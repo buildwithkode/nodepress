@@ -1,0 +1,143 @@
+{
+  "list": {
+    "loadFailed": "No se pudieron cargar los formularios",
+    "deleted": "Formulario eliminado",
+    "deleteFailed": "Error al eliminar",
+    "statusFailed": "No se pudo actualizar el estado del formulario",
+    "searchPlaceholder": "Buscar formularios…",
+    "newForm": "Nuevo formulario",
+    "columns": {
+      "slug": "Slug",
+      "fields": "Campos",
+      "submissions": "Envíos"
+    },
+    "noMatches": "Ningún formulario coincide con tu búsqueda.",
+    "empty": "Aún no hay formularios. Crea el primero.",
+    "toggleActive": "Activar / desactivar",
+    "viewSubmissions": "Ver envíos",
+    "deleteConfirmTitle": "¿Eliminar «{name}»?",
+    "deleteConfirmDescription": "{count, plural, one {El <strong>#</strong> envío también se eliminará de forma permanente.} other {Los <strong>#</strong> envíos también se eliminarán de forma permanente.}}"
+  },
+  "edit": {
+    "notFound": "Formulario no encontrado."
+  },
+  "submissions": {
+    "empty": "vacío",
+    "loadFailed": "No se pudieron cargar los envíos",
+    "nothingToExport": "No hay envíos para exportar",
+    "backToForms": "Volver a formularios",
+    "searchPlaceholder": "Buscar envíos…",
+    "exportCsv": "Exportar CSV",
+    "count": "{count, plural, one {# envío} other {# envíos}}",
+    "countMatching": "{count, plural, one {# envío coincide} other {# envíos coinciden}} con «{search}»",
+    "noneTitle": "Aún no hay envíos",
+    "noneDescription": "Comparte el formulario y las respuestas aparecerán aquí.",
+    "date": "Fecha"
+  },
+  "fieldEditor": {
+    "labelPlaceholder": "Etiqueta visible para el usuario",
+    "keyCustom": "personalizada",
+    "keyAuto": "auto",
+    "validationRules": "Reglas de validación",
+    "removeField": "Eliminar campo",
+    "options": "Opciones (separadas por comas)",
+    "optionsPickMany": "selección múltiple",
+    "optionsRadio": "botones de opción",
+    "optionsDropdown": "desplegable",
+    "optionsPlaceholder": "Opción A, Opción B, Opción C",
+    "validation": "Validación",
+    "rules": {
+      "min": "Mín.",
+      "max": "Máx.",
+      "integer": "Solo números enteros",
+      "minLength": "Longitud mín.",
+      "maxLength": "Longitud máx.",
+      "pattern": "Patrón (regex)",
+      "minItems": "Elementos mín.",
+      "maxItems": "Elementos máx.",
+      "message": "Mensaje de error personalizado"
+    },
+    "messagePlaceholder": "Se muestra cuando este campo no es válido",
+    "itemFields": "Campos del elemento (se repiten)",
+    "subFields": "Subcampos",
+    "addSubField": "Añadir subcampo"
+  },
+  "fieldTypes": {
+    "text": "Texto",
+    "textarea": "Área de texto",
+    "number": "Número",
+    "email": "Correo electrónico",
+    "url": "URL",
+    "phone": "Teléfono",
+    "date": "Fecha",
+    "datetime": "Fecha y hora",
+    "boolean": "Booleano (sí/no)",
+    "select": "Selección (desplegable)",
+    "radio": "Opción (única)",
+    "multiselect": "Selección múltiple",
+    "tags": "Etiquetas (libres)",
+    "group": "Grupo (objeto)",
+    "repeater": "Repetidor (lista)"
+  },
+  "builder": {
+    "created": "Formulario creado",
+    "updated": "Formulario actualizado",
+    "newTitle": "Nuevo formulario",
+    "editTitle": "Editar formulario",
+    "newDescription": "Define los campos del formulario y configura las acciones de notificación.",
+    "editDescription": "Actualiza la configuración, los campos y las acciones del formulario.",
+    "formName": "Nombre del formulario",
+    "formNamePlaceholder": "p. ej., Contacto",
+    "slugPlaceholder": "p. ej., contacto",
+    "submitEndpoint": "Endpoint de envío:",
+    "status": {
+      "title": "Estado del formulario",
+      "accepting": "Acepta envíos",
+      "blocked": "Los envíos están bloqueados",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "captcha": {
+      "title": "Protección antispam (captcha)",
+      "on": "Los envíos deben incluir un token de captcha válido.",
+      "off": "El honeypot y el límite de frecuencia siguen activos. Actívalo para verificar con captcha.",
+      "requires": "Requiere <code>{env}</code> en el entorno del backend."
+    },
+    "fields": {
+      "title": "Campos",
+      "description": "Define los campos que rellenarán los usuarios. Usa Grupo / Repetidor para datos anidados.",
+      "add": "Añadir campo"
+    },
+    "actions": {
+      "description": "Qué ocurre tras un envío correcto. Usa <code>{token}</code> en el asunto para insertar valores.",
+      "email": "Correo",
+      "empty": "No hay acciones configuradas. Los envíos solo se guardarán en la base de datos.",
+      "remove": "Eliminar acción",
+      "sendTo": "Enviar a",
+      "subject": "Asunto",
+      "defaultSubject": "Nuevo envío de {field}",
+      "replyToField": "Campo de respuesta (opcional)",
+      "webhookUrl": "URL del webhook",
+      "method": "Método"
+    },
+    "validation": {
+      "nameRequired": "El nombre del formulario es obligatorio",
+      "slugRequired": "El slug es obligatorio",
+      "fieldRequired": "Añade al menos un campo con clave y etiqueta"
+    },
+    "creating": "Creando…",
+    "create": "Crear formulario",
+    "saveChanges": "Guardar cambios",
+    "preview": {
+      "show": "Mostrar payload",
+      "hide": "Ocultar payload",
+      "title": "Vista previa del payload",
+      "live": "en vivo",
+      "disableWrap": "Desactivar ajuste de línea",
+      "enableWrap": "Ajustar líneas largas",
+      "wrap": "Ajustar",
+      "copyJson": "Copiar cuerpo JSON",
+      "empty": "Añade un campo (con clave y etiqueta) para generar un payload de ejemplo."
+    }
+  }
+}

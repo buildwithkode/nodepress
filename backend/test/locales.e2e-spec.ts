@@ -70,6 +70,42 @@ describe('Content languages (e2e)', () => {
     expect(plain.body.locale).toBe('en');
   });
 
+  it('lists fall back to the default language per entry with ?fallback=true', async () => {
+    const server = app.getHttpServer();
+    const auth = { Authorization: `Bearer ${token}` };
+    const list = async (q: string) => (await request(server).get(`/api/page?${q}`).expect(200)).body;
+    const served = (body: any) => body.data.map((e: any) => `${e.slug}:${e.locale}`).sort();
+
+    expect(served(await list('locale=fr'))).toEqual(['about:fr']);
+    const fb = await list('locale=fr&fallback=true');
+    expect(served(fb)).toEqual(['about:fr', 'contact:en']);
+    expect(fb.meta.total).toBe(2);
+    // Nothing to fall back from in the default language itself.
+    expect(served(await list('locale=en&fallback=true'))).toEqual(['about:en', 'contact:en']);
+
+    // A draft translation doesn't hide the published default-language entry…
+    const draft = await request(server).post('/api/entries').set(auth)
+      .send({ contentTypeId: ctId, slug: 'contact', locale: 'fr', status: 'draft', data: { title: 'Contactez-nous' } }).expect(201);
+    expect(served(await list('locale=fr&fallback=true'))).toEqual(['about:fr', 'contact:en']);
+    // …until it's published (the write clears the cached list).
+    await request(server).put(`/api/entries/${draft.body.id}`).set(auth).send({ status: 'published' }).expect(200);
+    expect(served(await list('locale=fr&fallback=true'))).toEqual(['about:fr', 'contact:fr']);
+
+    // A renamed entry joins its new slug's translations.
+    const news = await request(server).post('/api/entries').set(auth)
+      .send({ contentTypeId: ctId, slug: 'news-draft', locale: 'en', status: 'published', data: { title: 'Newsroom' } }).expect(201);
+    await request(server).put(`/api/entries/${news.body.id}`).set(auth).send({ slug: 'news' }).expect(200);
+    expect(served(await list('locale=fr&fallback=true'))).toEqual(['about:fr', 'contact:fr', 'news:en']);
+
+    // Filters, search and cursor paging apply to the merged list.
+    expect(served(await list('locale=fr&fallback=true&where[title][eq]=About'))).toEqual([]); // shadowed by À propos
+    expect(served(await list('locale=fr&fallback=true&where[title][eq]=Newsroom'))).toEqual(['news:en']);
+    expect(served(await list('locale=fr&fallback=true&search=newsroom'))).toEqual(['news:en']);
+    const first = await list('locale=fr&fallback=true&limit=2&sort=slug:asc');
+    const rest = await list(`locale=fr&fallback=true&limit=2&sort=slug:asc&cursor=${first.meta.nextCursor}`);
+    expect([...served(first), ...served(rest)]).toEqual(['about:fr', 'contact:fr', 'news:en']);
+  });
+
   it('changing the default language changes what un-localized requests get', async () => {
     const server = app.getHttpServer();
     await request(server).put('/api/locales').set('Authorization', `Bearer ${token}`).send({ locales: ['en', 'fr'], defaultLocale: 'fr' }).expect(200);

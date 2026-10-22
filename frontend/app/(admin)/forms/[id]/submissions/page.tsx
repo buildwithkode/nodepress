@@ -11,6 +11,7 @@ import { SearchInput } from '@/components/ui/search-input';
 import { Pagination } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
 import { summarize, toCsv, downloadCsv, CsvField } from '../../_components/submission-format';
+import { useTranslations } from 'use-intl';
 
 interface Submission {
   id: number;
@@ -28,11 +29,13 @@ interface FormMeta {
 
 /** Render a submission value that may be nested (object / array / array-of-objects). */
 function SubmissionValue({ value }: { value: unknown }) {
+  const t = useTranslations('forms');
+  const tc = useTranslations('common');
   if (value === null || value === undefined || value === '') {
-    return <span className="text-muted-foreground/40 italic">empty</span>;
+    return <span className="text-muted-foreground/40 italic">{t('submissions.empty')}</span>;
   }
   if (typeof value === 'boolean') {
-    return <Badge variant={value ? 'default' : 'outline'} className="text-xs">{value ? 'Yes' : 'No'}</Badge>;
+    return <Badge variant={value ? 'default' : 'outline'} className="text-xs">{value ? tc('yes') : tc('no')}</Badge>;
   }
   if (Array.isArray(value)) {
     const allScalar = value.every((x) => x === null || typeof x !== 'object');
@@ -72,6 +75,8 @@ function SubmissionValue({ value }: { value: unknown }) {
 const PAGE_SIZE = 15;
 
 export default function SubmissionsPage() {
+  const t = useTranslations('forms');
+  const tc = useTranslations('common');
   const params    = useParams();
   const id        = params?.id as string;
   const router    = useRouter();
@@ -89,7 +94,7 @@ export default function SubmissionsPage() {
     ]).then(([formRes, subRes]) => {
       if (formRes.status === 'fulfilled') setForm(formRes.value.data);
       if (subRes.status === 'fulfilled')  setRows(subRes.value.data.data);
-      else toast.error('Failed to load submissions');
+      else toast.error(t('submissions.loadFailed'));
     }).finally(() => setLoading(false));
   }, [id]);
 
@@ -111,7 +116,7 @@ export default function SubmissionsPage() {
   };
 
   const handleExport = () => {
-    if (filtered.length === 0) { toast.error('No submissions to export'); return; }
+    if (filtered.length === 0) { toast.error(t('submissions.nothingToExport')); return; }
     const csv = toCsv(form?.fields, filtered);
     downloadCsv(`${form?.slug ?? 'submissions'}-${new Date().toISOString().slice(0, 10)}.csv`, csv);
   };
@@ -126,7 +131,7 @@ export default function SubmissionsPage() {
           className="gap-1.5 text-muted-foreground"
           onClick={() => router.push('/forms')}
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Forms
+          <ArrowLeft className="h-4 w-4" /> {t('submissions.backToForms')}
         </Button>
         {form && (
           <>
@@ -137,12 +142,12 @@ export default function SubmissionsPage() {
         )}
         <div className="ml-auto flex items-center gap-2">
           <SearchInput
-            placeholder="Search submissions…"
+            placeholder={t('submissions.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExport} disabled={loading || rows.length === 0}>
-            <Download className="h-4 w-4" /> Export CSV
+            <Download className="h-4 w-4" /> {t('submissions.exportCsv')}
           </Button>
         </div>
       </div>
@@ -150,8 +155,9 @@ export default function SubmissionsPage() {
       {/* Stats bar */}
       {!loading && (
         <p className="text-xs text-muted-foreground">
-          {filtered.length} submission{filtered.length !== 1 ? 's' : ''}
-          {search && ` matching "${search}"`}
+          {search
+            ? t('submissions.countMatching', { count: filtered.length, search })
+            : t('submissions.count', { count: filtered.length })}
         </p>
       )}
 
@@ -167,8 +173,8 @@ export default function SubmissionsPage() {
       {!loading && rows.length === 0 && (
         <div className="flex flex-col items-center py-24 text-center text-muted-foreground">
           <Inbox className="h-10 w-10 mb-3 opacity-30" />
-          <p className="text-sm font-medium">No submissions yet</p>
-          <p className="text-xs mt-1">Share the form and responses will appear here.</p>
+          <p className="text-sm font-medium">{t('submissions.noneTitle')}</p>
+          <p className="text-xs mt-1">{t('submissions.noneDescription')}</p>
         </div>
       )}
 
@@ -182,7 +188,7 @@ export default function SubmissionsPage() {
             {columns.slice(0, 3).map((col) => (
               <span key={col}>{labelFor(col)}</span>
             ))}
-            <span>Date</span>
+            <span>{t('submissions.date')}</span>
             <span />
           </div>
 
@@ -205,7 +211,7 @@ export default function SubmissionsPage() {
                         {v === null || v === undefined || text === ''
                           ? <span className="text-muted-foreground/40">—</span>
                           : typeof v === 'boolean'
-                            ? <Badge variant={v ? 'default' : 'outline'} className="text-xs">{v ? 'Yes' : 'No'}</Badge>
+                            ? <Badge variant={v ? 'default' : 'outline'} className="text-xs">{v ? tc('yes') : tc('no')}</Badge>
                             : text.length > 50 ? text.slice(0, 50) + '…' : text}
                       </span>
                     );

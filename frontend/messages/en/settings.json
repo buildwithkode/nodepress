@@ -1,0 +1,136 @@
+{
+  "brand": {
+    "title": "Brand",
+    "subtitle": "Your name, logo, and accent colour — used across the admin panel, the browser tab/favicon, the login screen, and form-submission emails.",
+    "identity": {
+      "title": "Identity",
+      "description": "Applies everywhere this install shows your brand.",
+      "name": "Brand name",
+      "logo": "Logo",
+      "logoHelp": "Square images work best. Shown in the sidebar, login page, favicon, and emails.",
+      "accent": "Accent colour",
+      "accentPicker": "Accent colour picker",
+      "previewHelp": "How the sidebar header will look."
+    },
+    "preview": "Preview",
+    "theme": {
+      "title": "Theme",
+      "description": "Optional. Recolour primary buttons and input fields across the admin panel. Leave blank to use the default theme.",
+      "button": "Button colour",
+      "buttonHelp": "Primary buttons. Text colour auto-adjusts for contrast.",
+      "buttonPicker": "Button colour picker",
+      "input": "Input colour",
+      "inputHelp": "Input border and focus ring.",
+      "inputPicker": "Input colour picker",
+      "defaultPlaceholder": "(default)",
+      "reset": "Reset",
+      "sampleButton": "Sample button",
+      "sampleInput": "Sample input"
+    },
+    "invalidHex": "Invalid hex",
+    "saveChanges": "Save changes",
+    "noChanges": "No changes",
+    "confirm": {
+      "title": "Save brand changes?",
+      "description": "This updates your brand and theme everywhere — the admin sidebar, browser tab & favicon, the login screen, and form-submission emails — for all users."
+    },
+    "toasts": {
+      "nameRequired": "Brand name is required",
+      "accentInvalid": "Enter a valid accent hex colour, e.g. {example}",
+      "buttonInvalid": "Button colour must be a valid hex (or empty)",
+      "inputInvalid": "Input colour must be a valid hex (or empty)",
+      "saved": "Brand updated",
+      "saveFailed": "Failed to update brand"
+    }
+  },
+  "languages": {
+    "title": "Languages",
+    "subtitle": "The languages editors can write content in. Each entry can have one translation per language; the default language is used when an API request doesn't ask for one, and as the fallback with <code></code>.",
+    "enabled": {
+      "title": "Enabled languages",
+      "description": "Removing a language keeps its entries; it just stops being offered in the editor.",
+      "entryCount": "{count, plural, one {# entry} other {# entries}}",
+      "default": "Default",
+      "makeDefault": "Make default",
+      "removeWithEntries": "{count, plural, one {# entry stays} other {# entries stay}}, but the language is no longer offered",
+      "removeLabel": "Remove {language}",
+      "orphaned": "Entries exist in languages that aren't enabled:",
+      "orphanedHint": ". Click one to enable it."
+    },
+    "saveChanges": "Save changes",
+    "add": {
+      "title": "Add a language",
+      "description": "Use a language code such as <code>fr</code>, <code>pt-BR</code> or <code>zh-Hant</code>.",
+      "placeholder": "e.g. {example}",
+      "codeLabel": "Language code",
+      "willAdd": "Adds {language}",
+      "alreadyEnabled": "Already enabled",
+      "invalidCode": "Not a valid language code"
+    },
+    "toasts": {
+      "saved": "Languages saved",
+      "saveFailed": "Could not save languages"
+    }
+  },
+  "server": {
+    "title": "Email & storage",
+    "subtitle": "Where emails are sent from and where uploaded files are kept.",
+    "loadFailed": "Couldn't load the settings",
+    "saveFailed": "Couldn't save",
+    "save": "Save",
+    "keepSecret": "Saved — leave blank to keep it.",
+    "envNotice": "Set by <code>{what}</code> environment variables on the server — change it there.",
+    "mail": {
+      "title": "Email",
+      "description": "Used for password resets, team invitations and form notifications.",
+      "enabled": "Send emails",
+      "host": "SMTP server",
+      "port": "Port",
+      "security": "Security",
+      "starttls": "STARTTLS (587)",
+      "ssl": "SSL/TLS (465)",
+      "user": "Username",
+      "password": "Password",
+      "from": "From address",
+      "fromHint": "Shown as the sender, e.g. Acme <noreply@acme.com>. Defaults to the username.",
+      "testTo": "Send a test to",
+      "sendTest": "Send test",
+      "testSent": "Test email sent to {to}",
+      "testFailed": "The test email couldn't be sent",
+      "saved": "Email settings saved — in use now",
+      "turnedOff": "Email turned off"
+    },
+    "storage": {
+      "title": "File storage",
+      "description": "Uploaded images and files.",
+      "where": "Keep uploads on",
+      "local": "This server's disk",
+      "s3": "S3-compatible storage",
+      "localHint": "Fine for a single server with a persistent disk.",
+      "localProductionWarning": "On most hosts and containers this disk is wiped on redeploy — uploads would be lost. Use S3-compatible storage.",
+      "provider": "Provider",
+      "otherProvider": "Other (MinIO, Backblaze B2…)",
+      "bucket": "Bucket",
+      "endpoint": "Endpoint",
+      "region": "Region",
+      "accessKey": "Access key ID",
+      "secretKey": "Secret access key",
+      "publicUrl": "Public URL (optional)",
+      "publicUrlHint": "Your CDN or custom domain for the bucket. The bucket must allow public reads.",
+      "test": "Test connection",
+      "testOk": "Connected — a test file was written and deleted",
+      "testFailed": "Couldn't connect to the bucket",
+      "saved": "Storage settings saved",
+      "restartRequired": "Storage changes take effect after the server restarts. Existing files aren't moved.",
+      "restart": "Restart now",
+      "restarting": "Restarting — the admin will reconnect in a moment"
+    },
+    "search": {
+      "title": "Search",
+      "postgres": "Searches use the database's full-text index (<code>?search=</code>). For typo-tolerant ranked search, run Meilisearch and set SEARCH_DRIVER=meilisearch.",
+      "meilisearch": "Searches use Meilisearch (index “{index}”). It updates as content changes.",
+      "reindex": "Rebuild index",
+      "reindexQueued": "Rebuilding the search index in the background"
+    }
+  }
+}

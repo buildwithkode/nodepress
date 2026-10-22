@@ -9,33 +9,37 @@ import api from '../../../lib/axios';
 import Cookies from 'js-cookie';
 import { Button } from '@/components/ui/button';
 import { Shield, KeyRound, ArrowLeft } from 'lucide-react';
+import { useTranslations } from 'use-intl';
+import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
 
-function loginErrorMessage(err: any): string {
+function loginErrorMessage(err: any, t: ReturnType<typeof useTranslations>): string {
   if (!err.response) {
-    return 'Cannot reach the backend server. Please verify the backend service is running.';
+    return t('login.errors.unreachable');
   }
   const status = err.response.status;
   const backendMsg = err.response?.data?.message;
 
   if (status === 401) {
-    return backendMsg || 'Invalid email or password.';
+    return backendMsg || t('login.errors.invalidCredentials');
   }
   if (status === 429) {
-    return 'Too many login attempts. Please wait a minute and try again.';
+    return t('login.errors.tooManyAttempts');
   }
   if (status === 502 || status === 503 || status === 504) {
-    return 'Backend service is offline or unreachable. Please start your backend server.';
+    return t('login.errors.offline');
   }
   if (status >= 500) {
     if (backendMsg && typeof backendMsg === 'string') {
-      return `Server error: ${backendMsg}`;
+      return t('login.errors.serverError', { message: backendMsg });
     }
-    return 'Backend connection failed. Please ensure the backend server is running and database is connected.';
+    return t('login.errors.connectionFailed');
   }
-  return backendMsg || 'Something went wrong. Please try again.';
+  return backendMsg || t('login.errors.generic');
 }
 
 function LoginForm() {
+  const t = useTranslations('auth');
+  const tc = useTranslations('common');
   const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,7 +88,7 @@ function LoginForm() {
     setError('');
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) {
-      setError('Please enter your email and password.');
+      setError(t('login.errors.missingCredentials'));
       return;
     }
     setLoading(true);
@@ -99,7 +103,7 @@ function LoginForm() {
         window.location.href = '/';
       }
     } catch (err: any) {
-      setError(loginErrorMessage(err));
+      setError(loginErrorMessage(err, t));
     } finally {
       setLoading(false);
     }
@@ -109,7 +113,7 @@ function LoginForm() {
     e.preventDefault();
     setError('');
     if (!twoFactorCode.trim()) {
-      setError(useRecoveryCode ? 'Please enter a backup recovery code.' : 'Please enter your 6-digit code.');
+      setError(useRecoveryCode ? t('login.errors.missingRecoveryCode') : t('login.errors.missingCode'));
       return;
     }
     setLoading(true);
@@ -121,7 +125,7 @@ function LoginForm() {
       login(res.data.access_token, res.data.user);
       window.location.href = '/';
     } catch (err: any) {
-      setError(loginErrorMessage(err));
+      setError(loginErrorMessage(err, t));
     } finally {
       setLoading(false);
     }
@@ -129,14 +133,17 @@ function LoginForm() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-[#0d0d0d] px-4">
-      {/* Docs link */}
+      {/* Language + docs link */}
+      <div className="absolute top-4 right-4 flex items-center gap-3">
+      <AdminLanguageSwitcher className="border-white/10 bg-transparent text-white/60 hover:text-white/80" />
       <a
         href="/docs"
-        className="absolute top-4 right-4 flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors"
+        className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-        Docs
+        {t('docs')}
       </a>
+      </div>
 
       <div className="w-full max-w-sm">
         <div className="rounded-xl border border-white/10 bg-[#1a1a1a] px-8 py-10 shadow-2xl">
@@ -148,15 +155,15 @@ function LoginForm() {
             )}
             <h1 className="text-xl font-bold text-white">{brand.brandName}</h1>
             <p className="text-sm text-white/40 mt-1">
-              {requires2fa ? 'Two-Factor Authentication' : 'Sign in to your admin account'}
+              {requires2fa ? t('login.twoFactorTitle') : t('login.subtitle')}
             </p>
           </div>
 
           {/* Session expired banner */}
           {!requires2fa && reason === 'expired' && (
             <div className="mb-5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3.5 py-3 text-xs text-amber-300 text-center space-y-1">
-              <p className="font-medium">Your session has expired (7-day security limit).</p>
-              <p className="text-amber-400/80 text-[11px]">Please sign in with your email and password to continue.</p>
+              <p className="font-medium">{t('login.sessionExpired')}</p>
+              <p className="text-amber-400/80 text-[11px]">{t('login.sessionExpiredHint')}</p>
             </div>
           )}
 
@@ -171,7 +178,7 @@ function LoginForm() {
             <form onSubmit={handlePasswordSubmit} noValidate className="space-y-5">
               <div className="space-y-1.5">
                 <label htmlFor="email" className="block text-sm font-medium text-white/80">
-                  Email
+                  {t('login.email')}
                 </label>
                 <input
                   id="email"
@@ -187,7 +194,7 @@ function LoginForm() {
 
               <div className="space-y-1.5">
                 <label htmlFor="password" className="block text-sm font-medium text-white/80">
-                  Password
+                  {t('login.password')}
                 </label>
                 <input
                   id="password"
@@ -203,20 +210,20 @@ function LoginForm() {
               {error && <p className="text-sm text-red-400 text-center">{error}</p>}
 
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Signing in…' : 'Sign in'}
+                {loading ? t('login.signingIn') : t('login.signIn')}
               </Button>
 
               {sso.enabled && (
                 <>
                   <div className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/30">
-                    <span className="h-px flex-1 bg-white/10" /> or <span className="h-px flex-1 bg-white/10" />
+                    <span className="h-px flex-1 bg-white/10" /> {t('login.or')} <span className="h-px flex-1 bg-white/10" />
                   </div>
                   {/* Full-page navigation: the backend redirects to the identity provider. */}
                   <a
                     href="/api/auth/oidc/login?returnTo=%2F"
                     className="flex w-full items-center justify-center rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors"
                   >
-                    Continue with {sso.providerName}
+                    {t('login.continueWith', { provider: sso.providerName ?? '' })}
                   </a>
                 </>
               )}
@@ -230,14 +237,14 @@ function LoginForm() {
 
               <p className="text-xs text-white/60 text-center">
                 {useRecoveryCode
-                  ? 'Enter one of your 8-character backup recovery codes.'
-                  : 'Enter the 6-digit code from your authenticator app (Google Authenticator, 1Password, Authy).'
+                  ? t('login.recoveryCodeHint')
+                  : t('login.codeHint')
                 }
               </p>
 
               <div className="space-y-1.5">
                 <label htmlFor="2fa-code" className="block text-xs font-medium text-white/80 text-center">
-                  {useRecoveryCode ? 'Recovery Code' : '6-Digit Verification Code'}
+                  {useRecoveryCode ? t('login.recoveryCodeLabel') : t('login.codeLabel')}
                 </label>
                 <input
                   id="2fa-code"
@@ -254,7 +261,7 @@ function LoginForm() {
               {error && <p className="text-sm text-red-400 text-center">{error}</p>}
 
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Verifying…' : 'Verify & Sign In'}
+                {loading ? t('login.verifying') : t('login.verify')}
               </Button>
 
               <div className="flex items-center justify-between text-xs pt-2">
@@ -266,7 +273,7 @@ function LoginForm() {
                   }}
                   className="inline-flex items-center gap-1 text-white/40 hover:text-white/80 transition-colors"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back
+                  <ArrowLeft className="w-3.5 h-3.5" /> {tc('back')}
                 </button>
 
                 <button
@@ -278,7 +285,7 @@ function LoginForm() {
                   }}
                   className="text-blue-400 hover:underline"
                 >
-                  {useRecoveryCode ? 'Use Authenticator App' : 'Use Recovery Code'}
+                  {useRecoveryCode ? t('login.useAuthenticator') : t('login.useRecoveryCode')}
                 </button>
               </div>
             </form>
@@ -287,7 +294,7 @@ function LoginForm() {
           {!requires2fa && (
             <p className="mt-5 text-center text-xs text-white/30">
               <Link href="/forgot-password" className="hover:text-white/60 transition-colors">
-                Forgot password?
+                {t('login.forgotPassword')}
               </Link>
             </p>
           )}

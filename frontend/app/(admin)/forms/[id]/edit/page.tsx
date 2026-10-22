@@ -6,8 +6,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/lib/axios';
 import FormBuilder, { ActionDef } from '../../_components/FormBuilder';
 import { FormField, hydrateField } from '../../_components/field-types';
+import { useTranslations } from 'use-intl';
 
 export default function EditFormPage() {
+  const t = useTranslations('forms');
   const params = useParams();
   const id = params?.id as string;
   const [form, setForm]     = useState<any>(null);
@@ -30,7 +32,7 @@ export default function EditFormPage() {
   }
 
   if (!form) {
-    return <p className="text-muted-foreground">Form not found.</p>;
+    return <p className="text-muted-foreground">{t('edit.notFound')}</p>;
   }
 
   // Convert stored fields back to the builder shape (options array → string, recursively)

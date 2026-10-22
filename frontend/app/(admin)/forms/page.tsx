@@ -20,6 +20,7 @@ import {
   AlertDialogFooter, AlertDialogTitle, AlertDialogDescription,
   AlertDialogAction, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
+import { useTranslations } from 'use-intl';
 
 interface FormRow {
   id: number;
@@ -34,6 +35,8 @@ interface FormRow {
 const PAGE_SIZE = 10;
 
 export default function FormsPage() {
+  const t = useTranslations('forms');
+  const tc = useTranslations('common');
   const router = useRouter();
   const { user } = useAuth();
   const canEdit = canManageContent(user?.role);
@@ -48,7 +51,7 @@ export default function FormsPage() {
       const res = await api.get('/forms');
       setForms(res.data.data);
     } catch {
-      toast.error('Failed to load forms');
+      toast.error(t('list.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -60,10 +63,10 @@ export default function FormsPage() {
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/forms/${id}`);
-      toast.success('Form deleted');
+      toast.success(t('list.deleted'));
       load();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Delete failed');
+      toast.error(err.response?.data?.message || t('list.deleteFailed'));
     }
   };
 
@@ -72,7 +75,7 @@ export default function FormsPage() {
       await api.put(`/forms/${form.id}`, { isActive: !form.isActive });
       setForms((prev) => prev.map((f) => f.id === form.id ? { ...f, isActive: !f.isActive } : f));
     } catch {
-      toast.error('Failed to update form status');
+      toast.error(t('list.statusFailed'));
     }
   };
 
@@ -88,7 +91,7 @@ export default function FormsPage() {
       <div className="flex items-center gap-2">
         <div className="flex-1 max-w-xs">
           <SearchInput
-            placeholder="Search forms…"
+            placeholder={t('list.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -96,7 +99,7 @@ export default function FormsPage() {
         {canEdit && (
           <div className="ml-auto">
             <Button onClick={() => router.push('/forms/new')}>
-              <Plus className="h-4 w-4 mr-1.5" /> New Form
+              <Plus className="h-4 w-4 mr-1.5" /> {t('list.newForm')}
             </Button>
           </div>
         )}
@@ -106,12 +109,12 @@ export default function FormsPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Slug</TableHead>
-            <TableHead className="w-20 text-center">Fields</TableHead>
-            <TableHead className="w-24 text-center">Submissions</TableHead>
-            <TableHead className="w-20 text-center">Status</TableHead>
-            <TableHead className="w-36 text-right">Actions</TableHead>
+            <TableHead>{tc('name')}</TableHead>
+            <TableHead>{t('list.columns.slug')}</TableHead>
+            <TableHead className="w-20 text-center">{t('list.columns.fields')}</TableHead>
+            <TableHead className="w-24 text-center">{t('list.columns.submissions')}</TableHead>
+            <TableHead className="w-20 text-center">{tc('status')}</TableHead>
+            <TableHead className="w-36 text-right">{tc('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -127,8 +130,8 @@ export default function FormsPage() {
             <TableRow>
               <TableCell colSpan={6} className="py-16 text-center text-muted-foreground">
                 {search
-                  ? 'No forms match your search.'
-                  : 'No forms yet. Create your first one.'}
+                  ? t('list.noMatches')
+                  : t('list.empty')}
               </TableCell>
             </TableRow>
           ) : paginated.map((form) => (
@@ -152,7 +155,7 @@ export default function FormsPage() {
               </TableCell>
               <TableCell className="text-center">
                 {canEdit ? (
-                  <button onClick={() => toggleActive(form)} title="Toggle active">
+                  <button onClick={() => toggleActive(form)} title={t('list.toggleActive')}>
                     {form.isActive
                       ? <ToggleRight className="h-5 w-5 text-emerald-400 mx-auto" />
                       : <ToggleLeft  className="h-5 w-5 text-muted-foreground mx-auto" />}
@@ -169,7 +172,7 @@ export default function FormsPage() {
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    title="View submissions"
+                    title={t('list.viewSubmissions')}
                     onClick={() => router.push(`/forms/${form.id}/submissions`)}
                   >
                     <Inbox className="h-3.5 w-3.5" />
@@ -180,7 +183,7 @@ export default function FormsPage() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      title="Edit"
+                      title={tc('edit')}
                       onClick={() => router.push(`/forms/${form.id}/edit`)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -194,7 +197,7 @@ export default function FormsPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          title="Delete"
+                          title={tc('delete')}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         />
                       }>
@@ -202,15 +205,18 @@ export default function FormsPage() {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete "{form.name}"?</AlertDialogTitle>
+                          <AlertDialogTitle>{t('list.deleteConfirmTitle', { name: form.name })}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            All <strong>{form._count.submissions}</strong> submissions will also be deleted permanently.
+                            {t.rich('list.deleteConfirmDescription', {
+                              count: form._count.submissions,
+                              strong: (chunks) => <strong>{chunks}</strong>,
+                            })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                           <AlertDialogAction variant="destructive" onClick={() => handleDelete(form.id)}>
-                            Delete
+                            {tc('delete')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

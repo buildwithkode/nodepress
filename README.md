@@ -42,6 +42,16 @@ That's it. The CLI scaffolds the project, generates cryptographically secure sec
 
 Open `http://localhost:5173` → fill in a form → you have a working CMS with a REST API, GraphQL API, admin panel, and real-time WebSocket events.
 
+**On a server** (Linux + Docker), one line — with automatic HTTPS when you pass a domain:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/scripts/install.sh | DOMAIN=cms.example.com bash
+```
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/buildwithkode/nodepress)
+
+**From your frontend:** `npm install @nodepress/client` — see [client/README.md](client/README.md). **From AI assistants:** `npx create-nodepress-app mcp` (MCP server).
+
 ---
 
 ## Everything you need. Nothing you don't.

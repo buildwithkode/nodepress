@@ -1,0 +1,54 @@
+# Render Blueprint — "Deploy to Render" button in README.md.
+# https://render.com/docs/blueprint-spec
+#
+# Creates Postgres, the API and the admin/frontend. After the first deploy, set
+# the three URL variables marked `sync: false` (Render asks for them on create):
+#   backend  SITE_URL / CORS_ORIGIN = the frontend's URL (https://nodepress-web-xxxx.onrender.com)
+#   backend  APP_URL                = the backend's URL
+#   frontend BACKEND_URL            = the backend's URL
+# Uploads: Render's disk is wiped on every deploy — set STORAGE_DRIVER=s3 (+ STORAGE_S3_*)
+# or attach a disk at /app/uploads (paid plans).
+
+databases:
+  - name: nodepress-db
+    databaseName: nodepress
+    plan: basic-256mb
+
+services:
+  - type: web
+    name: nodepress-api
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerCommand: sh -c "npx prisma migrate deploy && node dist/main.js"
+    healthCheckPath: /api/health
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase: { name: nodepress-db, property: connectionString }
+      - key: DIRECT_URL
+        fromDatabase: { name: nodepress-db, property: connectionString }
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SITE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: APP_URL
+        sync: false
+
+  - type: web
+    name: nodepress-web
+    runtime: docker
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    plan: starter
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: BACKEND_URL
+        sync: false

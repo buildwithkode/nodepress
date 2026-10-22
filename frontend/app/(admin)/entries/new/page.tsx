@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight, WrapText, Rocket, Globe, Shield, Settings, X, Clock } from 'lucide-react';
 import { useLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
@@ -20,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn, ctLabel, formatSlugInput, cleanSlug } from '@/lib/utils';
 import DynamicFormField from '../DynamicFormField';
+import { AiDraftButton } from '@/components/AiAssist';
 import {
   Select,
   SelectContent,
@@ -32,6 +34,8 @@ interface Field { name: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
 
 export default function NewEntryPage() {
+  const t = useTranslations('entryEditor');
+  const tc = useTranslations('common');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user: me } = useAuth();
@@ -96,7 +100,7 @@ export default function NewEntryPage() {
           setSelectedCT(ct);
         }
       })
-      .catch(() => toast.error('Failed to load content types'))
+      .catch(() => toast.error(t('toast.loadTypesFailed')))
       .finally(() => setLoadingCT(false));
   }, [ctId]);
 
@@ -137,10 +141,10 @@ export default function NewEntryPage() {
         seo: hasSeo ? seo : null,
         publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
-      toast.success('Entry created');
+      toast.success(t('toast.created'));
       router.push('/entries');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Something went wrong');
+      toast.error(err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -162,7 +166,7 @@ export default function NewEntryPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(selectedCT ? `/entries?ct=${selectedCT.name}` : '/entries')}>
-          <ArrowLeft className="h-4 w-4" /> Back to {selectedCT ? ctLabel(selectedCT) : 'Entries'}
+          <ArrowLeft className="h-4 w-4" /> {t('header.backTo', { name: selectedCT ? ctLabel(selectedCT) : t('header.entries') })}
         </Button>
         {selectedCT && isAdmin && (
           <div className="flex items-center gap-2">
@@ -171,20 +175,20 @@ export default function NewEntryPage() {
               size="sm"
               className="gap-1.5 h-8 text-xs"
               onClick={() => router.push(`/content-types/${selectedCT.id}/edit`)}
-              title="Edit Content Type Schema"
+              title={t('header.editSchemaTitle')}
             >
               <Settings className="h-3.5 w-3.5 text-indigo-400" />
-              Edit Schema
+              {t('header.editSchema')}
             </Button>
             <Button
               variant="outline"
               size="sm"
               className="gap-1.5 h-8 text-xs"
               onClick={() => router.push(`/users/permissions?tab=fields&ct=${selectedCT.name}`)}
-              title="Configure Field-Level Permissions"
+              title={t('header.fieldPermissionsTitle')}
             >
               <Shield className="h-3.5 w-3.5 text-amber-400" />
-              Field Permissions
+              {t('header.fieldPermissions')}
             </Button>
           </div>
         )}
@@ -194,8 +198,8 @@ export default function NewEntryPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <CardTitle>New Entry{selectedCT ? ` — ${ctLabel(selectedCT)}` : ''}</CardTitle>
-              <CardDescription>Fill in the fields below to create a new entry.</CardDescription>
+              <CardTitle>{selectedCT ? t('new.titleWithType', { type: ctLabel(selectedCT) }) : t('new.title')}</CardTitle>
+              <CardDescription>{t('new.description')}</CardDescription>
             </div>
             {selectedCT && (
               <div className="flex items-center gap-2 shrink-0 flex-wrap">
@@ -231,31 +235,31 @@ export default function NewEntryPage() {
                     <SelectItem value="draft">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-amber-500" />
-                        <span>Draft</span>
+                        <span>{tc('statuses.draft')}</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="pending_review">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-blue-500" />
-                        <span>In Review</span>
+                        <span>{tc('statuses.pending_review')}</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="staging">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-purple-500" />
-                        <span>Staging</span>
+                        <span>{tc('statuses.staging')}</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="published">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        <span>Published</span>
+                        <span>{tc('statuses.published')}</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="archived">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-zinc-500" />
-                        <span>Archived</span>
+                        <span>{tc('statuses.archived')}</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -263,7 +267,7 @@ export default function NewEntryPage() {
 
                 {/* Top Quick Create / Publish Button */}
                 <Button type="submit" form="entry-form" size="sm" className="h-8 text-xs font-medium gap-1.5" disabled={submitting}>
-                  {submitting ? 'Creating…' : status === 'published' ? 'Publish' : 'Create'}
+                  {submitting ? t('header.creating') : status === 'published' ? t('header.publish') : tc('create')}
                 </Button>
 
                 <Button
@@ -275,7 +279,7 @@ export default function NewEntryPage() {
                     jsonOpen && "bg-muted text-foreground border-border/80 shadow-xs"
                   )}
                   onClick={() => setJsonOpen((v) => !v)}
-                  title="Toggle Live JSON Preview"
+                  title={t('json.toggle')}
                 >
                   <Braces className="h-3.5 w-3.5" />
                   JSON
@@ -291,7 +295,7 @@ export default function NewEntryPage() {
             {/* Content type selector (if not pre-selected) */}
             {!ctId && (
               <div className="mb-5 space-y-1.5">
-                <Label>Content Type</Label>
+                <Label>{t('new.contentType')}</Label>
                 <Select
                   value={selectedCT ? String(selectedCT.id) : ''}
                   onValueChange={(val) => {
@@ -302,7 +306,7 @@ export default function NewEntryPage() {
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a content type…" />
+                    <SelectValue placeholder={t('new.selectContentType')} />
                   </SelectTrigger>
                   <SelectContent>
                     {contentTypes.map((ct) => (
@@ -318,14 +322,14 @@ export default function NewEntryPage() {
 
                 {/* Slug */}
                 <div className="space-y-1.5 mb-5">
-                  <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">Slug</Label>
+                  <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">{t('slug.label')}</Label>
                   {(() => {
                     const slugReg = register('slug', {
                       validate: (v) => {
                         const cleaned = cleanSlug(v || '');
-                        if (!cleaned) return 'Slug is required';
+                        if (!cleaned) return t('slug.required');
                         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleaned)) {
-                          return 'Lowercase letters, numbers and hyphens only';
+                          return t('slug.invalid');
                         }
                         return true;
                       },
@@ -362,7 +366,7 @@ export default function NewEntryPage() {
                   })()}
                   <div className="flex items-center gap-2 text-xs bg-muted/30 px-3 py-1.5 rounded-md border border-border/50 font-mono mt-1.5 text-muted-foreground">
                     <span className="text-[11px] font-sans font-medium text-muted-foreground/70 select-none shrink-0">
-                      Preview URL:
+                      {t('slug.previewUrl')}
                     </span>
                     <span className="truncate text-foreground font-medium">
                       /api/<span className="text-muted-foreground">{selectedCT ? selectedCT.name.replace(/_/g, '-') : 'content-type'}</span>/<span className="text-primary font-semibold">{previewSlug || '…'}</span>
@@ -371,7 +375,7 @@ export default function NewEntryPage() {
                   {errors.slug ? (
                     <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
                   ) : (
-                    <p className="text-[11px] text-muted-foreground">Auto-generated from the first text field. Formatted with lowercase and hyphens.</p>
+                    <p className="text-[11px] text-muted-foreground">{t('slug.helpNew')}</p>
                   )}
                 </div>
 
@@ -381,38 +385,37 @@ export default function NewEntryPage() {
                     <div className="flex items-center justify-between mb-2">
                       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                         <Clock className="h-3.5 w-3.5 text-primary" />
-                        Scheduled Publish
+                        {t('schedule.title')}
                       </Label>
                       {publishAt && (
                         <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-medium">
-                          Active schedule
+                          {t('schedule.active')}
                         </span>
                       )}
                     </div>
                     <DateTimePicker
                       value={publishAt}
                       onChange={setPublishAt}
-                      placeholder="Pick date & time to auto-publish…"
+                      placeholder={t('schedule.placeholder')}
                     />
                     <p className="mt-2 text-xs text-muted-foreground">
                       {publishAt ? (
                         <span className="text-foreground/90 font-medium">
-                          Will automatically publish on{' '}
-                          <span className="text-primary font-semibold">
-                            {new Date(publishAt).toLocaleDateString(undefined, {
+                          {t.rich('schedule.willPublish', {
+                            date: new Date(publishAt).toLocaleDateString(undefined, {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
-                            })}{' '}
-                            at{' '}
-                            {new Date(publishAt).toLocaleTimeString(undefined, {
+                            }),
+                            time: new Date(publishAt).toLocaleTimeString(undefined, {
                               hour: '2-digit',
                               minute: '2-digit',
-                            })}
-                          </span>
+                            }),
+                            b: (chunks) => <span className="text-primary font-semibold">{chunks}</span>,
+                          })}
                         </span>
                       ) : (
-                        'Set a date and time to automatically publish this draft. Leave empty to publish manually.'
+                        t('schedule.help')
                       )}
                     </p>
                   </div>
@@ -422,7 +425,7 @@ export default function NewEntryPage() {
                   <div className="pt-6">
                     <div className="flex items-center justify-between pb-2 mb-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-base font-semibold text-foreground">Fields</span>
+                        <span className="text-base font-semibold text-foreground">{t('form.fields')}</span>
                         {selectedCT.displayName && (
                           <span className="text-xs text-muted-foreground font-normal">
                             ({selectedCT.displayName})
@@ -430,11 +433,17 @@ export default function NewEntryPage() {
                         )}
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {selectedCT.schema.length} field{selectedCT.schema.length === 1 ? '' : 's'}
+                        {t('form.fieldCount', { count: selectedCT.schema.length })}
                       </span>
                     </div>
                     <Separator className="mt-1 mb-5 bg-border/70" />
 
+                    <div className="mb-4">
+                      <AiDraftButton
+                        contentTypeId={selectedCT.id}
+                        onDraft={(data) => Object.entries(data).forEach(([k, v]) => setValue(k, v, { shouldDirty: true }))}
+                      />
+                    </div>
                     <div>
                       {selectedCT.schema.map((field) => (
                         <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} />
@@ -446,7 +455,7 @@ export default function NewEntryPage() {
                 {/* SEO Panel */}
                 <div className="mt-6">
                   <div className="pt-3 pb-2 mb-1">
-                    <span className="text-base font-semibold text-foreground">SEO</span>
+                    <span className="text-base font-semibold text-foreground">{t('seo.heading')}</span>
                     <Separator className="mt-1 mb-3 bg-border/70" />
                   </div>
                   <button
@@ -455,9 +464,9 @@ export default function NewEntryPage() {
                     className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left px-1 py-1.5"
                   >
                     <Search className="h-3.5 w-3.5" />
-                    <span>SEO &amp; Open Graph</span>
+                    <span>{t('seo.toggle')}</span>
                     {(seoTitle || seoDescription || seoImage || seoNoIndex) && (
-                      <span className="ml-auto text-[10px] bg-blue-500/15 text-blue-400 rounded px-1.5 py-0.5">customized</span>
+                      <span className="ml-auto text-[10px] bg-blue-500/15 text-blue-400 rounded px-1.5 py-0.5">{t('seo.customized')}</span>
                     )}
                     {seoOpen
                       ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
@@ -468,36 +477,36 @@ export default function NewEntryPage() {
                   {seoOpen && (
                     <div className="rounded-md border border-border bg-muted/20 p-4 space-y-3 mt-1">
                       <div className="space-y-1.5">
-                        <Label htmlFor="seo-title" className="text-xs">SEO Title</Label>
+                        <Label htmlFor="seo-title" className="text-xs">{t('seo.title')}</Label>
                         <Input
                           id="seo-title"
-                          placeholder="Overrides the page title in search results"
+                          placeholder={t('seo.titlePlaceholder')}
                           value={seoTitle}
                           onChange={(e) => setSeoTitle(e.target.value)}
                           maxLength={70}
                         />
-                        <p className="text-[10px] text-muted-foreground">{seoTitle.length}/70 characters</p>
+                        <p className="text-[10px] text-muted-foreground">{t('seo.charCount', { count: seoTitle.length, max: 70 })}</p>
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="seo-desc" className="text-xs">Meta Description</Label>
+                        <Label htmlFor="seo-desc" className="text-xs">{t('seo.description')}</Label>
                         <textarea
                           id="seo-desc"
-                          placeholder="Short description shown in search results (120–160 chars recommended)"
+                          placeholder={t('seo.descriptionPlaceholder')}
                           value={seoDescription}
                           onChange={(e) => setSeoDescription(e.target.value)}
                           maxLength={160}
                           rows={2}
                           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
                         />
-                        <p className="text-[10px] text-muted-foreground">{seoDescription.length}/160 characters</p>
+                        <p className="text-[10px] text-muted-foreground">{t('seo.charCount', { count: seoDescription.length, max: 160 })}</p>
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="seo-image" className="text-xs">OG Image URL</Label>
+                        <Label htmlFor="seo-image" className="text-xs">{t('seo.image')}</Label>
                         <Input
                           id="seo-image"
-                          placeholder="https://example.com/og-image.jpg (1200×630 recommended)"
+                          placeholder={t('seo.imagePlaceholder')}
                           value={seoImage}
                           onChange={(e) => setSeoImage(e.target.value)}
                         />
@@ -510,7 +519,7 @@ export default function NewEntryPage() {
                           onChange={(e) => setSeoNoIndex(e.target.checked)}
                           className="h-4 w-4 rounded border border-input"
                         />
-                        <span className="text-xs text-foreground">Exclude from search engines (noindex)</span>
+                        <span className="text-xs text-foreground">{t('seo.noIndex')}</span>
                       </label>
                     </div>
                   )}
@@ -519,7 +528,7 @@ export default function NewEntryPage() {
             )}
 
             {!selectedCT && ctId === 0 && (
-              <p className="text-sm text-muted-foreground py-4">Select a content type to begin.</p>
+              <p className="text-sm text-muted-foreground py-4">{t('new.selectToBegin')}</p>
             )}
           </div>
 
@@ -559,18 +568,18 @@ export default function NewEntryPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs font-medium">JSON Preview</span>
-                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
+                      <span className="text-xs font-medium">{t('json.title')}</span>
+                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">{t('json.live')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setJsonWrap((w) => !w)}
                         className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                        title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                        title={jsonWrap ? t('json.unwrap') : t('json.wrapTitle')}
                       >
                         <WrapText className="h-3.5 w-3.5" />
-                        Wrap
+                        {t('json.wrap')}
                       </button>
                       <button
                         type="button"
@@ -580,17 +589,18 @@ export default function NewEntryPage() {
                           setTimeout(() => setJsonCopied(false), 2000);
                         }}
                         className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                        title="Copy raw JSON"
+                        title={t('json.copyTitle')}
                       >
                         {jsonCopied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                        {jsonCopied ? 'Copied' : 'Copy'}
+                        {jsonCopied ? tc('copied') : tc('copy')}
                       </button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 text-muted-foreground hover:text-foreground ml-1"
                         onClick={() => setJsonOpen(false)}
-                        title="Close JSON Panel"
+                        title={t('json.close')}
+                        aria-label={t('json.close')}
                       >
                         <X className="h-3.5 w-3.5" />
                       </Button>
@@ -604,9 +614,9 @@ export default function NewEntryPage() {
         </div>
 
         <CardFooter className="justify-end gap-2">
-          <Button variant="outline" onClick={() => router.push('/entries')}>Cancel</Button>
+          <Button variant="outline" onClick={() => router.push('/entries')}>{tc('cancel')}</Button>
           <Button type="submit" form="entry-form" disabled={submitting || !selectedCT}>
-            {submitting ? 'Creating…' : 'Create Entry'}
+            {submitting ? t('header.creating') : t('new.submit')}
           </Button>
         </CardFooter>
       </Card>

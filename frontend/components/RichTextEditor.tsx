@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import { EditorMediaModal } from './EditorMediaModal';
 import { EditorLinkModal } from './EditorLinkModal';
 
@@ -41,6 +42,7 @@ const ToolbarButton = ({
     onClick={onClick}
     disabled={disabled}
     title={title}
+    aria-label={title}
     className={cn(
       'p-1.5 rounded-md text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
       active
@@ -57,6 +59,7 @@ const ToolbarDivider = () => (
 );
 
 export default function RichTextEditor({ value, onChange, placeholder }: Props) {
+  const t = useTranslations('entryEditor');
   const [mode, setMode] = useState<'visual' | 'html'>('visual');
   const [htmlValue, setHtmlValue] = useState(value || '');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -196,7 +199,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
       alt: alt || undefined,
       title: caption || undefined,
     }).run();
-    toast.success('Image inserted into content');
+    toast.success(t('richText.imageInserted'));
   };
 
   // Link save handler from Link Modal
@@ -229,13 +232,13 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
         rel,
       }).run();
     }
-    toast.success('Hyperlink applied');
+    toast.success(t('richText.linkApplied'));
   };
 
   const handleRemoveLink = () => {
     if (!editor) return;
     editor.chain().focus().extendMarkRange('link').unsetLink().run();
-    toast.info('Hyperlink removed');
+    toast.info(t('richText.linkRemoved'));
   };
 
   if (!editor) return null;
@@ -265,7 +268,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             )}
           >
-            <Eye className="h-3.5 w-3.5" /> Visual Editor
+            <Eye className="h-3.5 w-3.5" /> {t('richText.visual')}
           </button>
           <button
             type="button"
@@ -277,14 +280,14 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             )}
           >
-            <CodeIcon className="h-3.5 w-3.5" /> HTML Source
+            <CodeIcon className="h-3.5 w-3.5" /> {t('richText.html')}
           </button>
         </div>
 
         {/* Right Header Actions */}
         <div className="flex items-center gap-1 pb-1">
           <ToolbarButton
-            title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Zen / Fullscreen Writing Mode'}
+            title={isFullscreen ? t('richText.exitFullscreen') : t('richText.fullscreen')}
             icon={isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             active={isFullscreen}
             onClick={() => setIsFullscreen(!isFullscreen)}
@@ -302,7 +305,8 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
-              title={`Heading ${level}`}
+              title={t('richText.heading', { level })}
+              aria-label={t('richText.heading', { level })}
               className={cn(
                 'px-2 py-1 rounded-md text-xs font-bold transition-colors',
                 editor.isActive('heading', { level })
@@ -318,37 +322,37 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
 
           {/* Text Formatting */}
           <ToolbarButton
-            title="Bold (Ctrl+B)"
+            title={t('richText.bold')}
             icon={<Bold className="h-4 w-4" />}
             active={editor.isActive('bold')}
             onClick={() => editor.chain().focus().toggleBold().run()}
           />
           <ToolbarButton
-            title="Italic (Ctrl+I)"
+            title={t('richText.italic')}
             icon={<Italic className="h-4 w-4" />}
             active={editor.isActive('italic')}
             onClick={() => editor.chain().focus().toggleItalic().run()}
           />
           <ToolbarButton
-            title="Underline (Ctrl+U)"
+            title={t('richText.underline')}
             icon={<UnderlineIcon className="h-4 w-4" />}
             active={editor.isActive('underline')}
             onClick={() => editor.chain().focus().toggleUnderline().run()}
           />
           <ToolbarButton
-            title="Strikethrough"
+            title={t('richText.strike')}
             icon={<Strikethrough className="h-4 w-4" />}
             active={editor.isActive('strike')}
             onClick={() => editor.chain().focus().toggleStrike().run()}
           />
           <ToolbarButton
-            title="Inline code"
+            title={t('richText.inlineCode')}
             icon={<Code className="h-4 w-4" />}
             active={editor.isActive('code')}
             onClick={() => editor.chain().focus().toggleCode().run()}
           />
           <ToolbarButton
-            title="Clear formatting"
+            title={t('richText.clearFormatting')}
             icon={<RemoveFormatting className="h-4 w-4" />}
             onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
           />
@@ -357,25 +361,25 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
 
           {/* Alignment */}
           <ToolbarButton
-            title="Align left"
+            title={t('richText.alignLeft')}
             icon={<AlignLeft className="h-4 w-4" />}
             active={editor.isActive({ textAlign: 'left' })}
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
           />
           <ToolbarButton
-            title="Align center"
+            title={t('richText.alignCenter')}
             icon={<AlignCenter className="h-4 w-4" />}
             active={editor.isActive({ textAlign: 'center' })}
             onClick={() => editor.chain().focus().setTextAlign('center').run()}
           />
           <ToolbarButton
-            title="Align right"
+            title={t('richText.alignRight')}
             icon={<AlignRight className="h-4 w-4" />}
             active={editor.isActive({ textAlign: 'right' })}
             onClick={() => editor.chain().focus().setTextAlign('right').run()}
           />
           <ToolbarButton
-            title="Justify"
+            title={t('richText.justify')}
             icon={<AlignJustify className="h-4 w-4" />}
             active={editor.isActive({ textAlign: 'justify' })}
             onClick={() => editor.chain().focus().setTextAlign('justify').run()}
@@ -385,31 +389,31 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
 
           {/* Lists & Quotes */}
           <ToolbarButton
-            title="Bullet list"
+            title={t('richText.bulletList')}
             icon={<List className="h-4 w-4" />}
             active={editor.isActive('bulletList')}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
           />
           <ToolbarButton
-            title="Numbered list"
+            title={t('richText.orderedList')}
             icon={<ListOrdered className="h-4 w-4" />}
             active={editor.isActive('orderedList')}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
           />
           <ToolbarButton
-            title="Blockquote"
+            title={t('richText.blockquote')}
             icon={<Quote className="h-4 w-4" />}
             active={editor.isActive('blockquote')}
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
           />
           <ToolbarButton
-            title="Code block"
+            title={t('richText.codeBlock')}
             icon={<Code2 className="h-4 w-4" />}
             active={editor.isActive('codeBlock')}
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           />
           <ToolbarButton
-            title="Horizontal divider"
+            title={t('richText.divider')}
             icon={<Minus className="h-4 w-4" />}
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
           />
@@ -418,13 +422,13 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
 
           {/* Link & Media — Upgraded Dialogs */}
           <ToolbarButton
-            title={editor.isActive('link') ? 'Edit link' : 'Insert hyperlink'}
+            title={editor.isActive('link') ? t('richText.editLink') : t('richText.insertLink')}
             icon={<Link2 className="h-4 w-4" />}
             active={editor.isActive('link')}
             onClick={() => setLinkModalOpen(true)}
           />
           <ToolbarButton
-            title="Insert media image (Library, Upload, URL)"
+            title={t('richText.insertImage')}
             icon={<ImageIcon className="h-4 w-4" />}
             onClick={() => setMediaModalOpen(true)}
           />
@@ -433,13 +437,13 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
 
           {/* Undo / Redo */}
           <ToolbarButton
-            title="Undo (Ctrl+Z)"
+            title={t('richText.undo')}
             icon={<Undo className="h-4 w-4" />}
             disabled={!editor.can().undo()}
             onClick={() => editor.chain().focus().undo().run()}
           />
           <ToolbarButton
-            title="Redo (Ctrl+Y)"
+            title={t('richText.redo')}
             icon={<Redo className="h-4 w-4" />}
             disabled={!editor.can().redo()}
             onClick={() => editor.chain().focus().redo().run()}
@@ -461,7 +465,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
               }}
               spellCheck={false}
               className="w-full min-h-[300px] p-4 font-mono text-xs bg-muted/10 text-foreground resize-y outline-none leading-relaxed border-0"
-              placeholder="<p>Enter HTML markup here…</p>"
+              placeholder={`<p>${t('richText.htmlPlaceholder')}</p>`}
             />
           )}
         </div>
@@ -472,21 +476,21 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1 font-medium">
             <FileText className="h-3 w-3" />
-            <strong className="text-foreground">{wordCount}</strong> {wordCount === 1 ? 'word' : 'words'}
+            {t.rich('richText.words', { count: wordCount, b: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
           </span>
           <span>
-            <strong className="text-foreground">{charCount}</strong> characters
+            {t.rich('richText.characters', { count: charCount, b: (chunks) => <strong className="text-foreground">{chunks}</strong> })}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            ~{readingTimeMinutes} min read
+            {t('richText.readingTime', { minutes: readingTimeMinutes })}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           {isFullscreen && (
             <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded border border-border/50">
-              Press Esc to exit zen mode
+              {t('richText.escHint')}
             </span>
           )}
           <span className="font-mono text-[10px] text-muted-foreground/70">

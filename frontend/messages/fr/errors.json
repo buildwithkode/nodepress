@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "Une erreur s'est produite",
+    "description": "Une erreur inattendue s'est produite sur cette page. Vos données sont en sécurité — il s'agit uniquement d'une erreur d'affichage.",
+    "errorId": "ID de l'erreur :",
+    "goToDashboard": "Aller au tableau de bord",
+    "tryAgain": "Réessayer"
+  },
+  "boundary": {
+    "title": "Une erreur s'est produite",
+    "failedToLoad": "Échec du chargement de « {label} ». L'erreur a été signalée automatiquement.",
+    "sectionFailed": "Le chargement de cette section a échoué. L'erreur a été signalée automatiquement.",
+    "unknownError": "Erreur inconnue",
+    "tryAgain": "Réessayer"
+  }
+}

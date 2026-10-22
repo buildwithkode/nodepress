@@ -1,9 +1,50 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
+/** One model operation, as Prisma 5's `$use` middleware saw it. */
+export interface OperationParams {
+  model?: string;
+  action: string;
+  args: any;
+}
+
+/** Wraps a model operation; must call `next(params)` and return its result. */
+export type OperationHook = (params: OperationParams, next: (params: OperationParams) => Promise<any>) => Promise<any>;
+
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
+  private readonly hooks: OperationHook[] = [];
+
+  constructor() {
+    super();
+    // Prisma 6 removed `$use`. A query extension sees the same operations
+    // (interactive transactions included), but `$extends` returns a new client,
+    // so the constructor returns that client and Nest injects it everywhere.
+    // Its prototype chain still leads to this instance, so the fields and
+    // methods below keep working (only `instanceof PrismaService` is false).
+    const hooks = this.hooks;
+    return this.$extends({
+      query: {
+        $allModels: {
+          $allOperations({ model, operation, args, query }) {
+            if (!hooks.length) return query(args);
+            const run = (i: number, params: OperationParams): Promise<any> =>
+              i < hooks.length ? hooks[i](params, (next) => run(i + 1, next)) : query(params.args);
+            return run(0, { model, action: operation, args });
+          },
+        },
+      },
+    }) as this;
+  }
+
+  /**
+   * Runs `hook` around every model operation of this client, from any service.
+   * Hooks run in the order they were added.
+   */
+  onOperation(hook: OperationHook) {
+    this.hooks.push(hook);
+  }
 
   /**
    * Optional read replica (DATABASE_REPLICA_URL). Only queries that tolerate a

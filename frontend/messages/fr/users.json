@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "Impossible de charger les utilisateurs",
+    "createdNoEmail": "Utilisateur créé — aucun serveur e-mail configuré",
+    "createdInviteCopied": "Lien d’invitation copié dans le presse-papiers. Envoyez-le à {email} : {url}",
+    "noEmailServer": "Aucun serveur e-mail configuré",
+    "inviteCopied": "Lien d’invitation copié. Envoyez-le à {email} : {url}",
+    "inviteSent": "Invitation envoyée à {email}",
+    "createFailed": "Impossible de créer l’utilisateur",
+    "roleUpdated": "Rôle mis à jour",
+    "roleUpdateFailed": "Impossible de mettre à jour le rôle",
+    "deleted": "Utilisateur supprimé",
+    "deleteFailed": "Impossible de supprimer l’utilisateur",
+    "inviteFailed": "Impossible d’envoyer l’invitation",
+    "passwordUpdated": "Mot de passe mis à jour",
+    "passwordUpdateFailed": "Impossible de mettre à jour le mot de passe",
+    "twoFactorSetupFailed": "Impossible de lancer la configuration de la 2FA",
+    "twoFactorActivated": "Authentification à deux facteurs activée avec succès !",
+    "twoFactorInvalidCode": "Code de vérification invalide. Veuillez réessayer.",
+    "twoFactorDisabled": "Authentification à deux facteurs désactivée",
+    "twoFactorDisableInvalid": "Code 2FA ou code de récupération invalide",
+    "recoveryCopied": "Codes de récupération copiés dans le presse-papiers",
+    "recoveryCopyFailed": "Impossible de copier les codes de récupération",
+    "secretCopied": "Clé secrète copiée",
+    "secretCopyFailed": "Impossible de copier la clé secrète"
+  },
+  "list": {
+    "title": "Membres de l’équipe",
+    "description": "Gérez qui a accès au panneau d’administration et ce que chacun peut faire.",
+    "email": "E-mail",
+    "role": "Rôle",
+    "joined": "Inscrit le",
+    "empty": "Aucun utilisateur trouvé",
+    "you": "(vous)",
+    "viewPermissions": "Voir la matrice des permissions : {role}",
+    "sendInvite": "Envoyer l’e-mail d’invitation",
+    "deleteTitle": "Supprimer {email} ?",
+    "deleteDescription": "Son accès sera définitivement supprimé. Cette action est irréversible."
+  },
+  "roleGuide": {
+    "title": "Permissions des rôles",
+    "manage": "Gérer les permissions",
+    "admin": {
+      "p1": "Accès complet à tout",
+      "p2": "Gérer les utilisateurs et les rôles",
+      "p3": "Types de contenu et clés API",
+      "p4": "Journal d’audit et webhooks"
+    },
+    "editor": {
+      "p1": "Créer / modifier / supprimer des entrées",
+      "p2": "Publier et archiver des entrées",
+      "p3": "Formulaires, envoi/suppression de médias",
+      "p4": "Lire les types de contenu"
+    },
+    "contributor": {
+      "p1": "Créer et modifier des entrées",
+      "p2": "Ne peut pas supprimer d’entrées",
+      "p3": "Ne peut pas publier ni archiver",
+      "p4": "Envoi de médias uniquement"
+    },
+    "viewer": {
+      "p1": "Tableau de bord en lecture seule",
+      "p2": "Voir les entrées et les formulaires",
+      "p3": "Voir la médiathèque",
+      "p4": "Ne peut rien modifier"
+    }
+  },
+  "add": {
+    "title": "Ajouter un utilisateur",
+    "description": "Invitez un membre de l’équipe par e-mail — il recevra un lien pour définir son propre mot de passe. Aucun mot de passe requis ici.",
+    "sending": "Envoi de l’invitation…",
+    "submit": "Envoyer l’invitation"
+  },
+  "twoFactor": {
+    "title": "Authentification à deux facteurs (2FA)",
+    "description": "Protégez votre compte avec une couche de sécurité supplémentaire grâce à Google Authenticator, 1Password ou Authy.",
+    "enabledHeading": "La 2FA protège actuellement votre compte",
+    "disabledHeading": "Renforcez la sécurité de votre connexion avec TOTP",
+    "enabledHelp": "Un code à 6 chiffres ou un code de récupération d’urgence vous sera demandé à la connexion.",
+    "disabledHelp": "Nécessite de scanner un QR code avec une application d’authentification et de conserver des codes de récupération.",
+    "enable": "Activer la 2FA",
+    "disable": "Désactiver la 2FA",
+    "disabling": "Désactivation…",
+    "setupTitle": "Configurer l’authentification à deux facteurs",
+    "setupDescription": "Scannez le QR code avec Google Authenticator, 1Password ou Authy.",
+    "qrAlt": "QR code 2FA",
+    "manualKey": "Clé de saisie manuelle",
+    "recoveryCodes": "Codes de récupération d’urgence",
+    "copyCodes": "Copier les codes",
+    "recoveryHelp": "Conservez ces codes en lieu sûr. Si vous perdez votre application d’authentification, chaque code permet une seule connexion.",
+    "verificationCode": "Code de vérification",
+    "verificationPlaceholder": "Saisissez le code à 6 chiffres",
+    "activating": "Activation…",
+    "activate": "Activer la 2FA",
+    "disableTitle": "Désactiver l’authentification à deux facteurs",
+    "disableDescription": "Saisissez un code à 6 chiffres de votre application d’authentification ou un code de récupération d’urgence pour confirmer.",
+    "disableCodeLabel": "Code d’authentification ou de récupération",
+    "disableCodePlaceholder": "Code à 6 chiffres ou XXXX-XXXX"
+  },
+  "password": {
+    "title": "Changer votre mot de passe",
+    "current": "Mot de passe actuel",
+    "new": "Nouveau mot de passe",
+    "newPlaceholder": "8 caractères min.",
+    "updating": "Mise à jour…",
+    "submit": "Mettre à jour le mot de passe"
+  },
+  "permissions": {
+    "loading": "Chargement des permissions…",
+    "toasts": {
+      "loadFailed": "Impossible de charger les permissions",
+      "schemaLoadFailed": "Impossible de charger le schéma de « {name} »",
+      "roleLoadFailed": "Impossible de charger les permissions du rôle",
+      "updated": "Permission mise à jour",
+      "updateFailed": "Impossible de mettre à jour la permission",
+      "reset": "Permissions rétablies par défaut",
+      "resetFailed": "Impossible de réinitialiser les permissions",
+      "fieldsSaved": "Permissions des champs enregistrées pour « {name} »",
+      "fieldsSaveFailed": "Impossible d’enregistrer les permissions des champs"
+    },
+    "backToUsers": "Utilisateurs",
+    "title": "Contrôle d’accès et permissions",
+    "resetDefaults": "Rétablir les valeurs par défaut",
+    "tabs": {
+      "contentTypes": "Matrice des actions par type de contenu",
+      "fields": "Matrice des permissions par champ"
+    },
+    "actions": {
+      "create": "Créer",
+      "read": "Lire",
+      "update": "Modifier",
+      "delete": "Supprimer",
+      "publish": "Publier"
+    },
+    "roleDescriptions": {
+      "editor": "Gère tout le contenu — peut créer, modifier, supprimer et publier.",
+      "contributor": "Crée et modifie du contenu — ne peut ni supprimer ni publier.",
+      "viewer": "Accès en lecture seule au panneau d’administration."
+    },
+    "clickToDeselect": "cliquer pour désélectionner",
+    "defaultRow": "Par défaut *",
+    "summary": {
+      "title": "Résumé des permissions",
+      "description": "Surcharges configurées pour ce rôle. Les lignes absentes utilisent la valeur par défaut générique.",
+      "empty": "Aucune surcharge — valeurs d’usine pour tous les types de contenu."
+    },
+    "matrix": {
+      "title": "Matrice des permissions par type de contenu",
+      "description": "Définissez les actions autorisées par rôle. La ligne <strong>*</strong> est la valeur par défaut pour tous les types de contenu. Surchargez un type de contenu en cochant les actions dans sa propre ligne. Les cases grisées sont héritées de la ligne générique.",
+      "contentType": "Type de contenu",
+      "inherited": "Hérité de {role}/* — cliquer pour surcharger"
+    },
+    "fields": {
+      "title": "Matrice de contrôle d’accès par champ",
+      "description": "Restreignez la visibilité en lecture et les modifications de certains attributs (par ex. masquer le salaire, la marge ou des notes internes aux rôles non administrateurs).",
+      "selectContentType": "Choisir un type de contenu",
+      "save": "Enregistrer les permissions",
+      "loading": "Chargement du schéma des champs…",
+      "emptyTitle": "Aucun champ défini pour ce type de contenu",
+      "emptyHelp": "Ajoutez d’abord des champs à ce type de contenu dans le Schema Builder.",
+      "field": "Champ",
+      "readVisibility": "Visibilité en lecture",
+      "writeAccess": "Accès en écriture / modification",
+      "nameAndType": "Nom et type",
+      "restricted": "Restreint",
+      "adminRead": "L’administrateur a toujours un accès complet en lecture",
+      "adminWrite": "L’administrateur a toujours un accès complet en écriture"
+    },
+    "enforcement": {
+      "title": "Sécurité sans fuite :",
+      "read": "Lorsqu’un rôle est décoché dans <strong>Visibilité en lecture</strong>, le backend retire automatiquement le champ de toutes les réponses REST (<path></path>) et GraphQL avant l’envoi au client.",
+      "write": "Lorsqu’un rôle est décoché dans <strong>Accès en écriture</strong>, le backend rejette les tentatives de modification non autorisées avec une erreur HTTP 403 Forbidden."
+    },
+    "adminNote": "Remarque : l’administrateur a toujours un accès universel à tous les champs du schéma et ne peut pas être restreint."
+  }
+}

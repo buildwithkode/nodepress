@@ -1,0 +1,144 @@
+{
+  "newEntry": "Nueva entrada",
+  "stages": {
+    "production": "Producción",
+    "staging": "Preproducción (QA)",
+    "pendingReview": "Pendiente de revisión"
+  },
+  "cards": {
+    "noContentTypes": "Aún no hay tipos de contenido",
+    "noContentTypesHint": "Crea primero un tipo de contenido para empezar a añadir entradas.",
+    "newContentType": "Nuevo tipo de contenido",
+    "pendingTitle": "{count, plural, one {# entrada pendiente de revisión} other {# entradas pendientes de revisión}}",
+    "pendingBadgeTitle": "Haz clic para ver las entradas pendientes de revisión",
+    "pendingBadge": "{count} pendientes de revisión",
+    "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+    "moreFields": "+{count} más",
+    "noFields": "No hay campos definidos",
+    "viewEntries": "Ver entradas"
+  },
+  "toolbar": {
+    "backToEntries": "Volver a las entradas",
+    "allTypes": "Todos los tipos",
+    "editSchemaTitle": "Editar el esquema del tipo de contenido",
+    "editSchema": "Editar esquema",
+    "permissionsTitle": "Configurar permisos por campo",
+    "permissions": "Permisos"
+  },
+  "filters": {
+    "allLanguages": "Todos los idiomas",
+    "allStatuses": "Todos los estados",
+    "production": "Producción (publicada)",
+    "searchPlaceholder": "Buscar entradas…"
+  },
+  "export": {
+    "jsonTitle": "Exportar las entradas no eliminadas como JSON",
+    "csvTitle": "Exportar las entradas no eliminadas como hoja de cálculo CSV"
+  },
+  "trash": {
+    "title": "Papelera",
+    "button": "Papelera ({count})",
+    "banner": "<strong>Papelera:</strong> se muestran las entradas eliminadas. Puedes restaurarlas o eliminarlas definitivamente."
+  },
+  "pending": {
+    "banner": "{count, plural, one {<strong>#</strong> entrada está pendiente de revisión en esta colección.} other {<strong>#</strong> entradas están pendientes de revisión en esta colección.}}",
+    "showAll": "Mostrar pendientes de revisión ({count}) →"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# entrada seleccionada} other {# entradas seleccionadas}}",
+    "stage": "Preproducción (QA)",
+    "publish": "Publicar (prod)",
+    "submitReview": "Enviar a revisión",
+    "archive": "Archivar",
+    "addToRelease": "Añadir a un lanzamiento",
+    "deleteTitle": "{count, plural, one {¿Eliminar # entrada?} other {¿Eliminar # entradas?}}",
+    "deleteDescription": "Las entradas seleccionadas se moverán a la papelera. Podrás restaurarlas más tarde.",
+    "done": {
+      "deleted": "{count, plural, one {# entrada eliminada} other {# entradas eliminadas}}",
+      "published": "{count, plural, one {# entrada publicada en producción} other {# entradas publicadas en producción}}",
+      "staged": "{count, plural, one {# entrada pasada a preproducción} other {# entradas pasadas a preproducción}}",
+      "submitted": "{count, plural, one {# entrada enviada a revisión} other {# entradas enviadas a revisión}}",
+      "archived": "{count, plural, one {# entrada archivada} other {# entradas archivadas}}"
+    }
+  },
+  "table": {
+    "selectAll": "Seleccionar todo en esta página",
+    "slug": "Slug",
+    "trashEmpty": "La papelera está vacía.",
+    "noMatches": "Ninguna entrada coincide con tu búsqueda.",
+    "empty": "Aún no hay entradas. Crea la primera.",
+    "returnToActive": "Volver a las entradas activas",
+    "localeOwn": "{language}: esta entrada",
+    "localeTranslated": "{language}: traducida",
+    "localeMissing": "{language}: falta la traducción",
+    "scheduledTitle": "Publicación programada: {date}",
+    "scheduled": "Programada · {date} {time}",
+    "items": "{count, plural, one {# elemento} other {# elementos}}",
+    "richText": "Texto enriquecido"
+  },
+  "actions": {
+    "restore": "Restaurar",
+    "purgeTitle": "Eliminar definitivamente",
+    "purgeConfirmTitle": "¿Eliminar definitivamente?",
+    "purgeConfirmDescription": "<strong>{slug}</strong> y todas sus versiones se borrarán para siempre. Esta acción no se puede deshacer.",
+    "purge": "Purgar",
+    "promoteStaging": "Pasar a preproducción (QA)",
+    "publishProduction": "Publicar en producción",
+    "duplicate": "Duplicar",
+    "viewLive": "Ver la publicación en el sitio web",
+    "copyApiUrl": "Copiar URL de la API",
+    "deleteConfirmTitle": "¿Eliminar esta entrada?",
+    "deleteConfirmDescription": "<strong>{slug}</strong> se moverá a la papelera. Podrás restaurarla más tarde."
+  },
+  "import": {
+    "button": "Importar",
+    "title": "Importar entradas — {name}",
+    "description": "Sube un archivo .JSON o .CSV, o pega los datos directamente. Una validación de prueba en tiempo real comprueba slugs, idiomas y campos con el esquema antes de guardar.",
+    "selectFile": "Seleccionar archivo (.csv / .json)",
+    "updateDuplicates": "Actualizar entradas duplicadas",
+    "updateDuplicatesHint": "Si existe una entrada con el mismo slug e idioma, se actualiza su contenido en lugar de omitirla.",
+    "preflightRunning": "Ejecutando la validación de prueba…",
+    "preflightPassed": "Validación superada: {total, plural, one {# fila lista} other {# filas listas}} ({toCreate} nuevas, {toUpdate} actualizaciones)",
+    "preflightErrors": "Errores de validación detectados ({count})",
+    "moreErrors": "…y {count} más",
+    "invalidFormat": "Formato no válido",
+    "columns": {
+      "row": "Fila",
+      "slug": "Slug",
+      "locale": "Idioma",
+      "status": "Estado",
+      "action": "Acción"
+    },
+    "actionUpdate": "Actualizar",
+    "actionCreate": "Crear",
+    "submit": "Importar entradas",
+    "submitCount": "{count, plural, one {Importar # entrada} other {Importar # entradas}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "No se pudieron cargar los tipos de contenido",
+    "loadEntriesFailed": "No se pudieron cargar las entradas",
+    "movedToTrash": "Entrada movida a la papelera",
+    "deleteFailed": "Error al eliminar",
+    "restored": "Entrada restaurada",
+    "restoreFailed": "Error al restaurar",
+    "purged": "Entrada eliminada definitivamente",
+    "purgeFailed": "Error al purgar",
+    "promoted": "Entrada pasada a {stage}",
+    "promoteFailed": "No se pudo promover la entrada",
+    "exportDownloaded": "Exportación {format} descargada",
+    "exportFailed": "Error en la exportación",
+    "readFileFailed": "No se pudo leer el archivo",
+    "importCreated": "{count} creadas",
+    "importUpdated": "{count} actualizadas",
+    "importNoChanges": "sin cambios",
+    "importComplete": "Importación completada: {summary}",
+    "importSkipped": "({count} omitidas)",
+    "importFailed": "Error al ejecutar la importación",
+    "bulkFailed": "Error en la acción masiva",
+    "duplicated": "Duplicada como «{slug}»",
+    "duplicateFailed": "Error al duplicar",
+    "noUniqueSlug": "No se encontró un slug único para el duplicado",
+    "urlCopied": "URL de la API copiada al portapapeles",
+    "copyUrlFailed": "No se pudo copiar la URL"
+  }
+}

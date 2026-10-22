@@ -55,9 +55,10 @@ export async function createTestApp(opts: { reloadPlugins?: boolean } = {}): Pro
 export async function cleanDatabase(app: INestApplication) {
   const prisma = app.get(PrismaService);
   // Delete in dependency order (child → parent)
+  await prisma.$executeRawUnsafe(`DELETE FROM "releases"`); // cascades to release_items
   await prisma.$executeRawUnsafe(`DELETE FROM "entry_versions"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "entries"`);
-  await prisma.$executeRawUnsafe(`DELETE FROM "content_types"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "content_types"`); // cascades to entry_slugs
   await prisma.$executeRawUnsafe(`DELETE FROM "audit_logs"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "webhook_deliveries"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "webhooks"`);

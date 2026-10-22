@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { useTranslations } from 'use-intl';
 import {
   ArrowLeft,
   ChevronDown,
@@ -36,6 +37,7 @@ import {
   Plus,
   X,
   Clock,
+  Package,
 } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import { useEntryPresence } from '@/lib/useEntryPresence';
@@ -44,6 +46,7 @@ import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
 import { canManageSettings } from '@/lib/roles';
+import { AddToReleaseDialog } from '@/components/AddToReleaseDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -54,6 +57,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn, ctLabel, formatSlugInput, cleanSlug } from '@/lib/utils';
 import DynamicFormField from '../../DynamicFormField';
+import { AiDraftButton } from '@/components/AiAssist';
 import {
   Select,
   SelectContent,
@@ -99,6 +103,8 @@ function toLocalDatetimeString(dateStr?: string | null): string {
 }
 
 export default function EditEntryPage() {
+  const t = useTranslations('entryEditor');
+  const tc = useTranslations('common');
   const router = useRouter();
   const params = useParams() ?? {};
   const id = (params.id ?? '') as string;
@@ -239,7 +245,7 @@ export default function EditEntryPage() {
         setContentType(ctRes.data);
         reset({ slug: e.slug, ...e.data });
       })
-      .catch(() => { toast.error('Failed to load entry'); router.push('/entries'); })
+      .catch(() => { toast.error(t('toast.loadEntryFailed')); router.push('/entries'); })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -265,16 +271,17 @@ export default function EditEntryPage() {
         seo: hasSeo ? seo : null,
         publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
-      toast.success('Entry updated');
+      toast.success(t('toast.updated'));
       router.push('/entries');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Something went wrong');
+      toast.error(err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
       setSubmitting(false);
     }
   };
 
   const canApprove = me?.role === 'admin' || me?.role === 'editor';
+  const [releaseOpen, setReleaseOpen] = useState(false);
 
   const handleApprove = async () => {
     if (!entry) return;
@@ -283,9 +290,9 @@ export default function EditEntryPage() {
       await api.put(`/entries/${entry.id}`, { status: 'published' });
       setStatus('published');
       setEntry((e) => e ? { ...e, status: 'published' } : e);
-      toast.success('Entry approved and published');
+      toast.success(t('toast.approved'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to approve entry');
+      toast.error(err.response?.data?.message || t('toast.approveFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -298,9 +305,9 @@ export default function EditEntryPage() {
       await api.put(`/entries/${entry.id}`, { status: 'draft' });
       setStatus('draft');
       setEntry((e) => e ? { ...e, status: 'draft' } : e);
-      toast.success('Entry returned to draft');
+      toast.success(t('toast.returnedToDraft'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to return entry to draft');
+      toast.error(err.response?.data?.message || t('toast.returnToDraftFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -313,7 +320,7 @@ export default function EditEntryPage() {
       const res = await api.get(`/entries/${entry.id}/versions`);
       setVersions(res.data ?? []);
     } catch {
-      toast.error('Failed to load version history');
+      toast.error(t('versions.loadFailed'));
     } finally {
       setVersionsLoading(false);
     }
@@ -328,10 +335,10 @@ export default function EditEntryPage() {
       setEntry(restored);
       setStatus(restored.status ?? 'published');
       reset({ slug: restored.slug, ...restored.data });
-      toast.success('Version restored');
+      toast.success(t('versions.restored'));
       await loadVersions();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to restore version');
+      toast.error(err.response?.data?.message || t('versions.restoreFailed'));
     } finally {
       setRestoringVersion(null);
     }
@@ -345,10 +352,10 @@ export default function EditEntryPage() {
         targetLocale,
         copyData: true,
       });
-      toast.success(`Created ${targetLocale.toUpperCase()} translation draft`);
+      toast.success(t('translations.created', { locale: targetLocale.toUpperCase() }));
       router.push(`/entries/${res.data.id}/edit`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to create translation draft');
+      toast.error(err.response?.data?.message || t('translations.createFailed'));
     } finally {
       setCreatingTranslation(false);
     }
@@ -398,7 +405,7 @@ export default function EditEntryPage() {
       }
     }
     reset(updated);
-    toast.success(`Copied ${copiedCount} field(s) from ${baseLocale.toUpperCase()} reference`);
+    toast.success(t('reference.copied', { count: copiedCount, locale: baseLocale.toUpperCase() }));
   };
 
   if (loading) {
@@ -419,7 +426,7 @@ export default function EditEntryPage() {
       {/* Top breadcrumbs and active user presence */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(contentType ? `/entries?ct=${contentType.name}` : '/entries')}>
-          <ArrowLeft className="h-4 w-4" /> Back to {contentType ? ctLabel(contentType) : 'Entries'}
+          <ArrowLeft className="h-4 w-4" /> {t('header.backTo', { name: contentType ? ctLabel(contentType) : t('header.entries') })}
         </Button>
 
         <div className="flex items-center gap-2">
@@ -431,7 +438,7 @@ export default function EditEntryPage() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span className="text-[11px] text-muted-foreground font-medium mr-1">
-                {activeUsers.length} online
+                {t('presence.online', { count: activeUsers.length })}
               </span>
               <div className="flex -space-x-1.5 overflow-hidden">
                 {activeUsers.slice(0, 4).map((u) => (
@@ -454,20 +461,20 @@ export default function EditEntryPage() {
                 size="sm"
                 className="gap-1.5 h-8 text-xs"
                 onClick={() => router.push(`/content-types/${contentType.id}/edit`)}
-                title="Edit Content Type Schema"
+                title={t('header.editSchemaTitle')}
               >
                 <Settings className="h-3.5 w-3.5 text-indigo-400" />
-                Edit Schema
+                {t('header.editSchema')}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 className="gap-1.5 h-8 text-xs"
                 onClick={() => router.push(`/users/permissions?tab=fields&ct=${contentType.name}`)}
-                title="Configure Field-Level Permissions"
+                title={t('header.fieldPermissionsTitle')}
               >
                 <Shield className="h-3.5 w-3.5 text-amber-400" />
-                Field Permissions
+                {t('header.fieldPermissions')}
               </Button>
             </>
           )}
@@ -480,7 +487,7 @@ export default function EditEntryPage() {
           <div className="flex items-center gap-2.5 text-sm">
             <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
             <span>
-              <strong>{lock?.email}</strong> is actively editing this entry. Simultaneous saves may conflict.
+              {t.rich('presence.lockedBy', { email: lock?.email ?? '', b: (chunks) => <strong>{chunks}</strong> })}
             </span>
           </div>
           {(me?.role === 'admin' || me?.role === 'editor') && (
@@ -491,7 +498,7 @@ export default function EditEntryPage() {
               onClick={takeoverLock}
             >
               <Lock className="h-3 w-3" />
-              Take Over Lock
+              {t('presence.takeOver')}
             </Button>
           )}
         </div>
@@ -502,16 +509,16 @@ export default function EditEntryPage() {
         <div className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-950/40">
           <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
             <ThumbsUp className="h-4 w-4 shrink-0" />
-            <span>This entry is awaiting review. Approve to publish it, or return to draft.</span>
+            <span>{t('review.banner')}</span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Button size="sm" variant="outline" disabled={submitting} onClick={handleReturnToDraft}>
               <Undo2 className="h-3.5 w-3.5 mr-1.5" />
-              Return to Draft
+              {t('review.returnToDraft')}
             </Button>
             <Button size="sm" disabled={submitting} onClick={handleApprove}>
               <ThumbsUp className="h-3.5 w-3.5 mr-1.5" />
-              Approve & Publish
+              {t('review.approve')}
             </Button>
           </div>
         </div>
@@ -521,14 +528,14 @@ export default function EditEntryPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <CardTitle>Edit Entry{contentType ? ` — ${ctLabel(contentType)}` : ''}</CardTitle>
-              <CardDescription>Editing the slug changes the entry's public URL. Change status to control visibility.</CardDescription>
+              <CardTitle>{contentType ? t('edit.titleWithType', { type: ctLabel(contentType) }) : t('edit.title')}</CardTitle>
+              <CardDescription>{t('edit.description')}</CardDescription>
             </div>
             <div className="flex items-center gap-2 shrink-0 flex-wrap">
               {autosaveStatus !== 'idle' && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
                   <CloudIcon className="h-3.5 w-3.5" />
-                  {autosaveStatus === 'saving' ? 'Saving…' : 'Saved'}
+                  {autosaveStatus === 'saving' ? tc('saving') : t('edit.autosaved')}
                 </span>
               )}
 
@@ -550,7 +557,7 @@ export default function EditEntryPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuLabel className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
-                    Translations ({translations.length || 1})
+                    {t('translations.heading', { count: translations.length || 1 })}
                   </DropdownMenuLabel>
                   {(translations.length > 0 ? translations : [{ id: entry?.id ?? 0, locale, status, updatedAt: '' }]).map((t) => {
                     const isCurrent = (entry && t.id === entry.id) || t.locale === locale;
@@ -581,7 +588,7 @@ export default function EditEntryPage() {
                               t.status === 'staging' && "border-purple-500/40 text-purple-500 bg-purple-500/10",
                             )}
                           >
-                            {t.status}
+                            {tc.has(`statuses.${t.status}`) ? tc(`statuses.${t.status}`) : t.status}
                           </Badge>
                           {isCurrent && <Check className="h-3.5 w-3.5 text-primary ml-0.5" />}
                         </div>
@@ -597,7 +604,7 @@ export default function EditEntryPage() {
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuLabel className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
-                          Add Translation
+                          {t('translations.add')}
                         </DropdownMenuLabel>
                         {untranslated.map((loc) => (
                           <DropdownMenuItem
@@ -628,39 +635,47 @@ export default function EditEntryPage() {
                   <SelectItem value="draft">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-amber-500" />
-                      <span>Draft</span>
+                      <span>{tc('statuses.draft')}</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="pending_review">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-blue-500" />
-                      <span>In Review</span>
+                      <span>{tc('statuses.pending_review')}</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="staging">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-purple-500" />
-                      <span>Staging</span>
+                      <span>{tc('statuses.staging')}</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="published">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                      <span>Published</span>
+                      <span>{tc('statuses.published')}</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="archived">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-zinc-500" />
-                      <span>Archived</span>
+                      <span>{tc('statuses.archived')}</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
 
+              {canApprove && (
+                <Button type="button" variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => setReleaseOpen(true)} title={t('edit.releaseTitle')}>
+                  <Package className="h-3.5 w-3.5" />
+                  {t('edit.release')}
+                </Button>
+              )}
+              <AddToReleaseDialog entryIds={[Number(id)]} open={releaseOpen} onOpenChange={setReleaseOpen} />
+
               {/* Top Quick Save / Update Button */}
               <Button type="submit" form="entry-form" size="sm" className="h-8 text-xs font-medium gap-1.5" disabled={submitting}>
-                {submitting ? 'Saving…' : status === 'published' ? 'Update' : 'Save'}
+                {submitting ? tc('saving') : status === 'published' ? t('edit.update') : tc('save')}
               </Button>
 
               {/* Segmented Side Panel Toggle: JSON vs Reference */}
@@ -676,7 +691,7 @@ export default function EditEntryPage() {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                   onClick={() => setSidePanel((p) => (p === 'json' ? 'none' : 'json'))}
-                  title="Live JSON Output"
+                  title={t('json.toggle')}
                 >
                   <Braces className="h-3.5 w-3.5" />
                   JSON
@@ -692,10 +707,10 @@ export default function EditEntryPage() {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                   onClick={() => setSidePanel((p) => (p === 'reference' ? 'none' : 'reference'))}
-                  title="Side-by-side Multilingual Translation Reference"
+                  title={t('reference.toggleTitle')}
                 >
                   <Languages className="h-3.5 w-3.5" />
-                  Reference
+                  {t('reference.toggle')}
                 </Button>
               </div>
             </div>
@@ -709,14 +724,14 @@ export default function EditEntryPage() {
 
             {/* Slug (editable — changing it breaks existing links/SEO) */}
             <div className="space-y-1.5 mb-4.5">
-              <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">Slug</Label>
+              <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">{t('slug.label')}</Label>
               {(() => {
                 const slugReg = register('slug', {
                   validate: (v) => {
                     const cleaned = cleanSlug(v || '');
-                    if (!cleaned) return 'Slug is required';
+                    if (!cleaned) return t('slug.required');
                     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleaned)) {
-                      return 'Lowercase letters, numbers and hyphens only';
+                      return t('slug.invalid');
                     }
                     return true;
                   },
@@ -751,7 +766,7 @@ export default function EditEntryPage() {
               })()}
               <div className="flex items-center gap-2 text-xs bg-muted/30 px-3 py-1.5 rounded-md border border-border/50 font-mono mt-1.5 text-muted-foreground">
                 <span className="text-[11px] font-sans font-medium text-muted-foreground/70 select-none shrink-0">
-                  Preview URL:
+                  {t('slug.previewUrl')}
                 </span>
                 <span className="truncate text-foreground font-medium">
                   /api/<span className="text-muted-foreground">{contentType ? contentType.name.replace(/_/g, '-') : 'content-type'}</span>/<span className="text-primary font-semibold">{previewSlug || '…'}</span>
@@ -760,7 +775,7 @@ export default function EditEntryPage() {
               {errors.slug ? (
                 <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
               ) : (
-                <p className="text-[11px] text-amber-500">Changing the slug breaks existing links and SEO pointing to the old URL.</p>
+                <p className="text-[11px] text-amber-500">{t('slug.changeWarning')}</p>
               )}
             </div>
 
@@ -770,38 +785,37 @@ export default function EditEntryPage() {
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-primary" />
-                    Scheduled Publish
+                    {t('schedule.title')}
                   </Label>
                   {publishAt && (
                     <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-medium">
-                      Active schedule
+                      {t('schedule.active')}
                     </span>
                   )}
                 </div>
                 <DateTimePicker
                   value={publishAt}
                   onChange={setPublishAt}
-                  placeholder="Pick date & time to auto-publish…"
+                  placeholder={t('schedule.placeholder')}
                 />
                 <p className="mt-2 text-xs text-muted-foreground">
                   {publishAt ? (
                     <span className="text-foreground/90 font-medium">
-                      Will automatically publish on{' '}
-                      <span className="text-primary font-semibold">
-                        {new Date(publishAt).toLocaleDateString(undefined, {
+                      {t.rich('schedule.willPublish', {
+                        date: new Date(publishAt).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
-                        })}{' '}
-                        at{' '}
-                        {new Date(publishAt).toLocaleTimeString(undefined, {
+                        }),
+                        time: new Date(publishAt).toLocaleTimeString(undefined, {
                           hour: '2-digit',
                           minute: '2-digit',
-                        })}
-                      </span>
+                        }),
+                        b: (chunks) => <span className="text-primary font-semibold">{chunks}</span>,
+                      })}
                     </span>
                   ) : (
-                    'Set a date and time to automatically publish this draft. Leave empty to publish manually.'
+                    t('schedule.help')
                   )}
                 </p>
               </div>
@@ -811,7 +825,7 @@ export default function EditEntryPage() {
               <div className="pt-6">
                 <div className="flex items-center justify-between pb-2 mb-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-base font-semibold text-foreground">Fields</span>
+                    <span className="text-base font-semibold text-foreground">{t('form.fields')}</span>
                     {contentType.displayName && (
                       <span className="text-xs text-muted-foreground font-normal">
                         ({contentType.displayName})
@@ -819,14 +833,21 @@ export default function EditEntryPage() {
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {contentType.schema.length} field{contentType.schema.length === 1 ? '' : 's'}
+                    {t('form.fieldCount', { count: contentType.schema.length })}
                   </span>
                 </div>
                 <Separator className="mt-1 mb-5 bg-border/70" />
 
+                <div className="mb-4">
+                  <AiDraftButton
+                    contentTypeId={contentType.id}
+                    current={() => getValues()}
+                    onDraft={(data) => Object.entries(data).forEach(([k, v]) => setValue(k, v, { shouldDirty: true }))}
+                  />
+                </div>
                 <div>
                   {contentType.schema.map((field) => (
-                    <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} />
+                    <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} entryId={Number(id)} />
                   ))}
                 </div>
               </div>
@@ -835,7 +856,7 @@ export default function EditEntryPage() {
             {/* SEO Panel */}
             <div className="mt-6">
               <div className="pt-3 pb-2 mb-1">
-                <span className="text-base font-semibold text-foreground">SEO</span>
+                <span className="text-base font-semibold text-foreground">{t('seo.heading')}</span>
                 <Separator className="mt-2 bg-foreground/15" />
               </div>
               <button
@@ -844,9 +865,9 @@ export default function EditEntryPage() {
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left px-1 py-1.5"
               >
                 <Search className="h-3.5 w-3.5" />
-                <span>SEO &amp; Open Graph</span>
+                <span>{t('seo.toggle')}</span>
                 {(seoTitle || seoDescription || seoImage || seoNoIndex) && (
-                  <span className="ml-auto text-[10px] bg-blue-500/15 text-blue-400 rounded px-1.5 py-0.5">customized</span>
+                  <span className="ml-auto text-[10px] bg-blue-500/15 text-blue-400 rounded px-1.5 py-0.5">{t('seo.customized')}</span>
                 )}
                 {seoOpen
                   ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
@@ -857,36 +878,36 @@ export default function EditEntryPage() {
               {seoOpen && (
                 <div className="rounded-md border border-border bg-muted/20 p-4 space-y-3 mt-1">
                   <div className="space-y-1.5">
-                    <Label htmlFor="seo-title" className="text-xs">SEO Title</Label>
+                    <Label htmlFor="seo-title" className="text-xs">{t('seo.title')}</Label>
                     <Input
                       id="seo-title"
-                      placeholder="Overrides the page title in search results"
+                      placeholder={t('seo.titlePlaceholder')}
                       value={seoTitle}
                       onChange={(e) => setSeoTitle(e.target.value)}
                       maxLength={70}
                     />
-                    <p className="text-[10px] text-muted-foreground">{seoTitle.length}/70 characters</p>
+                    <p className="text-[10px] text-muted-foreground">{t('seo.charCount', { count: seoTitle.length, max: 70 })}</p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="seo-desc" className="text-xs">Meta Description</Label>
+                    <Label htmlFor="seo-desc" className="text-xs">{t('seo.description')}</Label>
                     <textarea
                       id="seo-desc"
-                      placeholder="Short description shown in search results (120–160 chars recommended)"
+                      placeholder={t('seo.descriptionPlaceholder')}
                       value={seoDescription}
                       onChange={(e) => setSeoDescription(e.target.value)}
                       maxLength={160}
                       rows={2}
                       className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
                     />
-                    <p className="text-[10px] text-muted-foreground">{seoDescription.length}/160 characters</p>
+                    <p className="text-[10px] text-muted-foreground">{t('seo.charCount', { count: seoDescription.length, max: 160 })}</p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="seo-image" className="text-xs">OG Image URL</Label>
+                    <Label htmlFor="seo-image" className="text-xs">{t('seo.image')}</Label>
                     <Input
                       id="seo-image"
-                      placeholder="https://example.com/og-image.jpg (1200×630 recommended)"
+                      placeholder={t('seo.imagePlaceholder')}
                       value={seoImage}
                       onChange={(e) => setSeoImage(e.target.value)}
                     />
@@ -899,7 +920,7 @@ export default function EditEntryPage() {
                       onChange={(e) => setSeoNoIndex(e.target.checked)}
                       className="h-4 w-4 rounded border border-input"
                     />
-                    <span className="text-xs text-foreground">Exclude from search engines (noindex)</span>
+                    <span className="text-xs text-foreground">{t('seo.noIndex')}</span>
                   </label>
                 </div>
               )}
@@ -926,7 +947,7 @@ export default function EditEntryPage() {
                     <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
                       <div className="flex items-center gap-1.5">
                         <Languages className="h-4 w-4 text-blue-400" />
-                        <span className="text-xs font-semibold">Reference Language</span>
+                        <span className="text-xs font-semibold">{t('reference.title')}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Select
@@ -949,7 +970,7 @@ export default function EditEntryPage() {
                                   <div className="flex items-center gap-1.5">
                                     <span>{l.code.toUpperCase()}</span>
                                     {exists && (
-                                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 ml-1 shrink-0" title="Translation available" />
+                                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 ml-1 shrink-0" title={t('reference.available')} />
                                     )}
                                   </div>
                                 </SelectItem>
@@ -962,7 +983,8 @@ export default function EditEntryPage() {
                           size="icon"
                           className="h-7 w-7 text-muted-foreground hover:text-foreground"
                           onClick={() => setSidePanel('none')}
-                          title="Close Reference Panel"
+                          title={t('reference.close')}
+                          aria-label={t('reference.close')}
                         >
                           <X className="h-3.5 w-3.5" />
                         </Button>
@@ -978,28 +1000,28 @@ export default function EditEntryPage() {
                       disabled={loadingBase || !baseEntry}
                     >
                       <CopyCheck className="h-3.5 w-3.5" />
-                      Copy Empty Fields from {baseLocale.toUpperCase()}
+                      {t('reference.copyEmpty', { locale: baseLocale.toUpperCase() })}
                     </Button>
 
                     {loadingBase ? (
                       <div className="py-8 flex items-center justify-center text-muted-foreground text-xs gap-2">
                         <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-                        Loading {baseLocale.toUpperCase()} reference...
+                        {t('reference.loading', { locale: baseLocale.toUpperCase() })}
                       </div>
                     ) : !baseEntry ? (
                       <div className="py-8 text-center text-xs text-muted-foreground px-4 space-y-2 border border-dashed rounded-md">
-                        <p>No <strong>{baseLocale.toUpperCase()}</strong> translation exists to reference.</p>
+                        <p>{t.rich('reference.none', { locale: baseLocale.toUpperCase(), b: (chunks) => <strong>{chunks}</strong> })}</p>
                         <p className="text-[11px] opacity-75">
-                          Choose a language with an active translation (marked with a green dot) or add one via the 🌐 menu above.
+                          {t('reference.noneHint')}
                         </p>
                       </div>
                     ) : !contentType?.schema ? (
-                      <p className="text-xs text-muted-foreground">No schema fields</p>
+                      <p className="text-xs text-muted-foreground">{t('reference.noFields')}</p>
                     ) : (
                       <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
                         <div className="rounded-md border border-border bg-card p-2.5">
                           <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                            <span className="font-semibold uppercase">Slug</span>
+                            <span className="font-semibold uppercase">{t('slug.label')}</span>
                             <span className="font-mono text-[10px]">core</span>
                           </div>
                           <p className="text-xs font-mono bg-muted/40 p-1.5 rounded text-foreground break-all">
@@ -1056,18 +1078,18 @@ export default function EditEntryPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs font-medium">JSON Preview</span>
-                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
+                      <span className="text-xs font-medium">{t('json.title')}</span>
+                      <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">{t('json.live')}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         onClick={() => setJsonWrap((w) => !w)}
                         className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                        title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                        title={jsonWrap ? t('json.unwrap') : t('json.wrapTitle')}
                       >
                         <WrapText className="h-3.5 w-3.5" />
-                        Wrap
+                        {t('json.wrap')}
                       </button>
                       <button
                         type="button"
@@ -1077,17 +1099,18 @@ export default function EditEntryPage() {
                           setTimeout(() => setJsonCopied(false), 2000);
                         }}
                         className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                        title="Copy raw JSON"
+                        title={t('json.copyTitle')}
                       >
                         {jsonCopied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                        {jsonCopied ? 'Copied' : 'Copy'}
+                        {jsonCopied ? tc('copied') : tc('copy')}
                       </button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 text-muted-foreground hover:text-foreground ml-1"
                         onClick={() => setSidePanel('none')}
-                        title="Close JSON Panel"
+                        title={t('json.close')}
+                        aria-label={t('json.close')}
                       >
                         <X className="h-3.5 w-3.5" />
                       </Button>
@@ -1112,7 +1135,7 @@ export default function EditEntryPage() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left"
           >
             <History className="h-3.5 w-3.5" />
-            <span>Version History</span>
+            <span>{t('versions.title')}</span>
             {versionsOpen
               ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
               : <ChevronRight className="h-3.5 w-3.5 ml-auto" />
@@ -1122,10 +1145,10 @@ export default function EditEntryPage() {
           {versionsOpen && (
             <div className="mt-3 space-y-1">
               {versionsLoading && (
-                <p className="text-xs text-muted-foreground py-2">Loading…</p>
+                <p className="text-xs text-muted-foreground py-2">{tc('loading')}</p>
               )}
               {!versionsLoading && versions.length === 0 && (
-                <p className="text-xs text-muted-foreground py-2">No versions yet — versions are created on each save.</p>
+                <p className="text-xs text-muted-foreground py-2">{t('versions.empty')}</p>
               )}
               {versions.map((v: any) => (
                 <div
@@ -1137,7 +1160,7 @@ export default function EditEntryPage() {
                       {new Date(v.createdAt).toLocaleString()}
                     </span>
                     {v.createdBy && (
-                      <span className="text-muted-foreground truncate">by {v.createdBy.email}</span>
+                      <span className="text-muted-foreground truncate">{t('versions.by', { email: v.createdBy.email })}</span>
                     )}
                   </div>
                   <Button
@@ -1151,7 +1174,7 @@ export default function EditEntryPage() {
                       ? <Loader2 className="h-3 w-3 animate-spin" />
                       : <RotateCcw className="h-3 w-3" />
                     }
-                    Restore
+                    {t('versions.restore')}
                   </Button>
                 </div>
               ))}
@@ -1163,7 +1186,7 @@ export default function EditEntryPage() {
           {/* Preview URL panel */}
           {previewUrl && (
             <div className="flex items-center gap-2 flex-1 min-w-0 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
-              <span className="text-muted-foreground shrink-0 font-medium">Draft View:</span>
+              <span className="text-muted-foreground shrink-0 font-medium">{t('preview.draftView')}</span>
               <span className="truncate font-mono text-foreground flex-1 min-w-0">{previewUrl}</span>
               <button
                 type="button"
@@ -1171,10 +1194,10 @@ export default function EditEntryPage() {
                   window.open(previewUrl, '_blank');
                 }}
                 className="shrink-0 text-primary hover:underline flex items-center gap-1 font-medium px-1.5 py-0.5 rounded hover:bg-primary/10 transition-colors"
-                title="Open in new tab"
+                title={t('preview.openTitle')}
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                <span>Open</span>
+                <span>{t('preview.open')}</span>
               </button>
               <button
                 type="button"
@@ -1184,7 +1207,8 @@ export default function EditEntryPage() {
                   setTimeout(() => setPreviewCopied(false), 2000);
                 }}
                 className="shrink-0 text-muted-foreground hover:text-foreground transition-colors p-1"
-                title="Copy Preview URL"
+                title={t('preview.copy')}
+                aria-label={t('preview.copy')}
               >
                 {previewCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
@@ -1204,18 +1228,18 @@ export default function EditEntryPage() {
                   const draftUrl = `/api/draft?secret=${encodeURIComponent(res.data.token)}&slug=${encodeURIComponent(entry.slug)}&type=${encodeURIComponent(contentType.name)}`;
                   setPreviewUrl(draftUrl);
                   window.open(draftUrl, '_blank');
-                  toast.success('Live preview mode launched in new tab');
+                  toast.success(t('preview.launched'));
                 } catch {
-                  toast.error('Failed to generate preview URL');
+                  toast.error(t('preview.failed'));
                 }
               }}
             >
               <Eye className="h-3.5 w-3.5" />
-              Live Preview
+              {t('preview.live')}
             </Button>
-            <Button variant="outline" onClick={() => router.push('/entries')}>Cancel</Button>
+            <Button variant="outline" onClick={() => router.push('/entries')}>{tc('cancel')}</Button>
             <Button type="submit" form="entry-form" disabled={submitting}>
-              {submitting ? 'Saving…' : 'Save Changes'}
+              {submitting ? tc('saving') : t('edit.submit')}
             </Button>
           </div>
         </CardFooter>

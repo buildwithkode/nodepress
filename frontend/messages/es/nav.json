@@ -1,0 +1,34 @@
+{
+  "groups": {
+    "content": "Contenido",
+    "assets": "Recursos",
+    "developer": "Desarrollo",
+    "team": "Equipo",
+    "settings": "Ajustes",
+    "help": "Ayuda",
+    "plugins": "Plugins"
+  },
+  "items": {
+    "dashboard": "Panel",
+    "contentTypes": "Tipos de contenido",
+    "entries": "Entradas",
+    "releases": "Lanzamientos",
+    "forms": "Formularios",
+    "media": "Medios",
+    "plugins": "Plugins",
+    "apiKeys": "Claves API",
+    "webhooks": "Webhooks",
+    "jobs": "Tareas",
+    "auditLog": "Registro de auditoría",
+    "graphql": "GraphQL Playground",
+    "users": "Usuarios",
+    "brand": "Marca",
+    "languages": "Idiomas",
+    "docs": "Documentación",
+    "serverSettings": "Correo y almacenamiento"
+  },
+  "signOut": "Cerrar sesión",
+  "user": "Usuario",
+  "openMenu": "Abrir menú de navegación",
+  "closeMenu": "Cerrar barra lateral"
+}

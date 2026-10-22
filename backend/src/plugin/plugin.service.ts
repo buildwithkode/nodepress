@@ -370,7 +370,7 @@ export class PluginService implements OnModuleInit {
     const data = {
       version: pkg.manifest.version,
       manifest: pkg.manifest as any,
-      archive,
+      archive: new Uint8Array(archive),
       sha256: pkg.sha256,
       size: archive.length,
       signature: pkg.signature.status,

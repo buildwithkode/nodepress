@@ -16,9 +16,11 @@ import {
 import FieldEditor from './FieldEditor';
 import { FormField, blankField, isFieldValid, normalizeField, buildExamplePayload } from './field-types';
 import { highlightCode } from '@/lib/highlight';
+import { useTranslations } from 'use-intl';
 
 // Small labeled code box with a copy button + syntax highlighting — used by the payload preview.
 function CodeSnippet({ title, code, lang }: { title: string; code: string; lang?: string }) {
+  const tc = useTranslations('common');
   const [copied, setCopied] = useState(false);
   const copy = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -30,7 +32,7 @@ function CodeSnippet({ title, code, lang }: { title: string; code: string; lang?
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</span>
-        <Button type="button" variant="ghost" size="icon-sm" onClick={copy} title="Copy">
+        <Button type="button" variant="ghost" size="icon-sm" onClick={copy} title={tc('copy')}>
           {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
         </Button>
       </div>
@@ -86,6 +88,8 @@ export default function FormBuilder({
   initialCaptchaEnabled = false,
   formId,
 }: FormBuilderProps) {
+  const t = useTranslations('forms');
+  const tc = useTranslations('common');
   const router = useRouter();
 
   const [name,     setName]     = useState(initialName);
@@ -135,7 +139,7 @@ export default function FormBuilder({
 
   // ── Action helpers ────────────────────────────────────────────────────────
   const addEmailAction = () =>
-    setActions([...actions, { type: 'email', to: '', subject: 'New submission from {{name}}' }]);
+    setActions([...actions, { type: 'email', to: '', subject: t('builder.actions.defaultSubject', { field: '{{name}}' }) }]);
 
   const addWebhookAction = () =>
     setActions([...actions, { type: 'webhook', url: '', method: 'POST' }]);
@@ -152,12 +156,12 @@ export default function FormBuilder({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim()) { toast.error('Form name is required'); return; }
-    if (!slug.trim()) { toast.error('Slug is required'); return; }
+    if (!name.trim()) { toast.error(t('builder.validation.nameRequired')); return; }
+    if (!slug.trim()) { toast.error(t('builder.validation.slugRequired')); return; }
 
     const validFields = fields.filter(isFieldValid);
     if (validFields.length === 0) {
-      toast.error('Add at least one field with a name and label');
+      toast.error(t('builder.validation.fieldRequired'));
       return;
     }
 
@@ -178,14 +182,14 @@ export default function FormBuilder({
     try {
       if (mode === 'new') {
         await api.post('/forms', payload);
-        toast.success('Form created');
+        toast.success(t('builder.created'));
       } else {
         await api.put(`/forms/${formId}`, payload);
-        toast.success('Form updated');
+        toast.success(t('builder.updated'));
       }
       router.push('/forms');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Something went wrong');
+      toast.error(err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -216,16 +220,16 @@ export default function FormBuilder({
         className="gap-1.5 text-muted-foreground"
         onClick={() => router.push('/forms')}
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Forms
+        <ArrowLeft className="h-4 w-4" /> {t('submissions.backToForms')}
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle>{mode === 'new' ? 'New Form' : 'Edit Form'}</CardTitle>
+          <CardTitle>{mode === 'new' ? t('builder.newTitle') : t('builder.editTitle')}</CardTitle>
           <CardDescription>
             {mode === 'new'
-              ? 'Define your form fields and configure notification actions.'
-              : 'Update form settings, fields, and actions.'}
+              ? t('builder.newDescription')
+              : t('builder.editDescription')}
           </CardDescription>
         </CardHeader>
 
@@ -236,23 +240,23 @@ export default function FormBuilder({
               {/* Form Name + Slug */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label>Form Name <span className="text-destructive">*</span></Label>
+                  <Label>{t('builder.formName')} <span className="text-destructive">*</span></Label>
                   <Input
-                    placeholder="e.g. Contact Us"
+                    placeholder={t('builder.formNamePlaceholder')}
                     value={name}
                     onChange={(e) => handleNameChange(e.target.value)}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Slug <span className="text-destructive">*</span></Label>
+                  <Label>{t('list.columns.slug')} <span className="text-destructive">*</span></Label>
                   <Input
-                    placeholder="e.g. contact-us"
+                    placeholder={t('builder.slugPlaceholder')}
                     value={slug}
                     onChange={(e) => { setSlug(toSlug(e.target.value)); setSlugDirty(true); }}
                   />
                   {slug && (
                     <p className="text-xs text-muted-foreground">
-                      Submit endpoint:{' '}
+                      {t('builder.submitEndpoint')}{' '}
                       <code className="bg-muted px-1 py-0.5 rounded font-mono">
                         POST /api/submit/<strong>{slug}</strong>
                       </code>
@@ -264,14 +268,14 @@ export default function FormBuilder({
               {/* Form Status */}
               <div className="flex items-center justify-between rounded-md border px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium">Form Status</p>
+                  <p className="text-sm font-medium">{t('builder.status.title')}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {isActive ? 'Accepting submissions' : 'Submissions are blocked'}
+                    {isActive ? t('builder.status.accepting') : t('builder.status.blocked')}
                   </p>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <span className={`text-xs font-medium ${isActive ? 'text-emerald-500' : 'text-muted-foreground'}`}>
-                    {isActive ? 'Active' : 'Inactive'}
+                    {isActive ? t('builder.status.active') : t('builder.status.inactive')}
                   </span>
                   <Switch
                     checked={isActive}
@@ -285,12 +289,15 @@ export default function FormBuilder({
               {/* Spam Protection */}
               <div className="flex items-center justify-between rounded-md border px-4 py-3">
                 <div className="pr-4">
-                  <p className="text-sm font-medium">Spam Protection (Captcha)</p>
+                  <p className="text-sm font-medium">{t('builder.captcha.title')}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {captchaEnabled
-                      ? 'Submissions must include a valid captcha token.'
-                      : 'Honeypot + rate limiting still apply. Turn on for captcha verification.'}
-                    {' '}Requires <code className="bg-muted px-1 py-0.5 rounded font-mono">CAPTCHA_PROVIDER</code> in the backend env.
+                      ? t('builder.captcha.on')
+                      : t('builder.captcha.off')}
+                    {' '}{t.rich('builder.captcha.requires', {
+                      env: 'CAPTCHA_PROVIDER',
+                      code: (chunks) => <code className="bg-muted px-1 py-0.5 rounded font-mono">{chunks}</code>,
+                    })}
                   </p>
                 </div>
                 <Switch
@@ -311,9 +318,9 @@ export default function FormBuilder({
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-border pb-2">
                   <div>
-                    <h3 className="text-base font-semibold">Fields</h3>
+                    <h3 className="text-base font-semibold">{t('builder.fields.title')}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Define the inputs users will fill in. Use Group / Repeater for nested data.
+                      {t('builder.fields.description')}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -325,11 +332,11 @@ export default function FormBuilder({
                         className="gap-1.5"
                         onClick={() => setJsonOpen(true)}
                       >
-                        <PanelRight className="h-3.5 w-3.5" /> Show payload
+                        <PanelRight className="h-3.5 w-3.5" /> {t('builder.preview.show')}
                       </Button>
                     )}
                     <Button type="button" variant="outline" size="sm" onClick={addField}>
-                      <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                      <Plus className="h-4 w-4 mr-1.5" /> {t('builder.fields.add')}
                     </Button>
                   </div>
                 </div>
@@ -347,7 +354,7 @@ export default function FormBuilder({
                 {fields.length >= 4 && (
                   <div className="flex justify-end pt-1">
                     <Button type="button" variant="outline" size="sm" onClick={addField}>
-                      <Plus className="h-4 w-4 mr-1.5" /> Add Field
+                      <Plus className="h-4 w-4 mr-1.5" /> {t('builder.fields.add')}
                     </Button>
                   </div>
                 )}
@@ -357,14 +364,17 @@ export default function FormBuilder({
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-border pb-2">
                   <div>
-                    <h3 className="text-base font-semibold">Actions</h3>
+                    <h3 className="text-base font-semibold">{tc('actions')}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      What happens after a successful submission. Use <code className="font-mono bg-muted px-1 rounded">{'{{field_name}}'}</code> in subject to insert values.
+                      {t.rich('builder.actions.description', {
+                        token: '{{field_name}}',
+                        code: (chunks) => <code className="font-mono bg-muted px-1 rounded">{chunks}</code>,
+                      })}
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" size="sm" onClick={addEmailAction}>
-                      <Plus className="h-4 w-4 mr-1" /> Email
+                      <Plus className="h-4 w-4 mr-1" /> {t('builder.actions.email')}
                     </Button>
                     <Button type="button" variant="outline" size="sm" onClick={addWebhookAction}>
                       <Plus className="h-4 w-4 mr-1" /> Webhook
@@ -373,7 +383,7 @@ export default function FormBuilder({
                 </div>
                 {actions.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No actions configured. Submissions will only be stored in the database.
+                    {t('builder.actions.empty')}
                   </p>
                 )}
                 {actions.map((action, ai) => (
@@ -382,7 +392,7 @@ export default function FormBuilder({
                       <span className={`text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded ${
                         action.type === 'email' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'
                       }`}>
-                        {action.type}
+                        {action.type === 'email' ? t('builder.actions.email') : 'Webhook'}
                       </span>
                       <Button
                         type="button"
@@ -390,6 +400,7 @@ export default function FormBuilder({
                         size="icon-sm"
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => removeAction(ai)}
+                        aria-label={t('builder.actions.remove')}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -398,7 +409,7 @@ export default function FormBuilder({
                     {action.type === 'email' && (
                       <div className="space-y-2">
                         <div className="space-y-1">
-                          <Label className="text-xs">Send To</Label>
+                          <Label className="text-xs">{t('builder.actions.sendTo')}</Label>
                           <Input
                             type="email"
                             placeholder="admin@example.com"
@@ -407,15 +418,15 @@ export default function FormBuilder({
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs">Subject</Label>
+                          <Label className="text-xs">{t('builder.actions.subject')}</Label>
                           <Input
-                            placeholder="New submission from {{full_name}}"
+                            placeholder={t('builder.actions.defaultSubject', { field: '{{full_name}}' })}
                             value={action.subject}
                             onChange={(e) => updateAction(ai, { subject: e.target.value })}
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs">Reply-To Field (optional)</Label>
+                          <Label className="text-xs">{t('builder.actions.replyToField')}</Label>
                           <Select
                             value={(action as EmailAction).replyToField ?? '__none__'}
                             onValueChange={(v) =>
@@ -423,10 +434,10 @@ export default function FormBuilder({
                             }
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="None" />
+                              <SelectValue placeholder={tc('none')} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__none__">None</SelectItem>
+                              <SelectItem value="__none__">{tc('none')}</SelectItem>
                               {fields
                                 .filter((f) => f.type === 'email' && f.name)
                                 .map((f) => (
@@ -441,7 +452,7 @@ export default function FormBuilder({
                     {action.type === 'webhook' && (
                       <div className="space-y-2">
                         <div className="space-y-1">
-                          <Label className="text-xs">Webhook URL</Label>
+                          <Label className="text-xs">{t('builder.actions.webhookUrl')}</Label>
                           <Input
                             placeholder="https://hooks.slack.com/…"
                             value={action.url}
@@ -449,7 +460,7 @@ export default function FormBuilder({
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs">Method</Label>
+                          <Label className="text-xs">{t('builder.actions.method')}</Label>
                           <Select
                             value={(action as WebhookAction).method}
                             onValueChange={(v) => updateAction(ai, { method: v as 'POST' | 'PUT' })}
@@ -472,12 +483,12 @@ export default function FormBuilder({
               {/* Footer */}
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => router.push('/forms')}>
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button type="submit" disabled={submitting}>
                   {submitting
-                    ? (mode === 'new' ? 'Creating…' : 'Saving…')
-                    : (mode === 'new' ? 'Create Form' : 'Save Changes')}
+                    ? (mode === 'new' ? t('builder.creating') : tc('saving'))
+                    : (mode === 'new' ? t('builder.create') : t('builder.saveChanges'))}
                 </Button>
               </div>
             </div>
@@ -495,23 +506,23 @@ export default function FormBuilder({
                     onClick={() => setJsonOpen(false)}
                   >
                     <PanelRight className="h-3.5 w-3.5" />
-                    Hide payload
+                    {t('builder.preview.hide')}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Braces className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium">Payload Preview</span>
-                    <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">live</span>
+                    <span className="text-xs font-medium">{t('builder.preview.title')}</span>
+                    <span className="text-[10px] bg-emerald-500/15 text-emerald-500 rounded px-1.5 py-0.5">{t('builder.preview.live')}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => setJsonWrap((w) => !w)}
                       className={`flex items-center gap-1 text-[11px] transition-colors ${jsonWrap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                      title={jsonWrap ? 'Disable line wrap' : 'Wrap long lines'}
+                      title={jsonWrap ? t('builder.preview.disableWrap') : t('builder.preview.enableWrap')}
                     >
-                      <WrapText className="h-3.5 w-3.5" /> Wrap
+                      <WrapText className="h-3.5 w-3.5" /> {t('builder.preview.wrap')}
                     </button>
                     <button
                       type="button"
@@ -521,17 +532,17 @@ export default function FormBuilder({
                         setTimeout(() => setJsonCopied(false), 2000);
                       }}
                       className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                      title="Copy JSON body"
+                      title={t('builder.preview.copyJson')}
                     >
                       {jsonCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                      {jsonCopied ? 'Copied' : 'Copy'}
+                      {jsonCopied ? tc('copied') : tc('copy')}
                     </button>
                   </div>
                 </div>
 
                 {previewFields.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8 border rounded-md border-dashed">
-                    Add a field (with a key and label) to generate an example payload.
+                    {t('builder.preview.empty')}
                   </p>
                 ) : (
                   <>

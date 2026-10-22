@@ -38,6 +38,19 @@ const EnvSchema = z.object({
   // Sentry — optional
   SENTRY_DSN: z.string().url().optional(),
 
+  // Key for secrets saved in the database (SMTP password, S3 secret). Defaults to JWT_SECRET.
+  SETTINGS_SECRET: z.string().min(32).optional(),
+
+  // Search: 'postgres' (built-in full-text index) or 'meilisearch' (MEILISEARCH_URL).
+  SEARCH_DRIVER: z.enum(['postgres', 'meilisearch']).default('postgres'),
+  MEILISEARCH_URL: z.string().url().optional(),
+  MEILISEARCH_KEY: z.string().optional(),
+  MEILISEARCH_INDEX: z.string().default('nodepress_entries'),
+
+  // AI assistant (admin: generate content types, draft entries). Off unless set.
+  ANTHROPIC_API_KEY: z.string().optional(),
+  AI_MODEL: z.string().default('claude-opus-5-5'),
+
   // SMTP — optional
   SMTP_HOST:   z.string().optional(),
   SMTP_PORT:   z.coerce.number().default(587),
@@ -142,6 +155,10 @@ function validateEnv(raw: NodeJS.ProcessEnv) {
 
   // Extra validation: captcha provider requires a secret key
   const data = result.data;
+  if (data.SEARCH_DRIVER === 'meilisearch' && !data.MEILISEARCH_URL) {
+    console.error('\n❌  SEARCH_DRIVER=meilisearch requires MEILISEARCH_URL to be set\n');
+    process.exit(1);
+  }
   if (data.CAPTCHA_PROVIDER && !data.CAPTCHA_SECRET_KEY) {
     console.error(`\n❌  CAPTCHA_PROVIDER=${data.CAPTCHA_PROVIDER} requires CAPTCHA_SECRET_KEY to be set\n`);
     process.exit(1);

@@ -1,0 +1,144 @@
+{
+  "newEntry": "Nouvelle entrée",
+  "stages": {
+    "production": "Production",
+    "staging": "Préproduction (QA)",
+    "pendingReview": "En attente de relecture"
+  },
+  "cards": {
+    "noContentTypes": "Aucun type de contenu pour l’instant",
+    "noContentTypesHint": "Créez d’abord un type de contenu pour ajouter des entrées.",
+    "newContentType": "Nouveau type de contenu",
+    "pendingTitle": "{count, plural, one {# entrée en attente de relecture} other {# entrées en attente de relecture}}",
+    "pendingBadgeTitle": "Cliquez pour voir les entrées en attente de relecture",
+    "pendingBadge": "{count} en attente",
+    "entryCount": "{count, plural, one {# entrée} other {# entrées}}",
+    "moreFields": "+{count} de plus",
+    "noFields": "Aucun champ défini",
+    "viewEntries": "Voir les entrées"
+  },
+  "toolbar": {
+    "backToEntries": "Retour aux entrées",
+    "allTypes": "Tous les types",
+    "editSchemaTitle": "Modifier le schéma du type de contenu",
+    "editSchema": "Modifier le schéma",
+    "permissionsTitle": "Configurer les autorisations par champ",
+    "permissions": "Autorisations"
+  },
+  "filters": {
+    "allLanguages": "Toutes les langues",
+    "allStatuses": "Tous les statuts",
+    "production": "Production (publiée)",
+    "searchPlaceholder": "Rechercher des entrées…"
+  },
+  "export": {
+    "jsonTitle": "Exporter les entrées non supprimées en JSON",
+    "csvTitle": "Exporter les entrées non supprimées en tableur CSV"
+  },
+  "trash": {
+    "title": "Corbeille",
+    "button": "Corbeille ({count})",
+    "banner": "<strong>Corbeille :</strong> entrées supprimées. Vous pouvez les restaurer ou les supprimer définitivement."
+  },
+  "pending": {
+    "banner": "{count, plural, one {<strong>#</strong> entrée est en attente de relecture dans cette collection.} other {<strong>#</strong> entrées sont en attente de relecture dans cette collection.}}",
+    "showAll": "Afficher les entrées en attente ({count}) →"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# entrée sélectionnée} other {# entrées sélectionnées}}",
+    "stage": "Préproduction (QA)",
+    "publish": "Publier (prod)",
+    "submitReview": "Soumettre pour relecture",
+    "archive": "Archiver",
+    "addToRelease": "Ajouter à une publication groupée",
+    "deleteTitle": "{count, plural, one {Supprimer # entrée ?} other {Supprimer # entrées ?}}",
+    "deleteDescription": "Les entrées sélectionnées seront placées dans la corbeille. Vous pourrez les restaurer plus tard.",
+    "done": {
+      "deleted": "{count, plural, one {# entrée supprimée} other {# entrées supprimées}}",
+      "published": "{count, plural, one {# entrée publiée en production} other {# entrées publiées en production}}",
+      "staged": "{count, plural, one {# entrée passée en préproduction} other {# entrées passées en préproduction}}",
+      "submitted": "{count, plural, one {# entrée soumise pour relecture} other {# entrées soumises pour relecture}}",
+      "archived": "{count, plural, one {# entrée archivée} other {# entrées archivées}}"
+    }
+  },
+  "table": {
+    "selectAll": "Tout sélectionner sur cette page",
+    "slug": "Slug",
+    "trashEmpty": "La corbeille est vide.",
+    "noMatches": "Aucune entrée ne correspond à votre recherche.",
+    "empty": "Aucune entrée pour l’instant. Créez la première.",
+    "returnToActive": "Retour aux entrées actives",
+    "localeOwn": "{language} : cette entrée",
+    "localeTranslated": "{language} : traduite",
+    "localeMissing": "{language} : traduction manquante",
+    "scheduledTitle": "Publication programmée : {date}",
+    "scheduled": "Programmée · {date} {time}",
+    "items": "{count, plural, one {# élément} other {# éléments}}",
+    "richText": "Texte enrichi"
+  },
+  "actions": {
+    "restore": "Restaurer",
+    "purgeTitle": "Supprimer définitivement",
+    "purgeConfirmTitle": "Supprimer définitivement ?",
+    "purgeConfirmDescription": "<strong>{slug}</strong> et toutes ses versions seront effacées définitivement. Cette action est irréversible.",
+    "purge": "Purger",
+    "promoteStaging": "Passer en préproduction (QA)",
+    "publishProduction": "Publier en production",
+    "duplicate": "Dupliquer",
+    "viewLive": "Voir la publication en ligne sur le site",
+    "copyApiUrl": "Copier l’URL de l’API",
+    "deleteConfirmTitle": "Supprimer cette entrée ?",
+    "deleteConfirmDescription": "<strong>{slug}</strong> sera placée dans la corbeille. Vous pourrez la restaurer plus tard."
+  },
+  "import": {
+    "button": "Importer",
+    "title": "Importer des entrées — {name}",
+    "description": "Importez un fichier .JSON ou .CSV, ou collez directement les données. Une validation à blanc en temps réel vérifie les slugs, langues et champs par rapport au schéma avant l’enregistrement.",
+    "selectFile": "Choisir un fichier (.csv / .json)",
+    "updateDuplicates": "Mettre à jour les entrées en double",
+    "updateDuplicatesHint": "Si une entrée avec le même slug et la même langue existe, son contenu est mis à jour au lieu d’être ignoré.",
+    "preflightRunning": "Validation à blanc en cours…",
+    "preflightPassed": "Validation réussie : {total, plural, one {# ligne prête} other {# lignes prêtes}} ({toCreate} nouvelles, {toUpdate} mises à jour)",
+    "preflightErrors": "Erreurs de validation détectées ({count})",
+    "moreErrors": "…et {count} de plus",
+    "invalidFormat": "Format non valide",
+    "columns": {
+      "row": "Ligne",
+      "slug": "Slug",
+      "locale": "Langue",
+      "status": "Statut",
+      "action": "Action"
+    },
+    "actionUpdate": "Mise à jour",
+    "actionCreate": "Création",
+    "submit": "Importer les entrées",
+    "submitCount": "{count, plural, one {Importer # entrée} other {Importer # entrées}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "Impossible de charger les types de contenu",
+    "loadEntriesFailed": "Impossible de charger les entrées",
+    "movedToTrash": "Entrée placée dans la corbeille",
+    "deleteFailed": "Échec de la suppression",
+    "restored": "Entrée restaurée",
+    "restoreFailed": "Échec de la restauration",
+    "purged": "Entrée supprimée définitivement",
+    "purgeFailed": "Échec de la purge",
+    "promoted": "Entrée passée en {stage}",
+    "promoteFailed": "Impossible de promouvoir l’entrée",
+    "exportDownloaded": "Export {format} téléchargé",
+    "exportFailed": "Échec de l’export",
+    "readFileFailed": "Impossible de lire le fichier",
+    "importCreated": "{count} créées",
+    "importUpdated": "{count} mises à jour",
+    "importNoChanges": "aucune modification",
+    "importComplete": "Import terminé : {summary}",
+    "importSkipped": "({count} ignorées)",
+    "importFailed": "Échec de l’import",
+    "bulkFailed": "Échec de l’action groupée",
+    "duplicated": "Dupliquée sous « {slug} »",
+    "duplicateFailed": "Échec de la duplication",
+    "noUniqueSlug": "Impossible de trouver un slug unique pour le doublon",
+    "urlCopied": "URL de l’API copiée dans le presse-papiers",
+    "copyUrlFailed": "Impossible de copier l’URL"
+  }
+}

@@ -6,6 +6,3 @@
 export const INDEXABLE_FIELD_TYPES = new Set([
   'text', 'textarea', 'number', 'boolean', 'select', 'date', 'datetime', 'color', 'relation',
 ]);
-
-export const INDEXED_HINT =
-  'Index this field so API filters on it (?where[field][eq]=…) stay fast with many entries. Adds a little write overhead.';

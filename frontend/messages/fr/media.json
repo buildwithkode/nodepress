@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "Impossible de charger les fichiers médias",
+    "fileDeleted": "Fichier supprimé",
+    "folderDeleted": "Dossier supprimé",
+    "deleteFailed": "Échec de la suppression",
+    "folderRenamed": "Dossier renommé",
+    "renameFolderFailed": "Impossible de renommer le dossier",
+    "folderCreated": "Dossier créé",
+    "createFolderFailed": "Impossible de créer le dossier",
+    "fileMoved": "Fichier déplacé",
+    "moveFileFailed": "Impossible de déplacer le fichier",
+    "urlCopied": "URL copiée",
+    "uploaded": "{name} importé",
+    "uploadFailed": "Échec de l’import de {name}"
+  },
+  "folders": {
+    "title": "Dossiers",
+    "allFiles": "Tous les fichiers",
+    "unfiled": "Non classés",
+    "folder": "Dossier",
+    "rename": "Renommer le dossier",
+    "delete": "Supprimer le dossier",
+    "deleteConfirmTitle": "Supprimer le dossier « {name} » ?",
+    "deleteConfirmDescription": "Les fichiers qu’il contient ne seront plus classés. Les sous-dossiers seront supprimés.",
+    "namePlaceholder": "Nom du dossier",
+    "new": "Nouveau dossier"
+  },
+  "upload": {
+    "uploading": "Import en cours…",
+    "prompt": "Cliquez ou glissez des fichiers ici",
+    "limits": "{formats} — {size} max."
+  },
+  "library": {
+    "empty": "Aucun fichier pour l’instant",
+    "fileCount": "{count, plural, one {# fichier} other {# fichiers}}",
+    "copyWebpUrl": "Copier l’URL WebP",
+    "copyUrl": "Copier l’URL",
+    "focalPointAt": "Point focal {x}, {y}",
+    "setFocalPoint": "Définir le point focal",
+    "moveToFolder": "Déplacer vers un dossier",
+    "deleteConfirmTitle": "Supprimer le fichier ?",
+    "deleteConfirmDescription": "<strong>{name}</strong> sera définitivement supprimé.",
+    "deleteConfirmWebp": "La version WebP sera également supprimée."
+  },
+  "renameDialog": {
+    "title": "Renommer le dossier",
+    "description": "Saisissez un nouveau nom pour le dossier « {name} ».",
+    "label": "Nom du dossier",
+    "save": "Enregistrer les modifications"
+  },
+  "moveDialog": {
+    "title": "Déplacer le fichier",
+    "description": "Choisissez un dossier de destination pour <strong>{name}</strong>.",
+    "destination": "Dossier de destination",
+    "selectFolder": "Choisir un dossier",
+    "unfiledRoot": "Non classés (racine)",
+    "submit": "Déplacer"
+  },
+  "focal": {
+    "title": "Point focal",
+    "description": "Cliquez sur la partie la plus importante de <strong>{name}</strong>. Les versions recadrées la gardent dans le cadre.",
+    "saved": "Point focal enregistré",
+    "cleared": "Point focal supprimé",
+    "saveFailed": "Impossible d’enregistrer le point focal",
+    "previewSquare": "Carré",
+    "previewWide": "Large 16:9",
+    "previewTall": "Haut 3:4",
+    "notSet": "Non défini — les recadrages sont centrés",
+    "clear": "Effacer"
+  },
+  "picker": {
+    "title": "Médiathèque",
+    "placeholder": "Choisir une image dans la médiathèque…",
+    "crop": "Recadrer",
+    "cropZoomTitle": "Recadrer / Zoomer",
+    "cropZoom": "Recadrer et zoomer",
+    "removeImage": "Retirer l’image",
+    "change": "Changer",
+    "browse": "Parcourir",
+    "upload": "Importer",
+    "altPrefix": "Alt : {alt}",
+    "empty": "Aucun fichier média. Importez-en un d’abord.",
+    "altText": "Texte alternatif",
+    "optionalHint": "(facultatif)",
+    "altPlaceholder": "Décrivez l’image pour l’accessibilité…",
+    "dropPrompt": "Déposez un fichier ou cliquez pour parcourir",
+    "useImage": "Utiliser l’image"
+  }
+}

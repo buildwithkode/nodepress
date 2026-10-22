@@ -1,0 +1,144 @@
+{
+  "newEntry": "New Entry",
+  "stages": {
+    "production": "Production",
+    "staging": "Staging (QA)",
+    "pendingReview": "Pending Review"
+  },
+  "cards": {
+    "noContentTypes": "No content types yet",
+    "noContentTypesHint": "Create a content type first to start adding entries.",
+    "newContentType": "New Content Type",
+    "pendingTitle": "{count, plural, one {# entry pending review} other {# entries pending review}}",
+    "pendingBadgeTitle": "Click to view entries awaiting review",
+    "pendingBadge": "{count} Pending Review",
+    "entryCount": "{count, plural, one {# entry} other {# entries}}",
+    "moreFields": "+{count} more",
+    "noFields": "No fields defined",
+    "viewEntries": "View Entries"
+  },
+  "toolbar": {
+    "backToEntries": "Back to Entries",
+    "allTypes": "All Types",
+    "editSchemaTitle": "Edit Content Type Schema",
+    "editSchema": "Edit Schema",
+    "permissionsTitle": "Configure Field-Level Permissions",
+    "permissions": "Permissions"
+  },
+  "filters": {
+    "allLanguages": "All languages",
+    "allStatuses": "All statuses",
+    "production": "Production (Published)",
+    "searchPlaceholder": "Search entries…"
+  },
+  "export": {
+    "jsonTitle": "Export non-deleted entries as JSON",
+    "csvTitle": "Export non-deleted entries as CSV spreadsheet"
+  },
+  "trash": {
+    "title": "Recycle Bin",
+    "button": "Recycle Bin ({count})",
+    "banner": "<strong>Recycle Bin:</strong> Showing deleted entries. You can restore them to active or permanently purge them."
+  },
+  "pending": {
+    "banner": "{count, plural, one {<strong>#</strong> entry is pending review in this collection.} other {<strong>#</strong> entries are pending review in this collection.}}",
+    "showAll": "Show Pending Reviews ({count}) →"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# entry selected} other {# entries selected}}",
+    "stage": "Stage (QA)",
+    "publish": "Publish (Prod)",
+    "submitReview": "Submit for Review",
+    "archive": "Archive",
+    "addToRelease": "Add to release",
+    "deleteTitle": "{count, plural, one {Delete # entry?} other {Delete # entries?}}",
+    "deleteDescription": "Selected entries will be moved to trash. You can restore them later.",
+    "done": {
+      "deleted": "{count, plural, one {# entry deleted} other {# entries deleted}}",
+      "published": "{count, plural, one {# entry published to production} other {# entries published to production}}",
+      "staged": "{count, plural, one {# entry promoted to staging} other {# entries promoted to staging}}",
+      "submitted": "{count, plural, one {# entry submitted for review} other {# entries submitted for review}}",
+      "archived": "{count, plural, one {# entry archived} other {# entries archived}}"
+    }
+  },
+  "table": {
+    "selectAll": "Select all on this page",
+    "slug": "Slug",
+    "trashEmpty": "Recycle Bin is empty.",
+    "noMatches": "No entries match your search.",
+    "empty": "No entries yet. Create the first one.",
+    "returnToActive": "Return to Active Entries",
+    "localeOwn": "{language}: this entry",
+    "localeTranslated": "{language}: translated",
+    "localeMissing": "{language}: missing translation",
+    "scheduledTitle": "Scheduled to publish: {date}",
+    "scheduled": "Scheduled · {date} {time}",
+    "items": "{count, plural, one {# item} other {# items}}",
+    "richText": "Rich text"
+  },
+  "actions": {
+    "restore": "Restore",
+    "purgeTitle": "Purge permanently",
+    "purgeConfirmTitle": "Permanently delete?",
+    "purgeConfirmDescription": "<strong>{slug}</strong> and all its versions will be erased forever. This cannot be undone.",
+    "purge": "Purge",
+    "promoteStaging": "Promote to Staging (QA)",
+    "publishProduction": "Publish to Production",
+    "duplicate": "Duplicate",
+    "viewLive": "View Live Post on Website",
+    "copyApiUrl": "Copy API URL",
+    "deleteConfirmTitle": "Delete this entry?",
+    "deleteConfirmDescription": "<strong>{slug}</strong> will be moved to trash. You can restore it later."
+  },
+  "import": {
+    "button": "Import",
+    "title": "Import Entries — {name}",
+    "description": "Upload a .JSON or .CSV file, or paste data directly. Real-time dry-run validation checks slugs, locales, and fields against the schema before saving.",
+    "selectFile": "Select File (.csv / .json)",
+    "updateDuplicates": "Update duplicate entries",
+    "updateDuplicatesHint": "If an entry with matching (slug + locale) exists, update its content instead of skipping it.",
+    "preflightRunning": "Running pre-flight dry-run validation…",
+    "preflightPassed": "Pre-flight passed: {total, plural, one {# row} other {# rows}} ready ({toCreate} new, {toUpdate} updates)",
+    "preflightErrors": "Pre-flight errors detected ({count})",
+    "moreErrors": "…and {count} more",
+    "invalidFormat": "Invalid format",
+    "columns": {
+      "row": "Row",
+      "slug": "Slug",
+      "locale": "Locale",
+      "status": "Status",
+      "action": "Action"
+    },
+    "actionUpdate": "Update",
+    "actionCreate": "Create",
+    "submit": "Import Entries",
+    "submitCount": "{count, plural, one {Import # Entry} other {Import # Entries}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "Failed to load content types",
+    "loadEntriesFailed": "Failed to load entries",
+    "movedToTrash": "Entry moved to recycle bin",
+    "deleteFailed": "Delete failed",
+    "restored": "Entry restored",
+    "restoreFailed": "Restore failed",
+    "purged": "Entry permanently deleted",
+    "purgeFailed": "Purge failed",
+    "promoted": "Entry promoted to {stage}",
+    "promoteFailed": "Failed to promote entry",
+    "exportDownloaded": "{format} export downloaded",
+    "exportFailed": "Export failed",
+    "readFileFailed": "Failed to read file",
+    "importCreated": "{count} created",
+    "importUpdated": "{count} updated",
+    "importNoChanges": "no changes",
+    "importComplete": "Import complete: {summary}",
+    "importSkipped": "({count} skipped)",
+    "importFailed": "Import execution failed",
+    "bulkFailed": "Bulk action failed",
+    "duplicated": "Duplicated as \"{slug}\"",
+    "duplicateFailed": "Duplicate failed",
+    "noUniqueSlug": "Could not find a unique slug for the duplicate",
+    "urlCopied": "API URL copied to clipboard",
+    "copyUrlFailed": "Could not copy URL"
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "brand": {
+    "title": "Marque",
+    "subtitle": "Votre nom, votre logo et votre couleur d’accent — utilisés dans le panneau d’administration, l’onglet et le favicon du navigateur, l’écran de connexion et les e-mails de soumission de formulaires.",
+    "identity": {
+      "title": "Identité",
+      "description": "S’applique partout où cette installation affiche votre marque.",
+      "name": "Nom de la marque",
+      "logo": "Logo",
+      "logoHelp": "Les images carrées donnent le meilleur résultat. Affiché dans la barre latérale, la page de connexion, le favicon et les e-mails.",
+      "accent": "Couleur d’accent",
+      "accentPicker": "Sélecteur de couleur d’accent",
+      "previewHelp": "Aperçu de l’en-tête de la barre latérale."
+    },
+    "preview": "Aperçu",
+    "theme": {
+      "title": "Thème",
+      "description": "Facultatif. Recolorez les boutons principaux et les champs de saisie dans tout le panneau d’administration. Laissez vide pour utiliser le thème par défaut.",
+      "button": "Couleur des boutons",
+      "buttonHelp": "Boutons principaux. La couleur du texte s’ajuste automatiquement pour le contraste.",
+      "buttonPicker": "Sélecteur de couleur des boutons",
+      "input": "Couleur des champs",
+      "inputHelp": "Bordure des champs et anneau de focus.",
+      "inputPicker": "Sélecteur de couleur des champs",
+      "defaultPlaceholder": "(par défaut)",
+      "reset": "Réinitialiser",
+      "sampleButton": "Exemple de bouton",
+      "sampleInput": "Exemple de champ"
+    },
+    "invalidHex": "Hex invalide",
+    "saveChanges": "Enregistrer les modifications",
+    "noChanges": "Aucune modification",
+    "confirm": {
+      "title": "Enregistrer les modifications de la marque ?",
+      "description": "Votre marque et votre thème seront mis à jour partout — barre latérale, onglet et favicon du navigateur, écran de connexion et e-mails de soumission de formulaires — pour tous les utilisateurs."
+    },
+    "toasts": {
+      "nameRequired": "Le nom de la marque est obligatoire",
+      "accentInvalid": "Saisissez une couleur d’accent hexadécimale valide, par ex. {example}",
+      "buttonInvalid": "La couleur des boutons doit être un hex valide (ou vide)",
+      "inputInvalid": "La couleur des champs doit être un hex valide (ou vide)",
+      "saved": "Marque mise à jour",
+      "saveFailed": "Impossible de mettre à jour la marque"
+    }
+  },
+  "languages": {
+    "title": "Langues du contenu",
+    "subtitle": "Les langues dans lesquelles les éditeurs peuvent rédiger du contenu. Chaque entrée peut avoir une traduction par langue ; la langue par défaut est utilisée quand une requête API n’en demande aucune, et comme langue de repli avec <code></code>.",
+    "enabled": {
+      "title": "Langues activées",
+      "description": "Retirer une langue conserve ses entrées ; elle n’est simplement plus proposée dans l’éditeur.",
+      "entryCount": "{count, plural, one {# entrée} other {# entrées}}",
+      "default": "Par défaut",
+      "makeDefault": "Définir par défaut",
+      "removeWithEntries": "{count, plural, one {# entrée est conservée} other {# entrées sont conservées}}, mais la langue n’est plus proposée",
+      "removeLabel": "Retirer {language}",
+      "orphaned": "Des entrées existent dans des langues non activées :",
+      "orphanedHint": ". Cliquez sur l’une d’elles pour l’activer."
+    },
+    "saveChanges": "Enregistrer les modifications",
+    "add": {
+      "title": "Ajouter une langue",
+      "description": "Utilisez un code de langue comme <code>fr</code>, <code>pt-BR</code> ou <code>zh-Hant</code>.",
+      "placeholder": "ex. {example}",
+      "codeLabel": "Code de langue",
+      "willAdd": "Ajoute : {language}",
+      "alreadyEnabled": "Déjà activée",
+      "invalidCode": "Code de langue invalide"
+    },
+    "toasts": {
+      "saved": "Langues enregistrées",
+      "saveFailed": "Impossible d’enregistrer les langues"
+    }
+  },
+  "server": {
+    "title": "E-mail et stockage",
+    "subtitle": "D’où partent les e-mails et où sont conservés les fichiers envoyés.",
+    "loadFailed": "Impossible de charger les réglages",
+    "saveFailed": "Impossible d’enregistrer",
+    "save": "Enregistrer",
+    "keepSecret": "Enregistré — laissez vide pour le conserver.",
+    "envNotice": "Défini par les variables d’environnement <code>{what}</code> du serveur — modifiez-le là.",
+    "mail": {
+      "title": "E-mail",
+      "description": "Utilisé pour les réinitialisations de mot de passe, les invitations et les notifications de formulaires.",
+      "enabled": "Envoyer des e-mails",
+      "host": "Serveur SMTP",
+      "port": "Port",
+      "security": "Sécurité",
+      "starttls": "STARTTLS (587)",
+      "ssl": "SSL/TLS (465)",
+      "user": "Nom d’utilisateur",
+      "password": "Mot de passe",
+      "from": "Adresse d’expédition",
+      "fromHint": "Affichée comme expéditeur, par ex. Acme <noreply@acme.com>. Par défaut : le nom d’utilisateur.",
+      "testTo": "Envoyer un test à",
+      "sendTest": "Envoyer un test",
+      "testSent": "E-mail de test envoyé à {to}",
+      "testFailed": "L’e-mail de test n’a pas pu être envoyé",
+      "saved": "Réglages e-mail enregistrés — actifs immédiatement",
+      "turnedOff": "E-mail désactivé"
+    },
+    "storage": {
+      "title": "Stockage des fichiers",
+      "description": "Images et fichiers envoyés.",
+      "where": "Conserver les fichiers sur",
+      "local": "Le disque de ce serveur",
+      "s3": "Stockage compatible S3",
+      "localHint": "Convient à un serveur unique avec un disque persistant.",
+      "localProductionWarning": "Chez la plupart des hébergeurs et dans les conteneurs, ce disque est effacé à chaque déploiement — les fichiers seraient perdus. Utilisez un stockage compatible S3.",
+      "provider": "Fournisseur",
+      "otherProvider": "Autre (MinIO, Backblaze B2…)",
+      "bucket": "Bucket",
+      "endpoint": "Point de terminaison",
+      "region": "Région",
+      "accessKey": "ID de clé d’accès",
+      "secretKey": "Clé d’accès secrète",
+      "publicUrl": "URL publique (facultatif)",
+      "publicUrlHint": "Votre CDN ou domaine personnalisé pour le bucket. Le bucket doit autoriser la lecture publique.",
+      "test": "Tester la connexion",
+      "testOk": "Connecté — un fichier de test a été écrit puis supprimé",
+      "testFailed": "Impossible de se connecter au bucket",
+      "saved": "Réglages de stockage enregistrés",
+      "restartRequired": "Les changements de stockage prennent effet après le redémarrage du serveur. Les fichiers existants ne sont pas déplacés.",
+      "restart": "Redémarrer",
+      "restarting": "Redémarrage — l’administration se reconnectera dans un instant"
+    },
+    "search": {
+      "title": "Recherche",
+      "postgres": "Les recherches utilisent l’index plein texte de la base de données (<code>?search=</code>). Pour une recherche classée tolérante aux fautes, lancez Meilisearch et définissez SEARCH_DRIVER=meilisearch.",
+      "meilisearch": "Les recherches utilisent Meilisearch (index « {index} »). Il se met à jour quand le contenu change.",
+      "reindex": "Reconstruire l’index",
+      "reindexQueued": "Reconstruction de l’index de recherche en arrière-plan"
+    }
+  }
+}

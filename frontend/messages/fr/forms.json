@@ -1,0 +1,143 @@
+{
+  "list": {
+    "loadFailed": "Impossible de charger les formulaires",
+    "deleted": "Formulaire supprimé",
+    "deleteFailed": "Échec de la suppression",
+    "statusFailed": "Impossible de mettre à jour le statut du formulaire",
+    "searchPlaceholder": "Rechercher des formulaires…",
+    "newForm": "Nouveau formulaire",
+    "columns": {
+      "slug": "Slug",
+      "fields": "Champs",
+      "submissions": "Soumissions"
+    },
+    "noMatches": "Aucun formulaire ne correspond à votre recherche.",
+    "empty": "Aucun formulaire pour l’instant. Créez le premier.",
+    "toggleActive": "Activer / désactiver",
+    "viewSubmissions": "Voir les soumissions",
+    "deleteConfirmTitle": "Supprimer « {name} » ?",
+    "deleteConfirmDescription": "{count, plural, one {La <strong>#</strong> soumission sera également supprimée définitivement.} other {Les <strong>#</strong> soumissions seront également supprimées définitivement.}}"
+  },
+  "edit": {
+    "notFound": "Formulaire introuvable."
+  },
+  "submissions": {
+    "empty": "vide",
+    "loadFailed": "Impossible de charger les soumissions",
+    "nothingToExport": "Aucune soumission à exporter",
+    "backToForms": "Retour aux formulaires",
+    "searchPlaceholder": "Rechercher des soumissions…",
+    "exportCsv": "Exporter en CSV",
+    "count": "{count, plural, one {# soumission} other {# soumissions}}",
+    "countMatching": "{count, plural, one {# soumission correspond} other {# soumissions correspondent}} à « {search} »",
+    "noneTitle": "Aucune soumission pour l’instant",
+    "noneDescription": "Partagez le formulaire : les réponses apparaîtront ici.",
+    "date": "Date"
+  },
+  "fieldEditor": {
+    "labelPlaceholder": "Libellé affiché à l’utilisateur",
+    "keyCustom": "perso",
+    "keyAuto": "auto",
+    "validationRules": "Règles de validation",
+    "removeField": "Supprimer le champ",
+    "options": "Options (séparées par des virgules)",
+    "optionsPickMany": "choix multiple",
+    "optionsRadio": "boutons radio",
+    "optionsDropdown": "liste déroulante",
+    "optionsPlaceholder": "Option A, Option B, Option C",
+    "validation": "Validation",
+    "rules": {
+      "min": "Min.",
+      "max": "Max.",
+      "integer": "Nombre entier uniquement",
+      "minLength": "Longueur min.",
+      "maxLength": "Longueur max.",
+      "pattern": "Motif (regex)",
+      "minItems": "Éléments min.",
+      "maxItems": "Éléments max.",
+      "message": "Message d’erreur personnalisé"
+    },
+    "messagePlaceholder": "Affiché quand ce champ est invalide",
+    "itemFields": "Champs de l’élément (répétés)",
+    "subFields": "Sous-champs",
+    "addSubField": "Ajouter un sous-champ"
+  },
+  "fieldTypes": {
+    "text": "Texte",
+    "textarea": "Zone de texte",
+    "number": "Nombre",
+    "email": "E-mail",
+    "url": "URL",
+    "phone": "Téléphone",
+    "date": "Date",
+    "datetime": "Date et heure",
+    "boolean": "Booléen (oui/non)",
+    "select": "Sélection (liste déroulante)",
+    "radio": "Radio (choix unique)",
+    "multiselect": "Sélection multiple",
+    "tags": "Étiquettes (libres)",
+    "group": "Groupe (objet)",
+    "repeater": "Répéteur (liste)"
+  },
+  "builder": {
+    "created": "Formulaire créé",
+    "updated": "Formulaire mis à jour",
+    "newTitle": "Nouveau formulaire",
+    "editTitle": "Modifier le formulaire",
+    "newDescription": "Définissez les champs du formulaire et configurez les actions de notification.",
+    "editDescription": "Modifiez les paramètres, les champs et les actions du formulaire.",
+    "formName": "Nom du formulaire",
+    "formNamePlaceholder": "ex. Contactez-nous",
+    "slugPlaceholder": "ex. contact",
+    "submitEndpoint": "Point de soumission :",
+    "status": {
+      "title": "Statut du formulaire",
+      "accepting": "Accepte les soumissions",
+      "blocked": "Les soumissions sont bloquées",
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "captcha": {
+      "title": "Protection anti-spam (captcha)",
+      "on": "Les soumissions doivent inclure un jeton captcha valide.",
+      "off": "Le honeypot et la limitation de débit restent actifs. Activez pour vérifier un captcha.",
+      "requires": "Nécessite <code>{env}</code> dans l’environnement du backend."
+    },
+    "fields": {
+      "title": "Champs",
+      "description": "Définissez les champs que les utilisateurs rempliront. Utilisez Groupe / Répéteur pour les données imbriquées.",
+      "add": "Ajouter un champ"
+    },
+    "actions": {
+      "description": "Ce qui se passe après une soumission réussie. Utilisez <code>{token}</code> dans l’objet pour insérer des valeurs.",
+      "email": "E-mail",
+      "empty": "Aucune action configurée. Les soumissions seront uniquement enregistrées dans la base de données.",
+      "remove": "Supprimer l’action",
+      "sendTo": "Destinataire",
+      "subject": "Objet",
+      "defaultSubject": "Nouvelle soumission de {field}",
+      "replyToField": "Champ de réponse (facultatif)",
+      "webhookUrl": "URL du webhook",
+      "method": "Méthode"
+    },
+    "validation": {
+      "nameRequired": "Le nom du formulaire est obligatoire",
+      "slugRequired": "Le slug est obligatoire",
+      "fieldRequired": "Ajoutez au moins un champ avec une clé et un libellé"
+    },
+    "creating": "Création…",
+    "create": "Créer le formulaire",
+    "saveChanges": "Enregistrer les modifications",
+    "preview": {
+      "show": "Afficher le payload",
+      "hide": "Masquer le payload",
+      "title": "Aperçu du payload",
+      "live": "en direct",
+      "disableWrap": "Désactiver le retour à la ligne",
+      "enableWrap": "Renvoyer les longues lignes à la ligne",
+      "wrap": "Retour à la ligne",
+      "copyJson": "Copier le corps JSON",
+      "empty": "Ajoutez un champ (avec une clé et un libellé) pour générer un exemple de payload."
+    }
+  }
+}

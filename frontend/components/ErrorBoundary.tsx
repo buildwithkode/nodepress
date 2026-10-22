@@ -4,6 +4,7 @@ import { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { reportError } from '@/lib/report-error';
+import { useTranslations } from 'use-intl';
 
 interface Props {
   children: ReactNode;
@@ -30,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, message: error?.message ?? 'Unknown error' };
+    return { hasError: true, message: error?.message ?? '' };
   }
 
   componentDidCatch(error: Error, info: { componentStack: string }) {
@@ -46,30 +47,33 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (!this.state.hasError) return this.props.children;
 
-    const { label = 'this section' } = this.props;
-
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] p-8 text-center">
-        <div className="rounded-full bg-destructive/10 p-4 mb-4">
-          <AlertTriangle className="h-8 w-8 text-destructive" />
-        </div>
-        <h2 className="text-base font-semibold text-foreground mb-1">
-          Something went wrong
-        </h2>
-        <p className="text-sm text-muted-foreground mb-1 max-w-sm">
-          {label.charAt(0).toUpperCase() + label.slice(1)} failed to load.
-          This has been reported automatically.
-        </p>
-        {this.state.message && (
-          <p className="text-xs text-muted-foreground/60 font-mono mb-4 max-w-sm truncate">
-            {this.state.message}
-          </p>
-        )}
-        <Button variant="outline" size="sm" onClick={this.handleReset}>
-          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-          Try again
-        </Button>
-      </div>
-    );
+    return <ErrorFallback label={this.props.label} message={this.state.message} onReset={this.handleReset} />;
   }
+}
+
+/** The recovery card — a function component so it can use translations. */
+function ErrorFallback({ label, message, onReset }: { label?: string; message: string; onReset: () => void }) {
+  const t = useTranslations('errors');
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[300px] p-8 text-center">
+      <div className="rounded-full bg-destructive/10 p-4 mb-4">
+        <AlertTriangle className="h-8 w-8 text-destructive" />
+      </div>
+      <h2 className="text-base font-semibold text-foreground mb-1">
+        {t('boundary.title')}
+      </h2>
+      <p className="text-sm text-muted-foreground mb-1 max-w-sm">
+        {label
+          ? t('boundary.failedToLoad', { label: label.charAt(0).toUpperCase() + label.slice(1) })
+          : t('boundary.sectionFailed')}
+      </p>
+      <p className="text-xs text-muted-foreground/60 font-mono mb-4 max-w-sm truncate">
+        {message || t('boundary.unknownError')}
+      </p>
+      <Button variant="outline" size="sm" onClick={onReset}>
+        <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+        {t('boundary.tryAgain')}
+      </Button>
+    </div>
+  );
 }

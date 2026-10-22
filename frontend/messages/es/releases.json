@@ -1,0 +1,70 @@
+{
+  "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+  "statuses": {
+    "open": "Abierto",
+    "scheduled": "Programado",
+    "publishing": "Publicando",
+    "published": "Publicado",
+    "failed": "Fallido"
+  },
+  "actions": {
+    "publish": "Publicar",
+    "unpublish": "Despublicar",
+    "archive": "Archivar"
+  },
+  "list": {
+    "title": "Lanzamientos",
+    "description": "Agrupa cambios de entradas — publicar, despublicar, archivar — y ponlos en línea a la vez, ahora o en un momento concreto. Añade entradas desde la lista de entradas o el editor de una entrada.",
+    "namePlaceholder": "Nombre del nuevo lanzamiento, p. ej. Lanzamiento de primavera",
+    "empty": "Aún no hay lanzamientos.",
+    "upcoming": "Próximos",
+    "published": "Publicados",
+    "publishedAt": "publicado el {date}",
+    "loadFailed": "No se pudieron cargar los lanzamientos",
+    "createFailed": "No se pudo crear el lanzamiento"
+  },
+  "detail": {
+    "notFound": "Lanzamiento no encontrado",
+    "publishedAt": "Publicado el {date}",
+    "publishNow": "Publicar ahora",
+    "publish": "Publicar",
+    "publishConfirmTitle": "¿Publicar «{name}»?",
+    "publishConfirmDescription": "{count, plural, one {# cambio se publica} other {# cambios se publican}} a la vez, en un solo paso. No se puede deshacer en conjunto.",
+    "publishedToast": "Lanzamiento publicado",
+    "publishFailed": "La publicación falló — no se cambió nada. {error}",
+    "schedule": "Programar",
+    "scheduledFor": "Se publica automáticamente el {date}.",
+    "scheduleHint": "Elige una hora y el lanzamiento se publicará solo (se comprueba cada minuto).",
+    "scheduledToast": "Lanzamiento programado",
+    "unschedule": "Desprogramar",
+    "unscheduledToast": "Programación eliminada",
+    "entriesTitle": "Entradas ({count})",
+    "entriesDescription": "Cada entrada se publica tal como esté en el momento de la publicación — puedes seguir editándola hasta entonces. Añade entradas desde la lista de <link>entradas</link>.",
+    "noEntries": "Aún no hay entradas.",
+    "currentStatus": "ahora {status}",
+    "deletedSkipped": "eliminada — se omitirá",
+    "conflicts": "También en {releases} — prevalece el que se publique último.",
+    "conflictItem": "«{name}» ({action})",
+    "removeItem": "Quitar del lanzamiento",
+    "deleteRelease": "Eliminar lanzamiento",
+    "deleteConfirmTitle": "¿Eliminar «{name}»?",
+    "deleteConfirmDescription": "Se elimina el lanzamiento. Sus entradas quedan exactamente como están.",
+    "deleteFailed": "No se pudo eliminar"
+  },
+  "addDialog": {
+    "title": "Añadir a un lanzamiento",
+    "description": "Un lanzamiento aplica todos sus cambios a la vez — cuando lo publicas o a la hora programada.",
+    "release": "Lanzamiento",
+    "newRelease": "Nuevo lanzamiento…",
+    "namePlaceholder": "p. ej. Lanzamiento de primavera",
+    "nameRequired": "Ponle un nombre al lanzamiento",
+    "whenGoesOut": "Cuando se publique el lanzamiento",
+    "actionOption": {
+      "publish": "{count, plural, one {Publicar esta entrada} other {Publicar estas entradas}}",
+      "unpublish": "{count, plural, one {Despublicar esta entrada} other {Despublicar estas entradas}}",
+      "archive": "{count, plural, one {Archivar esta entrada} other {Archivar estas entradas}}"
+    },
+    "added": "{count, plural, one {# entrada añadida} other {# entradas añadidas}} — <link>abrir lanzamiento</link>",
+    "addFailed": "No se pudo añadir al lanzamiento"
+  }
+}

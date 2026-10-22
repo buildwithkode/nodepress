@@ -1,0 +1,56 @@
+{
+  "title": "Tableau de bord",
+  "subtitle": "Voici ce qui se passe avec votre contenu.",
+  "newEntry": "Nouvelle entrée",
+  "overview": "Vue d’ensemble",
+  "viewAll": "Tout voir",
+  "createOne": "En créer un",
+  "fieldCount": "{count, plural, one {# champ} other {# champs}}",
+  "entryCount": "{count, plural, one {# entrée} other {# entrées}}",
+  "stats": {
+    "contentTypes": "Types de contenu",
+    "contentTypesSub": "schémas au total",
+    "totalEntries": "Entrées au total",
+    "totalEntriesSub": "tous types confondus",
+    "mediaFiles": "Fichiers médias",
+    "mediaFilesSub": "fichiers importés",
+    "apiKeys": "Clés API",
+    "apiKeysSub": "clés actives",
+    "forms": "Formulaires",
+    "formsSub": "formulaires actifs",
+    "submissions": "Soumissions",
+    "submissionsSub": "réponses au total"
+  },
+  "pendingReview": {
+    "message": "{count, plural, one {<b>#</b> entrée en attente de relecture} other {<b>#</b> entrées en attente de relecture}}",
+    "action": "Relire maintenant →"
+  },
+  "contentTypes": {
+    "title": "Types de contenu",
+    "empty": "Aucun type de contenu pour l’instant.",
+    "pendingReview": "{count} en attente de relecture",
+    "pendingBadge": "{count} en attente"
+  },
+  "recentEntries": {
+    "title": "Entrées récentes",
+    "empty": "Aucune entrée pour l’instant."
+  },
+  "forms": {
+    "title": "Formulaires",
+    "empty": "Aucun formulaire pour l’instant.",
+    "submissionCount": "{count, plural, one {# soumission} other {# soumissions}}"
+  },
+  "recentSubmissions": {
+    "title": "Soumissions récentes",
+    "empty": "Aucune soumission pour l’instant. Partagez un formulaire pour commencer à recueillir des réponses."
+  },
+  "endpoints": {
+    "title": "Points de terminaison API",
+    "fullDocs": "Documentation complète",
+    "auth": "Auth",
+    "copyUrl": "Copier l’URL"
+  },
+  "recentMedia": {
+    "title": "Médias récents"
+  }
+}

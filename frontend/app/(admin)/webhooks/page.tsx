@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import api from '../../../lib/axios';
+import { useTranslations } from 'use-intl';
 
 interface Webhook {
   id: number;
@@ -70,14 +71,14 @@ interface WebhookDelivery {
 }
 
 const ALL_EVENTS = [
-  { value: 'entry.created',  label: 'Entry Created' },
-  { value: 'entry.updated',  label: 'Entry Updated' },
-  { value: 'entry.deleted',  label: 'Entry Deleted' },
-  { value: 'entry.restored', label: 'Entry Restored' },
-  { value: 'entry.purged',   label: 'Entry Purged' },
-  { value: 'media.uploaded', label: 'Media Uploaded' },
-  { value: 'media.deleted',  label: 'Media Deleted' },
-];
+  { value: 'entry.created',  labelKey: 'entryCreated' },
+  { value: 'entry.updated',  labelKey: 'entryUpdated' },
+  { value: 'entry.deleted',  labelKey: 'entryDeleted' },
+  { value: 'entry.restored', labelKey: 'entryRestored' },
+  { value: 'entry.purged',   labelKey: 'entryPurged' },
+  { value: 'media.uploaded', labelKey: 'mediaUploaded' },
+  { value: 'media.deleted',  labelKey: 'mediaDeleted' },
+] as const;
 
 const EVENT_COLORS: Record<string, string> = {
   'entry.created':  'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
@@ -91,6 +92,8 @@ const EVENT_COLORS: Record<string, string> = {
 };
 
 export default function WebhooksPage() {
+  const t = useTranslations('developer');
+  const tc = useTranslations('common');
   const [activeTab, setActiveTab] = useState('webhooks');
   const [webhooks, setWebhooks] = useState<Webhook[]>([]);
   const [loading, setLoading] = useState(false);
@@ -133,7 +136,7 @@ export default function WebhooksPage() {
       const res = await api.get('/webhooks');
       setWebhooks(res.data.data ?? res.data);
     } catch {
-      toast.error('Failed to load webhooks');
+      toast.error(t('webhooks.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -149,7 +152,7 @@ export default function WebhooksPage() {
       const res = await api.get('/webhooks/deliveries', { params });
       setDeliveries(res.data.data ?? []);
     } catch {
-      toast.error('Failed to load delivery logs');
+      toast.error(t('webhooks.loadDeliveriesFailed'));
     } finally {
       setDeliveriesLoading(false);
     }
@@ -174,9 +177,9 @@ export default function WebhooksPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return toast.error('Name is required');
-    if (!form.url.trim()) return toast.error('URL is required');
-    if (form.events.length === 0) return toast.error('Select at least one event');
+    if (!form.name.trim()) return toast.error(t('webhooks.nameRequired'));
+    if (!form.url.trim()) return toast.error(t('webhooks.urlRequired'));
+    if (form.events.length === 0) return toast.error(t('webhooks.eventsRequired'));
 
     setSaving(true);
     try {
@@ -187,7 +190,7 @@ export default function WebhooksPage() {
           secret: form.secret.trim() || null,
           events: form.events,
         });
-        toast.success('Webhook updated');
+        toast.success(t('webhooks.updated'));
       } else {
         await api.post('/webhooks', {
           name: form.name.trim(),
@@ -195,13 +198,13 @@ export default function WebhooksPage() {
           secret: form.secret.trim() || undefined,
           events: form.events,
         });
-        toast.success('Webhook registered');
+        toast.success(t('webhooks.registered'));
       }
       resetForm();
       setShowForm(false);
       fetchWebhooks();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to save webhook');
+      toast.error(err.response?.data?.message || t('webhooks.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -210,10 +213,10 @@ export default function WebhooksPage() {
   const handleToggle = async (hook: Webhook) => {
     try {
       await api.patch(`/webhooks/${hook.id}/toggle`, { enabled: !hook.enabled });
-      toast.success(hook.enabled ? 'Webhook disabled' : 'Webhook enabled');
+      toast.success(hook.enabled ? t('webhooks.disabledToast') : t('webhooks.enabledToast'));
       fetchWebhooks();
     } catch {
-      toast.error('Failed to update webhook');
+      toast.error(t('webhooks.updateFailed'));
     }
   };
 
@@ -221,9 +224,9 @@ export default function WebhooksPage() {
     setPinging(hook.id);
     try {
       await api.post(`/webhooks/${hook.id}/ping`);
-      toast.success(`Ping sent to ${hook.url}`);
+      toast.success(t('webhooks.pingSent', { url: hook.url }));
     } catch {
-      toast.error('Ping failed');
+      toast.error(t('webhooks.pingFailed'));
     } finally {
       setPinging(null);
     }
@@ -232,10 +235,10 @@ export default function WebhooksPage() {
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/webhooks/${id}`);
-      toast.success('Webhook deleted');
+      toast.success(t('webhooks.deleted'));
       fetchWebhooks();
     } catch {
-      toast.error('Failed to delete webhook');
+      toast.error(t('webhooks.deleteFailed'));
     }
   };
 
@@ -246,14 +249,14 @@ export default function WebhooksPage() {
     try {
       const res = await api.post(`/webhooks/deliveries/${deliveryId}/retry`);
       if (res.data.success) {
-        toast.success(res.data.message || 'Re-delivered successfully!');
+        toast.success(res.data.message || t('webhooks.redelivered'));
       } else {
-        toast.error(res.data.message || 'Re-delivery failed');
+        toast.error(res.data.message || t('webhooks.redeliveryFailed'));
       }
       // Refresh current deliveries view to reflect fresh status & attempts
       fetchDeliveries(deliveryStatusFilter);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to re-deliver webhook');
+      toast.error(err.response?.data?.message || t('webhooks.redeliverError'));
     } finally {
       setRetryingDeliveryId(null);
     }
@@ -270,17 +273,17 @@ export default function WebhooksPage() {
           <TabsList className="bg-muted/50 p-1">
             <TabsTrigger value="webhooks" className="flex items-center gap-2">
               <Radio className="h-4 w-4" />
-              <span>Webhooks</span>
+              <span>{t('webhooks.tabWebhooks')}</span>
               <span className="ml-1 px-1.5 py-0.2 text-[11px] rounded-full bg-background font-mono">
                 {webhooks.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="deliveries" className="flex items-center gap-2">
               <FileCode2 className="h-4 w-4" />
-              <span>Delivery Logs & DLQ</span>
+              <span>{t('webhooks.tabDeliveries')}</span>
               {failedCount > 0 && (
                 <span className="ml-1 px-1.5 py-0.2 text-[11px] rounded-full bg-red-500/20 text-red-400 font-mono font-semibold">
-                  {failedCount} failed
+                  {t('webhooks.failedCount', { count: failedCount })}
                 </span>
               )}
             </TabsTrigger>
@@ -291,17 +294,17 @@ export default function WebhooksPage() {
               <>
                 <Button variant="outline" size="sm" onClick={fetchWebhooks} disabled={loading}>
                   <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5', loading && 'animate-spin')} />
-                  Refresh
+                  {tc('refresh')}
                 </Button>
                 <Button size="sm" onClick={openCreate}>
                   <Plus className="h-4 w-4 mr-1.5" />
-                  Add Webhook
+                  {t('webhooks.addWebhook')}
                 </Button>
               </>
             ) : (
               <Button variant="outline" size="sm" onClick={() => fetchDeliveries()} disabled={deliveriesLoading}>
                 <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5', deliveriesLoading && 'animate-spin')} />
-                Refresh Logs
+                {t('webhooks.refreshLogs')}
               </Button>
             )}
           </div>
@@ -315,20 +318,20 @@ export default function WebhooksPage() {
               onSubmit={handleSubmit}
               className="rounded-lg border border-border bg-card p-5 space-y-4 shadow-sm"
             >
-              <p className="text-sm font-semibold">{editingId !== null ? 'Edit Webhook' : 'Register New Webhook'}</p>
+              <p className="text-sm font-semibold">{editingId !== null ? t('webhooks.editTitle') : t('webhooks.registerTitle')}</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="wh-name">Name</Label>
+                  <Label htmlFor="wh-name">{tc('name')}</Label>
                   <Input
                     id="wh-name"
-                    placeholder="e.g. Vercel Deploy Hook or Zapier Sync"
+                    placeholder={t('webhooks.namePlaceholder')}
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="wh-url">Endpoint URL</Label>
+                  <Label htmlFor="wh-url">{t('webhooks.endpointUrl')}</Label>
                   <Input
                     id="wh-url"
                     type="url"
@@ -341,8 +344,8 @@ export default function WebhooksPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="wh-secret">
-                  Signing Secret{' '}
-                  <span className="text-muted-foreground font-normal">(optional — creates HMAC-SHA256 signature in X-NodePress-Signature)</span>
+                  {t('webhooks.signingSecret')}{' '}
+                  <span className="text-muted-foreground font-normal">{t('webhooks.signingSecretHint', { header: 'X-NodePress-Signature' })}</span>
                 </Label>
                 <Input
                   id="wh-secret"
@@ -353,7 +356,7 @@ export default function WebhooksPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Trigger Events</Label>
+                <Label>{t('webhooks.triggerEvents')}</Label>
                 <div className="flex flex-wrap gap-2">
                   {ALL_EVENTS.map((ev) => (
                     <button
@@ -367,7 +370,7 @@ export default function WebhooksPage() {
                           : 'border-border bg-card text-muted-foreground hover:border-primary/50',
                       )}
                     >
-                      {ev.label}
+                      {t(`webhooks.events.${ev.labelKey}`)}
                     </button>
                   ))}
                   <button
@@ -385,18 +388,18 @@ export default function WebhooksPage() {
                         : 'border-border bg-card text-muted-foreground hover:border-primary/50',
                     )}
                   >
-                    * All Events (Wildcard)
+                    * {t('webhooks.allEvents')}
                   </button>
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="ghost" onClick={() => { setShowForm(false); resetForm(); }}>
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button type="submit" disabled={saving}>
                   {saving && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
-                  {editingId !== null ? 'Save Changes' : 'Register Webhook'}
+                  {editingId !== null ? t('webhooks.saveChanges') : t('webhooks.registerWebhook')}
                 </Button>
               </div>
             </form>
@@ -416,11 +419,11 @@ export default function WebhooksPage() {
           ) : webhooks.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
               <Zap className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm font-medium">No webhooks registered yet</p>
-              <p className="text-xs mt-1 text-muted-foreground">Add one to broadcast content change notifications in real time.</p>
+              <p className="text-sm font-medium">{t('webhooks.emptyTitle')}</p>
+              <p className="text-xs mt-1 text-muted-foreground">{t('webhooks.emptyDescription')}</p>
               <Button size="sm" onClick={openCreate} className="mt-4">
                 <Plus className="h-4 w-4 mr-1.5" />
-                Register First Webhook
+                {t('webhooks.registerFirst')}
               </Button>
             </div>
           ) : (
@@ -445,7 +448,7 @@ export default function WebhooksPage() {
                               : 'bg-muted text-muted-foreground border border-border',
                           )}
                         >
-                          {hook.enabled ? 'Active' : 'Disabled'}
+                          {hook.enabled ? t('webhooks.active') : tc('disabled')}
                         </span>
                       </div>
                       <p className="text-xs font-mono text-muted-foreground truncate mb-2">{hook.url}</p>
@@ -478,7 +481,7 @@ export default function WebhooksPage() {
                           setActiveTab('deliveries');
                           fetchDeliveries(deliveryStatusFilter, hook.id);
                         }}
-                        title="View Delivery Logs & DLQ for this webhook"
+                        title={t('webhooks.viewDeliveries')}
                       >
                         <FileCode2 className="h-3.5 w-3.5 text-indigo-400" />
                       </Button>
@@ -487,7 +490,7 @@ export default function WebhooksPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => handleToggle(hook)}
-                        title={hook.enabled ? 'Disable Webhook' : 'Enable Webhook'}
+                        title={hook.enabled ? t('webhooks.disableWebhook') : t('webhooks.enableWebhook')}
                       >
                         {hook.enabled ? <ToggleRight className="h-4 w-4 text-emerald-400" /> : <ToggleLeft className="h-4 w-4" />}
                       </Button>
@@ -496,7 +499,7 @@ export default function WebhooksPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => openEdit(hook)}
-                        title="Edit Webhook"
+                        title={t('webhooks.editTitle')}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
@@ -506,7 +509,7 @@ export default function WebhooksPage() {
                         size="icon-sm"
                         onClick={() => handlePing(hook)}
                         disabled={pinging === hook.id}
-                        title="Send Test Ping"
+                        title={t('webhooks.sendPing')}
                       >
                         {pinging === hook.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
                       </Button>
@@ -519,16 +522,18 @@ export default function WebhooksPage() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Delete webhook?</AlertDialogTitle>
+                            <AlertDialogTitle>{t('webhooks.deleteTitle')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              <span className="font-medium">"{hook.name}"</span> will stop receiving events.
-                              This action cannot be undone.
+                              {t.rich('webhooks.deleteDescription', {
+                                name: hook.name,
+                                b: (chunks) => <span className="font-medium">{chunks}</span>,
+                              })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                             <AlertDialogAction variant="destructive" onClick={() => handleDelete(hook.id)}>
-                              Delete
+                              {tc('delete')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -554,14 +559,14 @@ export default function WebhooksPage() {
                   onClick={() => handleStatusFilterChange(st)}
                   className="capitalize text-xs h-7"
                 >
-                  {st === 'failed' ? 'Failed (DLQ)' : st}
+                  {t(`webhooks.statusFilter.${st}`)}
                 </Button>
               ))}
             </div>
 
             {selectedWebhookFilter !== null && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/30 text-xs text-indigo-400">
-                <span>Filter: <strong>{webhooks.find(w => w.id === selectedWebhookFilter)?.name || `Webhook #${selectedWebhookFilter}`}</strong></span>
+                <span>{t.rich('webhooks.filterLabel', { name: webhooks.find(w => w.id === selectedWebhookFilter)?.name || t('webhooks.webhookNumber', { id: selectedWebhookFilter }), strong: (chunks) => <strong>{chunks}</strong> })}</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -569,7 +574,7 @@ export default function WebhooksPage() {
                     fetchDeliveries(deliveryStatusFilter, null);
                   }}
                   className="ml-1 hover:text-foreground font-bold"
-                  title="Clear endpoint filter"
+                  title={t('webhooks.clearFilter')}
                 >
                   ✕
                 </button>
@@ -587,20 +592,20 @@ export default function WebhooksPage() {
           ) : deliveries.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
               <FileCode2 className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm font-medium">No webhook deliveries found</p>
-              <p className="text-xs mt-1">Webhook dispatch logs and retry attempts will appear here.</p>
+              <p className="text-sm font-medium">{t('webhooks.noDeliveries')}</p>
+              <p className="text-xs mt-1">{t('webhooks.noDeliveriesDescription')}</p>
             </div>
           ) : (
             <div className="rounded-lg border border-border bg-card overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-28">Status</TableHead>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Destination</TableHead>
-                    <TableHead className="w-24">Attempts</TableHead>
-                    <TableHead className="w-36">Time</TableHead>
-                    <TableHead className="text-right w-36">Actions</TableHead>
+                    <TableHead className="w-28">{tc('status')}</TableHead>
+                    <TableHead>{t('webhooks.colEvent')}</TableHead>
+                    <TableHead>{t('webhooks.colDestination')}</TableHead>
+                    <TableHead className="w-24">{t('webhooks.colAttempts')}</TableHead>
+                    <TableHead className="w-36">{t('webhooks.colTime')}</TableHead>
+                    <TableHead className="text-right w-36">{tc('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -616,12 +621,12 @@ export default function WebhooksPage() {
                         ) : del.status === 'failed' ? (
                           <Badge variant="outline" className="bg-red-500/15 text-red-400 border-red-500/30 gap-1 font-mono text-[11px]">
                             <AlertCircle className="h-3 w-3" />
-                            {del.responseStatus ? `HTTP ${del.responseStatus}` : 'Failed'}
+                            {del.responseStatus ? `HTTP ${del.responseStatus}` : t('webhooks.failed')}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="bg-amber-500/15 text-amber-400 border-amber-500/30 gap-1 font-mono text-[11px]">
                             <Clock className="h-3 w-3" />
-                            Pending
+                            {t('webhooks.pending')}
                           </Badge>
                         )}
                       </TableCell>
@@ -636,7 +641,7 @@ export default function WebhooksPage() {
                       {/* Destination */}
                       <TableCell className="max-w-[260px] truncate">
                         <div className="font-medium text-xs text-foreground truncate">
-                          {del.webhook?.name || `Webhook #${del.webhookId}`}
+                          {del.webhook?.name || t('webhooks.webhookNumber', { id: del.webhookId })}
                         </div>
                         <div className="text-[11px] font-mono text-muted-foreground truncate">
                           {del.webhook?.url || '—'}
@@ -645,7 +650,7 @@ export default function WebhooksPage() {
 
                       {/* Attempts */}
                       <TableCell className="text-xs text-muted-foreground font-mono">
-                        {del.attempts} {del.attempts === 1 ? 'try' : 'tries'}
+                        {t('webhooks.tries', { count: del.attempts })}
                       </TableCell>
 
                       {/* Time */}
@@ -659,7 +664,7 @@ export default function WebhooksPage() {
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            title="Inspect Payload & Error"
+                            title={t('webhooks.inspect')}
                             onClick={() => setInspectDelivery(del)}
                           >
                             <Eye className="h-3.5 w-3.5" />
@@ -672,14 +677,14 @@ export default function WebhooksPage() {
                             disabled={retryingDeliveryId === del.id}
                             onClick={() => handleRedeliver(del.id)}
                             className="text-xs h-7 gap-1 hover:bg-primary hover:text-primary-foreground transition-colors"
-                            title="Re-dispatch this payload immediately"
+                            title={t('webhooks.redispatchHint')}
                           >
                             {retryingDeliveryId === del.id ? (
                               <Loader2 className="h-3 w-3 animate-spin" />
                             ) : (
                               <Send className="h-3 w-3" />
                             )}
-                            Re-deliver
+                            {t('webhooks.redeliver')}
                           </Button>
                         </div>
                       </TableCell>
@@ -698,11 +703,11 @@ export default function WebhooksPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <FileCode2 className="h-5 w-5 text-blue-500" />
-              Webhook Delivery Details #{inspectDelivery?.id}
+              {t('webhooks.detailsTitle', { id: inspectDelivery?.id ?? '' })}
             </DialogTitle>
             <DialogDescription className="text-xs font-mono">
-              Event: <span className="text-foreground font-semibold">{inspectDelivery?.event}</span> • Destination:{' '}
-              <span className="text-foreground">{inspectDelivery?.webhook?.url || `Webhook #${inspectDelivery?.webhookId}`}</span>
+              {t('webhooks.detailsEvent')} <span className="text-foreground font-semibold">{inspectDelivery?.event}</span> • {t('webhooks.detailsDestination')}{' '}
+              <span className="text-foreground">{inspectDelivery?.webhook?.url || t('webhooks.webhookNumber', { id: inspectDelivery?.webhookId ?? '' })}</span>
             </DialogDescription>
           </DialogHeader>
 
@@ -711,15 +716,15 @@ export default function WebhooksPage() {
               {/* Delivery Meta */}
               <div className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-muted/40 border border-border text-xs">
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">Status:</span>
+                  <span className="text-muted-foreground block text-[10px]">{t('webhooks.metaStatus')}</span>
                   <span className="font-semibold capitalize text-foreground">{inspectDelivery.status}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">Response Status:</span>
-                  <span className="font-mono text-foreground">{inspectDelivery.responseStatus ?? 'None'}</span>
+                  <span className="text-muted-foreground block text-[10px]">{t('webhooks.metaResponseStatus')}</span>
+                  <span className="font-mono text-foreground">{inspectDelivery.responseStatus ?? tc('none')}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">Attempts:</span>
+                  <span className="text-muted-foreground block text-[10px]">{t('webhooks.metaAttempts')}</span>
                   <span className="font-mono text-foreground">{inspectDelivery.attempts}</span>
                 </div>
               </div>
@@ -729,7 +734,7 @@ export default function WebhooksPage() {
                 <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-xs">
                   <div className="flex items-center gap-1.5 font-semibold text-red-400 mb-1">
                     <AlertCircle className="h-3.5 w-3.5" />
-                    Delivery Error Message
+                    {t('webhooks.errorMessage')}
                   </div>
                   <pre className="font-mono text-[11px] text-red-300 whitespace-pre-wrap">
                     {inspectDelivery.errorMessage}
@@ -740,17 +745,17 @@ export default function WebhooksPage() {
               {/* Payload Viewer */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium flex items-center justify-between">
-                  <span>Dispatched JSON Payload</span>
+                  <span>{t('webhooks.payload')}</span>
                   <Button
                     variant="ghost"
                     size="xs"
                     className="h-6 text-xs"
                     onClick={() => {
                       navigator.clipboard.writeText(JSON.stringify(inspectDelivery.payload, null, 2));
-                      toast.success('Payload copied to clipboard');
+                      toast.success(t('webhooks.payloadCopied'));
                     }}
                   >
-                    Copy JSON
+                    {t('webhooks.copyJson')}
                   </Button>
                 </Label>
                 <pre className="p-3 rounded-lg bg-[#111] border border-white/10 font-mono text-xs text-emerald-400 overflow-x-auto max-h-60">
@@ -771,11 +776,11 @@ export default function WebhooksPage() {
               className="gap-1.5"
             >
               <Send className="h-3.5 w-3.5" />
-              Re-deliver Now
+              {t('webhooks.redeliverNow')}
             </Button>
 
             <Button variant="ghost" size="sm" onClick={() => setInspectDelivery(null)}>
-              Close
+              {tc('close')}
             </Button>
           </DialogFooter>
         </DialogContent>

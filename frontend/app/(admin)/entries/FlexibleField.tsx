@@ -2,6 +2,7 @@
 
 import { useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { Trash2 } from 'lucide-react';
+import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,6 +48,7 @@ function renderSubInput(
   register: any,
   sf: SubField,
   control?: any,
+  enterPlaceholder?: string,
 ) {
   switch (type) {
     case 'textarea':
@@ -54,7 +56,7 @@ function renderSubInput(
       return (
         <Textarea
           rows={type === 'richtext' ? 4 : 2}
-          placeholder={`Enter ${toLabel(sf.name)}`}
+          placeholder={enterPlaceholder}
           {...register(fieldPath)}
         />
       );
@@ -62,7 +64,7 @@ function renderSubInput(
       return (
         <Input
           type="number"
-          placeholder={`Enter ${toLabel(sf.name)}`}
+          placeholder={enterPlaceholder}
           {...register(fieldPath, { valueAsNumber: true })}
         />
       );
@@ -155,7 +157,7 @@ function renderSubInput(
       return (
         <Input
           type="text"
-          placeholder={`Enter ${toLabel(sf.name)}`}
+          placeholder={enterPlaceholder}
           {...register(fieldPath)}
         />
       );
@@ -178,6 +180,7 @@ function FlexibleItem({
   register: any;
   onRemove: () => void;
 }) {
+  const t = useTranslations('entryEditor');
   const layoutKey = `${fieldName}.${index}._layout`;
   const selectedLayoutName: string = useWatch({ control, name: layoutKey }) || '';
   const layout = layouts.find((l) => l.name === selectedLayoutName);
@@ -196,7 +199,7 @@ function FlexibleItem({
             {index + 1}
           </Badge>
           <span className="text-sm font-medium text-muted-foreground">
-            {layout?.label || layout?.name || 'Select a layout'}
+            {layout?.label || layout?.name || t('flexible.selectLayout')}
           </span>
         </div>
         <Button
@@ -205,7 +208,8 @@ function FlexibleItem({
           size="icon-xs"
           className="text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={onRemove}
-          title="Remove block"
+          title={t('flexible.removeBlock')}
+          aria-label={t('flexible.removeBlock')}
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
@@ -213,7 +217,7 @@ function FlexibleItem({
 
       {/* Layout selector */}
       <div className="mb-3">
-        <Label className="mb-1 block text-xs text-muted-foreground">Section Type</Label>
+        <Label className="mb-1 block text-xs text-muted-foreground">{t('flexible.sectionType')}</Label>
         <Controller
           control={control}
           name={layoutKey}
@@ -221,7 +225,7 @@ function FlexibleItem({
           render={({ field }) => (
             <Select value={field.value || ''} onValueChange={field.onChange}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose section layout…" />
+                <SelectValue placeholder={t('flexible.chooseLayout')} />
               </SelectTrigger>
               <SelectContent>
                 {layouts.map((l) => (
@@ -247,13 +251,13 @@ function FlexibleItem({
                 <div key={f.name}>
                   {f.type === 'boolean' ? (
                     <div className="flex items-center gap-2">
-                      {renderSubInput(f.type, fieldPath, register, f, control)}
+                      {renderSubInput(f.type, fieldPath, register, f, control, t('flexible.enterValue', { field: sfLabel }))}
                       <Label className="text-sm">{sfLabel}</Label>
                     </div>
                   ) : (
                     <>
                       <Label className="mb-1 block text-sm">{sfLabel}</Label>
-                      {renderSubInput(f.type, fieldPath, register, f, control)}
+                      {renderSubInput(f.type, fieldPath, register, f, control, t('flexible.enterValue', { field: sfLabel }))}
                     </>
                   )}
                 </div>
@@ -273,6 +277,7 @@ export default function FlexibleField({
   errors,
   watch,
 }: Props) {
+  const t = useTranslations('entryEditor');
   const { fields, append, remove } = useFieldArray({ control, name: fieldName });
 
   return (
@@ -298,7 +303,7 @@ export default function FlexibleField({
           }}
         >
           <SelectTrigger className="w-full border-dashed text-muted-foreground">
-            <SelectValue placeholder="+ Add Block…" />
+            <SelectValue placeholder={t('flexible.addBlock')} />
           </SelectTrigger>
           <SelectContent>
             {layouts.map((l) => (

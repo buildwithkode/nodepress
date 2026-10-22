@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "Benutzer konnten nicht geladen werden",
+    "createdNoEmail": "Benutzer erstellt — kein E-Mail-Server konfiguriert",
+    "createdInviteCopied": "Einladungslink in die Zwischenablage kopiert. Senden Sie ihn an {email}: {url}",
+    "noEmailServer": "Kein E-Mail-Server konfiguriert",
+    "inviteCopied": "Einladungslink kopiert. Senden Sie ihn an {email}: {url}",
+    "inviteSent": "Einladung an {email} gesendet",
+    "createFailed": "Benutzer konnte nicht erstellt werden",
+    "roleUpdated": "Rolle aktualisiert",
+    "roleUpdateFailed": "Rolle konnte nicht aktualisiert werden",
+    "deleted": "Benutzer gelöscht",
+    "deleteFailed": "Benutzer konnte nicht gelöscht werden",
+    "inviteFailed": "Einladung konnte nicht gesendet werden",
+    "passwordUpdated": "Passwort aktualisiert",
+    "passwordUpdateFailed": "Passwort konnte nicht aktualisiert werden",
+    "twoFactorSetupFailed": "2FA-Einrichtung konnte nicht gestartet werden",
+    "twoFactorActivated": "Zwei-Faktor-Authentifizierung erfolgreich aktiviert!",
+    "twoFactorInvalidCode": "Ungültiger Bestätigungscode. Bitte versuchen Sie es erneut.",
+    "twoFactorDisabled": "Zwei-Faktor-Authentifizierung deaktiviert",
+    "twoFactorDisableInvalid": "Ungültiger 2FA-Code oder Wiederherstellungscode",
+    "recoveryCopied": "Wiederherstellungscodes in die Zwischenablage kopiert",
+    "recoveryCopyFailed": "Wiederherstellungscodes konnten nicht kopiert werden",
+    "secretCopied": "Geheimschlüssel kopiert",
+    "secretCopyFailed": "Geheimschlüssel konnte nicht kopiert werden"
+  },
+  "list": {
+    "title": "Teammitglieder",
+    "description": "Verwalten Sie, wer Zugriff auf das Admin-Panel hat und was er tun darf.",
+    "email": "E-Mail",
+    "role": "Rolle",
+    "joined": "Beigetreten",
+    "empty": "Keine Benutzer gefunden",
+    "you": "(Sie)",
+    "viewPermissions": "Berechtigungsmatrix anzeigen: {role}",
+    "sendInvite": "Einladungs-E-Mail senden",
+    "deleteTitle": "{email} löschen?",
+    "deleteDescription": "Der Zugriff wird dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden."
+  },
+  "roleGuide": {
+    "title": "Rollenberechtigungen",
+    "manage": "Berechtigungen verwalten",
+    "admin": {
+      "p1": "Vollzugriff auf alles",
+      "p2": "Benutzer & Rollen verwalten",
+      "p3": "Inhaltstypen & API-Schlüssel",
+      "p4": "Audit-Log & Webhooks"
+    },
+    "editor": {
+      "p1": "Einträge erstellen / bearbeiten / löschen",
+      "p2": "Einträge veröffentlichen & archivieren",
+      "p3": "Formulare, Medien hochladen/löschen",
+      "p4": "Inhaltstypen lesen"
+    },
+    "contributor": {
+      "p1": "Einträge erstellen & bearbeiten",
+      "p2": "Kann keine Einträge löschen",
+      "p3": "Kann nicht veröffentlichen oder archivieren",
+      "p4": "Nur Medien hochladen"
+    },
+    "viewer": {
+      "p1": "Dashboard nur lesen",
+      "p2": "Einträge & Formulare ansehen",
+      "p3": "Mediathek ansehen",
+      "p4": "Kann nichts ändern"
+    }
+  },
+  "add": {
+    "title": "Benutzer hinzufügen",
+    "description": "Laden Sie ein Teammitglied per E-Mail ein — es erhält einen Link, um sein eigenes Passwort festzulegen. Hier ist kein Passwort nötig.",
+    "sending": "Einladung wird gesendet…",
+    "submit": "Einladung senden"
+  },
+  "twoFactor": {
+    "title": "Zwei-Faktor-Authentifizierung (2FA)",
+    "description": "Schützen Sie Ihr Konto mit einer zusätzlichen Sicherheitsebene über Google Authenticator, 1Password oder Authy.",
+    "enabledHeading": "2FA schützt derzeit Ihr Konto",
+    "disabledHeading": "Erhöhen Sie Ihre Anmeldesicherheit mit TOTP",
+    "enabledHelp": "Bei der Anmeldung werden Sie nach einem 6-stelligen Code oder einem Notfall-Wiederherstellungscode gefragt.",
+    "disabledHelp": "Erfordert das Scannen eines QR-Codes mit einer Authenticator-App und das Aufbewahren von Wiederherstellungscodes.",
+    "enable": "2FA aktivieren",
+    "disable": "2FA deaktivieren",
+    "disabling": "Wird deaktiviert…",
+    "setupTitle": "Zwei-Faktor-Authentifizierung einrichten",
+    "setupDescription": "Scannen Sie den QR-Code mit Google Authenticator, 1Password oder Authy.",
+    "qrAlt": "2FA-QR-Code",
+    "manualKey": "Schlüssel für manuelle Eingabe",
+    "recoveryCodes": "Notfall-Wiederherstellungscodes",
+    "copyCodes": "Codes kopieren",
+    "recoveryHelp": "Bewahren Sie diese Codes sicher auf. Wenn Sie Ihre Authenticator-App verlieren, kann jeder Code einmal zur Anmeldung verwendet werden.",
+    "verificationCode": "Bestätigungscode",
+    "verificationPlaceholder": "6-stelligen Code eingeben",
+    "activating": "Wird aktiviert…",
+    "activate": "2FA aktivieren",
+    "disableTitle": "Zwei-Faktor-Authentifizierung deaktivieren",
+    "disableDescription": "Geben Sie zur Bestätigung einen 6-stelligen Code aus Ihrer Authenticator-App oder einen Notfall-Wiederherstellungscode ein.",
+    "disableCodeLabel": "Authenticator- oder Wiederherstellungscode",
+    "disableCodePlaceholder": "6-stelliger Code oder XXXX-XXXX"
+  },
+  "password": {
+    "title": "Passwort ändern",
+    "current": "Aktuelles Passwort",
+    "new": "Neues Passwort",
+    "newPlaceholder": "Mind. 8 Zeichen",
+    "updating": "Wird aktualisiert…",
+    "submit": "Passwort aktualisieren"
+  },
+  "permissions": {
+    "loading": "Berechtigungen werden geladen…",
+    "toasts": {
+      "loadFailed": "Berechtigungen konnten nicht geladen werden",
+      "schemaLoadFailed": "Schema für „{name}“ konnte nicht geladen werden",
+      "roleLoadFailed": "Rollenberechtigungen konnten nicht geladen werden",
+      "updated": "Berechtigung aktualisiert",
+      "updateFailed": "Berechtigung konnte nicht aktualisiert werden",
+      "reset": "Berechtigungen auf Standard zurückgesetzt",
+      "resetFailed": "Berechtigungen konnten nicht zurückgesetzt werden",
+      "fieldsSaved": "Feldberechtigungen für „{name}“ gespeichert",
+      "fieldsSaveFailed": "Feldberechtigungen konnten nicht gespeichert werden"
+    },
+    "backToUsers": "Benutzer",
+    "title": "Zugriffskontrolle & Berechtigungen",
+    "resetDefaults": "Auf Standard zurücksetzen",
+    "tabs": {
+      "contentTypes": "Aktionsmatrix nach Inhaltstyp",
+      "fields": "Berechtigungsmatrix auf Feldebene"
+    },
+    "actions": {
+      "create": "Erstellen",
+      "read": "Lesen",
+      "update": "Bearbeiten",
+      "delete": "Löschen",
+      "publish": "Veröffentlichen"
+    },
+    "roleDescriptions": {
+      "editor": "Verwaltet alle Inhalte — kann erstellen, bearbeiten, löschen und veröffentlichen.",
+      "contributor": "Erstellt und bearbeitet Inhalte — kann nicht löschen oder veröffentlichen.",
+      "viewer": "Nur-Lese-Zugriff auf das Admin-Panel."
+    },
+    "clickToDeselect": "zum Abwählen klicken",
+    "defaultRow": "Standard *",
+    "summary": {
+      "title": "Berechtigungsübersicht",
+      "description": "Für diese Rolle konfigurierte Überschreibungen. Nicht aufgeführte Zeilen verwenden den Platzhalter-Standard.",
+      "empty": "Keine Überschreibungen — Werkseinstellungen für alle Inhaltstypen."
+    },
+    "matrix": {
+      "title": "Berechtigungsmatrix nach Inhaltstyp",
+      "description": "Legen Sie die erlaubten Aktionen pro Rolle fest. Die Zeile <strong>*</strong> ist der Standard für alle Inhaltstypen. Überschreiben Sie einzelne Inhaltstypen, indem Sie Aktionen in deren Zeile umschalten. Ausgegraute Kontrollkästchen werden von der Platzhalterzeile geerbt.",
+      "contentType": "Inhaltstyp",
+      "inherited": "Geerbt von {role}/* — zum Überschreiben klicken"
+    },
+    "fields": {
+      "title": "Zugriffskontrollmatrix auf Feldebene",
+      "description": "Schränken Sie Lesesichtbarkeit und Schreibzugriff für bestimmte Attribute ein (z. B. Gehalt, Marge oder interne Notizen vor Nicht-Admin-Rollen verbergen).",
+      "selectContentType": "Inhaltstyp auswählen",
+      "save": "Berechtigungen speichern",
+      "loading": "Feldschema wird geladen…",
+      "emptyTitle": "Für diesen Inhaltstyp sind keine Felder definiert",
+      "emptyHelp": "Fügen Sie diesem Inhaltstyp zuerst im Schema Builder Felder hinzu.",
+      "field": "Feld",
+      "readVisibility": "Lesesichtbarkeit",
+      "writeAccess": "Schreib- / Änderungszugriff",
+      "nameAndType": "Name & Typ",
+      "restricted": "Eingeschränkt",
+      "adminRead": "Admins haben immer vollen Lesezugriff",
+      "adminWrite": "Admins haben immer vollen Schreibzugriff"
+    },
+    "enforcement": {
+      "title": "Sicherheit ohne Datenlecks:",
+      "read": "Wird eine Rolle bei <strong>Lesesichtbarkeit</strong> abgewählt, entfernt das Backend das Feld automatisch aus allen REST- (<path></path>) und GraphQL-Antworten, bevor sie an den Client gesendet werden.",
+      "write": "Wird eine Rolle bei <strong>Schreibzugriff</strong> abgewählt, lehnt das Backend unberechtigte Änderungsversuche mit HTTP 403 Forbidden ab."
+    },
+    "adminNote": "Hinweis: Admins haben immer uneingeschränkten Zugriff auf alle Schemafelder und können nicht eingeschränkt werden."
+  }
+}
