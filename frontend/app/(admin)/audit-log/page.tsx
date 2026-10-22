@@ -93,6 +93,7 @@ export default function AuditLogPage() {
                 <SelectItem value="redirect">{t('auditLog.resources.redirect')}</SelectItem>
                 <SelectItem value="component">{t('auditLog.resources.component')}</SelectItem>
                 <SelectItem value="import">{t('auditLog.resources.import')}</SelectItem>
+                <SelectItem value="choice_list">{t('auditLog.resources.choice_list')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

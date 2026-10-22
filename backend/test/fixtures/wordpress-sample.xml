@@ -35,6 +35,12 @@
 		<wp:category_parent><![CDATA[brewing]]></wp:category_parent>
 		<wp:cat_name><![CDATA[Pour Over]]></wp:cat_name>
 	</wp:category>
+	<wp:category>
+		<wp:term_id>6</wp:term_id>
+		<wp:category_nicename><![CDATA[kettles]]></wp:category_nicename>
+		<wp:category_parent><![CDATA[pour-over]]></wp:category_parent>
+		<wp:cat_name><![CDATA[Kettles]]></wp:cat_name>
+	</wp:category>
 	<wp:tag>
 		<wp:term_id>4</wp:term_id>
 		<wp:tag_slug><![CDATA[v60]]></wp:tag_slug>
@@ -45,6 +51,26 @@
 		<wp:tag_slug><![CDATA[espresso]]></wp:tag_slug>
 		<wp:tag_name><![CDATA[Espresso]]></wp:tag_name>
 	</wp:tag>
+	<wp:term>
+		<wp:term_id>7</wp:term_id>
+		<wp:term_taxonomy><![CDATA[origin]]></wp:term_taxonomy>
+		<wp:term_slug><![CDATA[africa]]></wp:term_slug>
+		<wp:term_parent><![CDATA[]]></wp:term_parent>
+		<wp:term_name><![CDATA[Africa]]></wp:term_name>
+	</wp:term>
+	<wp:term>
+		<wp:term_id>8</wp:term_id>
+		<wp:term_taxonomy><![CDATA[origin]]></wp:term_taxonomy>
+		<wp:term_slug><![CDATA[ethiopia]]></wp:term_slug>
+		<wp:term_parent><![CDATA[africa]]></wp:term_parent>
+		<wp:term_name><![CDATA[Ethiopia]]></wp:term_name>
+	</wp:term>
+	<wp:term>
+		<wp:term_id>9</wp:term_id>
+		<wp:term_taxonomy><![CDATA[nav_menu]]></wp:term_taxonomy>
+		<wp:term_slug><![CDATA[main-menu]]></wp:term_slug>
+		<wp:term_name><![CDATA[Main menu]]></wp:term_name>
+	</wp:term>
 
 	<generator>https://wordpress.org/?v=6.6.2</generator>
 
@@ -136,8 +162,49 @@
 		<wp:comment>
 			<wp:comment_id>1</wp:comment_id>
 			<wp:comment_author><![CDATA[A reader]]></wp:comment_author>
+			<wp:comment_author_email><![CDATA[reader@mail.example]]></wp:comment_author_email>
+			<wp:comment_author_url>https://reader.example</wp:comment_author_url>
+			<wp:comment_author_IP><![CDATA[203.0.113.7]]></wp:comment_author_IP>
+			<wp:comment_date><![CDATA[2025-01-15 10:00:00]]></wp:comment_date>
+			<wp:comment_date_gmt><![CDATA[2025-01-15 09:00:00]]></wp:comment_date_gmt>
 			<wp:comment_content><![CDATA[Great guide!]]></wp:comment_content>
 			<wp:comment_approved><![CDATA[1]]></wp:comment_approved>
+			<wp:comment_type><![CDATA[comment]]></wp:comment_type>
+			<wp:comment_parent>0</wp:comment_parent>
+			<wp:comment_user_id>0</wp:comment_user_id>
+		</wp:comment>
+		<wp:comment>
+			<wp:comment_id>2</wp:comment_id>
+			<wp:comment_author><![CDATA[Jane Barista]]></wp:comment_author>
+			<wp:comment_author_email><![CDATA[jane@coffee.example.com]]></wp:comment_author_email>
+			<wp:comment_author_IP><![CDATA[198.51.100.2]]></wp:comment_author_IP>
+			<wp:comment_date><![CDATA[2025-01-15 11:30:00]]></wp:comment_date>
+			<wp:comment_date_gmt><![CDATA[2025-01-15 10:30:00]]></wp:comment_date_gmt>
+			<wp:comment_content><![CDATA[<p>Thanks! Try <strong>94 &deg;C</strong> water &amp; a slow pour.</p><p>Second&nbsp;line<br />third</p><script>alert(1)</script>]]></wp:comment_content>
+			<wp:comment_approved><![CDATA[1]]></wp:comment_approved>
+			<wp:comment_type><![CDATA[comment]]></wp:comment_type>
+			<wp:comment_parent>1</wp:comment_parent>
+			<wp:comment_user_id>1</wp:comment_user_id>
+		</wp:comment>
+		<wp:comment>
+			<wp:comment_id>3</wp:comment_id>
+			<wp:comment_author><![CDATA[New visitor]]></wp:comment_author>
+			<wp:comment_author_email><![CDATA[visitor@mail.example]]></wp:comment_author_email>
+			<wp:comment_date_gmt><![CDATA[2025-01-16 08:00:00]]></wp:comment_date_gmt>
+			<wp:comment_content><![CDATA[Does this work with a Chemex?]]></wp:comment_content>
+			<wp:comment_approved><![CDATA[0]]></wp:comment_approved>
+			<wp:comment_type><![CDATA[]]></wp:comment_type>
+			<wp:comment_parent>0</wp:comment_parent>
+		</wp:comment>
+		<wp:comment>
+			<wp:comment_id>4</wp:comment_id>
+			<wp:comment_author><![CDATA[Cheap pills]]></wp:comment_author>
+			<wp:comment_author_email><![CDATA[spam@spam.example]]></wp:comment_author_email>
+			<wp:comment_date_gmt><![CDATA[2025-01-16 09:00:00]]></wp:comment_date_gmt>
+			<wp:comment_content><![CDATA[<a href="https://spam.example">buy now</a>]]></wp:comment_content>
+			<wp:comment_approved><![CDATA[spam]]></wp:comment_approved>
+			<wp:comment_type><![CDATA[comment]]></wp:comment_type>
+			<wp:comment_parent>0</wp:comment_parent>
 		</wp:comment>
 	</item>
 
@@ -166,6 +233,15 @@
 		<wp:is_sticky>1</wp:is_sticky>
 		<category domain="category" nicename="brewing"><![CDATA[Brewing]]></category>
 		<category domain="post_tag" nicename="espresso"><![CDATA[Espresso]]></category>
+		<category domain="post_format" nicename="post-format-aside"><![CDATA[Aside]]></category>
+		<wp:comment>
+			<wp:comment_id>5</wp:comment_id>
+			<wp:comment_author><![CDATA[Old troll]]></wp:comment_author>
+			<wp:comment_date_gmt><![CDATA[2025-02-02 09:00:00]]></wp:comment_date_gmt>
+			<wp:comment_content><![CDATA[Removed.]]></wp:comment_content>
+			<wp:comment_approved><![CDATA[trash]]></wp:comment_approved>
+			<wp:comment_parent>0</wp:comment_parent>
+		</wp:comment>
 	</item>
 
 	<item>
@@ -246,6 +322,7 @@
 		<wp:post_password><![CDATA[]]></wp:post_password>
 		<wp:is_sticky>0</wp:is_sticky>
 		<category domain="origin" nicename="africa"><![CDATA[Africa]]></category>
+		<category domain="origin" nicename="ethiopia"><![CDATA[Ethiopia]]></category>
 		<wp:postmeta>
 			<wp:meta_key><![CDATA[roast_level]]></wp:meta_key>
 			<wp:meta_value><![CDATA[light]]></wp:meta_value>
@@ -283,6 +360,7 @@
 		<wp:post_type><![CDATA[post]]></wp:post_type>
 		<wp:post_password><![CDATA[]]></wp:post_password>
 		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="kettles"><![CDATA[Kettles]]></category>
 	</item>
 
 	<item>
@@ -295,6 +373,14 @@
 		<wp:post_name><![CDATA[old-draft__trashed]]></wp:post_name>
 		<wp:status><![CDATA[trash]]></wp:status>
 		<wp:post_type><![CDATA[post]]></wp:post_type>
+		<wp:comment>
+			<wp:comment_id>6</wp:comment_id>
+			<wp:comment_author><![CDATA[Someone]]></wp:comment_author>
+			<wp:comment_date_gmt><![CDATA[2024-05-02 08:00:00]]></wp:comment_date_gmt>
+			<wp:comment_content><![CDATA[On a deleted post.]]></wp:comment_content>
+			<wp:comment_approved><![CDATA[1]]></wp:comment_approved>
+			<wp:comment_parent>0</wp:comment_parent>
+		</wp:comment>
 	</item>
 
 	<item>

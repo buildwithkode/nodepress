@@ -7,13 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import RepeaterField from './RepeaterField';
 import FlexibleField from './FlexibleField';
@@ -21,6 +14,7 @@ import GroupField from './GroupField';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
 import { RelationPicker } from '@/components/RelationPicker';
 import { ReverseRelationList } from '@/components/ReverseRelationList';
+import { ChoiceSelect, type ChoiceOptions } from '@/components/ChoiceSelect';
 
 const RichTextEditor = dynamic(
   () => import('@/components/RichTextEditor'),
@@ -225,40 +219,16 @@ export default function DynamicFormField({
           />
         );
 
-      case 'select': {
-        const opts = field.options as { choices?: string | string[] } | undefined;
-        const choices = opts?.choices ?? '';
-        const selectOptions = (
-          Array.isArray(choices)
-            ? choices
-            : String(choices).split(',')
-        )
-          .map((o) => o.trim())
-          .filter(Boolean)
-          .map((o) => ({ label: o, value: o }));
+      case 'select':
         return (
-          <Controller
+          <ChoiceSelect
             control={control}
             name={field.name}
-            render={({ field: f }) => (
-              <Select value={f.value ?? ''} onValueChange={f.onChange}>
-                <SelectTrigger
-                  className={cn(error && 'border-destructive focus:ring-destructive')}
-                >
-                  <SelectValue placeholder={t('form.selectValue', { field: label })} />
-                </SelectTrigger>
-                <SelectContent>
-                  {selectOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            options={field.options as ChoiceOptions | undefined}
+            placeholder={t('form.selectValue', { field: label })}
+            invalid={!!error}
           />
         );
-      }
 
       case 'image':
         return (

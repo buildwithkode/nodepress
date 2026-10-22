@@ -28,19 +28,33 @@ export class ImporterController {
   @ApiQuery({ name: 'dryRun', required: false, type: Boolean })
   @ApiQuery({ name: 'importMedia', required: false, type: Boolean, description: 'Download attachments into the media library' })
   @ApiQuery({ name: 'overwrite', required: false, type: Boolean, description: 'Update entries whose slug already exists (default: skip them)' })
+  @ApiQuery({ name: 'categoryPaths', required: false, type: Boolean, description: 'Add a category_paths field with full "Parent/Child" paths' })
+  @ApiQuery({ name: 'taxonomies', required: false, type: Boolean, description: 'Add a taxonomies field ({ taxonomy: [terms] }) for custom taxonomies' })
+  @ApiQuery({ name: 'authors', required: false, type: Boolean, description: 'Import wp:author as wp_author entries (no email, never login accounts) and link posts via author_ref' })
+  @ApiQuery({ name: 'comments', required: false, type: Boolean, description: 'Import approved comments as wp_comment entries (no email or IP)' })
+  @ApiQuery({ name: 'pendingComments', required: false, type: Boolean, description: 'With comments: include pending comments (as pending_review)' })
   @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
   upload(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Query('dryRun') dryRun?: string,
     @Query('importMedia') importMedia?: string,
     @Query('overwrite') overwrite?: string,
+    @Query('categoryPaths') categoryPaths?: string,
+    @Query('taxonomies') taxonomies?: string,
+    @Query('authors') authors?: string,
+    @Query('comments') comments?: string,
+    @Query('pendingComments') pendingComments?: string,
     @Req() req?: any,
   ) {
-    if (flag(dryRun)) return this.importer.dryRun(file?.buffer);
+    const extras = {
+      categoryPaths: flag(categoryPaths), taxonomies: flag(taxonomies), authors: flag(authors),
+      comments: flag(comments), pendingComments: flag(pendingComments),
+    };
+    if (flag(dryRun)) return this.importer.dryRun(file?.buffer, extras);
     const user = req?.user ?? {};
     return this.importer.queue(
       file,
-      { importMedia: flag(importMedia), overwrite: flag(overwrite) },
+      { importMedia: flag(importMedia), overwrite: flag(overwrite), ...extras },
       { id: user.id, email: user.email ?? 'admin', role: user.role, ip: req?.ip },
     );
   }

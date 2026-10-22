@@ -436,3 +436,19 @@ model Redirect {
 
   @@map("redirects")
 }
+
+// Shared option lists for select fields (Settings → Choice lists). A select
+// field with options.choiceList = name gets these choices copied in on save;
+// editing a list updates every content type that uses it.
+model ChoiceList {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  label       String
+  description String?
+  /// [{ value: string, label?: string }]
+  choices     Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("choice_lists")
+}

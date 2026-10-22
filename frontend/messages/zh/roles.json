@@ -52,6 +52,7 @@
     "deleted": "角色已删除",
     "saveFailed": "无法保存角色",
     "deleteFailed": "无法删除角色",
-    "inUse": "仍有 {count, plural, other {# 个用户}}拥有此角色。请先为他们分配其他角色。"
+    "inUse": "仍有 {count, plural, other {# 个用户}}拥有此角色。请先为他们分配其他角色。",
+    "permissionsKept": "此角色的权限已被自定义，因此保留不变，未更改为 {base} 的默认权限。请在权限页面中检查。"
   }
 }

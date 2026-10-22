@@ -46,5 +46,18 @@
   "colFailed": "Com falha",
   "mediaResult": "Mídia: {imported} importados, {reused} já importados, {failed} com falha",
   "errors": "{count, plural, one {# problema} other {# problemas}}",
-  "viewEntries": "Ver entradas →"
+  "viewEntries": "Ver entradas →",
+  "extras": "Importar também",
+  "categoryPaths": "Manter a hierarquia de categorias",
+  "categoryPathsHint": "Adiciona um campo category_paths com caminhos completos como “Pai/Filho” ao lado dos nomes das categorias. {count, plural, =0 {Este arquivo não tem categorias aninhadas.} one {# categoria aninhada neste arquivo.} other {# categorias aninhadas neste arquivo.}}",
+  "taxonomies": "Importar taxonomias personalizadas",
+  "taxonomiesHint": "Adiciona um campo taxonomies — os termos agrupados por taxonomia — às entradas que as usam.",
+  "taxonomiesFound": "Neste arquivo: {list}.",
+  "taxonomiesNone": "Este arquivo não tem taxonomias personalizadas.",
+  "authors": "Importar autores como conteúdo",
+  "authorsHint": "{count, plural, one {# autor se torna uma entrada wp_author} other {# autores se tornam entradas wp_author}} (login, nome de exibição, nome e sobrenome), e cada post é ligado ao seu autor por um campo author_ref. São entradas de conteúdo, não contas de acesso — ninguém pode entrar com elas. Endereços de e-mail não são copiados.",
+  "comments": "Importar comentários",
+  "commentsHint": "Comentários aprovados se tornam entradas wp_comment: nome, texto sem HTML, data, o comentário a que respondem e o post a que pertencem. E-mail e IP de quem comenta não são copiados; spam e comentários na lixeira nunca são importados. Neste arquivo: {approved} aprovados, {pending} pendentes, {spam} spam ou lixeira.",
+  "pendingComments": "Incluir comentários pendentes",
+  "pendingCommentsHint": "Importados como entradas aguardando revisão."
 }

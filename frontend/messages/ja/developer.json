@@ -190,7 +190,8 @@
       "role": "ロール",
       "redirect": "リダイレクト",
       "component": "コンポーネント",
-      "import": "インポート"
+      "import": "インポート",
+      "choice_list": "選択肢リスト"
     },
     "colTime": "日時",
     "colUser": "ユーザー",

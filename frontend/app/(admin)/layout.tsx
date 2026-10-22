@@ -32,7 +32,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, Upload } from 'lucide-react';
+  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, Upload, ListOrdered } from 'lucide-react';
 
 interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
 interface NavGroup { label: string; adminOnly: boolean; items: NavLink[]; externalLinks?: NavLink[] }
@@ -94,6 +94,7 @@ const ALL_NAV_GROUPS: Array<{
       { href: '/languages', labelKey: 'languages', icon: Languages },
       { href: '/server-settings', labelKey: 'serverSettings', icon: Mail },
       { href: '/import', labelKey: 'importer', icon: Upload },
+      { href: '/choice-lists', labelKey: 'choiceLists', icon: ListOrdered },
     ],
   },
   {

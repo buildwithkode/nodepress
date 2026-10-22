@@ -16,7 +16,9 @@
     "contentType": "コンテンツタイプ",
     "selectContentType": "コンテンツタイプを選択…",
     "selectToBegin": "始めるにはコンテンツタイプを選択してください。",
-    "submit": "エントリーを作成"
+    "submit": "エントリーを作成",
+    "saveAndPreview": "下書き保存してプレビュー",
+    "saveAndPreviewHint": "下書きとして保存し、ライブプレビューを開きます"
   },
   "edit": {
     "title": "エントリーを編集",

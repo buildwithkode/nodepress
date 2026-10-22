@@ -9,6 +9,7 @@ import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { canManageSettings } from '@/lib/roles';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
+import { SelectChoicesSource } from '@/components/ChoiceListField';
 import { ctLabel, humanizeName } from '@/lib/utils';
 import type { ReusableComponent } from '@/components/ComponentFieldControls';
 import { Button } from '@/components/ui/button';
@@ -32,10 +33,15 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 // Components hold simple fields only — the same rule as group/repeater sub-fields.
 const SIMPLE_FIELD_TYPES = ['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'color', 'date', 'datetime', 'json', 'relation'];
 
-interface Usage { contentTypeId: number; contentType: string; displayName: string | null; field: string; type: 'group' | 'repeater' }
+// inline: `field` is the first inserted field and `fields` all of them; layout: `field` is the flexible field.
+interface Usage {
+  contentTypeId: number; contentType: string; displayName: string | null;
+  field: string; type: 'group' | 'repeater' | 'inline' | 'layout'; layout?: string; fields?: string[];
+}
 type Component = ReusableComponent & { usage: Usage[] };
 
-interface DraftField { label: string; type: string; required: boolean; options?: any }
+// `_key`: the key a saved field was loaded with — a different key on save is a rename.
+interface DraftField { label: string; type: string; required: boolean; options?: any; _key?: string }
 interface Draft { id?: number; displayName: string; name: string; description: string; fields: DraftField[] }
 
 const toSnakeCase = (s: string) => s.trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -46,7 +52,7 @@ const toDraft = (c: Component): Draft => ({
   displayName: c.displayName ?? '',
   name: c.name,
   description: c.description ?? '',
-  fields: c.fields.map((f) => ({ label: f.label ?? humanizeName(f.name), type: f.type, required: !!f.required, options: optionsForEditor(f.options) })),
+  fields: c.fields.map((f) => ({ label: f.label ?? humanizeName(f.name), type: f.type, required: !!f.required, options: optionsForEditor(f.options), _key: f.name })),
 });
 
 const fieldForSave = (f: DraftField) => ({
@@ -117,7 +123,16 @@ export default function ComponentsPage() {
     const fields = draft.fields.filter((f) => f.label.trim()).map(fieldForSave);
     if (!name) { toast.error(t('editor.nameRequired')); return; }
     if (!fields.length) { toast.error(t('editor.atLeastOneField')); return; }
-    const body = { name, displayName: draft.displayName.trim(), description: draft.description.trim(), fields };
+    // Renamed fields: existing entries in every content type using the component follow.
+    const keys = new Set(fields.map((f) => f.name));
+    const loaded = new Set(draft.fields.map((f) => f._key).filter(Boolean));
+    const renames = draft.fields
+      .filter((f) => f._key && f.label.trim() && toSnakeCase(f.label) !== f._key && !keys.has(f._key) && !loaded.has(toSnakeCase(f.label)))
+      .map((f) => ({ from: f._key!, to: toSnakeCase(f.label) }));
+    const body = {
+      name, displayName: draft.displayName.trim(), description: draft.description.trim(), fields,
+      ...(draft.id && renames.length ? { fieldMigrations: { renames } } : {}),
+    };
     setSaving(true);
     try {
       if (draft.id) {
@@ -211,11 +226,17 @@ export default function ComponentsPage() {
                     ) : (
                       <ul className="space-y-0.5">
                         {c.usage.map((u) => (
-                          <li key={`${u.contentTypeId}.${u.field}`}>
+                          <li key={`${u.contentTypeId}.${u.type}.${u.field}.${u.layout ?? ''}`}>
                             <Link href={`/content-types/${u.contentTypeId}/edit`} className="hover:underline">
                               {ctLabel({ name: u.contentType, displayName: u.displayName })}
                             </Link>
-                            <span className="text-muted-foreground"> · {u.field} ({u.type === 'group' ? t('kind.one') : t('kind.many')})</span>
+                            <span className="text-muted-foreground">
+                              {' · '}
+                              {u.type === 'inline' ? (u.fields ?? [u.field]).join(', ') : u.type === 'layout' ? `${u.field} › ${u.layout}` : u.field}
+                              {' ('}
+                              {u.type === 'group' ? t('kind.one') : u.type === 'repeater' ? t('kind.many') : u.type === 'inline' ? t('kind.inline') : t('kind.layout')}
+                              {')'}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -317,14 +338,16 @@ export default function ComponentsPage() {
                     </div>
 
                     {f.type === 'select' && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
-                        <Textarea
-                          rows={2} className="resize-none" placeholder={t('editor.choicesPlaceholder')}
-                          value={f.options?.choices ?? ''}
-                          onChange={(e) => patchField(i, { options: { ...f.options, choices: e.target.value } })}
-                        />
-                      </div>
+                      <SelectChoicesSource options={f.options} onChange={(o) => patchField(i, { options: o })}>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
+                          <Textarea
+                            rows={2} className="resize-none" placeholder={t('editor.choicesPlaceholder')}
+                            value={f.options?.choices ?? ''}
+                            onChange={(e) => patchField(i, { options: { ...f.options, choices: e.target.value } })}
+                          />
+                        </div>
+                      </SelectChoicesSource>
                     )}
 
                     {f.type === 'relation' && (

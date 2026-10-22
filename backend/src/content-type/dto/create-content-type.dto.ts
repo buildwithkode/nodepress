@@ -53,6 +53,14 @@ export class FieldDto {
   @IsOptional()
   condition?: any;
 
+  @ApiPropertyOptional({
+    example: 'seo',
+    description: 'Top-level fields inserted inline from a reusable component carry its name; the server replaces each run of them with the component\'s current fields.',
+  })
+  @IsOptional()
+  @IsString()
+  component?: string;
+
   @ApiPropertyOptional({ example: ['admin', 'editor'] })
   @IsOptional()
   @IsArray()

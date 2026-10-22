@@ -127,4 +127,62 @@ describe('Field data migrations (e2e)', () => {
     const updated = (await http().get(`/api/content-types/${person}`).set(auth()).expect(200)).body;
     expect(updated.schema[1].options.mappedBy).toBe('author');
   });
+
+  it('migrates fields inside groups, repeater rows and flexible blocks', async () => {
+    const nestedSchema = [
+      { name: 'name', type: 'text' },
+      { name: 'seo', type: 'group', options: { subFields: [{ name: 'headline', type: 'text' }, { name: 'legacy', type: 'text' }] } },
+      { name: 'links', type: 'repeater', options: { subFields: [{ name: 'href', type: 'text' }, { name: 'weight', type: 'text' }] } },
+      {
+        name: 'blocks', type: 'flexible',
+        options: { layouts: [{ name: 'hero', fields: [{ name: 'heading', type: 'text' }] }, { name: 'quote', fields: [{ name: 'heading', type: 'text' }] }] },
+      },
+    ];
+    const page = (await http().post('/api/content-types').set(auth()).send({ name: 'landing', schema: nestedSchema }).expect(201)).body.id;
+    await http().post('/api/entries').set(auth()).send({
+      contentTypeId: page, slug: 'home', status: 'published',
+      data: {
+        name: 'Home',
+        seo: { headline: 'Welcome', legacy: 'x' },
+        links: [{ href: '/a', weight: '2' }, { href: '/b', weight: 'heavy' }],
+        blocks: [{ _layout: 'hero', heading: 'Big' }, { _layout: 'quote', heading: 'Keep me' }],
+      },
+    }).expect(201);
+
+    const next = [
+      { name: 'name', type: 'text' },
+      { name: 'meta', type: 'group', options: { subFields: [{ name: 'title', type: 'text' }] } },
+      { name: 'links', type: 'repeater', options: { subFields: [{ name: 'url', type: 'text' }, { name: 'weight', type: 'number' }] } },
+      {
+        name: 'blocks', type: 'flexible',
+        options: { layouts: [{ name: 'hero', fields: [{ name: 'title', type: 'text' }] }, { name: 'quote', fields: [{ name: 'heading', type: 'text' }] }] },
+      },
+    ];
+    const fieldMigrations = {
+      renames: [{ from: 'seo', to: 'meta' }, { from: 'meta.headline', to: 'meta.title' }, { from: 'links.href', to: 'links.url' }, { from: 'blocks.hero.heading', to: 'blocks.hero.title' }],
+      convert: ['links.weight'],
+      drop: ['meta.legacy'],
+    };
+
+    const impact = await http().post(`/api/content-types/${page}/schema-impact`).set(auth())
+      .send({ schema: next, fieldMigrations: { renames: fieldMigrations.renames } }).expect(200);
+    expect(impact.body.retyped).toEqual([expect.objectContaining({ field: 'links.weight', convertible: true })]);
+    expect(impact.body.removedNested).toEqual(['meta.legacy']);
+    const full = await http().post(`/api/content-types/${page}/schema-impact`).set(auth())
+      .send({ schema: next, fieldMigrations }).expect(200);
+    expect(full.body.steps.find((s: any) => s.field === 'links.weight')).toMatchObject({ entries: 1, lost: 1 });
+
+    await http().put(`/api/content-types/${page}`).set(auth()).send({ schema: next, fieldMigrations }).expect(200);
+    const row = (await http().get(`/api/entries?contentTypeId=${page}`).set(auth())).body.data[0].data;
+    expect(row.meta).toEqual({ title: 'Welcome' });
+    expect(row.seo).toBeUndefined();
+    expect(row.links).toEqual([expect.objectContaining({ url: '/a', weight: 2 }), expect.objectContaining({ url: '/b' })]);
+    expect(row.links[1].weight).toBeUndefined();
+    expect(row.links[0].href).toBeUndefined();
+    expect(row.blocks).toEqual([
+      expect.objectContaining({ _layout: 'hero', title: 'Big' }),
+      expect.objectContaining({ _layout: 'quote', heading: 'Keep me' }),
+    ]);
+    expect(row.blocks[0].heading).toBeUndefined();
+  });
 });

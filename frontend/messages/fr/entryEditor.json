@@ -16,7 +16,9 @@
     "contentType": "Type de contenu",
     "selectContentType": "Sélectionnez un type de contenu…",
     "selectToBegin": "Sélectionnez un type de contenu pour commencer.",
-    "submit": "Créer l’entrée"
+    "submit": "Créer l’entrée",
+    "saveAndPreview": "Enregistrer le brouillon et prévisualiser",
+    "saveAndPreviewHint": "Enregistrer comme brouillon et ouvrir l’aperçu en direct"
   },
   "edit": {
     "title": "Modifier l’entrée",

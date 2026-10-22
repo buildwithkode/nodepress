@@ -70,6 +70,9 @@ export class RedirectsService implements OnModuleInit, OnModuleDestroy {
   // ─── Admin CRUD ────────────────────────────────────────────────────────────
 
   async list(query: { page?: number; limit?: number; search?: string; sort?: string }) {
+    // Write this instance's buffered hits first so the admin sees them now (other
+    // instances' hits arrive within HIT_FLUSH_MS).
+    await this.flushHits().catch(() => undefined);
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(200, Math.max(1, Number(query.limit) || 50));
     const search = query.search?.trim();

@@ -4,6 +4,11 @@
  */
 export function optionsForSave(options: any): any {
   if (!options || typeof options !== 'object') return options;
+  if (typeof options.choiceList === 'string' && options.choiceList) {
+    // A shared choice list: the server copies its choices and labels in on save.
+    const { choices: _c, choiceLabels: _l, ...rest } = options;
+    return rest;
+  }
   if (typeof options.choices !== 'string') return options;
   const choices = [...new Set(options.choices.split(',').map((c: string) => c.trim()).filter(Boolean))];
   return { ...options, choices };

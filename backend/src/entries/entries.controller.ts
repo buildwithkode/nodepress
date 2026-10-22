@@ -52,7 +52,7 @@ export class EntriesController {
         if (!canPublish) throw new ForbiddenException('You do not have permission to publish entries');
       }
     }
-    const entry = await this.entriesService.create(dto, req.user.id, req.user.role) as any;
+    const entry = await this.entriesService.create(dto, req.user.id, req.user) as any;
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'created', 'entry', entry.slug,
@@ -94,7 +94,7 @@ export class EntriesController {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       locale: locale?.trim() || undefined,
-      role: req?.user?.role,
+      role: req?.user,
     });
   }
 
@@ -153,12 +153,22 @@ export class EntriesController {
 
   // ─── Bulk operations — also static paths, must precede :id wildcards ───────
 
+  /**
+   * Bulk routes check the content permission for every content type the
+   * (non-deleted) entries belong to, and reject the whole request when any is
+   * not allowed — nothing is changed. Admin always passes.
+   */
+  private assertBulkAllowed(user: { role: string; customRole?: string }, ids: number[], action: 'update' | 'publish' | 'delete') {
+    return this.permissionsService.assertCanEntries(user, ids, action);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Post('bulk-delete')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk soft-delete entries' })
-  bulkDelete(@Body() dto: BulkActionDto) {
+  async bulkDelete(@Body() dto: BulkActionDto, @Request() req: any) {
+    await this.assertBulkAllowed(req.user, dto.ids, 'delete');
     return this.entriesService.bulkDelete(dto.ids);
   }
 
@@ -167,7 +177,8 @@ export class EntriesController {
   @Post('bulk-publish')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk publish entries' })
-  bulkPublish(@Body() dto: BulkActionDto) {
+  async bulkPublish(@Body() dto: BulkActionDto, @Request() req: any) {
+    await this.assertBulkAllowed(req.user, dto.ids, 'publish');
     return this.entriesService.bulkPublish(dto.ids);
   }
 
@@ -176,7 +187,8 @@ export class EntriesController {
   @Post('bulk-archive')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk archive entries' })
-  bulkArchive(@Body() dto: BulkActionDto) {
+  async bulkArchive(@Body() dto: BulkActionDto, @Request() req: any) {
+    await this.assertBulkAllowed(req.user, dto.ids, 'update');
     return this.entriesService.bulkArchive(dto.ids);
   }
 
@@ -185,7 +197,8 @@ export class EntriesController {
   @Post('bulk-pending-review')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk set entries to pending_review — contributors can submit work for approval' })
-  bulkPendingReview(@Body() dto: BulkActionDto) {
+  async bulkPendingReview(@Body() dto: BulkActionDto, @Request() req: any) {
+    await this.assertBulkAllowed(req.user, dto.ids, 'update');
     return this.entriesService.bulkSetPendingReview(dto.ids);
   }
 
@@ -194,7 +207,8 @@ export class EntriesController {
   @Post('bulk-stage')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk promote entries to staging environment' })
-  bulkStage(@Body() dto: BulkActionDto) {
+  async bulkStage(@Body() dto: BulkActionDto, @Request() req: any) {
+    await this.assertBulkAllowed(req.user, dto.ids, 'update');
     return this.entriesService.bulkStage(dto.ids);
   }
 
@@ -203,11 +217,12 @@ export class EntriesController {
   @Post('bulk-promote')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk promote entries to a target environment stage' })
-  bulkPromote(@Body() dto: { ids: number[]; status: EntryStatus }, @Request() req: any) {
+  async bulkPromote(@Body() dto: { ids: number[]; status: EntryStatus }, @Request() req: any) {
     if (!dto.ids || !Array.isArray(dto.ids) || dto.ids.length === 0) {
       throw new BadRequestException('ids must be a non-empty array of numbers');
     }
     if (!dto.status) throw new BadRequestException('status is required');
+    await this.assertBulkAllowed(req.user, dto.ids, dto.status === 'published' ? 'publish' : 'update');
     return this.entriesService.bulkPromote(dto.ids, dto.status, req.user?.id);
   }
 
@@ -225,7 +240,7 @@ export class EntriesController {
     @Request() req?: any,
   ) {
     const fields = populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : [];
-    return this.entriesService.findOne(id, fields, req?.user?.role);
+    return this.entriesService.findOne(id, fields, req?.user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -276,7 +291,7 @@ export class EntriesController {
         if (!canPublish) throw new ForbiddenException('You do not have permission to publish entries of this content type');
       }
     }
-    const entry = await this.entriesService.update(id, dto, req.user.id, req.user.role);
+    const entry = await this.entriesService.update(id, dto, req.user.id, req.user);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'updated', 'entry', entry.slug,

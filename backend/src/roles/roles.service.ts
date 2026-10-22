@@ -20,6 +20,13 @@ const BUILT_IN_INFO: Record<BuiltInRole, { label: string; description: string }>
   viewer:      { label: 'Viewer',      description: 'Read-only access to the admin' },
 };
 
+/** Same actions, ignoring order and duplicates. */
+function sameActions(a: string[], b: string[]): boolean {
+  const x = new Set(a);
+  const y = new Set(b);
+  return x.size === y.size && [...x].every((v) => y.has(v));
+}
+
 export interface RoleView {
   name: string;
   label: string;
@@ -110,7 +117,7 @@ export class RolesService {
       throw new BadRequestException('baseRole must be editor, contributor or viewer');
     }
 
-    const role = await this.prisma.role.update({
+    const updateRole = this.prisma.role.update({
       where: { name },
       data: {
         ...(dto.label !== undefined && { label: dto.label.trim() }),
@@ -118,8 +125,41 @@ export class RolesService {
         ...(dto.baseRole !== undefined && { baseRole: dto.baseRole }),
       },
     });
+
+    // A new base role brings its defaults along — unless the admin has
+    // customised the role's wildcard row, which is kept (with a warning).
+    const warnings: string[] = [];
+    let reseed: BaseRole | null = null;
+    if (dto.baseRole !== undefined && dto.baseRole !== existing.baseRole) {
+      const row = await this.prisma.permission.findUnique({
+        where: { role_contentType: { role: name, contentType: '*' } },
+      });
+      const oldDefaults = DEFAULT_PERMISSIONS[isBaseRole(existing.baseRole) ? existing.baseRole : 'viewer'];
+      if (!row || sameActions(row.actions, oldDefaults)) {
+        reseed = dto.baseRole as BaseRole; // validated above
+      } else {
+        warnings.push(
+          `The role's default permissions were customised, so they were kept — they were not changed to the ${dto.baseRole} defaults.`,
+        );
+      }
+    }
+
+    let role;
+    if (reseed) {
+      const actions = DEFAULT_PERMISSIONS[reseed];
+      [role] = await this.prisma.$transaction([
+        updateRole,
+        this.prisma.permission.upsert({
+          where: { role_contentType: { role: name, contentType: '*' } },
+          create: { role: name, contentType: '*', actions },
+          update: { actions },
+        }),
+      ]);
+    } else {
+      role = await updateRole;
+    }
     await this.cache.del(CACHE_PREFIX + name);
-    return { role, previous: existing };
+    return { role, previous: existing, warnings };
   }
 
   /** 409 while any user still has the role; its permission rows go with it. */

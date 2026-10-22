@@ -1,6 +1,6 @@
 {
   "title": "Componenten",
-  "description": "Herbruikbare sets velden. Voeg er een toe aan een contenttype als één groep of als herhaalbare lijst; als je het component bewerkt, wordt elk contenttype dat het gebruikt bijgewerkt.",
+  "description": "Herbruikbare sets velden. Voeg er een toe aan een contenttype als één groep, een herhaalbare lijst, ingevoegde velden of een layout voor flexibele content; als je het component bewerkt, worden alle contenttypes die het gebruiken bijgewerkt.",
   "new": "Nieuw component",
   "loadFailed": "Componenten laden mislukt",
   "saveFailed": "Component opslaan mislukt",
@@ -22,7 +22,9 @@
   },
   "kind": {
     "one": "Eén",
-    "many": "Meerdere"
+    "many": "Meerdere",
+    "inline": "Ingevoegd",
+    "layout": "Layout"
   },
   "editor": {
     "newTitle": "Nieuw component",
@@ -56,7 +58,7 @@
   "add": {
     "button": "Component toevoegen",
     "title": "Een component toevoegen",
-    "description": "Voegt een veld in waarvan de subvelden uit het component komen.",
+    "description": "Gebruik de velden van het component als groep, als herhaalbare lijst of direct in dit contenttype.",
     "none": "Er zijn nog geen componenten. <link>Maak er eerst een</link>.",
     "component": "Component",
     "choose": "Kies een component",
@@ -66,10 +68,24 @@
     "repeater": "Meerdere",
     "repeaterHint": "Een herhaalbare lijst met items",
     "fieldName": "Veldnaam",
-    "confirm": "Toevoegen"
+    "confirm": "Toevoegen",
+    "inline": "Ingevoegd",
+    "inlineHint": "De velden, direct toegevoegd",
+    "inlineNote": "De velden worden direct aan dit contenttype toegevoegd, dus items slaan ze plat op. Ze blijven gelijk met het component."
   },
   "readOnly": {
     "usesComponent": "Velden uit component",
     "note": "Bewerk het component om deze velden te wijzigen. <link>Component openen</link>"
+  },
+  "layout": {
+    "button": "Layout uit component toevoegen",
+    "title": "Een layout uit een component toevoegen",
+    "description": "De velden van de layout komen uit het component en blijven ermee gelijk."
+  },
+  "inline": {
+    "from": "Uit component",
+    "open": "Component openen",
+    "remove": "Deze velden verwijderen",
+    "note": "Direct aan dit contenttype toegevoegd. Bewerk het component om deze velden te wijzigen."
   }
 }

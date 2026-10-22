@@ -46,5 +46,18 @@
   "colFailed": "Mislukt",
   "mediaResult": "Media: {imported} geïmporteerd, {reused} al geïmporteerd, {failed} mislukt",
   "errors": "{count, plural, one {# probleem} other {# problemen}}",
-  "viewEntries": "Items bekijken →"
+  "viewEntries": "Items bekijken →",
+  "extras": "Ook importeren",
+  "categoryPaths": "Categoriehiërarchie behouden",
+  "categoryPathsHint": "Voegt naast de categorienamen een veld category_paths toe met volledige paden zoals “Ouder/Kind”. {count, plural, =0 {Dit bestand heeft geen geneste categorieën.} one {# geneste categorie in dit bestand.} other {# geneste categorieën in dit bestand.}}",
+  "taxonomies": "Eigen taxonomieën importeren",
+  "taxonomiesHint": "Voegt een veld taxonomies — de termen gegroepeerd per taxonomie — toe aan de items die ze gebruiken.",
+  "taxonomiesFound": "In dit bestand: {list}.",
+  "taxonomiesNone": "Dit bestand heeft geen eigen taxonomieën.",
+  "authors": "Auteurs als content importeren",
+  "authorsHint": "{count, plural, one {# auteur wordt een wp_author-item} other {# auteurs worden wp_author-items}} (login, weergavenaam, voor- en achternaam), en elk bericht wordt via een veld author_ref aan zijn auteur gekoppeld. Dit zijn contentitems, geen accounts — niemand kan ermee inloggen. E-mailadressen worden niet overgenomen.",
+  "comments": "Reacties importeren",
+  "commentsHint": "Goedgekeurde reacties worden wp_comment-items: naam, tekst zonder HTML, datum, de reactie waarop ze antwoorden en het bericht waar ze bij horen. E-mail- en IP-adressen van reageerders worden niet overgenomen; spam en reacties in de prullenbak worden nooit geïmporteerd. In dit bestand: {approved} goedgekeurd, {pending} in afwachting, {spam} spam of prullenbak.",
+  "pendingComments": "Reacties in afwachting meenemen",
+  "pendingCommentsHint": "Geïmporteerd als items die op beoordeling wachten."
 }

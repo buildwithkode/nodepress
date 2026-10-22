@@ -21,8 +21,16 @@ type DryRun = {
   attachments: number;
   skipped: Record<string, number>;
   sample: { contentType: string; slug: string; title: string; status: string; date: string | null; author: string }[];
+  stats: {
+    nestedCategories: number;
+    taxonomies: Record<string, number>;
+    authors: number;
+    comments: { approved: number; pending: number; spam: number; trash: number; other: number };
+  };
   warnings: string[];
 };
+type Extras = { categoryPaths: boolean; taxonomies: boolean; authors: boolean; comments: boolean; pendingComments: boolean };
+const EXTRAS_OFF: Extras = { categoryPaths: false, taxonomies: false, authors: false, comments: false, pendingComments: false };
 type Counts = { created: number; updated: number; skipped: number; failed: number };
 type JobStatus = {
   jobId: number;
@@ -66,6 +74,8 @@ export default function ImportPage() {
   const [summary, setSummary] = useState<DryRun | null>(null);
   const [importMedia, setImportMedia] = useState(true);
   const [overwrite, setOverwrite] = useState(false);
+  // Optional extras — each changes what the dry run reports, so it is re-run when one is toggled.
+  const [extras, setExtras] = useState<Extras>(EXTRAS_OFF);
   const [busy, setBusy] = useState<'analyze' | 'run' | null>(null);
   const [job, setJob] = useState<JobStatus | null>(null);
 
@@ -88,6 +98,16 @@ export default function ImportPage() {
     return () => clearTimeout(timer);
   }, [job, active]);
 
+  const extrasParams = () => Object.fromEntries(
+    Object.entries({ ...extras, pendingComments: extras.comments && extras.pendingComments }).map(([k, v]) => [k, String(v)]),
+  );
+  const extrasKey = JSON.stringify(extras);
+  useEffect(() => {
+    if (summary && file) analyze();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extrasKey]);
+  const toggle = (key: keyof Extras) => (v: boolean) => setExtras((e) => ({ ...e, [key]: v }));
+
   const pick = (f: File | null) => {
     setSummary(null);
     setJob(null);
@@ -103,7 +123,7 @@ export default function ImportPage() {
     if (!file) return;
     setBusy('analyze');
     try {
-      setSummary(await postExport(file, '?dryRun=true', fallback));
+      setSummary(await postExport(file, `?${new URLSearchParams({ dryRun: 'true', ...extrasParams() })}`, fallback));
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -115,7 +135,7 @@ export default function ImportPage() {
     if (!file) return;
     setBusy('run');
     try {
-      const params = new URLSearchParams({ importMedia: String(importMedia), overwrite: String(overwrite) });
+      const params = new URLSearchParams({ importMedia: String(importMedia), overwrite: String(overwrite), ...extrasParams() });
       const res = await postExport(file, `?${params}`, fallback);
       setJob({ jobId: res.jobId, status: 'pending', progress: null, result: null, error: null });
       toast.success(t('queued', { id: res.jobId }));
@@ -247,6 +267,61 @@ export default function ImportPage() {
               <span>
                 {t('overwrite')}
                 <span className="block text-xs text-muted-foreground">{t('overwriteHint')}</span>
+              </span>
+            </label>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">{t('extras')}</h3>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <Checkbox checked={extras.categoryPaths} onCheckedChange={toggle('categoryPaths')} disabled={busy !== null} className="mt-0.5" />
+              <span>
+                {t('categoryPaths')}
+                <span className="block text-xs text-muted-foreground">{t('categoryPathsHint', { count: summary.stats.nestedCategories })}</span>
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <Checkbox checked={extras.taxonomies} onCheckedChange={toggle('taxonomies')} disabled={busy !== null} className="mt-0.5" />
+              <span>
+                {t('taxonomies')}
+                <span className="block text-xs text-muted-foreground">
+                  {t('taxonomiesHint')}{' '}
+                  {Object.keys(summary.stats.taxonomies).length
+                    ? t('taxonomiesFound', { list: Object.entries(summary.stats.taxonomies).map(([k, n]) => `${k} (${n})`).join(', ') })
+                    : t('taxonomiesNone')}
+                </span>
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <Checkbox checked={extras.authors} onCheckedChange={toggle('authors')} disabled={busy !== null} className="mt-0.5" />
+              <span>
+                {t('authors')}
+                <span className="block text-xs text-muted-foreground">{t('authorsHint', { count: summary.stats.authors })}</span>
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <Checkbox checked={extras.comments} onCheckedChange={toggle('comments')} disabled={busy !== null} className="mt-0.5" />
+              <span>
+                {t('comments')}
+                <span className="block text-xs text-muted-foreground">
+                  {t('commentsHint', {
+                    approved: summary.stats.comments.approved,
+                    pending: summary.stats.comments.pending,
+                    spam: summary.stats.comments.spam + summary.stats.comments.trash,
+                  })}
+                </span>
+              </span>
+            </label>
+            <label className={`flex items-start gap-2 text-sm pl-6 ${extras.comments ? 'cursor-pointer' : 'opacity-50'}`}>
+              <Checkbox
+                checked={extras.comments && extras.pendingComments}
+                onCheckedChange={toggle('pendingComments')}
+                disabled={!extras.comments || busy !== null}
+                className="mt-0.5"
+              />
+              <span>
+                {t('pendingComments')}
+                <span className="block text-xs text-muted-foreground">{t('pendingCommentsHint')}</span>
               </span>
             </label>
           </div>

@@ -23,7 +23,8 @@ import {
 import { INDEXABLE_FIELD_TYPES } from '@/lib/indexable-fields';
 import { RelationFieldOptions } from '@/components/RelationFieldOptions';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
-import { AddComponentButton, ComponentSubFields } from '@/components/ComponentFieldControls';
+import { SelectChoicesSource, SubFieldChoiceList } from '@/components/ChoiceListField';
+import { AddComponentButton, AddComponentLayoutButton, ComponentSubFields, InlineComponentBlock, inlineEditorField, removeInlineRun } from '@/components/ComponentFieldControls';
 import { AiContentModelButton } from '@/components/AiAssist';
 import { PreviewUrlSetting } from '@/components/LivePreviewPane';
 import { FieldConditionEditor } from '@/components/FieldConditionEditor';
@@ -53,7 +54,7 @@ const SIMPLE_FIELD_TYPES = FIELD_TYPES.filter(
 );
 
 interface SubField { name: string; type: string }
-interface Layout   { name: string; label: string; fields: SubField[] }
+interface Layout   { name: string; label: string; fields: SubField[]; component?: string }
 interface Field {
   name:     string;
   type:     string;
@@ -61,6 +62,9 @@ interface Field {
   indexed?: boolean;
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string; component?: string };
   condition?: FieldCondition;
+  /** Inline component field: the component's name, and the field as saved (read-only here). */
+  component?: string;
+  inline?: any;
 }
 
 const toSnakeCase = (name: string) =>
@@ -68,7 +72,7 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; options?: any; condition?: FieldCondition }) => ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; options?: any; condition?: FieldCondition; inline?: any }) => f.inline ?? ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
@@ -172,7 +176,7 @@ export default function NewContentTypePage() {
         setName(ct.displayName || ct.name);
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, options: optionsForEditor(f.options) }))
+            ? ct.schema.map((f: any) => f.component ? inlineEditorField(f) : ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, options: optionsForEditor(f.options) }))
             : [{ name: '', type: 'text', required: false }],
         );
         if (Array.isArray(ct.allowedMethods)) setAllowedMethods(ct.allowedMethods);
@@ -208,7 +212,7 @@ export default function NewContentTypePage() {
   const removeSubField = (fi: number, si: number) => {
     const u = [...fields]; u[fi].options!.subFields = u[fi].options!.subFields!.filter((_, i) => i !== si); setFields(u);
   };
-  const updateSubField = (fi: number, si: number, key: string, val: string) => {
+  const updateSubField = (fi: number, si: number, key: string, val: any) => {
     const u = [...fields]; (u[fi].options!.subFields![si] as any)[key] = val; setFields(u);
   };
 
@@ -227,7 +231,7 @@ export default function NewContentTypePage() {
   const removeLayoutField = (fi: number, li: number, fli: number) => {
     const u = [...fields]; u[fi].options!.layouts![li].fields = u[fi].options!.layouts![li].fields.filter((_, i) => i !== fli); setFields(u);
   };
-  const updateLayoutField = (fi: number, li: number, fli: number, key: string, val: string) => {
+  const updateLayoutField = (fi: number, li: number, fli: number, key: string, val: any) => {
     const u = [...fields]; (u[fi].options!.layouts![li].fields[fli] as any)[key] = val; setFields(u);
   };
   const toggleLayout = (key: string) => setOpenLayouts((p) => ({ ...p, [key]: !p[key] }));
@@ -346,7 +350,7 @@ export default function NewContentTypePage() {
               <div className="flex items-center justify-between mb-4">
                 <Label>{t('editor.fields')}</Label>
                 <div className="flex items-center gap-2">
-                  <AddComponentButton onAdd={(f) => setFields([...fields, f])} />
+                  <AddComponentButton onAdd={(f) => setFields([...fields, f])} onAddInline={(fs) => setFields([...fields, ...fs.map(inlineEditorField)])} />
                   <Button variant="outline" onClick={addField}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
@@ -354,7 +358,9 @@ export default function NewContentTypePage() {
               </div>
 
               <div className="space-y-3">
-                {fields.map((field, fi) => (
+                {fields.map((field, fi) => field.component ? (
+                  <InlineComponentBlock key={fi} fields={fields} index={fi} onRemove={() => setFields(removeInlineRun(fields, fi))} />
+                ) : (
                   <div key={fi} className="rounded-md border bg-muted/30 p-4 space-y-3">
                     <div className="flex items-start gap-2">
                       <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
@@ -399,10 +405,12 @@ export default function NewContentTypePage() {
                     </div>
 
                     {field.type === 'select' && (
-                      <div className="pl-7 space-y-1">
-                        <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
-                        <Textarea placeholder={t('editor.choicesPlaceholder')} value={field.options?.choices ?? ''} onChange={(e) => updateField(fi, 'options', { ...field.options, choices: e.target.value })} rows={2} className="resize-none" />
-                      </div>
+                      <SelectChoicesSource className="pl-7" options={field.options} onChange={(o) => updateField(fi, 'options', o)}>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
+                          <Textarea placeholder={t('editor.choicesPlaceholder')} value={field.options?.choices ?? ''} onChange={(e) => updateField(fi, 'options', { ...field.options, choices: e.target.value })} rows={2} className="resize-none" />
+                        </div>
+                      </SelectChoicesSource>
                     )}
 
                     {field.type === 'relation' && (
@@ -426,6 +434,7 @@ export default function NewContentTypePage() {
                             <div key={si} className="flex items-center gap-2">
                               <Input placeholder={t('editor.subFieldPlaceholder')} value={sf.name} onChange={(e) => updateSubField(fi, si, 'name', e.target.value)} className="flex-1" />
                               <FieldTypeSelect value={sf.type} onChange={(val) => updateSubField(fi, si, 'type', val)} types={SIMPLE_FIELD_TYPES} className="w-32" />
+                              {sf.type === 'select' && <SubFieldChoiceList options={(sf as any).options} onChange={(o) => updateSubField(fi, si, 'options', o)} />}
                               <Button variant="ghost" size="icon-xs" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={field.options!.subFields!.length === 1} onClick={() => removeSubField(fi, si)}>
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -446,6 +455,7 @@ export default function NewContentTypePage() {
                             <div key={si} className="flex items-center gap-2">
                               <Input placeholder={t('editor.nestedFieldPlaceholder')} value={sf.name} onChange={(e) => updateSubField(fi, si, 'name', e.target.value)} className="flex-1" />
                               <FieldTypeSelect value={sf.type} onChange={(val) => updateSubField(fi, si, 'type', val)} types={SIMPLE_FIELD_TYPES} className="w-32" />
+                              {sf.type === 'select' && <SubFieldChoiceList options={(sf as any).options} onChange={(o) => updateSubField(fi, si, 'options', o)} />}
                               <Button variant="ghost" size="icon-xs" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={field.options!.subFields!.length === 1} onClick={() => removeSubField(fi, si)}>
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -477,12 +487,16 @@ export default function NewContentTypePage() {
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </Button>
                                 </div>
-                                {isOpen && (
+                                {isOpen && layout.component && (
+                                  <ComponentSubFields component={layout.component} subFields={layout.fields} className="px-3 py-2 border-t" />
+                                )}
+                                {isOpen && !layout.component && (
                                   <div className="px-3 py-2 space-y-1.5 border-t">
                                     {layout.fields.map((lf, fli) => (
                                       <div key={fli} className="flex items-center gap-2">
                                         <Input placeholder={t('editor.nestedFieldPlaceholder')} value={lf.name} onChange={(e) => updateLayoutField(fi, li, fli, 'name', e.target.value)} className="flex-1" />
                                         <FieldTypeSelect value={lf.type} onChange={(val) => updateLayoutField(fi, li, fli, 'type', val)} types={SIMPLE_FIELD_TYPES} className="w-32" />
+                                        {lf.type === 'select' && <SubFieldChoiceList options={(lf as any).options} onChange={(o) => updateLayoutField(fi, li, fli, 'options', o)} />}
                                         <Button variant="ghost" size="icon-xs" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={layout.fields.length === 1} onClick={() => removeLayoutField(fi, li, fli)}>
                                           <Trash2 className="h-3.5 w-3.5" />
                                         </Button>
@@ -496,9 +510,12 @@ export default function NewContentTypePage() {
                               </div>
                             );
                           })}
-                          <Button variant="outline" onClick={() => addLayout(fi)}>
-                            <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addLayout')}
-                          </Button>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Button variant="outline" onClick={() => addLayout(fi)}>
+                              <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addLayout')}
+                            </Button>
+                            <AddComponentLayoutButton onAdd={(l) => { const u = [...fields]; u[fi].options!.layouts!.push(l); setFields(u); }} />
+                          </div>
                         </div>
                       </div>
                     )}

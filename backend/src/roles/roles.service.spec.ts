@@ -14,6 +14,7 @@ const mockPrisma = {
     delete:     jest.fn((args) => ({ __op: 'role.delete', ...args })),
   },
   permission: {
+    findUnique: jest.fn(),
     upsert:     jest.fn((args) => ({ __op: 'permission.upsert', ...args })),
     deleteMany: jest.fn((args) => ({ __op: 'permission.deleteMany', ...args })),
   },
@@ -21,7 +22,7 @@ const mockPrisma = {
     groupBy: jest.fn(),
     count:   jest.fn(),
   },
-  $transaction: jest.fn(async (ops: any[]) => ops.map((op) => (op.__op === 'role.create' ? op.data : op))),
+  $transaction: jest.fn(async (ops: any[]) => Promise.all(ops.map((op) => (op.__op === 'role.create' ? op.data : op)))),
 };
 
 const store = new Map<string, any>();
@@ -109,6 +110,52 @@ describe('RolesService', () => {
         data: { label: 'Lead', baseRole: 'editor' },
       });
       expect(mockCache.del).toHaveBeenCalledWith('roles:def:reviewer');
+    });
+
+    it('re-seeds the wildcard row with the new base defaults when it still has the old defaults', async () => {
+      mockPrisma.role.findUnique.mockResolvedValue({ name: 'reviewer', baseRole: 'contributor' });
+      mockPrisma.role.update.mockResolvedValue({ name: 'reviewer', baseRole: 'editor' });
+      // Same actions as the contributor defaults, in another order.
+      mockPrisma.permission.findUnique.mockResolvedValue({ role: 'reviewer', contentType: '*', actions: ['update', 'create', 'read'] });
+
+      const { role, warnings } = await service.update('reviewer', { baseRole: 'editor' });
+      expect(role.baseRole).toBe('editor');
+      expect(warnings).toEqual([]);
+      expect(mockPrisma.permission.upsert).toHaveBeenCalledWith({
+        where: { role_contentType: { role: 'reviewer', contentType: '*' } },
+        create: { role: 'reviewer', contentType: '*', actions: ['create', 'read', 'update', 'delete', 'publish'] },
+        update: { actions: ['create', 'read', 'update', 'delete', 'publish'] },
+      });
+    });
+
+    it('also seeds the row when the role has none', async () => {
+      mockPrisma.role.findUnique.mockResolvedValue({ name: 'reviewer', baseRole: 'contributor' });
+      mockPrisma.role.update.mockResolvedValue({ name: 'reviewer', baseRole: 'viewer' });
+      mockPrisma.permission.findUnique.mockResolvedValue(null);
+
+      await service.update('reviewer', { baseRole: 'viewer' });
+      expect(mockPrisma.permission.upsert).toHaveBeenCalledWith(expect.objectContaining({ update: { actions: ['read'] } }));
+    });
+
+    it('keeps a customised wildcard row and returns a warning', async () => {
+      mockPrisma.role.findUnique.mockResolvedValue({ name: 'reviewer', baseRole: 'contributor' });
+      mockPrisma.role.update.mockResolvedValue({ name: 'reviewer', baseRole: 'editor' });
+      mockPrisma.permission.findUnique.mockResolvedValue({ role: 'reviewer', contentType: '*', actions: ['read', 'update'] });
+
+      const { warnings } = await service.update('reviewer', { baseRole: 'editor' });
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toMatch(/customised/);
+      expect(mockPrisma.permission.upsert).not.toHaveBeenCalled();
+    });
+
+    it('leaves permissions alone when the base role does not change', async () => {
+      mockPrisma.role.findUnique.mockResolvedValue({ name: 'reviewer', baseRole: 'contributor' });
+      mockPrisma.role.update.mockResolvedValue({ name: 'reviewer', baseRole: 'contributor', label: 'R' });
+
+      const { warnings } = await service.update('reviewer', { label: 'R', baseRole: 'contributor' });
+      expect(warnings).toEqual([]);
+      expect(mockPrisma.permission.findUnique).not.toHaveBeenCalled();
+      expect(mockPrisma.permission.upsert).not.toHaveBeenCalled();
     });
 
     it('refuses built-ins and unknown roles', async () => {

@@ -164,7 +164,8 @@
       "nameAndType": "Name & Typ",
       "restricted": "Eingeschränkt",
       "adminRead": "Admins haben immer vollen Lesezugriff",
-      "adminWrite": "Admins haben immer vollen Schreibzugriff"
+      "adminWrite": "Admins haben immer vollen Schreibzugriff",
+      "inherited": "Von {base} geerbt"
     },
     "enforcement": {
       "title": "Sicherheit ohne Datenlecks:",

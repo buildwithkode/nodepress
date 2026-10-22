@@ -16,7 +16,9 @@
     "contentType": "Content Type",
     "selectContentType": "Select a content type…",
     "selectToBegin": "Select a content type to begin.",
-    "submit": "Create Entry"
+    "submit": "Create Entry",
+    "saveAndPreview": "Save draft & preview",
+    "saveAndPreviewHint": "Save as a draft and open the live preview"
   },
   "edit": {
     "title": "Edit Entry",

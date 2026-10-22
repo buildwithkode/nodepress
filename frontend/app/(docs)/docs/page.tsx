@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck, Palette, Boxes, Eye, Upload, ArrowRightLeft, FileCode, GitBranch, SlidersHorizontal } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck, Palette, Boxes, ListOrdered, Eye, Upload, ArrowRightLeft, FileCode, GitBranch, SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import hljs from 'highlight.js/lib/core';
 import typescript from 'highlight.js/lib/languages/typescript';
@@ -164,7 +164,7 @@ const FIELD_TYPES = [
   { type: 'richtext', label: 'Rich Text',      color: 'bg-purple-500/10 text-purple-400',desc: 'HTML content from the WYSIWYG editor. Supports headings, images.', example: '"<p>Hello <strong>world</strong></p>"' },
   { type: 'number',   label: 'Number',         color: 'bg-orange-500/10 text-orange-400',desc: 'Integer or decimal number.',                                      example: '42' },
   { type: 'boolean',  label: 'Boolean',        color: 'bg-green-500/10 text-green-400',  desc: 'True/false toggle. Good for published, featured, active flags.',  example: 'true' },
-  { type: 'select',   label: 'Select',         color: 'bg-yellow-500/10 text-yellow-400',desc: 'One value from a predefined list of choices.',                    example: '"tech"' },
+  { type: 'select',   label: 'Select',         color: 'bg-yellow-500/10 text-yellow-400',desc: 'One value from a list of choices — typed in (options.choices) or taken from a shared choice list (options.choiceList). Entries store the value; the admin shows the label.', example: '"tech"' },
   { type: 'image',    label: 'Image URL',      color: 'bg-pink-500/10 text-pink-400',    desc: 'A URL string pointing to an image (from Media Library or external).', example: '"/uploads/photo.jpg"' },
   { type: 'color',    label: 'Color',          color: 'bg-rose-500/10 text-rose-400',    desc: 'Hex color value picked from a color-swatch widget.',              example: '"#ff6b35"' },
   { type: 'date',     label: 'Date',           color: 'bg-teal-500/10 text-teal-400',    desc: 'Calendar date (no time). Stored as ISO 8601 date string.',        example: '"2024-12-25"' },
@@ -195,6 +195,7 @@ const TOC_ITEMS = [
   { id: 'content-types',  label: 'Content Types' },
   { id: 'field-types',    label: 'Field Types' },
   { id: 'components',     label: 'Components' },
+  { id: 'choice-lists',   label: 'Choice Lists' },
   { id: 'schema-changes', label: 'Schema Changes & Migrations' },
   { id: 'entries',        label: 'Entries & Slugs' },
   { id: 'i18n',           label: 'i18n / Multi-locale' },
@@ -671,8 +672,8 @@ npm run dev`} />
               {[
                 ['Edit', 'Change the name or add/remove/reorder fields at any time. Renaming, retyping or removing fields that already hold data opens a confirm dialog that previews the impact and can migrate the data (see Schema Changes & Migrations).'],
                 ['Duplicate', 'Copy the schema to a new content type. Useful for similar structures.'],
-                ['Export JSON', 'Download the schema as a JSON file to back it up or share it. The file includes the components the exported types use (or all components for a full export), plus each type\'s Preview URL.'],
-                ['Import JSON', 'Restore or import a schema from a previously exported file (on the New page). Components are written first; the result reports components { created, updated, skipped } next to the content types.'],
+                ['Export JSON', 'Download the schema as a JSON file to back it up or share it. The file includes the components and choice lists the exported types use (or all of them for a full export), plus each type\'s Preview URL.'],
+                ['Import JSON', 'Restore or import a schema from a previously exported file (on the New page). Components and choice lists are written first; the result reports components and choiceLists { created, updated, skipped } next to the content types.'],
                 ['Delete', 'Permanently removes the content type AND all its entries.'],
               ].map(([action, desc]) => (
                 <div key={action} className="flex gap-3 text-sm">
@@ -703,7 +704,7 @@ https://www.example.com/{locale}/docs/{slug}`} />
 
             <h3 className="font-semibold mb-3">Reserved names (cannot be used)</h3>
             <div className="flex flex-wrap gap-2">
-              {['auth', 'media', 'entries', 'content-types', 'uploads'].map((n) => (
+              {['auth', 'media', 'entries', 'content-types', 'uploads', 'components', 'roles', 'redirects', 'import', 'choice-lists'].map((n) => (
                 <IC key={n}>{n}</IC>
               ))}
             </div>
@@ -714,8 +715,9 @@ https://www.example.com/{locale}/docs/{slug}`} />
             <p className="text-muted-foreground mb-6">
               NodePress supports 15 field types. Each field name is normalized to{' '}
               <IC>snake_case</IC> in the API response. Any field can also carry a <IC>condition</IC> (see
-              Conditional fields below), and <IC>group</IC> / <IC>repeater</IC> fields can take their sub-fields from a
-              reusable component with <IC>options.component</IC>.
+              Conditional fields below), <IC>group</IC> / <IC>repeater</IC> fields and flexible layouts can take their fields from a
+              reusable component, and a <IC>select</IC> field can take its choices from a shared{' '}
+              <a href="#choice-lists" className="text-primary hover:underline">choice list</a>.
             </p>
 
             <div className="rounded-xl border border-border overflow-hidden mb-8">
@@ -879,30 +881,119 @@ GET /api/blog?where[category][eq]=news`} />
           {/* ── Components ────────────────────────────────────────────────── */}
           <Section id="components" title="Reusable Components" icon={Boxes}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              A component is a named set of simple fields — an SEO block, a call-to-action, a link — defined once under{' '}
+              A component is a named set of simple fields — an SEO block, a call-to-action, a person&apos;s details — defined once under{' '}
               <strong className="text-foreground">Content → Components</strong> (<IC>/components</IC>) and reused in any content type.
-              In the content type editor, click <strong className="text-foreground">Add component</strong>: it becomes a{' '}
-              <IC>group</IC> field (one) or a <IC>repeater</IC> field (many) with <IC>options.component</IC> set.
+              In the content type editor, click <strong className="text-foreground">Add component</strong> and pick how to use it.
+              There are four ways:
             </p>
+            <div className="rounded-xl border border-border overflow-hidden mb-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Use</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">What you get</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Entry data</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border text-muted-foreground text-xs">
+                  <tr><td className="px-4 py-2.5 font-medium text-foreground whitespace-nowrap">One</td><td className="px-4 py-2.5">A <IC>group</IC> field with <IC>options.component</IC> — one nested object.</td><td className="px-4 py-2.5 hidden md:table-cell font-mono">{'"seo": { "meta_title": "…" }'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-medium text-foreground whitespace-nowrap">Many</td><td className="px-4 py-2.5">A <IC>repeater</IC> field with <IC>options.component</IC> — a list of items.</td><td className="px-4 py-2.5 hidden md:table-cell font-mono">{'"links": [{ "label": "…", "url": "…" }]'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-medium text-foreground whitespace-nowrap">Inline</td><td className="px-4 py-2.5">The component&apos;s fields go straight into the content type, at the top level, with no wrapper object.</td><td className="px-4 py-2.5 hidden md:table-cell font-mono">{'"gender": "male"'}</td></tr>
+                  <tr><td className="px-4 py-2.5 font-medium text-foreground whitespace-nowrap">Flexible layout</td><td className="px-4 py-2.5">A layout of a <IC>flexible</IC> field whose fields come from the component.</td><td className="px-4 py-2.5 hidden md:table-cell font-mono">{'"body": [{ "_layout": "cta", … }]'}</td></tr>
+                </tbody>
+              </table>
+            </div>
             <CodeBlock code={`// Component "seo"
 { "name": "seo", "displayName": "SEO",
   "fields": [{ "name": "meta_title", "type": "text" }, { "name": "meta_description", "type": "textarea" }] }
 
-// Used in a content type
-{ "name": "seo",   "type": "group",    "options": { "component": "seo" } }
-{ "name": "links", "type": "repeater", "options": { "component": "link" } }`} />
+// One — a group field
+{ "name": "seo", "type": "group", "options": { "component": "seo" } }
+
+// Many — a repeater field
+{ "name": "links", "type": "repeater", "options": { "component": "link" } }
+
+// Inline — the component's fields sit at the top level, each tagged with the component
+{ "name": "full_name", "type": "text",   "component": "person_details" }
+{ "name": "gender",    "type": "select", "component": "person_details", "options": { "choiceList": "gender" } }
+
+// Flexible layout — name and label default to the component's
+{ "name": "body", "type": "flexible",
+  "options": { "layouts": [{ "component": "cta" }, { "name": "text", "label": "Text", "fields": [ … ] }] } }`} />
             <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mt-3 mb-4">
-              <li>On every save the server copies the component&apos;s fields into the field&apos;s sub-fields, so the API output is exactly that of a normal group or repeater. Never edit those copies — edit the component.</li>
-              <li>Editing a component updates every content type that uses it (each gets a schema version). The response lists <IC>updatedContentTypes</IC> and any <IC>propagationErrors</IC>.</li>
+              <li>On every save the server copies the component&apos;s fields into the content type (the sub-fields of a group or repeater, the fields of a layout, or the inline fields), so the API output is exactly that of ordinary fields. Never edit those copies — edit the component.</li>
+              <li><strong className="text-foreground">Inline</strong> keeps entry data flat: a content type that uses a <IC>person_details</IC> component inline stores <IC>{'{ "full_name": "Ada", "gender": "male" }'}</IC>, not a nested object. A content type can use a component inline only once, and its field names must not clash with the content type&apos;s other fields (a clash is a <IC>400</IC>). In the editor the inline fields show as one read-only <strong className="text-foreground">From component</strong> block that moves as a unit when you reorder.</li>
+              <li><strong className="text-foreground">Flexible layouts</strong>: in a flexible field, click <strong className="text-foreground">Add layout from component</strong>. You can mix component layouts with layouts you define by hand.</li>
+              <li>Editing a component updates every content type that uses it, in all four ways (each gets a schema version). The response lists <IC>updatedContentTypes</IC> and any <IC>propagationErrors</IC>.</li>
+              <li>Renaming a component field moves the data too: <IC>PUT /api/components/:id</IC> accepts <IC>fieldMigrations</IC> with component field names (<IC>{'{ "renames": [{ "from": "title", "to": "heading" }] }'}</IC>). They are applied as <IC>&lt;field&gt;.&lt;name&gt;</IC> for a group or repeater, <IC>&lt;name&gt;</IC> for an inline use and <IC>&lt;field&gt;.&lt;layout&gt;.&lt;name&gt;</IC> for a flexible layout. The Components page sends renames automatically; retyped or removed component fields keep their data.</li>
               <li>Components hold simple fields only (no repeater, flexible, group or reverse relations). An unknown component name is a <IC>400</IC>; deleting one that is in use is a <IC>409</IC>.</li>
+              <li><IC>GET /api/components/:id</IC> returns <IC>usage[]</IC> — each content type and field using it, with its type (<IC>group</IC>, <IC>repeater</IC>, <IC>inline</IC> or <IC>layout</IC>).</li>
               <li>Schema export includes the components the exported types use, and import creates them first.</li>
             </ul>
             <div className="rounded-xl border border-border overflow-hidden">
               <Endpoint method="GET"    path="/api/components"     desc="List components (any signed-in user)" auth />
-              <Endpoint method="GET"    path="/api/components/:id" desc="One component with usage[] — the content types and fields using it" auth />
+              <Endpoint method="GET"    path="/api/components/:id" desc="One component with usage[] — the content types and fields using it, and how (group, repeater, inline, layout)" auth />
               <Endpoint method="POST"   path="/api/components"     desc="Create — body: { name, displayName?, description?, fields } — admin only" auth />
-              <Endpoint method="PUT"    path="/api/components/:id" desc="Update and propagate to every content type using it — returns updatedContentTypes, propagationErrors — admin only" auth />
+              <Endpoint method="PUT"    path="/api/components/:id" desc="Update and propagate to every content type using it — optional fieldMigrations; returns updatedContentTypes, propagationErrors — admin only" auth />
               <Endpoint method="DELETE" path="/api/components/:id" desc="Delete — 409 while any content type uses it — admin only" auth />
+            </div>
+          </Section>
+
+          {/* ── Choice lists ──────────────────────────────────────────────── */}
+          <Section id="choice-lists" title="Choice Lists" icon={ListOrdered}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              A choice list is a shared set of options for <IC>select</IC> fields — gender, country, department — kept in one place so
+              every content type offers the same choices. Manage them under{' '}
+              <strong className="text-foreground">Settings → Choice lists</strong> (<IC>/choice-lists</IC>, admin only). Each choice has a{' '}
+              <IC>value</IC> (what entries store) and an optional <IC>label</IC> (what editors see).
+            </p>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              A select field gets its choices one of two ways: typed in on the field (<IC>options.choices</IC>), or from a list
+              (<IC>{'options: { "choiceList": "gender" }'}</IC>). Example — a <strong className="text-foreground">Gender</strong> list used by
+              several content types:
+            </p>
+            <CodeBlock code={`// Settings → Choice lists → "Gender"
+{ "name": "gender", "label": "Gender",
+  "choices": [{ "value": "male", "label": "Male" }, { "value": "female", "label": "Female" }, { "value": "other", "label": "Other" }] }
+
+// A select field in any content type (or component)
+{ "name": "gender", "type": "select", "options": { "choiceList": "gender" } }
+
+// What the server saves on the field
+{ "name": "gender", "type": "select",
+  "options": { "choiceList": "gender",
+               "choices": ["male", "female", "other"],
+               "choiceLabels": { "male": "Male", "female": "Female", "other": "Other" } } }
+
+// An entry stores the value
+{ "gender": "male" }`} />
+            <p className="text-muted-foreground leading-relaxed mt-3 mb-4">
+              Put the field in a component used <a href="#components" className="text-primary hover:underline">inline</a> and every content
+              type that includes it gets the same <IC>gender</IC> field at its top level — the entry still stores <IC>{'"gender": "male"'}</IC>.
+            </p>
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-4">
+              <li>On every save the server copies the list into the field: values into <IC>choices</IC>, and labels into <IC>choiceLabels</IC> (<IC>{'{ value: label }'}</IC>, only where the label differs from the value). This happens wherever a select can be — top-level fields, repeater and group sub-fields, flexible layout fields and components.</li>
+              <li>In the list editor you can add choices one by one, paste several at once (one per line: <IC>Label</IC>, or <IC>value | Label</IC>) and drag to reorder.</li>
+              <li>Editing a list updates every content type and component that uses it. If you remove values, the response reports how many entries still hold them (<IC>removedValuesInUse</IC>); those entries fail validation on their next save until someone picks a new value.</li>
+              <li>A list that a field uses can&apos;t be deleted (<IC>409</IC>) — switch those fields to their own choices first.</li>
+              <li>Up to 1,000 choices per list; values must be unique, non-empty and at most 200 characters.</li>
+              <li>Schema export/import bundles and the <IC>schema:pull</IC> / <IC>schema:push</IC> CLI carry the choice lists too. <IC>choice-lists</IC> is a reserved content type name; changes are audited as <IC>choice_list</IC>.</li>
+            </ul>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Building a form on your website? Read the same choices from the public endpoints — no token needed, cached for 60 seconds:
+            </p>
+            <CodeBlock code={`GET /api/choice-lists/gender
+GET /api/choice-lists?names=gender,country     // up to 50 names
+
+// → { "name": "gender", "label": "Gender",
+//     "choices": [{ "value": "male", "label": "Male" }, …] }   (the ?names= form returns an array)`} />
+            <div className="rounded-xl border border-border overflow-hidden mt-4">
+              <Endpoint method="GET"    path="/api/choice-lists/:name"         desc="One list — { name, label, choices: [{ value, label? }] } — public, Cache-Control: public, max-age=60" />
+              <Endpoint method="GET"    path="/api/choice-lists?names=a,b"     desc="Several lists by name (max 50) — public, max-age=60" />
+              <Endpoint method="GET"    path="/api/choice-lists"               desc="Every list with its usage (content types, components, fields) — admin only" auth />
+              <Endpoint method="POST"   path="/api/choice-lists"               desc="Create — body: { name, label, description?, choices: [{ value, label? }] } — admin only" auth />
+              <Endpoint method="PUT"    path="/api/choice-lists/:id"           desc="Update and propagate — returns updatedContentTypes, updatedComponents, removedValues, removedValuesInUse, propagationErrors — admin only" auth />
+              <Endpoint method="DELETE" path="/api/choice-lists/:id"           desc="Delete — 409 while a field uses it — admin only" auth />
             </div>
           </Section>
 
@@ -917,20 +1008,26 @@ GET /api/blog?where[category][eq]=news`} />
             </p>
             <CodeBlock code={`# Preview — same body as PUT, changes nothing
 POST /api/content-types/:id/schema-impact
-→ { entryCount, diff, steps: [{ kind, field, from?, fromType?, toType?, entries, lost }], retyped, warnings }
+→ { entryCount, diff, steps: [{ kind, field, from?, fromType?, toType?, container?, entries, lost }], retyped, removedNested, warnings }
 
 # Apply the schema and migrate the data in one transaction
 PUT /api/content-types/:id
 {
   "schema": [ ... ],
   "fieldMigrations": {
-    "renames": [{ "from": "headline", "to": "title" }],
-    "convert": ["price"],          // new names of retyped fields
-    "drop":    ["legacy_notes"]    // removed fields whose values are deleted too
+    "renames": [
+      { "from": "headline", "to": "title" },
+      { "from": "seo.desc", "to": "seo.meta_description" }   // nested: same container
+    ],
+    "convert": ["price", "blocks.hero.heading"],   // new paths of retyped fields
+    "drop":    ["legacy_notes", "seo.keywords"]    // removed fields whose values are deleted too
   }
 }`} />
             <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mt-3">
-              <li>Only top-level fields are migrated. Steps run in order: renames, then conversions (by the new name), then drops. The schema change and the data change commit together or not at all.</li>
+              <li>A field is named by its path: <IC>title</IC> (top level), <IC>seo.meta_title</IC> (a group sub-field, or a repeater sub-field in every row) or <IC>blocks.hero.heading</IC> (a field of one flexible layout). Nested paths use the container&apos;s <em>new</em> name, and a rename must stay in the same group, repeater or layout.</li>
+              <li>Steps run in order: top-level renames, nested renames, conversions (by the new path), then drops. The schema change and the data change commit together or not at all.</li>
+              <li>The schema-impact preview also returns <IC>removedNested</IC> — fields removed from inside a group, repeater or layout that still exists — and the confirm dialog offers to drop their data. The editor tracks sub-field renames and sends them for you.</li>
+              <li>Renaming a flexible <em>layout</em> is not migrated: rows saved with the old layout name keep it.</li>
               <li>Conversions: anything → <IC>json</IC>; text-like ↔ <IC>richtext</IC> (wrapped in <IC>&lt;p&gt;</IC> / HTML stripped); text, number, boolean → text or select; multi-select → first value; text → multi-select; text → <IC>number</IC> (numeric strings) and → <IC>boolean</IC> (true/yes/1/on, false/no/0/off). Values that can&apos;t be converted are removed — the preview counts them as <IC>lost</IC>.</li>
               <li>Reverse relation fields (<IC>mappedBy</IC>) on other types follow a renamed relation field.</li>
               <li>Old entry versions keep the shape they were saved with.</li>
@@ -1526,7 +1623,11 @@ mutation DeleteWebhook {
             <h3 className="font-semibold mb-2 mt-5">Authentication</h3>
             <p className="text-muted-foreground text-sm mb-2">
               Public queries (<IC>entries</IC>, <IC>contentTypes</IC>) work without auth and return only published entries.
-              Authenticated users (JWT Bearer token) see all statuses. Write mutations require <IC>editor</IC> or <IC>admin</IC> role.
+              Authenticated users (JWT Bearer token) see all statuses. Write mutations require <IC>editor</IC> or <IC>admin</IC> role,
+              and entry mutations (<IC>createEntry</IC>, <IC>updateEntry</IC>, <IC>deleteEntry</IC>, <IC>restoreEntryVersion</IC>,{' '}
+              <IC>bulk*</IC>) also check the role&apos;s per-content-type permissions exactly like REST — a denial is a{' '}
+              <IC>Forbidden</IC> error listing <IC>forbiddenContentTypes</IC>. Admin entry queries and mutations apply the caller&apos;s
+              field <IC>readRoles</IC> / <IC>writeRoles</IC>.
             </p>
             <CodeBlock code={`fetch('/graphql', {
   method: 'POST',
@@ -1562,7 +1663,7 @@ mutation DeleteWebhook {
               <li>Each content type gets list, get, create, update and delete operations — only the ones its <IC>allowedMethods</IC> expose.</li>
               <li>Per type there are <IC>&lt;Type&gt;</IC>, <IC>&lt;Type&gt;Data</IC>, <IC>&lt;Type&gt;List</IC>, <IC>&lt;Type&gt;Input</IC> and <IC>&lt;Type&gt;UpdateInput</IC> schemas.</li>
               <li>Fields with <IC>readRoles</IC> are left out of read schemas, fields with <IC>writeRoles</IC> out of the inputs — the document describes what an anonymous reader or an API key sees.</li>
-              <li>Field <IC>condition</IC>s aren&apos;t expressed; conditional fields appear as optional.</li>
+              <li>Conditional fields are never in <IC>required</IC>; they carry <IC>x-nodepress-condition</IC> (the field&apos;s <IC>condition</IC>) and a description such as <em>&quot;Only used when `media_type` is &quot;video&quot; (then required).&quot;</em></li>
             </ul>
             <CodeBlock code={`# Typed fetch client
 npx openapi-typescript https://cms.example.com/api/openapi.json -o nodepress-api.d.ts
@@ -1728,11 +1829,12 @@ REDIS_URL=redis://localhost:6379
               <li>Assign custom roles like built-in ones when inviting or editing a user (<IC>POST/PUT /api/users</IC> accept their names).</li>
               <li><IC>/api/auth/me</IC> and login return <IC>role</IC> (the base role) and <IC>customRole</IC>.</li>
               <li>SSO: <IC>OIDC_ROLE_MAP</IC> may map provider groups to custom roles; <IC>OIDC_DEFAULT_ROLE</IC> must be a built-in role.</li>
-              <li>Field-level <IC>readRoles</IC> / <IC>writeRoles</IC> use the base role.</li>
+              <li>Field-level <IC>readRoles</IC> / <IC>writeRoles</IC> may list custom role names as well as built-in ones; a rule matches the user&apos;s custom role <em>or</em> its base role, and admins always pass. The field matrix shows a column per custom role (a tick inherited from the base role is shown disabled).</li>
+              <li>Changing a role&apos;s <IC>baseRole</IC> swaps its <IC>*</IC> permission row to the new base role&apos;s defaults — unless you customised that row, which is then kept and the response&apos;s <IC>warnings</IC> says so.</li>
             </ul>
             <CodeBlock code={`GET    /api/roles
 POST   /api/roles          { "name": "translator", "label": "Translator", "baseRole": "contributor", "description": "…" }
-PUT    /api/roles/:name    { "label": "…", "description": "…", "baseRole": "editor" }
+PUT    /api/roles/:name    { "label": "…", "description": "…", "baseRole": "editor" }   # → role + warnings[]
 DELETE /api/roles/:name`} />
 
             <h3 className="font-semibold mb-2 mt-5">Adding team members (invite-only)</h3>
@@ -1762,7 +1864,8 @@ PUT /api/permissions/editor/article
   "actions": ["create", "read", "update"]
 }
 
-# Reset all permissions to defaults
+# Reset all permissions to defaults (custom roles keep existing — their * row
+# goes back to their base role's defaults)
 PUT /api/permissions/reset/all`} />
 
             <h3 className="font-semibold mb-2 mt-6">Granular Field-Level Permissions Matrix</h3>
@@ -1790,6 +1893,8 @@ PUT /api/permissions/reset/all`} />
               <ul className="text-muted-foreground mt-1 text-xs space-y-1 list-disc pl-4">
                 <li>The public write API (<IC>POST/PUT/DELETE /api/:type</IC>) checks the role&apos;s content permissions for JWT callers, not only API keys. Creating a published entry (the default) or promoting one to published needs <IC>publish</IC> — so a contributor&apos;s JWT must send <IC>status: &quot;draft&quot;</IC>.</li>
                 <li><IC>POST /api/entries</IC> checks the permissions of the entry&apos;s own content type, not the <IC>*</IC> row.</li>
+                <li>Bulk routes check every affected entry&apos;s content type: <IC>bulk-publish</IC> and <IC>bulk-promote</IC> to published need <IC>publish</IC>, <IC>bulk-delete</IC> needs <IC>delete</IC>, the others <IC>update</IC>. If any type is denied the request is a <IC>403</IC> with <IC>forbiddenContentTypes</IC> and nothing changes.</li>
+                <li>GraphQL entry mutations (<IC>createEntry</IC>, <IC>updateEntry</IC>, <IC>deleteEntry</IC>, <IC>restoreEntryVersion</IC> and the <IC>bulk*</IC> mutations) run the same per-content-type checks, and the admin entry queries and mutations apply the caller&apos;s field rules.</li>
                 <li>A user whose role no longer exists is treated as a viewer (read-only).</li>
               </ul>
             </div>
@@ -3145,7 +3250,8 @@ module.exports = {
               <IC>301</IC>, <IC>302</IC>, <IC>307</IC>, <IC>308</IC> and <IC>410</IC> (gone) rules for your website. NodePress doesn&apos;t
               serve your site, so the site asks it: <IC>GET /api/redirects/resolve?path=/old-page</IC> returns{' '}
               <IC>{'{ to, statusCode }'}</IC> or <IC>404</IC> (public, cached 5 minutes server-side, <IC>Cache-Control: max-age=60</IC>).
-              Hits are counted per rule.
+              Hits are counted per rule — buffered in memory and written every 10 seconds; opening the admin list writes this
+              instance&apos;s buffered hits first, so the counts are current (other instances&apos; arrive within 10 s).
             </p>
             <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-4">
               <li><strong className="text-foreground">Matching:</strong> on the path only — lowercased, trailing slash removed. A query string is matched only when the rule&apos;s <IC>from</IC> has one; otherwise the visitor&apos;s query is carried over to the target.</li>
@@ -3174,7 +3280,7 @@ export async function middleware(req: NextRequest) {
 export const config = { matcher: ['/((?!_next|api|favicon.ico).*)'] };`} />
             <div className="rounded-xl border border-border overflow-hidden mt-4">
               <Endpoint method="GET"    path="/api/redirects/resolve?path=" desc="Look up a path — { to, statusCode } or 404 (public)" />
-              <Endpoint method="GET"    path="/api/redirects"               desc="List rules — ?search, ?page, ?limit, ?sort" auth />
+              <Endpoint method="GET"    path="/api/redirects"               desc="List rules — ?search, ?page, ?limit, ?sort (writes this instance's buffered hit counts first)" auth />
               <Endpoint method="POST"   path="/api/redirects"               desc="Create — body: { from, to?, statusCode? } (default 301)" auth />
               <Endpoint method="PATCH"  path="/api/redirects/:id"           desc="Change a rule" auth />
               <Endpoint method="DELETE" path="/api/redirects/:id"           desc="Delete a rule" auth />
@@ -3220,7 +3326,9 @@ await admin.collection('post').create({ slug: 'draft-1', data: { title: 'Hi' }, 
               Set a content type&apos;s <strong className="text-foreground">Preview URL</strong> (see Content Types) and the entry editor
               gets a <strong className="text-foreground">Live</strong> toggle: your real website opens in a resizable pane next to the
               form, with device widths, reload and open-in-new-tab buttons. The preview token in the URL is refreshed automatically,
-              and every edit streams to the page as you type — no save needed. The entry has to be saved once first.
+              and every edit streams to the page as you type — no save needed. The entry has to be saved once first: on the new-entry
+              page, <strong className="text-foreground">Save draft &amp; preview</strong> (shown for types with a Preview URL) saves it
+              as a draft and opens the editor with the Live pane already on (<IC>?live=1</IC>).
             </p>
             <h3 className="font-semibold mb-2">The postMessage protocol</h3>
             <div className="overflow-x-auto rounded-xl border border-border mb-4">
@@ -3286,7 +3394,7 @@ npm install && npm run dev`} />
               <IC>--token</IC>). A token starting with <IC>np_</IC> is sent as <IC>X-API-Key</IC> (it needs <IC>all</IC> access to{' '}
               <IC>*</IC>); anything else as an admin <IC>Bearer</IC> JWT.
             </p>
-            <CodeBlock code={`npx create-nodepress-app schema:pull [--out nodepress.schema.json]   # save the site's content types (and components)
+            <CodeBlock code={`npx create-nodepress-app schema:pull [--out nodepress.schema.json]   # save the site's content types (with components and choice lists)
 npx create-nodepress-app schema:diff [--file nodepress.schema.json]  # what a push would change
 npx create-nodepress-app schema:push [--file nodepress.schema.json] [--yes]   # apply (asks first unless --yes)
 
@@ -3351,11 +3459,30 @@ GET    /api/releases  |  GET /api/releases/:id   (items + conflicts)`} />
             </div>
             <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-3">
               <li>Existing content types with the same name are reused (only their fields are filled). Existing slugs are skipped unless you choose <em>Overwrite</em>.</li>
-              <li>Not imported: comments, custom taxonomies, users and the category hierarchy. PHP-serialized meta is kept as the raw string.</li>
+              <li>On a reused content type, existing <IC>date</IC> / <IC>datetime</IC> fields are filled too when the matching value is a valid date.</li>
+              <li>Never imported: login accounts, spam / trashed comments, pingbacks, <IC>post_format</IC> and <IC>nav_menu</IC> terms. PHP-serialized meta is kept as the raw string.</li>
               <li>With several backend instances, <IC>uploads/</IC> must be shared — the uploaded file waits in <IC>uploads/.cache/imports</IC> for the job.</li>
             </ul>
+            <h3 className="font-semibold mb-2">Optional extras</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              All off by default, chosen on the import page or as query flags (the dry run takes them too and reports the options and
+              counts). Re-running an import is idempotent: authors are keyed by login, comments by <IC>comment-&lt;wp_id&gt;</IC>.
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-border mb-4">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Flag</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Adds</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border text-xs">
+                  <tr><td className="px-4 py-2.5 font-mono">categoryPaths</td><td className="px-4 py-2.5"><IC>category_paths</IC> (JSON) with each category&apos;s full path, e.g. <IC>&quot;News/Local&quot;</IC></td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">taxonomies</td><td className="px-4 py-2.5"><IC>taxonomies</IC> (JSON <IC>{'{ "<taxonomy>": ["term", …] }'}</IC>) for custom taxonomies — only on the types that use them</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">authors</td><td className="px-4 py-2.5">A <IC>wp_author</IC> content type (<IC>login</IC>, <IC>display_name</IC>, <IC>first_name</IC>, <IC>last_name</IC>) and an <IC>author_ref</IC> relation on posts. Authors become content, not user accounts, and their email is not imported.</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">comments</td><td className="px-4 py-2.5">A <IC>wp_comment</IC> content type (<IC>author_name</IC>, <IC>content</IC> with HTML stripped, <IC>date</IC>, <IC>post_wp_id</IC>, <IC>post_type</IC>, <IC>parent_wp_id</IC>, <IC>wp_id</IC>, plus a <IC>post</IC> relation when every comment targets one content type). Approved comments only; commenter email, URL and IP are never imported.</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">pendingComments</td><td className="px-4 py-2.5">With <IC>comments</IC>: also import pending comments, as <IC>pending_review</IC> entries</td></tr>
+                </tbody>
+              </table>
+            </div>
             <CodeBlock code={`POST /api/import/wordpress?dryRun=true      # multipart "file" → summary, nothing written
 POST /api/import/wordpress?importMedia=true&overwrite=true   # → { jobId }
+POST /api/import/wordpress?authors=true&comments=true&pendingComments=true&categoryPaths=true&taxonomies=true
 GET  /api/import/wordpress/:jobId           # status and result`} />
           </Section>
 
@@ -3986,8 +4113,8 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
             <h3 className="font-semibold mb-3">Content Types</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/content-types"              desc="List all content types" auth />
-              <Endpoint method="GET"    path="/api/content-types/export"       desc="Export all content type schemas (+ components, preview URLs) as a JSON bundle — admin/editor JWT or a full-access API key" auth />
-              <Endpoint method="POST"   path="/api/content-types/import"       desc="Import content type schemas and components with dryRun pre-flight validation — admin JWT or a full-access API key" auth />
+              <Endpoint method="GET"    path="/api/content-types/export"       desc="Export all content type schemas (+ components, choice lists, preview URLs) as a JSON bundle — admin/editor JWT or a full-access API key" auth />
+              <Endpoint method="POST"   path="/api/content-types/import"       desc="Import content type schemas, components and choice lists with dryRun pre-flight validation — admin JWT or a full-access API key" auth />
               <Endpoint method="POST"   path="/api/content-types"              desc="Create a content type (supports field-level readRoles & writeRoles)" auth />
               <Endpoint method="PUT"    path="/api/content-types/:id"          desc="Update a content type schema — optional fieldMigrations { renames, convert, drop } and previewUrl" auth />
               <Endpoint method="POST"   path="/api/content-types/:id/schema-impact" desc="Preview what an update would do to existing entries (same body as PUT, changes nothing) — admin only" auth />
@@ -4014,6 +4141,10 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
               <Endpoint method="POST"   path="/api/entries/bulk-pending-review"       desc="Bulk submit entries for review — body: { ids: number[] }" auth />
               <Endpoint method="POST"   path="/api/entries/bulk-delete"               desc="Bulk soft-delete entries — body: { ids: number[] }" auth />
             </div>
+            <p className="text-muted-foreground text-xs mb-6 -mt-4">
+              Bulk routes check the role&apos;s permission on every affected content type; any denial is a <IC>403</IC> with{' '}
+              <IC>forbiddenContentTypes</IC> and nothing is changed.
+            </p>
 
             <h3 className="font-semibold mb-3">Media</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
@@ -4084,7 +4215,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/roles"                      desc="List custom roles — admin only" auth />
               <Endpoint method="POST"   path="/api/roles"                      desc="Create — body: { name, label, baseRole: editor|contributor|viewer, description? } — admin only" auth />
-              <Endpoint method="PUT"    path="/api/roles/:name"                desc="Change label, description or base role — admin only" auth />
+              <Endpoint method="PUT"    path="/api/roles/:name"                desc="Change label, description or base role (reseeds the * row unless customised) — returns warnings[] — admin only" auth />
               <Endpoint method="DELETE" path="/api/roles/:name"                desc="Delete — 409 { userCount } while users have it — admin only" auth />
             </div>
 
@@ -4093,14 +4224,24 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
               <Endpoint method="GET"    path="/api/components"                 desc="List components (signed-in users)" auth />
               <Endpoint method="GET"    path="/api/components/:id"             desc="One component with usage[]" auth />
               <Endpoint method="POST"   path="/api/components"                 desc="Create a component — admin only" auth />
-              <Endpoint method="PUT"    path="/api/components/:id"             desc="Update and propagate to content types — admin only" auth />
+              <Endpoint method="PUT"    path="/api/components/:id"             desc="Update and propagate to content types — optional fieldMigrations (component field names) — admin only" auth />
               <Endpoint method="DELETE" path="/api/components/:id"             desc="Delete (409 while in use) — admin only" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Choice Lists</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/choice-lists/:name"         desc="One list — { name, label, choices } (public, cached 60 s)" />
+              <Endpoint method="GET"    path="/api/choice-lists?names=a,b"     desc="Several lists by name, max 50 (public, cached 60 s)" />
+              <Endpoint method="GET"    path="/api/choice-lists"               desc="Every list with usage — admin only" auth />
+              <Endpoint method="POST"   path="/api/choice-lists"               desc="Create a list — admin only" auth />
+              <Endpoint method="PUT"    path="/api/choice-lists/:id"           desc="Update and propagate to content types and components — reports removedValuesInUse — admin only" auth />
+              <Endpoint method="DELETE" path="/api/choice-lists/:id"           desc="Delete (409 while in use) — admin only" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Redirects</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/redirects/resolve?path="    desc="Resolve a path — { to, statusCode } or 404 (public)" />
-              <Endpoint method="GET"    path="/api/redirects"                  desc="List — ?search, ?page, ?limit, ?sort — editor/admin" auth />
+              <Endpoint method="GET"    path="/api/redirects"                  desc="List — ?search, ?page, ?limit, ?sort (flushes buffered hits first) — editor/admin" auth />
               <Endpoint method="POST"   path="/api/redirects"                  desc="Create — { from, to?, statusCode? } — editor/admin" auth />
               <Endpoint method="PATCH"  path="/api/redirects/:id"              desc="Update — editor/admin" auth />
               <Endpoint method="DELETE" path="/api/redirects/:id"              desc="Delete — editor/admin" auth />
@@ -4110,7 +4251,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
 
             <h3 className="font-semibold mb-3">Import (WordPress)</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="POST"   path="/api/import/wordpress"           desc="Upload a WXR file (multipart file, ≤50 MB) — ?dryRun=true summary, ?importMedia=true, ?overwrite=true; a real run returns { jobId } — admin only" auth />
+              <Endpoint method="POST"   path="/api/import/wordpress"           desc="Upload a WXR file (multipart file, ≤50 MB) — ?dryRun=true summary, ?importMedia, ?overwrite, ?categoryPaths, ?taxonomies, ?authors, ?comments, ?pendingComments; a real run returns { jobId } — admin only" auth />
               <Endpoint method="GET"    path="/api/import/wordpress/:jobId"    desc="Import job status and result — admin only" auth />
             </div>
 
@@ -4128,7 +4269,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
 
             <h3 className="font-semibold mb-3">Audit Log</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/audit-log"                  desc="List audit events — ?resource (entry, content_type, user, api_key, form, media, plugin, settings, release, role, redirect, component, import), ?page, ?limit (admin only)" auth />
+              <Endpoint method="GET"    path="/api/audit-log"                  desc="List audit events — ?resource (entry, content_type, user, api_key, form, media, plugin, settings, release, role, redirect, component, choice_list, import), ?page, ?limit (admin only)" auth />
             </div>
 
             <h3 className="font-semibold mb-3">SEO, Health & Observability</h3>
@@ -4215,7 +4356,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
                     ['403', 'Forbidden — the API key or the user\'s role lacks permission for this operation'],
                     ['422', 'Unprocessable — a plugin vetoed the write, or a read-only (reverse) field was sent'],
                     ['404', 'Not Found — content type or entry does not exist'],
-                    ['409', 'Conflict — slug already exists in this content type, or a component / role is still in use'],
+                    ['409', 'Conflict — slug already exists in this content type, or a component / role / choice list is still in use'],
                   ].map(([code, meaning]) => (
                     <tr key={code}>
                       <td className="px-4 py-2.5 font-mono font-semibold text-foreground">{code}</td>

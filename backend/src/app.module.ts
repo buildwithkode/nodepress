@@ -16,6 +16,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
 import { FormsModule } from './forms/forms.module';
 import { DynamicApiModule } from './dynamic-api/dynamic-api.module';
 import { ComponentsModule } from './components/components.module';
+import { ChoiceListsModule } from './choice-lists/choice-lists.module';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { AuditModule } from './audit/audit.module';
@@ -111,6 +112,7 @@ import { LocalesModule } from './locales/locales.module';
     RealtimeModule,
     ContentTypeModule,
     ComponentsModule,   // Reusable field sets used by group/repeater fields
+    ChoiceListsModule,  // Shared choice lists for select fields (+ public GET /choice-lists)
     EntriesModule,
     MediaModule,
     ApiKeysModule,

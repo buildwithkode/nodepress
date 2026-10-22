@@ -164,7 +164,8 @@
       "nameAndType": "Naam & type",
       "restricted": "Beperkt",
       "adminRead": "Beheerder heeft altijd volledige leestoegang",
-      "adminWrite": "Beheerder heeft altijd volledige schrijftoegang"
+      "adminWrite": "Beheerder heeft altijd volledige schrijftoegang",
+      "inherited": "Overgenomen van {base}"
     },
     "enforcement": {
       "title": "Beveiliging zonder lekken:",

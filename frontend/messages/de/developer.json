@@ -190,7 +190,8 @@
       "role": "Rollen",
       "redirect": "Weiterleitungen",
       "component": "Komponenten",
-      "import": "Importe"
+      "import": "Importe",
+      "choice_list": "Auswahllisten"
     },
     "colTime": "Zeit",
     "colUser": "Benutzer",

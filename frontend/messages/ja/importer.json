@@ -46,5 +46,18 @@
   "colFailed": "失敗",
   "mediaResult": "メディア: {imported} 件インポート、{reused} 件はインポート済み、{failed} 件失敗",
   "errors": "{count, plural, other {# 件の問題}}",
-  "viewEntries": "エントリーを表示 →"
+  "viewEntries": "エントリーを表示 →",
+  "extras": "追加でインポート",
+  "categoryPaths": "カテゴリーの階層を保持する",
+  "categoryPathsHint": "カテゴリー名に加えて、「親/子」のような完全なパスを持つ category_paths フィールドを追加します。{count, plural, =0 {このファイルには入れ子のカテゴリーはありません。} other {このファイルには入れ子のカテゴリーが # 件あります。}}",
+  "taxonomies": "カスタムタクソノミーをインポート",
+  "taxonomiesHint": "タクソノミーごとにまとめたタームを taxonomies フィールドとして、それを使うエントリーに追加します。",
+  "taxonomiesFound": "このファイル内: {list}。",
+  "taxonomiesNone": "このファイルにはカスタムタクソノミーはありません。",
+  "authors": "投稿者をコンテンツとしてインポート",
+  "authorsHint": "{count, plural, other {# 人の投稿者が wp_author エントリーになり}}(ログイン名、表示名、名、姓)、各投稿は author_ref フィールドで投稿者にリンクされます。これはコンテンツのエントリーであり、ログインアカウントではありません — 誰もこれでサインインできません。メールアドレスはコピーされません。",
+  "comments": "コメントをインポート",
+  "commentsHint": "承認済みのコメントは wp_comment エントリーになります: 名前、HTML を除いた本文、日付、返信先のコメント、属する投稿。コメント投稿者のメールアドレスと IP アドレスはコピーされず、スパムやゴミ箱のコメントはインポートされません。このファイル内: 承認済み {approved} 件、保留中 {pending} 件、スパム/ゴミ箱 {spam} 件。",
+  "pendingComments": "保留中のコメントも含める",
+  "pendingCommentsHint": "レビュー待ちのエントリーとしてインポートされます。"
 }

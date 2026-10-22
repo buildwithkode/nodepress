@@ -16,7 +16,9 @@
     "contentType": "Contenttype",
     "selectContentType": "Kies een contenttype…",
     "selectToBegin": "Kies een contenttype om te beginnen.",
-    "submit": "Item aanmaken"
+    "submit": "Item aanmaken",
+    "saveAndPreview": "Concept opslaan & voorbeeld",
+    "saveAndPreviewHint": "Opslaan als concept en het live voorbeeld openen"
   },
   "edit": {
     "title": "Item bewerken",

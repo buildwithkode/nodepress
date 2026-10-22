@@ -52,6 +52,7 @@
     "deleted": "Função excluída",
     "saveFailed": "Não foi possível salvar a função",
     "deleteFailed": "Não foi possível excluir a função",
-    "inUse": "{count, plural, one {# usuário ainda tem} other {# usuários ainda têm}} esta função. Atribua outra função a eles primeiro."
+    "inUse": "{count, plural, one {# usuário ainda tem} other {# usuários ainda têm}} esta função. Atribua outra função a eles primeiro.",
+    "permissionsKept": "As permissões desta função foram personalizadas, por isso foram mantidas — não foram alteradas para as predefinições de {base}. Reveja-as na página Permissões."
   }
 }

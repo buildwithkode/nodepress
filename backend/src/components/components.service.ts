@@ -4,6 +4,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import type { FieldMigrations } from '../content-type/field-migration';
 import { ModuleRef } from '@nestjs/core';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchemaValidator } from '../fields/schema.validator';
@@ -22,13 +23,80 @@ export function componentOf(field: any): string | null {
   return typeof c === 'string' && c.trim() ? normalizeComponentName(c) : null;
 }
 
+const nameIn = (c: unknown): string | null =>
+  typeof c === 'string' && c.trim() ? normalizeComponentName(c) : null;
+
+/** A top-level field inserted inline (seamless) from a component: `component: "<name>"` on the field itself. */
+export const inlineComponentOf = (field: any): string | null => nameIn(field?.component);
+
+/** A flexible layout whose fields come from a component: `{ name, label, component, fields }`. */
+export const layoutComponentOf = (layout: any): string | null => nameIn(layout?.component);
+
+export type ComponentUseType = 'group' | 'repeater' | 'inline' | 'layout';
+
+/** One place a schema uses a component. */
+export interface ComponentUse {
+  component: string;
+  type: ComponentUseType;
+  /** group/repeater: the field; inline: the first inserted field; layout: the flexible field */
+  field: string;
+  /** layout: the layout's name */
+  layout?: string;
+  /** inline: the inserted fields */
+  fields?: string[];
+}
+
+/** Every use of a component in a schema, in schema order. */
+export function componentUses(schema: unknown): ComponentUse[] {
+  const out: ComponentUse[] = [];
+  if (!Array.isArray(schema)) return out;
+  schema.forEach((f: any, i: number) => {
+    const inline = inlineComponentOf(f);
+    if (inline) {
+      // A contiguous run of fields tagged with the same component is one use.
+      const prev = out[out.length - 1];
+      if (i > 0 && inlineComponentOf(schema[i - 1]) === inline && prev?.type === 'inline') prev.fields!.push(f.name);
+      else out.push({ component: inline, type: 'inline', field: f.name, fields: [f.name] });
+      return;
+    }
+    const c = componentOf(f);
+    if (c) out.push({ component: c, type: f.type, field: f.name });
+    if (f?.type === 'flexible' && Array.isArray(f.options?.layouts)) {
+      for (const l of f.options.layouts) {
+        const lc = layoutComponentOf(l);
+        if (lc) out.push({ component: lc, type: 'layout', field: f.name, layout: l.name || lc });
+      }
+    }
+  });
+  return out;
+}
+
+/** Where a component's field `name` lives in entry data for one use (a field-migration path). */
+const pathIn = (use: ComponentUse, name: string): string =>
+  use.type === 'inline' ? name : use.type === 'layout' ? `${use.field}.${use.layout}.${name}` : `${use.field}.${name}`;
+
+/** Point every use of component `from` at `to` (a component rename). */
+function renameUses(schema: any[], from: string, to: string): any[] {
+  return schema.map((f) => {
+    if (inlineComponentOf(f) === from) return { ...f, component: to };
+    if (componentOf(f) === from) return { ...f, options: { ...f.options, component: to } };
+    if (f?.type === 'flexible' && Array.isArray(f.options?.layouts)) {
+      const layouts = f.options.layouts.map((l: any) => (layoutComponentOf(l) === from ? { ...l, component: to } : l));
+      return { ...f, options: { ...f.options, layouts } };
+    }
+    return f;
+  });
+}
+
 /** Content type fields that use a component. */
 export interface ComponentUsage {
   contentTypeId: number;
   contentType: string;
   displayName: string | null;
   field: string;
-  type: 'group' | 'repeater';
+  type: ComponentUseType;
+  layout?: string;
+  fields?: string[];
 }
 
 function usageIn(
@@ -37,11 +105,8 @@ function usageIn(
 ): ComponentUsage[] {
   const out: ComponentUsage[] = [];
   for (const ct of contentTypes) {
-    if (!Array.isArray(ct.schema)) continue;
-    for (const f of ct.schema as any[]) {
-      if (componentOf(f) === name) {
-        out.push({ contentTypeId: ct.id, contentType: ct.name, displayName: ct.displayName ?? null, field: f.name, type: f.type });
-      }
+    for (const { component, ...use } of componentUses(ct.schema)) {
+      if (component === name) out.push({ contentTypeId: ct.id, contentType: ct.name, displayName: ct.displayName ?? null, ...use });
     }
   }
   return out;
@@ -55,14 +120,18 @@ const errorText = (err: any): string => {
 
 /**
  * Reusable components — a named list of simple fields that content types use
- * as a group field (one) or a repeater field (many) with `options.component`.
+ * in four ways:
+ *  - a group field (one) or a repeater field (many) with `options.component`;
+ *  - inline (seamless): the fields themselves, at top level, each tagged
+ *    `component: "<name>"` — entry data stays flat;
+ *  - a flexible layout `{ name, label, component, fields }`.
  *
- * The field's `options.subFields` is a denormalized copy of the component's
- * fields: expand() fills it in on every content type write, and updating a
+ * The fields a content type holds are a denormalized copy of the component's:
+ * expand() fills them in on every content type write, and updating a
  * component rewrites every content type that uses it through
  * ContentTypeService.update (schema versions, caches, GraphQL, field indexes).
  * Everything that reads schemas (DataValidator, GraphQL, type generator, the
- * admin entry form) sees an ordinary group/repeater.
+ * admin entry form) sees ordinary fields.
  */
 @Injectable()
 export class ComponentsService {
@@ -154,7 +223,7 @@ export class ComponentsService {
     if (dto.fields !== undefined) data.fields = this.validateFields(dto.fields);
 
     const updated = await this.prisma.component.update({ where: { id }, data });
-    const { updatedContentTypes, errors } = await this.propagate(current.name, updated, actorId);
+    const { updatedContentTypes, errors } = await this.propagate(current.name, updated, actorId, dto.fieldMigrations);
     return {
       ...updated,
       updatedContentTypes,
@@ -175,39 +244,87 @@ export class ComponentsService {
   // ─── Expansion & propagation ───────────────────────────────────────────────
 
   /**
-   * Replace `options.subFields` of every group/repeater field that names a
-   * component with that component's fields. `overrides` (name → fields) wins
-   * over the database — an import bundle's components, validated before they
-   * are written. Throws 400 for an unknown component.
+   * Fill in the fields of every use of a component from that component:
+   * `options.subFields` of group/repeater fields, the `fields` of component
+   * layouts (name and label default to the component's), and each contiguous
+   * run of top-level fields tagged with the same component (replaced, at the
+   * run's first position, by fresh tagged copies). `overrides` (name → fields)
+   * wins over the database — an import bundle's components, validated before
+   * they are written. Throws 400 for an unknown component, a component used
+   * inline twice, or an inline field whose name is taken.
    */
   async expand<T = any>(schema: T, overrides?: Map<string, any[]>): Promise<T> {
     if (!Array.isArray(schema)) return schema;
-    const names = [...new Set(schema.map(componentOf).filter((n): n is string => !!n))];
+    const names = [...new Set(componentUses(schema).map((u) => u.component))];
     if (!names.length) return schema;
 
-    const fields = new Map<string, any[]>();
-    for (const n of names) if (overrides?.has(n)) fields.set(n, overrides.get(n)!);
-    const fromDb = names.filter((n) => !fields.has(n));
+    const found = new Map<string, { fields: any[]; displayName?: string | null }>();
+    for (const n of names) if (overrides?.has(n)) found.set(n, { fields: overrides.get(n)! });
+    const fromDb = names.filter((n) => !found.has(n));
     if (fromDb.length) {
       const rows = await this.prisma.component.findMany({ where: { name: { in: fromDb } } });
-      for (const r of rows) fields.set(r.name, r.fields as any[]);
+      for (const r of rows) found.set(r.name, { fields: r.fields as any[], displayName: r.displayName });
     }
-    const missing = names.filter((n) => !fields.has(n));
+    const missing = names.filter((n) => !found.has(n));
     if (missing.length) {
       throw new BadRequestException(`Unknown component${missing.length > 1 ? 's' : ''}: ${missing.map((m) => `"${m}"`).join(', ')}`);
     }
+    const fieldsOf = (n: string): any[] => structuredClone(found.get(n)!.fields);
 
-    return schema.map((f: any) => {
+    const out: any[] = [];
+    const inlined = new Set<string>();
+    schema.forEach((f: any, i: number) => {
+      const inline = inlineComponentOf(f);
+      if (inline) {
+        if (i > 0 && inlineComponentOf(schema[i - 1]) === inline) return; // rest of the run
+        if (inlined.has(inline)) {
+          throw new BadRequestException(`Component "${inline}" is used inline more than once — a content type can include its fields only once`);
+        }
+        inlined.add(inline);
+        out.push(...fieldsOf(inline).map((cf) => ({ ...cf, component: inline })));
+        return;
+      }
       const n = componentOf(f);
-      if (!n) return f;
-      return { ...f, options: { ...f.options, component: n, subFields: structuredClone(fields.get(n)) } };
-    }) as T;
+      if (n) {
+        out.push({ ...f, options: { ...f.options, component: n, subFields: fieldsOf(n) } });
+        return;
+      }
+      if (f?.type === 'flexible' && Array.isArray(f.options?.layouts) && f.options.layouts.some(layoutComponentOf)) {
+        const layouts = f.options.layouts.map((l: any) => {
+          const ln = layoutComponentOf(l);
+          if (!ln) return l;
+          const label = l.label || found.get(ln)!.displayName;
+          return { ...l, name: l.name || ln, ...(label ? { label } : {}), component: ln, fields: fieldsOf(ln) };
+        });
+        out.push({ ...f, options: { ...f.options, layouts } });
+        return;
+      }
+      out.push(f);
+    });
+
+    // An inline component's fields share the content type's top level.
+    const seen = new Map<string, any>();
+    out.forEach((f, i) => {
+      if (typeof f?.name !== 'string') return;
+      const key = normalizeKey(f.name);
+      const prev = seen.get(key);
+      const from = inlineComponentOf(f) ?? (prev && inlineComponentOf(prev));
+      if (prev && from) {
+        throw new BadRequestException({
+          message: 'Invalid schema',
+          errors: [`schema[${i}].name "${key}": duplicate field name — "${key}" is a field of component "${from}", used inline`],
+        });
+      }
+      seen.set(key, f);
+    });
+    return out as T;
   }
 
   private async propagate(
     oldName: string,
     component: { name: string; fields: unknown },
     actorId?: number,
+    migrations?: FieldMigrations,
   ): Promise<{ updatedContentTypes: Array<{ id: number; name: string }>; errors: string[] }> {
     const updatedContentTypes: Array<{ id: number; name: string }> = [];
     const errors: string[] = [];
@@ -218,17 +335,23 @@ export class ComponentsService {
     // import of ContentTypeService here would be a cycle.
     const { ContentTypeService } = await import('../content-type/content-type.service');
     const contentTypes = this.moduleRef.get(ContentTypeService, { strict: false });
+    const overrides = new Map([[component.name, component.fields as any[]]]);
 
     for (const ct of users) {
       const schema = ct.schema as any[];
-      const next = schema.map((f) =>
-        componentOf(f) === oldName
-          ? { ...f, options: { ...f.options, component: component.name, subFields: structuredClone(component.fields) } }
-          : f,
-      );
-      if (JSON.stringify(next) === JSON.stringify(schema)) continue;
       try {
-        await contentTypes.update(ct.id, { schema: next as any }, actorId);
+        const next = await this.expand(oldName === component.name ? schema : renameUses(schema, oldName, component.name), overrides);
+        if (JSON.stringify(next) === JSON.stringify(schema)) continue;
+        // The component's field names become paths in each place that uses it:
+        // `name` inline, `field.name` in a group/repeater, `field.layout.name` in a layout.
+        const uses = componentUses(schema).filter((u) => u.component === oldName);
+        const at = (name: string) => uses.map((u) => pathIn(u, name));
+        const fieldMigrations = migrations && {
+          renames: (migrations.renames ?? []).flatMap((r) => uses.map((u) => ({ from: pathIn(u, r.from), to: pathIn(u, r.to) }))),
+          convert: (migrations.convert ?? []).flatMap(at),
+          drop: (migrations.drop ?? []).flatMap(at),
+        };
+        await contentTypes.update(ct.id, { schema: next as any, ...(fieldMigrations ? { fieldMigrations } : {}) }, actorId);
         updatedContentTypes.push({ id: ct.id, name: ct.name });
       } catch (err) {
         errors.push(`${ct.name}: ${errorText(err)}`);
@@ -251,7 +374,7 @@ export class ComponentsService {
     let where: any;
     if (schemas) {
       const names = new Set<string>();
-      for (const s of schemas) if (Array.isArray(s)) for (const f of s) { const n = componentOf(f); if (n) names.add(n); }
+      for (const s of schemas) for (const u of componentUses(s)) names.add(u.component);
       if (!names.size) return [];
       where = { name: { in: [...names] } };
     }

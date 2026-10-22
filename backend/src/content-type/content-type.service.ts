@@ -17,8 +17,10 @@ import { FieldDef, RelationFieldDef, isReverseRelation } from '../fields/field.t
 import { normalizeKey } from '../common/normalize';
 import { Optional } from '@nestjs/common';
 import { ComponentsService } from '../components/components.service';
+import { ChoiceListsService } from '../choice-lists/choice-lists.service';
+import type { Choice } from '../choice-lists/choice-list.util';
 import {
-  FieldMigrations, MigrationStep, impactSql, planMigrations, retypedFields, stepParams, stepSql,
+  FieldMigrations, MigrationStep, impactQuery, planMigrations, removedNestedFields, retypedFields, stepQuery,
 } from './field-migration';
 
 /** Field names in migrations get the same snake_case normalization as the schema. */
@@ -32,7 +34,7 @@ const ctCacheKey = (name: string) => `ct:meta:${name}`;
 const CT_ALL_CACHE_KEY = 'ct:meta:all_content_types';
 
 // These route names are already taken by static controllers
-const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads', 'components', 'roles', 'redirects', 'import'];
+const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads', 'components', 'roles', 'redirects', 'import', 'choice-lists', 'choice_lists'];
 
 const normalizeName = (name: string): string =>
   name.trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -73,11 +75,14 @@ export class ContentTypeService {
     private formGenerator: FormGenerator,
     private fieldIndexes: FieldIndexService,
     @Optional() private components?: ComponentsService,
+    @Optional() private choiceLists?: ChoiceListsService,
   ) {}
 
   /** Copy reusable components' fields into the group/repeater fields that use them (see ComponentsService). */
-  private expandComponents(schema: any[], bundle?: Map<string, any[]>): Promise<any[]> {
-    return this.components ? this.components.expand(schema, bundle) : Promise.resolve(schema);
+  private async expandComponents(schema: any[], bundle?: Map<string, any[]>, lists?: Map<string, Choice[]>): Promise<any[]> {
+    const expanded = this.components ? await this.components.expand(schema, bundle) : schema;
+    // Then shared choice lists — after components, whose fields may hold select fields that use one.
+    return this.choiceLists ? this.choiceLists.expand(expanded, lists) : expanded;
   }
 
   async create(dto: CreateContentTypeDto) {
@@ -199,7 +204,10 @@ export class ContentTypeService {
       // Data and schema change together or not at all.
       updated = await this.prisma.$transaction(async (tx) => {
         if (snapshot) await tx.contentTypeSchemaVersion.create({ data: snapshot });
-        for (const step of steps) await tx.$executeRawUnsafe(stepSql(step), ...stepParams(id, step));
+        for (const step of steps) {
+          const q = stepQuery(id, step);
+          await tx.$executeRawUnsafe(q.sql, ...q.params);
+        }
         return tx.contentType.update({ where: { id }, data: updateData });
       }, { timeout: 120_000 });
       // Entries were rewritten with SQL, which the operation hooks don't see:
@@ -245,7 +253,8 @@ export class ContentTypeService {
 
     const impact = [];
     for (const step of steps) {
-      const [row] = await this.prisma.$queryRawUnsafe<{ entries: number; lost: number }[]>(impactSql(step), ...stepParams(id, step));
+      const q = impactQuery(id, step);
+      const [row] = await this.prisma.$queryRawUnsafe<{ entries: number; lost: number }[]>(q.sql, ...q.params);
       impact.push({ ...step, entries: row?.entries ?? 0, lost: row?.lost ?? 0 });
     }
     return {
@@ -253,13 +262,15 @@ export class ContentTypeService {
       diff: diffSchemas(oldSchema, newSchema),
       steps: impact,
       retyped: retypedFields(oldSchema, newSchema, migrations.renames),
+      // Fields removed from inside a group, repeater or layout that still exists — candidates for `drop`.
+      removedNested: removedNestedFields(oldSchema, newSchema, migrations.renames),
       warnings: await this.buildSchemaWarnings(id, oldSchema, newSchema, steps),
     };
   }
 
   /** Reverse fields on other types that read a renamed relation field follow the rename. */
   private async renameReverseMappings(typeName: string, steps: MigrationStep[]) {
-    const renames = new Map(steps.filter((s) => s.kind === 'rename').map((s) => [s.from!, s.field]));
+    const renames = new Map(steps.filter((s) => s.kind === 'rename' && !s.container).map((s) => [s.from!, s.field]));
     if (!renames.size) return;
     const types = await this.prisma.contentType.findMany();
     for (const ct of types) {
@@ -405,6 +416,7 @@ export class ContentTypeService {
           },
         ],
         components: (await this.components?.exportComponents([ct.schema])) ?? [],
+        choiceLists: (await this.choiceLists?.exportLists([ct.schema])) ?? [],
       };
     }
     const all = await this.prisma.contentType.findMany({
@@ -421,6 +433,7 @@ export class ContentTypeService {
         previewUrl: ct.previewUrl,
       })),
       components: (await this.components?.exportComponents()) ?? [],
+      choiceLists: (await this.choiceLists?.exportLists()) ?? [],
     };
   }
 
@@ -431,6 +444,7 @@ export class ContentTypeService {
       dryRun?: boolean;
       overwrite?: boolean;
       components?: Array<{ name: string; displayName?: string | null; description?: string | null; fields: any[] }>;
+      choiceLists?: Array<{ name: string; label?: string; description?: string | null; choices: unknown[] }>;
     },
     actorId?: number,
   ) {
@@ -451,6 +465,8 @@ export class ContentTypeService {
     const errors: string[] = [];
     // The bundle's components, validated — its schemas expand against them.
     const bundleComponents = await this.components?.prepareImport(dto.components, errors, overwrite);
+    // …and its choice lists (written before components and content types).
+    const bundleLists = await this.choiceLists?.prepareImport(dto.choiceLists, errors, overwrite);
     const preview: any[] = [];
     let toCreate = 0;
     let toUpdate = 0;
@@ -482,7 +498,7 @@ export class ContentTypeService {
       // means the import will too.
       if (valid) {
         try {
-          validated.set(name, this.schemaValidator.validate(normalizeSchema(await this.expandComponents(ct.schema, bundleComponents))));
+          validated.set(name, this.schemaValidator.validate(normalizeSchema(await this.expandComponents(ct.schema, bundleComponents, bundleLists))));
           normalizePreviewUrl(ct.previewUrl);
         } catch (err: any) {
           errorMsg = `"${name}": ${err?.response?.message ?? err?.message ?? 'invalid schema'}`;
@@ -528,6 +544,7 @@ export class ContentTypeService {
     }
 
     // Components first, so the content types below expand against them.
+    const choiceLists = await this.choiceLists?.applyImport(dto.choiceLists, overwrite, actorId);
     const components = await this.components?.applyImport(dto.components, overwrite, actorId);
     let created = 0;
     let updated = 0;
@@ -572,6 +589,7 @@ export class ContentTypeService {
       updated,
       skipped,
       components,
+      choiceLists,
       errors,
     };
   }

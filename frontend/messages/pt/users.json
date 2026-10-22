@@ -164,7 +164,8 @@
       "nameAndType": "Nome e tipo",
       "restricted": "Restrito",
       "adminRead": "O administrador sempre tem acesso total de leitura",
-      "adminWrite": "O administrador sempre tem acesso total de escrita"
+      "adminWrite": "O administrador sempre tem acesso total de escrita",
+      "inherited": "Herdado de {base}"
     },
     "enforcement": {
       "title": "Segurança sem vazamentos:",

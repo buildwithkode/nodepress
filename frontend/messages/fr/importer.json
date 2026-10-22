@@ -46,5 +46,18 @@
   "colFailed": "En échec",
   "mediaResult": "Médias : {imported} importés, {reused} déjà importés, {failed} en échec",
   "errors": "{count, plural, one {# problème} other {# problèmes}}",
-  "viewEntries": "Voir les entrées →"
+  "viewEntries": "Voir les entrées →",
+  "extras": "Importer aussi",
+  "categoryPaths": "Conserver la hiérarchie des catégories",
+  "categoryPathsHint": "Ajoute un champ category_paths avec les chemins complets, par exemple « Parent/Enfant », à côté des noms de catégories. {count, plural, =0 {Ce fichier n’a pas de catégories imbriquées.} one {# catégorie imbriquée dans ce fichier.} other {# catégories imbriquées dans ce fichier.}}",
+  "taxonomies": "Importer les taxonomies personnalisées",
+  "taxonomiesHint": "Ajoute un champ taxonomies — les termes regroupés par taxonomie — aux entrées qui les utilisent.",
+  "taxonomiesFound": "Dans ce fichier : {list}.",
+  "taxonomiesNone": "Ce fichier n’a pas de taxonomies personnalisées.",
+  "authors": "Importer les auteurs comme contenu",
+  "authorsHint": "{count, plural, one {# auteur devient une entrée wp_author} other {# auteurs deviennent des entrées wp_author}} (identifiant, nom affiché, prénom et nom), et chaque article est relié à son auteur par un champ author_ref. Ce sont des entrées de contenu, pas des comptes : personne ne peut se connecter avec. Les adresses e-mail ne sont pas copiées.",
+  "comments": "Importer les commentaires",
+  "commentsHint": "Les commentaires approuvés deviennent des entrées wp_comment : nom, texte sans HTML, date, le commentaire auquel ils répondent et l’article auquel ils appartiennent. Les adresses e-mail et IP des auteurs ne sont pas copiées ; les commentaires indésirables ou mis à la corbeille ne sont jamais importés. Dans ce fichier : {approved} approuvés, {pending} en attente, {spam} indésirables ou à la corbeille.",
+  "pendingComments": "Inclure les commentaires en attente",
+  "pendingCommentsHint": "Importés comme entrées en attente de relecture."
 }

@@ -164,7 +164,8 @@
       "nameAndType": "名前とタイプ",
       "restricted": "制限あり",
       "adminRead": "管理者は常にすべてを閲覧できます",
-      "adminWrite": "管理者は常にすべてを書き込めます"
+      "adminWrite": "管理者は常にすべてを書き込めます",
+      "inherited": "{base} から継承"
     },
     "enforcement": {
       "title": "情報漏えいゼロのセキュリティ適用:",

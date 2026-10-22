@@ -94,6 +94,14 @@ export class SchemaValidator {
     if (field.description !== undefined && typeof field.description !== 'string') {
       errors.push(`${path}.description: must be string`);
     }
+    // `component` marks a field inserted inline from a reusable component.
+    if (field.component !== undefined) {
+      if (isSubField) {
+        errors.push(`${path}.component: only top-level fields can come from an inline component`);
+      } else if (typeof field.component !== 'string' || !SchemaValidator.NAME_RE.test(field.component)) {
+        errors.push(`${path}.component: must be the name of a component`);
+      }
+    }
     if (field.indexed !== undefined) {
       if (typeof field.indexed !== 'boolean') {
         errors.push(`${path}.indexed: must be boolean`);
@@ -206,7 +214,22 @@ export class SchemaValidator {
       errors.push(`${path}.options: required for select fields`);
       return;
     }
-    if (!Array.isArray(options.choices) || options.choices.length === 0) {
+    // A shared choice list (`options.choiceList`) fills choices/choiceLabels in
+    // on save (ChoiceListsService.expand). Content types are expanded before
+    // they get here; a component's fields are expanded as they are written.
+    const listName = options.choiceList;
+    if (listName !== undefined && (typeof listName !== 'string' || !listName.trim())) {
+      errors.push(`${path}.options.choiceList: must be the name of a choice list`);
+    }
+    if (options.choiceLabels !== undefined && (
+      !options.choiceLabels || typeof options.choiceLabels !== 'object' || Array.isArray(options.choiceLabels) ||
+      Object.values(options.choiceLabels).some((l) => typeof l !== 'string')
+    )) {
+      errors.push(`${path}.options.choiceLabels: must be an object of value → label strings`);
+    }
+    if (typeof listName === 'string' && listName.trim() && options.choices === undefined) {
+      // choices come from the list when it is written
+    } else if (!Array.isArray(options.choices) || options.choices.length === 0) {
       errors.push(`${path}.options.choices: must be a non-empty array of strings`);
     } else {
       options.choices.forEach((c: any, i: number) => {
@@ -277,11 +300,11 @@ export class SchemaValidator {
     }
   }
 
-  /** `options.component` names a reusable component; its fields are copied into subFields. */
-  private validateComponentOption(options: any, path: string, errors: string[]): void {
+  /** `options.component` (or a layout's `component`) names a reusable component; its fields are copied in. */
+  private validateComponentOption(options: any, path: string, errors: string[], at = '.options'): void {
     if (options.component === undefined) return;
     if (typeof options.component !== 'string' || !SchemaValidator.NAME_RE.test(options.component)) {
-      errors.push(`${path}.options.component: must be the name of a component`);
+      errors.push(`${path}${at}.component: must be the name of a component`);
     }
   }
 
@@ -325,6 +348,7 @@ export class SchemaValidator {
         if (layout.label !== undefined && typeof layout.label !== 'string') {
           errors.push(`${lPath}.label: must be string`);
         }
+        this.validateComponentOption(layout, lPath, errors, '');
         if (!Array.isArray(layout.fields) || layout.fields.length === 0) {
           errors.push(`${lPath}.fields: must be a non-empty array`);
         } else {

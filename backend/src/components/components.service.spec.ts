@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { ComponentsService, componentOf } from './components.service';
+import { ComponentsService, componentOf, componentUses } from './components.service';
 import { SchemaValidator } from '../fields/schema.validator';
 
 const seoFields = [
@@ -107,6 +107,154 @@ describe('ComponentsService', () => {
       expect(out[0].options.subFields).toEqual([{ name: 'only', type: 'text' }]);
       expect(mockPrisma.component.findMany).not.toHaveBeenCalled();
       expect(await service.expand([{ name: 't', type: 'text' }])).toEqual([{ name: 't', type: 'text' }]);
+    });
+  });
+
+  describe('inline components and component layouts', () => {
+    const genderFields = [
+      { name: 'gender', type: 'select', options: { choices: ['male', 'female', 'other'] } },
+      { name: 'pronouns', type: 'text', condition: { field: 'gender', op: 'eq', value: 'other' } },
+    ];
+    const tagged = genderFields.map((f) => ({ ...f, component: 'gender' }));
+
+    it('componentUses finds every kind, a contiguous inline run counting once', () => {
+      expect(componentUses([
+        { name: 'title', type: 'text' },
+        { name: 'gender', type: 'select', component: 'gender' },
+        { name: 'pronouns', type: 'text', component: 'Gender' },
+        { name: 'seo', type: 'group', options: { component: 'seo' } },
+        { name: 'blocks', type: 'flexible', options: { layouts: [{ name: 'hero', fields: [] }, { name: 'meta', component: 'seo', fields: [] }] } },
+      ])).toEqual([
+        { component: 'gender', type: 'inline', field: 'gender', fields: ['gender', 'pronouns'] },
+        { component: 'seo', type: 'group', field: 'seo' },
+        { component: 'seo', type: 'layout', field: 'blocks', layout: 'meta' },
+      ]);
+    });
+
+    it('replaces an inline run at its first position with fresh tagged copies', async () => {
+      mockPrisma.component.findMany.mockResolvedValue([{ name: 'gender', displayName: 'Gender', fields: genderFields }]);
+      const out: any[] = await service.expand([
+        { name: 'title', type: 'text' },
+        { name: 'gender', type: 'text', component: 'gender' },
+        { name: 'stale', type: 'text', component: 'gender' },
+        { name: 'body', type: 'richtext' },
+      ]);
+      expect(out).toEqual([{ name: 'title', type: 'text' }, ...tagged, { name: 'body', type: 'richtext' }]);
+      // The condition still points at a sibling — now a top-level one.
+      expect(new SchemaValidator().validate(out)).toHaveLength(4);
+    });
+
+    it('fills component layouts, defaulting the name and label', async () => {
+      mockPrisma.component.findMany.mockResolvedValue([{ name: 'seo', displayName: 'SEO', fields: seoFields }]);
+      const out: any[] = await service.expand([{
+        name: 'blocks', type: 'flexible',
+        options: { layouts: [
+          { name: 'hero', fields: [{ name: 'heading', type: 'text' }] },
+          { component: 'seo', fields: [] },
+          { name: 'meta', label: 'Meta', component: 'seo' },
+        ] },
+      }]);
+      const layouts = out[0].options.layouts;
+      expect(layouts[0]).toEqual({ name: 'hero', fields: [{ name: 'heading', type: 'text' }] });
+      expect(layouts[1]).toEqual({ name: 'seo', label: 'SEO', component: 'seo', fields: seoFields });
+      expect(layouts[2]).toEqual({ name: 'meta', label: 'Meta', component: 'seo', fields: seoFields });
+      expect(() => new SchemaValidator().validate(out)).not.toThrow();
+    });
+
+    it('400 for a component used inline twice or a clashing field name', async () => {
+      mockPrisma.component.findMany.mockResolvedValue([{ name: 'gender', fields: genderFields }]);
+      await expect(service.expand([
+        { name: 'gender', type: 'text', component: 'gender' },
+        { name: 'title', type: 'text' },
+        { name: 'pronouns', type: 'text', component: 'gender' },
+      ])).rejects.toThrow('Component "gender" is used inline more than once');
+
+      try {
+        await service.expand([{ name: 'Pronouns', type: 'text' }, { name: 'gender', type: 'text', component: 'gender' }]);
+        fail('expected a BadRequestException');
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(BadRequestException);
+        expect(err.response.errors[0]).toMatch(/^schema\[2\]\.name "pronouns": duplicate field name — .*component "gender"/);
+      }
+    });
+
+    it('validates the component tag: name-like, top level only, and on layouts', () => {
+      const v = new SchemaValidator();
+      expect(() => v.validate([{ name: 'a', type: 'text', component: 'Not Valid' }])).toThrow(BadRequestException);
+      try {
+        v.validate([
+          { name: 'g', type: 'group', options: { subFields: [{ name: 'a', type: 'text', component: 'x' }] } },
+          { name: 'f', type: 'flexible', options: { layouts: [{ name: 'l', component: 7, fields: [{ name: 'a', type: 'text' }] }] } },
+        ]);
+        fail('expected a BadRequestException');
+      } catch (err: any) {
+        expect(err.response.errors).toEqual([
+          'schema[0].options.subFields[0].component: only top-level fields can come from an inline component',
+          'schema[1].options.layouts[0].component: must be the name of a component',
+        ]);
+      }
+      // A component's own fields can't carry the tag.
+      expect(() => service.validateFields([{ name: 'a', type: 'text', component: 'x' }])).toThrow(BadRequestException);
+    });
+
+    it('propagation translates fieldMigrations into inline, layout and group paths', async () => {
+      const renamed = [genderFields[0], { ...genderFields[1], name: 'they' }];
+      const ct = {
+        id: 3, name: 'person', displayName: null,
+        schema: [
+          { name: 'title', type: 'text' },
+          ...tagged,
+          { name: 'blocks', type: 'flexible', options: { layouts: [{ name: 'bio', label: 'Bio', component: 'gender', fields: genderFields }] } },
+          { name: 'partner', type: 'group', options: { component: 'gender', subFields: genderFields } },
+        ],
+      };
+      mockPrisma.component.findUnique.mockResolvedValue({ id: 1, name: 'gender', fields: genderFields });
+      mockPrisma.component.update.mockResolvedValue({ id: 1, name: 'gender', fields: renamed });
+      mockPrisma.contentType.findMany.mockResolvedValue([ct]);
+
+      await service.update(1, { fields: renamed as any, fieldMigrations: { renames: [{ from: 'pronouns', to: 'they' }], drop: ['old'] } });
+
+      const [, dto] = mockContentTypes.update.mock.calls[0];
+      expect(dto.fieldMigrations.renames).toEqual([
+        { from: 'pronouns', to: 'they' },
+        { from: 'blocks.bio.pronouns', to: 'blocks.bio.they' },
+        { from: 'partner.pronouns', to: 'partner.they' },
+      ]);
+      expect(dto.fieldMigrations.drop).toEqual(['old', 'blocks.bio.old', 'partner.old']);
+      expect(dto.schema.map((f: any) => f.name)).toEqual(['title', 'gender', 'they', 'blocks', 'partner']);
+      expect(dto.schema[1].component).toBe('gender');
+      expect(dto.schema[3].options.layouts[0]).toMatchObject({ name: 'bio', label: 'Bio', fields: renamed });
+    });
+
+    it('a component rename retags inline fields and layouts; usage lists every kind', async () => {
+      const ct = {
+        id: 3, name: 'person', displayName: 'Person',
+        schema: [
+          ...tagged,
+          { name: 'blocks', type: 'flexible', options: { layouts: [{ name: 'bio', component: 'gender', fields: genderFields }] } },
+        ],
+      };
+      mockPrisma.component.findUnique.mockResolvedValueOnce({ id: 1, name: 'gender', fields: genderFields }).mockResolvedValueOnce(null);
+      mockPrisma.component.update.mockResolvedValue({ id: 1, name: 'identity', fields: genderFields });
+      mockPrisma.contentType.findMany.mockResolvedValue([ct]);
+      await service.update(1, { name: 'identity' });
+      const schema = mockContentTypes.update.mock.calls[0][1].schema;
+      expect(schema.slice(0, 2).map((f: any) => f.component)).toEqual(['identity', 'identity']);
+      expect(schema[2].options.layouts[0].component).toBe('identity');
+
+      mockPrisma.component.findUnique.mockResolvedValue({ id: 1, name: 'gender', fields: genderFields });
+      const one = await service.findOne(1);
+      expect(one.usage).toEqual([
+        { contentTypeId: 3, contentType: 'person', displayName: 'Person', type: 'inline', field: 'gender', fields: ['gender', 'pronouns'] },
+        { contentTypeId: 3, contentType: 'person', displayName: 'Person', type: 'layout', field: 'blocks', layout: 'bio' },
+      ]);
+      await expect(service.remove(1)).rejects.toThrow(ConflictException);
+    });
+
+    it('exportComponents includes inline and layout components', async () => {
+      mockPrisma.component.findMany.mockResolvedValue([]);
+      await service.exportComponents([[...tagged, { name: 'b', type: 'flexible', options: { layouts: [{ name: 'x', component: 'seo', fields: [] }] } }]]);
+      expect(mockPrisma.component.findMany.mock.calls[0][0].where).toEqual({ name: { in: ['gender', 'seo'] } });
     });
   });
 

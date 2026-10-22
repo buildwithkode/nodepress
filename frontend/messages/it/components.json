@@ -1,6 +1,6 @@
 {
   "title": "Componenti",
-  "description": "Insiemi di campi riutilizzabili. Aggiungine uno a un tipo di contenuto come gruppo singolo o come elenco ripetibile; modificare il componente aggiorna tutti i tipi di contenuto che lo usano.",
+  "description": "Insiemi di campi riutilizzabili. Aggiungine uno a un tipo di contenuto come gruppo singolo, elenco ripetibile, campi integrati o layout di contenuto flessibile; modificare il componente aggiorna tutti i tipi di contenuto che lo usano.",
   "new": "Nuovo componente",
   "loadFailed": "Impossibile caricare i componenti",
   "saveFailed": "Impossibile salvare il componente",
@@ -22,7 +22,9 @@
   },
   "kind": {
     "one": "Uno",
-    "many": "Molti"
+    "many": "Molti",
+    "inline": "Integrato",
+    "layout": "Layout"
   },
   "editor": {
     "newTitle": "Nuovo componente",
@@ -56,7 +58,7 @@
   "add": {
     "button": "Aggiungi componente",
     "title": "Aggiungi un componente",
-    "description": "Inserisce un campo i cui sottocampi provengono dal componente.",
+    "description": "Usa i campi del componente come gruppo, come elenco ripetibile o direttamente in questo tipo di contenuto.",
     "none": "Non ci sono ancora componenti. <link>Creane uno</link> prima.",
     "component": "Componente",
     "choose": "Scegli un componente",
@@ -66,10 +68,24 @@
     "repeater": "Molti",
     "repeaterHint": "Un elenco ripetibile di elementi",
     "fieldName": "Nome del campo",
-    "confirm": "Aggiungi"
+    "confirm": "Aggiungi",
+    "inline": "Integrato",
+    "inlineHint": "I suoi campi, aggiunti direttamente",
+    "inlineNote": "I campi vengono aggiunti direttamente a questo tipo di contenuto, quindi le voci li salvano senza annidamento. Restano sincronizzati con il componente."
   },
   "readOnly": {
     "usesComponent": "Campi dal componente",
     "note": "Modifica il componente per cambiare questi campi. <link>Apri componente</link>"
+  },
+  "layout": {
+    "button": "Aggiungi layout da componente",
+    "title": "Aggiungi un layout da un componente",
+    "description": "I campi del layout provengono dal componente e restano sincronizzati con esso."
+  },
+  "inline": {
+    "from": "Dal componente",
+    "open": "Apri componente",
+    "remove": "Rimuovi questi campi",
+    "note": "Aggiunti direttamente a questo tipo di contenuto. Modifica il componente per cambiare questi campi."
   }
 }

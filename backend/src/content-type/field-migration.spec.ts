@@ -1,4 +1,4 @@
-import { conversionSql, planMigrations, retypedFields, stepParams, stepSql } from './field-migration';
+import { conversionSql, impactQuery, planMigrations, removedNestedFields, retypedFields, stepQuery } from './field-migration';
 
 const oldSchema = [
   { name: 'headline', type: 'text' },
@@ -75,11 +75,54 @@ describe('retypedFields', () => {
   });
 });
 
-describe('stepSql', () => {
+describe('nested fields', () => {
+  const before = [
+    { name: 'seo', type: 'group', options: { subFields: [{ name: 'headline', type: 'text' }, { name: 'old', type: 'text' }] } },
+    { name: 'links', type: 'repeater', options: { subFields: [{ name: 'href', type: 'text' }, { name: 'weight', type: 'text' }] } },
+    { name: 'blocks', type: 'flexible', options: { layouts: [{ name: 'hero', fields: [{ name: 'heading', type: 'text' }] }] } },
+  ];
+  const after = [
+    { name: 'meta', type: 'group', options: { subFields: [{ name: 'title', type: 'text' }] } },
+    { name: 'links', type: 'repeater', options: { subFields: [{ name: 'url', type: 'text' }, { name: 'weight', type: 'number' }] } },
+    { name: 'blocks', type: 'flexible', options: { layouts: [{ name: 'hero', fields: [{ name: 'title', type: 'text' }] }] } },
+  ];
+
+  it('plans renames inside groups (also when the group is renamed), repeaters and layouts', () => {
+    const steps = planMigrations(before, after, {
+      renames: [{ from: 'meta.headline', to: 'meta.title' }, { from: 'seo', to: 'meta' }, { from: 'links.href', to: 'links.url' }, { from: 'blocks.hero.heading', to: 'blocks.hero.title' }],
+      convert: ['links.weight'],
+      drop: ['meta.old'],
+    });
+    expect(steps.map((s) => `${s.kind}:${s.field}:${s.container ?? 'top'}`)).toEqual([
+      'rename:meta:top', 'rename:meta.title:group', 'rename:links.url:repeater', 'rename:blocks.hero.title:flexible',
+      'convert:links.weight:repeater', 'drop:meta.old:group',
+    ]);
+  });
+
+  it('keeps nested renames in their container', () => {
+    expect(() => planMigrations(before, after, { renames: [{ from: 'links.href', to: 'meta.title' }] }))
+      .toThrow('Invalid field migrations');
+  });
+
+  it('lists nested retyped and removed fields', () => {
+    const renames = [{ from: 'seo', to: 'meta' }, { from: 'meta.headline', to: 'meta.title' }];
+    expect(retypedFields(before, after, renames)).toEqual([{ field: 'links.weight', fromType: 'text', toType: 'number', convertible: true }]);
+    expect(removedNestedFields(before, after, renames)).toEqual(['meta.old', 'links.href', 'blocks.hero.heading']);
+  });
+});
+
+describe('stepQuery', () => {
   it('passes field names as parameters, never in the SQL', () => {
-    const rename = { kind: 'rename' as const, field: 'title', from: 'headline' };
-    expect(stepSql(rename)).not.toMatch(/title|headline/);
-    expect(stepParams(7, rename)).toEqual([7, 'title', 'headline']);
-    expect(stepParams(7, { kind: 'drop', field: 'legacy' })).toEqual([7, 'legacy']);
+    const top = stepQuery(7, { kind: 'rename', field: 'title', from: 'headline' });
+    expect(top.sql).not.toMatch(/title|headline/);
+    expect(top.params).toEqual([7, 'title', 'headline', 'headline']);
+
+    const nested = stepQuery(7, { kind: 'convert', field: 'blocks.hero.weight', fromType: 'text', toType: 'number', container: 'flexible' });
+    expect(nested.sql).not.toMatch(/blocks|hero|weight/);
+    expect(nested.params).toEqual([7, 'blocks', 'hero', 'weight']);
+    expect(nested.sql.match(/\$\d+/g)!.every((n) => Number(n.slice(1)) <= nested.params.length)).toBe(true);
+
+    const impact = impactQuery(7, { kind: 'drop', field: 'links.href', container: 'repeater' });
+    expect(impact.params).toEqual([7, 'links', 'href']);
   });
 });

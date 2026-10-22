@@ -46,5 +46,18 @@
   "colFailed": "失败",
   "mediaResult": "媒体：已导入 {imported} 个，{reused} 个此前已导入，{failed} 个失败",
   "errors": "{count, plural, other {# 个问题}}",
-  "viewEntries": "查看条目 →"
+  "viewEntries": "查看条目 →",
+  "extras": "同时导入",
+  "categoryPaths": "保留分类层级",
+  "categoryPathsHint": "在分类名称之外添加 category_paths 字段,包含“父级/子级”这样的完整路径。{count, plural, =0 {此文件没有嵌套分类。} other {此文件中有 # 个嵌套分类。}}",
+  "taxonomies": "导入自定义分类法",
+  "taxonomiesHint": "为使用自定义分类法的条目添加 taxonomies 字段 — 按分类法分组的分类项。",
+  "taxonomiesFound": "此文件中:{list}。",
+  "taxonomiesNone": "此文件没有自定义分类法。",
+  "authors": "将作者导入为内容",
+  "authorsHint": "{count, plural, other {# 位作者将成为 wp_author 条目}}(登录名、显示名称、名字和姓氏),每篇文章通过 author_ref 字段关联到其作者。这些是内容条目,不是登录账户 — 任何人都无法用它们登录。电子邮件地址不会被复制。",
+  "comments": "导入评论",
+  "commentsHint": "已批准的评论将成为 wp_comment 条目:名称、去除 HTML 的正文、日期、所回复的评论以及所属文章。评论者的电子邮件和 IP 地址不会被复制;垃圾评论和已删除的评论永远不会导入。此文件中:已批准 {approved} 条,待审核 {pending} 条,垃圾或已删除 {spam} 条。",
+  "pendingComments": "包括待审核的评论",
+  "pendingCommentsHint": "作为等待审核的条目导入。"
 }

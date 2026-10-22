@@ -13,7 +13,8 @@
       {
         "tsconfig": {
           "esModuleInterop": true,
-          "allowJs": true
+          "allowJs": true,
+          "isolatedModules": true
         }
       }
     ]

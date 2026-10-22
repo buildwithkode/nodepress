@@ -52,6 +52,7 @@
     "deleted": "Ruolo eliminato",
     "saveFailed": "Impossibile salvare il ruolo",
     "deleteFailed": "Impossibile eliminare il ruolo",
-    "inUse": "{count, plural, one {# utente ha ancora} other {# utenti hanno ancora}} questo ruolo. Assegna prima un altro ruolo."
+    "inUse": "{count, plural, one {# utente ha ancora} other {# utenti hanno ancora}} questo ruolo. Assegna prima un altro ruolo.",
+    "permissionsKept": "I permessi di questo ruolo erano personalizzati, quindi sono stati mantenuti: non sono stati sostituiti con quelli predefiniti di {base}. Controllali nella pagina Permessi."
   }
 }

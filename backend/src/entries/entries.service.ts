@@ -17,7 +17,9 @@ import { FieldDef } from '../fields/field.types';
 import { normalizeDataKeys, injectRepeaterIds, needsRepeaterIds } from '../common/normalize';
 import { sanitizeEntryData } from '../common/sanitize';
 import { populateDeep } from '../common/populate.util';
-import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
+import {
+  FieldAccessRole, baseRoleName, filterUnauthorizedReadFields, validateFieldWritePermissions,
+} from '../common/field-security.util';
 import { entriesToCsv, parseCsvToEntries } from '../common/csv.util';
 import { PluginHookBus } from '../plugin/plugin-hook-bus';
 import { RedirectsService } from '../redirects/redirects.service';
@@ -31,7 +33,13 @@ export interface AdminListQuery {
   locale?: string;          // filter by locale (e.g. 'en', 'fr')
   page?: number;
   limit?: number;
-  role?: string;            // requesting user role for field-level security
+  role?: FieldAccessRole;   // requesting user (role or { role, customRole }) for field-level security
+}
+
+/** Entry hooks get the base role as `role` (as before) plus `customRole` when the user has one. */
+function hookRole(role?: FieldAccessRole): { role?: string; customRole?: string } {
+  const customRole = role && typeof role === 'object' ? role.customRole ?? undefined : undefined;
+  return { role: baseRoleName(role), ...(customRole ? { customRole } : {}) };
 }
 
 export interface PaginatedResult<T> {
@@ -89,7 +97,7 @@ export class EntriesService {
   }
 
   /** `source` tags the entry hooks when the write doesn't come from the admin editor (e.g. 'import'). */
-  async create(dto: CreateEntryDto, actorId?: number, role?: string, source?: EntryEventSource) {
+  async create(dto: CreateEntryDto, actorId?: number, role?: FieldAccessRole, source?: EntryEventSource) {
     const contentType = await this.prisma.contentType.findUnique({
       where: { id: dto.contentTypeId },
     });
@@ -105,7 +113,7 @@ export class EntriesService {
         slug: dto.slug,
         status: dto.status,
         actorId,
-        role,
+        ...hookRole(role),
         contentType: contentType.name,
         ...(source ? { source } : {}),
       });
@@ -367,7 +375,7 @@ export class EntriesService {
     return { totals, pending };
   }
 
-  async findOne(id: number, populate: string[] = [], role?: string) {
+  async findOne(id: number, populate: string[] = [], role?: FieldAccessRole) {
     const entry = await this.prisma.entry.findUnique({
       where: { id },
       include: { contentType: true },
@@ -484,7 +492,7 @@ export class EntriesService {
     return { id: newEntry.id, isNew: true, locale: newEntry.locale };
   }
 
-  async update(id: number, dto: UpdateEntryDto, actorId?: number, role?: string, source?: EntryEventSource) {
+  async update(id: number, dto: UpdateEntryDto, actorId?: number, role?: FieldAccessRole, source?: EntryEventSource) {
     const entry = await this.findOne(id);
     const schema = entry.contentType.schema as unknown as FieldDef[];
 
@@ -494,7 +502,7 @@ export class EntriesService {
         dto,
         data: dto.data,
         actorId,
-        role,
+        ...hookRole(role),
         currentEntry: entry,
         contentType: entry.contentType?.name,
         ...(source ? { source } : {}),

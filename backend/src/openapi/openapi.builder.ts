@@ -1,3 +1,4 @@
+import type { FieldCondition } from '../fields/field-condition';
 import { FieldDef, FlexibleLayout, SimpleFieldDef, isReverseRelation } from '../fields/field.types';
 import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
 import { pascal, plural } from '../graphql/content-schema';
@@ -153,6 +154,19 @@ export function buildOpenApiDocument(contentTypes: OpenApiContentType[], opts: O
 
   // ─── Field → JSON Schema ───────────────────────────────────────────────────
 
+  const conditionText = (c: FieldCondition): string => {
+    const value = (v: unknown) => JSON.stringify(v);
+    switch (c.op) {
+      case 'eq': return `\`${c.field}\` is ${value(c.value)}`;
+      case 'ne': return `\`${c.field}\` is not ${value(c.value)}`;
+      case 'in': return `\`${c.field}\` is one of ${(c.value as unknown[]).map(value).join(', ')}`;
+      case 'notIn': return `\`${c.field}\` is none of ${(c.value as unknown[]).map(value).join(', ')}`;
+      case 'set': return `\`${c.field}\` has a value`;
+      case 'notSet': return `\`${c.field}\` is empty`;
+      default: return `\`${c.field}\` matches`;
+    }
+  };
+
   /** A field's value schema (not nullable — the caller wraps). */
   const fieldSchema = (field: FieldDef, mode: Mode, owner: string): Schema => {
     const description = field.description || field.label || undefined;
@@ -262,7 +276,16 @@ export function buildOpenApiDocument(contentTypes: OpenApiContentType[], opts: O
       const s = fieldSchema(f, mode, owner);
       // Absent, null and '' all count as "no value"; reverse fields are null-free arrays.
       properties[f.name] = isReverseRelation(f) ? s : nullable(s);
-      if (mode === 'create' && f.required) {
+      if (f.condition) {
+        // A conditional field is only shown — and only required — while its condition holds,
+        // which JSON Schema can't say per field; describe it and keep it out of `required`.
+        const shown = conditionText(f.condition);
+        properties[f.name] = {
+          ...properties[f.name],
+          description: [properties[f.name].description, `Only used when ${shown}${f.required ? ' (then required)' : ''}.`].filter(Boolean).join(' — '),
+          'x-nodepress-condition': f.condition,
+        };
+      } else if (mode === 'create' && f.required) {
         properties[f.name] = s;
         required.push(f.name);
       }

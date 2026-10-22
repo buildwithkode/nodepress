@@ -1,6 +1,6 @@
 {
   "title": "Composants",
-  "description": "Ensembles de champs réutilisables. Ajoutez-en un à un type de contenu comme groupe unique ou comme liste répétable ; modifier le composant met à jour tous les types de contenu qui l'utilisent.",
+  "description": "Ensembles de champs réutilisables. Ajoutez-en un à un type de contenu comme groupe unique, liste répétable, champs intégrés ou disposition de contenu flexible ; modifier le composant met à jour tous les types de contenu qui l’utilisent.",
   "new": "Nouveau composant",
   "loadFailed": "Impossible de charger les composants",
   "saveFailed": "Impossible d'enregistrer le composant",
@@ -22,7 +22,9 @@
   },
   "kind": {
     "one": "Un",
-    "many": "Plusieurs"
+    "many": "Plusieurs",
+    "inline": "Intégré",
+    "layout": "Disposition"
   },
   "editor": {
     "newTitle": "Nouveau composant",
@@ -56,7 +58,7 @@
   "add": {
     "button": "Ajouter un composant",
     "title": "Ajouter un composant",
-    "description": "Insère un champ dont les sous-champs proviennent du composant.",
+    "description": "Utilisez les champs du composant comme groupe, comme liste répétable ou directement dans ce type de contenu.",
     "none": "Il n'y a encore aucun composant. <link>Créez-en un</link> d'abord.",
     "component": "Composant",
     "choose": "Choisir un composant",
@@ -66,10 +68,24 @@
     "repeater": "Plusieurs",
     "repeaterHint": "Une liste d'éléments répétable",
     "fieldName": "Nom du champ",
-    "confirm": "Ajouter"
+    "confirm": "Ajouter",
+    "inline": "Intégré",
+    "inlineHint": "Ses champs, ajoutés directement",
+    "inlineNote": "Les champs sont ajoutés directement à ce type de contenu : les entrées les stockent à plat. Ils restent synchronisés avec le composant."
   },
   "readOnly": {
     "usesComponent": "Champs du composant",
     "note": "Modifiez le composant pour changer ces champs. <link>Ouvrir le composant</link>"
+  },
+  "layout": {
+    "button": "Ajouter une disposition depuis un composant",
+    "title": "Ajouter une disposition depuis un composant",
+    "description": "Les champs de la disposition viennent du composant et restent synchronisés avec lui."
+  },
+  "inline": {
+    "from": "Depuis le composant",
+    "open": "Ouvrir le composant",
+    "remove": "Retirer ces champs",
+    "note": "Ajoutés directement à ce type de contenu. Modifiez le composant pour changer ces champs."
   }
 }

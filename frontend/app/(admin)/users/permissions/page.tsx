@@ -234,13 +234,24 @@ function PermissionsPageContent() {
 
   // ── Field-level permissions toggles ─────────────────────────────────────────
 
-  const toggleFieldReadRole = (fieldIndex: number, role: string) => {
+  // A field rule lists role names. A custom role passes when the rule lists it
+  // or its base role, so a custom column shows inherited access as checked.
+  const FIELD_DEFAULTS = {
+    readRoles: ['admin', 'editor', 'contributor', 'viewer'],
+    writeRoles: ['admin', 'editor', 'contributor'],
+  } as const;
+  const readColumns: string[] = [...BUILT_IN_ROLES, ...customRoles.map((r) => r.name)];
+  // Viewer-based roles can't write entries at all, so they get no write column.
+  const writeColumns: string[] = ['editor', 'contributor', ...customRoles.filter((r) => r.baseRole !== 'viewer').map((r) => r.name)];
+  const fieldInherited = (list: readonly string[], role: string) =>
+    !isBuiltIn(role) && list.includes(baseOf(role));
+
+  const toggleFieldRole = (fieldIndex: number, kind: 'readRoles' | 'writeRoles', role: string) => {
     const updated = [...fieldsState];
     const field = updated[fieldIndex];
-    // If readRoles is empty/undefined, all roles currently have read access
-    let currentRoles: string[] = field.readRoles && field.readRoles.length > 0
-      ? [...field.readRoles]
-      : ['admin', 'editor', 'contributor', 'viewer'];
+    const defaults: readonly string[] = FIELD_DEFAULTS[kind];
+    // No rule = the defaults have access
+    let currentRoles: string[] = field[kind] && field[kind]!.length > 0 ? [...field[kind]!] : [...defaults];
 
     if (currentRoles.includes(role)) {
       currentRoles = currentRoles.filter((r) => r !== role);
@@ -248,47 +259,13 @@ function PermissionsPageContent() {
       currentRoles = [...currentRoles, role];
     }
 
-    // Admin always has read access
+    // Admin always has access
     if (!currentRoles.includes('admin')) {
       currentRoles = ['admin', ...currentRoles];
     }
 
-    // If all roles are enabled, set to undefined/empty (universal access)
-    if (['admin', 'editor', 'contributor', 'viewer'].every((r) => currentRoles.includes(r))) {
-      field.readRoles = undefined;
-    } else {
-      field.readRoles = currentRoles;
-    }
-
-    setFieldsState(updated);
-    setHasFieldChanges(true);
-  };
-
-  const toggleFieldWriteRole = (fieldIndex: number, role: string) => {
-    const updated = [...fieldsState];
-    const field = updated[fieldIndex];
-    // If writeRoles is empty/undefined, admin, editors and contributors have write access
-    let currentRoles: string[] = field.writeRoles && field.writeRoles.length > 0
-      ? [...field.writeRoles]
-      : ['admin', 'editor', 'contributor'];
-
-    if (currentRoles.includes(role)) {
-      currentRoles = currentRoles.filter((r) => r !== role);
-    } else {
-      currentRoles = [...currentRoles, role];
-    }
-
-    // Admin always has write access
-    if (!currentRoles.includes('admin')) {
-      currentRoles = ['admin', ...currentRoles];
-    }
-
-    // If all write roles are enabled, set to undefined (universal write access)
-    if (['admin', 'editor', 'contributor'].every((r) => currentRoles.includes(r))) {
-      field.writeRoles = undefined;
-    } else {
-      field.writeRoles = currentRoles;
-    }
+    // Every default role enabled = no restriction (custom roles are then covered too)
+    field[kind] = defaults.every((r) => currentRoles.includes(r)) ? undefined : currentRoles;
 
     setFieldsState(updated);
     setHasFieldChanges(true);
@@ -584,12 +561,12 @@ function PermissionsPageContent() {
                       <thead>
                         <tr className="border-b">
                           <th className="text-left py-2 pr-4 font-medium text-muted-foreground w-48">{t('fields.field')}</th>
-                          <th colSpan={4} className="text-center py-2 px-2 font-medium bg-muted/20 border-r border-border">
+                          <th colSpan={readColumns.length + 1} className="text-center py-2 px-2 font-medium bg-muted/20 border-r border-border">
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground">
                               <Eye className="h-3.5 w-3.5 text-blue-400" /> {t('fields.readVisibility')}
                             </span>
                           </th>
-                          <th colSpan={3} className="text-center py-2 px-2 font-medium bg-muted/10">
+                          <th colSpan={writeColumns.length + 1} className="text-center py-2 px-2 font-medium bg-muted/10">
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground">
                               <Edit3 className="h-3.5 w-3.5 text-amber-400" /> {t('fields.writeAccess')}
                             </span>
@@ -599,19 +576,25 @@ function PermissionsPageContent() {
                           <th className="py-1.5 pr-4 text-left font-normal">{t('fields.nameAndType')}</th>
                           {/* Read subheaders */}
                           <th className="py-1.5 px-2 text-center font-normal">{tc('roles.admin')}</th>
-                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.editor')}</th>
-                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.contributor')}</th>
-                          <th className="py-1.5 px-2 text-center font-normal border-r border-border">{tc('roles.viewer')}</th>
+                          {readColumns.map((role, i) => (
+                            <th
+                              key={role}
+                              className={`py-1.5 px-2 text-center font-normal${i === readColumns.length - 1 ? ' border-r border-border' : ''}`}
+                            >
+                              {labelOf(role)}
+                            </th>
+                          ))}
                           {/* Write subheaders */}
                           <th className="py-1.5 px-2 text-center font-normal">{tc('roles.admin')}</th>
-                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.editor')}</th>
-                          <th className="py-1.5 px-2 text-center font-normal">{tc('roles.contributor')}</th>
+                          {writeColumns.map((role) => (
+                            <th key={role} className="py-1.5 px-2 text-center font-normal">{labelOf(role)}</th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
                         {fieldsState.map((field, idx) => {
-                          const readRoles = field.readRoles ?? ['admin', 'editor', 'contributor', 'viewer'];
-                          const writeRoles = field.writeRoles ?? ['admin', 'editor', 'contributor'];
+                          const readRoles: readonly string[] = field.readRoles ?? FIELD_DEFAULTS.readRoles;
+                          const writeRoles: readonly string[] = field.writeRoles ?? FIELD_DEFAULTS.writeRoles;
                           const isRestrictedRead = !!field.readRoles && !['editor', 'contributor', 'viewer'].every((r) => field.readRoles!.includes(r));
                           const isRestrictedWrite = !!field.writeRoles && !['editor', 'contributor'].every((r) => field.writeRoles!.includes(r));
 
@@ -639,35 +622,24 @@ function PermissionsPageContent() {
                                 </span>
                               </td>
 
-                              {/* Read: Editor */}
-                              <td className="py-3 px-2 text-center">
-                                <input
-                                  type="checkbox"
-                                  checked={readRoles.includes('editor')}
-                                  onChange={() => toggleFieldReadRole(idx, 'editor')}
-                                  className="h-4 w-4 rounded cursor-pointer accent-primary"
-                                />
-                              </td>
-
-                              {/* Read: Contributor */}
-                              <td className="py-3 px-2 text-center">
-                                <input
-                                  type="checkbox"
-                                  checked={readRoles.includes('contributor')}
-                                  onChange={() => toggleFieldReadRole(idx, 'contributor')}
-                                  className="h-4 w-4 rounded cursor-pointer accent-primary"
-                                />
-                              </td>
-
-                              {/* Read: Viewer */}
-                              <td className="py-3 px-2 text-center border-r border-border">
-                                <input
-                                  type="checkbox"
-                                  checked={readRoles.includes('viewer')}
-                                  onChange={() => toggleFieldReadRole(idx, 'viewer')}
-                                  className="h-4 w-4 rounded cursor-pointer accent-primary"
-                                />
-                              </td>
+                              {readColumns.map((role, i) => {
+                                const inherited = fieldInherited(readRoles, role);
+                                return (
+                                  <td
+                                    key={role}
+                                    className={`py-3 px-2 text-center${i === readColumns.length - 1 ? ' border-r border-border' : ''}`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={inherited || readRoles.includes(role)}
+                                      disabled={inherited}
+                                      title={inherited ? t('fields.inherited', { base: labelOf(baseOf(role)) }) : undefined}
+                                      onChange={() => toggleFieldRole(idx, 'readRoles', role)}
+                                      className="h-4 w-4 rounded cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                    />
+                                  </td>
+                                );
+                              })}
 
                               {/* Write: Admin (Locked) */}
                               <td className="py-3 px-2 text-center">
@@ -676,25 +648,21 @@ function PermissionsPageContent() {
                                 </span>
                               </td>
 
-                              {/* Write: Editor */}
-                              <td className="py-3 px-2 text-center">
-                                <input
-                                  type="checkbox"
-                                  checked={writeRoles.includes('editor')}
-                                  onChange={() => toggleFieldWriteRole(idx, 'editor')}
-                                  className="h-4 w-4 rounded cursor-pointer accent-primary"
-                                />
-                              </td>
-
-                              {/* Write: Contributor */}
-                              <td className="py-3 px-2 text-center">
-                                <input
-                                  type="checkbox"
-                                  checked={writeRoles.includes('contributor')}
-                                  onChange={() => toggleFieldWriteRole(idx, 'contributor')}
-                                  className="h-4 w-4 rounded cursor-pointer accent-primary"
-                                />
-                              </td>
+                              {writeColumns.map((role) => {
+                                const inherited = fieldInherited(writeRoles, role);
+                                return (
+                                  <td key={role} className="py-3 px-2 text-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={inherited || writeRoles.includes(role)}
+                                      disabled={inherited}
+                                      title={inherited ? t('fields.inherited', { base: labelOf(baseOf(role)) }) : undefined}
+                                      onChange={() => toggleFieldRole(idx, 'writeRoles', role)}
+                                      className="h-4 w-4 rounded cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                    />
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         })}

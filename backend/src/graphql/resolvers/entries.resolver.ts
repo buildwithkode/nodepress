@@ -1,6 +1,7 @@
 import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { EntriesService } from '../../entries/entries.service';
+import { PermissionsService } from '../../permissions/permissions.service';
 import { EntryModel, EntryPage, BulkResult, DeleteResult } from '../models/entry.model';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -9,7 +10,10 @@ import { GqlJwtAuthGuard } from '../guards/gql-jwt-auth.guard';
 
 @Resolver(() => EntryModel)
 export class EntriesResolver {
-  constructor(private readonly entriesService: EntriesService) {}
+  constructor(
+    private readonly entriesService: EntriesService,
+    private readonly permissions: PermissionsService,
+  ) {}
 
   // ─── Queries ─────────────────────────────────────────────────────────────────
 
@@ -32,6 +36,7 @@ export class EntriesResolver {
       search,
       page,
       limit,
+      role: ctx?.req?.user,
     }).then((result) => ({ ...result.meta, data: result.data }));
   }
 
@@ -40,9 +45,10 @@ export class EntriesResolver {
   async findOne(
     @Args('id', { type: () => Int }) id: number,
     @Args('populate', { type: () => [String], nullable: true }) populate?: string[],
+    @Context() ctx?: any,
   ) {
     try {
-      return await this.entriesService.findOne(id, populate ?? []);
+      return await this.entriesService.findOne(id, populate ?? [], ctx?.req?.user);
     } catch {
       return null;
     }
@@ -53,7 +59,7 @@ export class EntriesResolver {
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
   @Mutation(() => EntryModel, { name: 'createEntry', description: 'Create a new entry. Requires editor or admin role.' })
-  createEntry(
+  async createEntry(
     @Args('contentTypeId', { type: () => Int }) contentTypeId: number,
     @Args('slug') slug: string,
     @Args('locale', { nullable: true, defaultValue: 'en' }) locale: string,
@@ -61,33 +67,41 @@ export class EntriesResolver {
     @Args('data', { type: () => String, description: 'JSON string of entry field values' }) dataJson: string,
     @Context() ctx: any,
   ) {
+    // Same content permissions as POST /api/entries.
+    await this.permissions.assertCanContentType(ctx.req.user, contentTypeId, 'create');
+    if (status === 'published') await this.permissions.assertCanContentType(ctx.req.user, contentTypeId, 'publish');
     return this.entriesService.create(
       { contentTypeId, slug, locale, status: status as any, data: JSON.parse(dataJson) },
       ctx.req?.user?.id,
+      ctx.req?.user,
     );
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
   @Mutation(() => EntryModel, { name: 'updateEntry', description: 'Update an existing entry.' })
-  updateEntry(
+  async updateEntry(
     @Args('id', { type: () => Int }) id: number,
     @Args('data', { type: () => String, nullable: true, description: 'JSON string of updated field values' }) dataJson?: string,
     @Args('status', { nullable: true }) status?: string,
     @Args('slug', { nullable: true }) slug?: string,
     @Context() ctx?: any,
   ) {
+    await this.permissions.assertCanEntries(ctx.req.user, [id], 'update');
+    if (status === 'published') await this.permissions.assertCanEntries(ctx.req.user, [id], 'publish');
     return this.entriesService.update(
       id,
       { data: dataJson ? JSON.parse(dataJson) : undefined, status: status as any, slug },
       ctx?.req?.user?.id,
+      ctx?.req?.user,
     );
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Mutation(() => DeleteResult, { name: 'deleteEntry', description: 'Soft-delete an entry (recoverable). Requires editor or admin.' })
-  deleteEntry(@Args('id', { type: () => Int }) id: number) {
+  async deleteEntry(@Args('id', { type: () => Int }) id: number, @Context() ctx: any) {
+    await this.permissions.assertCanEntries(ctx.req.user, [id], 'delete');
     return this.entriesService.remove(id);
   }
 
@@ -108,39 +122,44 @@ export class EntriesResolver {
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
   @Mutation(() => EntryModel, { name: 'restoreEntryVersion', description: 'Restore an entry to a previous version.' })
-  restoreVersion(
+  async restoreVersion(
     @Args('entryId', { type: () => Int }) entryId: number,
     @Args('versionId', { type: () => Int }) versionId: number,
     @Context() ctx?: any,
   ) {
+    await this.permissions.assertCanEntries(ctx.req.user, [entryId], 'update');
     return this.entriesService.restoreVersion(entryId, versionId, ctx?.req?.user?.id);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkDeleteEntries', description: 'Soft-delete multiple entries.' })
-  bulkDelete(@Args('ids', { type: () => [Int] }) ids: number[]) {
+  async bulkDelete(@Args('ids', { type: () => [Int] }) ids: number[], @Context() ctx: any) {
+    await this.permissions.assertCanEntries(ctx.req.user, ids, 'delete');
     return this.entriesService.bulkDelete(ids);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkPublishEntries', description: 'Publish multiple entries.' })
-  bulkPublish(@Args('ids', { type: () => [Int] }) ids: number[]) {
+  async bulkPublish(@Args('ids', { type: () => [Int] }) ids: number[], @Context() ctx: any) {
+    await this.permissions.assertCanEntries(ctx.req.user, ids, 'publish');
     return this.entriesService.bulkPublish(ids);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkArchiveEntries', description: 'Archive multiple entries.' })
-  bulkArchive(@Args('ids', { type: () => [Int] }) ids: number[]) {
+  async bulkArchive(@Args('ids', { type: () => [Int] }) ids: number[], @Context() ctx: any) {
+    await this.permissions.assertCanEntries(ctx.req.user, ids, 'update');
     return this.entriesService.bulkArchive(ids);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'contributor')
   @Mutation(() => BulkResult, { name: 'bulkSetPendingReviewEntries', description: 'Set multiple entries to pending_review.' })
-  bulkSetPendingReview(@Args('ids', { type: () => [Int] }) ids: number[]) {
+  async bulkSetPendingReview(@Args('ids', { type: () => [Int] }) ids: number[], @Context() ctx: any) {
+    await this.permissions.assertCanEntries(ctx.req.user, ids, 'update');
     return this.entriesService.bulkSetPendingReview(ids);
   }
 }

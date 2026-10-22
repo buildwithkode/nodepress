@@ -59,6 +59,8 @@ interface BaseField {
   indexed?: boolean;
   /** Show the field only when a sibling field matches — see field-condition.ts. */
   condition?: FieldCondition;
+  /** Top-level field inserted inline from this reusable component (server-managed copy — see ComponentsService). */
+  component?: string;
 }
 
 // ─── Simple field defs ────────────────────────────────────────────────────────
@@ -93,9 +95,17 @@ export interface BooleanFieldDef extends BaseField {
 export interface SelectFieldDef extends BaseField {
   type: 'select';
   options: {
-    /** Plain string values; extend to { label, value } objects in a future iteration */
+    /** Plain string values (what entries store) */
     choices: string[];
     multiple?: boolean;
+    /**
+     * Name of a shared choice list. On every save the server copies the list's
+     * values into `choices` and its labels into `choiceLabels` (see
+     * choice-lists/choice-list.util.ts) — readers only ever need `choices`.
+     */
+    choiceList?: string;
+    /** Display label per value, only where it differs from the value. */
+    choiceLabels?: Record<string, string>;
   };
 }
 
@@ -184,6 +194,8 @@ export interface FlexibleLayout {
   /** snake_case layout identifier */
   name: string;
   label?: string;
+  /** The layout's fields come from this reusable component (server-managed copy). */
+  component?: string;
   fields: SimpleFieldDef[];
 }
 

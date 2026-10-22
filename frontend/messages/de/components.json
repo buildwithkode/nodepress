@@ -1,6 +1,6 @@
 {
   "title": "Komponenten",
-  "description": "Wiederverwendbare Feldgruppen. Fügen Sie eine einem Inhaltstyp als einzelne Gruppe oder als wiederholbare Liste hinzu; Änderungen an der Komponente aktualisieren alle Inhaltstypen, die sie verwenden.",
+  "description": "Wiederverwendbare Feldgruppen. Fügen Sie eine einem Inhaltstyp als einzelne Gruppe, wiederholbare Liste, direkt eingefügte Felder oder Layout für flexible Inhalte hinzu; Änderungen an der Komponente aktualisieren alle Inhaltstypen, die sie verwenden.",
   "new": "Neue Komponente",
   "loadFailed": "Komponenten konnten nicht geladen werden",
   "saveFailed": "Komponente konnte nicht gespeichert werden",
@@ -22,7 +22,9 @@
   },
   "kind": {
     "one": "Eins",
-    "many": "Mehrere"
+    "many": "Mehrere",
+    "inline": "Eingebettet",
+    "layout": "Layout"
   },
   "editor": {
     "newTitle": "Neue Komponente",
@@ -56,7 +58,7 @@
   "add": {
     "button": "Komponente hinzufügen",
     "title": "Komponente hinzufügen",
-    "description": "Fügt ein Feld ein, dessen Unterfelder aus der Komponente stammen.",
+    "description": "Verwenden Sie die Felder der Komponente als Gruppe, als wiederholbare Liste oder direkt in diesem Inhaltstyp.",
     "none": "Es gibt noch keine Komponenten. <link>Erstellen Sie zuerst eine</link>.",
     "component": "Komponente",
     "choose": "Komponente wählen",
@@ -66,10 +68,24 @@
     "repeater": "Mehrere",
     "repeaterHint": "Eine wiederholbare Liste von Elementen",
     "fieldName": "Feldname",
-    "confirm": "Hinzufügen"
+    "confirm": "Hinzufügen",
+    "inline": "Eingebettet",
+    "inlineHint": "Ihre Felder, direkt eingefügt",
+    "inlineNote": "Die Felder werden direkt zu diesem Inhaltstyp hinzugefügt, Einträge speichern sie also flach. Sie bleiben mit der Komponente synchron."
   },
   "readOnly": {
     "usesComponent": "Felder aus Komponente",
     "note": "Bearbeiten Sie die Komponente, um diese Felder zu ändern. <link>Komponente öffnen</link>"
+  },
+  "layout": {
+    "button": "Layout aus Komponente hinzufügen",
+    "title": "Layout aus einer Komponente hinzufügen",
+    "description": "Die Felder des Layouts stammen aus der Komponente und bleiben mit ihr synchron."
+  },
+  "inline": {
+    "from": "Aus Komponente",
+    "open": "Komponente öffnen",
+    "remove": "Diese Felder entfernen",
+    "note": "Direkt zu diesem Inhaltstyp hinzugefügt. Bearbeiten Sie die Komponente, um diese Felder zu ändern."
   }
 }

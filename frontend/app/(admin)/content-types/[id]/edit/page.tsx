@@ -40,11 +40,16 @@ import {
 import { INDEXABLE_FIELD_TYPES } from '@/lib/indexable-fields';
 import { RelationFieldOptions } from '@/components/RelationFieldOptions';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
-import { AddComponentButton, ComponentSubFields } from '@/components/ComponentFieldControls';
+import { SelectChoicesSource, SubFieldChoiceList } from '@/components/ChoiceListField';
+import {
+  AddComponentButton, AddComponentLayoutButton, ComponentSubFields, InlineComponentBlock,
+  continuesInlineRun, inlineEditorField, moveWithInlineRuns, removeInlineRun,
+} from '@/components/ComponentFieldControls';
 import { PreviewUrlSetting } from '@/components/LivePreviewPane';
 import { FieldConditionEditor } from '@/components/FieldConditionEditor';
 import { detectFieldChanges, useSchemaChangeCheck, FieldMigrations } from '@/components/SchemaChangeDialog';
 import type { FieldCondition } from '@/lib/field-condition';
+import { nestedRenames, withLoadedKeys, withoutLoadedKeys } from '@/lib/schema-editor-keys';
 
 // Labels come from contentTypes.fieldTypes.<value>.
 const FIELD_TYPES = [
@@ -70,7 +75,7 @@ const SIMPLE_FIELD_TYPES = FIELD_TYPES.filter(
 );
 
 interface SubField { name: string; type: string }
-interface Layout   { name: string; label: string; fields: SubField[] }
+interface Layout   { name: string; label: string; fields: SubField[]; component?: string }
 interface Field {
   _id:         string;
   name:        string;
@@ -84,6 +89,9 @@ interface Field {
   condition?:  FieldCondition;
   /** The key the field was loaded with — a different key on save is a rename. */
   _key?:       string;
+  /** Inline component field: the component's name, and the field as saved (read-only here). */
+  component?:  string;
+  inline?:     any;
 }
 
 let _counter = 0;
@@ -94,7 +102,7 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any; condition?: FieldCondition }) => ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any; condition?: FieldCondition; inline?: any }) => f.inline ?? ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
@@ -102,7 +110,7 @@ const buildSchemaField = (f: { name: string; type: string; required: boolean; in
   ...(f.indexed && INDEXABLE_FIELD_TYPES.has(f.type) ? { indexed: true } : {}),
   ...(f.readRoles ? { readRoles: f.readRoles } : {}),
   ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}),
-  ...(f.options ? { options: optionsForSave(f.options) } : {}),
+  ...(f.options ? { options: optionsForSave(withoutLoadedKeys(f.options)) } : {}),
   ...(f.condition ? { condition: f.condition } : {}),
 });
 
@@ -222,7 +230,8 @@ export default function EditContentTypePage() {
       setFields((prev) => {
         const oldIndex = prev.findIndex((f) => f._id === active.id);
         const newIndex = prev.findIndex((f) => f._id === over.id);
-        return arrayMove(prev, oldIndex, newIndex);
+        // An inline component's fields move together.
+        return prev.some((f) => f.component) ? moveWithInlineRuns(prev, oldIndex, newIndex) : arrayMove(prev, oldIndex, newIndex);
       });
     }
   };
@@ -239,7 +248,7 @@ export default function EditContentTypePage() {
         setSavedKeys(ct.schema.map((f: any) => f.name));
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => ({ _id: uid(), ...f, _key: f.name, name: f.label ?? humanizeName(f.name), required: f.required ?? false, options: optionsForEditor(f.options) }))
+            ? ct.schema.map((f: any) => f.component ? { _id: uid(), ...inlineEditorField(f), _key: f.name } : ({ _id: uid(), ...f, _key: f.name, name: f.label ?? humanizeName(f.name), required: f.required ?? false, options: withLoadedKeys(optionsForEditor(f.options)) }))
             : [{ _id: uid(), name: '', type: 'text', required: false }],
         );
       })
@@ -268,7 +277,7 @@ export default function EditContentTypePage() {
   const removeSubField = (fi: number, si: number) => {
     const u = [...fields]; u[fi].options!.subFields = u[fi].options!.subFields!.filter((_, i) => i !== si); setFields(u);
   };
-  const updateSubField = (fi: number, si: number, key: string, val: string) => {
+  const updateSubField = (fi: number, si: number, key: string, val: any) => {
     const u = [...fields]; (u[fi].options!.subFields![si] as any)[key] = val; setFields(u);
   };
 
@@ -287,7 +296,7 @@ export default function EditContentTypePage() {
   const removeLayoutField = (fi: number, li: number, fli: number) => {
     const u = [...fields]; u[fi].options!.layouts![li].fields = u[fi].options!.layouts![li].fields.filter((_, i) => i !== fli); setFields(u);
   };
-  const updateLayoutField = (fi: number, li: number, fli: number, key: string, val: string) => {
+  const updateLayoutField = (fi: number, li: number, fli: number, key: string, val: any) => {
     const u = [...fields]; (u[fi].options!.layouts![li].fields[fli] as any)[key] = val; setFields(u);
   };
   const toggleLayout = (key: string) => setOpenLayouts((p) => ({ ...p, [key]: !p[key] }));
@@ -298,7 +307,10 @@ export default function EditContentTypePage() {
     if (!name.trim()) { setNameError(t('editor.nameRequired')); return; }
     setNameError('');
     const named = fields.filter((f) => f.name.trim());
-    const { renames, removed } = detectFieldChanges(savedKeys, named.map((f) => ({ key: toSnakeCase(f.name), original: f._key })));
+    // Inline component fields are renamed on /components, never by hand here.
+    const changes = detectFieldChanges(savedKeys, named.map((f) => ({ key: toSnakeCase(f.name), original: f.component ? undefined : f._key })));
+    const { removed } = changes;
+    const renames = [...changes.renames, ...nestedRenames(named)];
     // Conditions point at field keys: follow renames, drop ones whose field is gone.
     const renamedKey = new Map(renames.map((r) => [r.from, r.to]));
     const keys = new Set(named.map((f) => toSnakeCase(f.name)));
@@ -505,7 +517,11 @@ export default function EditContentTypePage() {
                     <ArrowUpDown className="h-4 w-4 mr-1.5" />
                     {reorderMode ? t('editor.done') : t('editor.reorder')}
                   </Button>
-                  <AddComponentButton onAdd={(f) => setFields([...fields, { _id: uid(), ...f }])} disabled={reorderMode} />
+                  <AddComponentButton
+                    onAdd={(f) => setFields([...fields, { _id: uid(), ...f }])}
+                    onAddInline={(fs) => setFields([...fields, ...fs.map((f) => ({ _id: uid(), ...inlineEditorField(f) }))])}
+                    disabled={reorderMode}
+                  />
                   <Button variant="outline" onClick={addField} disabled={reorderMode}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
@@ -513,9 +529,22 @@ export default function EditContentTypePage() {
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={fields.map((f) => f._id)} strategy={verticalListSortingStrategy}>
+                <SortableContext items={fields.filter((_, i) => !continuesInlineRun(fields, i)).map((f) => f._id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-3">
-              {fields.map((field, fi) => (
+              {fields.map((field, fi) => field.component ? (
+                continuesInlineRun(fields, fi) ? null : (
+                  <SortableFieldCard key={field._id} id={field._id} disabled={!reorderMode}>
+                    {(dragHandle) => (
+                      <InlineComponentBlock
+                        fields={fields}
+                        index={fi}
+                        dragHandle={reorderMode ? dragHandle : undefined}
+                        onRemove={() => setFields(removeInlineRun(fields, fi))}
+                      />
+                    )}
+                  </SortableFieldCard>
+                )
+              ) : (
                 <SortableFieldCard key={field._id} id={field._id} disabled={!reorderMode}>
                   {(dragHandle) => (
                   <div className="rounded-md border bg-muted/30 p-4 space-y-3">
@@ -605,16 +634,18 @@ export default function EditContentTypePage() {
 
                   {/* Select choices */}
                   {field.type === 'select' && (
-                    <div className="pl-7 space-y-1">
-                      <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
-                      <Textarea
-                        placeholder={t('editor.choicesPlaceholder')}
-                        value={field.options?.choices ?? ''}
-                        onChange={(e) => updateField(fi, 'options', { ...field.options, choices: e.target.value })}
-                        rows={2}
-                        className="resize-none"
-                      />
-                    </div>
+                    <SelectChoicesSource className="pl-7" options={field.options} onChange={(o) => updateField(fi, 'options', o)}>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
+                        <Textarea
+                          placeholder={t('editor.choicesPlaceholder')}
+                          value={field.options?.choices ?? ''}
+                          onChange={(e) => updateField(fi, 'options', { ...field.options, choices: e.target.value })}
+                          rows={2}
+                          className="resize-none"
+                        />
+                      </div>
+                    </SelectChoicesSource>
                   )}
 
                   {field.type === 'relation' && (
@@ -650,6 +681,9 @@ export default function EditContentTypePage() {
                               types={SIMPLE_FIELD_TYPES}
                               className="w-32"
                             />
+                            {sf.type === 'select' && (
+                              <SubFieldChoiceList options={(sf as any).options} onChange={(o) => updateSubField(fi, si, 'options', o)} />
+                            )}
                             <Button
                               variant="ghost"
                               size="icon-xs"
@@ -690,6 +724,9 @@ export default function EditContentTypePage() {
                               types={SIMPLE_FIELD_TYPES}
                               className="w-32"
                             />
+                            {sf.type === 'select' && (
+                              <SubFieldChoiceList options={(sf as any).options} onChange={(o) => updateSubField(fi, si, 'options', o)} />
+                            )}
                             <Button
                               variant="ghost"
                               size="icon-xs"
@@ -755,7 +792,10 @@ export default function EditContentTypePage() {
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
-                              {isOpen && (
+                              {isOpen && layout.component && (
+                                <ComponentSubFields component={layout.component} subFields={layout.fields} className="px-3 py-2 border-t" />
+                              )}
+                              {isOpen && !layout.component && (
                                 <div className="px-3 py-2 space-y-1.5 border-t">
                                   {layout.fields.map((lf, fli) => (
                                     <div key={fli} className="flex items-center gap-2">
@@ -771,6 +811,9 @@ export default function EditContentTypePage() {
                                         types={SIMPLE_FIELD_TYPES}
                                         className="w-32"
                                       />
+                                      {lf.type === 'select' && (
+                                        <SubFieldChoiceList options={(lf as any).options} onChange={(o) => updateLayoutField(fi, li, fli, 'options', o)} />
+                                      )}
                                       <Button
                                         variant="ghost"
                                         size="icon-xs"
@@ -793,12 +836,17 @@ export default function EditContentTypePage() {
                             </div>
                           );
                         })}
-                        <Button
-                          variant="outline"
-                          onClick={() => addLayout(fi)}
-                        >
-                          <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addLayout')}
-                        </Button>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => addLayout(fi)}
+                          >
+                            <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addLayout')}
+                          </Button>
+                          <AddComponentLayoutButton
+                            onAdd={(l) => { const u = [...fields]; u[fi].options!.layouts!.push(l); setFields(u); }}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}

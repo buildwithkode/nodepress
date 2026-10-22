@@ -52,6 +52,7 @@
     "deleted": "Rôle supprimé",
     "saveFailed": "Impossible d'enregistrer le rôle",
     "deleteFailed": "Impossible de supprimer le rôle",
-    "inUse": "{count, plural, one {# utilisateur a encore} other {# utilisateurs ont encore}} ce rôle. Attribuez-leur d'abord un autre rôle."
+    "inUse": "{count, plural, one {# utilisateur a encore} other {# utilisateurs ont encore}} ce rôle. Attribuez-leur d'abord un autre rôle.",
+    "permissionsKept": "Les autorisations de ce rôle avaient été personnalisées : elles ont été conservées et n'ont pas été remplacées par celles de {base} par défaut. Vérifiez-les sur la page Autorisations."
   }
 }

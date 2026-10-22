@@ -40,10 +40,14 @@ export class RolesController {
   }
 
   @Put(':name')
-  @ApiOperation({ summary: 'Update a custom role\'s label, description or base role — the name is immutable (admin only)' })
+  @ApiOperation({
+    summary: 'Update a custom role\'s label, description or base role — the name is immutable (admin only)',
+    description: 'Changing baseRole replaces the role\'s (role, *) permission row with the new base role\'s defaults, '
+      + 'unless it was customised — then it is kept and the response\'s `warnings` says so.',
+  })
   @ApiParam({ name: 'name', type: String })
   async update(@Param('name') name: string, @Body() dto: UpdateRoleDto, @Request() req: any) {
-    const { role, previous } = await this.rolesService.update(name, dto);
+    const { role, previous, warnings } = await this.rolesService.update(name, dto);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'updated', 'role', role.name,
@@ -53,7 +57,7 @@ export class RolesController {
         ...(previous.baseRole !== role.baseRole && { previousBaseRole: previous.baseRole }),
       },
     );
-    return role;
+    return { ...role, warnings };
   }
 
   @Delete(':name')

@@ -10,11 +10,13 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
 import { withCondition } from '@/components/ConditionalField';
+import { ChoiceSelect, type ChoiceOptions } from '@/components/ChoiceSelect';
 import type { FieldCondition } from '@/lib/field-condition';
 
 interface SubField {
   name: string;
   type: string;
+  options?: ChoiceOptions;
   condition?: FieldCondition;
 }
 
@@ -112,6 +114,8 @@ function renderSubInput(
           className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
       );
+    case 'select':
+      return <ChoiceSelect control={control} name={fieldPath} options={sf.options} placeholder={sf.name.replace(/_/g, ' ')} />;
     case 'json':
       return (
         <Controller

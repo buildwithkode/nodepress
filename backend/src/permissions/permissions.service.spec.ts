@@ -8,8 +8,12 @@ const mockPrisma = {
     findMany:    jest.fn(),
     upsert:      jest.fn(),
     deleteMany:  jest.fn(),
+    createMany:  jest.fn(),
   },
-  $executeRawUnsafe: jest.fn().mockResolvedValue(undefined),
+  role: {
+    findMany:    jest.fn().mockResolvedValue([]),
+  },
+  $transaction: jest.fn(async (ops: unknown[]) => Promise.all(ops)),
 };
 
 // Custom roles known to the mock: reviewer → contributor, auditor → viewer.
@@ -198,8 +202,29 @@ describe('PermissionsService', () => {
 
       const result = await service.resetAll();
       expect(mockPrisma.permission.deleteMany).toHaveBeenCalledWith({});
-      expect(mockPrisma.$executeRawUnsafe).toHaveBeenCalled();
+      expect(mockPrisma.permission.createMany).toHaveBeenCalledWith({
+        data: [
+          { role: 'editor',      contentType: '*', actions: ['create', 'read', 'update', 'delete', 'publish'] },
+          { role: 'contributor', contentType: '*', actions: ['create', 'read', 'update'] },
+          { role: 'viewer',      contentType: '*', actions: ['read'] },
+        ],
+      });
       expect(result.message).toContain('reset');
+    });
+
+    it("re-seeds each custom role's wildcard row from its base role's defaults", async () => {
+      mockPrisma.role.findMany.mockResolvedValueOnce([
+        { name: 'reviewer', baseRole: 'contributor' },
+        { name: 'auditor', baseRole: 'viewer' },
+      ]);
+
+      await service.resetAll();
+      const { data } = mockPrisma.permission.createMany.mock.calls[0][0];
+      expect(data).toEqual(expect.arrayContaining([
+        { role: 'reviewer', contentType: '*', actions: ['create', 'read', 'update'] },
+        { role: 'auditor',  contentType: '*', actions: ['read'] },
+      ]));
+      expect(data).toHaveLength(5);
     });
   });
 });

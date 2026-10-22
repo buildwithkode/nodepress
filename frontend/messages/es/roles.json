@@ -52,6 +52,7 @@
     "deleted": "Rol eliminado",
     "saveFailed": "No se pudo guardar el rol",
     "deleteFailed": "No se pudo eliminar el rol",
-    "inUse": "{count, plural, one {# usuario todavía tiene} other {# usuarios todavía tienen}} este rol. Asígnales otro rol primero."
+    "inUse": "{count, plural, one {# usuario todavía tiene} other {# usuarios todavía tienen}} este rol. Asígnales otro rol primero.",
+    "permissionsKept": "Los permisos de este rol estaban personalizados, así que se han conservado: no se han cambiado a los predeterminados de {base}. Revísalos en la página Permisos."
   }
 }

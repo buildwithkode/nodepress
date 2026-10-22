@@ -143,6 +143,21 @@ describe('buildOpenApiDocument', () => {
     expect(lintOpenApi(clash)).toEqual([]);
   });
 
+  it('describes conditional fields and keeps them out of required', () => {
+    const d = buildOpenApiDocument([{
+      name: 'clip',
+      schema: [
+        { name: 'kind', type: 'select', options: { choices: ['image', 'video'] } },
+        { name: 'video_url', type: 'text', required: true, condition: { field: 'kind', op: 'eq', value: 'video' } },
+      ] as any,
+    }]);
+    expect(lintOpenApi(d)).toEqual([]);
+    const input = d.components.schemas.ClipInput;
+    expect(input.required ?? []).not.toContain('video_url');
+    expect(input.properties.video_url['x-nodepress-condition']).toEqual({ field: 'kind', op: 'eq', value: 'video' });
+    expect(input.properties.video_url.description).toMatch(/Only used when `kind` is "video" \(then required\)/);
+  });
+
   it('skips types with no allowed methods', () => {
     const d = buildOpenApiDocument([{ name: 'secret', schema: [], allowedMethods: [] }]);
     expect(d.paths).toEqual({});

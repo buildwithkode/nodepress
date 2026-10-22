@@ -16,7 +16,9 @@
     "contentType": "Tipo di contenuto",
     "selectContentType": "Seleziona un tipo di contenuto…",
     "selectToBegin": "Seleziona un tipo di contenuto per iniziare.",
-    "submit": "Crea voce"
+    "submit": "Crea voce",
+    "saveAndPreview": "Salva bozza e anteprima",
+    "saveAndPreviewHint": "Salva come bozza e apri l’anteprima dal vivo"
   },
   "edit": {
     "title": "Modifica voce",

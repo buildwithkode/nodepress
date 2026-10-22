@@ -255,6 +255,8 @@ export default function EditEntryPage() {
         setPublishAt(toLocalDatetimeString(e.publishAt));
         const ctRes = await api.get(`/content-types/${e.contentTypeId}`);
         setContentType(ctRes.data);
+        // Arriving from "Save draft & preview" on the new-entry page.
+        if (ctRes.data?.previewUrl && new URLSearchParams(window.location.search).get('live') === '1') setSidePanel('live');
         reset({ slug: e.slug, ...e.data });
         const loadedPublishAt = toLocalDatetimeString(e.publishAt);
         savedSnapshot.current = autosaveSnapshot({

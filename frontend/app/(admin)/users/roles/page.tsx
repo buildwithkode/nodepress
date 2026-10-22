@@ -79,12 +79,16 @@ export default function RolesPage() {
     setSaving(true);
     try {
       if (editing) {
-        await api.put(`/roles/${editing.name}`, {
+        const res = await api.put<{ warnings?: string[] }>(`/roles/${editing.name}`, {
           label: form.label,
           description: form.description || null,
           baseRole: form.baseRole,
         });
         toast.success(t('toasts.updated'));
+        // The base role changed but the role's permissions were customised, so they were kept.
+        if (res.data?.warnings?.length) {
+          toast.warning(t('toasts.permissionsKept', { base: baseLabel(form.baseRole) }), { duration: 10000 });
+        }
       } else {
         await api.post('/roles', {
           name: form.name,

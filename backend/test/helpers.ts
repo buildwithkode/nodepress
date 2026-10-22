@@ -75,6 +75,7 @@ export async function cleanDatabase(app: INestApplication) {
   await prisma.$executeRawUnsafe(`DELETE FROM "roles"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "components"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "redirects"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "choice_lists"`);
 }
 
 /** Register the first admin user and return the token. */

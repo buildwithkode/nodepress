@@ -164,7 +164,8 @@
       "nameAndType": "Name & Type",
       "restricted": "Restricted",
       "adminRead": "Admin always has full read access",
-      "adminWrite": "Admin always has full write access"
+      "adminWrite": "Admin always has full write access",
+      "inherited": "Inherited from {base}"
     },
     "enforcement": {
       "title": "Zero-Leak Security Enforcement:",

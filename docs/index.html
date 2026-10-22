@@ -70,6 +70,7 @@
           <li><a href="#content-types"    class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Content Types Builder</a></li>
           <li><a href="#field-types"      class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Field Types (14+ Types)</a></li>
           <li><a href="#components"     class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Reusable Components</a></li>
+          <li><a href="#choice-lists"   class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Choice Lists</a></li>
           <li><a href="#schema-changes" class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Schema Changes & Migrations</a></li>
           <li><a href="#entries"          class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Entries & Workflows</a></li>
           <li><a href="#i18n"           class="toc-link block py-1.5 px-2 rounded text-zinc-400 hover:text-white transition-colors">Content Languages (i18n)</a></li>
@@ -436,7 +437,7 @@ open http://localhost:3000/api/docs"></div>
           <p>• <strong>Dynamic Endpoints:</strong> Creating <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blog_posts</code> creates <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/blog-posts</code> instantly.</p>
           <p>• <strong>Method Locks:</strong> Choose which HTTP methods (GET, POST, PUT, DELETE) are exposed per collection.</p>
           <p>• <strong>Preview URL:</strong> an <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">http(s)</code> template for the page that shows an entry on your site, with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">{slug}</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">{locale}</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">{token}</code> (a signed 1-hour preview token) — e.g. <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">https://www.example.com/blog/{slug}?preview={token}</code>. Up to 2,048 characters, no placeholders in the host. It drives the editor&#x27;s <a href="#live-preview" class="text-blue-400 hover:underline">Live pane</a> and the automatic <a href="#redirects" class="text-blue-400 hover:underline">slug-change redirects</a>.</p>
-          <p>• <strong>Export / Import JSON:</strong> bundles carry the content types, their Preview URLs and the <a href="#components" class="text-blue-400 hover:underline">components</a> they use (all components on a full export); import writes components first. <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/content-types/export</code> / <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST /api/content-types/import</code> accept an admin JWT (export: editors too) or an <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-API-Key</code> with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> access to <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">*</code> — other keys get 403, and key imports are audited as <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">api-key:&lt;name&gt;</code>.</p>
+          <p>• <strong>Export / Import JSON:</strong> bundles carry the content types, their Preview URLs and the <a href="#components" class="text-blue-400 hover:underline">components</a> and <a href="#choice-lists" class="text-blue-400 hover:underline">choice lists</a> they use (all of them on a full export); import writes components and choice lists first. <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/content-types/export</code> / <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST /api/content-types/import</code> accept an admin JWT (export: editors too) or an <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">X-API-Key</code> with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">all</code> access to <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">*</code> — other keys get 403, and key imports are audited as <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">api-key:&lt;name&gt;</code>.</p>
         </div>
       </section>
 
@@ -458,7 +459,7 @@ open http://localhost:3000/api/docs"></div>
               <tr><td class="px-4 py-2.5"><span class="bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded font-mono">image</span></td><td class="px-4 py-2.5 text-zinc-400">Image URL picked from the media library (or uploaded in place).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"/uploads/photo.jpg"</td></tr>
               <tr><td class="px-4 py-2.5"><span class="bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded font-mono">number</span></td><td class="px-4 py-2.5 text-zinc-400">Integers, decimals, prices, or counts.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">99.50</td></tr>
               <tr><td class="px-4 py-2.5"><span class="bg-green-500/10 text-green-400 px-2 py-0.5 rounded font-mono">boolean</span></td><td class="px-4 py-2.5 text-zinc-400">Toggle switch for flags (featured, sponsored).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">true</td></tr>
-              <tr><td class="px-4 py-2.5"><span class="bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded font-mono">select</span></td><td class="px-4 py-2.5 text-zinc-400">Dropdown select from predefined options.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"tech"</td></tr>
+              <tr><td class="px-4 py-2.5"><span class="bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded font-mono">select</span></td><td class="px-4 py-2.5 text-zinc-400">Dropdown of choices — typed in (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">options.choices</code>) or from a shared <a href="#choice-lists" class="text-blue-400 hover:underline">choice list</a> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">options.choiceList</code>). Entries store the value; the admin shows the label.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"tech"</td></tr>
               <tr><td class="px-4 py-2.5"><span class="bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded font-mono">date</span></td><td class="px-4 py-2.5 text-zinc-400">Calendar date (YYYY-MM-DD).</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2026-08-25"</td></tr>
               <tr><td class="px-4 py-2.5"><span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono">datetime</span></td><td class="px-4 py-2.5 text-zinc-400">ISO 8601 full timestamp with timezone.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"2026-08-25T12:00:00Z"</td></tr>
               <tr><td class="px-4 py-2.5"><span class="bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-mono">color</span></td><td class="px-4 py-2.5 text-zinc-400">Hex color picker swatch.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"#3b82f6"</td></tr>
@@ -487,15 +488,85 @@ open http://localhost:3000/api/docs"></div>
           </div>
           <h2 class="text-2xl font-bold text-white">Reusable Components</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-4">A component is a named set of simple fields (an SEO block, a call-to-action, a link) defined once under <strong class="text-white">Content → Components</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/components</code>) and reused anywhere. <strong class="text-white">Add component</strong> in the content type editor inserts it as a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">group</code> (one) or <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">repeater</code> (many) with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">options.component</code>.</p>
-        <div class="code-block" data-code="{ &quot;name&quot;: &quot;seo&quot;,   &quot;type&quot;: &quot;group&quot;,    &quot;options&quot;: { &quot;component&quot;: &quot;seo&quot; } }
-{ &quot;name&quot;: &quot;links&quot;, &quot;type&quot;: &quot;repeater&quot;, &quot;options&quot;: { &quot;component&quot;: &quot;link&quot; } }"></div>
+        <p class="text-zinc-400 leading-relaxed mb-4">A component is a named set of simple fields (an SEO block, a call-to-action, a person&#x27;s details) defined once under <strong class="text-white">Content → Components</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/components</code>) and reused anywhere. Click <strong class="text-white">Add component</strong> in the content type editor and pick one of four ways to use it:</p>
+        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-4">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-zinc-900 border-b border-zinc-800"><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Use</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">What you get</th><th class="text-left px-4 py-2.5 font-medium text-zinc-400 text-xs">Entry data</th></tr></thead>
+            <tbody class="divide-y divide-zinc-800 text-xs">
+              <tr><td class="px-4 py-2.5 text-white font-medium whitespace-nowrap">One</td><td class="px-4 py-2.5 text-zinc-400">A <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">group</code> field with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">options.component</code> — one nested object.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"seo": { "meta_title": "…" }</td></tr>
+              <tr><td class="px-4 py-2.5 text-white font-medium whitespace-nowrap">Many</td><td class="px-4 py-2.5 text-zinc-400">A <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">repeater</code> field with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">options.component</code> — a list of items.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"links": [{ "label": "…", "url": "…" }]</td></tr>
+              <tr><td class="px-4 py-2.5 text-white font-medium whitespace-nowrap">Inline</td><td class="px-4 py-2.5 text-zinc-400">The component&#x27;s fields go straight into the content type, at the top level, with no wrapper object.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"gender": "male"</td></tr>
+              <tr><td class="px-4 py-2.5 text-white font-medium whitespace-nowrap">Flexible layout</td><td class="px-4 py-2.5 text-zinc-400">A layout of a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">flexible</code> field whose fields come from the component.</td><td class="px-4 py-2.5 text-zinc-500 font-mono">"body": [{ "_layout": "cta", … }]</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="code-block" data-code="// Component &quot;seo&quot;
+{ &quot;name&quot;: &quot;seo&quot;, &quot;displayName&quot;: &quot;SEO&quot;,
+  &quot;fields&quot;: [{ &quot;name&quot;: &quot;meta_title&quot;, &quot;type&quot;: &quot;text&quot; }, { &quot;name&quot;: &quot;meta_description&quot;, &quot;type&quot;: &quot;textarea&quot; }] }
+
+// One — a group field
+{ &quot;name&quot;: &quot;seo&quot;, &quot;type&quot;: &quot;group&quot;, &quot;options&quot;: { &quot;component&quot;: &quot;seo&quot; } }
+
+// Many — a repeater field
+{ &quot;name&quot;: &quot;links&quot;, &quot;type&quot;: &quot;repeater&quot;, &quot;options&quot;: { &quot;component&quot;: &quot;link&quot; } }
+
+// Inline — the component's fields sit at the top level, each tagged with the component
+{ &quot;name&quot;: &quot;full_name&quot;, &quot;type&quot;: &quot;text&quot;,   &quot;component&quot;: &quot;person_details&quot; }
+{ &quot;name&quot;: &quot;gender&quot;,    &quot;type&quot;: &quot;select&quot;, &quot;component&quot;: &quot;person_details&quot;, &quot;options&quot;: { &quot;choiceList&quot;: &quot;gender&quot; } }
+
+// Flexible layout — name and label default to the component's
+{ &quot;name&quot;: &quot;body&quot;, &quot;type&quot;: &quot;flexible&quot;,
+  &quot;options&quot;: { &quot;layouts&quot;: [{ &quot;component&quot;: &quot;cta&quot; }, { &quot;name&quot;: &quot;text&quot;, &quot;label&quot;: &quot;Text&quot;, &quot;fields&quot;: [ … ] }] } }"></div>
         <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-300 mb-6 space-y-2">
-          <p>• The server copies the component&#x27;s fields into the sub-fields on every save, so the API output is a normal group/repeater. Never edit the copies.</p>
-          <p>• Editing a component updates every content type using it (each gets a schema version); the response lists <code class="text-pink-400 font-mono">updatedContentTypes</code> and <code class="text-pink-400 font-mono">propagationErrors</code>.</p>
-          <p>• Simple fields only. Unknown component → 400; deleting one in use → 409.</p>
+          <p>• The server copies the component&#x27;s fields into the content type on every save (group/repeater sub-fields, layout fields or the inline fields), so the API output is that of ordinary fields. Never edit the copies — edit the component.</p>
+          <p>• <strong class="text-white">Inline</strong> keeps entry data flat: a type using a <code class="text-pink-400 font-mono">person_details</code> component inline stores <code class="text-pink-400 font-mono">{ "full_name": "Ada", "gender": "male" }</code>. A content type can use a component inline only once, and its field names must not clash with the type&#x27;s other fields (400). The editor shows the inline fields as one read-only <strong class="text-white">From component</strong> block that moves as a unit.</p>
+          <p>• <strong class="text-white">Flexible layouts</strong>: click <strong class="text-white">Add layout from component</strong> in a flexible field; component layouts mix freely with hand-made ones.</p>
+          <p>• Editing a component updates every content type using it, in all four ways (each gets a schema version); the response lists <code class="text-pink-400 font-mono">updatedContentTypes</code> and <code class="text-pink-400 font-mono">propagationErrors</code>.</p>
+          <p>• Renames move data: <code class="text-pink-400 font-mono">PUT /api/components/:id</code> takes <code class="text-pink-400 font-mono">fieldMigrations</code> with component field names, applied as <code class="text-pink-400 font-mono">&lt;field&gt;.&lt;name&gt;</code> (group/repeater), <code class="text-pink-400 font-mono">&lt;name&gt;</code> (inline) or <code class="text-pink-400 font-mono">&lt;field&gt;.&lt;layout&gt;.&lt;name&gt;</code> (flexible layout). The Components page sends renames for you; retyped or removed component fields keep their data.</p>
+          <p>• Simple fields only. Unknown component → 400; deleting one in use → 409. <code class="text-pink-400 font-mono">usage[]</code> lists each use with its type: <code class="text-pink-400 font-mono">group</code>, <code class="text-pink-400 font-mono">repeater</code>, <code class="text-pink-400 font-mono">inline</code> or <code class="text-pink-400 font-mono">layout</code>.</p>
           <p>• API: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/components</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/components/:id</code> (with usage) for signed-in users; <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST</code> / <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">PUT</code> / <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">DELETE</code> for admins.</p>
         </div>
+      </section>
+
+      <!-- Choice Lists -->
+      <section id="choice-lists" class="mb-16 scroll-mt-24">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Choice Lists</h2>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">A choice list is a shared set of options for <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">select</code> fields — gender, country, department — kept in one place so every content type offers the same choices. Manage them under <strong class="text-white">Settings → Choice lists</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/choice-lists</code>, admin only). Each choice has a <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">value</code> (what entries store) and an optional <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">label</code> (what editors see). A select field takes its choices either typed in (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">options.choices</code>) or from a list (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">options: { "choiceList": "gender" }</code>).</p>
+        <p class="text-zinc-400 leading-relaxed mb-4">Example — a <strong class="text-white">Gender</strong> list used by several content types:</p>
+        <div class="code-block" data-code="// Settings → Choice lists → &quot;Gender&quot;
+{ &quot;name&quot;: &quot;gender&quot;, &quot;label&quot;: &quot;Gender&quot;,
+  &quot;choices&quot;: [{ &quot;value&quot;: &quot;male&quot;, &quot;label&quot;: &quot;Male&quot; }, { &quot;value&quot;: &quot;female&quot;, &quot;label&quot;: &quot;Female&quot; }, { &quot;value&quot;: &quot;other&quot;, &quot;label&quot;: &quot;Other&quot; }] }
+
+// A select field in any content type (or component)
+{ &quot;name&quot;: &quot;gender&quot;, &quot;type&quot;: &quot;select&quot;, &quot;options&quot;: { &quot;choiceList&quot;: &quot;gender&quot; } }
+
+// What the server saves on the field
+{ &quot;name&quot;: &quot;gender&quot;, &quot;type&quot;: &quot;select&quot;,
+  &quot;options&quot;: { &quot;choiceList&quot;: &quot;gender&quot;,
+               &quot;choices&quot;: [&quot;male&quot;, &quot;female&quot;, &quot;other&quot;],
+               &quot;choiceLabels&quot;: { &quot;male&quot;: &quot;Male&quot;, &quot;female&quot;: &quot;Female&quot;, &quot;other&quot;: &quot;Other&quot; } } }
+
+// An entry stores the value
+{ &quot;gender&quot;: &quot;male&quot; }"></div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Put the field in a component used <a href="#components" class="text-blue-400 hover:underline">inline</a> and every content type that includes it gets the same <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">gender</code> field at its top level — the entry still stores <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">"gender": "male"</code>.</p>
+        <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-300 mb-6 space-y-2">
+          <p>• On every save the server copies the list into the field: values into <code class="text-pink-400 font-mono">choices</code>, labels into <code class="text-pink-400 font-mono">choiceLabels</code> (<code class="text-pink-400 font-mono">{ value: label }</code>, only where they differ). This covers top-level fields, repeater/group sub-fields, flexible layout fields and components.</p>
+          <p>• The list editor adds choices one by one, pastes several at once (one per line: <code class="text-pink-400 font-mono">Label</code> or <code class="text-pink-400 font-mono">value | Label</code>) and reorders by drag.</p>
+          <p>• Editing a list updates every content type and component that uses it. Removing values reports how many entries still hold them (<code class="text-pink-400 font-mono">removedValuesInUse</code>); those entries fail validation on their next save until a new value is picked.</p>
+          <p>• A list in use can&#x27;t be deleted (409). Up to 1,000 choices; values unique, non-empty, ≤ 200 characters.</p>
+          <p>• Schema export/import bundles and <code class="text-pink-400 font-mono">schema:pull</code> / <code class="text-pink-400 font-mono">schema:push</code> carry choice lists. <code class="text-pink-400 font-mono">choice-lists</code> is a reserved content type name; changes are audited as <code class="text-pink-400 font-mono">choice_list</code>.</p>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4">Building a form on your website? Read the choices from the public endpoints — no token needed, cached for 60 seconds:</p>
+        <div class="code-block" data-code="GET /api/choice-lists/gender
+GET /api/choice-lists?names=gender,country     // up to 50 names, returns an array
+
+// → { &quot;name&quot;: &quot;gender&quot;, &quot;label&quot;: &quot;Gender&quot;,
+//     &quot;choices&quot;: [{ &quot;value&quot;: &quot;male&quot;, &quot;label&quot;: &quot;Male&quot; }, …] }"></div>
       </section>
 
       <!-- Schema Changes & Data Migrations -->
@@ -509,17 +580,21 @@ open http://localhost:3000/api/docs"></div>
         <p class="text-zinc-400 leading-relaxed mb-4">Entry values live in one JSON column, so a schema change alone leaves data behind: a renamed field keeps its values under the old key, a retyped field keeps old-type values. When you save a content type whose changed fields hold data, the admin shows a <strong class="text-white">confirm dialog</strong> with the impact (entries touched, values a conversion would drop) and lets you migrate the data with the schema.</p>
         <div class="code-block" data-code="# Preview — same body as PUT, changes nothing
 POST /api/content-types/:id/schema-impact
-→ { entryCount, diff, steps: [{ kind, field, entries, lost, ... }], retyped, warnings }
+→ { entryCount, diff, steps: [{ kind, field, container?, entries, lost, ... }], retyped, removedNested, warnings }
 
 # Apply schema + data together (one transaction)
 PUT /api/content-types/:id
 { &quot;schema&quot;: [ ... ],
   &quot;fieldMigrations&quot;: {
-    &quot;renames&quot;: [{ &quot;from&quot;: &quot;headline&quot;, &quot;to&quot;: &quot;title&quot; }],
-    &quot;convert&quot;: [&quot;price&quot;],
-    &quot;drop&quot;: [&quot;legacy_notes&quot;] } }"></div>
+    &quot;renames&quot;: [{ &quot;from&quot;: &quot;headline&quot;, &quot;to&quot;: &quot;title&quot; },
+                { &quot;from&quot;: &quot;seo.desc&quot;, &quot;to&quot;: &quot;seo.meta_description&quot; }],
+    &quot;convert&quot;: [&quot;price&quot;, &quot;blocks.hero.heading&quot;],
+    &quot;drop&quot;: [&quot;legacy_notes&quot;, &quot;seo.keywords&quot;] } }"></div>
         <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-300 mb-6 space-y-2">
-          <p>• Top-level fields only. Order: renames, conversions (by new name), drops.</p>
+          <p>• Paths: <code class="text-pink-400 font-mono">title</code> (top level), <code class="text-pink-400 font-mono">seo.meta_title</code> (group sub-field, or repeater sub-field in every row), <code class="text-pink-400 font-mono">blocks.hero.heading</code> (a field of one flexible layout). Nested paths use the container&#x27;s <em>new</em> name; a rename stays in the same group, repeater or layout.</p>
+          <p>• Order: top-level renames, nested renames, conversions (by new path), drops.</p>
+          <p>• The preview&#x27;s <code class="text-pink-400 font-mono">removedNested</code> lists fields removed from inside a group, repeater or layout that still exists; the dialog offers to drop their data. The editor tracks sub-field renames and sends them.</p>
+          <p>• Renaming a flexible <em>layout</em> isn&#x27;t migrated — rows keep the old layout name.</p>
           <p>• Conversions: anything → json; text ↔ richtext; text/number/boolean → text or select; multi-select → first value; text → number (numeric strings) or boolean (true/yes/1/on, false/no/0/off). Unconvertible values are removed and counted as <em>lost</em> in the preview.</p>
           <p>• Reverse relation fields (<code class="text-pink-400 font-mono">mappedBy</code>) follow renames. Old entry versions keep their old shape.</p>
         </div>
@@ -729,10 +804,10 @@ POST /api/submit/contact-us
           <p>Every team member can activate TOTP-based 2FA (Google Authenticator, Authy) from their user profile with backup recovery codes.</p>
         </div>
         <h3 class="font-semibold text-white mt-6 mb-2 text-sm">Custom roles</h3>
-        <p class="text-zinc-400 leading-relaxed mb-4"><strong class="text-white">Team → Roles</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/users/roles</code>, admin only) adds roles such as <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">translator</code>. A custom role is based on <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">editor</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">contributor</code> or <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">viewer</code>: it gets that role&#x27;s admin access, and its content permissions start as a copy of the base role&#x27;s, narrowed per content type in the permissions matrix. Names are snake_case and immutable; a role still assigned to users can&#x27;t be deleted (409 with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">userCount</code>). Users are invited with custom roles like built-in ones; <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/auth/me</code> returns <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">role</code> (base) and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">customRole</code>. <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">OIDC_ROLE_MAP</code> may target custom roles. Field <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">readRoles</code>/<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">writeRoles</code> use the base role.</p>
+        <p class="text-zinc-400 leading-relaxed mb-4"><strong class="text-white">Team → Roles</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/users/roles</code>, admin only) adds roles such as <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">translator</code>. A custom role is based on <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">editor</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">contributor</code> or <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">viewer</code>: it gets that role&#x27;s admin access, and its content permissions start as a copy of the base role&#x27;s, narrowed per content type in the permissions matrix. Names are snake_case and immutable; a role still assigned to users can&#x27;t be deleted (409 with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">userCount</code>). Users are invited with custom roles like built-in ones; <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/auth/me</code> returns <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">role</code> (base) and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">customRole</code>. <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">OIDC_ROLE_MAP</code> may target custom roles. Field <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">readRoles</code>/<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">writeRoles</code> may list custom role names; a rule matches the custom role or its base role, and admins always pass (the field matrix has a column per custom role). Changing <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">baseRole</code> swaps the role&#x27;s <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">*</code> row to the new defaults unless you customised it — then it&#x27;s kept and the response&#x27;s <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">warnings</code> says so. <em>Reset to defaults</em> keeps custom roles and restores their <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">*</code> rows from their base role.</p>
         <div class="code-block" data-code="GET    /api/roles
 POST   /api/roles          { &quot;name&quot;: &quot;translator&quot;, &quot;label&quot;: &quot;Translator&quot;, &quot;baseRole&quot;: &quot;contributor&quot; }
-PUT    /api/roles/:name    { &quot;label&quot;: &quot;...&quot;, &quot;baseRole&quot;: &quot;editor&quot; }
+PUT    /api/roles/:name    { &quot;label&quot;: &quot;...&quot;, &quot;baseRole&quot;: &quot;editor&quot; }   # → role + warnings[]
 DELETE /api/roles/:name"></div>
       </section>
 
@@ -853,6 +928,8 @@ OIDC_ROLE_MAP=cms-admins:admin,cms-translators:translator   # custom roles allow
           <p>• The public write API (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST/PUT/DELETE /api/:type</code>) now checks the role&#x27;s content permissions for JWT callers too. Creating a published entry (the default) or promoting one needs <em>publish</em> — a contributor&#x27;s JWT must send <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">status: &quot;draft&quot;</code>.</p>
           <p>• <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">POST /api/entries</code> checks the entry&#x27;s own content type, not the <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">*</code> row. A role that no longer exists is treated as a viewer.</p>
           <p>• <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">?populate</code> respects the related type&#x27;s field <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">readRoles</code>.</p>
+          <p>• Bulk routes check every affected content type (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">bulk-publish</code> / <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">bulk-promote</code> to published → <em>publish</em>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">bulk-delete</code> → <em>delete</em>, others → <em>update</em>). Any denial is a 403 with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">forbiddenContentTypes</code> and nothing changes.</p>
+          <p>• GraphQL <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">createEntry</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">updateEntry</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">deleteEntry</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">restoreEntryVersion</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">bulk*</code> mutations run the same per-type checks; admin entry queries and mutations apply the caller&#x27;s field rules.</p>
         </div>
       </section>
 
@@ -867,7 +944,7 @@ OIDC_ROLE_MAP=cms-admins:admin,cms-translators:translator   # custom roles allow
         <p class="text-zinc-400 leading-relaxed mb-4">
           All administrative actions (entry modifications, schema updates, logins, role changes) are recorded immutably with timestamp, actor email, IP address, and before/after state diffs.
         </p>
-        <p class="text-zinc-400 leading-relaxed mb-4">Filter by resource: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">entry</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">content_type</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">user</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">api_key</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">form</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">media</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">plugin</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">settings</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">release</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">role</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">redirect</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">component</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">import</code>. Entries are pruned after <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">AUDIT_LOG_RETENTION_DAYS</code> (default 90).</p>
+        <p class="text-zinc-400 leading-relaxed mb-4">Filter by resource: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">entry</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">content_type</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">user</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">api_key</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">form</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">media</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">plugin</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">settings</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">release</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">role</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">redirect</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">component</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">choice_list</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">import</code>. Entries are pruned after <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">AUDIT_LOG_RETENTION_DAYS</code> (default 90).</p>
         <div class="code-block" data-code="GET /api/audit-log?resource=role&amp;page=1&amp;limit=50"></div>
       </section>
 
@@ -1167,7 +1244,7 @@ export const PLUGINS_CONFIG: PluginConfigEntry[] = [
           <h2 class="text-2xl font-bold text-white">GraphQL API & Playground</h2>
         </div>
         <p class="text-zinc-400 leading-relaxed mb-4">
-          Full GraphQL endpoint available at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/graphql</code> with Apollo Sandbox playground.
+          Full GraphQL endpoint available at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/graphql</code> with Apollo Sandbox playground. Entry mutations check the caller&#x27;s per-content-type permissions like REST (a denial lists <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">forbiddenContentTypes</code>).
         </p>
         <p class="text-zinc-400 leading-relaxed mb-4"><strong class="text-white">Typed queries per content type:</strong> <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blog_post</code> becomes type <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">BlogPost</code> with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blogPost(slug, locale, fallback)</code> and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">blogPosts(where, search, sort, page, limit, cursor, locale, fallback)</code>. Relations (reverse fields too) resolve to the related type, repeaters and groups are objects, flexible fields are unions per layout. Only published entries are served, and the schema follows content type changes without a restart.</p>
         <div class="code-block" data-code="{
@@ -1198,7 +1275,7 @@ export const PLUGINS_CONFIG: PluginConfigEntry[] = [
           </div>
           <h2 class="text-2xl font-bold text-white">OpenAPI &amp; Swagger UI</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-4"><code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/openapi.json</code> is a public <strong class="text-white">OpenAPI 3.1</strong> document generated from your content types; Swagger UI for it is at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/docs/content</code> (the management API stays at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/docs</code>). Each type gets list/get/create/update/delete operations per its allowed methods and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;Data</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;List</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;Input</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;UpdateInput</code> schemas. Fields with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">readRoles</code> are left out of reads, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">writeRoles</code> fields out of inputs; field conditions aren&#x27;t expressed.</p>
+        <p class="text-zinc-400 leading-relaxed mb-4"><code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/openapi.json</code> is a public <strong class="text-white">OpenAPI 3.1</strong> document generated from your content types; Swagger UI for it is at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/docs/content</code> (the management API stays at <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/api/docs</code>). Each type gets list/get/create/update/delete operations per its allowed methods and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;Data</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;List</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;Input</code>, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">&lt;Type&gt;UpdateInput</code> schemas. Fields with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">readRoles</code> are left out of reads, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">writeRoles</code> fields out of inputs. Conditional fields are never in <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">required</code>; they carry <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">x-nodepress-condition</code> and a description (&quot;Only used when …&quot;).</p>
         <div class="code-block" data-code="npx openapi-typescript https://cms.example.com/api/openapi.json -o nodepress-api.d.ts
 npx @openapitools/openapi-generator-cli generate -i https://cms.example.com/api/openapi.json -g typescript-fetch -o ./sdk"></div>
       </section>
@@ -1248,6 +1325,7 @@ socket.on('entry:updated', (event) => {
         </div>
         <p class="text-zinc-400 leading-relaxed mb-4"><strong class="text-white">Content → Redirects</strong> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">/redirects</code>, editors and admins) manages 301/302/307/308 and 410 (gone) rules. Your site asks NodePress: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">GET /api/redirects/resolve?path=/old-page</code> → <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">{ to, statusCode }</code> or 404 (public; cached 5 min, <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">Cache-Control: max-age=60</code>).</p>
         <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm text-zinc-300 mb-6 space-y-2">
+          <p>• Hits are counted per rule, buffered and written every 10 s; opening the admin list writes this instance&#x27;s buffered hits first.</p>
           <p>• Matched on the path only — lowercased, trailing slash removed. A query string matches only if the rule&#x27;s <em>from</em> has one; otherwise it is carried over to the target.</p>
           <p>• Targets are a path or an http(s) URL; a 410 has no target. Loops and chains longer than 5 hops are refused.</p>
           <p>• CSV import/export (<code class="text-pink-400 font-mono">from,to,status</code>, ≤10,000 rows, all or nothing, dry run).</p>
@@ -1291,7 +1369,7 @@ cms.imageUrl(post?.data.cover, { w: 800, format: &#x27;auto&#x27; });"></div>
           </div>
           <h2 class="text-2xl font-bold text-white">Live Preview</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-4">With a content type&#x27;s Preview URL set, the entry editor gets a <strong class="text-white">Live</strong> toggle: your site in a resizable pane (device widths, reload, new tab), the preview token refreshed automatically and every edit streamed as you type. Clicking an outlined element focuses its field. The entry must be saved once.</p>
+        <p class="text-zinc-400 leading-relaxed mb-4">With a content type&#x27;s Preview URL set, the entry editor gets a <strong class="text-white">Live</strong> toggle: your site in a resizable pane (device widths, reload, new tab), the preview token refreshed automatically and every edit streamed as you type. Clicking an outlined element focuses its field. The entry must be saved once — on the new-entry page, <strong class="text-white">Save draft &amp; preview</strong> (types with a Preview URL) saves a draft and opens the editor with the Live pane on (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">?live=1</code>).</p>
         <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
           <table class="w-full text-sm">
             <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-xs font-semibold text-zinc-300"><th class="px-4 py-2.5">Message</th><th class="px-4 py-2.5">Direction</th><th class="px-4 py-2.5">Meaning</th></tr></thead>
@@ -1338,7 +1416,7 @@ npm install &amp;&amp; npm run dev"></div>
         <div class="code-block" data-code="npx create-nodepress-app schema:pull [--out nodepress.schema.json]
 npx create-nodepress-app schema:diff [--file nodepress.schema.json]   # exit 0 in sync, 1 changes, 2 error
 npx create-nodepress-app schema:push [--file nodepress.schema.json] [--yes]"></div>
-        <p class="text-zinc-400 leading-relaxed mb-0">Push creates and updates content types (and components) but never deletes one that exists only on the server.</p>
+        <p class="text-zinc-400 leading-relaxed mb-0">Pull, diff and push cover content types, components and choice lists. Push creates and updates them but never deletes one that exists only on the server.</p>
       </section>
 
       <!-- Content Releases -->
@@ -1380,10 +1458,25 @@ POST /api/releases/:id/publish"></div>
           <p>• Posts, pages and custom post types → one content type each: title, content (richtext), excerpt, featured_image, categories/tags (JSON arrays of names), author (text), wp_id, meta (non-underscore post meta, ACF included). Reserved names get a <code class="text-pink-400 font-mono">wp_</code> prefix.</p>
           <p>• Status: publish → published, draft/private → draft, pending → pending review, future → draft with publishAt.</p>
           <p>• Existing types are reused; existing slugs are skipped unless <em>Overwrite</em>. Optional media import into a “WordPress import” folder (upload types only, 10 MB, public http(s) URLs only).</p>
-          <p>• Not imported: comments, custom taxonomies, users, category hierarchy. Multi-instance setups need a shared <code class="text-pink-400 font-mono">uploads/</code>.</p>
+          <p>• On reused types, existing date/datetime fields are filled when the value is a valid date. Never imported: login accounts, spam/trashed comments, pingbacks, post_format and nav_menu terms. Multi-instance setups need a shared <code class="text-pink-400 font-mono">uploads/</code>.</p>
         </div>
+        <h3 class="font-semibold text-white mt-6 mb-2 text-sm">Optional extras (all off by default; the dry run takes them too)</h3>
+        <div class="rounded-xl border border-zinc-800 overflow-hidden mb-6">
+          <table class="w-full text-sm">
+            <thead class="bg-zinc-900 border-b border-zinc-800"><tr class="text-left text-xs font-semibold text-zinc-300"><th class="px-4 py-2.5">Flag</th><th class="px-4 py-2.5">Adds</th></tr></thead>
+            <tbody class="divide-y divide-zinc-800 text-xs text-zinc-400">
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">categoryPaths</td><td class="px-4 py-2.5"><code class="text-pink-400 font-mono">category_paths</code> (JSON) with full &quot;Parent/Child&quot; paths</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">taxonomies</td><td class="px-4 py-2.5"><code class="text-pink-400 font-mono">taxonomies</code> (JSON <code class="text-pink-400 font-mono">{ taxonomy: [terms] }</code>) for custom taxonomies, only on types that use them</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">authors</td><td class="px-4 py-2.5"><code class="text-pink-400 font-mono">wp_author</code> entries (login, display_name, first_name, last_name) and an <code class="text-pink-400 font-mono">author_ref</code> relation on posts — content, not user accounts; no email</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">comments</td><td class="px-4 py-2.5"><code class="text-pink-400 font-mono">wp_comment</code> entries (author_name, content with HTML stripped, date, post_wp_id, post_type, parent_wp_id, wp_id; a <code class="text-pink-400 font-mono">post</code> relation when all comments target one type). Approved only; no commenter email, URL or IP</td></tr>
+              <tr><td class="px-4 py-2.5 font-bold text-white font-mono">pendingComments</td><td class="px-4 py-2.5">With comments: pending comments too, as pending_review</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-zinc-400 leading-relaxed mb-4 text-sm">Re-imports are idempotent: authors keyed by login, comments by <code class="text-pink-400 font-mono">comment-&lt;wp_id&gt;</code>.</p>
         <div class="code-block" data-code="POST /api/import/wordpress?dryRun=true                      # multipart &quot;file&quot;
 POST /api/import/wordpress?importMedia=true&amp;overwrite=true   # → { jobId }
+POST /api/import/wordpress?authors=true&amp;comments=true&amp;pendingComments=true&amp;categoryPaths=true&amp;taxonomies=true
 GET  /api/import/wordpress/:jobId"></div>
       </section>
 
@@ -1579,27 +1672,36 @@ const entries = await res.json();"></div>
 
         <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Content Types &amp; Components</h3>
         <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
-          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/content-types/export</code><span class="text-zinc-500">Export schemas + components (admin/editor JWT or full-access key)</span></div>
-          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/content-types/import</code><span class="text-zinc-500">Import schemas + components, ?dryRun (admin JWT or full-access key)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/content-types/export</code><span class="text-zinc-500">Export schemas + components + choice lists (admin/editor JWT or full-access key)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/content-types/import</code><span class="text-zinc-500">Import schemas + components + choice lists, ?dryRun (admin JWT or full-access key)</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-purple-500/10 text-purple-400 border-purple-500/30">PUT</span><code class="text-white font-mono flex-1">/api/content-types/:id</code><span class="text-zinc-500">Update schema — fieldMigrations, previewUrl</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/content-types/:id/schema-impact</code><span class="text-zinc-500">Preview what an update would do to entries</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/components</code><span class="text-zinc-500">List components</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/components/:id</code><span class="text-zinc-500">Component with usage</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/components</code><span class="text-zinc-500">Create (admin)</span></div>
-          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-purple-500/10 text-purple-400 border-purple-500/30">PUT</span><code class="text-white font-mono flex-1">/api/components/:id</code><span class="text-zinc-500">Update + propagate (admin)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-purple-500/10 text-purple-400 border-purple-500/30">PUT</span><code class="text-white font-mono flex-1">/api/components/:id</code><span class="text-zinc-500">Update + propagate, optional fieldMigrations (admin)</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><code class="text-white font-mono flex-1">/api/components/:id</code><span class="text-zinc-500">Delete, 409 in use (admin)</span></div>
+        </div>
+        <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Choice Lists</h3>
+        <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/choice-lists/:name</code><span class="text-zinc-500">One list — { name, label, choices } (public, cached 60 s)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/choice-lists?names=a,b</code><span class="text-zinc-500">Several lists by name, max 50 (public, cached 60 s)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/choice-lists</code><span class="text-zinc-500">Every list with usage (admin)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/choice-lists</code><span class="text-zinc-500">Create — { name, label, description?, choices } (admin)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-purple-500/10 text-purple-400 border-purple-500/30">PUT</span><code class="text-white font-mono flex-1">/api/choice-lists/:id</code><span class="text-zinc-500">Update + propagate; returns updatedContentTypes, updatedComponents, removedValues, removedValuesInUse, propagationErrors (admin)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><code class="text-white font-mono flex-1">/api/choice-lists/:id</code><span class="text-zinc-500">Delete, 409 in use (admin)</span></div>
         </div>
         <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Roles</h3>
         <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/roles</code><span class="text-zinc-500">List custom roles (admin)</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/roles</code><span class="text-zinc-500">Create { name, label, baseRole } (admin)</span></div>
-          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-purple-500/10 text-purple-400 border-purple-500/30">PUT</span><code class="text-white font-mono flex-1">/api/roles/:name</code><span class="text-zinc-500">Update label/description/baseRole (admin)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-purple-500/10 text-purple-400 border-purple-500/30">PUT</span><code class="text-white font-mono flex-1">/api/roles/:name</code><span class="text-zinc-500">Update label/description/baseRole → warnings[] (admin)</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><code class="text-white font-mono flex-1">/api/roles/:name</code><span class="text-zinc-500">Delete, 409 while assigned (admin)</span></div>
         </div>
         <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Redirects</h3>
         <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/redirects/resolve?path=</code><span class="text-zinc-500">Resolve a path (public)</span></div>
-          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/redirects</code><span class="text-zinc-500">List ?search ?page ?limit ?sort</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/redirects</code><span class="text-zinc-500">List ?search ?page ?limit ?sort (flushes buffered hits)</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/redirects</code><span class="text-zinc-500">Create { from, to?, statusCode? }</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-amber-500/10 text-amber-400 border-amber-500/30">PATCH</span><code class="text-white font-mono flex-1">/api/redirects/:id</code><span class="text-zinc-500">Update</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-red-500/10 text-red-400 border-red-500/30">DELETE</span><code class="text-white font-mono flex-1">/api/redirects/:id</code><span class="text-zinc-500">Delete</span></div>
@@ -1608,7 +1710,7 @@ const entries = await res.json();"></div>
         </div>
         <h3 class="font-semibold mb-2 text-white text-sm uppercase tracking-wider text-zinc-400">Import, OpenAPI &amp; Releases</h3>
         <div class="rounded-xl border border-zinc-800 mb-6 divide-y divide-zinc-800 text-xs">
-          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/import/wordpress</code><span class="text-zinc-500">WXR upload ?dryRun ?importMedia ?overwrite (admin)</span></div>
+          <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-blue-500/10 text-blue-400 border-blue-500/30">POST</span><code class="text-white font-mono flex-1">/api/import/wordpress</code><span class="text-zinc-500">WXR upload ?dryRun ?importMedia ?overwrite ?categoryPaths ?taxonomies ?authors ?comments ?pendingComments (admin)</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/import/wordpress/:jobId</code><span class="text-zinc-500">Import job status (admin)</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/openapi.json</code><span class="text-zinc-500">OpenAPI 3.1 for the content API (public)</span></div>
           <div class="flex items-center gap-3 px-4 py-3"><span class="px-2 py-0.5 rounded font-bold font-mono bg-emerald-500/10 text-emerald-400 border-emerald-500/30">GET</span><code class="text-white font-mono flex-1">/api/docs/content</code><span class="text-zinc-500">Swagger UI for it</span></div>

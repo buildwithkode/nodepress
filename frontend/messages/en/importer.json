@@ -46,5 +46,18 @@
   "colFailed": "Failed",
   "mediaResult": "Media: {imported} imported, {reused} already imported, {failed} failed",
   "errors": "{count, plural, one {# problem} other {# problems}}",
-  "viewEntries": "View entries →"
+  "viewEntries": "View entries →",
+  "extras": "Also import",
+  "categoryPaths": "Keep the category hierarchy",
+  "categoryPathsHint": "Adds a category_paths field with full paths such as “Parent/Child” next to the plain category names. {count, plural, =0 {This file has no nested categories.} one {# nested category in this file.} other {# nested categories in this file.}}",
+  "taxonomies": "Import custom taxonomies",
+  "taxonomiesHint": "Adds a taxonomies field — terms grouped by taxonomy — to the entries that use them.",
+  "taxonomiesFound": "In this file: {list}.",
+  "taxonomiesNone": "This file has no custom taxonomies.",
+  "authors": "Import authors as content",
+  "authorsHint": "{count, plural, one {# author becomes a wp_author entry} other {# authors become wp_author entries}} (login, display name, first and last name), and each post links to its author through an author_ref field. These are content entries, not login accounts — nobody can sign in with them. Email addresses are not copied.",
+  "comments": "Import comments",
+  "commentsHint": "Approved comments become wp_comment entries: name, text without HTML, date, the comment they reply to and the post they belong to. Commenters’ email and IP addresses are not copied; spam and trashed comments are never imported. In this file: {approved} approved, {pending} pending, {spam} spam or trash.",
+  "pendingComments": "Include pending comments",
+  "pendingCommentsHint": "Imported as entries waiting for review."
 }

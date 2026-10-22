@@ -16,7 +16,9 @@
     "contentType": "内容类型",
     "selectContentType": "选择内容类型…",
     "selectToBegin": "选择一个内容类型以开始。",
-    "submit": "创建条目"
+    "submit": "创建条目",
+    "saveAndPreview": "保存草稿并预览",
+    "saveAndPreviewHint": "保存为草稿并打开实时预览"
   },
   "edit": {
     "title": "编辑条目",

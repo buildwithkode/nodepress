@@ -110,6 +110,16 @@ describe('Custom roles (e2e)', () => {
     await http().post('/api/page').set(asWriter()).send({ slug: 'via-api', data: { title: 'x' }, status: 'draft' }).expect(403);
   });
 
+  it('GraphQL entry mutations apply the same content permissions', async () => {
+    const gql = (query: string) => http().post('/graphql').set(asWriter()).send({ query });
+    const ok = await gql(`mutation { createEntry(contentTypeId: ${blogId}, slug: "via-gql", status: "draft", data: "{\\"title\\":\\"x\\"}") { id } }`).expect(200);
+    expect(ok.body.errors).toBeUndefined();
+    const otherType = await gql(`mutation { createEntry(contentTypeId: ${pageId}, slug: "via-gql", status: "draft", data: "{\\"title\\":\\"x\\"}") { id } }`);
+    expect(otherType.body.errors?.[0]?.message).toMatch(/permission to create entries of: page/);
+    const publish = await gql(`mutation { updateEntry(id: ${ok.body.data.createEntry.id}, status: "published") { id } }`);
+    expect(publish.body.errors?.[0]?.message).toMatch(/permission to publish entries of: blog/);
+  });
+
   it('cannot reach admin-only routes', async () => {
     await http().get('/api/users').set(asWriter()).expect(403);
     await http().get('/api/roles').set(asWriter()).expect(403);
@@ -139,5 +149,148 @@ describe('Custom roles (e2e)', () => {
     expect(perms.body).toEqual([]);
     const roles = await http().get('/api/roles').set(asAdmin()).expect(200);
     expect(roles.body.some((r: any) => r.name === 'blog_writer')).toBe(false);
+  });
+});
+
+describe('Custom roles — field rules, bulk routes, reset and base role changes (e2e)', () => {
+  let app: INestApplication;
+  let adminToken: string;
+  let reviewerToken: string;
+  let contributorToken: string;
+  let blogId: number;
+  let newsId: number;
+
+  const http = () => request(app.getHttpServer());
+  const as = (token: string) => ({ Authorization: `Bearer ${token}` });
+  const EDITOR_DEFAULTS = ['create', 'read', 'update', 'delete', 'publish'];
+
+  const createEntry = async (contentTypeId: number, slug: string, data: Record<string, unknown> = { title: slug }) =>
+    (await http().post('/api/entries').set(as(adminToken))
+      .send({ contentTypeId, slug, data, status: 'draft' }).expect(201)).body.id as number;
+  const statusOf = async (id: number) =>
+    (await http().get(`/api/entries/${id}`).set(as(adminToken)).expect(200)).body.status;
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    await cleanDatabase(app);
+    adminToken = await registerAdmin(app);
+
+    blogId = (await http().post('/api/content-types').set(as(adminToken)).send({
+      name: 'blog',
+      schema: [
+        { name: 'title', type: 'text' },
+        { name: 'review_notes', type: 'text', readRoles: ['reviewer'], writeRoles: ['reviewer'] },
+        { name: 'margin', type: 'text', readRoles: ['editor'], writeRoles: ['editor'] },
+      ],
+    }).expect(201)).body.id;
+    newsId = (await http().post('/api/content-types').set(as(adminToken))
+      .send({ name: 'news', schema: [{ name: 'title', type: 'text' }] }).expect(201)).body.id;
+
+    await http().post('/api/roles').set(as(adminToken))
+      .send({ name: 'reviewer', label: 'Reviewer', baseRole: 'editor' }).expect(201);
+    // Reviewers may edit news but not publish or delete it.
+    await http().put('/api/permissions/reviewer/news').set(as(adminToken))
+      .send({ actions: ['create', 'read', 'update'] }).expect(200);
+
+    ({ token: reviewerToken } = await inviteUser(app, adminToken, 'reviewer@test.com', 'reviewer'));
+    ({ token: contributorToken } = await inviteUser(app, adminToken, 'contrib@test.com', 'contributor'));
+  });
+
+  afterAll(async () => {
+    await cleanDatabase(app);
+    await app.close();
+  });
+
+  describe('field rules match the custom role or the base role', () => {
+    let entryId: number;
+    beforeAll(async () => {
+      entryId = await createEntry(blogId, 'secret', { title: 'T', review_notes: 'notes', margin: '10%' });
+    });
+
+    it('reads', async () => {
+      const asReviewer = await http().get(`/api/entries/${entryId}`).set(as(reviewerToken)).expect(200);
+      expect(asReviewer.body.data).toMatchObject({ title: 'T', review_notes: 'notes', margin: '10%' });
+
+      const list = await http().get('/api/entries').query({ contentTypeId: blogId }).set(as(reviewerToken)).expect(200);
+      expect(list.body.data[0].data).toMatchObject({ review_notes: 'notes', margin: '10%' });
+
+      const asContributor = await http().get(`/api/entries/${entryId}`).set(as(contributorToken)).expect(200);
+      expect(asContributor.body.data.title).toBe('T');
+      expect(asContributor.body.data).not.toHaveProperty('review_notes');
+      expect(asContributor.body.data).not.toHaveProperty('margin');
+    });
+
+    it('writes', async () => {
+      await http().put(`/api/entries/${entryId}`).set(as(reviewerToken))
+        .send({ data: { title: 'T', review_notes: 'changed', margin: '12%' } }).expect(200);
+      await http().put(`/api/entries/${entryId}`).set(as(contributorToken))
+        .send({ data: { title: 'T', review_notes: 'hijack' } }).expect(403);
+    });
+  });
+
+  describe('bulk routes check each affected content type', () => {
+    let blogEntry: number;
+    let newsEntry: number;
+    beforeAll(async () => {
+      blogEntry = await createEntry(blogId, 'bulk-blog');
+      newsEntry = await createEntry(newsId, 'bulk-news');
+    });
+
+    it('rejects the whole bulk publish when one type is not allowed', async () => {
+      const res = await http().post('/api/entries/bulk-publish').set(as(reviewerToken))
+        .send({ ids: [blogEntry, newsEntry] }).expect(403);
+      expect(res.body.forbiddenContentTypes).toEqual(['news']);
+      expect(await statusOf(blogEntry)).toBe('draft');
+
+      await http().post('/api/entries/bulk-publish').set(as(reviewerToken)).send({ ids: [blogEntry] }).expect(201);
+      expect(await statusOf(blogEntry)).toBe('published');
+    });
+
+    it('checks publish on bulk-promote to published, delete on bulk-delete, update otherwise', async () => {
+      await http().post('/api/entries/bulk-promote').set(as(reviewerToken))
+        .send({ ids: [newsEntry], status: 'published' }).expect(403);
+      await http().post('/api/entries/bulk-promote').set(as(reviewerToken))
+        .send({ ids: [newsEntry], status: 'staging' }).expect(201);
+      await http().post('/api/entries/bulk-delete').set(as(reviewerToken))
+        .send({ ids: [blogEntry, newsEntry] }).expect(403);
+      await http().post('/api/entries/bulk-archive').set(as(reviewerToken))
+        .send({ ids: [blogEntry, newsEntry] }).expect(201);
+      expect(await statusOf(newsEntry)).toBe('archived');
+    });
+
+    it('admin passes', async () => {
+      await http().post('/api/entries/bulk-delete').set(as(adminToken))
+        .send({ ids: [blogEntry, newsEntry] }).expect(201);
+    });
+  });
+
+  it('reset to defaults re-seeds custom roles from their base role', async () => {
+    await http().put('/api/permissions/reset/all').set(as(adminToken)).expect(200);
+    const perms = await http().get('/api/permissions/reviewer').set(as(adminToken)).expect(200);
+    expect(perms.body).toEqual([expect.objectContaining({ contentType: '*', actions: EDITOR_DEFAULTS })]);
+    const all = await http().get('/api/permissions').set(as(adminToken)).expect(200);
+    expect(all.body.map((p: any) => `${p.role}/${p.contentType}`).sort())
+      .toEqual(['contributor/*', 'editor/*', 'reviewer/*', 'viewer/*']);
+  });
+
+  it('changing the base role replaces default permissions but keeps customised ones', async () => {
+    await http().post('/api/roles').set(as(adminToken))
+      .send({ name: 'helper', label: 'Helper', baseRole: 'contributor' }).expect(201);
+
+    const changed = await http().put('/api/roles/helper').set(as(adminToken)).send({ baseRole: 'editor' }).expect(200);
+    expect(changed.body).toMatchObject({ baseRole: 'editor', warnings: [] });
+    let perms = await http().get('/api/permissions/helper').set(as(adminToken)).expect(200);
+    expect(perms.body).toEqual([expect.objectContaining({ contentType: '*', actions: EDITOR_DEFAULTS })]);
+
+    await http().put('/api/permissions/helper/*').set(as(adminToken)).send({ actions: ['read', 'update'] }).expect(200);
+    const kept = await http().put('/api/roles/helper').set(as(adminToken)).send({ baseRole: 'viewer' }).expect(200);
+    expect(kept.body.baseRole).toBe('viewer');
+    expect(kept.body.warnings).toHaveLength(1);
+    perms = await http().get('/api/permissions/helper').set(as(adminToken)).expect(200);
+    expect(perms.body).toEqual([expect.objectContaining({ contentType: '*', actions: ['read', 'update'] })]);
+
+    // A label-only change never touches permissions.
+    const label = await http().put('/api/roles/helper').set(as(adminToken)).send({ label: 'Helpers' }).expect(200);
+    expect(label.body.warnings).toEqual([]);
   });
 });

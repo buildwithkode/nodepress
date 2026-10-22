@@ -190,7 +190,8 @@
       "role": "Ruoli",
       "redirect": "Reindirizzamenti",
       "component": "Componenti",
-      "import": "Importazioni"
+      "import": "Importazioni",
+      "choice_list": "Elenchi di scelte"
     },
     "colTime": "Ora",
     "colUser": "Utente",

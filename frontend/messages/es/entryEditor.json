@@ -16,7 +16,9 @@
     "contentType": "Tipo de contenido",
     "selectContentType": "Selecciona un tipo de contenido…",
     "selectToBegin": "Selecciona un tipo de contenido para empezar.",
-    "submit": "Crear entrada"
+    "submit": "Crear entrada",
+    "saveAndPreview": "Guardar borrador y previsualizar",
+    "saveAndPreviewHint": "Guardar como borrador y abrir la vista previa en vivo"
   },
   "edit": {
     "title": "Editar entrada",

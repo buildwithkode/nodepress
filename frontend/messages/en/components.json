@@ -1,6 +1,6 @@
 {
   "title": "Components",
-  "description": "Reusable sets of fields. Add one to a content type as a single group or a repeatable list; editing the component updates every content type that uses it.",
+  "description": "Reusable sets of fields. Add one to a content type as a single group, a repeatable list, fields inline, or a flexible content layout; editing the component updates every content type that uses it.",
   "new": "New component",
   "loadFailed": "Failed to load components",
   "saveFailed": "Failed to save the component",
@@ -22,7 +22,9 @@
   },
   "kind": {
     "one": "One",
-    "many": "Many"
+    "many": "Many",
+    "inline": "Inline",
+    "layout": "Layout"
   },
   "editor": {
     "newTitle": "New component",
@@ -56,7 +58,7 @@
   "add": {
     "button": "Add component",
     "title": "Add a component",
-    "description": "Inserts a field whose sub-fields come from the component.",
+    "description": "Use the component's fields as a group, as a repeatable list, or directly in this content type.",
     "none": "There are no components yet. <link>Create one</link> first.",
     "component": "Component",
     "choose": "Choose a component",
@@ -66,10 +68,24 @@
     "repeater": "Many",
     "repeaterHint": "A repeatable list of items",
     "fieldName": "Field name",
-    "confirm": "Add"
+    "confirm": "Add",
+    "inline": "Inline",
+    "inlineHint": "Its fields, added directly",
+    "inlineNote": "The fields are added directly to this content type, so entries store them flat. They stay in sync with the component."
   },
   "readOnly": {
     "usesComponent": "Fields from component",
     "note": "Edit the component to change these fields. <link>Open component</link>"
+  },
+  "layout": {
+    "button": "Add layout from component",
+    "title": "Add a layout from a component",
+    "description": "The layout's fields come from the component and stay in sync with it."
+  },
+  "inline": {
+    "from": "From component",
+    "open": "Open component",
+    "remove": "Remove these fields",
+    "note": "Added directly to this content type. Edit the component to change these fields."
   }
 }

@@ -32,7 +32,7 @@ import {
 import { withCondition } from '@/components/ConditionalField';
 
 interface Field { name: string; type: string; options?: any }
-interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
+interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[]; previewUrl?: string | null }
 
 export default function NewEntryPage() {
   const t = useTranslations('entryEditor');
@@ -120,8 +120,13 @@ export default function NewEntryPage() {
     return () => sub.unsubscribe();
   }, [firstTextField, watch, setValue]);
 
+  // "Save draft & preview": a live preview needs a saved entry (its id and preview token).
+  const previewAfterSave = useRef(false);
   const onSubmit = async (values: Record<string, any>) => {
     if (!selectedCT) return;
+    const preview = previewAfterSave.current;
+    previewAfterSave.current = false;
+    const saveStatus = preview ? 'draft' : status;
     setSubmitting(true);
     try {
       const { slug, ...rest } = values;
@@ -133,17 +138,17 @@ export default function NewEntryPage() {
         noIndex: seoNoIndex || undefined,
       };
       const hasSeo = Object.values(seo).some((v) => v !== undefined);
-      await api.post('/entries', {
+      const res = await api.post('/entries', {
         contentTypeId: selectedCT.id,
         slug: cleanFinalSlug,
         locale,
-        status,
+        status: saveStatus,
         data: rest,
         seo: hasSeo ? seo : null,
-        publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
+        publishAt: saveStatus === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
       toast.success(t('toast.created'));
-      router.push('/entries');
+      router.push(preview ? `/entries/${res.data.id}/edit?live=1` : '/entries');
     } catch (err: any) {
       toast.error(err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
@@ -265,6 +270,20 @@ export default function NewEntryPage() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+
+                {selectedCT?.previewUrl && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs font-medium"
+                    disabled={submitting}
+                    title={t('new.saveAndPreviewHint')}
+                    onClick={() => { previewAfterSave.current = true; void handleSubmit(onSubmit)(); }}
+                  >
+                    {t('new.saveAndPreview')}
+                  </Button>
+                )}
 
                 {/* Top Quick Create / Publish Button */}
                 <Button type="submit" form="entry-form" size="sm" className="h-8 text-xs font-medium gap-1.5" disabled={submitting}>

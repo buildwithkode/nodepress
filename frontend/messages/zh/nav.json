@@ -29,6 +29,7 @@
     "languages": "语言",
     "docs": "文档",
     "serverSettings": "邮件与存储",
+    "choiceLists": "选项列表",
     "importer": "导入"
   },
   "signOut": "退出登录",

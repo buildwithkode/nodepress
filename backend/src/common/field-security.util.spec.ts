@@ -1,4 +1,5 @@
 import {
+  fieldRoleNames,
   filterUnauthorizedReadFields,
   validateFieldWritePermissions,
 } from './field-security.util';
@@ -64,6 +65,45 @@ describe('field-security.util', () => {
           'editor',
         );
       }).not.toThrow();
+    });
+  });
+
+  describe('custom roles', () => {
+    const rules: FieldDef[] = [
+      { name: 'title', type: 'text' },
+      { name: 'review_notes', type: 'textarea', readRoles: ['reviewer'], writeRoles: ['reviewer'] } as any,
+      { name: 'margin', type: 'number', options: { readRoles: ['editor'], writeRoles: ['editor'] } } as any,
+    ];
+    const data = { title: 'T', review_notes: 'n', margin: 5 };
+
+    it('fieldRoleNames lists the custom role and the base role', () => {
+      expect(fieldRoleNames({ role: 'contributor', customRole: 'reviewer' })).toEqual(['reviewer', 'contributor']);
+      expect(fieldRoleNames({ role: 'editor' })).toEqual(['editor']);
+      expect(fieldRoleNames('viewer')).toEqual(['viewer']);
+      expect(fieldRoleNames(undefined)).toEqual([]);
+    });
+
+    it('a read rule matches the custom role name or the base role', () => {
+      expect(filterUnauthorizedReadFields(data, rules, { role: 'contributor', customRole: 'reviewer' }))
+        .toEqual({ title: 'T', review_notes: 'n' });
+      expect(filterUnauthorizedReadFields(data, rules, { role: 'editor', customRole: 'lead' }))
+        .toEqual({ title: 'T', margin: 5 });
+      expect(filterUnauthorizedReadFields(data, rules, { role: 'viewer', customRole: 'auditor' }))
+        .toEqual({ title: 'T' });
+      // The single-string form still works.
+      expect(filterUnauthorizedReadFields(data, rules, 'editor')).toEqual({ title: 'T', margin: 5 });
+    });
+
+    it('a write rule matches the custom role name or the base role', () => {
+      const reviewer = { role: 'contributor', customRole: 'reviewer' };
+      expect(() => validateFieldWritePermissions({ review_notes: 'x' }, undefined, rules, reviewer)).not.toThrow();
+      expect(() => validateFieldWritePermissions({ margin: 1 }, undefined, rules, reviewer)).toThrow(ForbiddenException);
+      expect(() => validateFieldWritePermissions({ margin: 1 }, undefined, rules, { role: 'editor', customRole: 'lead' })).not.toThrow();
+      expect(() => validateFieldWritePermissions({ review_notes: 'x' }, undefined, rules, 'contributor')).toThrow(ForbiddenException);
+    });
+
+    it('admin as the base role still bypasses every rule', () => {
+      expect(filterUnauthorizedReadFields(data, rules, { role: 'admin' })).toEqual(data);
     });
   });
 });

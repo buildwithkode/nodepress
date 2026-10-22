@@ -190,7 +190,8 @@
       "role": "角色",
       "redirect": "重定向",
       "component": "组件",
-      "import": "导入"
+      "import": "导入",
+      "choice_list": "选项列表"
     },
     "colTime": "时间",
     "colUser": "用户",

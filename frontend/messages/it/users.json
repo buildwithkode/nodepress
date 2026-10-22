@@ -164,7 +164,8 @@
       "nameAndType": "Nome e tipo",
       "restricted": "Limitato",
       "adminRead": "L'amministratore ha sempre accesso completo in lettura",
-      "adminWrite": "L'amministratore ha sempre accesso completo in scrittura"
+      "adminWrite": "L'amministratore ha sempre accesso completo in scrittura",
+      "inherited": "Ereditato da {base}"
     },
     "enforcement": {
       "title": "Applicazione della sicurezza senza fughe di dati:",

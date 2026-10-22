@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { FieldDef, RelationFieldDef, isReverseRelation } from '../fields/field.types';
-import { filterUnauthorizedReadFields } from './field-security.util';
+import { FieldAccessRole, filterUnauthorizedReadFields } from './field-security.util';
 
 /** Reverse fields return at most this many linked entries per entry. */
 export const REVERSE_LIMIT = 100;
@@ -11,8 +11,8 @@ export interface PopulateOptions {
   publishedOnly?: boolean;
   /** publicId of each entry in `entriesData` (same order) — reverse fields need it. */
   ownerIds?: (string | undefined)[];
-  /** Role whose field read rules apply to related entries (default: public). */
-  readRole?: string;
+  /** Role (or `{ role, customRole }` user) whose field read rules apply to related entries (default: public). */
+  readRole?: FieldAccessRole;
 }
 
 /**
@@ -20,7 +20,7 @@ export interface PopulateOptions {
  * related type's field read rules, and only the content type's name — not its
  * schema or settings.
  */
-function relatedRow(row: any, readRole?: string) {
+function relatedRow(row: any, readRole?: FieldAccessRole) {
   const { contentType, ...rest } = row;
   return {
     ...rest,

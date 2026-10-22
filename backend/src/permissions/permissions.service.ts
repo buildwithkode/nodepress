@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RolesService } from '../roles/roles.service';
-import { DEFAULT_PERMISSIONS, isBuiltInRole } from '../roles/roles.constants';
+import { DEFAULT_PERMISSIONS, isBaseRole, isBuiltInRole } from '../roles/roles.constants';
 
 @Injectable()
 export class PermissionsService {
@@ -33,6 +33,43 @@ export class PermissionsService {
    *
    * Callers pass `req.user.customRole ?? req.user.role`.
    */
+  /**
+   * Throw 403 unless the signed-in user may `action` entries of every given
+   * content type (admins always may). Shared by the REST and GraphQL entry routes.
+   */
+  async assertCanTypes(user: { role: string; customRole?: string }, types: string[], action: string) {
+    if (user.role === 'admin') return;
+    const forbidden: string[] = [];
+    for (const type of [...new Set(types)]) {
+      if (!(await this.can(user.customRole ?? user.role, type, action))) forbidden.push(type);
+    }
+    if (forbidden.length) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        error: 'Forbidden',
+        message: `You do not have permission to ${action} entries of: ${forbidden.join(', ')}`,
+        forbiddenContentTypes: forbidden,
+      });
+    }
+  }
+
+  /** assertCanTypes for the content types of these (non-deleted) entries. */
+  async assertCanEntries(user: { role: string; customRole?: string }, ids: number[], action: string) {
+    if (user.role === 'admin' || !Array.isArray(ids) || ids.length === 0) return;
+    const rows = await this.prisma.entry.findMany({
+      where: { id: { in: ids }, deletedAt: null },
+      select: { contentType: { select: { name: true } } },
+    });
+    await this.assertCanTypes(user, rows.map((r) => r.contentType?.name).filter((n): n is string => !!n), action);
+  }
+
+  /** assertCanTypes for a content type given by id. */
+  async assertCanContentType(user: { role: string; customRole?: string }, contentTypeId: number, action: string) {
+    if (user.role === 'admin') return;
+    const ct = await this.prisma.contentType.findUnique({ where: { id: contentTypeId }, select: { name: true } });
+    if (ct) await this.assertCanTypes(user, [ct.name], action);
+  }
+
   async can(role: string, contentType: string, action: string): Promise<boolean> {
     if (role === 'admin') return true;
 
@@ -80,15 +117,23 @@ export class PermissionsService {
     return { message: `Permission for ${role}/${contentType} reset to default` };
   }
 
-  /** Reset all permissions to defaults. */
+  /**
+   * Reset all permissions to defaults. Custom roles get their ('<name>', '*')
+   * row back with their base role's defaults — the same row role creation writes.
+   */
   async resetAll() {
-    await this.prisma.permission.deleteMany({});
-    await this.prisma.$executeRawUnsafe(`
-      INSERT INTO "permissions" ("role", "contentType", "actions") VALUES
-        ('editor',      '*', ARRAY['create','read','update','delete','publish']),
-        ('contributor', '*', ARRAY['create','read','update']),
-        ('viewer',      '*', ARRAY['read'])
-    `);
+    const customRoles = await this.prisma.role.findMany({ select: { name: true, baseRole: true } });
+    const builtIn = (['editor', 'contributor', 'viewer'] as const)
+      .map((role) => ({ role, contentType: '*', actions: DEFAULT_PERMISSIONS[role] }));
+    const custom = customRoles.map((r) => ({
+      role: r.name,
+      contentType: '*',
+      actions: DEFAULT_PERMISSIONS[isBaseRole(r.baseRole) ? r.baseRole : 'viewer'],
+    }));
+    await this.prisma.$transaction([
+      this.prisma.permission.deleteMany({}),
+      this.prisma.permission.createMany({ data: [...builtIn, ...custom] }),
+    ]);
     return { message: 'All permissions reset to defaults' };
   }
 }

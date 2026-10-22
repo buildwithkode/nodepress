@@ -42,9 +42,9 @@ describe('WordPress import (e2e)', () => {
     }
   }
 
-  async function runImport(xml: string, query = '') {
+  async function runImport(xml: string, query = '', total = 6) {
     const res = await upload(xml, query).expect(201);
-    expect(res.body).toMatchObject({ jobId: expect.any(Number), status: 'pending', total: 6 });
+    expect(res.body).toMatchObject({ jobId: expect.any(Number), status: 'pending', total });
     return waitForImport(res.body.jobId);
   }
 
@@ -121,6 +121,11 @@ describe('WordPress import (e2e)', () => {
     });
     expect(res.body.sample).toHaveLength(5);
     expect(res.body.warnings).toContain('Custom taxonomies are not imported: origin');
+    expect(res.body.options).toMatchObject({ authors: false, comments: false });
+    expect(res.body.stats).toEqual({
+      nestedCategories: 2, taxonomies: { origin: 1 }, authors: 2,
+      comments: { approved: 2, pending: 1, spam: 1, trash: 1, other: 0 },
+    });
     expect(await prisma.contentType.count()).toBe(0);
     expect(await prisma.job.count()).toBe(0);
   });
@@ -208,7 +213,7 @@ describe('WordPress import (e2e)', () => {
       const status = await runImport(xml, '?importMedia=true&overwrite=true');
       expect(status.result.media).toEqual({ imported: 1, reused: 0, failed: 0 });
       expect(status.result.byType.post).toEqual({ created: 0, updated: 4, skipped: 0, failed: 0 });
-      expect(status.options).toEqual({ importMedia: true, overwrite: true });
+      expect(status.options).toMatchObject({ importMedia: true, overwrite: true, authors: false, comments: false });
 
       const media = await prisma.media.findFirst({ include: { folder: true } });
       expect(media).toMatchObject({ originalName: 'v60-grinder.png', mimetype: 'image/png', width: 8, folder: { name: 'WordPress import' } });
@@ -230,6 +235,95 @@ describe('WordPress import (e2e)', () => {
     } finally {
       importer.downloadOptions = { ...importer.downloadOptions, allowPrivate: false };
     }
+  });
+
+  describe('optional extras: category paths, taxonomies, authors, comments', () => {
+    const extras = '?categoryPaths=true&taxonomies=true&authors=true&comments=true';
+
+    beforeAll(async () => {
+      // Start from no content types, so the extras' fields are part of the new schemas.
+      await prisma.$executeRawUnsafe(`DELETE FROM "entry_versions"`);
+      await prisma.entry.deleteMany();
+      await prisma.contentType.deleteMany();
+    });
+
+    it('dry run lists the extra types and drops the taxonomy warning', async () => {
+      const res = await upload(fixture, `${extras}&dryRun=true`).expect(201);
+      expect(res.body).toMatchObject({
+        total: 6 + 2 + 2,
+        contentTypesToCreate: ['wp_author', 'post', 'page', 'coffee_bean', 'wp_comment'],
+        options: { categoryPaths: true, taxonomies: true, authors: true, comments: true, pendingComments: false },
+        skipped: { 'comment:pending': 1, 'comment:spam': 1, 'comment:trash': 1, 'comment:post_not_imported': 1 },
+        byType: {
+          wp_author: { postType: 'author', total: 2, byStatus: { published: 2 } },
+          wp_comment: { postType: 'comment', total: 2, byStatus: { published: 2 } },
+        },
+      });
+      expect(res.body.warnings).toEqual([]);
+      expect(await prisma.contentType.count()).toBe(0);
+    });
+
+    it('imports authors (content entries, no email), comments with their post, paths and taxonomies', async () => {
+      const status = await runImport(fixture, extras, 10);
+      expect(status.status).toBe('done');
+      expect(status.result.errors).toEqual([]);
+      expect(status.result.contentTypesCreated).toEqual(['wp_author', 'post', 'page', 'coffee_bean', 'wp_comment']);
+      expect(status.result.byType).toMatchObject({
+        wp_author: { created: 2, failed: 0 },
+        post: { created: 4, failed: 0 },
+        wp_comment: { created: 2, failed: 0 },
+      });
+
+      const jane = await entry('wp_author', 'jane');
+      expect(jane).toMatchObject({ status: 'published' });
+      // toMatchObject: bundled plugins (seo-analyzer) add their own keys on save.
+      expect(jane!.data).toMatchObject({ login: 'jane', display_name: 'Jane Barista', first_name: 'Jane', last_name: 'Barista' });
+      expect(JSON.stringify(jane!.data)).not.toContain('@');
+      const authorType = await prisma.contentType.findUnique({ where: { name: 'wp_author' } });
+      expect(JSON.stringify(authorType!.schema)).not.toMatch(/email/i);
+      expect(await prisma.user.count()).toBe(1); // only the admin — authors never become accounts
+
+      const post = await entry('post', 'perfect-v60');
+      expect(post!.data).toMatchObject({
+        author: 'Jane Barista', author_ref: jane!.publicId,
+        categories: ['Brewing', 'Pour Over'], category_paths: ['Brewing', 'Brewing/Pour Over'],
+      });
+      expect((await entry('post', 'summer-menu'))!.data).toMatchObject({ category_paths: ['Brewing/Pour Over/Kettles'] });
+      const bean = await entry('coffee_bean', 'ethiopia-yirgacheffe');
+      expect(bean!.data).toMatchObject({ taxonomies: { origin: ['Africa', 'Ethiopia'] }, author_ref: (await entry('wp_author', 'sam'))!.publicId });
+
+      const reply = await entry('wp_comment', 'comment-2');
+      expect(reply).toMatchObject({ status: 'published' });
+      expect(reply!.createdAt.toISOString()).toBe('2025-01-15T10:30:00.000Z');
+      expect(reply!.data).toMatchObject({
+        author_name: 'Jane Barista',
+        content: 'Thanks! Try 94 °C water & a slow pour.\nSecond line\nthird',
+        date: '2025-01-15T10:30:00.000Z',
+        post: post!.publicId,
+        post_wp_id: 11, post_type: 'post', parent_wp_id: 1, wp_id: 2,
+      });
+      expect(await entry('wp_comment', 'comment-3')).toBeNull(); // pending
+      expect(await entry('wp_comment', 'comment-4')).toBeNull(); // spam
+      const comments = await prisma.entry.findMany({ where: { contentType: { name: 'wp_comment' } } });
+      expect(JSON.stringify(comments.map((c) => c.data))).not.toMatch(/@|203\.0\.113|198\.51/);
+
+      // Relations resolve on the public API.
+      const pub = await request(app.getHttpServer()).get('/api/wp_comment/comment-2?populate=post').expect(200);
+      expect(pub.body.data.post.slug).toBe('perfect-v60');
+    });
+
+    it('is idempotent, and pendingComments adds the pending one', async () => {
+      const again = await runImport(fixture, extras, 10);
+      expect(again.result.byType).toMatchObject({
+        wp_author: { created: 0, skipped: 2 },
+        post: { created: 0, skipped: 4 },
+        wp_comment: { created: 0, skipped: 2 },
+      });
+      const withPending = await runImport(fixture, `${extras}&pendingComments=true`, 11);
+      expect(withPending.result.byType.wp_comment).toEqual({ created: 1, updated: 0, skipped: 2, failed: 0 });
+      expect(await entry('wp_comment', 'comment-3')).toMatchObject({ status: 'pending_review' });
+      expect(await prisma.entry.count({ where: { contentType: { name: 'wp_author' } } })).toBe(2);
+    });
   });
 
   it('404s for unknown import jobs', async () => {

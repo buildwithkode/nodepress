@@ -52,6 +52,7 @@
     "deleted": "Rol verwijderd",
     "saveFailed": "Kon de rol niet opslaan",
     "deleteFailed": "Kon de rol niet verwijderen",
-    "inUse": "{count, plural, one {# gebruiker heeft} other {# gebruikers hebben}} deze rol nog. Geef ze eerst een andere rol."
+    "inUse": "{count, plural, one {# gebruiker heeft} other {# gebruikers hebben}} deze rol nog. Geef ze eerst een andere rol.",
+    "permissionsKept": "De rechten van deze rol waren aangepast en zijn daarom behouden — ze zijn niet gewijzigd naar de standaardrechten van {base}. Controleer ze op de pagina Rechten."
   }
 }

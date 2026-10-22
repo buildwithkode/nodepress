@@ -16,7 +16,9 @@
     "contentType": "Inhaltstyp",
     "selectContentType": "Inhaltstyp auswählen…",
     "selectToBegin": "Wählen Sie einen Inhaltstyp, um zu beginnen.",
-    "submit": "Eintrag erstellen"
+    "submit": "Eintrag erstellen",
+    "saveAndPreview": "Entwurf speichern & Vorschau",
+    "saveAndPreviewHint": "Als Entwurf speichern und die Live-Vorschau öffnen"
   },
   "edit": {
     "title": "Eintrag bearbeiten",

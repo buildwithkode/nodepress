@@ -1,6 +1,6 @@
 {
   "title": "Componentes",
-  "description": "Conjuntos reutilizáveis de campos. Adicione um a um tipo de conteúdo como um grupo único ou uma lista repetível; editar o componente atualiza todos os tipos de conteúdo que o usam.",
+  "description": "Conjuntos de campos reutilizáveis. Adicione um a um tipo de conteúdo como grupo único, lista repetível, campos integrados ou layout de conteúdo flexível; editar o componente atualiza todos os tipos de conteúdo que o usam.",
   "new": "Novo componente",
   "loadFailed": "Falha ao carregar os componentes",
   "saveFailed": "Falha ao salvar o componente",
@@ -22,7 +22,9 @@
   },
   "kind": {
     "one": "Um",
-    "many": "Vários"
+    "many": "Vários",
+    "inline": "Integrado",
+    "layout": "Layout"
   },
   "editor": {
     "newTitle": "Novo componente",
@@ -56,7 +58,7 @@
   "add": {
     "button": "Adicionar componente",
     "title": "Adicionar um componente",
-    "description": "Insere um campo cujos subcampos vêm do componente.",
+    "description": "Use os campos do componente como grupo, como lista repetível ou diretamente neste tipo de conteúdo.",
     "none": "Ainda não há componentes. <link>Crie um</link> primeiro.",
     "component": "Componente",
     "choose": "Escolha um componente",
@@ -66,10 +68,24 @@
     "repeater": "Vários",
     "repeaterHint": "Uma lista repetível de itens",
     "fieldName": "Nome do campo",
-    "confirm": "Adicionar"
+    "confirm": "Adicionar",
+    "inline": "Integrado",
+    "inlineHint": "Os seus campos, adicionados diretamente",
+    "inlineNote": "Os campos são adicionados diretamente a este tipo de conteúdo, por isso as entradas guardam-nos sem aninhamento. Permanecem sincronizados com o componente."
   },
   "readOnly": {
     "usesComponent": "Campos do componente",
     "note": "Edite o componente para alterar estes campos. <link>Abrir componente</link>"
+  },
+  "layout": {
+    "button": "Adicionar layout a partir de componente",
+    "title": "Adicionar um layout a partir de um componente",
+    "description": "Os campos do layout vêm do componente e permanecem sincronizados com ele."
+  },
+  "inline": {
+    "from": "Do componente",
+    "open": "Abrir componente",
+    "remove": "Remover estes campos",
+    "note": "Adicionados diretamente a este tipo de conteúdo. Edite o componente para alterar estes campos."
   }
 }

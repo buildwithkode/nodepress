@@ -52,6 +52,7 @@
     "deleted": "Rolle gelöscht",
     "saveFailed": "Rolle konnte nicht gespeichert werden",
     "deleteFailed": "Rolle konnte nicht gelöscht werden",
-    "inUse": "{count, plural, one {# Benutzer hat} other {# Benutzer haben}} diese Rolle noch. Weisen Sie ihnen zuerst eine andere Rolle zu."
+    "inUse": "{count, plural, one {# Benutzer hat} other {# Benutzer haben}} diese Rolle noch. Weisen Sie ihnen zuerst eine andere Rolle zu.",
+    "permissionsKept": "Die Berechtigungen dieser Rolle waren angepasst und wurden beibehalten – sie wurden nicht auf die Standardwerte von {base} zurückgesetzt. Prüfen Sie sie auf der Seite Berechtigungen."
   }
 }

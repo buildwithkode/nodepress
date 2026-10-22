@@ -46,5 +46,18 @@
   "colFailed": "Fallidas",
   "mediaResult": "Medios: {imported} importados, {reused} ya importados, {failed} fallidos",
   "errors": "{count, plural, one {# problema} other {# problemas}}",
-  "viewEntries": "Ver entradas →"
+  "viewEntries": "Ver entradas →",
+  "extras": "Importar también",
+  "categoryPaths": "Conservar la jerarquía de categorías",
+  "categoryPathsHint": "Añade un campo category_paths con rutas completas como «Padre/Hijo» junto a los nombres de las categorías. {count, plural, =0 {Este archivo no tiene categorías anidadas.} one {# categoría anidada en este archivo.} other {# categorías anidadas en este archivo.}}",
+  "taxonomies": "Importar taxonomías personalizadas",
+  "taxonomiesHint": "Añade un campo taxonomies — los términos agrupados por taxonomía — a las entradas que las usan.",
+  "taxonomiesFound": "En este archivo: {list}.",
+  "taxonomiesNone": "Este archivo no tiene taxonomías personalizadas.",
+  "authors": "Importar autores como contenido",
+  "authorsHint": "{count, plural, one {# autor se convierte en una entrada wp_author} other {# autores se convierten en entradas wp_author}} (usuario, nombre visible, nombre y apellido), y cada entrada se enlaza con su autor mediante un campo author_ref. Son entradas de contenido, no cuentas de acceso: nadie puede iniciar sesión con ellas. Las direcciones de correo no se copian.",
+  "comments": "Importar comentarios",
+  "commentsHint": "Los comentarios aprobados se convierten en entradas wp_comment: nombre, texto sin HTML, fecha, el comentario al que responden y la entrada a la que pertenecen. El correo y la IP de quien comenta no se copian; el spam y los comentarios en la papelera nunca se importan. En este archivo: {approved} aprobados, {pending} pendientes, {spam} spam o papelera.",
+  "pendingComments": "Incluir comentarios pendientes",
+  "pendingCommentsHint": "Se importan como entradas pendientes de revisión."
 }

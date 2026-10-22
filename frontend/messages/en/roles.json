@@ -52,6 +52,7 @@
     "deleted": "Role deleted",
     "saveFailed": "Couldn't save the role",
     "deleteFailed": "Couldn't delete the role",
-    "inUse": "{count, plural, one {# user still has} other {# users still have}} this role. Give them another role first."
+    "inUse": "{count, plural, one {# user still has} other {# users still have}} this role. Give them another role first.",
+    "permissionsKept": "This role's permissions were customised, so they were kept — they weren't changed to the {base} defaults. Review them on the Permissions page."
   }
 }

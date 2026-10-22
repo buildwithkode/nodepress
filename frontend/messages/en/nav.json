@@ -29,6 +29,7 @@
     "languages": "Languages",
     "docs": "Documentation",
     "serverSettings": "Email & storage",
+    "choiceLists": "Choice lists",
     "importer": "Import"
   },
   "signOut": "Sign out",

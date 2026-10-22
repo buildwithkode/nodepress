@@ -60,7 +60,7 @@ in one transaction, so a failed restore leaves the database as it was.
   `add_entry_search_vector`, `add_entry_list_index`, `add_jobs`,
   `add_media_focal_point`, `add_content_locales`, `add_plugin_packages`,
   `add_entry_slugs`, `add_releases`, `add_server_settings`,
-  `add_roles_components_redirects`. All use
+  `add_roles_components_redirects`, `add_choice_lists`. All use
   `IF NOT EXISTS`. A database created with `prisma db push` has no migration
   history: apply each new `migration.sql` with `psql -f` instead (see
   `backend/prisma/migrations/`).
@@ -79,6 +79,10 @@ in one transaction, so a failed restore leaves the database as it was.
   permissions, and creating a published entry (the default) needs `publish`:
   scripts that sign in as a contributor must send `status: "draft"`. API keys
   are unaffected. `POST /api/entries` checks the entry's own content type.
+- **Bulk actions and GraphQL entry mutations check content permissions.**
+  A non-admin acting on entries of a content type its role can't change gets
+  403 (`forbiddenContentTypes` in REST, an error in GraphQL) and nothing is
+  changed — check the permissions matrix for roles used by scripts.
 - **`?populate=` related entries changed shape slightly.** Their `data` no
   longer includes fields hidden by the related type's `readRoles`, and
   `contentType` holds only `{ id, name, displayName }` — code that read the

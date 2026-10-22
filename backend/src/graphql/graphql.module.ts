@@ -25,6 +25,7 @@ import { WebhooksResolver } from './resolvers/webhooks.resolver';
 import { GqlJwtOptionalGuard } from './guards/gql-jwt-optional.guard';
 import { GqlJwtAuthGuard } from './guards/gql-jwt-auth.guard';
 import { EntriesModule } from '../entries/entries.module';
+import { PermissionsModule } from '../permissions/permissions.module';
 import { ContentTypeModule } from '../content-type/content-type.module';
 import { MediaModule } from '../media/media.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
@@ -65,6 +66,7 @@ export class ContentGraphqlModule {}
       }),
     }),
     EntriesModule,
+    PermissionsModule,
     ContentTypeModule,
     MediaModule,
     WebhooksModule,

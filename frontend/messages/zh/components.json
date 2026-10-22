@@ -1,6 +1,6 @@
 {
   "title": "组件",
-  "description": "可复用的字段集合。可将其作为单个分组或可重复列表添加到内容类型中；编辑组件会更新所有使用它的内容类型。",
+  "description": "可复用的字段集合。可将其作为单个分组、可重复列表、内联字段或灵活内容布局添加到内容类型；编辑组件会更新所有使用它的内容类型。",
   "new": "新建组件",
   "loadFailed": "加载组件失败",
   "saveFailed": "保存组件失败",
@@ -22,7 +22,9 @@
   },
   "kind": {
     "one": "单个",
-    "many": "多个"
+    "many": "多个",
+    "inline": "内联",
+    "layout": "布局"
   },
   "editor": {
     "newTitle": "新建组件",
@@ -56,7 +58,7 @@
   "add": {
     "button": "添加组件",
     "title": "添加组件",
-    "description": "插入一个字段，其子字段来自该组件。",
+    "description": "将组件的字段用作分组、可重复列表，或直接用于此内容类型。",
     "none": "暂无组件。请先<link>创建一个</link>。",
     "component": "组件",
     "choose": "选择组件",
@@ -66,10 +68,24 @@
     "repeater": "多个",
     "repeaterHint": "可重复的项目列表",
     "fieldName": "字段名称",
-    "confirm": "添加"
+    "confirm": "添加",
+    "inline": "内联",
+    "inlineHint": "直接添加其字段",
+    "inlineNote": "这些字段会直接添加到此内容类型，因此条目以扁平方式存储它们。它们与组件保持同步。"
   },
   "readOnly": {
     "usesComponent": "来自组件的字段",
     "note": "如需更改这些字段，请编辑组件。<link>打开组件</link>"
+  },
+  "layout": {
+    "button": "从组件添加布局",
+    "title": "从组件添加布局",
+    "description": "布局的字段来自组件，并与组件保持同步。"
+  },
+  "inline": {
+    "from": "来自组件",
+    "open": "打开组件",
+    "remove": "移除这些字段",
+    "note": "已直接添加到此内容类型。编辑组件以更改这些字段。"
   }
 }

@@ -46,5 +46,18 @@
   "colFailed": "Fehlgeschlagen",
   "mediaResult": "Medien: {imported} importiert, {reused} bereits importiert, {failed} fehlgeschlagen",
   "errors": "{count, plural, one {# Problem} other {# Probleme}}",
-  "viewEntries": "Einträge ansehen →"
+  "viewEntries": "Einträge ansehen →",
+  "extras": "Zusätzlich importieren",
+  "categoryPaths": "Kategorie-Hierarchie beibehalten",
+  "categoryPathsHint": "Fügt neben den Kategorienamen ein Feld category_paths mit vollständigen Pfaden wie „Eltern/Kind“ hinzu. {count, plural, =0 {Diese Datei hat keine verschachtelten Kategorien.} one {# verschachtelte Kategorie in dieser Datei.} other {# verschachtelte Kategorien in dieser Datei.}}",
+  "taxonomies": "Eigene Taxonomien importieren",
+  "taxonomiesHint": "Fügt den Einträgen, die sie verwenden, ein Feld taxonomies hinzu — die Begriffe nach Taxonomie gruppiert.",
+  "taxonomiesFound": "In dieser Datei: {list}.",
+  "taxonomiesNone": "Diese Datei hat keine eigenen Taxonomien.",
+  "authors": "Autoren als Inhalt importieren",
+  "authorsHint": "{count, plural, one {# Autor wird ein wp_author-Eintrag} other {# Autoren werden wp_author-Einträge}} (Login, Anzeigename, Vor- und Nachname), und jeder Beitrag wird über ein Feld author_ref mit seinem Autor verknüpft. Das sind Inhaltseinträge, keine Benutzerkonten — niemand kann sich damit anmelden. E-Mail-Adressen werden nicht übernommen.",
+  "comments": "Kommentare importieren",
+  "commentsHint": "Freigegebene Kommentare werden wp_comment-Einträge: Name, Text ohne HTML, Datum, der beantwortete Kommentar und der zugehörige Beitrag. E-Mail- und IP-Adressen der Kommentierenden werden nicht übernommen; Spam und Kommentare im Papierkorb werden nie importiert. In dieser Datei: {approved} freigegeben, {pending} ausstehend, {spam} Spam oder Papierkorb.",
+  "pendingComments": "Ausstehende Kommentare einschließen",
+  "pendingCommentsHint": "Werden als Einträge importiert, die auf Prüfung warten."
 }

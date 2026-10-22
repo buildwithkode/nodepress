@@ -16,7 +16,7 @@ export interface FieldMigrations {
 
 interface Step { kind: 'rename' | 'convert' | 'drop'; field: string; from?: string; fromType?: string; toType?: string; entries: number; lost: number }
 interface Retyped { field: string; fromType: string; toType: string; convertible: boolean }
-export interface SchemaImpact { entryCount: number; steps: Step[]; retyped: Retyped[] }
+export interface SchemaImpact { entryCount: number; steps: Step[]; retyped: Retyped[]; removedNested?: string[] }
 
 /**
  * Field keys renamed and removed between the saved schema and the edited one.
@@ -42,10 +42,12 @@ export function useSchemaChangeCheck(contentTypeId: string | number) {
 
   const check = async (schema: unknown[], renames: NonNullable<FieldMigrations['renames']>, removed: string[]): Promise<FieldMigrations | null> => {
     const first = (await api.post(`/content-types/${contentTypeId}/schema-impact`, { schema, fieldMigrations: { renames } })).data as SchemaImpact;
-    if (first.entryCount === 0 || (!first.retyped.length && !removed.length && !renames.length)) return { renames };
+    // The server also finds fields removed from inside groups, repeaters and layouts.
+    const drop = [...removed, ...(first.removedNested ?? [])];
+    if (first.entryCount === 0 || (!first.retyped.length && !drop.length && !renames.length)) return { renames };
     const convert = first.retyped.filter((r) => r.convertible).map((r) => r.field);
     const impact = (await api.post(`/content-types/${contentTypeId}/schema-impact`, {
-      schema, fieldMigrations: { renames, convert, drop: removed },
+      schema, fieldMigrations: { renames, convert, drop },
     })).data as SchemaImpact;
     return new Promise((resolve) => setState({ impact, renames, resolve }));
   };

@@ -56,6 +56,34 @@ describe('ImporterService', () => {
     });
   });
 
+  it('dry run with the extras: authors and comments are counted, missing fields of existing types listed', async () => {
+    const prisma = {
+      setting: { findUnique: jest.fn().mockResolvedValue({ defaultLocale: 'en' }) },
+      contentType: {
+        findMany: jest.fn().mockResolvedValue([
+          { id: 9, name: 'wp_comment', schema: [{ name: 'author_name', type: 'text' }, { name: 'content', type: 'textarea' }] },
+        ]),
+      },
+      entry: { count: jest.fn().mockResolvedValue(2) },
+    };
+    const { svc } = makeService(prisma);
+    const res = await svc.dryRun(fixture, { categoryPaths: true, taxonomies: true, authors: true, comments: true, pendingComments: true });
+
+    expect(res.total).toBe(6 + 2 + 3);
+    expect(Object.keys(res.byType)).toEqual(['wp_author', 'post', 'page', 'coffee_bean', 'wp_comment']);
+    expect(res.byType.wp_author).toEqual({ postType: 'author', exists: false, total: 2, existing: 0, byStatus: { published: 2 } });
+    expect(res.byType.wp_comment).toEqual({ postType: 'comment', exists: true, total: 3, existing: 2, byStatus: { published: 2, pending_review: 1 } });
+    expect(res.contentTypesToCreate).toEqual(['wp_author', 'post', 'page', 'coffee_bean']);
+    expect(res.options).toEqual({ categoryPaths: true, taxonomies: true, authors: true, comments: true, pendingComments: true });
+    expect(res.stats.comments).toEqual({ approved: 2, pending: 1, spam: 1, trash: 1, other: 0 });
+    expect(res.warnings).toEqual([
+      'Content type "wp_comment" exists — only its own fields are filled (not: date, post, post_wp_id, post_type, parent_wp_id, wp_id)',
+    ]);
+    expect(prisma.entry.count).toHaveBeenCalledWith({
+      where: { contentTypeId: 9, locale: 'en', slug: { in: ['comment-1', 'comment-2', 'comment-3'] }, deletedAt: null },
+    });
+  });
+
   it('status: 404 for unknown jobs and jobs of another type', async () => {
     const prisma = { job: { findUnique: jest.fn().mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 2, type: 'form.email' }) } };
     const { svc } = makeService(prisma);
@@ -95,5 +123,8 @@ describe('coerceForField', () => {
     expect(coerceForField({ url: 'https://x/a.png' }, 'image')).toEqual({ url: 'https://x/a.png' });
     expect(coerceForField(['A'], 'json')).toEqual(['A']);
     expect(coerceForField(['A'], 'select')).toBeUndefined();
+    expect(coerceForField('2025-01-15T10:30:00.000Z', 'datetime')).toBe('2025-01-15T10:30:00.000Z');
+    expect(coerceForField('2025-01-15T10:30:00.000Z', 'date')).toBe('2025-01-15');
+    expect(coerceForField('soon', 'datetime')).toBeUndefined();
   });
 });

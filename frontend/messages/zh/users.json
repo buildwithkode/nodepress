@@ -164,7 +164,8 @@
       "nameAndType": "名称和类型",
       "restricted": "受限",
       "adminRead": "管理员始终拥有完全读取权限",
-      "adminWrite": "管理员始终拥有完全写入权限"
+      "adminWrite": "管理员始终拥有完全写入权限",
+      "inherited": "继承自 {base}"
     },
     "enforcement": {
       "title": "零泄漏安全强制执行：",
