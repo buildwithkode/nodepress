@@ -183,7 +183,14 @@
       "user": "Utilisateurs",
       "api_key": "Clés API",
       "form": "Formulaires",
-      "media": "Médias"
+      "media": "Médias",
+      "plugin": "Extensions",
+      "settings": "Paramètres",
+      "release": "Publications groupées",
+      "role": "Rôles",
+      "redirect": "Redirections",
+      "component": "Composants",
+      "import": "Importations"
     },
     "colTime": "Heure",
     "colUser": "Utilisateur",
@@ -289,5 +296,42 @@
     "clear": "Effacer",
     "saved": "Configuration enregistrée et appliquée en direct en mémoire.",
     "saveChanges": "Enregistrer les modifications"
+  },
+  "registry": {
+    "tabs": {
+      "installed": "Installés",
+      "browse": "Parcourir"
+    },
+    "installTitle": "Installer {name}",
+    "installDescription": "NodePress télécharge le paquet depuis l’annuaire des plugins, le compare au sha256 de l’annuaire et l’examine exactement comme un zip téléversé — les mêmes règles de signature s’appliquent.",
+    "downloading": "Téléchargement et vérification du paquet…",
+    "verified": "Correspond à la somme de contrôle de l’annuaire (sha256 <mono>{sha}…</mono>).",
+    "loadFailed": "Impossible de charger l’annuaire des plugins",
+    "disabledTitle": "L’annuaire des plugins est désactivé",
+    "disabledBody": "Définissez <mono>{env}</mono> sur le serveur pour afficher un annuaire des plugins ici.",
+    "searchPlaceholder": "Rechercher dans l’annuaire…",
+    "updatedAt": "Mis à jour le {date}",
+    "refresh": "Vérifier à nouveau",
+    "staleNotice": "Affichage de la dernière copie de l’annuaire — il n’a pas pu être actualisé.",
+    "unavailable": "L’annuaire des plugins est indisponible pour le moment.",
+    "loading": "Chargement de l’annuaire des plugins…",
+    "noMatch": "Aucun plugin de l’annuaire ne correspond à « {query} ».",
+    "empty": "L’annuaire ne contient aucun plugin.",
+    "paid": "Payant",
+    "free": "Gratuit",
+    "bundled": "Intégré",
+    "installed": "Installé",
+    "installedVersion": "v{version} installée",
+    "updateAvailable": "Mise à jour disponible",
+    "compatible": "Compatible",
+    "incompatible": "Incompatible",
+    "byAuthor": "par {author}",
+    "homepage": "Site web",
+    "source": "Code source",
+    "install": "Installer",
+    "update": "Mettre à jour",
+    "bundledHint": "Fourni avec NodePress — activez-le dans Installés",
+    "getIt": "L’obtenir",
+    "learnMore": "En savoir plus"
   }
 }

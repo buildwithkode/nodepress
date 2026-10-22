@@ -122,6 +122,12 @@ const EnvSchema = z.object({
   PLUGIN_TRUSTED_KEYS:  z.string().optional(),   // comma-separated Ed25519 public keys (base64url), see `plugin keygen`
   PLUGIN_MAX_UPLOAD_MB: z.coerce.number().int().positive().default(25),
   PLUGINS_DIR:          z.string().optional(),   // where packages are unpacked; default backend/.plugins
+  // Plugin directory (admin → Plugins → Browse). Empty string turns it off.
+  PLUGIN_REGISTRY_URL:  z.string().default('https://raw.githubusercontent.com/buildwithkode/nodepress/main/plugins-registry.json')
+    .refine((v) => v === '' || /^https?:\/\/\S+$/i.test(v), 'PLUGIN_REGISTRY_URL must be an http(s) URL or empty'),
+
+  // Redirects: a 301 from an entry's old public path when its slug changes (redirects/redirects.service.ts)
+  REDIRECTS_ON_SLUG_CHANGE: z.enum(['true', 'false']).default('true'),
 });
 
 function validateEnv(raw: NodeJS.ProcessEnv) {

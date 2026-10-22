@@ -1,0 +1,63 @@
+{
+  "title": "Redirecionamentos",
+  "description": "Leve visitantes e mecanismos de busca de URLs antigas para novas. Seu site pergunta ao NodePress para onde um caminho deve ir via GET /api/redirects/resolve.",
+  "importCsv": "Importar CSV",
+  "exportCsv": "Exportar CSV",
+  "add": "Adicionar redirecionamento",
+  "forbidden": "Apenas editores e administradores podem gerenciar redirecionamentos.",
+  "searchPlaceholder": "Pesquisar caminhos…",
+  "sort": {
+    "newest": "Mais recentes primeiro",
+    "mostHits": "Mais acessos",
+    "from": "Caminho de origem A–Z"
+  },
+  "noMatch": "Nenhum redirecionamento corresponde a “{query}”.",
+  "empty": "Nenhum redirecionamento ainda. Adicione um ou importe um CSV com as colunas from,to,status.",
+  "columns": {
+    "from": "De",
+    "to": "Para",
+    "hits": "Acessos"
+  },
+  "goneTarget": "Removido (sem destino)",
+  "openTarget": "Abrir destino em nova aba",
+  "statuses": {
+    "s301": "Movido permanentemente",
+    "s302": "Encontrado (temporário)",
+    "s307": "Temporário, mantém o método",
+    "s308": "Permanente, mantém o método",
+    "s410": "Removido"
+  },
+  "lastHit": "último em {date}",
+  "neverHit": "nunca usado",
+  "deleteTitle": "Excluir este redirecionamento?",
+  "deleteDescription": "Os visitantes de {from} receberão um 404.",
+  "count": "{count, plural, one {# redirecionamento} other {# redirecionamentos}}",
+  "autoHint": "Quando o slug de uma entrada publicada muda, o NodePress adiciona automaticamente um 301 a partir do caminho antigo (desative com <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Os caminhos são comparados sem diferenciar maiúsculas e minúsculas; uma query string só corresponde quando faz parte da origem.",
+  "dialog": {
+    "addTitle": "Adicionar redirecionamento",
+    "editTitle": "Editar redirecionamento",
+    "description": "Loops e cadeias com mais de 5 redirecionamentos são recusados.",
+    "fromHint": "Um caminho no seu site, ex.: /pagina-antiga. Adicione ?query apenas para corresponder exatamente a essa query.",
+    "toHint": "Um caminho no seu site (/nova-pagina) ou uma URL completa (https://…)."
+  },
+  "import": {
+    "title": "Importar redirecionamentos",
+    "description": "Revisão de <mono>{file}</mono>. As linhas são adicionadas ou atualizam o redirecionamento com a mesma origem; nada é salvo se alguma linha tiver um problema.",
+    "checking": "Verificando o arquivo…",
+    "new": "novo",
+    "changed": "alterado",
+    "unchanged": "inalterado",
+    "errors": "{count, plural, one {# problema — corrija-o e importe novamente} other {# problemas — corrija-os e importe novamente}}",
+    "line": "Linha {line}:",
+    "apply": "{count, plural, =0 {Nada para importar} one {Importar # redirecionamento} other {Importar # redirecionamentos}}",
+    "appliedToast": "Importados: {created} novos, {updated} alterados",
+    "failed": "A importação falhou"
+  },
+  "loadFailed": "Não foi possível carregar os redirecionamentos",
+  "createdToast": "Redirecionamento adicionado",
+  "savedToast": "Redirecionamento salvo",
+  "saveFailed": "Não foi possível salvar o redirecionamento",
+  "deletedToast": "Redirecionamento de {from} excluído",
+  "deleteFailed": "Não foi possível excluir o redirecionamento",
+  "exportFailed": "Não foi possível exportar os redirecionamentos"
+}

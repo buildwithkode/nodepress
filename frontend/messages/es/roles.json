@@ -1,0 +1,57 @@
+{
+  "title": "Roles",
+  "description": "Los roles integrados no se pueden cambiar. Un rol personalizado abre las mismas partes del panel que el rol en el que se basa y tiene sus propios permisos de contenido.",
+  "backToUsers": "Usuarios",
+  "managePermissions": "Editar permisos",
+  "newRole": "Nuevo rol",
+  "manage": "Gestionar roles",
+  "customGroup": "Roles personalizados",
+  "basedOn": "Basado en {base}",
+  "list": {
+    "role": "Rol",
+    "basedOn": "Basado en",
+    "users": "Usuarios",
+    "description": "Descripción",
+    "builtIn": "Integrado",
+    "userCount": "{count, plural, =0 {Ningún usuario} one {# usuario} other {# usuarios}}",
+    "empty": "Todavía no hay roles personalizados.",
+    "edit": "Editar rol",
+    "delete": "Eliminar rol"
+  },
+  "builtInDescriptions": {
+    "admin": "Acceso completo, incluidos usuarios, ajustes y claves de API",
+    "editor": "Crea, edita, publica y elimina contenido",
+    "contributor": "Crea y edita contenido; no puede publicar",
+    "viewer": "Acceso de solo lectura al panel"
+  },
+  "form": {
+    "createTitle": "Nuevo rol",
+    "editTitle": "Editar {label}",
+    "description": "Un rol personalizado empieza con los permisos de contenido del rol en el que se basa. Puedes restringirlos en la página de permisos.",
+    "label": "Etiqueta",
+    "name": "Nombre",
+    "nameHelp": "Se guarda como {name}. Los usuarios y los permisos hacen referencia a él, así que no se podrá cambiar después.",
+    "nameHelpEmpty": "Letras minúsculas, números y guiones bajos. No se podrá cambiar después.",
+    "nameLocked": "El nombre no se puede cambiar.",
+    "baseRole": "Basado en",
+    "baseRoleHelp": "Determina qué partes del panel puede abrir el rol.",
+    "baseRoleEditHelp": "Cambia qué partes del panel puede abrir el rol. Los permisos de contenido guardados no cambian.",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "Para qué sirve este rol",
+    "save": "Guardar",
+    "create": "Crear rol"
+  },
+  "deleteDialog": {
+    "title": "¿Eliminar el rol «{label}»?",
+    "description": "También se eliminan sus permisos de contenido.",
+    "inUse": "{count, plural, one {# usuario todavía tiene} other {# usuarios todavía tienen}} este rol. Asígnales otro rol primero."
+  },
+  "toasts": {
+    "created": "Rol creado",
+    "updated": "Rol actualizado",
+    "deleted": "Rol eliminado",
+    "saveFailed": "No se pudo guardar el rol",
+    "deleteFailed": "No se pudo eliminar el rol",
+    "inUse": "{count, plural, one {# usuario todavía tiene} other {# usuarios todavía tienen}} este rol. Asígnales otro rol primero."
+  }
+}

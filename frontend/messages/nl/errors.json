@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "Er is iets misgegaan",
+    "description": "Er is een onverwachte fout opgetreden op deze pagina. Je gegevens zijn veilig — dit is alleen een weergavefout.",
+    "errorId": "Fout-ID:",
+    "goToDashboard": "Naar dashboard",
+    "tryAgain": "Opnieuw proberen"
+  },
+  "boundary": {
+    "title": "Er is iets misgegaan",
+    "failedToLoad": "{label} kon niet worden geladen. Dit is automatisch gemeld.",
+    "sectionFailed": "Dit onderdeel kon niet worden geladen. Dit is automatisch gemeld.",
+    "unknownError": "Onbekende fout",
+    "tryAgain": "Opnieuw proberen"
+  }
+}

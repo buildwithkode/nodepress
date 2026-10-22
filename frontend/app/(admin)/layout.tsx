@@ -32,7 +32,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks, Languages, Package, Mail } from 'lucide-react';
+  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, Upload } from 'lucide-react';
 
 interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
 interface NavGroup { label: string; adminOnly: boolean; items: NavLink[]; externalLinks?: NavLink[] }
@@ -50,9 +50,11 @@ const ALL_NAV_GROUPS: Array<{
     items: [
       { href: '/',              labelKey: 'dashboard',     icon: LayoutDashboard },
       { href: '/content-types', labelKey: 'contentTypes', icon: Layers },
+      { href: '/components',    labelKey: 'components',   icon: Blocks },
       { href: '/entries',       labelKey: 'entries',        icon: FileText },
       { href: '/releases',      labelKey: 'releases',       icon: Package },
       { href: '/forms',         labelKey: 'forms',          icon: ClipboardList },
+      { href: '/redirects',     labelKey: 'redirects',      icon: Signpost },
     ],
   },
   {
@@ -81,6 +83,7 @@ const ALL_NAV_GROUPS: Array<{
     adminOnly: true,
     items: [
       { href: '/users', labelKey: 'users', icon: Users },
+      { href: '/users/roles', labelKey: 'roles', icon: UserCog },
     ],
   },
   {
@@ -90,6 +93,7 @@ const ALL_NAV_GROUPS: Array<{
       { href: '/brand', labelKey: 'brand', icon: Palette },
       { href: '/languages', labelKey: 'languages', icon: Languages },
       { href: '/server-settings', labelKey: 'serverSettings', icon: Mail },
+      { href: '/import', labelKey: 'importer', icon: Upload },
     ],
   },
   {
@@ -272,7 +276,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 ? 'border-blue-500/60 text-blue-400'
                 : 'border-muted-foreground/40 text-muted-foreground'
             }`}>
-              {tc(`roles.${user?.role ?? 'viewer'}`)}
+              {/* A custom role's name is data — shown as stored */}
+              {user?.customRole ?? tc(`roles.${user?.role ?? 'viewer'}`)}
             </span>
           </div>
           <Button

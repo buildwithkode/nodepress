@@ -1,0 +1,136 @@
+{
+  "brand": {
+    "title": "Brand",
+    "subtitle": "Il tuo nome, logo e colore di accento: usati nel pannello di amministrazione, nella scheda/favicon del browser, nella schermata di accesso e nelle email degli invii dei moduli.",
+    "identity": {
+      "title": "Identità",
+      "description": "Si applica ovunque questa installazione mostri il tuo brand.",
+      "name": "Nome del brand",
+      "logo": "Logo",
+      "logoHelp": "Le immagini quadrate funzionano meglio. Mostrato nella barra laterale, nella pagina di accesso, nella favicon e nelle email.",
+      "accent": "Colore di accento",
+      "accentPicker": "Selettore del colore di accento",
+      "previewHelp": "Come apparirà l'intestazione della barra laterale."
+    },
+    "preview": "Anteprima",
+    "theme": {
+      "title": "Tema",
+      "description": "Facoltativo. Cambia il colore dei pulsanti principali e dei campi di input nel pannello di amministrazione. Lascia vuoto per usare il tema predefinito.",
+      "button": "Colore dei pulsanti",
+      "buttonHelp": "Pulsanti principali. Il colore del testo si regola automaticamente per il contrasto.",
+      "buttonPicker": "Selettore del colore dei pulsanti",
+      "input": "Colore degli input",
+      "inputHelp": "Bordo degli input e anello di focus.",
+      "inputPicker": "Selettore del colore degli input",
+      "defaultPlaceholder": "(predefinito)",
+      "reset": "Ripristina",
+      "sampleButton": "Pulsante di esempio",
+      "sampleInput": "Input di esempio"
+    },
+    "invalidHex": "Hex non valido",
+    "saveChanges": "Salva modifiche",
+    "noChanges": "Nessuna modifica",
+    "confirm": {
+      "title": "Salvare le modifiche al brand?",
+      "description": "Aggiorna brand e tema ovunque (barra laterale dell'amministrazione, scheda e favicon del browser, schermata di accesso ed email degli invii dei moduli) per tutti gli utenti."
+    },
+    "toasts": {
+      "nameRequired": "Il nome del brand è obbligatorio",
+      "accentInvalid": "Inserisci un colore di accento hex valido, es. {example}",
+      "buttonInvalid": "Il colore dei pulsanti deve essere un hex valido (o vuoto)",
+      "inputInvalid": "Il colore degli input deve essere un hex valido (o vuoto)",
+      "saved": "Brand aggiornato",
+      "saveFailed": "Impossibile aggiornare il brand"
+    }
+  },
+  "languages": {
+    "title": "Lingue",
+    "subtitle": "Le lingue in cui gli editor possono scrivere i contenuti. Ogni voce può avere una traduzione per lingua; la lingua predefinita viene usata quando una richiesta API non ne specifica una, e come fallback con <code></code>.",
+    "enabled": {
+      "title": "Lingue attive",
+      "description": "Rimuovere una lingua mantiene le sue voci; semplicemente non viene più proposta nell'editor.",
+      "entryCount": "{count, plural, one {# voce} other {# voci}}",
+      "default": "Predefinita",
+      "makeDefault": "Imposta come predefinita",
+      "removeWithEntries": "{count, plural, one {# voce resta} other {# voci restano}}, ma la lingua non viene più proposta",
+      "removeLabel": "Rimuovi {language}",
+      "orphaned": "Esistono voci in lingue non attive:",
+      "orphanedHint": ". Fai clic su una per attivarla."
+    },
+    "saveChanges": "Salva modifiche",
+    "add": {
+      "title": "Aggiungi una lingua",
+      "description": "Usa un codice lingua come <code>fr</code>, <code>pt-BR</code> o <code>zh-Hant</code>.",
+      "placeholder": "es. {example}",
+      "codeLabel": "Codice lingua",
+      "willAdd": "Aggiunge {language}",
+      "alreadyEnabled": "Già attiva",
+      "invalidCode": "Codice lingua non valido"
+    },
+    "toasts": {
+      "saved": "Lingue salvate",
+      "saveFailed": "Impossibile salvare le lingue"
+    }
+  },
+  "server": {
+    "title": "Email e archiviazione",
+    "subtitle": "Da dove vengono inviate le email e dove vengono conservati i file caricati.",
+    "loadFailed": "Impossibile caricare le impostazioni",
+    "saveFailed": "Impossibile salvare",
+    "save": "Salva",
+    "keepSecret": "Salvato: lascia vuoto per mantenerlo.",
+    "envNotice": "Impostato dalle variabili d'ambiente <code>{what}</code> sul server: modificalo lì.",
+    "mail": {
+      "title": "Email",
+      "description": "Usata per ripristini della password, inviti al team e notifiche dei moduli.",
+      "enabled": "Invia email",
+      "host": "Server SMTP",
+      "port": "Porta",
+      "security": "Sicurezza",
+      "starttls": "STARTTLS (587)",
+      "ssl": "SSL/TLS (465)",
+      "user": "Nome utente",
+      "password": "Password",
+      "from": "Indirizzo mittente",
+      "fromHint": "Mostrato come mittente, es. Acme '<'noreply@acme.com'>'. Per impostazione predefinita è il nome utente.",
+      "testTo": "Invia un test a",
+      "sendTest": "Invia test",
+      "testSent": "Email di test inviata a {to}",
+      "testFailed": "Impossibile inviare l'email di test",
+      "saved": "Impostazioni email salvate: già in uso",
+      "turnedOff": "Email disattivata"
+    },
+    "storage": {
+      "title": "Archiviazione file",
+      "description": "Immagini e file caricati.",
+      "where": "Conserva i caricamenti su",
+      "local": "Disco di questo server",
+      "s3": "Archiviazione compatibile con S3",
+      "localHint": "Va bene per un singolo server con disco persistente.",
+      "localProductionWarning": "Sulla maggior parte degli host e dei container questo disco viene cancellato a ogni nuovo deploy: i caricamenti andrebbero persi. Usa un'archiviazione compatibile con S3.",
+      "provider": "Provider",
+      "otherProvider": "Altro (MinIO, Backblaze B2…)",
+      "bucket": "Bucket",
+      "endpoint": "Endpoint",
+      "region": "Regione",
+      "accessKey": "ID chiave di accesso",
+      "secretKey": "Chiave di accesso segreta",
+      "publicUrl": "URL pubblico (facoltativo)",
+      "publicUrlHint": "La tua CDN o il dominio personalizzato del bucket. Il bucket deve consentire letture pubbliche.",
+      "test": "Verifica connessione",
+      "testOk": "Connesso: un file di test è stato scritto ed eliminato",
+      "testFailed": "Impossibile connettersi al bucket",
+      "saved": "Impostazioni di archiviazione salvate",
+      "restartRequired": "Le modifiche all'archiviazione hanno effetto dopo il riavvio del server. I file esistenti non vengono spostati.",
+      "restart": "Riavvia ora",
+      "restarting": "Riavvio in corso: l'amministrazione si riconnetterà tra un momento"
+    },
+    "search": {
+      "title": "Ricerca",
+      "postgres": "Le ricerche usano l'indice full-text del database (<code>?search=</code>). Per una ricerca ordinata per pertinenza e tollerante agli errori di battitura, avvia Meilisearch e imposta SEARCH_DRIVER=meilisearch.",
+      "meilisearch": "Le ricerche usano Meilisearch (indice “{index}”). Si aggiorna quando i contenuti cambiano.",
+      "reindex": "Ricostruisci indice",
+      "reindexQueued": "Ricostruzione dell'indice di ricerca in background"
+    }
+  }
+}

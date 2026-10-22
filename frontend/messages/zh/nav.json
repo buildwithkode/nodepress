@@ -1,0 +1,38 @@
+{
+  "groups": {
+    "content": "内容",
+    "assets": "资源",
+    "developer": "开发者",
+    "team": "团队",
+    "settings": "设置",
+    "help": "帮助",
+    "plugins": "插件"
+  },
+  "items": {
+    "dashboard": "仪表盘",
+    "contentTypes": "内容类型",
+    "components": "组件",
+    "entries": "条目",
+    "releases": "发布批次",
+    "forms": "表单",
+    "redirects": "重定向",
+    "media": "媒体",
+    "plugins": "插件",
+    "apiKeys": "API 密钥",
+    "webhooks": "Webhook",
+    "jobs": "后台任务",
+    "auditLog": "审计日志",
+    "graphql": "GraphQL 调试台",
+    "users": "用户",
+    "roles": "角色",
+    "brand": "品牌",
+    "languages": "语言",
+    "docs": "文档",
+    "serverSettings": "邮件与存储",
+    "importer": "导入"
+  },
+  "signOut": "退出登录",
+  "user": "用户",
+  "openMenu": "打开导航菜单",
+  "closeMenu": "关闭侧边栏"
+}

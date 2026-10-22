@@ -12,6 +12,7 @@ import {
   isReverseRelation,
   RelationFieldDef,
 } from './field.types';
+import { hiddenFields } from './field-condition';
 
 /**
  * DataValidator — validates that entry data satisfies a content type schema.
@@ -52,13 +53,15 @@ export class DataValidator {
     errors: string[],
     partial: boolean,
   ): void {
+    // Fields hidden by their condition are never required.
+    const hidden = hiddenFields(schema, data);
     for (const field of schema) {
       const path = pathPrefix ? `${pathPrefix}.${field.name}` : field.name;
       const value = data[field.name];
       const absent = value === undefined || value === null || value === '';
 
       if (absent) {
-        if (field.required && !partial) {
+        if (field.required && !partial && !hidden.has(field.name)) {
           errors.push(`${path}: required`);
         }
         continue; // nothing more to validate for absent values

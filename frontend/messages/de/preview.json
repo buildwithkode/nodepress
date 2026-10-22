@@ -1,0 +1,27 @@
+{
+  "toggle": "Live",
+  "toggleTitle": "Diesen Eintrag auf Ihrer Website anzeigen, während der Eingabe aktualisiert",
+  "pane": {
+    "title": "Live-Vorschau",
+    "device": {
+      "mobile": "Mobil",
+      "tablet": "Tablet",
+      "desktop": "Desktop"
+    },
+    "reload": "Neu laden",
+    "openInNewTab": "In neuem Tab öffnen",
+    "close": "Vorschau schließen",
+    "preparing": "Vorschau wird vorbereitet…",
+    "tokenFailed": "Vorschau-Token konnte nicht erstellt werden.",
+    "retry": "Erneut versuchen",
+    "saveFirst": "Speichern Sie den Eintrag, um ihn in der Live-Vorschau zu sehen.",
+    "invalidUrl": "Die Vorschau-URL dieses Inhaltstyps ist keine gültige http(s)-URL. Korrigieren Sie sie in den Einstellungen des Inhaltstyps.",
+    "frameTitle": "Live-Vorschau von {slug}",
+    "hint": "Ihre Änderungen werden während der Eingabe an die Seite gesendet. Seiten mit @nodepress/client/preview aktualisieren sich ohne Neuladen; klicken Sie auf ein umrandetes Element, um zu seinem Feld zu springen."
+  },
+  "settings": {
+    "label": "Vorschau-URL",
+    "hint": "Optional. Die Seite Ihrer Website, die einen Eintrag zeigt, geöffnet im Live-Vorschau-Bereich des Editors. Diese Platzhalter werden ersetzt:",
+    "invalid": "Die Vorschau-URL muss mit http:// oder https:// beginnen"
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "Impossibile caricare gli utenti",
+    "createdNoEmail": "Utente creato: nessun server email configurato",
+    "createdInviteCopied": "Link di invito copiato negli appunti. Invialo a {email}: {url}",
+    "noEmailServer": "Nessun server email configurato",
+    "inviteCopied": "Link di invito copiato. Invialo a {email}: {url}",
+    "inviteSent": "Invito inviato a {email}",
+    "createFailed": "Impossibile creare l'utente",
+    "roleUpdated": "Ruolo aggiornato",
+    "roleUpdateFailed": "Impossibile aggiornare il ruolo",
+    "deleted": "Utente eliminato",
+    "deleteFailed": "Impossibile eliminare l'utente",
+    "inviteFailed": "Impossibile inviare l'invito",
+    "passwordUpdated": "Password aggiornata",
+    "passwordUpdateFailed": "Impossibile aggiornare la password",
+    "twoFactorSetupFailed": "Impossibile avviare la configurazione della 2FA",
+    "twoFactorActivated": "Autenticazione a due fattori attivata!",
+    "twoFactorInvalidCode": "Codice di verifica non valido. Riprova.",
+    "twoFactorDisabled": "Autenticazione a due fattori disattivata",
+    "twoFactorDisableInvalid": "Codice 2FA o codice di recupero non valido",
+    "recoveryCopied": "Codici di recupero copiati negli appunti",
+    "recoveryCopyFailed": "Impossibile copiare i codici di recupero",
+    "secretCopied": "Chiave segreta copiata",
+    "secretCopyFailed": "Impossibile copiare la chiave segreta"
+  },
+  "list": {
+    "title": "Membri del team",
+    "description": "Gestisci chi ha accesso al pannello di amministrazione e cosa può fare.",
+    "email": "Email",
+    "role": "Ruolo",
+    "joined": "Iscritto",
+    "empty": "Nessun utente trovato",
+    "you": "(tu)",
+    "viewPermissions": "Vedi la matrice dei permessi di {role}",
+    "sendInvite": "Invia email di invito",
+    "deleteTitle": "Eliminare {email}?",
+    "deleteDescription": "Il suo accesso verrà rimosso definitivamente. L'operazione non può essere annullata."
+  },
+  "roleGuide": {
+    "title": "Permessi dei ruoli",
+    "manage": "Gestisci permessi",
+    "admin": {
+      "p1": "Accesso completo a tutto",
+      "p2": "Gestione di utenti e ruoli",
+      "p3": "Tipi di contenuto e chiavi API",
+      "p4": "Registro attività e webhook"
+    },
+    "editor": {
+      "p1": "Crea / modifica / elimina voci",
+      "p2": "Pubblica e archivia voci",
+      "p3": "Moduli, caricamento/eliminazione media",
+      "p4": "Lettura dei tipi di contenuto"
+    },
+    "contributor": {
+      "p1": "Crea e modifica voci",
+      "p2": "Non può eliminare voci",
+      "p3": "Non può pubblicare né archiviare",
+      "p4": "Solo caricamento media"
+    },
+    "viewer": {
+      "p1": "Dashboard in sola lettura",
+      "p2": "Visualizza voci e moduli",
+      "p3": "Visualizza la libreria media",
+      "p4": "Non può modificare nulla"
+    }
+  },
+  "add": {
+    "title": "Aggiungi utente",
+    "description": "Invita un collega via email: riceverà un link per impostare la propria password. Qui non serve alcuna password.",
+    "sending": "Invio dell'invito…",
+    "submit": "Invia invito"
+  },
+  "twoFactor": {
+    "title": "Autenticazione a due fattori (2FA)",
+    "description": "Proteggi il tuo account con un ulteriore livello di sicurezza usando Google Authenticator, 1Password o Authy.",
+    "enabledHeading": "La 2FA sta proteggendo il tuo account",
+    "disabledHeading": "Migliora la sicurezza dell'accesso con TOTP",
+    "enabledHelp": "All'accesso ti verrà chiesto un codice a 6 cifre o un codice di recupero di emergenza.",
+    "disabledHelp": "Richiede la scansione di un codice QR con un'app di autenticazione e la conservazione dei codici di recupero.",
+    "enable": "Attiva 2FA",
+    "disable": "Disattiva 2FA",
+    "disabling": "Disattivazione…",
+    "setupTitle": "Configura l'autenticazione a due fattori",
+    "setupDescription": "Scansiona il codice QR con Google Authenticator, 1Password o Authy.",
+    "qrAlt": "Codice QR 2FA",
+    "manualKey": "Chiave per l'inserimento manuale",
+    "recoveryCodes": "Codici di recupero di emergenza",
+    "copyCodes": "Copia codici",
+    "recoveryHelp": "Conserva questi codici in un luogo sicuro. Se perdi l'app di autenticazione, ogni codice può essere usato una volta per accedere.",
+    "verificationCode": "Codice di verifica",
+    "verificationPlaceholder": "Inserisci il codice a 6 cifre",
+    "activating": "Attivazione…",
+    "activate": "Attiva 2FA",
+    "disableTitle": "Disattiva l'autenticazione a due fattori",
+    "disableDescription": "Inserisci un codice a 6 cifre dalla tua app di autenticazione o un codice di recupero di emergenza per confermare.",
+    "disableCodeLabel": "Codice di autenticazione o di recupero",
+    "disableCodePlaceholder": "Codice a 6 cifre o XXXX-XXXX"
+  },
+  "password": {
+    "title": "Cambia la tua password",
+    "current": "Password attuale",
+    "new": "Nuova password",
+    "newPlaceholder": "Min 8 caratteri",
+    "updating": "Aggiornamento…",
+    "submit": "Aggiorna password"
+  },
+  "permissions": {
+    "loading": "Caricamento dei permessi…",
+    "toasts": {
+      "loadFailed": "Impossibile caricare i permessi",
+      "schemaLoadFailed": "Impossibile caricare lo schema di \"{name}\"",
+      "roleLoadFailed": "Impossibile caricare i permessi del ruolo",
+      "updated": "Permesso aggiornato",
+      "updateFailed": "Impossibile aggiornare il permesso",
+      "reset": "Permessi ripristinati ai valori predefiniti",
+      "resetFailed": "Impossibile ripristinare i permessi",
+      "fieldsSaved": "Permessi dei campi salvati per \"{name}\"",
+      "fieldsSaveFailed": "Impossibile salvare i permessi dei campi"
+    },
+    "backToUsers": "Utenti",
+    "title": "Controllo degli accessi e permessi",
+    "resetDefaults": "Ripristina predefiniti",
+    "tabs": {
+      "contentTypes": "Matrice delle azioni per tipo di contenuto",
+      "fields": "Matrice dei permessi a livello di campo"
+    },
+    "actions": {
+      "create": "Creare",
+      "read": "Leggere",
+      "update": "Aggiornare",
+      "delete": "Eliminare",
+      "publish": "Pubblicare"
+    },
+    "roleDescriptions": {
+      "editor": "Gestisce tutti i contenuti: può creare, modificare, eliminare e pubblicare.",
+      "contributor": "Crea e modifica contenuti: non può eliminare né pubblicare.",
+      "viewer": "Accesso in sola lettura al pannello di amministrazione."
+    },
+    "clickToDeselect": "fai clic per deselezionare",
+    "defaultRow": "Predefinito *",
+    "summary": {
+      "title": "Riepilogo dei permessi",
+      "description": "Personalizzazioni configurate per questo ruolo. Le righe non elencate qui usano il valore predefinito con carattere jolly.",
+      "empty": "Nessuna personalizzazione: vengono usati i valori di fabbrica per tutti i tipi di contenuto."
+    },
+    "matrix": {
+      "title": "Matrice dei permessi per tipo di contenuto",
+      "description": "Imposta le azioni consentite per ruolo. La riga <strong>*</strong> è il valore predefinito per tutti i tipi di contenuto. Personalizza i singoli tipi di contenuto attivando o disattivando le azioni nella loro riga. Le caselle in grigio sono ereditate dalla riga con carattere jolly.",
+      "contentType": "Tipo di contenuto",
+      "inherited": "Ereditato da {role}/*: fai clic per personalizzare"
+    },
+    "fields": {
+      "title": "Matrice del controllo degli accessi a livello di campo",
+      "description": "Limita la visibilità in lettura e le modifiche in scrittura per attributi specifici (es. nascondi stipendio, margine o note interne ai ruoli non amministratori).",
+      "selectContentType": "Seleziona il tipo di contenuto",
+      "save": "Salva permessi",
+      "loading": "Caricamento dello schema dei campi…",
+      "emptyTitle": "Nessun campo definito per questo tipo di contenuto",
+      "emptyHelp": "Aggiungi prima i campi a questo tipo di contenuto nel generatore di schemi.",
+      "field": "Campo",
+      "readVisibility": "Visibilità in lettura",
+      "writeAccess": "Accesso in scrittura / modifica",
+      "nameAndType": "Nome e tipo",
+      "restricted": "Limitato",
+      "adminRead": "L'amministratore ha sempre accesso completo in lettura",
+      "adminWrite": "L'amministratore ha sempre accesso completo in scrittura"
+    },
+    "enforcement": {
+      "title": "Applicazione della sicurezza senza fughe di dati:",
+      "read": "Quando un ruolo viene deselezionato da <strong>Visibilità in lettura</strong>, il backend rimuove automaticamente il campo da tutte le risposte REST (<path></path>) e GraphQL prima di inviarle al client.",
+      "write": "Quando un ruolo viene deselezionato da <strong>Accesso in scrittura</strong>, il backend rifiuta i tentativi di modifica non autorizzati con HTTP 403 Forbidden."
+    },
+    "adminNote": "Nota: l'amministratore ha sempre accesso universale a tutti i campi dello schema e non può essere limitato."
+  }
+}

@@ -5,10 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
+import { withCondition } from '@/components/ConditionalField';
+import type { FieldCondition } from '@/lib/field-condition';
 
 interface SubField {
   name: string;
   type: string;
+  condition?: FieldCondition;
 }
 
 interface Props {
@@ -119,7 +122,7 @@ export default function GroupField({ fieldName, subFields, register, control, er
     <div className="rounded-md border border-violet-400/40 border-l-4 border-l-violet-400 bg-muted/30 p-3 space-y-3">
       {subFields.map((sf) => {
         const sfLabel = toLabel(sf.name);
-        return (
+        return withCondition(sf, { control, fields: subFields, path: fieldName }, (
           <div key={sf.name}>
             {sf.type === 'boolean' ? (
               <div className="flex items-center gap-2">
@@ -133,7 +136,7 @@ export default function GroupField({ fieldName, subFields, register, control, er
               </>
             )}
           </div>
-        );
+        ));
       })}
     </div>
   );

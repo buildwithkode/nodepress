@@ -1,16 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-
-const DEFAULT_PERMISSIONS: Record<string, string[]> = {
-  admin:       ['create', 'read', 'update', 'delete', 'publish'],
-  editor:      ['create', 'read', 'update', 'delete', 'publish'],
-  contributor: ['create', 'read', 'update'],
-  viewer:      ['read'],
-};
+import { RolesService } from '../roles/roles.service';
+import { DEFAULT_PERMISSIONS, isBuiltInRole } from '../roles/roles.constants';
 
 @Injectable()
 export class PermissionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly roles: RolesService,
+  ) {}
 
   /** Get all permission rows — used by admin UI. */
   async findAll() {
@@ -30,6 +28,10 @@ export class PermissionsService {
    * - Admin always passes.
    * - Looks for a specific (role, contentType) match first, then falls back to (role, '*').
    * - Falls back to hardcoded defaults if no DB row found.
+   * - A custom role with no matching row falls back to its base role (rows, then
+   *   defaults); a custom role that no longer exists falls back to viewer.
+   *
+   * Callers pass `req.user.customRole ?? req.user.role`.
    */
   async can(role: string, contentType: string, action: string): Promise<boolean> {
     if (role === 'admin') return true;
@@ -44,8 +46,19 @@ export class PermissionsService {
 
     if (perm) return perm.actions.includes(action);
 
+    if (!isBuiltInRole(role)) {
+      const { role: baseRole } = await this.roles.resolve(role);
+      return this.can(baseRole, contentType, action);
+    }
+
     // Fallback to hardcoded defaults
     return DEFAULT_PERMISSIONS[role]?.includes(action) ?? false;
+  }
+
+  /** Permission rows only make sense for non-admin built-ins and existing custom roles. */
+  async assertAssignable(role: string) {
+    if (role === 'admin') throw new NotFoundException('Admin always has full access; it has no permission rows');
+    if (!(await this.roles.exists(role))) throw new NotFoundException(`Role "${role}" not found`);
   }
 
   /**
@@ -53,6 +66,7 @@ export class PermissionsService {
    * An empty actions array effectively removes all access.
    */
   async upsert(role: string, contentType: string, actions: string[]) {
+    await this.assertAssignable(role);
     return this.prisma.permission.upsert({
       where: { role_contentType: { role, contentType } },
       create: { role, contentType, actions },

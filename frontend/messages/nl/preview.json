@@ -1,0 +1,27 @@
+{
+  "toggle": "Live",
+  "toggleTitle": "Toon dit item op je site, bijgewerkt terwijl je typt",
+  "pane": {
+    "title": "Live voorbeeld",
+    "device": {
+      "mobile": "Mobiel",
+      "tablet": "Tablet",
+      "desktop": "Desktop"
+    },
+    "reload": "Herladen",
+    "openInNewTab": "Openen in nieuw tabblad",
+    "close": "Voorbeeld sluiten",
+    "preparing": "Voorbeeld voorbereiden…",
+    "tokenFailed": "Kon geen voorbeeldtoken aanmaken.",
+    "retry": "Opnieuw proberen",
+    "saveFirst": "Sla het item op om het in het live voorbeeld te zien.",
+    "invalidUrl": "De voorbeeld-URL van dit contenttype is geen geldige http(s)-URL. Pas dit aan in de instellingen van het contenttype.",
+    "frameTitle": "Live voorbeeld van {slug}",
+    "hint": "Je wijzigingen worden naar de pagina gestuurd terwijl je typt. Pagina's die @nodepress/client/preview gebruiken, worden bijgewerkt zonder te herladen; klik op een omlijnd element om naar het bijbehorende veld te gaan."
+  },
+  "settings": {
+    "label": "Voorbeeld-URL",
+    "hint": "Optioneel. De pagina op je site die één item toont, geopend in het live voorbeeldpaneel van de editor. Deze placeholders worden ingevuld:",
+    "invalid": "De voorbeeld-URL moet beginnen met http:// of https://"
+  }
+}

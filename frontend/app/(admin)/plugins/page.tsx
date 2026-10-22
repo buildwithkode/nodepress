@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { PluginSettingsDrawer, PluginItem } from '@/components/PluginSettingsDrawer';
 import { PluginUploadDialog } from '@/components/PluginUploadDialog';
+import { PluginRegistryBrowser, RegistryPluginItem } from '@/components/PluginRegistryBrowser';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { usePlugins } from '@/context/PluginContext';
@@ -78,6 +79,9 @@ export default function PluginsPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [restarting, setRestarting] = useState(false);
+  const [view, setView] = useState<'installed' | 'browse'>('installed');
+  const [registryItem, setRegistryItem] = useState<RegistryPluginItem | null>(null);
+  const [registryReload, setRegistryReload] = useState(0);
 
   const fetchPlugins = async () => {
     try {
@@ -269,6 +273,29 @@ export default function PluginsPage() {
         </div>
       )}
 
+      {/* Installed / Browse (the directory is admin-only, like uploads) */}
+      {meta.uploads && (
+        <div className="flex items-center gap-1.5 border-b border-border">
+          {(['installed', 'browse'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition ${
+                view === v ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t(`registry.tabs.${v}`)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {view === 'browse' && meta.uploads ? (
+        <PluginRegistryBrowser
+          reloadKey={registryReload}
+          onInstall={(p) => { setRegistryItem(p); setUploadOpen(true); }}
+        />
+      ) : (<>
       {/* Metric Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-xl bg-card border border-border flex items-center gap-3.5 shadow-xs">
@@ -569,12 +596,15 @@ export default function PluginsPage() {
         </div>
       </div>
 
+      </>)}
+
       {meta.uploads && (
         <PluginUploadDialog
           open={uploadOpen}
-          onOpenChange={setUploadOpen}
+          onOpenChange={(o) => { setUploadOpen(o); if (!o) setRegistryItem(null); }}
           maxUploadMb={meta.uploads.maxUploadMb}
-          onInstalled={fetchPlugins}
+          onInstalled={() => { fetchPlugins(); setRegistryReload((n) => n + 1); }}
+          registryItem={registryItem ? { id: registryItem.id, name: registryItem.name } : null}
         />
       )}
 

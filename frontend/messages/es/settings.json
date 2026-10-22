@@ -92,7 +92,7 @@
       "user": "Usuario",
       "password": "Contraseña",
       "from": "Dirección del remitente",
-      "fromHint": "Se muestra como remitente, p. ej. Acme <noreply@acme.com>. Por defecto, el usuario.",
+      "fromHint": "Se muestra como remitente, p. ej. Acme '<'noreply@acme.com'>'. Por defecto, el usuario.",
       "testTo": "Enviar una prueba a",
       "sendTest": "Enviar prueba",
       "testSent": "Correo de prueba enviado a {to}",

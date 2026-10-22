@@ -1,0 +1,70 @@
+{
+  "entryCount": "{count, plural, other {# 件のエントリー}}",
+  "statuses": {
+    "open": "未公開",
+    "scheduled": "予約済み",
+    "publishing": "公開中",
+    "published": "公開済み",
+    "failed": "失敗"
+  },
+  "actions": {
+    "publish": "公開",
+    "unpublish": "非公開",
+    "archive": "アーカイブ"
+  },
+  "list": {
+    "title": "リリース",
+    "description": "エントリーの変更 (公開、非公開、アーカイブ) をまとめ、今すぐまたは指定した日時に一括で反映します。エントリーは、エントリー一覧またはエントリーのエディターから追加できます。",
+    "namePlaceholder": "新しいリリース名 (例: 春のローンチ)",
+    "empty": "リリースはまだありません。",
+    "upcoming": "予定",
+    "published": "公開済み",
+    "publishedAt": "{date} に公開",
+    "loadFailed": "リリースを読み込めませんでした",
+    "createFailed": "リリースを作成できませんでした"
+  },
+  "detail": {
+    "notFound": "リリースが見つかりません",
+    "publishedAt": "{date} に公開",
+    "publishNow": "今すぐ公開",
+    "publish": "公開",
+    "publishConfirmTitle": "「{name}」を公開しますか?",
+    "publishConfirmDescription": "{count, plural, other {# 件の変更}}が 1 回の操作でまとめて反映されます。全体としては元に戻せません。",
+    "publishedToast": "リリースを公開しました",
+    "publishFailed": "公開に失敗しました。何も変更されていません。{error}",
+    "schedule": "予約",
+    "scheduledFor": "{date} に自動的に公開されます。",
+    "scheduleHint": "日時を選ぶと、リリースは自動的に公開されます (1 分ごとに確認)。",
+    "scheduledToast": "リリースを予約しました",
+    "unschedule": "予約を解除",
+    "unscheduledToast": "予約を解除しました",
+    "entriesTitle": "エントリー ({count})",
+    "entriesDescription": "各エントリーは公開時点の内容で反映されます。それまでは編集を続けられます。エントリーは<link>エントリー</link>一覧から追加してください。",
+    "noEntries": "エントリーはまだありません。",
+    "currentStatus": "現在: {status}",
+    "deletedSkipped": "削除済み — スキップされます",
+    "conflicts": "{releases} にも含まれています。最後に反映されたものが優先されます。",
+    "conflictItem": "「{name}」({action})",
+    "removeItem": "リリースから除外",
+    "deleteRelease": "リリースを削除",
+    "deleteConfirmTitle": "「{name}」を削除しますか?",
+    "deleteConfirmDescription": "リリースは削除されます。エントリーはそのまま残ります。",
+    "deleteFailed": "削除できませんでした"
+  },
+  "addDialog": {
+    "title": "リリースに追加",
+    "description": "リリースは、公開したとき、または予約した日時に、すべての変更を一括で適用します。",
+    "release": "リリース",
+    "newRelease": "新規リリース…",
+    "namePlaceholder": "例: 春のローンチ",
+    "nameRequired": "リリース名を入力してください",
+    "whenGoesOut": "リリースの反映時",
+    "actionOption": {
+      "publish": "{count, plural, other {このエントリーを公開}}",
+      "unpublish": "{count, plural, other {このエントリーを非公開}}",
+      "archive": "{count, plural, other {このエントリーをアーカイブ}}"
+    },
+    "added": "{count, plural, other {# 件のエントリーを追加しました}} — <link>リリースを開く</link>",
+    "addFailed": "リリースに追加できませんでした"
+  }
+}

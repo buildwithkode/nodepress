@@ -72,15 +72,28 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | **Export / Import** | Download all entries as JSON, re-import to seed or migrate |
 | **Version history** | Every entry save is versioned — restore any previous state in one click |
 | **Schema versioning** | Content type changes are tracked — see exactly what changed and when |
+| **Field data migrations** | Rename or retype a field and existing entries follow — previewed before you save |
+| **Conditional fields** | "Show only if…" rules between fields; hidden fields are never required |
+| **Reusable components** | Define a field set once (SEO, address, CTA) and use it in any content type |
+| **Two-way relations** | Reverse fields list what links to an entry; filter by a related entry's fields |
+| **Content releases** | Publish, unpublish or archive many entries together, now or on a schedule |
+| **Live preview** | Edit an entry and watch your site update beside it; click an element to jump to its field |
+| **Redirects** | 301/302/410 manager with CSV import, plus automatic redirects when a slug changes |
+| **WordPress import** | Bring posts, pages, custom post types, ACF fields and media over from a WordPress export |
 
 ### Developer Experience & Tooling
 | Feature | What it does |
 |---|---|
 | **TypeScript Codegen** | Run `npx nodepress generate:types` to generate 100% type-safe TypeScript interfaces |
-| **Frontend SDK** | Pre-built `@/lib/nodepress` client helpers for Next.js App Router & React |
+| **`@nodepress/client`** | Typed, dependency-free JS/TS client — lists, entries, GraphQL, forms, image URLs, live preview |
+| **Starter sites** | Next.js, Astro and Nuxt starters in `starters/` |
+| **OpenAPI 3.1** | `/api/openapi.json` describes your own content types — generate clients with any OpenAPI tool |
+| **Schema as code** | `schema:pull` / `schema:diff` / `schema:push` keep the content model in git and check it in CI |
+| **MCP server** | Let AI assistants read your content and create drafts (`create-nodepress-app mcp`) |
 | **Real-time WebSocket** | Socket.io gateway — subscribe to `entry:created`, `entry:updated`, `media:uploaded`, and more |
 | **Collaborative Presence & Locking** | Live user presence bubbles & 60s renewable soft-locks preventing concurrent edit collisions |
 | **Plugin Hook & Filter Bus** | `PluginHookBus` with priority lifecycle actions (`beforeCreate`, `afterUpdate`) and data filters |
+| **Plugins from the admin** | Upload signed plugin packages, or browse and install from the plugin directory |
 | **API keys** | Scoped keys with per-key rate limiting (read / write / all · per content type) |
 | **Webhooks** | HTTP callbacks on any event — HMAC signed, with retry + exponential backoff |
 | **Swagger UI** | Interactive API docs at `/api/docs` — test every endpoint in the browser |
@@ -91,7 +104,7 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | Feature | What it does |
 |---|---|
 | **Dynamic Image Resizing** | On-the-fly Sharp transformations: `GET /api/media/:file/transform?w=800&h=600&q=80&format=webp` |
-| **Responsive CDN & Srcset Studio** | In-app modal with presets (Thumbnail, Hero, Card) + 1-click HTML5 `<picture>` / `srcset` generator |
+| **Focal points & smart formats** | Set a focal point per image for `fit=cover` crops; `format=auto` serves AVIF/WebP by browser |
 | **Persistent Variant Cache** | Automatically saves resized WebP/Avif variants to disk for instant subsequent serving |
 | **File uploads** | Images, PDFs, videos — up to 10MB per file with magic bytes validation |
 | **Folder organisation** | Group media into folders in the admin panel |
@@ -104,7 +117,8 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | **Emergency Admin Reset CLI** | `npm run reset-admin <email> <pass>` instant password & 2FA recovery from terminal |
 | **Forgot & Reset Password** | Secure 15-minute token flow with SMTP support & instant dev-mode link preview |
 | **Field-Level Access (RBAC)** | Restrict read and write access per field to specific roles |
-| **4 Built-in Roles** | Admin · Editor · Contributor · Viewer — each with granular capability sets |
+| **Roles** | Admin · Editor · Contributor · Viewer, plus your own custom roles with per-content-type permissions |
+| **Single sign-on** | Any OpenID Connect provider (Google Workspace, Entra ID, Okta, Auth0, Keycloak) — free |
 | **Per-content-type overrides** | Give Editor full access to `blog` but read-only on `legal` |
 | **JWT + refresh tokens** | 7-day access tokens, 30-day silent refresh (HttpOnly cookie with rotation) |
 | **Helmet + CORS** | Security headers on every response, strict multi-origin enforcement |
@@ -147,12 +161,15 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | **Plugin / Hook Bus** | ✅ Actions & Filters | ✅ Lifecycles | ✅ Hooks | ✅ Hooks | ✅ Flows |
 | **Real-time WebSocket** | ✅ Built-in | ❌ Paid | ❌ | ❌ | ✅ |
 | **Audit log** | ✅ Built-in | ❌ Paid | 🟡 Plugin | ✅ | ✅ |
-| **Automated backups** | ✅ Built-in | ❌ | ❌ | ❌ |
-| **PgBouncer pooling** | ✅ Built-in | ❌ | N/A | N/A |
-| **Export / Import** | ✅ | ✅ | ✅ | ✅ |
-| **Version history** | ✅ | ✅ Paid | ✅ | ✅ |
-| **TypeScript end-to-end** | ✅ | ✅ | N/A | ✅ |
-| **E2E test coverage** | ✅ 173 tests | Partial | N/A | N/A |
+| **Automated backups** | ✅ Built-in | ❌ | 🟡 Plugin | ❌ | ❌ |
+| **Version history** | ✅ | ✅ Paid | ✅ | ✅ | ✅ |
+| **Content releases** | ✅ Free | ✅ Paid | ❌ | ❌ | ❌ |
+| **Review workflow stages** | ✅ Free | ✅ Paid | 🟡 Plugin | 🟡 Build it | ✅ Flows |
+| **Single sign-on (OIDC)** | ✅ Free | ✅ Paid | 🟡 Plugin | 🟡 Build it | ✅ |
+| **Custom roles** | ✅ | ✅ | ✅ | ✅ Access functions | ✅ |
+| **TypeScript end-to-end** | ✅ | ✅ | N/A | ✅ | ✅ |
+
+Where others are ahead: NodePress is new — the plugin ecosystem, community and hosted cloud of Strapi, WordPress, Payload and Directus are far larger, and NodePress runs on PostgreSQL only.
 
 ---
 

@@ -1,0 +1,63 @@
+{
+  "title": "Redirections",
+  "description": "Envoyez les visiteurs et les moteurs de recherche des anciennes URL vers les nouvelles. Votre site demande à NodePress où un chemin doit mener via GET /api/redirects/resolve.",
+  "importCsv": "Importer un CSV",
+  "exportCsv": "Exporter en CSV",
+  "add": "Ajouter une redirection",
+  "forbidden": "Seuls les éditeurs et les administrateurs peuvent gérer les redirections.",
+  "searchPlaceholder": "Rechercher des chemins…",
+  "sort": {
+    "newest": "Plus récentes d’abord",
+    "mostHits": "Plus utilisées",
+    "from": "Chemin source A–Z"
+  },
+  "noMatch": "Aucune redirection ne correspond à « {query} ».",
+  "empty": "Aucune redirection pour l’instant. Ajoutez-en une ou importez un CSV avec les colonnes from,to,status.",
+  "columns": {
+    "from": "De",
+    "to": "Vers",
+    "hits": "Visites"
+  },
+  "goneTarget": "Supprimé (sans cible)",
+  "openTarget": "Ouvrir la cible dans un nouvel onglet",
+  "statuses": {
+    "s301": "Déplacé définitivement",
+    "s302": "Trouvé (temporaire)",
+    "s307": "Temporaire, conserve la méthode",
+    "s308": "Définitif, conserve la méthode",
+    "s410": "Supprimé"
+  },
+  "lastHit": "dernière le {date}",
+  "neverHit": "jamais utilisée",
+  "deleteTitle": "Supprimer cette redirection ?",
+  "deleteDescription": "Les visiteurs de {from} obtiendront une erreur 404.",
+  "count": "{count, plural, one {# redirection} other {# redirections}}",
+  "autoHint": "Quand le slug d’une entrée publiée change, NodePress ajoute automatiquement une 301 depuis son ancien chemin (désactivable avec <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). La casse des chemins est ignorée ; une chaîne de requête ne correspond que si elle fait partie de la source.",
+  "dialog": {
+    "addTitle": "Ajouter une redirection",
+    "editTitle": "Modifier la redirection",
+    "description": "Les boucles et les chaînes de plus de 5 redirections sont refusées.",
+    "fromHint": "Un chemin de votre site, par ex. /ancienne-page. Ajoutez ?requête uniquement pour cibler exactement cette requête.",
+    "toHint": "Un chemin de votre site (/nouvelle-page) ou une URL complète (https://…)."
+  },
+  "import": {
+    "title": "Importer des redirections",
+    "description": "Vérification de <mono>{file}</mono>. Les lignes ajoutent des redirections ou mettent à jour celle qui a la même source ; rien n’est enregistré si une ligne pose problème.",
+    "checking": "Vérification du fichier…",
+    "new": "nouvelles",
+    "changed": "modifiées",
+    "unchanged": "inchangées",
+    "errors": "{count, plural, one {# problème — corrigez-le puis importez à nouveau} other {# problèmes — corrigez-les puis importez à nouveau}}",
+    "line": "Ligne {line} :",
+    "apply": "{count, plural, =0 {Rien à importer} one {Importer # redirection} other {Importer # redirections}}",
+    "appliedToast": "Importé : {created} nouvelles, {updated} modifiées",
+    "failed": "Échec de l’import"
+  },
+  "loadFailed": "Impossible de charger les redirections",
+  "createdToast": "Redirection ajoutée",
+  "savedToast": "Redirection enregistrée",
+  "saveFailed": "Impossible d’enregistrer la redirection",
+  "deletedToast": "Redirection depuis {from} supprimée",
+  "deleteFailed": "Impossible de supprimer la redirection",
+  "exportFailed": "Impossible d’exporter les redirections"
+}

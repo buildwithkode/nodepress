@@ -1,0 +1,27 @@
+{
+  "toggle": "Direct",
+  "toggleTitle": "Afficher cette entrée sur votre site, mise à jour pendant la saisie",
+  "pane": {
+    "title": "Aperçu en direct",
+    "device": {
+      "mobile": "Mobile",
+      "tablet": "Tablette",
+      "desktop": "Ordinateur"
+    },
+    "reload": "Recharger",
+    "openInNewTab": "Ouvrir dans un nouvel onglet",
+    "close": "Fermer l'aperçu",
+    "preparing": "Préparation de l'aperçu…",
+    "tokenFailed": "Impossible de créer un jeton d'aperçu.",
+    "retry": "Réessayer",
+    "saveFirst": "Enregistrez l'entrée pour la voir dans l'aperçu en direct.",
+    "invalidUrl": "L'URL d'aperçu de ce type de contenu n'est pas une URL http(s) valide. Corrigez-la dans les paramètres du type de contenu.",
+    "frameTitle": "Aperçu en direct de {slug}",
+    "hint": "Vos modifications sont envoyées à la page pendant la saisie. Les pages qui utilisent @nodepress/client/preview se mettent à jour sans rechargement ; cliquez sur un élément encadré pour aller à son champ."
+  },
+  "settings": {
+    "label": "URL d'aperçu",
+    "hint": "Facultatif. La page de votre site qui affiche une entrée, ouverte dans le volet d'aperçu en direct de l'éditeur. Ces variables sont remplacées :",
+    "invalid": "L'URL d'aperçu doit commencer par http:// ou https://"
+  }
+}

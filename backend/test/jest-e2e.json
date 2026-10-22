@@ -20,7 +20,8 @@
   },
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/../src/$1",
-    "^@nodepress/plugin-sdk$": "<rootDir>/../src/plugin/plugin-sdk"
+    "^@nodepress/plugin-sdk$": "<rootDir>/../src/plugin/plugin-sdk",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
   },
   "modulePaths": [
     "<rootDir>/../node_modules",

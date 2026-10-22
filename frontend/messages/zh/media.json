@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "加载媒体文件失败",
+    "fileDeleted": "文件已删除",
+    "folderDeleted": "文件夹已删除",
+    "deleteFailed": "删除失败",
+    "folderRenamed": "文件夹已重命名",
+    "renameFolderFailed": "重命名文件夹失败",
+    "folderCreated": "文件夹已创建",
+    "createFolderFailed": "创建文件夹失败",
+    "fileMoved": "文件已成功移动",
+    "moveFileFailed": "移动文件失败",
+    "urlCopied": "URL 已复制",
+    "uploaded": "{name} 已上传",
+    "uploadFailed": "{name} 上传失败"
+  },
+  "folders": {
+    "title": "文件夹",
+    "allFiles": "所有文件",
+    "unfiled": "未归档",
+    "folder": "文件夹",
+    "rename": "重命名文件夹",
+    "delete": "删除文件夹",
+    "deleteConfirmTitle": "删除文件夹“{name}”？",
+    "deleteConfirmDescription": "其中的文件将变为未归档。子文件夹将被删除。",
+    "namePlaceholder": "文件夹名称",
+    "new": "新建文件夹"
+  },
+  "upload": {
+    "uploading": "上传中…",
+    "prompt": "点击或将文件拖到此处",
+    "limits": "{formats}——最大 {size}"
+  },
+  "library": {
+    "empty": "此处暂无文件",
+    "fileCount": "{count, plural, other {# 个文件}}",
+    "copyWebpUrl": "复制 WebP URL",
+    "copyUrl": "复制 URL",
+    "focalPointAt": "焦点 {x}, {y}",
+    "setFocalPoint": "设置焦点",
+    "moveToFolder": "移动到文件夹",
+    "deleteConfirmTitle": "删除文件？",
+    "deleteConfirmDescription": "<strong>{name}</strong> 将被永久删除。",
+    "deleteConfirmWebp": "WebP 版本也将被删除。"
+  },
+  "renameDialog": {
+    "title": "重命名文件夹",
+    "description": "为文件夹“{name}”输入新名称。",
+    "label": "文件夹名称",
+    "save": "保存更改"
+  },
+  "moveDialog": {
+    "title": "将文件移动到文件夹",
+    "description": "为 <strong>{name}</strong> 选择目标文件夹。",
+    "destination": "目标文件夹",
+    "selectFolder": "选择文件夹",
+    "unfiledRoot": "未归档（根目录）",
+    "submit": "移动文件"
+  },
+  "focal": {
+    "title": "焦点",
+    "description": "点击 <strong>{name}</strong> 中最重要的部分。裁剪后的版本会保留该部分。",
+    "saved": "焦点已保存",
+    "cleared": "焦点已清除",
+    "saveFailed": "无法保存焦点",
+    "previewSquare": "方形",
+    "previewWide": "宽屏 16:9",
+    "previewTall": "竖版 3:4",
+    "notSet": "未设置——居中裁剪",
+    "clear": "清除"
+  },
+  "picker": {
+    "title": "媒体库",
+    "placeholder": "从媒体库选择图片…",
+    "crop": "裁剪",
+    "cropZoomTitle": "裁剪 / 缩放",
+    "cropZoom": "裁剪与缩放",
+    "removeImage": "移除图片",
+    "change": "更换",
+    "browse": "浏览",
+    "upload": "上传",
+    "altPrefix": "替代文本：{alt}",
+    "empty": "暂无媒体文件。请先上传一个。",
+    "altText": "替代文本",
+    "optionalHint": "（可选）",
+    "altPlaceholder": "为无障碍访问描述此图片…",
+    "dropPrompt": "拖放文件或点击浏览",
+    "useImage": "使用图片"
+  }
+}

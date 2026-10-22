@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "問題が発生しました",
+    "description": "このページで予期しないエラーが発生しました。データは安全です。表示上のエラーのみです。",
+    "errorId": "エラー ID:",
+    "goToDashboard": "ダッシュボードへ",
+    "tryAgain": "再試行"
+  },
+  "boundary": {
+    "title": "問題が発生しました",
+    "failedToLoad": "{label} を読み込めませんでした。この問題は自動的に報告されました。",
+    "sectionFailed": "このセクションを読み込めませんでした。この問題は自動的に報告されました。",
+    "unknownError": "不明なエラー",
+    "tryAgain": "再試行"
+  }
+}

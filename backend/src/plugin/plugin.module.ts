@@ -6,6 +6,8 @@ import { PluginRegistry } from './plugin.registry';
 import { PluginHookBus } from './plugin-hook-bus';
 import { PluginService } from './plugin.service';
 import { PluginApiController } from './plugin-api.controller';
+import { PluginRegistryController } from './plugin-registry.controller';
+import { PluginRegistryService } from './plugin-registry.service';
 import { loadedPlugins, PluginHostModule } from './plugin-loader';
 
 /**
@@ -23,10 +25,12 @@ import { loadedPlugins, PluginHostModule } from './plugin-loader';
     PluginHookBus,
     PluginService,
     PluginRouteOwners,
+    PluginRegistryService,
     // Disabled plugins' routes answer 404.
     { provide: APP_GUARD, useClass: PluginEnabledGuard },
   ],
-  controllers: [PluginApiController],
+  // The directory's controller first: its /plugins/registry routes must win over /plugins/:id.
+  controllers: [PluginRegistryController, PluginApiController],
   exports: [PluginRegistry, PluginHookBus, PluginService, PluginRouteOwners],
 })
 export class PluginModule implements OnModuleInit {

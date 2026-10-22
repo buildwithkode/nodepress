@@ -1,0 +1,27 @@
+{
+  "toggle": "Live",
+  "toggleTitle": "Show this entry on your site, updated as you type",
+  "pane": {
+    "title": "Live preview",
+    "device": {
+      "mobile": "Mobile",
+      "tablet": "Tablet",
+      "desktop": "Desktop"
+    },
+    "reload": "Reload",
+    "openInNewTab": "Open in new tab",
+    "close": "Close preview",
+    "preparing": "Preparing preview…",
+    "tokenFailed": "Couldn't create a preview token.",
+    "retry": "Retry",
+    "saveFirst": "Save the entry to see it in the live preview.",
+    "invalidUrl": "This content type's preview URL isn't a valid http(s) URL. Fix it in the content type settings.",
+    "frameTitle": "Live preview of {slug}",
+    "hint": "Your edits are sent to the page as you type. Pages using @nodepress/client/preview update without reloading; click an outlined element to jump to its field."
+  },
+  "settings": {
+    "label": "Preview URL",
+    "hint": "Optional. The page on your site that shows one entry, opened in the editor's live preview pane. These placeholders are filled in:",
+    "invalid": "The preview URL must start with http:// or https://"
+  }
+}

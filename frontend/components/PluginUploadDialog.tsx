@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
-import { AlertTriangle, BadgeCheck, FileArchive, Loader2, ShieldAlert, ShieldCheck, Upload, XCircle } from 'lucide-react';
+import { AlertTriangle, BadgeCheck, FileArchive, Fingerprint, Loader2, ShieldAlert, ShieldCheck, Upload, XCircle } from 'lucide-react';
+import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +30,19 @@ export interface PackageReview {
   problems: string[];
   warnings: string[];
   installable: boolean;
+  /** Set when the package came from the plugin directory (Plugins → Browse). */
+  registry?: { downloadUrl: string; sha256: string; signedBy: string | null };
+}
+
+/** Plugins → Browse: download a listed plugin on the server, then the same review. */
+async function installFromRegistry(id: string, dryRun: boolean, failed: (status: number) => string): Promise<PackageReview> {
+  try {
+    const res = await api.post(`/plugins/registry/${encodeURIComponent(id)}/install${dryRun ? '?dryRun=true' : ''}`);
+    return res.data;
+  } catch (err: any) {
+    const msg = err?.response?.data?.message;
+    throw new Error(Array.isArray(msg) ? msg.join(', ') : msg || failed(err?.response?.status ?? 0));
+  }
 }
 
 /** The upload goes through fetch: the axios instance defaults to a JSON body. */
@@ -72,11 +86,14 @@ export function PluginUploadDialog({
   onOpenChange,
   maxUploadMb,
   onInstalled,
+  registryItem = null,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   maxUploadMb: number;
   onInstalled: () => void;
+  /** Review/install this plugin from the directory instead of an uploaded file. */
+  registryItem?: { id: string; name: string } | null;
 }) {
   const t = useTranslations('developer');
   const tc = useTranslations('common');
@@ -117,11 +134,25 @@ export function PluginUploadDialog({
     }
   };
 
+  // From the directory: the server downloads and reviews it as soon as the dialog opens.
+  useEffect(() => {
+    if (!open || !registryItem) return;
+    let cancelled = false;
+    reset();
+    setChecking(true);
+    installFromRegistry(registryItem.id, true, fallback.failed)
+      .then((r) => { if (!cancelled) setReview(r); })
+      .catch((e) => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setChecking(false); });
+    return () => { cancelled = true; };
+  }, [open, registryItem?.id]);
+
   const install = async () => {
-    if (!file || !review) return;
+    if ((!file && !registryItem) || !review) return;
     setInstalling(true);
     try {
-      await postPackage(file, false, fallback);
+      if (registryItem) await installFromRegistry(registryItem.id, false, fallback.failed);
+      else await postPackage(file!, false, fallback);
       toast.success(review.action === 'install'
         ? t('pluginUpload.installedToast', { name: review.name, version: review.version })
         : t('pluginUpload.uploadedToast', { name: review.name, version: review.version }));
@@ -139,15 +170,23 @@ export function PluginUploadDialog({
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{t('pluginUpload.title')}</DialogTitle>
+          <DialogTitle>{registryItem ? t('registry.installTitle', { name: registryItem.name }) : t('pluginUpload.title')}</DialogTitle>
           <DialogDescription>
-            {t.rich('pluginUpload.description', {
-              max: maxUploadMb,
-              ext: '.zip',
-              mono: (chunks) => <span className="font-mono">{chunks}</span>,
-            })}
+            {registryItem
+              ? t('registry.installDescription')
+              : t.rich('pluginUpload.description', {
+                  max: maxUploadMb,
+                  ext: '.zip',
+                  mono: (chunks) => <span className="font-mono">{chunks}</span>,
+                })}
           </DialogDescription>
         </DialogHeader>
+
+        {registryItem && checking && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />{t('registry.downloading')}
+          </div>
+        )}
 
         <input
           ref={inputRef}
@@ -156,7 +195,7 @@ export function PluginUploadDialog({
           className="hidden"
           onChange={(e) => choose(e.target.files?.[0])}
         />
-        <button
+        {!registryItem && <button
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={checking || installing}
@@ -167,7 +206,7 @@ export function PluginUploadDialog({
             {file ? <span className="font-medium text-foreground">{file.name}</span> : <span className="text-muted-foreground">{t('pluginUpload.chooseFile')}</span>}
             {checking && <span className="block text-xs text-muted-foreground">{t('pluginUpload.checking')}</span>}
           </span>
-        </button>
+        </button>}
 
         {error && (
           <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
@@ -198,6 +237,12 @@ export function PluginUploadDialog({
             </div>
 
             <SignatureLine review={review} />
+            {review.registry && (
+              <div className="flex items-start gap-1.5 text-muted-foreground">
+                <Fingerprint className="w-4 h-4 shrink-0 text-emerald-500" />
+                <span>{t.rich('registry.verified', { sha: review.registry.sha256.slice(0, 12), mono: (chunks) => <span className="font-mono">{chunks}</span> })}</span>
+              </div>
+            )}
 
             <div>
               <div className="font-medium text-foreground mb-1">{t('pluginUpload.asksPermission')}</div>

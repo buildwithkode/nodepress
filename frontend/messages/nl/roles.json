@@ -1,0 +1,57 @@
+{
+  "title": "Rollen",
+  "description": "Ingebouwde rollen kun je niet wijzigen. Een aangepaste rol opent dezelfde delen van de admin als de rol waarop hij is gebaseerd en heeft eigen contentrechten.",
+  "backToUsers": "Gebruikers",
+  "managePermissions": "Rechten bewerken",
+  "newRole": "Nieuwe rol",
+  "manage": "Rollen beheren",
+  "customGroup": "Aangepaste rollen",
+  "basedOn": "Gebaseerd op {base}",
+  "list": {
+    "role": "Rol",
+    "basedOn": "Gebaseerd op",
+    "users": "Gebruikers",
+    "description": "Beschrijving",
+    "builtIn": "Ingebouwd",
+    "userCount": "{count, plural, =0 {Geen gebruikers} one {# gebruiker} other {# gebruikers}}",
+    "empty": "Nog geen aangepaste rollen.",
+    "edit": "Rol bewerken",
+    "delete": "Rol verwijderen"
+  },
+  "builtInDescriptions": {
+    "admin": "Volledige toegang, inclusief gebruikers, instellingen en API-sleutels",
+    "editor": "Maakt, bewerkt, publiceert en verwijdert content",
+    "contributor": "Maakt en bewerkt content; kan niet publiceren",
+    "viewer": "Alleen-lezen toegang tot de admin"
+  },
+  "form": {
+    "createTitle": "Nieuwe rol",
+    "editTitle": "{label} bewerken",
+    "description": "Een aangepaste rol begint met de contentrechten van de rol waarop hij is gebaseerd. Beperk ze verder op de rechtenpagina.",
+    "label": "Label",
+    "name": "Naam",
+    "nameHelp": "Opgeslagen als {name}. Gebruikers en rechten verwijzen ernaar, dus dit kan later niet worden gewijzigd.",
+    "nameHelpEmpty": "Kleine letters, cijfers en underscores. Dit kan later niet worden gewijzigd.",
+    "nameLocked": "De naam kan niet worden gewijzigd.",
+    "baseRole": "Gebaseerd op",
+    "baseRoleHelp": "Bepaalt welke delen van de admin de rol kan openen.",
+    "baseRoleEditHelp": "Wijzigt welke delen van de admin de rol kan openen. Opgeslagen contentrechten blijven zoals ze zijn.",
+    "descriptionLabel": "Beschrijving",
+    "descriptionPlaceholder": "Waarvoor deze rol dient",
+    "save": "Opslaan",
+    "create": "Rol aanmaken"
+  },
+  "deleteDialog": {
+    "title": "De rol “{label}” verwijderen?",
+    "description": "De contentrechten ervan worden ook verwijderd.",
+    "inUse": "{count, plural, one {# gebruiker heeft} other {# gebruikers hebben}} deze rol nog. Geef ze eerst een andere rol."
+  },
+  "toasts": {
+    "created": "Rol aangemaakt",
+    "updated": "Rol bijgewerkt",
+    "deleted": "Rol verwijderd",
+    "saveFailed": "Kon de rol niet opslaan",
+    "deleteFailed": "Kon de rol niet verwijderen",
+    "inUse": "{count, plural, one {# gebruiker heeft} other {# gebruikers hebben}} deze rol nog. Geef ze eerst een andere rol."
+  }
+}

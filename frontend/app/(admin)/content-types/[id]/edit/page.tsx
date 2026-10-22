@@ -40,6 +40,11 @@ import {
 import { INDEXABLE_FIELD_TYPES } from '@/lib/indexable-fields';
 import { RelationFieldOptions } from '@/components/RelationFieldOptions';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
+import { AddComponentButton, ComponentSubFields } from '@/components/ComponentFieldControls';
+import { PreviewUrlSetting } from '@/components/LivePreviewPane';
+import { FieldConditionEditor } from '@/components/FieldConditionEditor';
+import { detectFieldChanges, useSchemaChangeCheck, FieldMigrations } from '@/components/SchemaChangeDialog';
+import type { FieldCondition } from '@/lib/field-condition';
 
 // Labels come from contentTypes.fieldTypes.<value>.
 const FIELD_TYPES = [
@@ -75,7 +80,10 @@ interface Field {
   indexed?:    boolean;
   readRoles?:  string[];
   writeRoles?: string[];
-  options?:    { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string };
+  options?:    { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string; component?: string };
+  condition?:  FieldCondition;
+  /** The key the field was loaded with — a different key on save is a rename. */
+  _key?:       string;
 }
 
 let _counter = 0;
@@ -86,7 +94,7 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any }) => ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any; condition?: FieldCondition }) => ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
@@ -95,7 +103,11 @@ const buildSchemaField = (f: { name: string; type: string; required: boolean; in
   ...(f.readRoles ? { readRoles: f.readRoles } : {}),
   ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}),
   ...(f.options ? { options: optionsForSave(f.options) } : {}),
+  ...(f.condition ? { condition: f.condition } : {}),
 });
+
+/** Choices of a select field as typed in the editor (one per line or comma separated). */
+const choiceList = (choices?: string) => (choices ?? '').split(/[\n,]/).map((c) => c.trim()).filter(Boolean);
 
 function FieldTypeSelect({
   value, onChange, types = FIELD_TYPES, className,
@@ -167,6 +179,9 @@ export default function EditContentTypePage() {
   const [nameError, setNameError] = useState('');
   const [fields, setFields] = useState<Field[]>([]);
   const [allowedMethods, setAllowedMethods] = useState<string[]>(['list', 'read', 'create', 'update', 'delete']);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [savedKeys, setSavedKeys] = useState<string[]>([]);
+  const schemaCheck = useSchemaChangeCheck(id);
   const [openLayouts, setOpenLayouts] = useState<Record<string, boolean>>({});
   const [reorderMode, setReorderMode] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(true);
@@ -220,9 +235,11 @@ export default function EditContentTypePage() {
         const ct = res.data;
         setName(ct.displayName || humanizeName(ct.name));
         setAllowedMethods(ct.allowedMethods ?? ['list', 'read', 'create', 'update', 'delete']);
+        setPreviewUrl(ct.previewUrl ?? '');
+        setSavedKeys(ct.schema.map((f: any) => f.name));
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => ({ _id: uid(), ...f, name: f.label ?? humanizeName(f.name), required: f.required ?? false, options: optionsForEditor(f.options) }))
+            ? ct.schema.map((f: any) => ({ _id: uid(), ...f, _key: f.name, name: f.label ?? humanizeName(f.name), required: f.required ?? false, options: optionsForEditor(f.options) }))
             : [{ _id: uid(), name: '', type: 'text', required: false }],
         );
       })
@@ -280,11 +297,24 @@ export default function EditContentTypePage() {
     e.preventDefault();
     if (!name.trim()) { setNameError(t('editor.nameRequired')); return; }
     setNameError('');
-    const validFields = fields.filter((f) => f.name.trim()).map(buildSchemaField);
+    const named = fields.filter((f) => f.name.trim());
+    const { renames, removed } = detectFieldChanges(savedKeys, named.map((f) => ({ key: toSnakeCase(f.name), original: f._key })));
+    // Conditions point at field keys: follow renames, drop ones whose field is gone.
+    const renamedKey = new Map(renames.map((r) => [r.from, r.to]));
+    const keys = new Set(named.map((f) => toSnakeCase(f.name)));
+    const validFields = named.map((f) => {
+      const field = renamedKey.get(f.condition?.field ?? '') ?? f.condition?.field;
+      return buildSchemaField({ ...f, condition: f.condition && field && keys.has(field) ? { ...f.condition, field } : undefined });
+    });
     if (validFields.length === 0) { toast.error(t('editor.atLeastOneField')); return; }
     setSubmitting(true);
     try {
-      await api.put(`/content-types/${id}`, { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods });
+      let fieldMigrations: FieldMigrations | null | undefined;
+      if (renames.length || removed.length || named.some((f) => f._key)) {
+        fieldMigrations = await schemaCheck.check(validFields, renames, removed);
+        if (fieldMigrations === null) return; // cancelled
+      }
+      await api.put(`/content-types/${id}`, { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods, previewUrl: previewUrl.trim() || null, ...(fieldMigrations ? { fieldMigrations } : {}) });
       toast.success(t('editor.updated'));
       router.push('/content-types');
     } catch (err: any) {
@@ -375,7 +405,7 @@ export default function EditContentTypePage() {
                   const payload = {
                     nodepress: '1.0',
                     exportedAt: new Date().toISOString(),
-                    contentType: { name, displayName: name.trim(), schema: fields.filter((f) => f.name.trim()).map(buildSchemaField), allowedMethods },
+                    contentType: { name, displayName: name.trim(), schema: fields.filter((f) => f.name.trim()).map(buildSchemaField), allowedMethods, previewUrl: previewUrl.trim() || null },
                   };
                   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
                   const url = URL.createObjectURL(blob);
@@ -439,6 +469,9 @@ export default function EditContentTypePage() {
                 )}
             </div>
 
+            {/* Live preview page */}
+            <PreviewUrlSetting value={previewUrl} onChange={setPreviewUrl} />
+
             {/* API Endpoints */}
             <div className="space-y-2">
               <Label>{t('editor.apiEndpoints')}</Label>
@@ -472,6 +505,7 @@ export default function EditContentTypePage() {
                     <ArrowUpDown className="h-4 w-4 mr-1.5" />
                     {reorderMode ? t('editor.done') : t('editor.reorder')}
                   </Button>
+                  <AddComponentButton onAdd={(f) => setFields([...fields, { _id: uid(), ...f }])} disabled={reorderMode} />
                   <Button variant="outline" onClick={addField} disabled={reorderMode}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
@@ -559,6 +593,16 @@ export default function EditContentTypePage() {
                     </div>
                   </div>
 
+                  <div className="pl-7">
+                    <FieldConditionEditor
+                      condition={field.condition}
+                      onChange={(c) => updateField(fi, 'condition', c)}
+                      siblings={fields
+                        .filter((o) => o._id !== field._id && o.name.trim())
+                        .map((o) => ({ key: toSnakeCase(o.name), label: o.name.trim(), type: o.type, choices: o.type === 'select' ? choiceList(o.options?.choices) : undefined }))}
+                    />
+                  </div>
+
                   {/* Select choices */}
                   {field.type === 'select' && (
                     <div className="pl-7 space-y-1">
@@ -582,8 +626,13 @@ export default function EditContentTypePage() {
                     />
                   )}
 
+                  {/* Sub-fields from a reusable component — edited on /components */}
+                  {(field.type === 'group' || field.type === 'repeater') && field.options?.component && (
+                    <ComponentSubFields component={field.options.component} subFields={field.options.subFields ?? []} />
+                  )}
+
                   {/* Repeater sub-fields */}
-                  {field.type === 'repeater' && field.options?.subFields && (
+                  {field.type === 'repeater' && field.options?.subFields && !field.options.component && (
                     <div className="pl-7">
                       <div className="border-l-2 border-orange-400 pl-3 space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">{t('editor.subFields')}</p>
@@ -623,7 +672,7 @@ export default function EditContentTypePage() {
                   )}
 
                   {/* Group fields */}
-                  {field.type === 'group' && field.options?.subFields && (
+                  {field.type === 'group' && field.options?.subFields && !field.options.component && (
                     <div className="pl-7">
                       <div className="border-l-2 border-violet-400 pl-3 space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">{t('editor.fields')}</p>
@@ -841,6 +890,7 @@ export default function EditContentTypePage() {
           })()}
         </div>
 
+        {schemaCheck.dialog}
         <CardFooter className="justify-end gap-2">
           <Button variant="outline" onClick={() => router.push('/content-types')}>{tc('cancel')}</Button>
           <Button type="submit" form="ct-form" disabled={submitting}>

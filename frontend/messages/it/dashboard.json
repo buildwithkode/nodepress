@@ -1,0 +1,56 @@
+{
+  "title": "Dashboard",
+  "subtitle": "Ecco cosa succede ai tuoi contenuti.",
+  "newEntry": "Nuova voce",
+  "overview": "Panoramica",
+  "viewAll": "Vedi tutto",
+  "createOne": "Creane uno",
+  "fieldCount": "{count, plural, one {# campo} other {# campi}}",
+  "entryCount": "{count, plural, one {# voce} other {# voci}}",
+  "stats": {
+    "contentTypes": "Tipi di contenuto",
+    "contentTypesSub": "schemi totali",
+    "totalEntries": "Voci totali",
+    "totalEntriesSub": "in tutti i tipi",
+    "mediaFiles": "File multimediali",
+    "mediaFilesSub": "file caricati",
+    "apiKeys": "Chiavi API",
+    "apiKeysSub": "chiavi attive",
+    "forms": "Moduli",
+    "formsSub": "moduli attivi",
+    "submissions": "Invii",
+    "submissionsSub": "risposte totali"
+  },
+  "pendingReview": {
+    "message": "{count, plural, one {<b>#</b> voce è in attesa di revisione} other {<b>#</b> voci sono in attesa di revisione}}",
+    "action": "Rivedi ora →"
+  },
+  "contentTypes": {
+    "title": "Tipi di contenuto",
+    "empty": "Ancora nessun tipo di contenuto.",
+    "pendingReview": "{count} in attesa di revisione",
+    "pendingBadge": "{count} in attesa"
+  },
+  "recentEntries": {
+    "title": "Voci recenti",
+    "empty": "Ancora nessuna voce."
+  },
+  "forms": {
+    "title": "Moduli",
+    "empty": "Ancora nessun modulo.",
+    "submissionCount": "{count, plural, one {# invio} other {# invii}}"
+  },
+  "recentSubmissions": {
+    "title": "Invii recenti",
+    "empty": "Ancora nessun invio. Condividi un modulo per iniziare a raccogliere risposte."
+  },
+  "endpoints": {
+    "title": "Endpoint API",
+    "fullDocs": "Documentazione completa",
+    "auth": "Autenticazione",
+    "copyUrl": "Copia URL"
+  },
+  "recentMedia": {
+    "title": "Media recenti"
+  }
+}

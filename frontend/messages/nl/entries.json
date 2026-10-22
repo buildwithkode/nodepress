@@ -1,0 +1,144 @@
+{
+  "newEntry": "Nieuw item",
+  "stages": {
+    "production": "Productie",
+    "staging": "Staging (QA)",
+    "pendingReview": "Wacht op beoordeling"
+  },
+  "cards": {
+    "noContentTypes": "Nog geen contenttypes",
+    "noContentTypesHint": "Maak eerst een contenttype aan om items toe te voegen.",
+    "newContentType": "Nieuw contenttype",
+    "pendingTitle": "{count, plural, one {# item wacht op beoordeling} other {# items wachten op beoordeling}}",
+    "pendingBadgeTitle": "Klik om items te bekijken die op beoordeling wachten",
+    "pendingBadge": "{count} wacht op beoordeling",
+    "entryCount": "{count, plural, one {# item} other {# items}}",
+    "moreFields": "+{count} meer",
+    "noFields": "Geen velden gedefinieerd",
+    "viewEntries": "Items bekijken"
+  },
+  "toolbar": {
+    "backToEntries": "Terug naar items",
+    "allTypes": "Alle types",
+    "editSchemaTitle": "Schema van contenttype bewerken",
+    "editSchema": "Schema bewerken",
+    "permissionsTitle": "Rechten per veld instellen",
+    "permissions": "Rechten"
+  },
+  "filters": {
+    "allLanguages": "Alle talen",
+    "allStatuses": "Alle statussen",
+    "production": "Productie (gepubliceerd)",
+    "searchPlaceholder": "Items zoeken…"
+  },
+  "export": {
+    "jsonTitle": "Niet-verwijderde items exporteren als JSON",
+    "csvTitle": "Niet-verwijderde items exporteren als CSV-spreadsheet"
+  },
+  "trash": {
+    "title": "Prullenbak",
+    "button": "Prullenbak ({count})",
+    "banner": "<strong>Prullenbak:</strong> verwijderde items worden getoond. Je kunt ze terugzetten of definitief verwijderen."
+  },
+  "pending": {
+    "banner": "{count, plural, one {<strong>#</strong> item in deze collectie wacht op beoordeling.} other {<strong>#</strong> items in deze collectie wachten op beoordeling.}}",
+    "showAll": "Toon items ter beoordeling ({count}) →"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# item geselecteerd} other {# items geselecteerd}}",
+    "stage": "Naar staging (QA)",
+    "publish": "Publiceren (prod)",
+    "submitReview": "Ter beoordeling indienen",
+    "archive": "Archiveren",
+    "addToRelease": "Toevoegen aan release",
+    "deleteTitle": "{count, plural, one {# item verwijderen?} other {# items verwijderen?}}",
+    "deleteDescription": "Geselecteerde items worden naar de prullenbak verplaatst. Je kunt ze later terugzetten.",
+    "done": {
+      "deleted": "{count, plural, one {# item verwijderd} other {# items verwijderd}}",
+      "published": "{count, plural, one {# item gepubliceerd naar productie} other {# items gepubliceerd naar productie}}",
+      "staged": "{count, plural, one {# item naar staging gezet} other {# items naar staging gezet}}",
+      "submitted": "{count, plural, one {# item ter beoordeling ingediend} other {# items ter beoordeling ingediend}}",
+      "archived": "{count, plural, one {# item gearchiveerd} other {# items gearchiveerd}}"
+    }
+  },
+  "table": {
+    "selectAll": "Alles op deze pagina selecteren",
+    "slug": "Slug",
+    "trashEmpty": "De prullenbak is leeg.",
+    "noMatches": "Geen items gevonden voor je zoekopdracht.",
+    "empty": "Nog geen items. Maak het eerste aan.",
+    "returnToActive": "Terug naar actieve items",
+    "localeOwn": "{language}: dit item",
+    "localeTranslated": "{language}: vertaald",
+    "localeMissing": "{language}: vertaling ontbreekt",
+    "scheduledTitle": "Ingepland voor publicatie: {date}",
+    "scheduled": "Ingepland · {date} {time}",
+    "items": "{count, plural, one {# element} other {# elementen}}",
+    "richText": "Opgemaakte tekst"
+  },
+  "actions": {
+    "restore": "Terugzetten",
+    "purgeTitle": "Definitief verwijderen",
+    "purgeConfirmTitle": "Definitief verwijderen?",
+    "purgeConfirmDescription": "<strong>{slug}</strong> en al zijn versies worden voorgoed gewist. Dit kan niet ongedaan worden gemaakt.",
+    "purge": "Wissen",
+    "promoteStaging": "Naar staging zetten (QA)",
+    "publishProduction": "Publiceren naar productie",
+    "duplicate": "Dupliceren",
+    "viewLive": "Live bericht op website bekijken",
+    "copyApiUrl": "API-URL kopiëren",
+    "deleteConfirmTitle": "Dit item verwijderen?",
+    "deleteConfirmDescription": "<strong>{slug}</strong> wordt naar de prullenbak verplaatst. Je kunt het later terugzetten."
+  },
+  "import": {
+    "button": "Importeren",
+    "title": "Items importeren — {name}",
+    "description": "Upload een .JSON- of .CSV-bestand, of plak gegevens direct. Een realtime proefvalidatie controleert slugs, locales en velden aan de hand van het schema voordat er iets wordt opgeslagen.",
+    "selectFile": "Bestand kiezen (.csv / .json)",
+    "updateDuplicates": "Dubbele items bijwerken",
+    "updateDuplicatesHint": "Als er een item met dezelfde (slug + locale) bestaat, wordt de inhoud bijgewerkt in plaats van overgeslagen.",
+    "preflightRunning": "Proefvalidatie uitvoeren…",
+    "preflightPassed": "Proefvalidatie geslaagd: {total, plural, one {# rij} other {# rijen}} klaar ({toCreate} nieuw, {toUpdate} updates)",
+    "preflightErrors": "Fouten gevonden bij proefvalidatie ({count})",
+    "moreErrors": "…en nog {count}",
+    "invalidFormat": "Ongeldig formaat",
+    "columns": {
+      "row": "Rij",
+      "slug": "Slug",
+      "locale": "Locale",
+      "status": "Status",
+      "action": "Actie"
+    },
+    "actionUpdate": "Bijwerken",
+    "actionCreate": "Aanmaken",
+    "submit": "Items importeren",
+    "submitCount": "{count, plural, one {# item importeren} other {# items importeren}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "Contenttypes laden mislukt",
+    "loadEntriesFailed": "Items laden mislukt",
+    "movedToTrash": "Item naar prullenbak verplaatst",
+    "deleteFailed": "Verwijderen mislukt",
+    "restored": "Item teruggezet",
+    "restoreFailed": "Terugzetten mislukt",
+    "purged": "Item definitief verwijderd",
+    "purgeFailed": "Wissen mislukt",
+    "promoted": "Item naar {stage} gezet",
+    "promoteFailed": "Item verplaatsen mislukt",
+    "exportDownloaded": "{format}-export gedownload",
+    "exportFailed": "Exporteren mislukt",
+    "readFileFailed": "Bestand lezen mislukt",
+    "importCreated": "{count} aangemaakt",
+    "importUpdated": "{count} bijgewerkt",
+    "importNoChanges": "geen wijzigingen",
+    "importComplete": "Import voltooid: {summary}",
+    "importSkipped": "({count} overgeslagen)",
+    "importFailed": "Import uitvoeren mislukt",
+    "bulkFailed": "Bulkactie mislukt",
+    "duplicated": "Gedupliceerd als \"{slug}\"",
+    "duplicateFailed": "Dupliceren mislukt",
+    "noUniqueSlug": "Kon geen unieke slug voor het duplicaat vinden",
+    "urlCopied": "API-URL naar klembord gekopieerd",
+    "copyUrlFailed": "Kon URL niet kopiëren"
+  }
+}

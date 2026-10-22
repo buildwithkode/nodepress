@@ -9,6 +9,8 @@
  * add its widget name to FormGenerator.WIDGET_MAP.
  */
 
+import type { FieldCondition } from './field-condition';
+
 // ─── Field type literals ──────────────────────────────────────────────────────
 
 export const SIMPLE_FIELD_TYPES = [
@@ -55,6 +57,8 @@ interface BaseField {
    * Top-level scalar fields only — see INDEXABLE_FIELD_TYPES.
    */
   indexed?: boolean;
+  /** Show the field only when a sibling field matches — see field-condition.ts. */
+  condition?: FieldCondition;
 }
 
 // ─── Simple field defs ────────────────────────────────────────────────────────

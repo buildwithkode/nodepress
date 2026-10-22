@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "Falha ao carregar os arquivos de mídia",
+    "fileDeleted": "Arquivo excluído",
+    "folderDeleted": "Pasta excluída",
+    "deleteFailed": "Falha ao excluir",
+    "folderRenamed": "Pasta renomeada",
+    "renameFolderFailed": "Falha ao renomear a pasta",
+    "folderCreated": "Pasta criada",
+    "createFolderFailed": "Falha ao criar a pasta",
+    "fileMoved": "Arquivo movido com sucesso",
+    "moveFileFailed": "Falha ao mover o arquivo",
+    "urlCopied": "URL copiada",
+    "uploaded": "{name} enviado",
+    "uploadFailed": "Falha ao enviar {name}"
+  },
+  "folders": {
+    "title": "Pastas",
+    "allFiles": "Todos os arquivos",
+    "unfiled": "Sem pasta",
+    "folder": "Pasta",
+    "rename": "Renomear pasta",
+    "delete": "Excluir pasta",
+    "deleteConfirmTitle": "Excluir a pasta \"{name}\"?",
+    "deleteConfirmDescription": "Os arquivos dentro dela ficarão sem pasta. As subpastas serão excluídas.",
+    "namePlaceholder": "Nome da pasta",
+    "new": "Nova pasta"
+  },
+  "upload": {
+    "uploading": "Enviando…",
+    "prompt": "Clique ou arraste arquivos para cá",
+    "limits": "{formats} — Máx. {size}"
+  },
+  "library": {
+    "empty": "Nenhum arquivo aqui ainda",
+    "fileCount": "{count, plural, one {# arquivo} other {# arquivos}}",
+    "copyWebpUrl": "Copiar URL WebP",
+    "copyUrl": "Copiar URL",
+    "focalPointAt": "Ponto focal {x}, {y}",
+    "setFocalPoint": "Definir ponto focal",
+    "moveToFolder": "Mover para pasta",
+    "deleteConfirmTitle": "Excluir arquivo?",
+    "deleteConfirmDescription": "<strong>{name}</strong> será excluído permanentemente.",
+    "deleteConfirmWebp": "A versão WebP também será excluída."
+  },
+  "renameDialog": {
+    "title": "Renomear pasta",
+    "description": "Digite um novo nome para a pasta \"{name}\".",
+    "label": "Nome da pasta",
+    "save": "Salvar alterações"
+  },
+  "moveDialog": {
+    "title": "Mover arquivo para pasta",
+    "description": "Escolha uma pasta de destino para <strong>{name}</strong>.",
+    "destination": "Pasta de destino",
+    "selectFolder": "Selecione a pasta",
+    "unfiledRoot": "Sem pasta (raiz)",
+    "submit": "Mover arquivo"
+  },
+  "focal": {
+    "title": "Ponto focal",
+    "description": "Clique na parte mais importante de <strong>{name}</strong>. As versões recortadas a mantêm no enquadramento.",
+    "saved": "Ponto focal salvo",
+    "cleared": "Ponto focal removido",
+    "saveFailed": "Não foi possível salvar o ponto focal",
+    "previewSquare": "Quadrado",
+    "previewWide": "Largo 16:9",
+    "previewTall": "Alto 3:4",
+    "notSet": "Não definido — os recortes são centralizados",
+    "clear": "Limpar"
+  },
+  "picker": {
+    "title": "Biblioteca de mídia",
+    "placeholder": "Escolha uma imagem da biblioteca de mídia…",
+    "crop": "Recortar",
+    "cropZoomTitle": "Recortar / Zoom",
+    "cropZoom": "Recortar e zoom",
+    "removeImage": "Remover imagem",
+    "change": "Alterar",
+    "browse": "Procurar",
+    "upload": "Enviar",
+    "altPrefix": "Alt: {alt}",
+    "empty": "Nenhum arquivo de mídia ainda. Envie um primeiro.",
+    "altText": "Texto alternativo",
+    "optionalHint": "(opcional)",
+    "altPlaceholder": "Descreva a imagem para acessibilidade…",
+    "dropPrompt": "Solte um arquivo ou clique para procurar",
+    "useImage": "Usar imagem"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "entryCount": "{count, plural, one {# item} other {# items}}",
+  "statuses": {
+    "open": "Open",
+    "scheduled": "Ingepland",
+    "publishing": "Bezig met publiceren",
+    "published": "Gepubliceerd",
+    "failed": "Mislukt"
+  },
+  "actions": {
+    "publish": "Publiceren",
+    "unpublish": "Depubliceren",
+    "archive": "Archiveren"
+  },
+  "list": {
+    "title": "Releases",
+    "description": "Bundel wijzigingen aan items — publiceren, depubliceren, archiveren — en zet ze samen live, nu of op een vast tijdstip. Voeg items toe vanuit de itemlijst of de editor van een item.",
+    "namePlaceholder": "Naam van nieuwe release, bijv. Lentelancering",
+    "empty": "Nog geen releases.",
+    "upcoming": "Gepland",
+    "published": "Gepubliceerd",
+    "publishedAt": "gepubliceerd {date}",
+    "loadFailed": "Releases laden mislukt",
+    "createFailed": "Kon de release niet aanmaken"
+  },
+  "detail": {
+    "notFound": "Release niet gevonden",
+    "publishedAt": "Gepubliceerd {date}",
+    "publishNow": "Nu publiceren",
+    "publish": "Publiceren",
+    "publishConfirmTitle": "“{name}” publiceren?",
+    "publishConfirmDescription": "{count, plural, one {# wijziging gaat} other {# wijzigingen gaan}} samen live, in één stap. Dit kan niet in zijn geheel ongedaan worden gemaakt.",
+    "publishedToast": "Release gepubliceerd",
+    "publishFailed": "Publiceren mislukt — er is niets gewijzigd. {error}",
+    "schedule": "Inplannen",
+    "scheduledFor": "Gaat automatisch live op {date}.",
+    "scheduleHint": "Kies een tijdstip en de release gaat vanzelf live (elke minuut gecontroleerd).",
+    "scheduledToast": "Release ingepland",
+    "unschedule": "Planning opheffen",
+    "unscheduledToast": "Planning verwijderd",
+    "entriesTitle": "Items ({count})",
+    "entriesDescription": "Elk item gaat live zoals het is op het moment van publiceren — je kunt tot dan blijven bewerken. Voeg items toe vanuit de lijst <link>Items</link>.",
+    "noEntries": "Nog geen items.",
+    "currentStatus": "nu {status}",
+    "deletedSkipped": "verwijderd — wordt overgeslagen",
+    "conflicts": "Ook in {releases} — de release die als laatste live gaat, wint.",
+    "conflictItem": "“{name}” ({action})",
+    "removeItem": "Uit release verwijderen",
+    "deleteRelease": "Release verwijderen",
+    "deleteConfirmTitle": "“{name}” verwijderen?",
+    "deleteConfirmDescription": "De release wordt verwijderd. De items blijven precies zoals ze zijn.",
+    "deleteFailed": "Kon niet verwijderen"
+  },
+  "addDialog": {
+    "title": "Toevoegen aan release",
+    "description": "Een release voert al zijn wijzigingen tegelijk door — wanneer je hem publiceert, of op het geplande tijdstip.",
+    "release": "Release",
+    "newRelease": "Nieuwe release…",
+    "namePlaceholder": "bijv. Lentelancering",
+    "nameRequired": "Geef de release een naam",
+    "whenGoesOut": "Wanneer de release live gaat",
+    "actionOption": {
+      "publish": "{count, plural, one {Dit item publiceren} other {Deze items publiceren}}",
+      "unpublish": "{count, plural, one {Dit item depubliceren} other {Deze items depubliceren}}",
+      "archive": "{count, plural, one {Dit item archiveren} other {Deze items archiveren}}"
+    },
+    "added": "{count, plural, one {# item toegevoegd} other {# items toegevoegd}} — <link>release openen</link>",
+    "addFailed": "Kon niet aan de release toevoegen"
+  }
+}

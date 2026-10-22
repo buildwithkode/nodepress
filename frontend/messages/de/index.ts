@@ -13,5 +13,10 @@ import users from './users.json';
 import developer from './developer.json';
 import settings from './settings.json';
 import errors from './errors.json';
+import roles from './roles.json';
+import components from './components.json';
+import importer from './importer.json';
+import redirects from './redirects.json';
+import preview from './preview.json';
 
-export default { common, nav, auth, dashboard, contentTypes, entries, entryEditor, releases, media, forms, users, developer, settings, errors };
+export default { common, nav, auth, dashboard, contentTypes, entries, entryEditor, releases, media, forms, users, developer, settings, errors, roles, components, importer, redirects, preview };

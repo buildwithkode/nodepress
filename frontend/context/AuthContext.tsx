@@ -7,7 +7,10 @@ import api from '../lib/axios';
 interface User {
   id: number;
   email: string;
+  /** Built-in role the user runs as (a custom role's base role). */
   role: string;
+  /** Custom role name, when the user has one. */
+  customRole?: string;
 }
 
 interface AuthContextType {

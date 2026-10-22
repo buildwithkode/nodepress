@@ -6,6 +6,7 @@ import {
   SimpleFieldType,
   FieldDef,
 } from './field.types';
+import { conditionErrors } from './field-condition';
 
 /**
  * SchemaValidator — validates that a content type schema (array of field defs)
@@ -33,6 +34,7 @@ export class SchemaValidator {
     for (let i = 0; i < fields.length; i++) {
       this.validateField(fields[i], `schema[${i}]`, names, errors, false);
     }
+    errors.push(...conditionErrors(fields, (i) => `schema[${i}]`));
 
     if (errors.length) {
       throw new BadRequestException({ message: 'Invalid schema', errors });
@@ -250,6 +252,7 @@ export class SchemaValidator {
       errors.push(`${path}.options: required for repeater fields`);
       return;
     }
+    this.validateComponentOption(options, path, errors);
     if (!Array.isArray(options.subFields) || options.subFields.length === 0) {
       errors.push(`${path}.options.subFields: must be a non-empty array`);
     } else {
@@ -257,6 +260,7 @@ export class SchemaValidator {
       options.subFields.forEach((sf: any, i: number) => {
         this.validateField(sf, `${path}.options.subFields[${i}]`, subNames, errors, true);
       });
+      errors.push(...conditionErrors(options.subFields, (i) => `${path}.options.subFields[${i}]`));
     }
     if (options.minItems !== undefined && (!Number.isInteger(options.minItems) || options.minItems < 0)) {
       errors.push(`${path}.options.minItems: must be a non-negative integer`);
@@ -273,11 +277,20 @@ export class SchemaValidator {
     }
   }
 
+  /** `options.component` names a reusable component; its fields are copied into subFields. */
+  private validateComponentOption(options: any, path: string, errors: string[]): void {
+    if (options.component === undefined) return;
+    if (typeof options.component !== 'string' || !SchemaValidator.NAME_RE.test(options.component)) {
+      errors.push(`${path}.options.component: must be the name of a component`);
+    }
+  }
+
   private validateGroupOptions(options: any, path: string, errors: string[]): void {
     if (!options || typeof options !== 'object') {
       errors.push(`${path}.options: required for group fields`);
       return;
     }
+    this.validateComponentOption(options, path, errors);
     if (!Array.isArray(options.subFields) || options.subFields.length === 0) {
       errors.push(`${path}.options.subFields: must be a non-empty array`);
     } else {
@@ -285,6 +298,7 @@ export class SchemaValidator {
       options.subFields.forEach((sf: any, i: number) => {
         this.validateField(sf, `${path}.options.subFields[${i}]`, subNames, errors, true);
       });
+      errors.push(...conditionErrors(options.subFields, (i) => `${path}.options.subFields[${i}]`));
     }
   }
 
@@ -318,6 +332,7 @@ export class SchemaValidator {
           layout.fields.forEach((f: any, fi: number) => {
             this.validateField(f, `${lPath}.fields[${fi}]`, fieldNames, errors, true);
           });
+          errors.push(...conditionErrors(layout.fields, (fi) => `${lPath}.fields[${fi}]`));
         }
       });
     }

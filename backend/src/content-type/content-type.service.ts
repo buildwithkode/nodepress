@@ -12,14 +12,27 @@ import { UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { SchemaValidator } from '../fields/schema.validator';
 import { FormGenerator } from '../fields/form.generator';
 import { FieldIndexService } from './field-index.service';
+import { normalizePreviewUrl } from './preview-url';
 import { FieldDef, RelationFieldDef, isReverseRelation } from '../fields/field.types';
 import { normalizeKey } from '../common/normalize';
+import { Optional } from '@nestjs/common';
+import { ComponentsService } from '../components/components.service';
+import {
+  FieldMigrations, MigrationStep, impactSql, planMigrations, retypedFields, stepParams, stepSql,
+} from './field-migration';
+
+/** Field names in migrations get the same snake_case normalization as the schema. */
+const normalizeMigrations = (m: FieldMigrations): FieldMigrations => ({
+  renames: m.renames?.map((r) => ({ from: normalizeKey(r.from), to: normalizeKey(r.to) })),
+  convert: m.convert?.map(normalizeKey),
+  drop: m.drop?.map(normalizeKey),
+});
 
 const ctCacheKey = (name: string) => `ct:meta:${name}`;
 const CT_ALL_CACHE_KEY = 'ct:meta:all_content_types';
 
 // These route names are already taken by static controllers
-const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads'];
+const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads', 'components', 'roles', 'redirects', 'import'];
 
 const normalizeName = (name: string): string =>
   name.trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -59,7 +72,13 @@ export class ContentTypeService {
     private schemaValidator: SchemaValidator,
     private formGenerator: FormGenerator,
     private fieldIndexes: FieldIndexService,
+    @Optional() private components?: ComponentsService,
   ) {}
+
+  /** Copy reusable components' fields into the group/repeater fields that use them (see ComponentsService). */
+  private expandComponents(schema: any[], bundle?: Map<string, any[]>): Promise<any[]> {
+    return this.components ? this.components.expand(schema, bundle) : Promise.resolve(schema);
+  }
 
   async create(dto: CreateContentTypeDto) {
     const name = normalizeName(dto.name);
@@ -79,7 +98,7 @@ export class ContentTypeService {
     }
 
     // Normalize field names first, then validate
-    const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
+    const validatedSchema = this.schemaValidator.validate(normalizeSchema(await this.expandComponents(dto.schema as any[])));
     await this.assertReverseFields(name, validatedSchema);
 
     const created = await this.prisma.contentType.create({
@@ -88,6 +107,7 @@ export class ContentTypeService {
         displayName: dto.displayName?.trim() || null,
         schema: validatedSchema as any,
         allowedMethods: dto.allowedMethods ?? null,
+        previewUrl: normalizePreviewUrl(dto.previewUrl),
       },
     });
 
@@ -124,7 +144,7 @@ export class ContentTypeService {
   async update(id: number, dto: UpdateContentTypeDto, actorId?: number) {
     const current = await this.findOne(id);
 
-    const updateData: Partial<{ name: string; displayName: string | null; schema: any; allowedMethods: any }> = {};
+    const updateData: Partial<{ name: string; displayName: string | null; schema: any; allowedMethods: any; previewUrl: string | null }> = {};
 
     if ('displayName' in dto) {
       updateData.displayName = dto.displayName?.trim() || null;
@@ -152,30 +172,48 @@ export class ContentTypeService {
     }
 
     if (dto.schema !== undefined) {
-      const validatedSchema = this.schemaValidator.validate(normalizeSchema(dto.schema as any[]));
+      const validatedSchema = this.schemaValidator.validate(normalizeSchema(await this.expandComponents(dto.schema as any[])));
       await this.assertReverseFields(updateData.name ?? current.name, validatedSchema);
       updateData.schema = validatedSchema as any;
     }
+
+    const steps = dto.fieldMigrations
+      ? planMigrations(current.schema as any[], (updateData.schema ?? current.schema) as any[], normalizeMigrations(dto.fieldMigrations))
+      : [];
 
     if ('allowedMethods' in dto) {
       updateData.allowedMethods = dto.allowedMethods ?? null;
     }
 
-    // Snapshot current schema before applying changes so history is preserved
-    if (updateData.schema !== undefined) {
-      await this.prisma.contentTypeSchemaVersion.create({
-        data: {
-          contentTypeId: id,
-          schema: current.schema,
-          changedBy: actorId ?? null,
-        },
-      });
+    if ('previewUrl' in dto) {
+      updateData.previewUrl = normalizePreviewUrl(dto.previewUrl);
     }
 
-    const updated = await this.prisma.contentType.update({
-      where: { id },
-      data: updateData,
-    });
+    // Snapshot current schema before applying changes so history is preserved
+    const snapshot = updateData.schema !== undefined
+      ? { contentTypeId: id, schema: current.schema as any, changedBy: actorId ?? null }
+      : null;
+
+    let updated;
+    if (steps.length) {
+      // Data and schema change together or not at all.
+      updated = await this.prisma.$transaction(async (tx) => {
+        if (snapshot) await tx.contentTypeSchemaVersion.create({ data: snapshot });
+        for (const step of steps) await tx.$executeRawUnsafe(stepSql(step), ...stepParams(id, step));
+        return tx.contentType.update({ where: { id }, data: updateData });
+      }, { timeout: 120_000 });
+      // Entries were rewritten with SQL, which the operation hooks don't see:
+      // write the content type again after commit so the public cache, search
+      // index and GraphQL schema refresh for this type.
+      await this.prisma.contentType.update({ where: { id }, data: { updatedAt: new Date() } });
+      await this.renameReverseMappings(updated.name, steps);
+    } else {
+      if (snapshot) await this.prisma.contentTypeSchemaVersion.create({ data: snapshot });
+      updated = await this.prisma.contentType.update({
+        where: { id },
+        data: updateData,
+      });
+    }
 
     // Bust all content-type caches
     await this.cache.invalidatePrefix('ct:meta');
@@ -184,10 +222,61 @@ export class ContentTypeService {
     // Build schema-change impact warnings when schema was updated
     const warnings: string[] = [];
     if (updateData.schema) {
-      warnings.push(...await this.buildSchemaWarnings(id, current.schema as any[], updateData.schema));
+      warnings.push(...await this.buildSchemaWarnings(id, current.schema as any[], updateData.schema, steps));
     }
 
-    return warnings.length > 0 ? { ...updated, warnings } : updated;
+    const result: any = steps.length ? { ...updated, migrated: steps } : updated;
+    return warnings.length > 0 ? { ...result, warnings } : result;
+  }
+
+  /**
+   * What a schema change would do to existing entries: per migration step the
+   * number of entries holding the field (and for conversions, how many values
+   * would be removed), plus the retyped fields that could be converted.
+   */
+  async schemaImpact(id: number, dto: UpdateContentTypeDto) {
+    const current = await this.findOne(id);
+    const oldSchema = current.schema as any[];
+    const newSchema = dto.schema !== undefined
+      ? this.schemaValidator.validate(normalizeSchema(await this.expandComponents(dto.schema as any[]))) as any[]
+      : oldSchema;
+    const migrations = normalizeMigrations(dto.fieldMigrations ?? {});
+    const steps = planMigrations(oldSchema, newSchema, migrations);
+
+    const impact = [];
+    for (const step of steps) {
+      const [row] = await this.prisma.$queryRawUnsafe<{ entries: number; lost: number }[]>(impactSql(step), ...stepParams(id, step));
+      impact.push({ ...step, entries: row?.entries ?? 0, lost: row?.lost ?? 0 });
+    }
+    return {
+      entryCount: await this.prisma.entry.count({ where: { contentTypeId: id } }),
+      diff: diffSchemas(oldSchema, newSchema),
+      steps: impact,
+      retyped: retypedFields(oldSchema, newSchema, migrations.renames),
+      warnings: await this.buildSchemaWarnings(id, oldSchema, newSchema, steps),
+    };
+  }
+
+  /** Reverse fields on other types that read a renamed relation field follow the rename. */
+  private async renameReverseMappings(typeName: string, steps: MigrationStep[]) {
+    const renames = new Map(steps.filter((s) => s.kind === 'rename').map((s) => [s.from!, s.field]));
+    if (!renames.size) return;
+    const types = await this.prisma.contentType.findMany();
+    for (const ct of types) {
+      let changed = false;
+      const schema = (ct.schema as any[]).map((f) => {
+        const mappedBy = f?.type === 'relation' ? f.options?.mappedBy : undefined;
+        if (mappedBy && f.options.relatedContentType === typeName && renames.has(mappedBy)) {
+          changed = true;
+          return { ...f, options: { ...f.options, mappedBy: renames.get(mappedBy) } };
+        }
+        return f;
+      });
+      if (changed) {
+        await this.prisma.contentType.update({ where: { id: ct.id }, data: { schema } });
+      }
+    }
+    await this.cache.invalidatePrefix('ct:meta');
   }
 
   /**
@@ -223,6 +312,7 @@ export class ContentTypeService {
     contentTypeId: number,
     oldSchema: any[],
     newSchema: any[],
+    steps: MigrationStep[] = [],
   ): Promise<string[]> {
     const entryCount = await this.prisma.entry.count({
       where: { contentTypeId, deletedAt: null },
@@ -232,10 +322,20 @@ export class ContentTypeService {
     const warnings: string[] = [];
     const oldFieldMap = new Map(oldSchema.map((f: any) => [f.name, f]));
     const newFieldMap = new Map(newSchema.map((f: any) => [f.name, f]));
+    const handled = new Set(steps.flatMap((s) => [s.field, s.from].filter(Boolean) as string[]));
+
+    for (const { field, fromType, toType } of retypedFields(oldSchema, newSchema, steps
+      .filter((s) => s.kind === 'rename').map((s) => ({ from: s.from!, to: s.field })))) {
+      if (!steps.some((s) => s.kind === 'convert' && s.field === field)) {
+        warnings.push(
+          `Field "${field}" changed from ${fromType} to ${toType}. Existing values were not converted and may fail validation on the next save.`,
+        );
+      }
+    }
 
     // Removed fields — data still present in existing entries (no data loss, just schema drift)
     for (const [name] of oldFieldMap) {
-      if (!newFieldMap.has(name)) {
+      if (!newFieldMap.has(name) && !handled.has(name)) {
         warnings.push(
           `Field "${name}" was removed. ${entryCount} existing entr${entryCount === 1 ? 'y' : 'ies'} still contain data for this field (no data loss — data is preserved in the JSON blob).`,
         );
@@ -301,8 +401,10 @@ export class ContentTypeService {
             displayName: ct.displayName,
             schema: ct.schema,
             allowedMethods: ct.allowedMethods,
+            previewUrl: ct.previewUrl,
           },
         ],
+        components: (await this.components?.exportComponents([ct.schema])) ?? [],
       };
     }
     const all = await this.prisma.contentType.findMany({
@@ -316,16 +418,19 @@ export class ContentTypeService {
         displayName: ct.displayName,
         schema: ct.schema,
         allowedMethods: ct.allowedMethods,
+        previewUrl: ct.previewUrl,
       })),
+      components: (await this.components?.exportComponents()) ?? [],
     };
   }
 
   /** Import schemas with Dry-Run Validation and Duplicate Overwrite options */
   async importSchemas(
     dto: {
-      contentTypes?: Array<{ name: string; displayName?: string; schema: any[]; allowedMethods?: string[] }>;
+      contentTypes?: Array<{ name: string; displayName?: string; schema: any[]; allowedMethods?: string[]; previewUrl?: string | null }>;
       dryRun?: boolean;
       overwrite?: boolean;
+      components?: Array<{ name: string; displayName?: string | null; description?: string | null; fields: any[] }>;
     },
     actorId?: number,
   ) {
@@ -344,6 +449,8 @@ export class ContentTypeService {
     const validated = new Map<string, any[]>();
 
     const errors: string[] = [];
+    // The bundle's components, validated — its schemas expand against them.
+    const bundleComponents = await this.components?.prepareImport(dto.components, errors, overwrite);
     const preview: any[] = [];
     let toCreate = 0;
     let toUpdate = 0;
@@ -375,7 +482,8 @@ export class ContentTypeService {
       // means the import will too.
       if (valid) {
         try {
-          validated.set(name, this.schemaValidator.validate(normalizeSchema(ct.schema)));
+          validated.set(name, this.schemaValidator.validate(normalizeSchema(await this.expandComponents(ct.schema, bundleComponents))));
+          normalizePreviewUrl(ct.previewUrl);
         } catch (err: any) {
           errorMsg = `"${name}": ${err?.response?.message ?? err?.message ?? 'invalid schema'}`;
           errors.push(errorMsg);
@@ -419,6 +527,8 @@ export class ContentTypeService {
       };
     }
 
+    // Components first, so the content types below expand against them.
+    const components = await this.components?.applyImport(dto.components, overwrite, actorId);
     let created = 0;
     let updated = 0;
     let skipped = 0;
@@ -439,6 +549,8 @@ export class ContentTypeService {
           displayName: ct.displayName,
           schema: validatedSchema as any,
           allowedMethods: ct.allowedMethods,
+          // Bundles from before previewUrl existed leave it alone.
+          ...('previewUrl' in ct ? { previewUrl: ct.previewUrl } : {}),
         }, actorId);
         updated++;
       } else {
@@ -447,6 +559,7 @@ export class ContentTypeService {
           displayName: ct.displayName,
           schema: validatedSchema as any,
           allowedMethods: ct.allowedMethods,
+          previewUrl: ct.previewUrl,
         });
         created++;
       }
@@ -458,6 +571,7 @@ export class ContentTypeService {
       created,
       updated,
       skipped,
+      components,
       errors,
     };
   }

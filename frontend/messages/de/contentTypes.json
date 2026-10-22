@@ -164,5 +164,37 @@
     "generating": "Wird erstellt…",
     "placeholder": "Beschreiben Sie, was Sie verwalten möchten, z. B. „Veranstaltungen mit Datum, Ort, Ticketpreis und einer Liste von Sprechern“",
     "suggested": "{count, plural, one {# Feld} other {# Felder}} vorgeschlagen — prüfen und dann speichern"
+  },
+  "condition": {
+    "add": "Nur anzeigen, wenn…",
+    "showIf": "Nur anzeigen, wenn",
+    "ops": {
+      "eq": "ist",
+      "ne": "ist nicht",
+      "in": "ist einer von",
+      "notIn": "ist keiner von",
+      "set": "hat einen Wert",
+      "notSet": "ist leer"
+    },
+    "on": "An",
+    "off": "Aus",
+    "listPlaceholder": "Wert, Wert…",
+    "valuePlaceholder": "Wert",
+    "remove": "Bedingung entfernen"
+  },
+  "migration": {
+    "title": "Bestehende Einträge aktualisieren",
+    "description": "{count, plural, one {# Eintrag verwendet} other {# Einträge verwenden}} diesen Inhaltstyp. Wähle, was mit ihren gespeicherten Werten passiert.",
+    "renames": "Umbenannte Felder — Werte wandern zum neuen Namen",
+    "entries": "{count, plural, one {# Eintrag} other {# Einträge}}",
+    "converts": "Geänderte Feldtypen",
+    "convertTo": "{from} → {to}: bestehende Werte umwandeln",
+    "lost": "{count, plural, one {# Wert kann nicht umgewandelt werden und wird entfernt} other {# Werte können nicht umgewandelt werden und werden entfernt}}",
+    "notConvertible": "„{field}“ ({from} → {to}) kann nicht automatisch umgewandelt werden. Bestehende Werte bleiben unverändert und können beim nächsten Speichern abgelehnt werden.",
+    "removed": "Entfernte Felder",
+    "removedHint": "Werte entfernter Felder bleiben in den Einträgen, außer du löschst sie hier.",
+    "deleteValues": "Gespeicherte Werte von „{field}“ löschen",
+    "cancel": "Abbrechen",
+    "save": "Speichern und Einträge aktualisieren"
   }
 }

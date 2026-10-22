@@ -1,0 +1,144 @@
+{
+  "newEntry": "新建条目",
+  "stages": {
+    "production": "生产环境",
+    "staging": "预发布（QA）",
+    "pendingReview": "待审核"
+  },
+  "cards": {
+    "noContentTypes": "暂无内容类型",
+    "noContentTypesHint": "请先创建一个内容类型，然后开始添加条目。",
+    "newContentType": "新建内容类型",
+    "pendingTitle": "{count, plural, other {# 个条目待审核}}",
+    "pendingBadgeTitle": "点击查看等待审核的条目",
+    "pendingBadge": "{count} 个待审核",
+    "entryCount": "{count, plural, other {# 个条目}}",
+    "moreFields": "另有 {count} 个",
+    "noFields": "未定义字段",
+    "viewEntries": "查看条目"
+  },
+  "toolbar": {
+    "backToEntries": "返回条目",
+    "allTypes": "所有类型",
+    "editSchemaTitle": "编辑内容类型架构",
+    "editSchema": "编辑架构",
+    "permissionsTitle": "配置字段级权限",
+    "permissions": "权限"
+  },
+  "filters": {
+    "allLanguages": "所有语言",
+    "allStatuses": "所有状态",
+    "production": "生产环境（已发布）",
+    "searchPlaceholder": "搜索条目…"
+  },
+  "export": {
+    "jsonTitle": "将未删除的条目导出为 JSON",
+    "csvTitle": "将未删除的条目导出为 CSV 表格"
+  },
+  "trash": {
+    "title": "回收站",
+    "button": "回收站（{count}）",
+    "banner": "<strong>回收站：</strong>正在显示已删除的条目。您可以将其恢复为活动状态，或永久清除。"
+  },
+  "pending": {
+    "banner": "{count, plural, other {此集合中有 <strong>#</strong> 个条目待审核。}}",
+    "showAll": "显示待审核条目（{count}）→"
+  },
+  "bulk": {
+    "selected": "{count, plural, other {已选择 # 个条目}}",
+    "stage": "预发布（QA）",
+    "publish": "发布（生产）",
+    "submitReview": "提交审核",
+    "archive": "归档",
+    "addToRelease": "添加到发布批次",
+    "deleteTitle": "{count, plural, other {删除 # 个条目？}}",
+    "deleteDescription": "所选条目将被移至回收站。您之后可以恢复它们。",
+    "done": {
+      "deleted": "{count, plural, other {已删除 # 个条目}}",
+      "published": "{count, plural, other {已将 # 个条目发布到生产环境}}",
+      "staged": "{count, plural, other {已将 # 个条目推送到预发布环境}}",
+      "submitted": "{count, plural, other {已提交 # 个条目进行审核}}",
+      "archived": "{count, plural, other {已归档 # 个条目}}"
+    }
+  },
+  "table": {
+    "selectAll": "全选本页",
+    "slug": "别名",
+    "trashEmpty": "回收站为空。",
+    "noMatches": "没有与搜索匹配的条目。",
+    "empty": "暂无条目。创建第一个条目。",
+    "returnToActive": "返回活动条目",
+    "localeOwn": "{language}：此条目",
+    "localeTranslated": "{language}：已翻译",
+    "localeMissing": "{language}：缺少翻译",
+    "scheduledTitle": "计划发布时间：{date}",
+    "scheduled": "已排期 · {date} {time}",
+    "items": "{count, plural, other {# 项}}",
+    "richText": "富文本"
+  },
+  "actions": {
+    "restore": "恢复",
+    "purgeTitle": "永久清除",
+    "purgeConfirmTitle": "永久删除？",
+    "purgeConfirmDescription": "<strong>{slug}</strong> 及其所有版本将被永久删除。此操作无法撤销。",
+    "purge": "清除",
+    "promoteStaging": "推送到预发布（QA）",
+    "publishProduction": "发布到生产环境",
+    "duplicate": "复制",
+    "viewLive": "在网站上查看线上内容",
+    "copyApiUrl": "复制 API URL",
+    "deleteConfirmTitle": "删除此条目？",
+    "deleteConfirmDescription": "<strong>{slug}</strong> 将被移至回收站。您之后可以恢复它。"
+  },
+  "import": {
+    "button": "导入",
+    "title": "导入条目——{name}",
+    "description": "上传 .JSON 或 .CSV 文件，或直接粘贴数据。保存前会实时进行试运行校验，根据架构检查别名、语言和字段。",
+    "selectFile": "选择文件（.csv / .json）",
+    "updateDuplicates": "更新重复条目",
+    "updateDuplicatesHint": "如果已存在（别名 + 语言）相同的条目，则更新其内容而不是跳过。",
+    "preflightRunning": "正在进行预检试运行校验…",
+    "preflightPassed": "预检通过：{total, plural, other {# 行}}已就绪（新增 {toCreate} 个，更新 {toUpdate} 个）",
+    "preflightErrors": "检测到预检错误（{count}）",
+    "moreErrors": "…另有 {count} 个",
+    "invalidFormat": "格式无效",
+    "columns": {
+      "row": "行",
+      "slug": "别名",
+      "locale": "语言",
+      "status": "状态",
+      "action": "操作"
+    },
+    "actionUpdate": "更新",
+    "actionCreate": "创建",
+    "submit": "导入条目",
+    "submitCount": "{count, plural, other {导入 # 个条目}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "加载内容类型失败",
+    "loadEntriesFailed": "加载条目失败",
+    "movedToTrash": "条目已移至回收站",
+    "deleteFailed": "删除失败",
+    "restored": "条目已恢复",
+    "restoreFailed": "恢复失败",
+    "purged": "条目已永久删除",
+    "purgeFailed": "清除失败",
+    "promoted": "条目已推送到{stage}",
+    "promoteFailed": "推送条目失败",
+    "exportDownloaded": "{format} 导出已下载",
+    "exportFailed": "导出失败",
+    "readFileFailed": "读取文件失败",
+    "importCreated": "新增 {count} 个",
+    "importUpdated": "更新 {count} 个",
+    "importNoChanges": "无更改",
+    "importComplete": "导入完成：{summary}",
+    "importSkipped": "（跳过 {count} 个）",
+    "importFailed": "执行导入失败",
+    "bulkFailed": "批量操作失败",
+    "duplicated": "已复制为“{slug}”",
+    "duplicateFailed": "复制失败",
+    "noUniqueSlug": "无法为副本找到唯一的别名",
+    "urlCopied": "API URL 已复制到剪贴板",
+    "copyUrlFailed": "无法复制 URL"
+  }
+}

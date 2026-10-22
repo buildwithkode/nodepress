@@ -1,0 +1,144 @@
+{
+  "newEntry": "Nuova voce",
+  "stages": {
+    "production": "Produzione",
+    "staging": "Staging (QA)",
+    "pendingReview": "In attesa di revisione"
+  },
+  "cards": {
+    "noContentTypes": "Ancora nessun tipo di contenuto",
+    "noContentTypesHint": "Crea prima un tipo di contenuto per iniziare ad aggiungere voci.",
+    "newContentType": "Nuovo tipo di contenuto",
+    "pendingTitle": "{count, plural, one {# voce in attesa di revisione} other {# voci in attesa di revisione}}",
+    "pendingBadgeTitle": "Fai clic per vedere le voci in attesa di revisione",
+    "pendingBadge": "{count} in attesa di revisione",
+    "entryCount": "{count, plural, one {# voce} other {# voci}}",
+    "moreFields": "+{count} altri",
+    "noFields": "Nessun campo definito",
+    "viewEntries": "Vedi voci"
+  },
+  "toolbar": {
+    "backToEntries": "Torna alle voci",
+    "allTypes": "Tutti i tipi",
+    "editSchemaTitle": "Modifica lo schema del tipo di contenuto",
+    "editSchema": "Modifica schema",
+    "permissionsTitle": "Configura i permessi a livello di campo",
+    "permissions": "Permessi"
+  },
+  "filters": {
+    "allLanguages": "Tutte le lingue",
+    "allStatuses": "Tutti gli stati",
+    "production": "Produzione (pubblicate)",
+    "searchPlaceholder": "Cerca voci…"
+  },
+  "export": {
+    "jsonTitle": "Esporta le voci non eliminate in JSON",
+    "csvTitle": "Esporta le voci non eliminate come foglio di calcolo CSV"
+  },
+  "trash": {
+    "title": "Cestino",
+    "button": "Cestino ({count})",
+    "banner": "<strong>Cestino:</strong> sono mostrate le voci eliminate. Puoi ripristinarle o eliminarle definitivamente."
+  },
+  "pending": {
+    "banner": "{count, plural, one {<strong>#</strong> voce è in attesa di revisione in questa raccolta.} other {<strong>#</strong> voci sono in attesa di revisione in questa raccolta.}}",
+    "showAll": "Mostra revisioni in attesa ({count}) →"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# voce selezionata} other {# voci selezionate}}",
+    "stage": "Staging (QA)",
+    "publish": "Pubblica (prod)",
+    "submitReview": "Invia in revisione",
+    "archive": "Archivia",
+    "addToRelease": "Aggiungi alla release",
+    "deleteTitle": "{count, plural, one {Eliminare # voce?} other {Eliminare # voci?}}",
+    "deleteDescription": "Le voci selezionate verranno spostate nel cestino. Potrai ripristinarle in seguito.",
+    "done": {
+      "deleted": "{count, plural, one {# voce eliminata} other {# voci eliminate}}",
+      "published": "{count, plural, one {# voce pubblicata in produzione} other {# voci pubblicate in produzione}}",
+      "staged": "{count, plural, one {# voce promossa in staging} other {# voci promosse in staging}}",
+      "submitted": "{count, plural, one {# voce inviata in revisione} other {# voci inviate in revisione}}",
+      "archived": "{count, plural, one {# voce archiviata} other {# voci archiviate}}"
+    }
+  },
+  "table": {
+    "selectAll": "Seleziona tutte in questa pagina",
+    "slug": "Slug",
+    "trashEmpty": "Il cestino è vuoto.",
+    "noMatches": "Nessuna voce corrisponde alla ricerca.",
+    "empty": "Ancora nessuna voce. Crea la prima.",
+    "returnToActive": "Torna alle voci attive",
+    "localeOwn": "{language}: questa voce",
+    "localeTranslated": "{language}: tradotta",
+    "localeMissing": "{language}: traduzione mancante",
+    "scheduledTitle": "Pubblicazione programmata: {date}",
+    "scheduled": "Programmata · {date} {time}",
+    "items": "{count, plural, one {# elemento} other {# elementi}}",
+    "richText": "Testo formattato"
+  },
+  "actions": {
+    "restore": "Ripristina",
+    "purgeTitle": "Elimina definitivamente",
+    "purgeConfirmTitle": "Eliminare definitivamente?",
+    "purgeConfirmDescription": "<strong>{slug}</strong> e tutte le sue versioni verranno cancellate per sempre. L'operazione non può essere annullata.",
+    "purge": "Elimina definitivamente",
+    "promoteStaging": "Promuovi in staging (QA)",
+    "publishProduction": "Pubblica in produzione",
+    "duplicate": "Duplica",
+    "viewLive": "Vedi il post pubblicato sul sito",
+    "copyApiUrl": "Copia URL API",
+    "deleteConfirmTitle": "Eliminare questa voce?",
+    "deleteConfirmDescription": "<strong>{slug}</strong> verrà spostata nel cestino. Potrai ripristinarla in seguito."
+  },
+  "import": {
+    "button": "Importa",
+    "title": "Importa voci — {name}",
+    "description": "Carica un file .JSON o .CSV, oppure incolla direttamente i dati. Una convalida di prova in tempo reale controlla slug, lingue e campi rispetto allo schema prima del salvataggio.",
+    "selectFile": "Seleziona file (.csv / .json)",
+    "updateDuplicates": "Aggiorna le voci duplicate",
+    "updateDuplicatesHint": "Se esiste una voce con lo stesso slug e la stessa lingua, ne aggiorna il contenuto invece di saltarla.",
+    "preflightRunning": "Convalida di prova preliminare in corso…",
+    "preflightPassed": "Controllo preliminare superato: {total, plural, one {# riga pronta} other {# righe pronte}} ({toCreate} nuove, {toUpdate} aggiornamenti)",
+    "preflightErrors": "Errori rilevati nel controllo preliminare ({count})",
+    "moreErrors": "…e altri {count}",
+    "invalidFormat": "Formato non valido",
+    "columns": {
+      "row": "Riga",
+      "slug": "Slug",
+      "locale": "Lingua",
+      "status": "Stato",
+      "action": "Azione"
+    },
+    "actionUpdate": "Aggiorna",
+    "actionCreate": "Crea",
+    "submit": "Importa voci",
+    "submitCount": "{count, plural, one {Importa # voce} other {Importa # voci}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "Impossibile caricare i tipi di contenuto",
+    "loadEntriesFailed": "Impossibile caricare le voci",
+    "movedToTrash": "Voce spostata nel cestino",
+    "deleteFailed": "Eliminazione non riuscita",
+    "restored": "Voce ripristinata",
+    "restoreFailed": "Ripristino non riuscito",
+    "purged": "Voce eliminata definitivamente",
+    "purgeFailed": "Eliminazione definitiva non riuscita",
+    "promoted": "Voce promossa in {stage}",
+    "promoteFailed": "Impossibile promuovere la voce",
+    "exportDownloaded": "Esportazione {format} scaricata",
+    "exportFailed": "Esportazione non riuscita",
+    "readFileFailed": "Impossibile leggere il file",
+    "importCreated": "{count} create",
+    "importUpdated": "{count} aggiornate",
+    "importNoChanges": "nessuna modifica",
+    "importComplete": "Importazione completata: {summary}",
+    "importSkipped": "({count} saltate)",
+    "importFailed": "Esecuzione dell'importazione non riuscita",
+    "bulkFailed": "Azione di gruppo non riuscita",
+    "duplicated": "Duplicata come \"{slug}\"",
+    "duplicateFailed": "Duplicazione non riuscita",
+    "noUniqueSlug": "Impossibile trovare uno slug univoco per il duplicato",
+    "urlCopied": "URL API copiato negli appunti",
+    "copyUrlFailed": "Impossibile copiare l'URL"
+  }
+}

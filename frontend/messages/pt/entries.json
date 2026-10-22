@@ -1,0 +1,144 @@
+{
+  "newEntry": "Nova entrada",
+  "stages": {
+    "production": "Produção",
+    "staging": "Homologação (QA)",
+    "pendingReview": "Aguardando revisão"
+  },
+  "cards": {
+    "noContentTypes": "Nenhum tipo de conteúdo ainda",
+    "noContentTypesHint": "Crie um tipo de conteúdo primeiro para começar a adicionar entradas.",
+    "newContentType": "Novo tipo de conteúdo",
+    "pendingTitle": "{count, plural, one {# entrada aguardando revisão} other {# entradas aguardando revisão}}",
+    "pendingBadgeTitle": "Clique para ver as entradas aguardando revisão",
+    "pendingBadge": "Aguardando revisão: {count}",
+    "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+    "moreFields": "+{count} outros",
+    "noFields": "Nenhum campo definido",
+    "viewEntries": "Ver entradas"
+  },
+  "toolbar": {
+    "backToEntries": "Voltar para as entradas",
+    "allTypes": "Todos os tipos",
+    "editSchemaTitle": "Editar o esquema do tipo de conteúdo",
+    "editSchema": "Editar esquema",
+    "permissionsTitle": "Configurar permissões por campo",
+    "permissions": "Permissões"
+  },
+  "filters": {
+    "allLanguages": "Todos os idiomas",
+    "allStatuses": "Todos os status",
+    "production": "Produção (publicadas)",
+    "searchPlaceholder": "Pesquisar entradas…"
+  },
+  "export": {
+    "jsonTitle": "Exportar entradas não excluídas como JSON",
+    "csvTitle": "Exportar entradas não excluídas como planilha CSV"
+  },
+  "trash": {
+    "title": "Lixeira",
+    "button": "Lixeira ({count})",
+    "banner": "<strong>Lixeira:</strong> mostrando entradas excluídas. Você pode restaurá-las ou eliminá-las permanentemente."
+  },
+  "pending": {
+    "banner": "{count, plural, one {<strong>#</strong> entrada aguardando revisão nesta coleção.} other {<strong>#</strong> entradas aguardando revisão nesta coleção.}}",
+    "showAll": "Mostrar revisões pendentes ({count}) →"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# entrada selecionada} other {# entradas selecionadas}}",
+    "stage": "Homologar (QA)",
+    "publish": "Publicar (Prod)",
+    "submitReview": "Enviar para revisão",
+    "archive": "Arquivar",
+    "addToRelease": "Adicionar ao lançamento",
+    "deleteTitle": "{count, plural, one {Excluir # entrada?} other {Excluir # entradas?}}",
+    "deleteDescription": "As entradas selecionadas serão movidas para a lixeira. Você pode restaurá-las depois.",
+    "done": {
+      "deleted": "{count, plural, one {# entrada excluída} other {# entradas excluídas}}",
+      "published": "{count, plural, one {# entrada publicada em produção} other {# entradas publicadas em produção}}",
+      "staged": "{count, plural, one {# entrada promovida para homologação} other {# entradas promovidas para homologação}}",
+      "submitted": "{count, plural, one {# entrada enviada para revisão} other {# entradas enviadas para revisão}}",
+      "archived": "{count, plural, one {# entrada arquivada} other {# entradas arquivadas}}"
+    }
+  },
+  "table": {
+    "selectAll": "Selecionar tudo nesta página",
+    "slug": "Slug",
+    "trashEmpty": "A lixeira está vazia.",
+    "noMatches": "Nenhuma entrada corresponde à sua pesquisa.",
+    "empty": "Nenhuma entrada ainda. Crie a primeira.",
+    "returnToActive": "Voltar para as entradas ativas",
+    "localeOwn": "{language}: esta entrada",
+    "localeTranslated": "{language}: traduzida",
+    "localeMissing": "{language}: tradução ausente",
+    "scheduledTitle": "Publicação agendada: {date}",
+    "scheduled": "Agendada · {date} {time}",
+    "items": "{count, plural, one {# item} other {# itens}}",
+    "richText": "Rich text"
+  },
+  "actions": {
+    "restore": "Restaurar",
+    "purgeTitle": "Eliminar permanentemente",
+    "purgeConfirmTitle": "Excluir permanentemente?",
+    "purgeConfirmDescription": "<strong>{slug}</strong> e todas as suas versões serão apagadas para sempre. Isso não pode ser desfeito.",
+    "purge": "Eliminar",
+    "promoteStaging": "Promover para homologação (QA)",
+    "publishProduction": "Publicar em produção",
+    "duplicate": "Duplicar",
+    "viewLive": "Ver o post publicado no site",
+    "copyApiUrl": "Copiar URL da API",
+    "deleteConfirmTitle": "Excluir esta entrada?",
+    "deleteConfirmDescription": "<strong>{slug}</strong> será movida para a lixeira. Você pode restaurá-la depois."
+  },
+  "import": {
+    "button": "Importar",
+    "title": "Importar entradas — {name}",
+    "description": "Envie um arquivo .JSON ou .CSV ou cole os dados diretamente. A validação de teste em tempo real verifica slugs, idiomas e campos em relação ao esquema antes de salvar.",
+    "selectFile": "Selecionar arquivo (.csv / .json)",
+    "updateDuplicates": "Atualizar entradas duplicadas",
+    "updateDuplicatesHint": "Se existir uma entrada com o mesmo (slug + idioma), atualiza o conteúdo dela em vez de ignorá-la.",
+    "preflightRunning": "Executando a validação prévia…",
+    "preflightPassed": "Validação prévia aprovada: {total, plural, one {# linha pronta} other {# linhas prontas}} ({toCreate} novas, {toUpdate} atualizações)",
+    "preflightErrors": "Erros detectados na validação prévia ({count})",
+    "moreErrors": "…e mais {count}",
+    "invalidFormat": "Formato inválido",
+    "columns": {
+      "row": "Linha",
+      "slug": "Slug",
+      "locale": "Idioma",
+      "status": "Status",
+      "action": "Ação"
+    },
+    "actionUpdate": "Atualizar",
+    "actionCreate": "Criar",
+    "submit": "Importar entradas",
+    "submitCount": "{count, plural, one {Importar # entrada} other {Importar # entradas}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "Falha ao carregar os tipos de conteúdo",
+    "loadEntriesFailed": "Falha ao carregar as entradas",
+    "movedToTrash": "Entrada movida para a lixeira",
+    "deleteFailed": "Falha ao excluir",
+    "restored": "Entrada restaurada",
+    "restoreFailed": "Falha ao restaurar",
+    "purged": "Entrada excluída permanentemente",
+    "purgeFailed": "Falha ao eliminar",
+    "promoted": "Entrada promovida para {stage}",
+    "promoteFailed": "Falha ao promover a entrada",
+    "exportDownloaded": "Exportação {format} baixada",
+    "exportFailed": "Falha ao exportar",
+    "readFileFailed": "Falha ao ler o arquivo",
+    "importCreated": "{count} criadas",
+    "importUpdated": "{count} atualizadas",
+    "importNoChanges": "nenhuma alteração",
+    "importComplete": "Importação concluída: {summary}",
+    "importSkipped": "({count} ignoradas)",
+    "importFailed": "Falha ao executar a importação",
+    "bulkFailed": "Falha na ação em massa",
+    "duplicated": "Duplicada como \"{slug}\"",
+    "duplicateFailed": "Falha ao duplicar",
+    "noUniqueSlug": "Não foi possível encontrar um slug único para a cópia",
+    "urlCopied": "URL da API copiada para a área de transferência",
+    "copyUrlFailed": "Não foi possível copiar a URL"
+  }
+}

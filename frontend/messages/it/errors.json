@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "Qualcosa è andato storto",
+    "description": "Si è verificato un errore imprevisto in questa pagina. I tuoi dati sono al sicuro: si tratta solo di un errore di visualizzazione.",
+    "errorId": "ID errore:",
+    "goToDashboard": "Vai alla dashboard",
+    "tryAgain": "Riprova"
+  },
+  "boundary": {
+    "title": "Qualcosa è andato storto",
+    "failedToLoad": "Impossibile caricare {label}. L'errore è stato segnalato automaticamente.",
+    "sectionFailed": "Impossibile caricare questa sezione. L'errore è stato segnalato automaticamente.",
+    "unknownError": "Errore sconosciuto",
+    "tryAgain": "Riprova"
+  }
+}

@@ -20,6 +20,7 @@ import { populateDeep } from '../common/populate.util';
 import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
 import { entriesToCsv, parseCsvToEntries } from '../common/csv.util';
 import { PluginHookBus } from '../plugin/plugin-hook-bus';
+import { RedirectsService } from '../redirects/redirects.service';
 import { PluginEvents, EntryEventSource } from '../plugin/plugin.events';
 
 export interface AdminListQuery {
@@ -53,6 +54,7 @@ export class EntriesService {
     private realtime: RealtimeGateway,
     private jwtService: JwtService,
     @Optional() private hookBus?: PluginHookBus,
+    @Optional() private redirects?: RedirectsService,
   ) {}
 
   /**
@@ -86,7 +88,8 @@ export class EntriesService {
     return this.prisma.entry.findMany({ where: { id: { in: ids }, deletedAt: null }, include: { contentType: true } });
   }
 
-  async create(dto: CreateEntryDto, actorId?: number, role?: string) {
+  /** `source` tags the entry hooks when the write doesn't come from the admin editor (e.g. 'import'). */
+  async create(dto: CreateEntryDto, actorId?: number, role?: string, source?: EntryEventSource) {
     const contentType = await this.prisma.contentType.findUnique({
       where: { id: dto.contentTypeId },
     });
@@ -104,6 +107,7 @@ export class EntriesService {
         actorId,
         role,
         contentType: contentType.name,
+        ...(source ? { source } : {}),
       });
     }
 
@@ -164,6 +168,7 @@ export class EntriesService {
         status: entry.status,
         contentType: contentType.name,
         data: entry.data as Record<string, any>,
+        ...(source ? { source } : {}),
       });
     }
 
@@ -379,7 +384,7 @@ export class EntriesService {
 
     if (populate.length && entry.contentType) {
       const schema = entry.contentType.schema as unknown as FieldDef[];
-      data = await populateDeep(data, schema, populate, this.prisma, 0, { ownerId: entry.publicId });
+      data = await populateDeep(data, schema, populate, this.prisma, 0, { ownerId: entry.publicId, readRole: role });
     }
 
     if (entry.contentType?.schema) {
@@ -479,7 +484,7 @@ export class EntriesService {
     return { id: newEntry.id, isNew: true, locale: newEntry.locale };
   }
 
-  async update(id: number, dto: UpdateEntryDto, actorId?: number, role?: string) {
+  async update(id: number, dto: UpdateEntryDto, actorId?: number, role?: string, source?: EntryEventSource) {
     const entry = await this.findOne(id);
     const schema = entry.contentType.schema as unknown as FieldDef[];
 
@@ -492,6 +497,7 @@ export class EntriesService {
         role,
         currentEntry: entry,
         contentType: entry.contentType?.name,
+        ...(source ? { source } : {}),
       });
 
       if (dto.status === 'published' && entry.status !== 'published') {
@@ -569,6 +575,9 @@ export class EntriesService {
       contentType: updated.contentType?.name,
     });
 
+    // A published entry's old URL gets a 301 to the new one (REDIRECTS_ON_SLUG_CHANGE).
+    if (updated.slug !== entry.slug) await this.redirects?.entrySlugChanged(entry, updated);
+
     this.realtime.notifyEntryUpdated({
       id: updated.id,
       slug: updated.slug,
@@ -584,6 +593,7 @@ export class EntriesService {
         status: updated.status,
         contentType: updated.contentType?.name,
         data: updated.data as Record<string, any>,
+        ...(source ? { source } : {}),
       });
 
       if (updated.status === 'published' && entry.status !== 'published') {

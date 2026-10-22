@@ -1,0 +1,136 @@
+{
+  "brand": {
+    "title": "品牌",
+    "subtitle": "您的名称、徽标和强调色——用于管理后台、浏览器标签页/网站图标、登录界面以及表单提交邮件。",
+    "identity": {
+      "title": "标识",
+      "description": "应用于本站点所有展示品牌的位置。",
+      "name": "品牌名称",
+      "logo": "徽标",
+      "logoHelp": "方形图片效果最佳。显示在侧边栏、登录页、网站图标和邮件中。",
+      "accent": "强调色",
+      "accentPicker": "强调色选择器",
+      "previewHelp": "侧边栏顶部的显示效果。"
+    },
+    "preview": "预览",
+    "theme": {
+      "title": "主题",
+      "description": "可选。重新设置管理后台中主按钮和输入框的颜色。留空则使用默认主题。",
+      "button": "按钮颜色",
+      "buttonHelp": "主按钮。文字颜色会自动调整以保证对比度。",
+      "buttonPicker": "按钮颜色选择器",
+      "input": "输入框颜色",
+      "inputHelp": "输入框边框和焦点环。",
+      "inputPicker": "输入框颜色选择器",
+      "defaultPlaceholder": "（默认）",
+      "reset": "重置",
+      "sampleButton": "示例按钮",
+      "sampleInput": "示例输入框"
+    },
+    "invalidHex": "无效的十六进制颜色",
+    "saveChanges": "保存更改",
+    "noChanges": "无更改",
+    "confirm": {
+      "title": "保存品牌更改？",
+      "description": "这将为所有用户更新各处的品牌和主题——管理后台侧边栏、浏览器标签页和网站图标、登录界面以及表单提交邮件。"
+    },
+    "toasts": {
+      "nameRequired": "品牌名称为必填项",
+      "accentInvalid": "请输入有效的十六进制强调色，例如 {example}",
+      "buttonInvalid": "按钮颜色必须是有效的十六进制值（或留空）",
+      "inputInvalid": "输入框颜色必须是有效的十六进制值（或留空）",
+      "saved": "品牌已更新",
+      "saveFailed": "更新品牌失败"
+    }
+  },
+  "languages": {
+    "title": "语言",
+    "subtitle": "编辑者可以用来撰写内容的语言。每个条目在每种语言下可以有一个翻译；当 API 请求未指定语言时使用默认语言，并在使用 <code></code> 时作为回退语言。",
+    "enabled": {
+      "title": "已启用的语言",
+      "description": "移除语言会保留其条目，只是不再在编辑器中提供该语言。",
+      "entryCount": "{count, plural, other {# 个条目}}",
+      "default": "默认",
+      "makeDefault": "设为默认",
+      "removeWithEntries": "{count, plural, other {# 个条目}}将保留，但不再提供该语言",
+      "removeLabel": "移除 {language}",
+      "orphaned": "以下未启用的语言中存在条目：",
+      "orphanedHint": "。点击某个语言即可启用。"
+    },
+    "saveChanges": "保存更改",
+    "add": {
+      "title": "添加语言",
+      "description": "使用语言代码，例如 <code>fr</code>、<code>pt-BR</code> 或 <code>zh-Hant</code>。",
+      "placeholder": "例如 {example}",
+      "codeLabel": "语言代码",
+      "willAdd": "将添加 {language}",
+      "alreadyEnabled": "已启用",
+      "invalidCode": "不是有效的语言代码"
+    },
+    "toasts": {
+      "saved": "语言已保存",
+      "saveFailed": "无法保存语言"
+    }
+  },
+  "server": {
+    "title": "邮件与存储",
+    "subtitle": "邮件的发送来源以及上传文件的存放位置。",
+    "loadFailed": "无法加载设置",
+    "saveFailed": "无法保存",
+    "save": "保存",
+    "keepSecret": "已保存——留空则保持不变。",
+    "envNotice": "由服务器上的 <code>{what}</code> 环境变量设置——请在那里更改。",
+    "mail": {
+      "title": "邮件",
+      "description": "用于密码重置、团队邀请和表单通知。",
+      "enabled": "发送邮件",
+      "host": "SMTP 服务器",
+      "port": "端口",
+      "security": "安全",
+      "starttls": "STARTTLS (587)",
+      "ssl": "SSL/TLS (465)",
+      "user": "用户名",
+      "password": "密码",
+      "from": "发件地址",
+      "fromHint": "显示为发件人，例如 Acme '<'noreply@acme.com'>'。默认为用户名。",
+      "testTo": "发送测试邮件至",
+      "sendTest": "发送测试",
+      "testSent": "测试邮件已发送至 {to}",
+      "testFailed": "无法发送测试邮件",
+      "saved": "邮件设置已保存——现已生效",
+      "turnedOff": "邮件已关闭"
+    },
+    "storage": {
+      "title": "文件存储",
+      "description": "上传的图片和文件。",
+      "where": "上传文件存放于",
+      "local": "本服务器的磁盘",
+      "s3": "S3 兼容存储",
+      "localHint": "适用于带持久磁盘的单台服务器。",
+      "localProductionWarning": "在大多数托管平台和容器中，此磁盘会在重新部署时被清空——上传的文件将会丢失。请使用 S3 兼容存储。",
+      "provider": "服务商",
+      "otherProvider": "其他（MinIO、Backblaze B2…）",
+      "bucket": "存储桶",
+      "endpoint": "端点",
+      "region": "区域",
+      "accessKey": "Access Key ID",
+      "secretKey": "Secret Access Key",
+      "publicUrl": "公开 URL（可选）",
+      "publicUrlHint": "存储桶的 CDN 或自定义域名。存储桶必须允许公开读取。",
+      "test": "测试连接",
+      "testOk": "已连接——已写入并删除一个测试文件",
+      "testFailed": "无法连接到存储桶",
+      "saved": "存储设置已保存",
+      "restartRequired": "存储更改将在服务器重启后生效。现有文件不会被移动。",
+      "restart": "立即重启",
+      "restarting": "正在重启——管理后台稍后将重新连接"
+    },
+    "search": {
+      "title": "搜索",
+      "postgres": "搜索使用数据库的全文索引（<code>?search=</code>）。如需容错拼写的排序搜索，请运行 Meilisearch 并设置 SEARCH_DRIVER=meilisearch。",
+      "meilisearch": "搜索使用 Meilisearch（索引“{index}”）。内容变化时会自动更新。",
+      "reindex": "重建索引",
+      "reindexQueued": "正在后台重建搜索索引"
+    }
+  }
+}

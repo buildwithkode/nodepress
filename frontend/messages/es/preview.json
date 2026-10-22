@@ -1,0 +1,27 @@
+{
+  "toggle": "En vivo",
+  "toggleTitle": "Mostrar esta entrada en tu sitio, actualizada mientras escribes",
+  "pane": {
+    "title": "Vista previa en vivo",
+    "device": {
+      "mobile": "Móvil",
+      "tablet": "Tableta",
+      "desktop": "Escritorio"
+    },
+    "reload": "Recargar",
+    "openInNewTab": "Abrir en una pestaña nueva",
+    "close": "Cerrar vista previa",
+    "preparing": "Preparando la vista previa…",
+    "tokenFailed": "No se pudo crear un token de vista previa.",
+    "retry": "Reintentar",
+    "saveFirst": "Guarda la entrada para verla en la vista previa en vivo.",
+    "invalidUrl": "La URL de vista previa de este tipo de contenido no es una URL http(s) válida. Corrígela en los ajustes del tipo de contenido.",
+    "frameTitle": "Vista previa en vivo de {slug}",
+    "hint": "Tus cambios se envían a la página mientras escribes. Las páginas que usan @nodepress/client/preview se actualizan sin recargar; haz clic en un elemento resaltado para ir a su campo."
+  },
+  "settings": {
+    "label": "URL de vista previa",
+    "hint": "Opcional. La página de tu sitio que muestra una entrada, abierta en el panel de vista previa en vivo del editor. Estos marcadores se reemplazan:",
+    "invalid": "La URL de vista previa debe empezar por http:// o https://"
+  }
+}

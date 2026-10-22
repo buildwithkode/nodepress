@@ -1,0 +1,70 @@
+{
+  "entryCount": "{count, plural, one {# voce} other {# voci}}",
+  "statuses": {
+    "open": "Aperta",
+    "scheduled": "Programmata",
+    "publishing": "In pubblicazione",
+    "published": "Pubblicata",
+    "failed": "Non riuscita"
+  },
+  "actions": {
+    "publish": "Pubblica",
+    "unpublish": "Annulla pubblicazione",
+    "archive": "Archivia"
+  },
+  "list": {
+    "title": "Release",
+    "description": "Raggruppa le modifiche alle voci (pubblica, annulla pubblicazione, archivia) e mettile online insieme, subito o a un'ora stabilita. Aggiungi voci dall'elenco Voci o dall'editor di una voce.",
+    "namePlaceholder": "Nome della nuova release, es. Lancio di primavera",
+    "empty": "Ancora nessuna release.",
+    "upcoming": "In arrivo",
+    "published": "Pubblicate",
+    "publishedAt": "pubblicata {date}",
+    "loadFailed": "Impossibile caricare le release",
+    "createFailed": "Impossibile creare la release"
+  },
+  "detail": {
+    "notFound": "Release non trovata",
+    "publishedAt": "Pubblicata {date}",
+    "publishNow": "Pubblica ora",
+    "publish": "Pubblica",
+    "publishConfirmTitle": "Pubblicare “{name}”?",
+    "publishConfirmDescription": "{count, plural, one {# modifica va} other {# modifiche vanno}} online insieme, in un solo passaggio. Non è possibile annullarla nel suo insieme.",
+    "publishedToast": "Release pubblicata",
+    "publishFailed": "Pubblicazione non riuscita: non è stato modificato nulla. {error}",
+    "schedule": "Programma",
+    "scheduledFor": "Andrà online automaticamente il {date}.",
+    "scheduleHint": "Scegli un orario e la release andrà online da sola (controllo ogni minuto).",
+    "scheduledToast": "Release programmata",
+    "unschedule": "Annulla programmazione",
+    "unscheduledToast": "Programmazione rimossa",
+    "entriesTitle": "Voci ({count})",
+    "entriesDescription": "Ogni voce viene pubblicata così com'è al momento della pubblicazione: puoi continuare a modificarla fino ad allora. Aggiungi voci dall'elenco <link>Voci</link>.",
+    "noEntries": "Ancora nessuna voce.",
+    "currentStatus": "ora {status}",
+    "deletedSkipped": "eliminata: verrà saltata",
+    "conflicts": "Presente anche in {releases}: prevale quella pubblicata per ultima.",
+    "conflictItem": "“{name}” ({action})",
+    "removeItem": "Rimuovi dalla release",
+    "deleteRelease": "Elimina release",
+    "deleteConfirmTitle": "Eliminare “{name}”?",
+    "deleteConfirmDescription": "La release viene rimossa. Le sue voci restano esattamente come sono.",
+    "deleteFailed": "Impossibile eliminare"
+  },
+  "addDialog": {
+    "title": "Aggiungi alla release",
+    "description": "Una release applica tutte le sue modifiche in una volta: quando la pubblichi o all'orario programmato.",
+    "release": "Release",
+    "newRelease": "Nuova release…",
+    "namePlaceholder": "es. Lancio di primavera",
+    "nameRequired": "Assegna un nome alla release",
+    "whenGoesOut": "Quando la release viene pubblicata",
+    "actionOption": {
+      "publish": "{count, plural, one {Pubblica questa voce} other {Pubblica queste voci}}",
+      "unpublish": "{count, plural, one {Annulla la pubblicazione di questa voce} other {Annulla la pubblicazione di queste voci}}",
+      "archive": "{count, plural, one {Archivia questa voce} other {Archivia queste voci}}"
+    },
+    "added": "{count, plural, one {Aggiunta # voce} other {Aggiunte # voci}}: <link>apri release</link>",
+    "addFailed": "Impossibile aggiungere alla release"
+  }
+}

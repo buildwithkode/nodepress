@@ -11,6 +11,7 @@ import { randomBytes } from 'crypto';
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
+import { RolesService } from '../roles/roles.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -25,6 +26,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private mail: MailService,
+    private roles: RolesService,
   ) {}
 
   /** Returns true if no admin account exists yet */
@@ -47,7 +49,7 @@ export class AuthService {
     });
 
     const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
-    return { access_token, user: { id: user.id, email: user.email, role: user.role } };
+    return { access_token, user: await this.sessionUser(user) };
   }
 
   async login(dto: LoginDto, res: Response) {
@@ -81,7 +83,7 @@ export class AuthService {
     const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
     await this.issueRefreshCookie(user.id, res);
 
-    return { access_token, user: { id: user.id, email: user.email, role: user.role } };
+    return { access_token, user: await this.sessionUser(user) };
   }
 
   // ── Two-Factor Authentication (2FA / TOTP) ──────────────────────────────────
@@ -109,7 +111,7 @@ export class AuthService {
     if (isTotpValid) {
       const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
       await this.issueRefreshCookie(user.id, res);
-      return { access_token, user: { id: user.id, email: user.email, role: user.role } };
+      return { access_token, user: await this.sessionUser(user) };
     }
 
     // Check backup recovery codes
@@ -126,7 +128,7 @@ export class AuthService {
       await this.issueRefreshCookie(user.id, res);
       return {
         access_token,
-        user: { id: user.id, email: user.email, role: user.role },
+        user: await this.sessionUser(user),
         recoveryUsed: true,
         remainingRecoveryCodes: recoveryResult.remainingHashes.length,
       };
@@ -313,10 +315,16 @@ export class AuthService {
   async createSession(user: { id: number; email: string; role: string }, res: Response) {
     const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
     await this.issueRefreshCookie(user.id, res);
-    return { access_token, user: { id: user.id, email: user.email, role: user.role } };
+    return { access_token, user: await this.sessionUser(user) };
   }
 
   // ── Private helpers ─────────────────────────────────────────────────────────
+
+  /** The user object sent to the admin: role is the base role, customRole the custom one (if any). */
+  private async sessionUser(user: { id: number; email: string; role: string }) {
+    const { role, customRole } = await this.roles.resolve(user.role);
+    return { id: user.id, email: user.email, role, ...(customRole && { customRole }) };
+  }
 
   private async issueRefreshCookie(userId: number, res: Response): Promise<void> {
     const token = randomBytes(32).toString('hex');

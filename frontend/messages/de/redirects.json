@@ -1,0 +1,63 @@
+{
+  "title": "Weiterleitungen",
+  "description": "Leiten Sie Besucher und Suchmaschinen von alten auf neue URLs. Ihre Website fragt NodePress über GET /api/redirects/resolve, wohin ein Pfad führen soll.",
+  "importCsv": "CSV importieren",
+  "exportCsv": "CSV exportieren",
+  "add": "Weiterleitung hinzufügen",
+  "forbidden": "Nur Redakteure und Administratoren können Weiterleitungen verwalten.",
+  "searchPlaceholder": "Pfade suchen…",
+  "sort": {
+    "newest": "Neueste zuerst",
+    "mostHits": "Meiste Aufrufe",
+    "from": "Quellpfad A–Z"
+  },
+  "noMatch": "Keine Weiterleitung passt zu „{query}“.",
+  "empty": "Noch keine Weiterleitungen. Fügen Sie eine hinzu oder importieren Sie eine CSV mit den Spalten from,to,status.",
+  "columns": {
+    "from": "Von",
+    "to": "Nach",
+    "hits": "Aufrufe"
+  },
+  "goneTarget": "Entfernt (kein Ziel)",
+  "openTarget": "Ziel in neuem Tab öffnen",
+  "statuses": {
+    "s301": "Dauerhaft verschoben",
+    "s302": "Gefunden (vorübergehend)",
+    "s307": "Vorübergehend, Methode bleibt",
+    "s308": "Dauerhaft, Methode bleibt",
+    "s410": "Entfernt"
+  },
+  "lastHit": "zuletzt {date}",
+  "neverHit": "nie verwendet",
+  "deleteTitle": "Diese Weiterleitung löschen?",
+  "deleteDescription": "Besucher von {from} erhalten dann einen 404-Fehler.",
+  "count": "{count, plural, one {# Weiterleitung} other {# Weiterleitungen}}",
+  "autoHint": "Ändert sich der Slug eines veröffentlichten Eintrags, legt NodePress automatisch eine 301 von seinem alten Pfad an (abschaltbar mit <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Groß- und Kleinschreibung von Pfaden wird ignoriert; ein Query-String passt nur, wenn er Teil der Quelle ist.",
+  "dialog": {
+    "addTitle": "Weiterleitung hinzufügen",
+    "editTitle": "Weiterleitung bearbeiten",
+    "description": "Schleifen und Ketten mit mehr als 5 Weiterleitungen werden abgelehnt.",
+    "fromHint": "Ein Pfad Ihrer Website, z. B. /alte-seite. Fügen Sie ?query nur hinzu, um genau diese Abfrage zu treffen.",
+    "toHint": "Ein Pfad Ihrer Website (/neue-seite) oder eine vollständige URL (https://…)."
+  },
+  "import": {
+    "title": "Weiterleitungen importieren",
+    "description": "Prüfung von <mono>{file}</mono>. Zeilen fügen Weiterleitungen hinzu oder aktualisieren die mit derselben Quelle; hat eine Zeile ein Problem, wird nichts gespeichert.",
+    "checking": "Datei wird geprüft…",
+    "new": "neu",
+    "changed": "geändert",
+    "unchanged": "unverändert",
+    "errors": "{count, plural, one {# Problem — beheben und erneut importieren} other {# Probleme — beheben und erneut importieren}}",
+    "line": "Zeile {line}:",
+    "apply": "{count, plural, =0 {Nichts zu importieren} one {# Weiterleitung importieren} other {# Weiterleitungen importieren}}",
+    "appliedToast": "Importiert: {created} neu, {updated} geändert",
+    "failed": "Import fehlgeschlagen"
+  },
+  "loadFailed": "Weiterleitungen konnten nicht geladen werden",
+  "createdToast": "Weiterleitung hinzugefügt",
+  "savedToast": "Weiterleitung gespeichert",
+  "saveFailed": "Weiterleitung konnte nicht gespeichert werden",
+  "deletedToast": "Weiterleitung von {from} gelöscht",
+  "deleteFailed": "Weiterleitung konnte nicht gelöscht werden",
+  "exportFailed": "Weiterleitungen konnten nicht exportiert werden"
+}

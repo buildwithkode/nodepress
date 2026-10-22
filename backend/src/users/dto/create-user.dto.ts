@@ -1,4 +1,4 @@
-import { IsEmail, IsIn, IsOptional } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // Invite-only onboarding: the admin supplies only email + role. The account is
@@ -9,8 +9,9 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
-  @ApiPropertyOptional({ enum: ['admin', 'editor', 'contributor', 'viewer'], default: 'editor' })
+  @ApiPropertyOptional({ example: 'editor', default: 'editor', description: 'admin, editor, contributor, viewer or a custom role name' })
   @IsOptional()
-  @IsIn(['admin', 'editor', 'contributor', 'viewer'])
+  @IsString()
+  @MaxLength(50)
   role?: string;
 }

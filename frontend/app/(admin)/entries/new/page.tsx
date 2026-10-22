@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { withCondition } from '@/components/ConditionalField';
 
 interface Field { name: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
@@ -445,9 +446,9 @@ export default function NewEntryPage() {
                       />
                     </div>
                     <div>
-                      {selectedCT.schema.map((field) => (
+                      {selectedCT.schema.map((field) => withCondition(field as any, { control, fields: selectedCT.schema as any, path: '' }, (
                         <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} />
-                      ))}
+                      )))}
                     </div>
                   </div>
                 )}

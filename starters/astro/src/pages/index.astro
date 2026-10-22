@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+import { loadPages } from '../lib/cms';
+
+const { pages, error } = await loadPages();
+---
+
+<Base>
+  <PostList page={pages[0]} error={error} />
+</Base>

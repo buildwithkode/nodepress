@@ -1,0 +1,70 @@
+{
+  "entryCount": "{count, plural, other {# 个条目}}",
+  "statuses": {
+    "open": "进行中",
+    "scheduled": "已排期",
+    "publishing": "发布中",
+    "published": "已发布",
+    "failed": "失败"
+  },
+  "actions": {
+    "publish": "发布",
+    "unpublish": "取消发布",
+    "archive": "归档"
+  },
+  "list": {
+    "title": "发布批次",
+    "description": "将条目更改（发布、取消发布、归档）归为一组，立即或在指定时间一起上线。可从条目列表或条目编辑器中添加条目。",
+    "namePlaceholder": "新发布批次名称，例如 春季上线",
+    "empty": "暂无发布批次。",
+    "upcoming": "即将上线",
+    "published": "已发布",
+    "publishedAt": "发布于 {date}",
+    "loadFailed": "加载发布批次失败",
+    "createFailed": "无法创建发布批次"
+  },
+  "detail": {
+    "notFound": "未找到发布批次",
+    "publishedAt": "发布于 {date}",
+    "publishNow": "立即发布",
+    "publish": "发布",
+    "publishConfirmTitle": "发布“{name}”？",
+    "publishConfirmDescription": "{count, plural, other {# 项更改}}将一步同时上线。此操作无法整体撤销。",
+    "publishedToast": "发布批次已发布",
+    "publishFailed": "发布失败——未做任何更改。{error}",
+    "schedule": "排期",
+    "scheduledFor": "将于 {date} 自动上线。",
+    "scheduleHint": "选择一个时间，发布批次将自动上线（每分钟检查一次）。",
+    "scheduledToast": "发布批次已排期",
+    "unschedule": "取消排期",
+    "unscheduledToast": "排期已移除",
+    "entriesTitle": "条目（{count}）",
+    "entriesDescription": "每个条目都会以发布时的状态上线——在此之前可以继续编辑。可从<link>条目</link>列表中添加条目。",
+    "noEntries": "暂无条目。",
+    "currentStatus": "当前为{status}",
+    "deletedSkipped": "已删除——将被跳过",
+    "conflicts": "也在 {releases} 中——以最后上线的为准。",
+    "conflictItem": "“{name}”（{action}）",
+    "removeItem": "从发布批次中移除",
+    "deleteRelease": "删除发布批次",
+    "deleteConfirmTitle": "删除“{name}”？",
+    "deleteConfirmDescription": "发布批次将被删除。其中的条目将保持原样。",
+    "deleteFailed": "无法删除"
+  },
+  "addDialog": {
+    "title": "添加到发布批次",
+    "description": "发布批次会一次性应用其所有更改——在您发布它时，或在其排定的时间。",
+    "release": "发布批次",
+    "newRelease": "新建发布批次…",
+    "namePlaceholder": "例如 春季上线",
+    "nameRequired": "请为发布批次命名",
+    "whenGoesOut": "发布批次上线时",
+    "actionOption": {
+      "publish": "{count, plural, =1 {发布此条目} other {发布这些条目}}",
+      "unpublish": "{count, plural, =1 {取消发布此条目} other {取消发布这些条目}}",
+      "archive": "{count, plural, =1 {归档此条目} other {归档这些条目}}"
+    },
+    "added": "{count, plural, other {已添加 # 个条目}}——<link>打开发布批次</link>",
+    "addFailed": "无法添加到发布批次"
+  }
+}

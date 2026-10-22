@@ -9,10 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
+import { withCondition } from '@/components/ConditionalField';
+import type { FieldCondition } from '@/lib/field-condition';
 
 interface SubField {
   name: string;
   type: string;
+  condition?: FieldCondition;
 }
 
 interface Props {
@@ -192,7 +195,7 @@ export default function RepeaterField({
             {subFields.map((sf) => {
               const itemPath = `${fieldName}.${index}`;
               const sfLabel = toLabel(sf.name);
-              return (
+              return withCondition(sf, { control, fields: subFields, path: itemPath }, (
                 <div key={sf.name}>
                   {sf.type === 'boolean' ? (
                     <div className="flex items-center gap-2">
@@ -206,7 +209,7 @@ export default function RepeaterField({
                     </>
                   )}
                 </div>
-              );
+              ));
             })}
           </div>
         </div>

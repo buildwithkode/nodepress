@@ -164,5 +164,37 @@
     "generating": "Génération…",
     "placeholder": "Décrivez ce que vous voulez gérer, par ex. « Des événements avec une date, un lieu, un prix et une liste d’intervenants »",
     "suggested": "{count, plural, one {# champ proposé} other {# champs proposés}} — vérifiez-les, puis enregistrez"
+  },
+  "condition": {
+    "add": "Afficher seulement si…",
+    "showIf": "Afficher seulement si",
+    "ops": {
+      "eq": "est",
+      "ne": "n’est pas",
+      "in": "est l’un de",
+      "notIn": "n’est aucun de",
+      "set": "a une valeur",
+      "notSet": "est vide"
+    },
+    "on": "Activé",
+    "off": "Désactivé",
+    "listPlaceholder": "valeur, valeur…",
+    "valuePlaceholder": "valeur",
+    "remove": "Supprimer la condition"
+  },
+  "migration": {
+    "title": "Mettre à jour les entrées existantes",
+    "description": "{count, plural, one {# entrée utilise} other {# entrées utilisent}} ce type de contenu. Choisissez ce qu’il advient de leurs valeurs enregistrées.",
+    "renames": "Champs renommés — les valeurs passent au nouveau nom",
+    "entries": "{count, plural, one {# entrée} other {# entrées}}",
+    "converts": "Types de champ modifiés",
+    "convertTo": "{from} → {to} : convertir les valeurs existantes",
+    "lost": "{count, plural, one {# valeur ne peut pas être convertie et sera supprimée} other {# valeurs ne peuvent pas être converties et seront supprimées}}",
+    "notConvertible": "« {field} » ({from} → {to}) ne peut pas être converti automatiquement. Les valeurs existantes restent telles quelles et pourront être refusées au prochain enregistrement.",
+    "removed": "Champs supprimés",
+    "removedHint": "Les valeurs des champs supprimés restent dans les entrées sauf si vous les effacez ici.",
+    "deleteValues": "Effacer les valeurs enregistrées de « {field} »",
+    "cancel": "Annuler",
+    "save": "Enregistrer et mettre à jour les entrées"
   }
 }

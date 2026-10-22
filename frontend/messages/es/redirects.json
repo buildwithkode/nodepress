@@ -1,0 +1,63 @@
+{
+  "title": "Redirecciones",
+  "description": "Envía a visitantes y buscadores de las URL antiguas a las nuevas. Tu sitio pregunta a NodePress adónde debe ir una ruta mediante GET /api/redirects/resolve.",
+  "importCsv": "Importar CSV",
+  "exportCsv": "Exportar CSV",
+  "add": "Añadir redirección",
+  "forbidden": "Solo los editores y administradores pueden gestionar redirecciones.",
+  "searchPlaceholder": "Buscar rutas…",
+  "sort": {
+    "newest": "Más recientes primero",
+    "mostHits": "Más visitas",
+    "from": "Ruta de origen A–Z"
+  },
+  "noMatch": "Ninguna redirección coincide con «{query}».",
+  "empty": "Aún no hay redirecciones. Añade una o importa un CSV con las columnas from,to,status.",
+  "columns": {
+    "from": "Desde",
+    "to": "Hacia",
+    "hits": "Visitas"
+  },
+  "goneTarget": "Eliminada (sin destino)",
+  "openTarget": "Abrir el destino en una pestaña nueva",
+  "statuses": {
+    "s301": "Movida permanentemente",
+    "s302": "Encontrada (temporal)",
+    "s307": "Temporal, conserva el método",
+    "s308": "Permanente, conserva el método",
+    "s410": "Eliminada"
+  },
+  "lastHit": "última el {date}",
+  "neverHit": "nunca usada",
+  "deleteTitle": "¿Eliminar esta redirección?",
+  "deleteDescription": "Quienes visiten {from} recibirán un error 404.",
+  "count": "{count, plural, one {# redirección} other {# redirecciones}}",
+  "autoHint": "Cuando cambia el slug de una entrada publicada, NodePress añade automáticamente una 301 desde su ruta anterior (desactívalo con <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Las rutas no distinguen mayúsculas; una cadena de consulta solo coincide si forma parte del origen.",
+  "dialog": {
+    "addTitle": "Añadir redirección",
+    "editTitle": "Editar redirección",
+    "description": "Se rechazan los bucles y las cadenas de más de 5 redirecciones.",
+    "fromHint": "Una ruta de tu sitio, p. ej. /pagina-antigua. Añade ?consulta solo para coincidir exactamente con esa consulta.",
+    "toHint": "Una ruta de tu sitio (/pagina-nueva) o una URL completa (https://…)."
+  },
+  "import": {
+    "title": "Importar redirecciones",
+    "description": "Revisión de <mono>{file}</mono>. Las filas añaden redirecciones o actualizan la que tiene el mismo origen; no se guarda nada si alguna fila tiene un problema.",
+    "checking": "Comprobando el archivo…",
+    "new": "nuevas",
+    "changed": "modificadas",
+    "unchanged": "sin cambios",
+    "errors": "{count, plural, one {# problema — corrígelo e importa de nuevo} other {# problemas — corrígelos e importa de nuevo}}",
+    "line": "Línea {line}:",
+    "apply": "{count, plural, =0 {Nada que importar} one {Importar # redirección} other {Importar # redirecciones}}",
+    "appliedToast": "Importado: {created} nuevas, {updated} modificadas",
+    "failed": "La importación falló"
+  },
+  "loadFailed": "No se pudieron cargar las redirecciones",
+  "createdToast": "Redirección añadida",
+  "savedToast": "Redirección guardada",
+  "saveFailed": "No se pudo guardar la redirección",
+  "deletedToast": "Redirección desde {from} eliminada",
+  "deleteFailed": "No se pudo eliminar la redirección",
+  "exportFailed": "No se pudieron exportar las redirecciones"
+}

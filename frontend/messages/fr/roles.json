@@ -1,0 +1,57 @@
+{
+  "title": "Rôles",
+  "description": "Les rôles intégrés ne peuvent pas être modifiés. Un rôle personnalisé ouvre les mêmes parties de l'administration que le rôle dont il dérive et possède ses propres permissions sur le contenu.",
+  "backToUsers": "Utilisateurs",
+  "managePermissions": "Modifier les permissions",
+  "newRole": "Nouveau rôle",
+  "manage": "Gérer les rôles",
+  "customGroup": "Rôles personnalisés",
+  "basedOn": "Basé sur {base}",
+  "list": {
+    "role": "Rôle",
+    "basedOn": "Basé sur",
+    "users": "Utilisateurs",
+    "description": "Description",
+    "builtIn": "Intégré",
+    "userCount": "{count, plural, =0 {Aucun utilisateur} one {# utilisateur} other {# utilisateurs}}",
+    "empty": "Aucun rôle personnalisé pour l'instant.",
+    "edit": "Modifier le rôle",
+    "delete": "Supprimer le rôle"
+  },
+  "builtInDescriptions": {
+    "admin": "Accès complet, y compris les utilisateurs, les paramètres et les clés d'API",
+    "editor": "Crée, modifie, publie et supprime du contenu",
+    "contributor": "Crée et modifie du contenu ; ne peut pas publier",
+    "viewer": "Accès en lecture seule à l'administration"
+  },
+  "form": {
+    "createTitle": "Nouveau rôle",
+    "editTitle": "Modifier {label}",
+    "description": "Un rôle personnalisé reprend au départ les permissions sur le contenu du rôle dont il dérive. Restreignez-les sur la page des permissions.",
+    "label": "Libellé",
+    "name": "Nom",
+    "nameHelp": "Enregistré sous {name}. Les utilisateurs et les permissions y font référence : il ne pourra plus être modifié.",
+    "nameHelpEmpty": "Lettres minuscules, chiffres et tirets bas. Il ne pourra plus être modifié.",
+    "nameLocked": "Le nom ne peut pas être modifié.",
+    "baseRole": "Basé sur",
+    "baseRoleHelp": "Détermine les parties de l'administration accessibles à ce rôle.",
+    "baseRoleEditHelp": "Modifie les parties de l'administration accessibles à ce rôle. Les permissions sur le contenu enregistrées restent inchangées.",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "À quoi sert ce rôle",
+    "save": "Enregistrer",
+    "create": "Créer le rôle"
+  },
+  "deleteDialog": {
+    "title": "Supprimer le rôle « {label} » ?",
+    "description": "Ses permissions sur le contenu sont également supprimées.",
+    "inUse": "{count, plural, one {# utilisateur a encore} other {# utilisateurs ont encore}} ce rôle. Attribuez-leur d'abord un autre rôle."
+  },
+  "toasts": {
+    "created": "Rôle créé",
+    "updated": "Rôle mis à jour",
+    "deleted": "Rôle supprimé",
+    "saveFailed": "Impossible d'enregistrer le rôle",
+    "deleteFailed": "Impossible de supprimer le rôle",
+    "inUse": "{count, plural, one {# utilisateur a encore} other {# utilisateurs ont encore}} ce rôle. Attribuez-leur d'abord un autre rôle."
+  }
+}

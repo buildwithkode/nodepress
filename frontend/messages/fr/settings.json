@@ -92,7 +92,7 @@
       "user": "Nom d’utilisateur",
       "password": "Mot de passe",
       "from": "Adresse d’expédition",
-      "fromHint": "Affichée comme expéditeur, par ex. Acme <noreply@acme.com>. Par défaut : le nom d’utilisateur.",
+      "fromHint": "Affichée comme expéditeur, par ex. Acme '<'noreply@acme.com'>'. Par défaut : le nom d’utilisateur.",
       "testTo": "Envoyer un test à",
       "sendTest": "Envoyer un test",
       "testSent": "E-mail de test envoyé à {to}",

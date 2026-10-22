@@ -38,6 +38,7 @@ import {
   X,
   Clock,
   Package,
+  MonitorPlay,
 } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import { useEntryPresence } from '@/lib/useEntryPresence';
@@ -58,6 +59,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { cn, ctLabel, formatSlugInput, cleanSlug } from '@/lib/utils';
 import DynamicFormField from '../../DynamicFormField';
 import { AiDraftButton } from '@/components/AiAssist';
+import { LivePreviewPane, focusEntryField } from '@/components/LivePreviewPane';
 import {
   Select,
   SelectContent,
@@ -73,9 +75,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { withCondition } from '@/components/ConditionalField';
+import { autosaveSnapshot } from '@/lib/autosave-snapshot';
 
 interface Field { name: string; type: string; options?: any; label?: string }
-interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[] }
+interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[]; previewUrl?: string | null }
 interface TranslationItem {
   id: number;
   locale: string;
@@ -137,7 +141,9 @@ export default function EditEntryPage() {
   // Multilingual translations and live reference state
   const [translations, setTranslations] = useState<TranslationItem[]>([]);
   const [creatingTranslation, setCreatingTranslation] = useState(false);
-  const [sidePanel, setSidePanel] = useState<'none' | 'reference' | 'json'>('json');
+  const [sidePanel, setSidePanel] = useState<'none' | 'reference' | 'json' | 'live'>('json');
+  const tp = useTranslations('preview');
+  const focusField = useCallback((field: string) => { focusEntryField(containerRef.current, field); }, []);
   const [baseLocale, setBaseLocale] = useState('en');
   const [baseEntry, setBaseEntry] = useState<Entry | null>(null);
   const [loadingBase, setLoadingBase] = useState(false);
@@ -184,27 +190,33 @@ export default function EditEntryPage() {
   const watchedSlug = watch('slug') || '';
   const previewSlug = cleanSlug(watchedSlug);
 
+  // What was loaded or last saved — autosave skips when nothing changed.
+  const savedSnapshot = useRef<string | null>(null);
   const autosaveFn = useCallback(async () => {
     if (!entry) return;
+    const values = getValues();
+    const { slug, ...rest } = values;
+    const cleanFinalSlug = cleanSlug(slug || '');
+    const seo = {
+      title: seoTitle.trim() || undefined,
+      description: seoDescription.trim() || undefined,
+      image: seoImage.trim() || undefined,
+      noIndex: seoNoIndex || undefined,
+    };
+    const hasSeo = Object.values(seo).some((v) => v !== undefined);
+    const payload = {
+      slug: cleanFinalSlug,
+      status,
+      data: rest,
+      seo: hasSeo ? seo : null,
+      publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
+    };
+    const snapshot = autosaveSnapshot(payload);
+    if (snapshot === savedSnapshot.current) return;
     setAutosaveStatus('saving');
     try {
-      const values = getValues();
-      const { slug, ...rest } = values;
-      const cleanFinalSlug = cleanSlug(slug || '');
-      const seo = {
-        title: seoTitle.trim() || undefined,
-        description: seoDescription.trim() || undefined,
-        image: seoImage.trim() || undefined,
-        noIndex: seoNoIndex || undefined,
-      };
-      const hasSeo = Object.values(seo).some((v) => v !== undefined);
-      await api.put(`/entries/${entry.id}`, {
-        slug: cleanFinalSlug,
-        status,
-        data: rest,
-        seo: hasSeo ? seo : null,
-        publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
-      });
+      await api.put(`/entries/${entry.id}`, payload);
+      savedSnapshot.current = snapshot;
       setAutosaveStatus('saved');
       setTimeout(() => setAutosaveStatus('idle'), 2000);
     } catch {
@@ -244,6 +256,14 @@ export default function EditEntryPage() {
         const ctRes = await api.get(`/content-types/${e.contentTypeId}`);
         setContentType(ctRes.data);
         reset({ slug: e.slug, ...e.data });
+        const loadedPublishAt = toLocalDatetimeString(e.publishAt);
+        savedSnapshot.current = autosaveSnapshot({
+          slug: e.slug,
+          status: e.status ?? 'published',
+          data: e.data,
+          seo: e.seo ?? null,
+          publishAt: e.status === 'draft' && loadedPublishAt ? new Date(loadedPublishAt).toISOString() : null,
+        });
       })
       .catch(() => { toast.error(t('toast.loadEntryFailed')); router.push('/entries'); })
       .finally(() => setLoading(false));
@@ -712,6 +732,25 @@ export default function EditEntryPage() {
                   <Languages className="h-3.5 w-3.5" />
                   {t('reference.toggle')}
                 </Button>
+                {contentType?.previewUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "h-7 px-2.5 text-xs gap-1.5 transition-all font-medium",
+                      sidePanel === 'live'
+                        ? "bg-background text-emerald-500 shadow-xs border border-border/60"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    onClick={() => setSidePanel((p) => (p === 'live' ? 'none' : 'live'))}
+                    title={tp('toggleTitle')}
+                    aria-pressed={sidePanel === 'live'}
+                  >
+                    <MonitorPlay className="h-3.5 w-3.5" />
+                    {tp('toggle')}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -846,9 +885,12 @@ export default function EditEntryPage() {
                   />
                 </div>
                 <div>
-                  {contentType.schema.map((field) => (
-                    <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} entryId={Number(id)} />
-                  ))}
+                  {contentType.schema.map((field) => withCondition(field as any, { control, fields: contentType.schema as any, path: '' }, (
+                    // data-np-field: the live preview's click-to-edit finds the field by it.
+                    <div key={field.name} data-np-field={field.name}>
+                      <DynamicFormField field={field} control={control} register={register} errors={errors} watch={watch} entryId={Number(id)} />
+                    </div>
+                  )))}
                 </div>
               </div>
             )}
@@ -940,6 +982,24 @@ export default function EditEntryPage() {
 
           {/* Right pane: Translation Workspace or JSON Preview */}
           {sidePanel !== 'none' && (() => {
+            if (sidePanel === 'live' && contentType?.previewUrl) {
+              const { slug: liveSlug, ...liveData } = watchedValues;
+              return (
+                <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
+                  <LivePreviewPane
+                    template={contentType.previewUrl}
+                    contentType={contentType.name}
+                    entryId={entry?.id}
+                    slug={entry?.slug ?? ''}
+                    liveSlug={cleanSlug(liveSlug || '')}
+                    locale={locale}
+                    data={liveData}
+                    onFocusField={focusField}
+                    onClose={() => setSidePanel('none')}
+                  />
+                </div>
+              );
+            }
             if (sidePanel === 'reference') {
               return (
                 <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border bg-muted/10">

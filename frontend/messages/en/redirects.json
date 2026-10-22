@@ -1,0 +1,63 @@
+{
+  "title": "Redirects",
+  "description": "Send visitors and search engines from old URLs to new ones. Your site asks NodePress where a path should go via GET /api/redirects/resolve.",
+  "importCsv": "Import CSV",
+  "exportCsv": "Export CSV",
+  "add": "Add redirect",
+  "forbidden": "Only editors and admins can manage redirects.",
+  "searchPlaceholder": "Search paths…",
+  "sort": {
+    "newest": "Newest first",
+    "mostHits": "Most hits",
+    "from": "Source path A–Z"
+  },
+  "noMatch": "No redirects match “{query}”.",
+  "empty": "No redirects yet. Add one, or import a CSV with from,to,status columns.",
+  "columns": {
+    "from": "From",
+    "to": "To",
+    "hits": "Hits"
+  },
+  "goneTarget": "Gone (no target)",
+  "openTarget": "Open target in a new tab",
+  "statuses": {
+    "s301": "Moved permanently",
+    "s302": "Found (temporary)",
+    "s307": "Temporary, keeps method",
+    "s308": "Permanent, keeps method",
+    "s410": "Gone"
+  },
+  "lastHit": "last {date}",
+  "neverHit": "never used",
+  "deleteTitle": "Delete this redirect?",
+  "deleteDescription": "Visitors to {from} will get a 404 instead.",
+  "count": "{count, plural, one {# redirect} other {# redirects}}",
+  "autoHint": "When a published entry’s slug changes, NodePress adds a 301 from its old path automatically (turn off with <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Paths are matched without case; a query string only matches when it is part of the source.",
+  "dialog": {
+    "addTitle": "Add redirect",
+    "editTitle": "Edit redirect",
+    "description": "Loops and chains of more than 5 redirects are refused.",
+    "fromHint": "A path on your site, e.g. /old-page. Add ?query only to match that exact query.",
+    "toHint": "A path on your site (/new-page) or a full URL (https://…)."
+  },
+  "import": {
+    "title": "Import redirects",
+    "description": "Review of <mono>{file}</mono>. Rows are added or update the redirect with the same source; nothing is saved if any row has a problem.",
+    "checking": "Checking the file…",
+    "new": "new",
+    "changed": "changed",
+    "unchanged": "unchanged",
+    "errors": "{count, plural, one {# problem — fix it and import again} other {# problems — fix them and import again}}",
+    "line": "Line {line}:",
+    "apply": "{count, plural, =0 {Nothing to import} one {Import # redirect} other {Import # redirects}}",
+    "appliedToast": "Imported: {created} new, {updated} changed",
+    "failed": "Import failed"
+  },
+  "loadFailed": "Could not load redirects",
+  "createdToast": "Redirect added",
+  "savedToast": "Redirect saved",
+  "saveFailed": "Could not save the redirect",
+  "deletedToast": "Redirect from {from} deleted",
+  "deleteFailed": "Could not delete the redirect",
+  "exportFailed": "Could not export redirects"
+}

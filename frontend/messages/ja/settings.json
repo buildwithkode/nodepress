@@ -1,0 +1,136 @@
+{
+  "brand": {
+    "title": "ブランド",
+    "subtitle": "名前、ロゴ、アクセントカラーです。管理画面、ブラウザーのタブ/ファビコン、ログイン画面、フォーム送信メールで使用されます。",
+    "identity": {
+      "title": "アイデンティティ",
+      "description": "このインストールでブランドが表示されるすべての場所に適用されます。",
+      "name": "ブランド名",
+      "logo": "ロゴ",
+      "logoHelp": "正方形の画像が最適です。サイドバー、ログインページ、ファビコン、メールに表示されます。",
+      "accent": "アクセントカラー",
+      "accentPicker": "アクセントカラーの選択",
+      "previewHelp": "サイドバーのヘッダーの表示イメージです。"
+    },
+    "preview": "プレビュー",
+    "theme": {
+      "title": "テーマ",
+      "description": "任意。管理画面全体のプライマリボタンと入力欄の色を変更します。空欄の場合はデフォルトのテーマが使われます。",
+      "button": "ボタンの色",
+      "buttonHelp": "プライマリボタン。文字色はコントラストに合わせて自動調整されます。",
+      "buttonPicker": "ボタンの色の選択",
+      "input": "入力欄の色",
+      "inputHelp": "入力欄の枠線とフォーカスリング。",
+      "inputPicker": "入力欄の色の選択",
+      "defaultPlaceholder": "(デフォルト)",
+      "reset": "リセット",
+      "sampleButton": "サンプルボタン",
+      "sampleInput": "サンプル入力"
+    },
+    "invalidHex": "無効な 16 進数",
+    "saveChanges": "変更を保存",
+    "noChanges": "変更なし",
+    "confirm": {
+      "title": "ブランドの変更を保存しますか?",
+      "description": "管理画面のサイドバー、ブラウザーのタブとファビコン、ログイン画面、フォーム送信メールなど、すべての場所のブランドとテーマが全ユーザーに対して更新されます。"
+    },
+    "toasts": {
+      "nameRequired": "ブランド名は必須です",
+      "accentInvalid": "有効なアクセントカラーを 16 進数で入力してください (例: {example})",
+      "buttonInvalid": "ボタンの色は有効な 16 進数 (または空欄) にしてください",
+      "inputInvalid": "入力欄の色は有効な 16 進数 (または空欄) にしてください",
+      "saved": "ブランドを更新しました",
+      "saveFailed": "ブランドを更新できませんでした"
+    }
+  },
+  "languages": {
+    "title": "言語",
+    "subtitle": "編集者がコンテンツを書ける言語です。各エントリーは言語ごとに 1 つの翻訳を持てます。デフォルト言語は、API リクエストで言語が指定されていない場合や、<code></code> でのフォールバックとして使用されます。",
+    "enabled": {
+      "title": "有効な言語",
+      "description": "言語を削除してもエントリーは残ります。エディターで選択できなくなるだけです。",
+      "entryCount": "{count, plural, other {# 件のエントリー}}",
+      "default": "デフォルト",
+      "makeDefault": "デフォルトに設定",
+      "removeWithEntries": "{count, plural, other {# 件のエントリーは残りますが}}、この言語は選択できなくなります",
+      "removeLabel": "{language} を削除",
+      "orphaned": "有効になっていない言語のエントリーがあります:",
+      "orphanedHint": "。クリックすると有効になります。"
+    },
+    "saveChanges": "変更を保存",
+    "add": {
+      "title": "言語を追加",
+      "description": "<code>fr</code>、<code>pt-BR</code>、<code>zh-Hant</code> などの言語コードを使用してください。",
+      "placeholder": "例: {example}",
+      "codeLabel": "言語コード",
+      "willAdd": "{language} を追加します",
+      "alreadyEnabled": "既に有効です",
+      "invalidCode": "有効な言語コードではありません"
+    },
+    "toasts": {
+      "saved": "言語を保存しました",
+      "saveFailed": "言語を保存できませんでした"
+    }
+  },
+  "server": {
+    "title": "メールとストレージ",
+    "subtitle": "メールの送信元と、アップロードしたファイルの保存先です。",
+    "loadFailed": "設定を読み込めませんでした",
+    "saveFailed": "保存できませんでした",
+    "save": "保存",
+    "keepSecret": "保存済みです。変更しない場合は空欄のままにしてください。",
+    "envNotice": "サーバーの <code>{what}</code> 環境変数で設定されています。変更はそちらで行ってください。",
+    "mail": {
+      "title": "メール",
+      "description": "パスワードリセット、チームへの招待、フォーム通知に使用します。",
+      "enabled": "メールを送信する",
+      "host": "SMTP サーバー",
+      "port": "ポート",
+      "security": "セキュリティ",
+      "starttls": "STARTTLS (587)",
+      "ssl": "SSL/TLS (465)",
+      "user": "ユーザー名",
+      "password": "パスワード",
+      "from": "送信元アドレス",
+      "fromHint": "送信者として表示されます (例: Acme '<'noreply@acme.com'>')。デフォルトはユーザー名です。",
+      "testTo": "テストの送信先",
+      "sendTest": "テスト送信",
+      "testSent": "{to} にテストメールを送信しました",
+      "testFailed": "テストメールを送信できませんでした",
+      "saved": "メール設定を保存しました。現在使用中です",
+      "turnedOff": "メールをオフにしました"
+    },
+    "storage": {
+      "title": "ファイルストレージ",
+      "description": "アップロードした画像とファイル。",
+      "where": "アップロードの保存先",
+      "local": "このサーバーのディスク",
+      "s3": "S3 互換ストレージ",
+      "localHint": "永続ディスクを持つ単一サーバーであれば問題ありません。",
+      "localProductionWarning": "ほとんどのホスティングやコンテナでは、再デプロイ時にこのディスクが消去され、アップロードが失われます。S3 互換ストレージを使用してください。",
+      "provider": "プロバイダー",
+      "otherProvider": "その他 (MinIO、Backblaze B2…)",
+      "bucket": "バケット",
+      "endpoint": "エンドポイント",
+      "region": "リージョン",
+      "accessKey": "アクセスキー ID",
+      "secretKey": "シークレットアクセスキー",
+      "publicUrl": "公開 URL (任意)",
+      "publicUrlHint": "バケット用の CDN またはカスタムドメイン。バケットで公開読み取りを許可する必要があります。",
+      "test": "接続をテスト",
+      "testOk": "接続しました。テストファイルの書き込みと削除に成功しました",
+      "testFailed": "バケットに接続できませんでした",
+      "saved": "ストレージ設定を保存しました",
+      "restartRequired": "ストレージの変更はサーバーの再起動後に反映されます。既存のファイルは移動されません。",
+      "restart": "今すぐ再起動",
+      "restarting": "再起動中です。管理画面はまもなく再接続されます"
+    },
+    "search": {
+      "title": "検索",
+      "postgres": "検索にはデータベースの全文インデックス (<code>?search=</code>) を使用します。誤字に強いランキング検索を使うには、Meilisearch を実行して SEARCH_DRIVER=meilisearch を設定してください。",
+      "meilisearch": "検索には Meilisearch (インデックス「{index}」) を使用します。コンテンツの変更に合わせて更新されます。",
+      "reindex": "インデックスを再構築",
+      "reindexQueued": "バックグラウンドで検索インデックスを再構築しています"
+    }
+  }
+}

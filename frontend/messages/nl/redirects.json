@@ -1,0 +1,63 @@
+{
+  "title": "Doorverwijzingen",
+  "description": "Stuur bezoekers en zoekmachines van oude URL's naar nieuwe. Je site vraagt NodePress via GET /api/redirects/resolve waar een pad naartoe moet.",
+  "importCsv": "CSV importeren",
+  "exportCsv": "CSV exporteren",
+  "add": "Doorverwijzing toevoegen",
+  "forbidden": "Alleen redacteuren en beheerders kunnen doorverwijzingen beheren.",
+  "searchPlaceholder": "Paden zoeken…",
+  "sort": {
+    "newest": "Nieuwste eerst",
+    "mostHits": "Meeste hits",
+    "from": "Bronpad A–Z"
+  },
+  "noMatch": "Geen doorverwijzingen gevonden voor “{query}”.",
+  "empty": "Nog geen doorverwijzingen. Voeg er een toe of importeer een CSV met de kolommen from,to,status.",
+  "columns": {
+    "from": "Van",
+    "to": "Naar",
+    "hits": "Hits"
+  },
+  "goneTarget": "Verdwenen (geen doel)",
+  "openTarget": "Doel openen in nieuw tabblad",
+  "statuses": {
+    "s301": "Permanent verplaatst",
+    "s302": "Gevonden (tijdelijk)",
+    "s307": "Tijdelijk, behoudt methode",
+    "s308": "Permanent, behoudt methode",
+    "s410": "Verdwenen"
+  },
+  "lastHit": "laatst {date}",
+  "neverHit": "nooit gebruikt",
+  "deleteTitle": "Deze doorverwijzing verwijderen?",
+  "deleteDescription": "Bezoekers van {from} krijgen dan een 404.",
+  "count": "{count, plural, one {# doorverwijzing} other {# doorverwijzingen}}",
+  "autoHint": "Als de slug van een gepubliceerd item verandert, voegt NodePress automatisch een 301 toe vanaf het oude pad (uitschakelen met <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Paden worden hoofdletterongevoelig vergeleken; een querystring komt alleen overeen als die deel uitmaakt van de bron.",
+  "dialog": {
+    "addTitle": "Doorverwijzing toevoegen",
+    "editTitle": "Doorverwijzing bewerken",
+    "description": "Lussen en ketens van meer dan 5 doorverwijzingen worden geweigerd.",
+    "fromHint": "Een pad op je site, bijv. /old-page. Voeg alleen ?query toe om precies die query te laten overeenkomen.",
+    "toHint": "Een pad op je site (/new-page) of een volledige URL (https://…)."
+  },
+  "import": {
+    "title": "Doorverwijzingen importeren",
+    "description": "Controle van <mono>{file}</mono>. Rijen worden toegevoegd of werken de doorverwijzing met dezelfde bron bij; er wordt niets opgeslagen als een rij een probleem heeft.",
+    "checking": "Bestand controleren…",
+    "new": "nieuw",
+    "changed": "gewijzigd",
+    "unchanged": "ongewijzigd",
+    "errors": "{count, plural, one {# probleem — los het op en importeer opnieuw} other {# problemen — los ze op en importeer opnieuw}}",
+    "line": "Regel {line}:",
+    "apply": "{count, plural, =0 {Niets te importeren} one {# doorverwijzing importeren} other {# doorverwijzingen importeren}}",
+    "appliedToast": "Geïmporteerd: {created} nieuw, {updated} gewijzigd",
+    "failed": "Import mislukt"
+  },
+  "loadFailed": "Kon doorverwijzingen niet laden",
+  "createdToast": "Doorverwijzing toegevoegd",
+  "savedToast": "Doorverwijzing opgeslagen",
+  "saveFailed": "Kon de doorverwijzing niet opslaan",
+  "deletedToast": "Doorverwijzing van {from} verwijderd",
+  "deleteFailed": "Kon de doorverwijzing niet verwijderen",
+  "exportFailed": "Kon doorverwijzingen niet exporteren"
+}

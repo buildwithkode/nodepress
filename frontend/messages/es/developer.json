@@ -183,7 +183,14 @@
       "user": "Usuarios",
       "api_key": "Claves de API",
       "form": "Formularios",
-      "media": "Medios"
+      "media": "Medios",
+      "plugin": "Plugins",
+      "settings": "Ajustes",
+      "release": "Lanzamientos",
+      "role": "Roles",
+      "redirect": "Redirecciones",
+      "component": "Componentes",
+      "import": "Importaciones"
     },
     "colTime": "Hora",
     "colUser": "Usuario",
@@ -289,5 +296,42 @@
     "clear": "Borrar",
     "saved": "Configuración guardada y aplicada en memoria al instante.",
     "saveChanges": "Guardar cambios"
+  },
+  "registry": {
+    "tabs": {
+      "installed": "Instalados",
+      "browse": "Explorar"
+    },
+    "installTitle": "Instalar {name}",
+    "installDescription": "NodePress descarga el paquete del directorio de plugins, lo compara con el sha256 del directorio y lo revisa exactamente igual que un zip subido: se aplican las mismas reglas de firma.",
+    "downloading": "Descargando y comprobando el paquete…",
+    "verified": "Coincide con la suma de comprobación del directorio (sha256 <mono>{sha}…</mono>).",
+    "loadFailed": "No se pudo cargar el directorio de plugins",
+    "disabledTitle": "El directorio de plugins está desactivado",
+    "disabledBody": "Define <mono>{env}</mono> en el servidor para mostrar aquí un directorio de plugins.",
+    "searchPlaceholder": "Buscar en el directorio…",
+    "updatedAt": "Actualizado el {date}",
+    "refresh": "Comprobar de nuevo",
+    "staleNotice": "Se muestra la última copia del directorio: no se pudo actualizar.",
+    "unavailable": "El directorio de plugins no está disponible en este momento.",
+    "loading": "Cargando el directorio de plugins…",
+    "noMatch": "Ningún plugin del directorio coincide con «{query}».",
+    "empty": "El directorio no contiene plugins.",
+    "paid": "De pago",
+    "free": "Gratis",
+    "bundled": "Incluido",
+    "installed": "Instalado",
+    "installedVersion": "v{version} instalada",
+    "updateAvailable": "Actualización disponible",
+    "compatible": "Compatible",
+    "incompatible": "Incompatible",
+    "byAuthor": "por {author}",
+    "homepage": "Sitio web",
+    "source": "Código fuente",
+    "install": "Instalar",
+    "update": "Actualizar",
+    "bundledHint": "Incluido con NodePress: actívalo en Instalados",
+    "getIt": "Conseguirlo",
+    "learnMore": "Más información"
   }
 }

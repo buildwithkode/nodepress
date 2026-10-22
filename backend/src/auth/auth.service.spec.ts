@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
+import { RolesService } from '../roles/roles.service';
 
 const mockUser = {
   id: 1,
@@ -28,6 +29,10 @@ const mockJwt = {
   sign: jest.fn().mockReturnValue('mock.jwt.token'),
 };
 
+const mockRoles = {
+  resolve: jest.fn(async (role: string) => ({ role })),
+};
+
 const mockMail = {
   sendPasswordReset: jest.fn().mockResolvedValue(undefined),
 };
@@ -44,6 +49,7 @@ describe('AuthService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: JwtService,    useValue: mockJwt },
         { provide: MailService,   useValue: mockMail },
+        { provide: RolesService,  useValue: mockRoles },
       ],
     }).compile();
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Paths that require any authenticated user
-const ADMIN_PATHS = ['/', '/content-types', '/entries', '/media', '/api-keys', '/forms', '/users', '/webhooks', '/jobs', '/audit-log', '/brand', '/plugins', '/languages', '/releases', '/server-settings'];
+const ADMIN_PATHS = ['/', '/content-types', '/components', '/entries', '/media', '/api-keys', '/forms', '/users', '/webhooks', '/jobs', '/audit-log', '/brand', '/plugins', '/languages', '/releases', '/server-settings', '/import', '/redirects'];
 
 // Paths that require editor, contributor, or admin role (viewers are redirected to home)
 const EDITOR_PATHS = [
@@ -25,6 +25,7 @@ const ADMIN_ONLY_PATHS = [
   '/brand',
   '/languages',
   '/server-settings',
+  '/import',
   '/content-types/new',
 ];
 const ADMIN_ONLY_PATTERNS = [

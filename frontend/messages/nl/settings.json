@@ -1,0 +1,136 @@
+{
+  "brand": {
+    "title": "Huisstijl",
+    "subtitle": "Je naam, logo en accentkleur — gebruikt in het beheerpaneel, het browsertabblad/favicon, het inlogscherm en e-mails over formulierinzendingen.",
+    "identity": {
+      "title": "Identiteit",
+      "description": "Geldt overal waar deze installatie je huisstijl toont.",
+      "name": "Merknaam",
+      "logo": "Logo",
+      "logoHelp": "Vierkante afbeeldingen werken het best. Getoond in de zijbalk, op de inlogpagina, als favicon en in e-mails.",
+      "accent": "Accentkleur",
+      "accentPicker": "Kleurkiezer accentkleur",
+      "previewHelp": "Zo ziet de kop van de zijbalk eruit."
+    },
+    "preview": "Voorbeeld",
+    "theme": {
+      "title": "Thema",
+      "description": "Optioneel. Geef primaire knoppen en invoervelden in het beheerpaneel een andere kleur. Laat leeg voor het standaardthema.",
+      "button": "Knopkleur",
+      "buttonHelp": "Primaire knoppen. De tekstkleur past zich automatisch aan voor contrast.",
+      "buttonPicker": "Kleurkiezer knoppen",
+      "input": "Invoerkleur",
+      "inputHelp": "Rand en focusring van invoervelden.",
+      "inputPicker": "Kleurkiezer invoervelden",
+      "defaultPlaceholder": "(standaard)",
+      "reset": "Herstellen",
+      "sampleButton": "Voorbeeldknop",
+      "sampleInput": "Voorbeeldinvoer"
+    },
+    "invalidHex": "Ongeldige hex",
+    "saveChanges": "Wijzigingen opslaan",
+    "noChanges": "Geen wijzigingen",
+    "confirm": {
+      "title": "Wijzigingen in huisstijl opslaan?",
+      "description": "Hiermee worden je huisstijl en thema overal bijgewerkt — de zijbalk van de admin, het browsertabblad & favicon, het inlogscherm en e-mails over formulierinzendingen — voor alle gebruikers."
+    },
+    "toasts": {
+      "nameRequired": "Merknaam is verplicht",
+      "accentInvalid": "Voer een geldige hex-accentkleur in, bijv. {example}",
+      "buttonInvalid": "Knopkleur moet een geldige hex zijn (of leeg)",
+      "inputInvalid": "Invoerkleur moet een geldige hex zijn (of leeg)",
+      "saved": "Huisstijl bijgewerkt",
+      "saveFailed": "Huisstijl bijwerken mislukt"
+    }
+  },
+  "languages": {
+    "title": "Talen",
+    "subtitle": "De talen waarin redacteuren content kunnen schrijven. Elk item kan één vertaling per taal hebben; de standaardtaal wordt gebruikt als een API-verzoek er niet om vraagt, en als terugvaloptie met <code></code>.",
+    "enabled": {
+      "title": "Ingeschakelde talen",
+      "description": "Als je een taal verwijdert, blijven de items ervan bestaan; de taal wordt alleen niet meer aangeboden in de editor.",
+      "entryCount": "{count, plural, one {# item} other {# items}}",
+      "default": "Standaard",
+      "makeDefault": "Als standaard instellen",
+      "removeWithEntries": "{count, plural, one {# item blijft bestaan} other {# items blijven bestaan}}, maar de taal wordt niet meer aangeboden",
+      "removeLabel": "{language} verwijderen",
+      "orphaned": "Er zijn items in talen die niet zijn ingeschakeld:",
+      "orphanedHint": ". Klik op een taal om die in te schakelen."
+    },
+    "saveChanges": "Wijzigingen opslaan",
+    "add": {
+      "title": "Een taal toevoegen",
+      "description": "Gebruik een taalcode zoals <code>fr</code>, <code>pt-BR</code> of <code>zh-Hant</code>.",
+      "placeholder": "bijv. {example}",
+      "codeLabel": "Taalcode",
+      "willAdd": "Voegt {language} toe",
+      "alreadyEnabled": "Al ingeschakeld",
+      "invalidCode": "Geen geldige taalcode"
+    },
+    "toasts": {
+      "saved": "Talen opgeslagen",
+      "saveFailed": "Kon talen niet opslaan"
+    }
+  },
+  "server": {
+    "title": "E-mail & opslag",
+    "subtitle": "Vanaf waar e-mails worden verstuurd en waar geüploade bestanden worden bewaard.",
+    "loadFailed": "Kon de instellingen niet laden",
+    "saveFailed": "Kon niet opslaan",
+    "save": "Opslaan",
+    "keepSecret": "Opgeslagen — laat leeg om te behouden.",
+    "envNotice": "Ingesteld via <code>{what}</code>-omgevingsvariabelen op de server — wijzig het daar.",
+    "mail": {
+      "title": "E-mail",
+      "description": "Gebruikt voor wachtwoordherstel, teamuitnodigingen en formuliermeldingen.",
+      "enabled": "E-mails versturen",
+      "host": "SMTP-server",
+      "port": "Poort",
+      "security": "Beveiliging",
+      "starttls": "STARTTLS (587)",
+      "ssl": "SSL/TLS (465)",
+      "user": "Gebruikersnaam",
+      "password": "Wachtwoord",
+      "from": "Afzenderadres",
+      "fromHint": "Getoond als afzender, bijv. Acme '<'noreply@acme.com'>'. Standaard de gebruikersnaam.",
+      "testTo": "Test versturen naar",
+      "sendTest": "Test versturen",
+      "testSent": "Test-e-mail verstuurd naar {to}",
+      "testFailed": "De test-e-mail kon niet worden verstuurd",
+      "saved": "E-mailinstellingen opgeslagen — nu in gebruik",
+      "turnedOff": "E-mail uitgeschakeld"
+    },
+    "storage": {
+      "title": "Bestandsopslag",
+      "description": "Geüploade afbeeldingen en bestanden.",
+      "where": "Uploads bewaren op",
+      "local": "De schijf van deze server",
+      "s3": "S3-compatibele opslag",
+      "localHint": "Prima voor één server met een persistente schijf.",
+      "localProductionWarning": "Bij de meeste hosts en containers wordt deze schijf gewist bij een redeploy — uploads gaan dan verloren. Gebruik S3-compatibele opslag.",
+      "provider": "Provider",
+      "otherProvider": "Anders (MinIO, Backblaze B2…)",
+      "bucket": "Bucket",
+      "endpoint": "Endpoint",
+      "region": "Regio",
+      "accessKey": "Access key ID",
+      "secretKey": "Secret access key",
+      "publicUrl": "Publieke URL (optioneel)",
+      "publicUrlHint": "Je CDN of eigen domein voor de bucket. De bucket moet publieke leestoegang toestaan.",
+      "test": "Verbinding testen",
+      "testOk": "Verbonden — er is een testbestand geschreven en verwijderd",
+      "testFailed": "Kon geen verbinding maken met de bucket",
+      "saved": "Opslaginstellingen opgeslagen",
+      "restartRequired": "Wijzigingen in de opslag worden actief na een herstart van de server. Bestaande bestanden worden niet verplaatst.",
+      "restart": "Nu herstarten",
+      "restarting": "Herstarten — de admin maakt zo opnieuw verbinding"
+    },
+    "search": {
+      "title": "Zoeken",
+      "postgres": "Zoekopdrachten gebruiken de full-text-index van de database (<code>?search=</code>). Voor gerangschikt zoeken dat tikfouten verdraagt, draai je Meilisearch en stel je SEARCH_DRIVER=meilisearch in.",
+      "meilisearch": "Zoekopdrachten gebruiken Meilisearch (index “{index}”). De index wordt bijgewerkt als content verandert.",
+      "reindex": "Index opnieuw opbouwen",
+      "reindexQueued": "De zoekindex wordt op de achtergrond opnieuw opgebouwd"
+    }
+  }
+}

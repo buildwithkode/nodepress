@@ -1,0 +1,51 @@
+---
+import { cms, config, type PostPage } from '../lib/cms';
+import { formatDate, readPost } from '../lib/post';
+
+interface Props {
+  page: PostPage;
+  error?: string | null;
+}
+const { page, error } = Astro.props;
+const prevHref = page.number === 2 ? '/' : `/page/${page.number - 1}`;
+---
+
+{
+  error ? (
+    <div class="notice">
+      <h1>Couldn't load posts</h1>
+      <p>
+        Is NodePress running at <code>{config.url}</code> with a content type <code>{config.type}</code>? Rebuild once it is.
+      </p>
+      <p class="muted">{error}</p>
+    </div>
+  ) : (
+    <>
+      <h1>{page.number === 1 ? 'Latest posts' : `Posts — page ${page.number}`}</h1>
+      {page.entries.length === 0 && <p class="muted">No published posts yet.</p>}
+      <ul class="post-list">
+        {page.entries.map((entry) => {
+          const post = readPost(entry.slug, entry.data, entry.createdAt);
+          return (
+            <li>
+              <a href={`/posts/${entry.slug}`} class="card">
+                {post.cover && (
+                  <img src={cms.imageUrl(post.cover, { w: 640, h: 360, fit: 'cover', format: 'auto' })} alt="" loading="lazy" />
+                )}
+                <div>
+                  <h2>{post.title}</h2>
+                  <p class="meta">{[post.author, formatDate(post.date)].filter(Boolean).join(' · ')}</p>
+                  {post.excerpt && <p>{post.excerpt}</p>}
+                </div>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      <nav class="pager">
+        {page.number > 1 ? <a href={prevHref}>← Newer posts</a> : <span />}
+        {page.hasNext && <a href={`/page/${page.number + 1}`}>Older posts →</a>}
+      </nav>
+    </>
+  )
+}

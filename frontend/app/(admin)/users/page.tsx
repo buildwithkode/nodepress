@@ -16,6 +16,7 @@ import {
   QrCode,
   Lock,
   Loader2,
+  UserCog,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useTranslations } from 'use-intl';
@@ -40,8 +41,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { roleBadgeColor, roleLabel, useRoleList } from '@/lib/custom-roles';
 
 interface User {
   id: number;
@@ -57,18 +59,35 @@ interface TwoFactorSetupData {
   hashedRecoveryCodes: string[];
 }
 
-const ROLE_COLORS: Record<string, string> = {
-  admin:       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
-  editor:      'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-  contributor: 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300',
-  viewer:      'bg-muted text-muted-foreground',
-};
-
 export default function UsersPage() {
   const t = useTranslations('users');
   const tc = useTranslations('common');
+  const tr = useTranslations('roles');
   const router = useRouter();
   const { user: me } = useAuth();
+  const { roles, customRoles } = useRoleList();
+  const labelOf = (name: string) => roleLabel(name, roles, tc);
+
+  // Built-ins, then custom roles — rendered inline so the Select sees every item
+  const roleOptions = () => (
+    <>
+      <SelectItem value="admin">{tc('roles.admin')}</SelectItem>
+      <SelectItem value="editor">{tc('roles.editor')}</SelectItem>
+      <SelectItem value="contributor">{tc('roles.contributor')}</SelectItem>
+      <SelectItem value="viewer">{tc('roles.viewer')}</SelectItem>
+      {customRoles.length > 0 && (
+        <>
+          <SelectSeparator />
+          <SelectGroup>
+            <SelectLabel>{tr('customGroup')}</SelectLabel>
+            {customRoles.map((r) => (
+              <SelectItem key={r.name} value={r.name}>{r.label}</SelectItem>
+            ))}
+          </SelectGroup>
+        </>
+      )}
+    </>
+  );
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -322,19 +341,16 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell>
                     {u.id === me?.id ? (
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[u.role] ?? ROLE_COLORS.viewer}`}>
-                        {tc.has(`roles.${u.role}`) ? tc(`roles.${u.role}`) : u.role}
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(u.role)}`}>
+                        {labelOf(u.role)}
                       </span>
                     ) : (
                       <Select value={u.role} onValueChange={(v: string | null) => v && handleRoleChange(u.id, v)}>
-                        <SelectTrigger className="h-7 w-28 text-xs">
+                        <SelectTrigger className="h-7 w-36 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">{tc('roles.admin')}</SelectItem>
-                          <SelectItem value="editor">{tc('roles.editor')}</SelectItem>
-                          <SelectItem value="contributor">{tc('roles.contributor')}</SelectItem>
-                          <SelectItem value="viewer">{tc('roles.viewer')}</SelectItem>
+                          {roleOptions()}
                         </SelectContent>
                       </Select>
                     )}
@@ -347,7 +363,7 @@ export default function UsersPage() {
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        title={t('list.viewPermissions', { role: tc.has(`roles.${u.role}`) ? tc(`roles.${u.role}`) : u.role })}
+                        title={t('list.viewPermissions', { role: labelOf(u.role) })}
                         onClick={() => router.push('/users/permissions?tab=content-types')}
                       >
                         <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
@@ -402,9 +418,14 @@ export default function UsersPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> {t('roleGuide.title')}</CardTitle>
-            <a href="/users/permissions" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-              <Settings2 className="h-3.5 w-3.5" /> {t('roleGuide.manage')}
-            </a>
+            <div className="flex items-center gap-3">
+              <a href="/users/roles" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+                <UserCog className="h-3.5 w-3.5" /> {tr('manage')}
+              </a>
+              <a href="/users/permissions" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+                <Settings2 className="h-3.5 w-3.5" /> {t('roleGuide.manage')}
+              </a>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -413,7 +434,7 @@ export default function UsersPage() {
               'admin', 'editor', 'contributor', 'viewer',
             ].map((r) => (
               <div key={r} className="space-y-2">
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r] ?? ROLE_COLORS.viewer}`}>
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(r)}`}>
                   {tc(`roles.${r}`)}
                 </span>
                 <ul className="space-y-1">
@@ -444,10 +465,7 @@ export default function UsersPage() {
               <Select value={role} onValueChange={(v: string | null) => v && setRole(v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">{tc('roles.admin')}</SelectItem>
-                  <SelectItem value="editor">{tc('roles.editor')}</SelectItem>
-                  <SelectItem value="contributor">{tc('roles.contributor')}</SelectItem>
-                  <SelectItem value="viewer">{tc('roles.viewer')}</SelectItem>
+                  {roleOptions()}
                 </SelectContent>
               </Select>
             </div>

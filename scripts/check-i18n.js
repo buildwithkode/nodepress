@@ -53,6 +53,27 @@ const placeholders = (text) => {
 
 const locales = fs.readdirSync(MESSAGES).filter((d) => fs.statSync(path.join(MESSAGES, d)).isDirectory());
 const en = load('en');
+
+// 4. every message parses as ICU (use-intl's parser): a stray `<`, `{` or `}`
+//    makes a message fail at runtime and show its key instead. Write a literal
+//    `<` as '<' and braces as '{' '}'.
+let parseIcu = null;
+try {
+  ({ parse: parseIcu } = require(require.resolve('@formatjs/icu-messageformat-parser', { paths: [FRONTEND, path.join(__dirname, '..')] })));
+} catch {
+  console.warn('[i18n] @formatjs/icu-messageformat-parser not installed — skipping the ICU syntax check');
+}
+if (parseIcu) {
+  for (const locale of locales) {
+    for (const [key, text] of Object.entries(locale === 'en' ? en : load(locale))) {
+      try {
+        parseIcu(text);
+      } catch (e) {
+        problems.push(`${locale}: ${key} is not valid ICU (${e.message})`);
+      }
+    }
+  }
+}
 for (const locale of locales.filter((l) => l !== 'en')) {
   const other = load(locale);
   for (const key of Object.keys(en)) {

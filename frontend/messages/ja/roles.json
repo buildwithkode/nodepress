@@ -1,0 +1,57 @@
+{
+  "title": "ロール",
+  "description": "組み込みロールは変更できません。カスタムロールは、元になるロールと同じ管理画面の範囲を利用でき、独自のコンテンツ権限を持ちます。",
+  "backToUsers": "ユーザー",
+  "managePermissions": "権限を編集",
+  "newRole": "新規ロール",
+  "manage": "ロールを管理",
+  "customGroup": "カスタムロール",
+  "basedOn": "{base} がベース",
+  "list": {
+    "role": "ロール",
+    "basedOn": "ベース",
+    "users": "ユーザー",
+    "description": "説明",
+    "builtIn": "組み込み",
+    "userCount": "{count, plural, =0 {ユーザーなし} other {# 人のユーザー}}",
+    "empty": "カスタムロールはまだありません。",
+    "edit": "ロールを編集",
+    "delete": "ロールを削除"
+  },
+  "builtInDescriptions": {
+    "admin": "ユーザー、設定、API キーを含むすべての操作が可能",
+    "editor": "コンテンツの作成、編集、公開、削除が可能",
+    "contributor": "コンテンツの作成と編集が可能 (公開は不可)",
+    "viewer": "管理画面の閲覧のみ可能"
+  },
+  "form": {
+    "createTitle": "新規ロール",
+    "editTitle": "{label} を編集",
+    "description": "カスタムロールは、ベースとなるロールのコンテンツ権限から始まります。権限ページで絞り込んでください。",
+    "label": "ラベル",
+    "name": "名前",
+    "nameHelp": "{name} として保存されます。ユーザーと権限がこの名前を参照するため、後から変更できません。",
+    "nameHelpEmpty": "小文字の英字、数字、アンダースコアが使えます。後から変更できません。",
+    "nameLocked": "名前は変更できません。",
+    "baseRole": "ベース",
+    "baseRoleHelp": "このロールが利用できる管理画面の範囲を決めます。",
+    "baseRoleEditHelp": "このロールが利用できる管理画面の範囲を変更します。保存済みのコンテンツ権限はそのまま残ります。",
+    "descriptionLabel": "説明",
+    "descriptionPlaceholder": "このロールの用途",
+    "save": "保存",
+    "create": "ロールを作成"
+  },
+  "deleteDialog": {
+    "title": "ロール「{label}」を削除しますか?",
+    "description": "このロールのコンテンツ権限も削除されます。",
+    "inUse": "{count, plural, other {# 人のユーザー}}がまだこのロールを持っています。先に別のロールを割り当ててください。"
+  },
+  "toasts": {
+    "created": "ロールを作成しました",
+    "updated": "ロールを更新しました",
+    "deleted": "ロールを削除しました",
+    "saveFailed": "ロールを保存できませんでした",
+    "deleteFailed": "ロールを削除できませんでした",
+    "inUse": "{count, plural, other {# 人のユーザー}}がまだこのロールを持っています。先に別のロールを割り当ててください。"
+  }
+}

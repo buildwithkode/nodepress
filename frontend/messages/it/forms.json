@@ -1,0 +1,143 @@
+{
+  "list": {
+    "loadFailed": "Impossibile caricare i moduli",
+    "deleted": "Modulo eliminato",
+    "deleteFailed": "Eliminazione non riuscita",
+    "statusFailed": "Impossibile aggiornare lo stato del modulo",
+    "searchPlaceholder": "Cerca moduli…",
+    "newForm": "Nuovo modulo",
+    "columns": {
+      "slug": "Slug",
+      "fields": "Campi",
+      "submissions": "Invii"
+    },
+    "noMatches": "Nessun modulo corrisponde alla ricerca.",
+    "empty": "Ancora nessun modulo. Crea il primo.",
+    "toggleActive": "Attiva/disattiva",
+    "viewSubmissions": "Vedi invii",
+    "deleteConfirmTitle": "Eliminare \"{name}\"?",
+    "deleteConfirmDescription": "{count, plural, one {Anche l’<strong>#</strong> invio verrà eliminato definitivamente.} other {Anche tutti i <strong>#</strong> invii verranno eliminati definitivamente.}}"
+  },
+  "edit": {
+    "notFound": "Modulo non trovato."
+  },
+  "submissions": {
+    "empty": "vuoto",
+    "loadFailed": "Impossibile caricare gli invii",
+    "nothingToExport": "Nessun invio da esportare",
+    "backToForms": "Torna ai moduli",
+    "searchPlaceholder": "Cerca invii…",
+    "exportCsv": "Esporta CSV",
+    "count": "{count, plural, one {# invio} other {# invii}}",
+    "countMatching": "{count, plural, one {# invio corrisponde} other {# invii corrispondono}} a \"{search}\"",
+    "noneTitle": "Ancora nessun invio",
+    "noneDescription": "Condividi il modulo e le risposte appariranno qui.",
+    "date": "Data"
+  },
+  "fieldEditor": {
+    "labelPlaceholder": "Etichetta mostrata all'utente",
+    "keyCustom": "personalizzata",
+    "keyAuto": "automatica",
+    "validationRules": "Regole di convalida",
+    "removeField": "Rimuovi campo",
+    "options": "Opzioni (separate da virgole)",
+    "optionsPickMany": "scelta multipla",
+    "optionsRadio": "pulsanti di opzione",
+    "optionsDropdown": "menu a discesa",
+    "optionsPlaceholder": "Opzione A, Opzione B, Opzione C",
+    "validation": "Convalida",
+    "rules": {
+      "min": "Min",
+      "max": "Max",
+      "integer": "Solo numeri interi",
+      "minLength": "Lunghezza min",
+      "maxLength": "Lunghezza max",
+      "pattern": "Pattern (regex)",
+      "minItems": "Elementi min",
+      "maxItems": "Elementi max",
+      "message": "Messaggio di errore personalizzato"
+    },
+    "messagePlaceholder": "Mostrato quando questo campo non è valido",
+    "itemFields": "Campi dell'elemento (ripetuti)",
+    "subFields": "Sottocampi",
+    "addSubField": "Aggiungi sottocampo"
+  },
+  "fieldTypes": {
+    "text": "Testo",
+    "textarea": "Area di testo",
+    "number": "Numero",
+    "email": "Email",
+    "url": "URL",
+    "phone": "Telefono",
+    "date": "Data",
+    "datetime": "Data e ora",
+    "boolean": "Booleano (sì/no)",
+    "select": "Selezione (menu a discesa)",
+    "radio": "Radio (scelta singola)",
+    "multiselect": "Selezione multipla",
+    "tags": "Tag (liberi)",
+    "group": "Gruppo (oggetto)",
+    "repeater": "Ripetitore (elenco)"
+  },
+  "builder": {
+    "created": "Modulo creato",
+    "updated": "Modulo aggiornato",
+    "newTitle": "Nuovo modulo",
+    "editTitle": "Modifica modulo",
+    "newDescription": "Definisci i campi del modulo e configura le azioni di notifica.",
+    "editDescription": "Aggiorna impostazioni, campi e azioni del modulo.",
+    "formName": "Nome del modulo",
+    "formNamePlaceholder": "es. Contattaci",
+    "slugPlaceholder": "es. contact-us",
+    "submitEndpoint": "Endpoint di invio:",
+    "status": {
+      "title": "Stato del modulo",
+      "accepting": "Accetta invii",
+      "blocked": "Gli invii sono bloccati",
+      "active": "Attivo",
+      "inactive": "Inattivo"
+    },
+    "captcha": {
+      "title": "Protezione antispam (captcha)",
+      "on": "Gli invii devono includere un token captcha valido.",
+      "off": "Honeypot e limitazione della frequenza restano attivi. Attiva per la verifica captcha.",
+      "requires": "Richiede <code>{env}</code> nell'env del backend."
+    },
+    "fields": {
+      "title": "Campi",
+      "description": "Definisci gli input che gli utenti compileranno. Usa Gruppo / Ripetitore per dati annidati.",
+      "add": "Aggiungi campo"
+    },
+    "actions": {
+      "description": "Cosa succede dopo un invio riuscito. Usa <code>{token}</code> nell'oggetto per inserire valori.",
+      "email": "Email",
+      "empty": "Nessuna azione configurata. Gli invii verranno solo salvati nel database.",
+      "remove": "Rimuovi azione",
+      "sendTo": "Invia a",
+      "subject": "Oggetto",
+      "defaultSubject": "Nuovo invio da {field}",
+      "replyToField": "Campo Rispondi a (facoltativo)",
+      "webhookUrl": "URL del webhook",
+      "method": "Metodo"
+    },
+    "validation": {
+      "nameRequired": "Il nome del modulo è obbligatorio",
+      "slugRequired": "Lo slug è obbligatorio",
+      "fieldRequired": "Aggiungi almeno un campo con nome ed etichetta"
+    },
+    "creating": "Creazione in corso…",
+    "create": "Crea modulo",
+    "saveChanges": "Salva modifiche",
+    "preview": {
+      "show": "Mostra payload",
+      "hide": "Nascondi payload",
+      "title": "Anteprima del payload",
+      "live": "live",
+      "disableWrap": "Disattiva a capo automatico",
+      "enableWrap": "Manda a capo le righe lunghe",
+      "wrap": "A capo",
+      "copyJson": "Copia il corpo JSON",
+      "empty": "Aggiungi un campo (con chiave ed etichetta) per generare un payload di esempio."
+    }
+  }
+}

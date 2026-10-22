@@ -1,0 +1,27 @@
+{
+  "toggle": "Live",
+  "toggleTitle": "Mostra questa voce sul tuo sito, aggiornata mentre scrivi",
+  "pane": {
+    "title": "Anteprima live",
+    "device": {
+      "mobile": "Mobile",
+      "tablet": "Tablet",
+      "desktop": "Desktop"
+    },
+    "reload": "Ricarica",
+    "openInNewTab": "Apri in una nuova scheda",
+    "close": "Chiudi anteprima",
+    "preparing": "Preparazione dell'anteprima…",
+    "tokenFailed": "Impossibile creare un token di anteprima.",
+    "retry": "Riprova",
+    "saveFirst": "Salva la voce per vederla nell'anteprima live.",
+    "invalidUrl": "L'URL di anteprima di questo tipo di contenuto non è un URL http(s) valido. Correggilo nelle impostazioni del tipo di contenuto.",
+    "frameTitle": "Anteprima live di {slug}",
+    "hint": "Le tue modifiche vengono inviate alla pagina mentre scrivi. Le pagine che usano @nodepress/client/preview si aggiornano senza ricaricare; fai clic su un elemento evidenziato per passare al suo campo."
+  },
+  "settings": {
+    "label": "URL di anteprima",
+    "hint": "Facoltativo. La pagina del tuo sito che mostra una voce, aperta nel riquadro di anteprima live dell'editor. Questi segnaposto vengono compilati:",
+    "invalid": "L'URL di anteprima deve iniziare con http:// o https://"
+  }
+}

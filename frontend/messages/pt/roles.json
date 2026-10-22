@@ -1,0 +1,57 @@
+{
+  "title": "Funções",
+  "description": "As funções integradas não podem ser alteradas. Uma função personalizada abre as mesmas partes do painel que a função em que se baseia e tem as próprias permissões de conteúdo.",
+  "backToUsers": "Usuários",
+  "managePermissions": "Editar permissões",
+  "newRole": "Nova função",
+  "manage": "Gerenciar funções",
+  "customGroup": "Funções personalizadas",
+  "basedOn": "Baseada em {base}",
+  "list": {
+    "role": "Função",
+    "basedOn": "Baseada em",
+    "users": "Usuários",
+    "description": "Descrição",
+    "builtIn": "Integrada",
+    "userCount": "{count, plural, =0 {Nenhum usuário} one {# usuário} other {# usuários}}",
+    "empty": "Nenhuma função personalizada ainda.",
+    "edit": "Editar função",
+    "delete": "Excluir função"
+  },
+  "builtInDescriptions": {
+    "admin": "Acesso total, incluindo usuários, configurações e chaves de API",
+    "editor": "Cria, edita, publica e exclui conteúdo",
+    "contributor": "Cria e edita conteúdo; não pode publicar",
+    "viewer": "Acesso somente leitura ao painel"
+  },
+  "form": {
+    "createTitle": "Nova função",
+    "editTitle": "Editar {label}",
+    "description": "Uma função personalizada começa com as permissões de conteúdo da função em que se baseia. Restrinja-as na página de permissões.",
+    "label": "Rótulo",
+    "name": "Nome",
+    "nameHelp": "Salvo como {name}. Usuários e permissões fazem referência a ele, então não pode ser alterado depois.",
+    "nameHelpEmpty": "Letras minúsculas, números e sublinhados. Não pode ser alterado depois.",
+    "nameLocked": "O nome não pode ser alterado.",
+    "baseRole": "Baseada em",
+    "baseRoleHelp": "Define quais partes do painel a função pode abrir.",
+    "baseRoleEditHelp": "Altera quais partes do painel a função pode abrir. As permissões de conteúdo salvas continuam como estão.",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Para que serve esta função",
+    "save": "Salvar",
+    "create": "Criar função"
+  },
+  "deleteDialog": {
+    "title": "Excluir a função “{label}”?",
+    "description": "As permissões de conteúdo dela também são excluídas.",
+    "inUse": "{count, plural, one {# usuário ainda tem} other {# usuários ainda têm}} esta função. Atribua outra função a eles primeiro."
+  },
+  "toasts": {
+    "created": "Função criada",
+    "updated": "Função atualizada",
+    "deleted": "Função excluída",
+    "saveFailed": "Não foi possível salvar a função",
+    "deleteFailed": "Não foi possível excluir a função",
+    "inUse": "{count, plural, one {# usuário ainda tem} other {# usuários ainda têm}} esta função. Atribua outra função a eles primeiro."
+  }
+}

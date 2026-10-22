@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "Gebruikers laden mislukt",
+    "createdNoEmail": "Gebruiker aangemaakt — geen e-mailserver ingesteld",
+    "createdInviteCopied": "Uitnodigingslink naar klembord gekopieerd. Stuur hem naar {email}: {url}",
+    "noEmailServer": "Geen e-mailserver ingesteld",
+    "inviteCopied": "Uitnodigingslink gekopieerd. Stuur hem naar {email}: {url}",
+    "inviteSent": "Uitnodiging verstuurd naar {email}",
+    "createFailed": "Gebruiker aanmaken mislukt",
+    "roleUpdated": "Rol bijgewerkt",
+    "roleUpdateFailed": "Rol bijwerken mislukt",
+    "deleted": "Gebruiker verwijderd",
+    "deleteFailed": "Gebruiker verwijderen mislukt",
+    "inviteFailed": "Uitnodiging versturen mislukt",
+    "passwordUpdated": "Wachtwoord bijgewerkt",
+    "passwordUpdateFailed": "Wachtwoord bijwerken mislukt",
+    "twoFactorSetupFailed": "Instellen van 2FA starten mislukt",
+    "twoFactorActivated": "Tweestapsverificatie is ingeschakeld!",
+    "twoFactorInvalidCode": "Ongeldige verificatiecode. Probeer het opnieuw.",
+    "twoFactorDisabled": "Tweestapsverificatie uitgeschakeld",
+    "twoFactorDisableInvalid": "Ongeldige 2FA-code of herstelcode",
+    "recoveryCopied": "Herstelcodes naar klembord gekopieerd",
+    "recoveryCopyFailed": "Herstelcodes kopiëren mislukt",
+    "secretCopied": "Geheime sleutel gekopieerd",
+    "secretCopyFailed": "Geheime sleutel kopiëren mislukt"
+  },
+  "list": {
+    "title": "Teamleden",
+    "description": "Beheer wie toegang heeft tot het beheerpaneel en wat ze kunnen doen.",
+    "email": "E-mail",
+    "role": "Rol",
+    "joined": "Lid sinds",
+    "empty": "Geen gebruikers gevonden",
+    "you": "(jij)",
+    "viewPermissions": "Rechtenmatrix van {role} bekijken",
+    "sendInvite": "Uitnodigingsmail versturen",
+    "deleteTitle": "{email} verwijderen?",
+    "deleteDescription": "Hiermee wordt de toegang definitief ingetrokken. Dit kan niet ongedaan worden gemaakt."
+  },
+  "roleGuide": {
+    "title": "Rechten per rol",
+    "manage": "Rechten beheren",
+    "admin": {
+      "p1": "Volledige toegang tot alles",
+      "p2": "Gebruikers & rollen beheren",
+      "p3": "Contenttypes & API-sleutels",
+      "p4": "Auditlog & webhooks"
+    },
+    "editor": {
+      "p1": "Items aanmaken / bewerken / verwijderen",
+      "p2": "Items publiceren & archiveren",
+      "p3": "Formulieren, media uploaden/verwijderen",
+      "p4": "Contenttypes lezen"
+    },
+    "contributor": {
+      "p1": "Items aanmaken & bewerken",
+      "p2": "Kan geen items verwijderen",
+      "p3": "Kan niet publiceren of archiveren",
+      "p4": "Alleen media uploaden"
+    },
+    "viewer": {
+      "p1": "Dashboard alleen-lezen",
+      "p2": "Items & formulieren bekijken",
+      "p3": "Mediabibliotheek bekijken",
+      "p4": "Kan niets wijzigen"
+    }
+  },
+  "add": {
+    "title": "Gebruiker toevoegen",
+    "description": "Nodig een teamgenoot uit per e-mail — die krijgt een link om zelf een wachtwoord in te stellen. Hier is geen wachtwoord nodig.",
+    "sending": "Uitnodiging versturen…",
+    "submit": "Uitnodiging versturen"
+  },
+  "twoFactor": {
+    "title": "Tweestapsverificatie (2FA)",
+    "description": "Bescherm je account met een extra beveiligingslaag via Google Authenticator, 1Password of Authy.",
+    "enabledHeading": "2FA beschermt momenteel je account",
+    "disabledHeading": "Verbeter je inlogbeveiliging met TOTP",
+    "enabledHelp": "Bij het inloggen wordt om een 6-cijferige code of een herstelcode gevraagd.",
+    "disabledHelp": "Hiervoor scan je een QR-code met een authenticator-app en bewaar je herstelcodes.",
+    "enable": "2FA inschakelen",
+    "disable": "2FA uitschakelen",
+    "disabling": "Uitschakelen…",
+    "setupTitle": "Tweestapsverificatie instellen",
+    "setupDescription": "Scan de QR-code met Google Authenticator, 1Password of Authy.",
+    "qrAlt": "2FA-QR-code",
+    "manualKey": "Sleutel voor handmatige invoer",
+    "recoveryCodes": "Herstelcodes voor noodgevallen",
+    "copyCodes": "Codes kopiëren",
+    "recoveryHelp": "Bewaar deze codes op een veilige plek. Als je je authenticator-app kwijtraakt, kun je met elke code één keer inloggen.",
+    "verificationCode": "Verificatiecode",
+    "verificationPlaceholder": "Voer 6-cijferige code in",
+    "activating": "Inschakelen…",
+    "activate": "2FA inschakelen",
+    "disableTitle": "Tweestapsverificatie uitschakelen",
+    "disableDescription": "Voer ter bevestiging een 6-cijferige code uit je authenticator-app of een herstelcode in.",
+    "disableCodeLabel": "Authenticator- of herstelcode",
+    "disableCodePlaceholder": "6-cijferige code of XXXX-XXXX"
+  },
+  "password": {
+    "title": "Wachtwoord wijzigen",
+    "current": "Huidig wachtwoord",
+    "new": "Nieuw wachtwoord",
+    "newPlaceholder": "Min. 8 tekens",
+    "updating": "Bijwerken…",
+    "submit": "Wachtwoord bijwerken"
+  },
+  "permissions": {
+    "loading": "Rechten laden…",
+    "toasts": {
+      "loadFailed": "Rechten laden mislukt",
+      "schemaLoadFailed": "Schema voor \"{name}\" laden mislukt",
+      "roleLoadFailed": "Rolrechten laden mislukt",
+      "updated": "Recht bijgewerkt",
+      "updateFailed": "Recht bijwerken mislukt",
+      "reset": "Rechten teruggezet naar standaard",
+      "resetFailed": "Rechten terugzetten mislukt",
+      "fieldsSaved": "Veldrechten opgeslagen voor \"{name}\"",
+      "fieldsSaveFailed": "Veldrechten opslaan mislukt"
+    },
+    "backToUsers": "Gebruikers",
+    "title": "Toegangsbeheer & rechten",
+    "resetDefaults": "Terugzetten naar standaard",
+    "tabs": {
+      "contentTypes": "Actiematrix per contenttype",
+      "fields": "Rechtenmatrix per veld"
+    },
+    "actions": {
+      "create": "Aanmaken",
+      "read": "Lezen",
+      "update": "Bijwerken",
+      "delete": "Verwijderen",
+      "publish": "Publiceren"
+    },
+    "roleDescriptions": {
+      "editor": "Beheert alle content — kan aanmaken, bewerken, verwijderen en publiceren.",
+      "contributor": "Maakt en bewerkt content — kan niet verwijderen of publiceren.",
+      "viewer": "Alleen-lezen toegang tot het beheerpaneel."
+    },
+    "clickToDeselect": "klik om te deselecteren",
+    "defaultRow": "Standaard *",
+    "summary": {
+      "title": "Overzicht van rechten",
+      "description": "Afwijkingen die voor deze rol zijn ingesteld. Rijen die hier niet staan, vallen terug op de wildcard-standaard.",
+      "empty": "Geen afwijkingen — de fabrieksinstellingen gelden voor alle contenttypes."
+    },
+    "matrix": {
+      "title": "Rechtenmatrix per contenttype",
+      "description": "Stel per rol de toegestane acties in. De rij <strong>*</strong> is de standaard voor alle contenttypes. Wijk af voor afzonderlijke contenttypes door acties in hun eigen rij aan of uit te zetten. Grijze vinkjes zijn overgenomen van de wildcard-rij.",
+      "contentType": "Contenttype",
+      "inherited": "Overgenomen van {role}/* — klik om af te wijken"
+    },
+    "fields": {
+      "title": "Toegangsmatrix per veld",
+      "description": "Beperk leeszichtbaarheid en schrijfwijzigingen voor specifieke attributen (bijv. verberg salaris, marge of interne notities voor rollen die geen beheerder zijn).",
+      "selectContentType": "Kies contenttype",
+      "save": "Rechten opslaan",
+      "loading": "Veldenschema laden…",
+      "emptyTitle": "Geen velden gedefinieerd voor dit contenttype",
+      "emptyHelp": "Voeg eerst velden toe aan dit contenttype in de schemabouwer.",
+      "field": "Veld",
+      "readVisibility": "Leeszichtbaarheid",
+      "writeAccess": "Schrijf- / wijzigtoegang",
+      "nameAndType": "Naam & type",
+      "restricted": "Beperkt",
+      "adminRead": "Beheerder heeft altijd volledige leestoegang",
+      "adminWrite": "Beheerder heeft altijd volledige schrijftoegang"
+    },
+    "enforcement": {
+      "title": "Beveiliging zonder lekken:",
+      "read": "Als een rol niet is aangevinkt bij <strong>Leeszichtbaarheid</strong>, haalt de backend het veld automatisch uit alle REST- (<path></path>) en GraphQL-antwoorden voordat ze naar de client gaan.",
+      "write": "Als een rol niet is aangevinkt bij <strong>Schrijftoegang</strong>, weigert de backend ongeautoriseerde wijzigingspogingen met HTTP 403 Forbidden."
+    },
+    "adminNote": "Let op: de beheerder heeft altijd toegang tot alle schemavelden en kan niet worden beperkt."
+  }
+}

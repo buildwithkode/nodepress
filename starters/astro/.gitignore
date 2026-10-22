@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+!.env.example
+# Starters don't ship lockfiles — your project creates its own on install.
+package-lock.json

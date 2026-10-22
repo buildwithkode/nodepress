@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck, Palette } from 'lucide-react';
+import { Copy, Check, BookOpen, Zap, Database, Key, Image as ImageIcon, Code2, ChevronRight, ExternalLink, Box, Layers, ClipboardList, Terminal, Globe, Webhook, History, Trash2, Server, Activity, Link2, Languages, Radio, Puzzle, ShieldCheck, Palette, Boxes, Eye, Upload, ArrowRightLeft, FileCode, GitBranch, SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import hljs from 'highlight.js/lib/core';
 import typescript from 'highlight.js/lib/languages/typescript';
@@ -170,9 +170,9 @@ const FIELD_TYPES = [
   { type: 'date',     label: 'Date',           color: 'bg-teal-500/10 text-teal-400',    desc: 'Calendar date (no time). Stored as ISO 8601 date string.',        example: '"2024-12-25"' },
   { type: 'datetime', label: 'Date & Time',    color: 'bg-sky-500/10 text-sky-400',      desc: 'Full timestamp with time. Stored as ISO 8601 datetime string.',   example: '"2024-12-25T10:30:00.000Z"' },
   { type: 'json',     label: 'JSON',           color: 'bg-amber-500/10 text-amber-400',  desc: 'Arbitrary JSON object or array. Edited via a monospace textarea with live parse.', example: '{"key":"value","tags":["a","b"]}' },
-  { type: 'repeater', label: 'Repeater',       color: 'bg-red-500/10 text-red-400',      desc: 'A list of items, each sharing the same sub-fields.',              example: '[{"name":"Alice","role":"Dev"}]' },
+  { type: 'repeater', label: 'Repeater',       color: 'bg-red-500/10 text-red-400',      desc: 'A list of items, each sharing the same sub-fields. Set options.component to reuse a component\'s fields.', example: '[{"name":"Alice","role":"Dev"}]' },
   { type: 'flexible', label: 'Flexible',       color: 'bg-indigo-500/10 text-indigo-400',desc: 'A list of blocks where each block can be a different layout.',    example: '[{"_layout":"hero","heading":"Welcome"}]' },
-  { type: 'group',    label: 'Group',          color: 'bg-violet-500/10 text-violet-400',desc: 'A single nested object with fixed sub-fields. Good for SEO metadata, address, social links.', example: '{"title":"My Post","description":"..."}' },
+  { type: 'group',    label: 'Group',          color: 'bg-violet-500/10 text-violet-400',desc: 'A single nested object with fixed sub-fields. Good for SEO metadata, address, social links. Set options.component to reuse a component\'s fields.', example: '{"title":"My Post","description":"..."}' },
   { type: 'relation', label: 'Relation',       color: 'bg-teal-500/10 text-teal-400',    desc: 'Link to one or many entries in another content type. Returns publicId UUID(s). Use ?populate= to inline the related data.', example: '"uuid-v4" or ["uuid1","uuid2"]' },
 ];
 
@@ -194,10 +194,13 @@ const TOC_ITEMS = [
   { id: 'quick-start',    label: 'Quick Start' },
   { id: 'content-types',  label: 'Content Types' },
   { id: 'field-types',    label: 'Field Types' },
+  { id: 'components',     label: 'Components' },
+  { id: 'schema-changes', label: 'Schema Changes & Migrations' },
   { id: 'entries',        label: 'Entries & Slugs' },
   { id: 'i18n',           label: 'i18n / Multi-locale' },
   { id: 'relations',      label: 'Content Relations' },
   { id: 'graphql',        label: 'GraphQL API' },
+  { id: 'openapi',        label: 'OpenAPI & Swagger' },
   { id: 'realtime',       label: 'Real-time (WebSocket)' },
   { id: 'roles',          label: 'Roles & Permissions' },
   { id: 'brand',          label: 'Brand & Theme' },
@@ -207,9 +210,14 @@ const TOC_ITEMS = [
   { id: 'forms',          label: 'Forms' },
   { id: 'webhooks',       label: 'Webhooks' },
   { id: 'seo',            label: 'SEO & Sitemap' },
+  { id: 'redirects',      label: 'Redirects' },
   { id: 'client',         label: 'JS / TS Client' },
+  { id: 'live-preview',   label: 'Live Preview' },
+  { id: 'starters',       label: 'Framework Starters' },
+  { id: 'schema-cli',     label: 'Schema as Code (CLI)' },
   { id: 'releases',       label: 'Content Releases' },
   { id: 'templates',      label: 'Starter Templates' },
+  { id: 'wordpress-import', label: 'WordPress Import' },
   { id: 'ai',             label: 'AI Assistant & MCP' },
   { id: 'search',         label: 'Search Engine' },
   { id: 'email-storage',  label: 'Email & Storage' },
@@ -305,7 +313,7 @@ export default function DocsPage() {
           {/* Hero */}
           <div className="mb-14">
             <div className="flex items-center gap-2 mb-4 flex-wrap">
-              {['v1.0', 'Self-hosted', 'REST API', 'GraphQL', 'Real-time', 'i18n', 'MIT License'].map((t) => (
+              {['v1.7 (next)', 'Self-hosted', 'REST API', 'GraphQL', 'Real-time', 'i18n', 'MIT License'].map((t) => (
                 <span key={t} className="text-[11px] px-2 py-0.5 rounded-full border border-border text-muted-foreground">{t}</span>
               ))}
             </div>
@@ -661,10 +669,10 @@ npm run dev`} />
             <h3 className="font-semibold mb-3">Actions available</h3>
             <div className="space-y-2 mb-6">
               {[
-                ['Edit', 'Change the name or add/remove/reorder fields at any time.'],
+                ['Edit', 'Change the name or add/remove/reorder fields at any time. Renaming, retyping or removing fields that already hold data opens a confirm dialog that previews the impact and can migrate the data (see Schema Changes & Migrations).'],
                 ['Duplicate', 'Copy the schema to a new content type. Useful for similar structures.'],
-                ['Export JSON', 'Download the schema as a JSON file to back it up or share it.'],
-                ['Import JSON', 'Restore or import a schema from a previously exported file (on the New page).'],
+                ['Export JSON', 'Download the schema as a JSON file to back it up or share it. The file includes the components the exported types use (or all components for a full export), plus each type\'s Preview URL.'],
+                ['Import JSON', 'Restore or import a schema from a previously exported file (on the New page). Components are written first; the result reports components { created, updated, skipped } next to the content types.'],
                 ['Delete', 'Permanently removes the content type AND all its entries.'],
               ].map(([action, desc]) => (
                 <div key={action} className="flex gap-3 text-sm">
@@ -673,6 +681,25 @@ npm run dev`} />
                 </div>
               ))}
             </div>
+
+            <h3 className="font-semibold mb-2">Preview URL</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Each content type can have a <strong className="text-foreground">Preview URL</strong> — the page on your website that
+              shows one entry. It is an <IC>http(s)</IC> template with the placeholders <IC>{'{slug}'}</IC>, <IC>{'{locale}'}</IC> and{' '}
+              <IC>{'{token}'}</IC> (a signed 1-hour preview token), up to 2,048 characters; placeholders aren&apos;t allowed in the host.
+              It powers the entry editor&apos;s <strong className="text-foreground">Live</strong> pane (see Live Preview) and the automatic
+              redirect path when a slug changes, and it is included in schema export/import.
+            </p>
+            <CodeBlock code={`https://www.example.com/blog/{slug}?preview={token}
+https://www.example.com/{locale}/docs/{slug}`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Export / import without a login</h3>
+            <p className="text-muted-foreground text-sm mb-6">
+              <IC>GET /api/content-types/export</IC> and <IC>POST /api/content-types/import</IC> accept either a JWT
+              (export: admin or editor; import: admin) or an <IC>X-API-Key</IC> with <IC>all</IC> access to every content type
+              (<IC>contentTypes: ["*"]</IC>). Any other key gets <IC>403</IC>. Imports made with a key are written to the audit log
+              as <IC>api-key:&lt;name&gt;</IC>. This is what the <IC>schema:*</IC> CLI commands use.
+            </p>
 
             <h3 className="font-semibold mb-3">Reserved names (cannot be used)</h3>
             <div className="flex flex-wrap gap-2">
@@ -685,8 +712,10 @@ npm run dev`} />
           {/* ── Field Types ───────────────────────────────────────────────── */}
           <Section id="field-types" title="Field Types" icon={Box}>
             <p className="text-muted-foreground mb-6">
-              NodePress supports 10 field types. Each field name is normalized to{' '}
-              <IC>snake_case</IC> in the API response.
+              NodePress supports 15 field types. Each field name is normalized to{' '}
+              <IC>snake_case</IC> in the API response. Any field can also carry a <IC>condition</IC> (see
+              Conditional fields below), and <IC>group</IC> / <IC>repeater</IC> fields can take their sub-fields from a
+              reusable component with <IC>options.component</IC>.
             </p>
 
             <div className="rounded-xl border border-border overflow-hidden mb-8">
@@ -821,6 +850,91 @@ npm run dev`} />
 
 // Uses the index:
 GET /api/blog?where[category][eq]=news`} />
+
+            <h3 className="font-semibold mb-3 mt-8">Conditional fields</h3>
+            <p className="text-muted-foreground mb-3">
+              Use <strong className="text-foreground">Show only if…</strong> in the content type editor (or send a <IC>condition</IC> in
+              the schema) to show a field only when a sibling field matches — for example a <IC>video_url</IC> that appears only
+              when <IC>media_type</IC> is <IC>video</IC>. Siblings are the fields on the same level: top-level fields, or the fields
+              of the same repeater row, group or flexible block.
+            </p>
+            <CodeBlock code={`{
+  "name": "video_url",
+  "type": "text",
+  "required": true,
+  "condition": { "field": "media_type", "op": "eq", "value": "video" }
+}
+
+// op: eq | ne        → value is a string, number or boolean
+//     in | notIn     → value is an array of them
+//     set | notSet   → no value (is the field filled in?)
+// Multi-select fields match when any chosen value matches.`} />
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mt-3">
+              <li>A hidden field is never required — <IC>required: true</IC> only applies while it is shown, in the admin and in the API.</li>
+              <li>Conditions chain: a field whose condition field is hidden is hidden too.</li>
+              <li>Hiding is a form behaviour, not access control — use field <IC>readRoles</IC> / <IC>writeRoles</IC> to protect data.</li>
+            </ul>
+          </Section>
+
+          {/* ── Components ────────────────────────────────────────────────── */}
+          <Section id="components" title="Reusable Components" icon={Boxes}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              A component is a named set of simple fields — an SEO block, a call-to-action, a link — defined once under{' '}
+              <strong className="text-foreground">Content → Components</strong> (<IC>/components</IC>) and reused in any content type.
+              In the content type editor, click <strong className="text-foreground">Add component</strong>: it becomes a{' '}
+              <IC>group</IC> field (one) or a <IC>repeater</IC> field (many) with <IC>options.component</IC> set.
+            </p>
+            <CodeBlock code={`// Component "seo"
+{ "name": "seo", "displayName": "SEO",
+  "fields": [{ "name": "meta_title", "type": "text" }, { "name": "meta_description", "type": "textarea" }] }
+
+// Used in a content type
+{ "name": "seo",   "type": "group",    "options": { "component": "seo" } }
+{ "name": "links", "type": "repeater", "options": { "component": "link" } }`} />
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mt-3 mb-4">
+              <li>On every save the server copies the component&apos;s fields into the field&apos;s sub-fields, so the API output is exactly that of a normal group or repeater. Never edit those copies — edit the component.</li>
+              <li>Editing a component updates every content type that uses it (each gets a schema version). The response lists <IC>updatedContentTypes</IC> and any <IC>propagationErrors</IC>.</li>
+              <li>Components hold simple fields only (no repeater, flexible, group or reverse relations). An unknown component name is a <IC>400</IC>; deleting one that is in use is a <IC>409</IC>.</li>
+              <li>Schema export includes the components the exported types use, and import creates them first.</li>
+            </ul>
+            <div className="rounded-xl border border-border overflow-hidden">
+              <Endpoint method="GET"    path="/api/components"     desc="List components (any signed-in user)" auth />
+              <Endpoint method="GET"    path="/api/components/:id" desc="One component with usage[] — the content types and fields using it" auth />
+              <Endpoint method="POST"   path="/api/components"     desc="Create — body: { name, displayName?, description?, fields } — admin only" auth />
+              <Endpoint method="PUT"    path="/api/components/:id" desc="Update and propagate to every content type using it — returns updatedContentTypes, propagationErrors — admin only" auth />
+              <Endpoint method="DELETE" path="/api/components/:id" desc="Delete — 409 while any content type uses it — admin only" auth />
+            </div>
+          </Section>
+
+          {/* ── Schema changes ────────────────────────────────────────────── */}
+          <Section id="schema-changes" title="Schema Changes & Data Migrations" icon={SlidersHorizontal}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Entries keep all their values in one JSON column, so changing a schema doesn&apos;t move existing data by itself: a renamed
+              field&apos;s values would stay under the old key and a retyped field would keep values of the old type. When you save a
+              content type whose fields already hold data, the admin opens a <strong className="text-foreground">confirm dialog</strong>{' '}
+              that lists what changes, how many entries each change touches and how many values a conversion would drop — and lets you
+              choose to rename, convert or delete the data along with the schema.
+            </p>
+            <CodeBlock code={`# Preview — same body as PUT, changes nothing
+POST /api/content-types/:id/schema-impact
+→ { entryCount, diff, steps: [{ kind, field, from?, fromType?, toType?, entries, lost }], retyped, warnings }
+
+# Apply the schema and migrate the data in one transaction
+PUT /api/content-types/:id
+{
+  "schema": [ ... ],
+  "fieldMigrations": {
+    "renames": [{ "from": "headline", "to": "title" }],
+    "convert": ["price"],          // new names of retyped fields
+    "drop":    ["legacy_notes"]    // removed fields whose values are deleted too
+  }
+}`} />
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mt-3">
+              <li>Only top-level fields are migrated. Steps run in order: renames, then conversions (by the new name), then drops. The schema change and the data change commit together or not at all.</li>
+              <li>Conversions: anything → <IC>json</IC>; text-like ↔ <IC>richtext</IC> (wrapped in <IC>&lt;p&gt;</IC> / HTML stripped); text, number, boolean → text or select; multi-select → first value; text → multi-select; text → <IC>number</IC> (numeric strings) and → <IC>boolean</IC> (true/yes/1/on, false/no/0/off). Values that can&apos;t be converted are removed — the preview counts them as <IC>lost</IC>.</li>
+              <li>Reverse relation fields (<IC>mappedBy</IC>) on other types follow a renamed relation field.</li>
+              <li>Old entry versions keep the shape they were saved with.</li>
+            </ul>
           </Section>
 
           {/* ── Entries ───────────────────────────────────────────────────── */}
@@ -965,7 +1079,8 @@ POST /api/entries/bulk-promote  # Body: { "ids": [1, 2, 3], "status": "published
             <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm mb-4">
               <strong className="text-foreground">Admin interface language.</strong>
               <p className="text-muted-foreground mt-1 text-xs">
-                Separate from content languages: the admin panel itself is available in English, French, German and Spanish. Each
+                Separate from content languages: the admin panel itself is available in English, French, German, Spanish, Portuguese, Italian, Dutch,
+                Japanese and Simplified Chinese. Each
                 person picks theirs with the language switcher in the top bar (or on the sign-in page); the browser language is used
                 until they do. Translations live in <IC>frontend/messages/&lt;locale&gt;/*.json</IC>; <IC>node scripts/check-i18n.js</IC>
                 checks they stay complete.
@@ -1128,6 +1243,15 @@ GET /api/post?where[author][eq]=<uuid>             # comparing the stored UUID s
               <p className="text-muted-foreground mt-1 text-xs">
                 Each depth level makes one additional batched DB query — not N queries per relation. Caching is bypassed when <IC>?populate</IC> is used because the response shape varies per request.
                 Public reads only populate <strong>published</strong> linked entries; the admin API includes drafts.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm mt-4">
+              <strong className="text-amber-400">Field permissions apply to populated entries.</strong>
+              <p className="text-muted-foreground mt-1 text-xs">
+                A populated entry is filtered by the <em>related</em> content type&apos;s field <IC>readRoles</IC> for the caller, just
+                like a direct read of that type, and its <IC>contentType</IC> is trimmed to <IC>{'{ id, name, displayName }'}</IC> —
+                the related type&apos;s schema and settings are never included.
               </p>
             </div>
           </Section>
@@ -1426,6 +1550,28 @@ mutation DeleteWebhook {
             <p className="text-muted-foreground text-sm">Queries are limited to a depth of <strong className="text-foreground">6</strong> to prevent abuse. Queries deeper than 6 nested fields are rejected with a validation error.</p>
           </Section>
 
+          {/* ── OpenAPI ───────────────────────────────────────────────────── */}
+          <Section id="openapi" title="OpenAPI & Swagger UI" icon={FileCode}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              <IC>GET /api/openapi.json</IC> returns a public <strong className="text-foreground">OpenAPI 3.1</strong> document generated
+              from your content types — it changes as soon as a content type does. Browse and try it in{' '}
+              <strong className="text-foreground">Swagger UI</strong> at <IC>/api/docs/content</IC> (the admin/management API stays at{' '}
+              <IC>/api/docs</IC>).
+            </p>
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-3">
+              <li>Each content type gets list, get, create, update and delete operations — only the ones its <IC>allowedMethods</IC> expose.</li>
+              <li>Per type there are <IC>&lt;Type&gt;</IC>, <IC>&lt;Type&gt;Data</IC>, <IC>&lt;Type&gt;List</IC>, <IC>&lt;Type&gt;Input</IC> and <IC>&lt;Type&gt;UpdateInput</IC> schemas.</li>
+              <li>Fields with <IC>readRoles</IC> are left out of read schemas, fields with <IC>writeRoles</IC> out of the inputs — the document describes what an anonymous reader or an API key sees.</li>
+              <li>Field <IC>condition</IC>s aren&apos;t expressed; conditional fields appear as optional.</li>
+            </ul>
+            <CodeBlock code={`# Typed fetch client
+npx openapi-typescript https://cms.example.com/api/openapi.json -o nodepress-api.d.ts
+
+# Or a full SDK in any language
+npx @openapitools/openapi-generator-cli generate \\
+  -i https://cms.example.com/api/openapi.json -g typescript-fetch -o ./sdk`} />
+          </Section>
+
           {/* ── Real-time ─────────────────────────────────────────────────── */}
           <Section id="realtime" title="Real-time (WebSocket)" icon={Radio}>
             <p className="text-muted-foreground leading-relaxed mb-4">
@@ -1555,7 +1701,7 @@ REDIS_URL=redis://localhost:6379
           {/* ── Roles & Permissions ───────────────────────────────────────── */}
           <Section id="roles" title="Roles & Permissions" icon={ShieldCheck}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              NodePress has four built-in roles. Access to admin routes is enforced server-side — the frontend role display is for UX only.
+              NodePress has four built-in roles, plus any custom roles you add. Access to admin routes is enforced server-side — the frontend role display is for UX only.
             </p>
 
             <div className="overflow-x-auto rounded-xl border border-border mb-5">
@@ -1570,7 +1716,26 @@ REDIS_URL=redis://localhost:6379
               </table>
             </div>
 
-            <h3 className="font-semibold mb-2">Adding team members (invite-only)</h3>
+            <h3 className="font-semibold mb-2">Custom roles</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Go to <strong className="text-foreground">Team → Roles</strong> (<IC>/users/roles</IC>, admin only) to add roles such as{' '}
+              <IC>translator</IC> or <IC>marketing_editor</IC>. A custom role is based on <IC>editor</IC>, <IC>contributor</IC> or{' '}
+              <IC>viewer</IC>: it gets that role&apos;s access to the admin, and its content permissions start as a copy of the base
+              role&apos;s, which you then narrow per content type in the permissions matrix. The name is snake_case and can&apos;t be
+              changed later; a role still assigned to users can&apos;t be deleted (<IC>409</IC> with <IC>userCount</IC>).
+            </p>
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-4">
+              <li>Assign custom roles like built-in ones when inviting or editing a user (<IC>POST/PUT /api/users</IC> accept their names).</li>
+              <li><IC>/api/auth/me</IC> and login return <IC>role</IC> (the base role) and <IC>customRole</IC>.</li>
+              <li>SSO: <IC>OIDC_ROLE_MAP</IC> may map provider groups to custom roles; <IC>OIDC_DEFAULT_ROLE</IC> must be a built-in role.</li>
+              <li>Field-level <IC>readRoles</IC> / <IC>writeRoles</IC> use the base role.</li>
+            </ul>
+            <CodeBlock code={`GET    /api/roles
+POST   /api/roles          { "name": "translator", "label": "Translator", "baseRole": "contributor", "description": "…" }
+PUT    /api/roles/:name    { "label": "…", "description": "…", "baseRole": "editor" }
+DELETE /api/roles/:name`} />
+
+            <h3 className="font-semibold mb-2 mt-5">Adding team members (invite-only)</h3>
             <p className="text-muted-foreground text-sm mb-4">
               Go to <strong className="text-foreground">Users → Add User</strong> and enter just an{' '}
               <strong className="text-foreground">email + role</strong> — no password. NodePress creates the
@@ -1618,6 +1783,15 @@ PUT /api/permissions/reset/all`} />
                 <li>Enforce schema-level <IC>readRoles</IC> and <IC>writeRoles</IC> on every field</li>
                 <li>If neither exists, deny by default</li>
               </ol>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm">
+              <strong className="text-amber-400">Content permissions apply to every write path</strong>
+              <ul className="text-muted-foreground mt-1 text-xs space-y-1 list-disc pl-4">
+                <li>The public write API (<IC>POST/PUT/DELETE /api/:type</IC>) checks the role&apos;s content permissions for JWT callers, not only API keys. Creating a published entry (the default) or promoting one to published needs <IC>publish</IC> — so a contributor&apos;s JWT must send <IC>status: &quot;draft&quot;</IC>.</li>
+                <li><IC>POST /api/entries</IC> checks the permissions of the entry&apos;s own content type, not the <IC>*</IC> row.</li>
+                <li>A user whose role no longer exists is treated as a viewer (read-only).</li>
+              </ul>
             </div>
           </Section>
 
@@ -1711,6 +1885,30 @@ export class MyPluginModule {}`} />
               automatically, so the next start succeeds. With several servers, restart each one.
             </p>
             <p className="text-muted-foreground text-sm mb-2">
+              <strong className="text-foreground">Or browse the directory</strong>: the Plugins page&apos;s{' '}
+              <strong className="text-foreground">Browse</strong> tab lists plugins from the NodePress plugin registry (a{' '}
+              <IC>plugins-registry.json</IC> file, by default the one in the NodePress GitHub repo; set{' '}
+              <IC>PLUGIN_REGISTRY_URL</IC> to use your own, or leave it empty to turn the tab off). Each card shows the
+              plugin&apos;s author, licence, pricing, compatibility and whether it is installed. <strong className="text-foreground">Install</strong>{' '}
+              downloads the package over HTTPS, checks its <IC>sha256</IC> from the registry and then runs the same review and
+              signature checks as an upload. The list is cached for an hour, and the last good copy is used if the registry is
+              unreachable.
+            </p>
+            <CodeBlock code={`// plugins-registry.json
+{
+  "version": 1,
+  "plugins": [{
+    "id": "my-plugin", "name": "My Plugin", "description": "…",
+    "author": "Acme", "license": "MIT", "nodepress": "^1.7.0",
+    "tags": ["seo"], "pricing": "free",
+    "latest": {                                   // optional — leave out for listing-only entries
+      "version": "1.0.0",
+      "downloadUrl": "https://example.com/my-plugin-1.0.0.zip",
+      "sha256": "…"                               // required together with downloadUrl
+    }
+  }]
+}`} />
+            <p className="text-muted-foreground text-sm mb-2">
               <strong className="text-foreground">Or bundle it in code</strong> (developers): put it in <IC>src/plugins/</IC> and add
               it to <IC>src/plugin/plugins.config.ts</IC>. Bundled plugins can&apos;t be deleted or replaced by an upload.
             </p>
@@ -1730,6 +1928,7 @@ export const ENABLED_PLUGINS = [
                     ['PLUGIN_TRUSTED_KEYS', 'Comma-separated publisher public keys (printed by plugin keygen).'],
                     ['PLUGIN_MAX_UPLOAD_MB', 'Largest package accepted (default 25).'],
                     ['PLUGINS_DIR', 'Where packages are unpacked (default backend/.plugins). Re-created from the database at startup.'],
+                    ['PLUGIN_REGISTRY_URL', 'Plugin directory shown in the Browse tab (default: plugins-registry.json in the NodePress GitHub repo). Empty disables the directory.'],
                   ].map(([name, desc]) => (
                     <tr key={name}><td className="px-4 py-2.5 font-mono">{name}</td><td className="px-4 py-2.5">{desc}</td></tr>
                   ))}
@@ -1847,7 +2046,7 @@ export class MyPluginService implements OnModuleInit {
 
             <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
               <strong className="text-blue-400">Discover installed plugins:</strong>
-              <p className="text-muted-foreground mt-1 text-xs"><IC>GET /api/plugins</IC> — registered plugins with version, compatibility, enabled state and pending restart changes (settings are included for admins only). Admin-only: <IC>PATCH /api/plugins/:id/toggle</IC>, <IC>PUT /api/plugins/:id/config</IC>, <IC>POST /api/plugins/packages</IC> (multipart <IC>file</IC>; <IC>?dryRun=true</IC> only reviews it), <IC>DELETE /api/plugins/packages/:id</IC> and <IC>POST /api/plugins/restart</IC>.</p>
+              <p className="text-muted-foreground mt-1 text-xs"><IC>GET /api/plugins</IC> — registered plugins with version, compatibility, enabled state and pending restart changes (settings are included for admins only). Admin-only: <IC>PATCH /api/plugins/:id/toggle</IC>, <IC>PUT /api/plugins/:id/config</IC>, <IC>POST /api/plugins/packages</IC> (multipart <IC>file</IC>; <IC>?dryRun=true</IC> only reviews it), <IC>DELETE /api/plugins/packages/:id</IC>, <IC>POST /api/plugins/restart</IC>, <IC>GET /api/plugins/registry</IC> (the directory; <IC>?refresh=true</IC> skips the cache) and <IC>POST /api/plugins/registry/:id/install</IC> (<IC>?dryRun=true</IC> only reviews it).</p>
             </div>
           </Section>
 
@@ -1999,6 +2198,7 @@ STORAGE_S3_PUBLIC_URL=http://localhost:9000/nodepress-uploads`} />
                 ['Mobile app', 'A native/React Native app reads (and maybe writes) content. Use a read or write key.'],
                 ['Static-site build (Next.js, Gatsby, Astro)', 'CI pulls content during the build. A read key is enough.'],
                 ['Partner / server integration', 'Another backend syncs or pushes content. Use a write/all key, scoped to specific content types.'],
+                ['CI / schema as code', 'A pipeline checks or applies nodepress.schema.json with the schema:* CLI commands. Needs an all-access key for every content type (*).'],
               ].map(([title, desc]) => (
                 <div key={title} className="rounded-xl border border-border p-4">
                   <p className="text-sm font-semibold mb-1">{title}</p>
@@ -2049,6 +2249,15 @@ STORAGE_S3_PUBLIC_URL=http://localhost:9000/nodepress-uploads`} />
               You can also restrict a key to specific content types. A key with
               <IC>contentTypes: ["blog"]</IC> cannot access <IC>/api/product</IC>.
             </p>
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 mb-4 text-sm">
+              <strong className="text-blue-400">Full-access keys and the content model</strong>
+              <p className="text-muted-foreground mt-1 text-xs">
+                A key with access <IC>all</IC> and content types <IC>*</IC> can also export and import content type schemas
+                (<IC>GET /api/content-types/export</IC>, <IC>POST /api/content-types/import</IC>) — what CI needs for{' '}
+                <IC>schema:diff</IC> / <IC>schema:push</IC>. Narrower keys get <IC>403</IC> there. Treat such a key like an admin
+                password.
+              </p>
+            </div>
 
             <CodeBlock code={`# Use the key in the X-API-Key header
 curl ${baseUrl}/api/blog \\
@@ -2929,6 +3138,51 @@ module.exports = {
           </Section>
 
           {/* ── Self-hosting ───────────────────────────────────────────────── */}
+          {/* ── Redirects ─────────────────────────────────────────────────── */}
+          <Section id="redirects" title="Redirects" icon={ArrowRightLeft}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              <strong className="text-foreground">Content → Redirects</strong> (<IC>/redirects</IC>, editors and admins) manages{' '}
+              <IC>301</IC>, <IC>302</IC>, <IC>307</IC>, <IC>308</IC> and <IC>410</IC> (gone) rules for your website. NodePress doesn&apos;t
+              serve your site, so the site asks it: <IC>GET /api/redirects/resolve?path=/old-page</IC> returns{' '}
+              <IC>{'{ to, statusCode }'}</IC> or <IC>404</IC> (public, cached 5 minutes server-side, <IC>Cache-Control: max-age=60</IC>).
+              Hits are counted per rule.
+            </p>
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-4">
+              <li><strong className="text-foreground">Matching:</strong> on the path only — lowercased, trailing slash removed. A query string is matched only when the rule&apos;s <IC>from</IC> has one; otherwise the visitor&apos;s query is carried over to the target.</li>
+              <li><strong className="text-foreground">Targets:</strong> a path or an <IC>http(s)</IC> URL. A <IC>410</IC> has no target (<IC>to: null</IC>). Loops and chains longer than 5 hops are refused.</li>
+              <li><strong className="text-foreground">Bulk:</strong> CSV import/export with columns <IC>from,to,status</IC> (up to 10,000 rows, all or nothing, with a dry run).</li>
+              <li><strong className="text-foreground">Automatic 301 on slug change:</strong> when the slug of an entry that has ever been published changes, a 301 from its old public path is added. The path comes from the content type&apos;s Preview URL when it contains <IC>{'{slug}'}</IC>, otherwise <IC>/&lt;type-in-kebab-case&gt;/&lt;slug&gt;</IC>, with a <IC>/&lt;locale&gt;</IC> prefix for non-default languages. Set <IC>REDIRECTS_ON_SLUG_CHANGE=false</IC> to turn it off.</li>
+            </ul>
+            <h3 className="font-semibold mb-2">Next.js middleware example</h3>
+            <CodeBlock code={`// middleware.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+const CMS = process.env.NODEPRESS_URL!;   // the NodePress backend
+
+export async function middleware(req: NextRequest) {
+  const { pathname, search } = req.nextUrl;
+  const res = await fetch(
+    \`\${CMS}/api/redirects/resolve?path=\${encodeURIComponent(pathname + search)}\`,
+    { next: { revalidate: 60 } },
+  );
+  if (!res.ok) return NextResponse.next();                // 404 → no rule
+  const { to, statusCode } = await res.json();
+  if (statusCode === 410) return new Response('Gone', { status: 410 });
+  return NextResponse.redirect(new URL(to, req.url), statusCode);
+}
+
+export const config = { matcher: ['/((?!_next|api|favicon.ico).*)'] };`} />
+            <div className="rounded-xl border border-border overflow-hidden mt-4">
+              <Endpoint method="GET"    path="/api/redirects/resolve?path=" desc="Look up a path — { to, statusCode } or 404 (public)" />
+              <Endpoint method="GET"    path="/api/redirects"               desc="List rules — ?search, ?page, ?limit, ?sort" auth />
+              <Endpoint method="POST"   path="/api/redirects"               desc="Create — body: { from, to?, statusCode? } (default 301)" auth />
+              <Endpoint method="PATCH"  path="/api/redirects/:id"           desc="Change a rule" auth />
+              <Endpoint method="DELETE" path="/api/redirects/:id"           desc="Delete a rule" auth />
+              <Endpoint method="POST"   path="/api/redirects/import"        desc="Import CSV — body: { csv, dryRun? } (from,to,status; all or nothing; ≤10,000 rows)" auth />
+              <Endpoint method="GET"    path="/api/redirects/export"        desc="Download all rules as CSV" auth />
+            </div>
+          </Section>
+
           {/* ── JS/TS client ───────────────────────────────────────────────── */}
           <Section id="client" title="JavaScript / TypeScript Client" icon={Code2}>
             <p className="text-muted-foreground leading-relaxed mb-4">
@@ -2958,6 +3212,90 @@ await admin.collection('post').create({ slug: 'draft-1', data: { title: 'Hi' }, 
               The public write API (<IC>POST/PUT /api/:type</IC>) validates <IC>data</IC> against the content type — the same
               rules as the admin — and accepts <IC>status: "draft" | "published"</IC> on create.
             </p>
+          </Section>
+
+          {/* ── Live preview ──────────────────────────────────────────────── */}
+          <Section id="live-preview" title="Live Preview" icon={Eye}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Set a content type&apos;s <strong className="text-foreground">Preview URL</strong> (see Content Types) and the entry editor
+              gets a <strong className="text-foreground">Live</strong> toggle: your real website opens in a resizable pane next to the
+              form, with device widths, reload and open-in-new-tab buttons. The preview token in the URL is refreshed automatically,
+              and every edit streams to the page as you type — no save needed. The entry has to be saved once first.
+            </p>
+            <h3 className="font-semibold mb-2">The postMessage protocol</h3>
+            <div className="overflow-x-auto rounded-xl border border-border mb-4">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Message</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Direction</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Meaning</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border text-xs">
+                  <tr><td className="px-4 py-2.5 font-mono">{'{ type: "nodepress:preview", contentType, slug, locale, data }'}</td><td className="px-4 py-2.5">admin → site</td><td className="px-4 py-2.5">The form&apos;s current values, unsaved edits included (debounced)</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">{'{ type: "nodepress:ready" }'}</td><td className="px-4 py-2.5">site → admin</td><td className="px-4 py-2.5">The page is listening — send the data now</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">{'{ type: "nodepress:focus-field", field }'}</td><td className="px-4 py-2.5">site → admin</td><td className="px-4 py-2.5">The visitor clicked an element — scroll to and focus that field</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-muted-foreground text-sm mb-2">
+              Both sides accept messages only from exact origins (never <IC>*</IC>). Your site must allow being framed by the admin&apos;s
+              origin (e.g. <IC>Content-Security-Policy: frame-ancestors https://cms.example.com</IC>). The helpers in{' '}
+              <IC>@nodepress/client/preview</IC> handle the protocol:
+            </p>
+            <CodeBlock code={`import { onPreviewUpdate, enableClickToEdit, isInPreviewFrame } from '@nodepress/client/preview';
+
+const adminOrigin = 'https://cms.example.com';
+
+if (isInPreviewFrame()) {
+  // Re-render with the editor's live values
+  const stop = onPreviewUpdate((msg) => render(msg.data), { adminOrigin });
+
+  // <h1 data-np-field="title">…</h1> — hover outline, click focuses the field in the editor
+  enableClickToEdit({ adminOrigin });
+}`} />
+          </Section>
+
+          {/* ── Starters ──────────────────────────────────────────────────── */}
+          <Section id="starters" title="Framework Starters" icon={Layers}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              The repo&apos;s <IC>starters/</IC> folder has minimal blog frontends built on <IC>@nodepress/client</IC> — copy one out to
+              start a site. Each has a list page with cursor pagination, a post page that sanitizes richtext again, cover images
+              through <IC>cms.imageUrl()</IC> and <IC>?populate=author</IC>.
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-border mb-4">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Starter</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Rendering</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Extras</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border text-xs">
+                  <tr><td className="px-4 py-2.5 font-mono">starters/nextjs</td><td className="px-4 py-2.5">Next.js 15 App Router, server components, 60 s fetch cache</td><td className="px-4 py-2.5">Draft mode + live preview in the entry editor</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">starters/astro</td><td className="px-4 py-2.5">Astro, static build</td><td className="px-4 py-2.5">Every page built at build time</td></tr>
+                  <tr><td className="px-4 py-2.5 font-mono">starters/nuxt</td><td className="px-4 py-2.5">Nuxt 4, server-rendered, CMS calls in <IC>server/api</IC></td><td className="px-4 py-2.5">The API key never reaches the browser</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <CodeBlock code={`cp -R starters/nextjs ../my-site && cd ../my-site
+cp .env.example .env     # NODEPRESS_URL (the backend), NODEPRESS_TYPE=blog, NODEPRESS_POPULATE=author, NODEPRESS_API_KEY (optional)
+npm install && npm run dev`} />
+            <p className="text-muted-foreground text-xs mt-2">
+              Starters aren&apos;t workspaces and ship without lockfiles. They depend on <IC>@nodepress/client</IC> via{' '}
+              <IC>file:../../client</IC> — after copying one elsewhere, point that at your NodePress checkout&apos;s <IC>client/</IC>{' '}
+              (built with <IC>npm run build</IC>).
+            </p>
+          </Section>
+
+          {/* ── Schema CLI ────────────────────────────────────────────────── */}
+          <Section id="schema-cli" title="Schema as Code (CLI)" icon={GitBranch}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Keep your content model in git and promote it between environments. The CLI talks to the schema export/import
+              endpoints with <IC>NODEPRESS_URL</IC> and <IC>NODEPRESS_TOKEN</IC> (or <IC>NODEPRESS_API_KEY</IC>, or <IC>--url</IC> /{' '}
+              <IC>--token</IC>). A token starting with <IC>np_</IC> is sent as <IC>X-API-Key</IC> (it needs <IC>all</IC> access to{' '}
+              <IC>*</IC>); anything else as an admin <IC>Bearer</IC> JWT.
+            </p>
+            <CodeBlock code={`npx create-nodepress-app schema:pull [--out nodepress.schema.json]   # save the site's content types (and components)
+npx create-nodepress-app schema:diff [--file nodepress.schema.json]  # what a push would change
+npx create-nodepress-app schema:push [--file nodepress.schema.json] [--yes]   # apply (asks first unless --yes)
+
+# CI: fail the build when production drifts from the file
+NODEPRESS_URL=https://cms.example.com NODEPRESS_TOKEN=np_… npx create-nodepress-app schema:diff`} />
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mt-3">
+              <li><IC>schema:diff</IC> exits <IC>0</IC> when in sync, <IC>1</IC> when there are changes, <IC>2</IC> on an error.</li>
+              <li><IC>schema:push</IC> creates and updates content types but never deletes one that exists only on the server (diff lists those).</li>
+            </ul>
           </Section>
 
           {/* ── Releases ──────────────────────────────────────────────────── */}
@@ -2991,6 +3329,34 @@ GET    /api/releases  |  GET /api/releases/:id   (items + conflicts)`} />
               if any of its content type names already exists. API: <IC>GET /api/templates</IC>, <IC>POST /api/templates/:id/apply</IC>
               {' '}<IC>{'{ "sampleContent": false }'}</IC> (admin).
             </p>
+          </Section>
+
+          {/* ── WordPress import ──────────────────────────────────────────── */}
+          <Section id="wordpress-import" title="WordPress Importer" icon={Upload}>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              <strong className="text-foreground">Settings → Import</strong> (<IC>/import</IC>, admin only) moves a WordPress site in.
+              Export it from WordPress (<em>Tools → Export → All content</em>), upload the WXR <IC>.xml</IC> file (up to 50 MB) and review
+              the dry-run summary before importing. The import runs as a background job (<IC>import.wordpress</IC>, one attempt) whose
+              progress the page follows.
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-border mb-4">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">WordPress</th><th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">NodePress</th></tr></thead>
+                <tbody className="text-muted-foreground divide-y divide-border text-xs">
+                  <tr><td className="px-4 py-2.5">Posts, pages, custom post types</td><td className="px-4 py-2.5">One content type each with <IC>title</IC>, <IC>content</IC> (richtext), <IC>excerpt</IC>, <IC>featured_image</IC>, <IC>categories</IC> / <IC>tags</IC> (JSON arrays of names), <IC>author</IC> (text), <IC>wp_id</IC>, <IC>meta</IC> (JSON of the non-underscore post meta, ACF included). Reserved names get a <IC>wp_</IC> prefix.</td></tr>
+                  <tr><td className="px-4 py-2.5">Status</td><td className="px-4 py-2.5"><IC>publish</IC> → published, <IC>draft</IC> → draft, <IC>pending</IC> → pending review, <IC>private</IC> → draft, <IC>future</IC> → draft with <IC>publishAt</IC></td></tr>
+                  <tr><td className="px-4 py-2.5">Media (optional)</td><td className="px-4 py-2.5">Downloaded into the &quot;WordPress import&quot; media folder — allowed upload types only, 10 MB each, public <IC>http(s)</IC> URLs only</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mb-3">
+              <li>Existing content types with the same name are reused (only their fields are filled). Existing slugs are skipped unless you choose <em>Overwrite</em>.</li>
+              <li>Not imported: comments, custom taxonomies, users and the category hierarchy. PHP-serialized meta is kept as the raw string.</li>
+              <li>With several backend instances, <IC>uploads/</IC> must be shared — the uploaded file waits in <IC>uploads/.cache/imports</IC> for the job.</li>
+            </ul>
+            <CodeBlock code={`POST /api/import/wordpress?dryRun=true      # multipart "file" → summary, nothing written
+POST /api/import/wordpress?importMedia=true&overwrite=true   # → { jobId }
+GET  /api/import/wordpress/:jobId           # status and result`} />
           </Section>
 
           {/* ── AI ────────────────────────────────────────────────────────── */}
@@ -3175,6 +3541,8 @@ npm run docker:prod        # docker-compose -f docker-compose.prod.yml up -d --b
                     ['CAPTCHA_PROVIDER',     'Captcha provider for form spam protection: turnstile | hcaptcha | recaptcha (optional)'],
                     ['CAPTCHA_SECRET_KEY',   'Server-side secret from your captcha provider dashboard (required when CAPTCHA_PROVIDER is set)'],
                     ['AUDIT_LOG_RETENTION_DAYS', 'How many days to keep audit log entries before pruning — default 90 (optional)'],
+                    ['PLUGIN_REGISTRY_URL',  'Plugin directory for the Plugins → Browse tab (default: plugins-registry.json in the NodePress GitHub repo). Empty disables it (optional)'],
+                    ['REDIRECTS_ON_SLUG_CHANGE', 'Add a 301 from the old path when a published entry\'s slug changes — default true; false turns it off (optional)'],
                     ['SENTRY_DSN',           'Sentry DSN for backend error tracking (optional; requires scaffolding with --sentry, or installing the @sentry packages)'],
                   ].map(([key, desc]) => (
                     <tr key={key}>
@@ -3598,9 +3966,9 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
               <Endpoint method="GET"    path="/api/{type}"               desc="List entries — ?page or ?cursor (keyset, from meta.nextCursor), ?limit (max 100), ?sort=createdAt:desc, ?search=term (GIN-indexed full-text), ?where[field][op]=val (advanced filters: eq, ne, gt, gte, lt, lte, contains, in, notIn, OR, AND), ?fields=title,slug (projection), ?populate=author,author.company ($O(depth)$ batched lookups). ETag + Cache-Control: public, max-age=30." />
               <Endpoint method="GET"    path="/api/{type}/{slug}"        desc="Get a single entry — ?fields=title,slug, ?populate=author,author.company. ETag + Cache-Control: public, max-age=30." />
               <Endpoint method="GET"    path="/api/{type}/{slug}/preview" desc="Preview any entry (draft/archived) using a signed token — ?token=<token>. Token generated by POST /api/entries/:id/preview-url." />
-              <Endpoint method="POST"   path="/api/{type}"               desc="Create a new entry (enforces writeRoles permission)" auth />
-              <Endpoint method="PUT"    path="/api/{type}/{slug}"        desc="Update an existing entry (enforces writeRoles permission)" auth />
-              <Endpoint method="DELETE" path="/api/{type}/{slug}"        desc="Delete an entry (soft delete)" auth />
+              <Endpoint method="POST"   path="/api/{type}"               desc="Create a new entry — JWT callers need the role's create permission on the type (and publish unless status: 'draft'); enforces writeRoles" auth />
+              <Endpoint method="PUT"    path="/api/{type}/{slug}"        desc="Update an existing entry — JWT callers need update (and publish to promote to published); enforces writeRoles" auth />
+              <Endpoint method="DELETE" path="/api/{type}/{slug}"        desc="Delete an entry (soft delete) — JWT callers need delete" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Auth</h3>
@@ -3610,7 +3978,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
               <Endpoint method="POST"   path="/api/auth/login"                 desc="Login — returns JWT access token (7d) + sets HttpOnly refresh cookie (30d)" />
               <Endpoint method="POST"   path="/api/auth/refresh"               desc="Exchange refresh cookie for a new access token (silent — no user prompt)" />
               <Endpoint method="POST"   path="/api/auth/logout"                desc="Revoke refresh token and clear the cookie" auth />
-              <Endpoint method="GET"    path="/api/auth/me"                    desc="Get current user" auth />
+              <Endpoint method="GET"    path="/api/auth/me"                    desc="Get current user — role (built-in base role) + customRole" auth />
               <Endpoint method="POST"   path="/api/auth/forgot-password"       desc="Request a password reset email (always 200)" />
               <Endpoint method="POST"   path="/api/auth/reset-password"        desc="Set a new password using the reset token" />
             </div>
@@ -3618,17 +3986,19 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
             <h3 className="font-semibold mb-3">Content Types</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/content-types"              desc="List all content types" auth />
-              <Endpoint method="GET"    path="/api/content-types/export"       desc="Export all content type schemas as a JSON bundle" auth />
-              <Endpoint method="POST"   path="/api/content-types/import"       desc="Import content type schemas with dryRun pre-flight validation" auth />
+              <Endpoint method="GET"    path="/api/content-types/export"       desc="Export all content type schemas (+ components, preview URLs) as a JSON bundle — admin/editor JWT or a full-access API key" auth />
+              <Endpoint method="POST"   path="/api/content-types/import"       desc="Import content type schemas and components with dryRun pre-flight validation — admin JWT or a full-access API key" auth />
               <Endpoint method="POST"   path="/api/content-types"              desc="Create a content type (supports field-level readRoles & writeRoles)" auth />
-              <Endpoint method="PUT"    path="/api/content-types/:id"          desc="Update a content type schema" auth />
+              <Endpoint method="PUT"    path="/api/content-types/:id"          desc="Update a content type schema — optional fieldMigrations { renames, convert, drop } and previewUrl" auth />
+              <Endpoint method="POST"   path="/api/content-types/:id/schema-impact" desc="Preview what an update would do to existing entries (same body as PUT, changes nothing) — admin only" auth />
+              <Endpoint method="GET"    path="/api/content-types/:id/schema-history" desc="Previous schema versions — admin only" auth />
               <Endpoint method="DELETE" path="/api/content-types/:id"          desc="Delete a content type and all its entries" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Entries (Admin)</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/entries"                    desc="List entries — ?contentTypeId, ?status, ?deleted, ?search, ?page, ?limit" auth />
-              <Endpoint method="POST"   path="/api/entries"                    desc="Create an entry" auth />
+              <Endpoint method="POST"   path="/api/entries"                    desc="Create an entry — checks the role's permissions on the entry's content type" auth />
               <Endpoint method="GET"    path="/api/entries/:id"                desc="Get a single entry by id" auth />
               <Endpoint method="PUT"    path="/api/entries/:id"                desc="Update an entry (snapshots a version)" auth />
               <Endpoint method="DELETE" path="/api/entries/:id"                desc="Soft-delete — moves to trash" auth />
@@ -3663,6 +4033,8 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/plugins"                    desc="List registered plugins and active hook metrics" auth />
               <Endpoint method="GET"    path="/api/plugins/hooks"              desc="List registered lifecycle hook listeners and data filters" auth />
+              <Endpoint method="GET"    path="/api/plugins/registry"           desc="Plugin directory (PLUGIN_REGISTRY_URL) with installed/compatible flags — ?refresh=true — admin only" auth />
+              <Endpoint method="POST"   path="/api/plugins/registry/:id/install" desc="Download, verify (sha256, signature) and install a directory plugin — ?dryRun=true reviews only — admin only" auth />
             </div>
 
             <h3 className="font-semibold mb-3">Webhooks</h3>
@@ -3701,11 +4073,51 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
             <h3 className="font-semibold mb-3">Users</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="GET"    path="/api/users"                      desc="List all users — admin only" auth />
-              <Endpoint method="POST"   path="/api/users"                      desc="Create a new user — admin only" auth />
+              <Endpoint method="POST"   path="/api/users"                      desc="Invite a user — body: { email, role } (built-in or custom role) — admin only" auth />
               <Endpoint method="PUT"    path="/api/users/:id/role"             desc="Change a user's role — admin only" auth />
               <Endpoint method="DELETE" path="/api/users/:id"                  desc="Delete a user — cannot delete self or last admin" auth />
               <Endpoint method="POST"   path="/api/users/:id/invite"           desc="Send a 'Set Your Password' invitation email — admin only (no-op if SMTP not configured)" auth />
               <Endpoint method="PUT"    path="/api/users/me/password"          desc="Change your own password (requires current password)" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Roles</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/roles"                      desc="List custom roles — admin only" auth />
+              <Endpoint method="POST"   path="/api/roles"                      desc="Create — body: { name, label, baseRole: editor|contributor|viewer, description? } — admin only" auth />
+              <Endpoint method="PUT"    path="/api/roles/:name"                desc="Change label, description or base role — admin only" auth />
+              <Endpoint method="DELETE" path="/api/roles/:name"                desc="Delete — 409 { userCount } while users have it — admin only" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Components</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/components"                 desc="List components (signed-in users)" auth />
+              <Endpoint method="GET"    path="/api/components/:id"             desc="One component with usage[]" auth />
+              <Endpoint method="POST"   path="/api/components"                 desc="Create a component — admin only" auth />
+              <Endpoint method="PUT"    path="/api/components/:id"             desc="Update and propagate to content types — admin only" auth />
+              <Endpoint method="DELETE" path="/api/components/:id"             desc="Delete (409 while in use) — admin only" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Redirects</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/redirects/resolve?path="    desc="Resolve a path — { to, statusCode } or 404 (public)" />
+              <Endpoint method="GET"    path="/api/redirects"                  desc="List — ?search, ?page, ?limit, ?sort — editor/admin" auth />
+              <Endpoint method="POST"   path="/api/redirects"                  desc="Create — { from, to?, statusCode? } — editor/admin" auth />
+              <Endpoint method="PATCH"  path="/api/redirects/:id"              desc="Update — editor/admin" auth />
+              <Endpoint method="DELETE" path="/api/redirects/:id"              desc="Delete — editor/admin" auth />
+              <Endpoint method="POST"   path="/api/redirects/import"           desc="CSV import — { csv, dryRun? } — editor/admin" auth />
+              <Endpoint method="GET"    path="/api/redirects/export"           desc="CSV export — editor/admin" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">Import (WordPress)</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="POST"   path="/api/import/wordpress"           desc="Upload a WXR file (multipart file, ≤50 MB) — ?dryRun=true summary, ?importMedia=true, ?overwrite=true; a real run returns { jobId } — admin only" auth />
+              <Endpoint method="GET"    path="/api/import/wordpress/:jobId"    desc="Import job status and result — admin only" auth />
+            </div>
+
+            <h3 className="font-semibold mb-3">OpenAPI</h3>
+            <div className="rounded-xl border border-border overflow-hidden mb-6">
+              <Endpoint method="GET"    path="/api/openapi.json"               desc="OpenAPI 3.1 document for your content API, generated from the content types (public)" />
+              <Endpoint method="GET"    path="/api/docs/content"               desc="Swagger UI for that document" />
             </div>
 
             <h3 className="font-semibold mb-3">Next.js Live Draft Mode</h3>
@@ -3716,7 +4128,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
 
             <h3 className="font-semibold mb-3">Audit Log</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/audit-log"                  desc="List audit events — ?resource, ?page, ?limit (admin only)" auth />
+              <Endpoint method="GET"    path="/api/audit-log"                  desc="List audit events — ?resource (entry, content_type, user, api_key, form, media, plugin, settings, release, role, redirect, component, import), ?page, ?limit (admin only)" auth />
             </div>
 
             <h3 className="font-semibold mb-3">SEO, Health & Observability</h3>
@@ -3800,9 +4212,10 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
                   {[
                     ['400', 'Bad Request — missing or invalid fields'],
                     ['401', 'Unauthorized — missing or expired token / invalid API key'],
-                    ['403', 'Forbidden — API key lacks permission for this operation'],
+                    ['403', 'Forbidden — the API key or the user\'s role lacks permission for this operation'],
+                    ['422', 'Unprocessable — a plugin vetoed the write, or a read-only (reverse) field was sent'],
                     ['404', 'Not Found — content type or entry does not exist'],
-                    ['409', 'Conflict — slug already exists in this content type'],
+                    ['409', 'Conflict — slug already exists in this content type, or a component / role is still in use'],
                   ].map(([code, meaning]) => (
                     <tr key={code}>
                       <td className="px-4 py-2.5 font-mono font-semibold text-foreground">{code}</td>

@@ -92,7 +92,7 @@
       "user": "Benutzername",
       "password": "Passwort",
       "from": "Absenderadresse",
-      "fromHint": "Wird als Absender angezeigt, z. B. Acme <noreply@acme.com>. Standard: der Benutzername.",
+      "fromHint": "Wird als Absender angezeigt, z. B. Acme '<'noreply@acme.com'>'. Standard: der Benutzername.",
       "testTo": "Test senden an",
       "sendTest": "Test senden",
       "testSent": "Test-E-Mail an {to} gesendet",

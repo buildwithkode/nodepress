@@ -1,0 +1,56 @@
+{
+  "title": "Dashboard",
+  "subtitle": "Dit gebeurt er met je content.",
+  "newEntry": "Nieuw item",
+  "overview": "Overzicht",
+  "viewAll": "Alles bekijken",
+  "createOne": "Maak er een",
+  "fieldCount": "{count, plural, one {# veld} other {# velden}}",
+  "entryCount": "{count, plural, one {# item} other {# items}}",
+  "stats": {
+    "contentTypes": "Contenttypes",
+    "contentTypesSub": "schema's in totaal",
+    "totalEntries": "Items totaal",
+    "totalEntriesSub": "over alle types",
+    "mediaFiles": "Mediabestanden",
+    "mediaFilesSub": "geüploade bestanden",
+    "apiKeys": "API-sleutels",
+    "apiKeysSub": "actieve sleutels",
+    "forms": "Formulieren",
+    "formsSub": "actieve formulieren",
+    "submissions": "Inzendingen",
+    "submissionsSub": "reacties in totaal"
+  },
+  "pendingReview": {
+    "message": "{count, plural, one {<b>#</b> item wacht op beoordeling} other {<b>#</b> items wachten op beoordeling}}",
+    "action": "Nu beoordelen →"
+  },
+  "contentTypes": {
+    "title": "Contenttypes",
+    "empty": "Nog geen contenttypes.",
+    "pendingReview": "{count} wacht op beoordeling",
+    "pendingBadge": "{count} in afwachting"
+  },
+  "recentEntries": {
+    "title": "Recente items",
+    "empty": "Nog geen items."
+  },
+  "forms": {
+    "title": "Formulieren",
+    "empty": "Nog geen formulieren.",
+    "submissionCount": "{count, plural, one {# inzending} other {# inzendingen}}"
+  },
+  "recentSubmissions": {
+    "title": "Recente inzendingen",
+    "empty": "Nog geen inzendingen. Deel een formulier om reacties te verzamelen."
+  },
+  "endpoints": {
+    "title": "API-endpoints",
+    "fullDocs": "Volledige documentatie",
+    "auth": "Auth",
+    "copyUrl": "URL kopiëren"
+  },
+  "recentMedia": {
+    "title": "Recente media"
+  }
+}

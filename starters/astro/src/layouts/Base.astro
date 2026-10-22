@@ -1,0 +1,24 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description = 'A blog powered by NodePress' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title ? `${title} · Blog` : 'Blog'}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <header class="site-header"><a href="/">Blog</a></header>
+    <main><slot /></main>
+    <footer class="site-footer">Powered by NodePress</footer>
+  </body>
+</html>

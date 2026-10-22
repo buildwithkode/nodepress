@@ -59,7 +59,8 @@ in one transaction, so a failed restore leaves the database as it was.
 - **Run migrations.** New: `add_two_factor_and_installed_plugins`,
   `add_entry_search_vector`, `add_entry_list_index`, `add_jobs`,
   `add_media_focal_point`, `add_content_locales`, `add_plugin_packages`,
-  `add_entry_slugs`, `add_releases`, `add_server_settings`. All use
+  `add_entry_slugs`, `add_releases`, `add_server_settings`,
+  `add_roles_components_redirects`. All use
   `IF NOT EXISTS`. A database created with `prisma db push` has no migration
   history: apply each new `migration.sql` with `psql -f` instead (see
   `backend/prisma/migrations/`).
@@ -73,6 +74,21 @@ in one transaction, so a failed restore leaves the database as it was.
   scripts that write through API keys.
 - **Public `?populate=` returns published linked entries only.** Previews that
   relied on drafts appearing there should use `?stage=draft` with credentials.
+- **JWT writes through the public API need role permissions.** `POST`/`PUT`/
+  `DELETE /api/:type` with a user's token now check that user's content
+  permissions, and creating a published entry (the default) needs `publish`:
+  scripts that sign in as a contributor must send `status: "draft"`. API keys
+  are unaffected. `POST /api/entries` checks the entry's own content type.
+- **`?populate=` related entries changed shape slightly.** Their `data` no
+  longer includes fields hidden by the related type's `readRoles`, and
+  `contentType` holds only `{ id, name, displayName }` — code that read the
+  related schema from there must fetch `/api/content-types` instead.
+- **Slug changes create redirects.** Changing the slug of a published entry adds
+  a 301 from the old path (see Redirects). Set `REDIRECTS_ON_SLUG_CHANGE=false`
+  if your site handles this itself.
+- **Plugins page fetches the plugin directory** from GitHub
+  (`PLUGIN_REGISTRY_URL`). Set it to an empty value on servers without
+  outbound internet access, or to your own registry file.
 - **Prisma CLI is a runtime dependency** of the backend (for `migrate deploy` in
   Docker); rebuild the backend image.
 - **Admin frontend is now on Next.js 15** (from 14), which fixes two critical

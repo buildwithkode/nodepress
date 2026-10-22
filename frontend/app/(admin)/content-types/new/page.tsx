@@ -23,7 +23,11 @@ import {
 import { INDEXABLE_FIELD_TYPES } from '@/lib/indexable-fields';
 import { RelationFieldOptions } from '@/components/RelationFieldOptions';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
+import { AddComponentButton, ComponentSubFields } from '@/components/ComponentFieldControls';
 import { AiContentModelButton } from '@/components/AiAssist';
+import { PreviewUrlSetting } from '@/components/LivePreviewPane';
+import { FieldConditionEditor } from '@/components/FieldConditionEditor';
+import type { FieldCondition } from '@/lib/field-condition';
 
 // Labels come from contentTypes.fieldTypes.<value>.
 const FIELD_TYPES = [
@@ -55,7 +59,8 @@ interface Field {
   type:     string;
   required: boolean;
   indexed?: boolean;
-  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string };
+  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string; component?: string };
+  condition?: FieldCondition;
 }
 
 const toSnakeCase = (name: string) =>
@@ -63,14 +68,18 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; options?: any }) => ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; options?: any; condition?: FieldCondition }) => ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
   required: f.required,
   ...(f.indexed && INDEXABLE_FIELD_TYPES.has(f.type) ? { indexed: true } : {}),
   ...(f.options ? { options: optionsForSave(f.options) } : {}),
+  ...(f.condition ? { condition: f.condition } : {}),
 });
+
+/** Choices of a select field as typed in the editor (comma separated). */
+const choiceList = (choices?: string) => (choices ?? '').split(/[\n,]/).map((c) => c.trim()).filter(Boolean);
 
 function FieldTypeSelect({
   value, onChange, types = FIELD_TYPES, className,
@@ -114,6 +123,7 @@ export default function NewContentTypePage() {
   const [fields, setFields] = useState<Field[]>([{ name: '', type: 'text', required: false }]);
   const [openLayouts, setOpenLayouts] = useState<Record<string, boolean>>({});
   const [allowedMethods, setAllowedMethods] = useState(['list', 'read', 'create', 'update', 'delete']);
+  const [previewUrl, setPreviewUrl] = useState('');
   const [jsonOpen, setJsonOpen] = useState(true);
   const [jsonCopied, setJsonCopied] = useState(false);
   const [jsonWrap, setJsonWrap] = useState(true);
@@ -166,6 +176,7 @@ export default function NewContentTypePage() {
             : [{ name: '', type: 'text', required: false }],
         );
         if (Array.isArray(ct.allowedMethods)) setAllowedMethods(ct.allowedMethods);
+        if (typeof ct.previewUrl === 'string') setPreviewUrl(ct.previewUrl);
         setOpenLayouts({});
         toast.success(t('editor.imported', { name: ct.name }));
       } catch {
@@ -233,7 +244,7 @@ export default function NewContentTypePage() {
     if (validFields.length === 0) { toast.error(t('editor.atLeastOneField')); return; }
     setSubmitting(true);
     try {
-      await api.post('/content-types', { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods });
+      await api.post('/content-types', { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods, previewUrl: previewUrl.trim() || null });
       toast.success(t('editor.created'));
       router.push('/content-types');
     } catch (err: any) {
@@ -306,6 +317,9 @@ export default function NewContentTypePage() {
                 )}
             </div>
 
+            {/* Live preview page */}
+            <PreviewUrlSetting value={previewUrl} onChange={setPreviewUrl} />
+
             {/* API Endpoints */}
             <div className="space-y-2">
               <Label>{t('editor.apiEndpoints')}</Label>
@@ -331,9 +345,12 @@ export default function NewContentTypePage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <Label>{t('editor.fields')}</Label>
-                <Button variant="outline" onClick={addField}>
-                  <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <AddComponentButton onAdd={(f) => setFields([...fields, f])} />
+                  <Button variant="outline" onClick={addField}>
+                    <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -371,6 +388,16 @@ export default function NewContentTypePage() {
                       </Button>
                     </div>
 
+                    <div className="pl-7">
+                      <FieldConditionEditor
+                        condition={field.condition}
+                        onChange={(c) => updateField(fi, 'condition', c)}
+                        siblings={fields
+                          .filter((o, oi) => oi !== fi && o.name.trim())
+                          .map((o) => ({ key: toSnakeCase(o.name), label: o.name.trim(), type: o.type, choices: o.type === 'select' ? choiceList(o.options?.choices) : undefined }))}
+                      />
+                    </div>
+
                     {field.type === 'select' && (
                       <div className="pl-7 space-y-1">
                         <Label className="text-xs text-muted-foreground">{t('editor.choices')}</Label>
@@ -387,7 +414,11 @@ export default function NewContentTypePage() {
                       />
                     )}
 
-                    {field.type === 'repeater' && field.options?.subFields && (
+                    {(field.type === 'group' || field.type === 'repeater') && field.options?.component && (
+                      <ComponentSubFields component={field.options.component} subFields={field.options.subFields ?? []} />
+                    )}
+
+                    {field.type === 'repeater' && field.options?.subFields && !field.options.component && (
                       <div className="pl-7">
                         <div className="border-l-2 border-orange-400 pl-3 space-y-2">
                           <p className="text-xs font-medium text-muted-foreground">{t('editor.subFields')}</p>
@@ -407,7 +438,7 @@ export default function NewContentTypePage() {
                       </div>
                     )}
 
-                    {field.type === 'group' && field.options?.subFields && (
+                    {field.type === 'group' && field.options?.subFields && !field.options.component && (
                       <div className="pl-7">
                         <div className="border-l-2 border-violet-400 pl-3 space-y-2">
                           <p className="text-xs font-medium text-muted-foreground">{t('editor.fields')}</p>

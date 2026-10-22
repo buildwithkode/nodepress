@@ -1,0 +1,57 @@
+{
+  "title": "角色",
+  "description": "内置角色无法更改。自定义角色可访问的管理后台区域与其所基于的角色相同，并拥有自己的内容权限。",
+  "backToUsers": "用户",
+  "managePermissions": "编辑权限",
+  "newRole": "新建角色",
+  "manage": "管理角色",
+  "customGroup": "自定义角色",
+  "basedOn": "基于 {base}",
+  "list": {
+    "role": "角色",
+    "basedOn": "基于",
+    "users": "用户",
+    "description": "描述",
+    "builtIn": "内置",
+    "userCount": "{count, plural, =0 {无用户} other {# 个用户}}",
+    "empty": "暂无自定义角色。",
+    "edit": "编辑角色",
+    "delete": "删除角色"
+  },
+  "builtInDescriptions": {
+    "admin": "完全访问权限，包括用户、设置和 API 密钥",
+    "editor": "创建、编辑、发布和删除内容",
+    "contributor": "创建和编辑内容；不能发布",
+    "viewer": "对管理后台只读访问"
+  },
+  "form": {
+    "createTitle": "新建角色",
+    "editTitle": "编辑 {label}",
+    "description": "自定义角色初始拥有其所基于角色的内容权限。可在权限页面中进一步收窄。",
+    "label": "标签",
+    "name": "名称",
+    "nameHelp": "将保存为 {name}。用户和权限会引用它，因此之后无法更改。",
+    "nameHelpEmpty": "小写字母、数字和下划线。之后无法更改。",
+    "nameLocked": "名称无法更改。",
+    "baseRole": "基于",
+    "baseRoleHelp": "决定该角色可以访问管理后台的哪些区域。",
+    "baseRoleEditHelp": "更改该角色可以访问的管理后台区域。已保存的内容权限保持不变。",
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "此角色的用途",
+    "save": "保存",
+    "create": "创建角色"
+  },
+  "deleteDialog": {
+    "title": "删除角色“{label}”？",
+    "description": "其内容权限也会一并删除。",
+    "inUse": "仍有 {count, plural, other {# 个用户}}拥有此角色。请先为他们分配其他角色。"
+  },
+  "toasts": {
+    "created": "角色已创建",
+    "updated": "角色已更新",
+    "deleted": "角色已删除",
+    "saveFailed": "无法保存角色",
+    "deleteFailed": "无法删除角色",
+    "inUse": "仍有 {count, plural, other {# 个用户}}拥有此角色。请先为他们分配其他角色。"
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "ユーザーを読み込めませんでした",
+    "createdNoEmail": "ユーザーを作成しました。メールサーバーが設定されていません",
+    "createdInviteCopied": "招待リンクをクリップボードにコピーしました。{email} に送ってください: {url}",
+    "noEmailServer": "メールサーバーが設定されていません",
+    "inviteCopied": "招待リンクをコピーしました。{email} に送ってください: {url}",
+    "inviteSent": "{email} に招待を送信しました",
+    "createFailed": "ユーザーを作成できませんでした",
+    "roleUpdated": "ロールを更新しました",
+    "roleUpdateFailed": "ロールを更新できませんでした",
+    "deleted": "ユーザーを削除しました",
+    "deleteFailed": "ユーザーを削除できませんでした",
+    "inviteFailed": "招待を送信できませんでした",
+    "passwordUpdated": "パスワードを更新しました",
+    "passwordUpdateFailed": "パスワードを更新できませんでした",
+    "twoFactorSetupFailed": "2 要素認証のセットアップを開始できませんでした",
+    "twoFactorActivated": "2 要素認証を有効にしました!",
+    "twoFactorInvalidCode": "確認コードが正しくありません。もう一度お試しください。",
+    "twoFactorDisabled": "2 要素認証を無効にしました",
+    "twoFactorDisableInvalid": "2 要素認証コードまたはリカバリーコードが正しくありません",
+    "recoveryCopied": "リカバリーコードをクリップボードにコピーしました",
+    "recoveryCopyFailed": "リカバリーコードをコピーできませんでした",
+    "secretCopied": "シークレットキーをコピーしました",
+    "secretCopyFailed": "シークレットをコピーできませんでした"
+  },
+  "list": {
+    "title": "チームメンバー",
+    "description": "管理画面にアクセスできるユーザーと、その操作範囲を管理します。",
+    "email": "メールアドレス",
+    "role": "ロール",
+    "joined": "参加日",
+    "empty": "ユーザーが見つかりません",
+    "you": "(あなた)",
+    "viewPermissions": "{role} の権限マトリックスを表示",
+    "sendInvite": "招待メールを送信",
+    "deleteTitle": "{email} を削除しますか?",
+    "deleteDescription": "このユーザーのアクセス権を完全に削除します。この操作は元に戻せません。"
+  },
+  "roleGuide": {
+    "title": "ロールの権限",
+    "manage": "権限を管理",
+    "admin": {
+      "p1": "すべてにフルアクセス",
+      "p2": "ユーザーとロールの管理",
+      "p3": "コンテンツタイプと API キー",
+      "p4": "監査ログと Webhook"
+    },
+    "editor": {
+      "p1": "エントリーの作成 / 編集 / 削除",
+      "p2": "エントリーの公開とアーカイブ",
+      "p3": "フォーム、メディアのアップロード/削除",
+      "p4": "コンテンツタイプの閲覧"
+    },
+    "contributor": {
+      "p1": "エントリーの作成と編集",
+      "p2": "エントリーの削除は不可",
+      "p3": "公開・アーカイブは不可",
+      "p4": "メディアはアップロードのみ"
+    },
+    "viewer": {
+      "p1": "ダッシュボードの閲覧のみ",
+      "p2": "エントリーとフォームの閲覧",
+      "p3": "メディアライブラリの閲覧",
+      "p4": "変更は一切不可"
+    }
+  },
+  "add": {
+    "title": "ユーザーを追加",
+    "description": "メールでチームメイトを招待します。本人がパスワードを設定するためのリンクが届きます。ここでパスワードを入力する必要はありません。",
+    "sending": "招待を送信中…",
+    "submit": "招待を送信"
+  },
+  "twoFactor": {
+    "title": "2 要素認証 (2FA)",
+    "description": "Google Authenticator、1Password、Authy を使って、アカウントにセキュリティ層を追加して保護します。",
+    "enabledHeading": "現在、2 要素認証がアカウントを保護しています",
+    "disabledHeading": "TOTP でログインのセキュリティを強化",
+    "enabledHelp": "ログイン時に 6 桁のコードまたは緊急用のバックアップリカバリーコードの入力を求められます。",
+    "disabledHelp": "認証アプリで QR コードを読み取り、バックアップ用リカバリーコードを保管する必要があります。",
+    "enable": "2FA を有効化",
+    "disable": "2FA を無効化",
+    "disabling": "無効化中…",
+    "setupTitle": "2 要素認証のセットアップ",
+    "setupDescription": "Google Authenticator、1Password、Authy で QR コードを読み取ってください。",
+    "qrAlt": "2FA の QR コード",
+    "manualKey": "手動入力用キー",
+    "recoveryCodes": "緊急用バックアップリカバリーコード",
+    "copyCodes": "コードをコピー",
+    "recoveryHelp": "これらのコードを安全に保管してください。認証アプリを紛失した場合、各コードを 1 回ずつログインに使用できます。",
+    "verificationCode": "確認コード",
+    "verificationPlaceholder": "6 桁のコードを入力",
+    "activating": "有効化中…",
+    "activate": "2FA を有効化",
+    "disableTitle": "2 要素認証の無効化",
+    "disableDescription": "確認のため、認証アプリの 6 桁のコードまたは緊急用リカバリーコードを入力してください。",
+    "disableCodeLabel": "認証コードまたはリカバリーコード",
+    "disableCodePlaceholder": "6 桁のコードまたは XXXX-XXXX"
+  },
+  "password": {
+    "title": "パスワードの変更",
+    "current": "現在のパスワード",
+    "new": "新しいパスワード",
+    "newPlaceholder": "8 文字以上",
+    "updating": "更新中…",
+    "submit": "パスワードを更新"
+  },
+  "permissions": {
+    "loading": "権限を読み込み中…",
+    "toasts": {
+      "loadFailed": "権限を読み込めませんでした",
+      "schemaLoadFailed": "「{name}」のスキーマを読み込めませんでした",
+      "roleLoadFailed": "ロールの権限を読み込めませんでした",
+      "updated": "権限を更新しました",
+      "updateFailed": "権限を更新できませんでした",
+      "reset": "権限をデフォルトに戻しました",
+      "resetFailed": "権限をリセットできませんでした",
+      "fieldsSaved": "「{name}」のフィールド権限を保存しました",
+      "fieldsSaveFailed": "フィールド権限を保存できませんでした"
+    },
+    "backToUsers": "ユーザー",
+    "title": "アクセス制御と権限",
+    "resetDefaults": "デフォルトに戻す",
+    "tabs": {
+      "contentTypes": "コンテンツタイプ操作マトリックス",
+      "fields": "フィールドレベル権限マトリックス"
+    },
+    "actions": {
+      "create": "作成",
+      "read": "閲覧",
+      "update": "更新",
+      "delete": "削除",
+      "publish": "公開"
+    },
+    "roleDescriptions": {
+      "editor": "すべてのコンテンツを管理します。作成、編集、削除、公開が可能です。",
+      "contributor": "コンテンツを作成・編集します。削除と公開はできません。",
+      "viewer": "管理画面の閲覧のみ可能です。"
+    },
+    "clickToDeselect": "クリックで選択解除",
+    "defaultRow": "デフォルト *",
+    "summary": {
+      "title": "権限の概要",
+      "description": "このロールに設定された上書きです。ここに表示されない行は、ワイルドカードのデフォルトが適用されます。",
+      "empty": "上書きはありません。すべてのコンテンツタイプで初期設定のデフォルトを使用しています。"
+    },
+    "matrix": {
+      "title": "コンテンツタイプ権限マトリックス",
+      "description": "ロールごとに許可する操作を設定します。<strong>*</strong> 行はすべてのコンテンツタイプのデフォルトです。個別のコンテンツタイプは、その行の操作を切り替えて上書きします。グレーのチェックボックスはワイルドカード行から継承されています。",
+      "contentType": "コンテンツタイプ",
+      "inherited": "{role}/* から継承 — クリックして上書き"
+    },
+    "fields": {
+      "title": "フィールドレベルのアクセス制御マトリックス",
+      "description": "特定の属性の閲覧と書き込みを制限します (例: 給与、利益率、社内メモを管理者以外のロールから隠す)。",
+      "selectContentType": "コンテンツタイプを選択",
+      "save": "権限を保存",
+      "loading": "フィールドのスキーマを読み込み中…",
+      "emptyTitle": "このコンテンツタイプにはフィールドが定義されていません",
+      "emptyHelp": "まずスキーマビルダーでこのコンテンツタイプにフィールドを追加してください。",
+      "field": "フィールド",
+      "readVisibility": "閲覧権限",
+      "writeAccess": "書き込み / 変更権限",
+      "nameAndType": "名前とタイプ",
+      "restricted": "制限あり",
+      "adminRead": "管理者は常にすべてを閲覧できます",
+      "adminWrite": "管理者は常にすべてを書き込めます"
+    },
+    "enforcement": {
+      "title": "情報漏えいゼロのセキュリティ適用:",
+      "read": "<strong>閲覧権限</strong> でロールのチェックを外すと、バックエンドはクライアントに送信する前に、すべての REST (<path></path>) および GraphQL レスポンスからそのフィールドを自動的に除去します。",
+      "write": "<strong>書き込み権限</strong> でロールのチェックを外すと、バックエンドは許可されていない変更を HTTP 403 Forbidden で拒否します。"
+    },
+    "adminNote": "注: 管理者はすべてのスキーマフィールドに常にアクセスでき、制限することはできません。"
+  }
+}

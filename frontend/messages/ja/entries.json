@@ -1,0 +1,144 @@
+{
+  "newEntry": "新規エントリー",
+  "stages": {
+    "production": "本番",
+    "staging": "ステージング (QA)",
+    "pendingReview": "レビュー待ち"
+  },
+  "cards": {
+    "noContentTypes": "コンテンツタイプはまだありません",
+    "noContentTypesHint": "エントリーを追加するには、まずコンテンツタイプを作成してください。",
+    "newContentType": "新規コンテンツタイプ",
+    "pendingTitle": "{count, plural, other {# 件のエントリーがレビュー待ち}}",
+    "pendingBadgeTitle": "クリックしてレビュー待ちのエントリーを表示",
+    "pendingBadge": "{count} 件レビュー待ち",
+    "entryCount": "{count, plural, other {# 件のエントリー}}",
+    "moreFields": "他 {count} 個",
+    "noFields": "フィールドが定義されていません",
+    "viewEntries": "エントリーを表示"
+  },
+  "toolbar": {
+    "backToEntries": "エントリーに戻る",
+    "allTypes": "すべてのタイプ",
+    "editSchemaTitle": "コンテンツタイプのスキーマを編集",
+    "editSchema": "スキーマを編集",
+    "permissionsTitle": "フィールドレベルの権限を設定",
+    "permissions": "権限"
+  },
+  "filters": {
+    "allLanguages": "すべての言語",
+    "allStatuses": "すべてのステータス",
+    "production": "本番 (公開済み)",
+    "searchPlaceholder": "エントリーを検索…"
+  },
+  "export": {
+    "jsonTitle": "削除されていないエントリーを JSON でエクスポート",
+    "csvTitle": "削除されていないエントリーを CSV スプレッドシートでエクスポート"
+  },
+  "trash": {
+    "title": "ごみ箱",
+    "button": "ごみ箱 ({count})",
+    "banner": "<strong>ごみ箱:</strong> 削除されたエントリーを表示しています。復元するか、完全に削除できます。"
+  },
+  "pending": {
+    "banner": "{count, plural, other {このコレクションには <strong>#</strong> 件のレビュー待ちエントリーがあります。}}",
+    "showAll": "レビュー待ちを表示 ({count}) →"
+  },
+  "bulk": {
+    "selected": "{count, plural, other {# 件のエントリーを選択中}}",
+    "stage": "ステージング (QA)",
+    "publish": "公開 (本番)",
+    "submitReview": "レビューに提出",
+    "archive": "アーカイブ",
+    "addToRelease": "リリースに追加",
+    "deleteTitle": "{count, plural, other {# 件のエントリーを削除しますか?}}",
+    "deleteDescription": "選択したエントリーはごみ箱に移動されます。後から復元できます。",
+    "done": {
+      "deleted": "{count, plural, other {# 件のエントリーを削除しました}}",
+      "published": "{count, plural, other {# 件のエントリーを本番に公開しました}}",
+      "staged": "{count, plural, other {# 件のエントリーをステージングに昇格しました}}",
+      "submitted": "{count, plural, other {# 件のエントリーをレビューに提出しました}}",
+      "archived": "{count, plural, other {# 件のエントリーをアーカイブしました}}"
+    }
+  },
+  "table": {
+    "selectAll": "このページのすべてを選択",
+    "slug": "スラッグ",
+    "trashEmpty": "ごみ箱は空です。",
+    "noMatches": "検索に一致するエントリーはありません。",
+    "empty": "エントリーはまだありません。最初のエントリーを作成しましょう。",
+    "returnToActive": "有効なエントリーに戻る",
+    "localeOwn": "{language}: このエントリー",
+    "localeTranslated": "{language}: 翻訳済み",
+    "localeMissing": "{language}: 翻訳なし",
+    "scheduledTitle": "公開予約: {date}",
+    "scheduled": "予約済み · {date} {time}",
+    "items": "{count, plural, other {# 項目}}",
+    "richText": "リッチテキスト"
+  },
+  "actions": {
+    "restore": "復元",
+    "purgeTitle": "完全に削除",
+    "purgeConfirmTitle": "完全に削除しますか?",
+    "purgeConfirmDescription": "<strong>{slug}</strong> とそのすべてのバージョンが完全に消去されます。この操作は元に戻せません。",
+    "purge": "完全削除",
+    "promoteStaging": "ステージング (QA) に昇格",
+    "publishProduction": "本番に公開",
+    "duplicate": "複製",
+    "viewLive": "公開中の投稿をサイトで表示",
+    "copyApiUrl": "API の URL をコピー",
+    "deleteConfirmTitle": "このエントリーを削除しますか?",
+    "deleteConfirmDescription": "<strong>{slug}</strong> はごみ箱に移動されます。後から復元できます。"
+  },
+  "import": {
+    "button": "インポート",
+    "title": "エントリーのインポート — {name}",
+    "description": ".JSON または .CSV ファイルをアップロードするか、データを直接貼り付けてください。保存前に、スラッグ、ロケール、フィールドをスキーマに照らしてリアルタイムでドライラン検証します。",
+    "selectFile": "ファイルを選択 (.csv / .json)",
+    "updateDuplicates": "重複するエントリーを更新",
+    "updateDuplicatesHint": "スラッグとロケールが一致するエントリーが存在する場合、スキップせずに内容を更新します。",
+    "preflightRunning": "事前のドライラン検証を実行中…",
+    "preflightPassed": "事前チェック成功: {total, plural, other {# 行}}準備完了 (新規 {toCreate} 件、更新 {toUpdate} 件)",
+    "preflightErrors": "事前チェックでエラーが見つかりました ({count})",
+    "moreErrors": "…他 {count} 件",
+    "invalidFormat": "形式が無効です",
+    "columns": {
+      "row": "行",
+      "slug": "スラッグ",
+      "locale": "ロケール",
+      "status": "ステータス",
+      "action": "操作"
+    },
+    "actionUpdate": "更新",
+    "actionCreate": "作成",
+    "submit": "エントリーをインポート",
+    "submitCount": "{count, plural, other {# 件のエントリーをインポート}}"
+  },
+  "toasts": {
+    "loadContentTypesFailed": "コンテンツタイプを読み込めませんでした",
+    "loadEntriesFailed": "エントリーを読み込めませんでした",
+    "movedToTrash": "エントリーをごみ箱に移動しました",
+    "deleteFailed": "削除に失敗しました",
+    "restored": "エントリーを復元しました",
+    "restoreFailed": "復元に失敗しました",
+    "purged": "エントリーを完全に削除しました",
+    "purgeFailed": "完全削除に失敗しました",
+    "promoted": "エントリーを {stage} に昇格しました",
+    "promoteFailed": "エントリーを昇格できませんでした",
+    "exportDownloaded": "{format} のエクスポートをダウンロードしました",
+    "exportFailed": "エクスポートに失敗しました",
+    "readFileFailed": "ファイルを読み込めませんでした",
+    "importCreated": "{count} 件作成",
+    "importUpdated": "{count} 件更新",
+    "importNoChanges": "変更なし",
+    "importComplete": "インポート完了: {summary}",
+    "importSkipped": "({count} 件スキップ)",
+    "importFailed": "インポートの実行に失敗しました",
+    "bulkFailed": "一括操作に失敗しました",
+    "duplicated": "「{slug}」として複製しました",
+    "duplicateFailed": "複製に失敗しました",
+    "noUniqueSlug": "複製用の一意なスラッグが見つかりませんでした",
+    "urlCopied": "API の URL をクリップボードにコピーしました",
+    "copyUrlFailed": "URL をコピーできませんでした"
+  }
+}

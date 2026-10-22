@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "plugins": [
+    {
+      "id": "word-count",
+      "name": "Word Count & Reading Time",
+      "description": "Calculates word metrics and estimated reading time on content entries before saving.",
+      "author": "BuildWithKode",
+      "homepage": "https://nodepress.buildwithkode.com",
+      "repository": "https://github.com/buildwithkode/nodepress/tree/main/backend/src/plugins/word-count",
+      "license": "MIT",
+      "nodepress": "^1.6.0",
+      "latest": { "version": "1.2.0" },
+      "tags": ["content", "reading-time"],
+      "pricing": "free",
+      "bundled": true
+    },
+    {
+      "id": "seo-analyzer",
+      "name": "SEO Score & Meta Optimizer",
+      "description": "Analyzes title & meta description snippet lengths, computes SEO quality scores, and provides actionable optimization feedback.",
+      "author": "BuildWithKode",
+      "homepage": "https://nodepress.buildwithkode.com",
+      "repository": "https://github.com/buildwithkode/nodepress/tree/main/backend/src/plugins/seo-analyzer",
+      "license": "MIT",
+      "nodepress": "^1.6.0",
+      "latest": { "version": "1.0.0" },
+      "tags": ["seo"],
+      "pricing": "free",
+      "bundled": true
+    },
+    {
+      "id": "ecommerce-pro",
+      "name": "EcommPress",
+      "description": "Commercial headless e-commerce for NodePress: catalog, orders, payments (Razorpay, Stripe, LemonSqueezy), promotions and licensing. Sold separately — see the homepage to buy a licence.",
+      "author": "BuildWithKode",
+      "homepage": "https://nodepress.buildwithkode.com/ecommerce-pro",
+      "license": "Commercial",
+      "nodepress": "^1.6.0",
+      "tags": ["commerce", "payments"],
+      "pricing": "paid"
+    }
+  ]
+}

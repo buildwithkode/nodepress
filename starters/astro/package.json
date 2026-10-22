@@ -1,0 +1,21 @@
+{
+  "name": "nodepress-starter-astro",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal Astro blog on NodePress (static build)",
+  "scripts": {
+    "dev": "astro dev --port 4321",
+    "build": "astro build",
+    "preview": "astro preview --port 4321"
+  },
+  "dependencies": {
+    "@nodepress/client": "file:../../client",
+    "astro": "7.3.5",
+    "sanitize-html": "2.18.1"
+  },
+  "devDependencies": {
+    "@types/sanitize-html": "2.16.1",
+    "typescript": "5.9.3"
+  }
+}

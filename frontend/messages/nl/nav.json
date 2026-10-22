@@ -1,0 +1,38 @@
+{
+  "groups": {
+    "content": "Content",
+    "assets": "Bestanden",
+    "developer": "Ontwikkelaar",
+    "team": "Team",
+    "settings": "Instellingen",
+    "help": "Help",
+    "plugins": "Plugins"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "contentTypes": "Contenttypes",
+    "components": "Componenten",
+    "entries": "Items",
+    "releases": "Releases",
+    "forms": "Formulieren",
+    "redirects": "Doorverwijzingen",
+    "media": "Media",
+    "plugins": "Plugins",
+    "apiKeys": "API-sleutels",
+    "webhooks": "Webhooks",
+    "jobs": "Taken",
+    "auditLog": "Auditlog",
+    "graphql": "GraphQL Playground",
+    "users": "Gebruikers",
+    "roles": "Rollen",
+    "brand": "Huisstijl",
+    "languages": "Talen",
+    "docs": "Documentatie",
+    "serverSettings": "E-mail & opslag",
+    "importer": "Importeren"
+  },
+  "signOut": "Uitloggen",
+  "user": "Gebruiker",
+  "openMenu": "Navigatiemenu openen",
+  "closeMenu": "Zijbalk sluiten"
+}

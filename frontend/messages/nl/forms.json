@@ -1,0 +1,143 @@
+{
+  "list": {
+    "loadFailed": "Formulieren laden mislukt",
+    "deleted": "Formulier verwijderd",
+    "deleteFailed": "Verwijderen mislukt",
+    "statusFailed": "Status van formulier bijwerken mislukt",
+    "searchPlaceholder": "Formulieren zoeken…",
+    "newForm": "Nieuw formulier",
+    "columns": {
+      "slug": "Slug",
+      "fields": "Velden",
+      "submissions": "Inzendingen"
+    },
+    "noMatches": "Geen formulieren gevonden voor je zoekopdracht.",
+    "empty": "Nog geen formulieren. Maak je eerste.",
+    "toggleActive": "Actief aan/uit",
+    "viewSubmissions": "Inzendingen bekijken",
+    "deleteConfirmTitle": "\"{name}\" verwijderen?",
+    "deleteConfirmDescription": "{count, plural, one {De <strong>#</strong> inzending wordt ook definitief verwijderd.} other {Alle <strong>#</strong> inzendingen worden ook definitief verwijderd.}}"
+  },
+  "edit": {
+    "notFound": "Formulier niet gevonden."
+  },
+  "submissions": {
+    "empty": "leeg",
+    "loadFailed": "Inzendingen laden mislukt",
+    "nothingToExport": "Geen inzendingen om te exporteren",
+    "backToForms": "Terug naar formulieren",
+    "searchPlaceholder": "Inzendingen zoeken…",
+    "exportCsv": "CSV exporteren",
+    "count": "{count, plural, one {# inzending} other {# inzendingen}}",
+    "countMatching": "{count, plural, one {# inzending} other {# inzendingen}} voor \"{search}\"",
+    "noneTitle": "Nog geen inzendingen",
+    "noneDescription": "Deel het formulier en reacties verschijnen hier.",
+    "date": "Datum"
+  },
+  "fieldEditor": {
+    "labelPlaceholder": "Label dat de gebruiker ziet",
+    "keyCustom": "aangepast",
+    "keyAuto": "auto",
+    "validationRules": "Validatieregels",
+    "removeField": "Veld verwijderen",
+    "options": "Opties (kommagescheiden)",
+    "optionsPickMany": "meerdere kiezen",
+    "optionsRadio": "keuzerondjes",
+    "optionsDropdown": "keuzelijst",
+    "optionsPlaceholder": "Optie A, Optie B, Optie C",
+    "validation": "Validatie",
+    "rules": {
+      "min": "Min.",
+      "max": "Max.",
+      "integer": "Alleen hele getallen",
+      "minLength": "Min. lengte",
+      "maxLength": "Max. lengte",
+      "pattern": "Patroon (regex)",
+      "minItems": "Min. items",
+      "maxItems": "Max. items",
+      "message": "Eigen foutmelding"
+    },
+    "messagePlaceholder": "Getoond als dit veld niet klopt",
+    "itemFields": "Itemvelden (herhalen)",
+    "subFields": "Subvelden",
+    "addSubField": "Subveld toevoegen"
+  },
+  "fieldTypes": {
+    "text": "Tekst",
+    "textarea": "Tekstvak",
+    "number": "Getal",
+    "email": "E-mail",
+    "url": "URL",
+    "phone": "Telefoon",
+    "date": "Datum",
+    "datetime": "Datum & tijd",
+    "boolean": "Boolean (ja/nee)",
+    "select": "Keuzelijst (dropdown)",
+    "radio": "Keuzerondje (één keuze)",
+    "multiselect": "Meerkeuze",
+    "tags": "Tags (vrije invoer)",
+    "group": "Groep (object)",
+    "repeater": "Repeater (lijst)"
+  },
+  "builder": {
+    "created": "Formulier aangemaakt",
+    "updated": "Formulier bijgewerkt",
+    "newTitle": "Nieuw formulier",
+    "editTitle": "Formulier bewerken",
+    "newDescription": "Definieer je formuliervelden en stel meldingsacties in.",
+    "editDescription": "Werk formulierinstellingen, velden en acties bij.",
+    "formName": "Formuliernaam",
+    "formNamePlaceholder": "bijv. Contact",
+    "slugPlaceholder": "bijv. contact-us",
+    "submitEndpoint": "Verzend-endpoint:",
+    "status": {
+      "title": "Formulierstatus",
+      "accepting": "Accepteert inzendingen",
+      "blocked": "Inzendingen zijn geblokkeerd",
+      "active": "Actief",
+      "inactive": "Inactief"
+    },
+    "captcha": {
+      "title": "Spambeveiliging (captcha)",
+      "on": "Inzendingen moeten een geldig captcha-token bevatten.",
+      "off": "Honeypot en rate limiting blijven actief. Schakel in voor captcha-verificatie.",
+      "requires": "Vereist <code>{env}</code> in de backend-env."
+    },
+    "fields": {
+      "title": "Velden",
+      "description": "Definieer de invoervelden die gebruikers invullen. Gebruik Groep / Repeater voor geneste gegevens.",
+      "add": "Veld toevoegen"
+    },
+    "actions": {
+      "description": "Wat er gebeurt na een geslaagde inzending. Gebruik <code>{token}</code> in het onderwerp om waarden in te voegen.",
+      "email": "E-mail",
+      "empty": "Geen acties ingesteld. Inzendingen worden alleen in de database opgeslagen.",
+      "remove": "Actie verwijderen",
+      "sendTo": "Versturen naar",
+      "subject": "Onderwerp",
+      "defaultSubject": "Nieuwe inzending van {field}",
+      "replyToField": "Reply-To-veld (optioneel)",
+      "webhookUrl": "Webhook-URL",
+      "method": "Methode"
+    },
+    "validation": {
+      "nameRequired": "Formuliernaam is verplicht",
+      "slugRequired": "Slug is verplicht",
+      "fieldRequired": "Voeg minstens één veld met een naam en label toe"
+    },
+    "creating": "Aanmaken…",
+    "create": "Formulier aanmaken",
+    "saveChanges": "Wijzigingen opslaan",
+    "preview": {
+      "show": "Payload tonen",
+      "hide": "Payload verbergen",
+      "title": "Payload-voorbeeld",
+      "live": "live",
+      "disableWrap": "Regelafbreking uitschakelen",
+      "enableWrap": "Lange regels afbreken",
+      "wrap": "Afbreken",
+      "copyJson": "JSON-body kopiëren",
+      "empty": "Voeg een veld toe (met een sleutel en label) om een voorbeeldpayload te maken."
+    }
+  }
+}

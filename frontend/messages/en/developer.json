@@ -183,7 +183,14 @@
       "user": "Users",
       "api_key": "API Keys",
       "form": "Forms",
-      "media": "Media"
+      "media": "Media",
+      "plugin": "Plugins",
+      "settings": "Settings",
+      "release": "Releases",
+      "role": "Roles",
+      "redirect": "Redirects",
+      "component": "Components",
+      "import": "Imports"
     },
     "colTime": "Time",
     "colUser": "User",
@@ -289,5 +296,42 @@
     "clear": "Clear",
     "saved": "Configuration saved and applied live in memory.",
     "saveChanges": "Save Changes"
+  },
+  "registry": {
+    "tabs": {
+      "installed": "Installed",
+      "browse": "Browse"
+    },
+    "installTitle": "Install {name}",
+    "installDescription": "NodePress downloads the package from the plugin directory, checks it against the directory's sha256, and reviews it exactly like an uploaded zip — the same signature rules apply.",
+    "downloading": "Downloading and checking the package…",
+    "verified": "Matches the directory's checksum (sha256 <mono>{sha}…</mono>).",
+    "loadFailed": "Could not load the plugin directory",
+    "disabledTitle": "The plugin directory is turned off",
+    "disabledBody": "Set <mono>{env}</mono> on the server to show a plugin directory here.",
+    "searchPlaceholder": "Search the directory…",
+    "updatedAt": "Updated {date}",
+    "refresh": "Check again",
+    "staleNotice": "Showing the last copy of the directory — it could not be refreshed.",
+    "unavailable": "The plugin directory is unavailable right now.",
+    "loading": "Loading the plugin directory…",
+    "noMatch": "No plugins in the directory match “{query}”.",
+    "empty": "The plugin directory lists no plugins.",
+    "paid": "Paid",
+    "free": "Free",
+    "bundled": "Bundled",
+    "installed": "Installed",
+    "installedVersion": "Installed v{version}",
+    "updateAvailable": "Update available",
+    "compatible": "Compatible",
+    "incompatible": "Incompatible",
+    "byAuthor": "by {author}",
+    "homepage": "Homepage",
+    "source": "Source",
+    "install": "Install",
+    "update": "Update",
+    "bundledHint": "Ships with NodePress — turn it on in Installed",
+    "getIt": "Get it",
+    "learnMore": "Learn more"
   }
 }

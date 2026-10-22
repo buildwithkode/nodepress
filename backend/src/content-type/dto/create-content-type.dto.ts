@@ -1,7 +1,8 @@
-import { IsString, IsNotEmpty, IsArray, ValidateNested, IsIn, IsOptional, IsBoolean, ArrayUnique } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, ValidateNested, IsIn, IsOptional, IsBoolean, ArrayUnique, Matches, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ALL_FIELD_TYPES } from '../../fields/field.types';
+import { PREVIEW_URL_MAX_LENGTH, PREVIEW_URL_PATTERN } from '../preview-url';
 
 export class FieldDto {
   @ApiProperty({ example: 'title' })
@@ -44,6 +45,13 @@ export class FieldDto {
   })
   @IsOptional()
   options?: any;
+
+  @ApiPropertyOptional({
+    example: { field: 'kind', op: 'eq', value: 'video' },
+    description: 'Show the field only when a field next to it matches (op: eq, ne, in, notIn, set, notSet). A hidden field is never required.',
+  })
+  @IsOptional()
+  condition?: any;
 
   @ApiPropertyOptional({ example: ['admin', 'editor'] })
   @IsOptional()
@@ -94,4 +102,14 @@ export class CreateContentTypeDto {
   @IsIn(ALLOWED_METHODS, { each: true })
   @ArrayUnique()
   allowedMethods?: string[];
+
+  @ApiPropertyOptional({
+    example: 'https://site.example/api/draft?token={token}&slug={slug}&locale={locale}',
+    description: 'Live preview page for the entry editor. {slug}, {locale} and {token} (a 1-hour preview token) are filled in. Empty or null clears it.',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(PREVIEW_URL_MAX_LENGTH)
+  @Matches(PREVIEW_URL_PATTERN, { message: 'previewUrl must be an http(s) URL template' })
+  previewUrl?: string | null;
 }

@@ -24,9 +24,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { roleBadgeColor, roleLabel, useRoleList } from '@/lib/custom-roles';
 
-const ROLES = ['editor', 'contributor', 'viewer'] as const;
-type Role = typeof ROLES[number];
+/** Built-in roles with permission rows; custom roles are appended at runtime. */
+const BUILT_IN_ROLES = ['editor', 'contributor', 'viewer'] as const;
+type BuiltInRole = typeof BUILT_IN_ROLES[number];
+type Role = string;
+const isBuiltIn = (role: string): role is BuiltInRole => (BUILT_IN_ROLES as readonly string[]).includes(role);
 
 const ALL_ACTIONS = ['create', 'read', 'update', 'delete', 'publish'] as const;
 type Action = typeof ALL_ACTIONS[number];
@@ -40,14 +44,8 @@ const ACTION_LABELS: Record<Action, string> = {
   publish: 'actions.publish',
 };
 
-const ROLE_COLORS: Record<Role, string> = {
-  editor:      'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-  contributor: 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300',
-  viewer:      'bg-muted text-muted-foreground',
-};
-
 /** Message keys (users.permissions.roleDescriptions.*) — translated at render. */
-const ROLE_DESCRIPTIONS: Record<Role, string> = {
+const ROLE_DESCRIPTIONS: Record<BuiltInRole, string> = {
   editor:      'roleDescriptions.editor',
   contributor: 'roleDescriptions.contributor',
   viewer:      'roleDescriptions.viewer',
@@ -87,8 +85,18 @@ type MatrixKey = `${Role}::${string}`;
 function PermissionsPageContent() {
   const t = useTranslations('users.permissions');
   const tc = useTranslations('common');
+  const tr = useTranslations('roles');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { roles, customRoles } = useRoleList();
+  const ROLES: Role[] = [...BUILT_IN_ROLES, ...customRoles.map((r) => r.name)];
+  const labelOf = (role: string) => roleLabel(role, roles, tc);
+  const baseOf = (role: string) => customRoles.find((r) => r.name === role)?.baseRole ?? 'viewer';
+  const describe = (role: string) => {
+    if (isBuiltIn(role)) return t(ROLE_DESCRIPTIONS[role]);
+    const custom = customRoles.find((r) => r.name === role);
+    return custom?.description || tr('basedOn', { base: labelOf(baseOf(role)) });
+  };
   const initialCt = searchParams.get('ct') ?? '';
   const initialTab = searchParams.get('tab') ?? '';
 
@@ -177,13 +185,20 @@ function PermissionsPageContent() {
   const getActions = (role: Role, contentType: string): string[] => {
     const specific = perms.find((p) => p.role === role && p.contentType === contentType);
     const wildcard = perms.find((p) => p.role === role && p.contentType === '*');
-    return (specific ?? wildcard)?.actions ?? [];
+    const own = specific ?? wildcard;
+    // A custom role with no row of its own uses its base role's (as the backend does)
+    if (!own && !isBuiltIn(role)) return getActions(baseOf(role), contentType);
+    return own?.actions ?? [];
   };
 
   const isInherited = (role: Role, contentType: string): boolean => {
-    if (contentType === '*') return false;
+    if (contentType === '*') return !isBuiltIn(role) && !perms.some((p) => p.role === role && p.contentType === '*');
     return !perms.some((p) => p.role === role && p.contentType === contentType);
   };
+
+  /** Whose rows an inherited cell shows: the role's own wildcard, or a custom role's base role. */
+  const inheritsFrom = (role: Role): string =>
+    !isBuiltIn(role) && !perms.some((p) => p.role === role && p.contentType === '*') ? baseOf(role) : role;
 
   const toggleAction = async (role: Role, contentType: string, action: Action) => {
     const current = getActions(role, contentType);
@@ -345,7 +360,7 @@ function PermissionsPageContent() {
           {/* ── Tab 1: Content Type Actions Matrix ──────────────────────────── */}
           <TabsContent value="content-types" className="space-y-6 pt-2">
             {/* Role overview — click to focus */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {ROLES.map((r) => (
                 <Card
                   key={r}
@@ -354,14 +369,14 @@ function PermissionsPageContent() {
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between gap-2">
-                      <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r]}`}>
-                        {tc(`roles.${r}`)}
+                      <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(r)}`}>
+                        {labelOf(r)}
                       </span>
                       {focusedRole === r && (
                         <span className="text-[10px] text-muted-foreground">{t('clickToDeselect')}</span>
                       )}
                     </div>
-                    <CardDescription className="text-xs mt-1">{t(ROLE_DESCRIPTIONS[r])}</CardDescription>
+                    <CardDescription className="text-xs mt-1">{describe(r)}</CardDescription>
                   </CardHeader>
                 </Card>
               ))}
@@ -372,8 +387,8 @@ function PermissionsPageContent() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[focusedRole]}`}>
-                      {tc(`roles.${focusedRole}`)}
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(focusedRole)}`}>
+                      {labelOf(focusedRole)}
                     </span>
                     — {t('summary.title')}
                   </CardTitle>
@@ -436,8 +451,8 @@ function PermissionsPageContent() {
                           <th className="text-left py-2 pr-4 font-medium text-muted-foreground w-36">{t('matrix.contentType')}</th>
                           {ROLES.map((r) => (
                             <th key={r} colSpan={ALL_ACTIONS.length} className="text-center py-2 px-2 font-medium">
-                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r]}`}>
-                                {tc(`roles.${r}`)}
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(r)}`}>
+                                {labelOf(r)}
                               </span>
                             </th>
                           ))}
@@ -485,7 +500,7 @@ function PermissionsPageContent() {
                                           checked={checked}
                                           onChange={() => toggleAction(role, ct, action)}
                                           className={`h-4 w-4 rounded cursor-pointer accent-primary ${inherited ? 'opacity-40' : ''}`}
-                                          title={inherited ? t('matrix.inherited', { role }) : undefined}
+                                          title={inherited ? t('matrix.inherited', { role: inheritsFrom(role) }) : undefined}
                                         />
                                       )}
                                     </td>

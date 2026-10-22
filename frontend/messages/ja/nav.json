@@ -1,0 +1,38 @@
+{
+  "groups": {
+    "content": "コンテンツ",
+    "assets": "アセット",
+    "developer": "開発者",
+    "team": "チーム",
+    "settings": "設定",
+    "help": "ヘルプ",
+    "plugins": "プラグイン"
+  },
+  "items": {
+    "dashboard": "ダッシュボード",
+    "contentTypes": "コンテンツタイプ",
+    "components": "コンポーネント",
+    "entries": "エントリー",
+    "releases": "リリース",
+    "forms": "フォーム",
+    "redirects": "リダイレクト",
+    "media": "メディア",
+    "plugins": "プラグイン",
+    "apiKeys": "API キー",
+    "webhooks": "Webhook",
+    "jobs": "ジョブ",
+    "auditLog": "監査ログ",
+    "graphql": "GraphQL Playground",
+    "users": "ユーザー",
+    "roles": "ロール",
+    "brand": "ブランド",
+    "languages": "言語",
+    "docs": "ドキュメント",
+    "serverSettings": "メールとストレージ",
+    "importer": "インポート"
+  },
+  "signOut": "サインアウト",
+  "user": "ユーザー",
+  "openMenu": "ナビゲーションメニューを開く",
+  "closeMenu": "サイドバーを閉じる"
+}

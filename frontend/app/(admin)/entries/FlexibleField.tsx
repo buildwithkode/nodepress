@@ -17,10 +17,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
+import { withCondition } from '@/components/ConditionalField';
+import type { FieldCondition } from '@/lib/field-condition';
 
 interface SubField {
   name: string;
   type: string;
+  condition?: FieldCondition;
 }
 
 interface Layout {
@@ -247,7 +250,7 @@ function FlexibleItem({
             .map((f) => {
               const fieldPath = `${fieldName}.${index}.${f.name}`;
               const sfLabel = toLabel(f.name);
-              return (
+              return withCondition(f, { control, fields: layout.fields, path: `${fieldName}.${index}` }, (
                 <div key={f.name}>
                   {f.type === 'boolean' ? (
                     <div className="flex items-center gap-2">
@@ -261,7 +264,7 @@ function FlexibleItem({
                     </>
                   )}
                 </div>
-              );
+              ));
             })}
         </div>
       )}

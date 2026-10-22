@@ -1,0 +1,143 @@
+{
+  "list": {
+    "loadFailed": "加载表单失败",
+    "deleted": "表单已删除",
+    "deleteFailed": "删除失败",
+    "statusFailed": "更新表单状态失败",
+    "searchPlaceholder": "搜索表单…",
+    "newForm": "新建表单",
+    "columns": {
+      "slug": "别名",
+      "fields": "字段",
+      "submissions": "提交"
+    },
+    "noMatches": "没有与搜索匹配的表单。",
+    "empty": "暂无表单。创建您的第一个表单。",
+    "toggleActive": "切换启用状态",
+    "viewSubmissions": "查看提交",
+    "deleteConfirmTitle": "删除“{name}”？",
+    "deleteConfirmDescription": "{count, plural, =1 {该 <strong>#</strong> 条提交也将被永久删除。} other {全部 <strong>#</strong> 条提交也将被永久删除。}}"
+  },
+  "edit": {
+    "notFound": "未找到表单。"
+  },
+  "submissions": {
+    "empty": "空",
+    "loadFailed": "加载提交失败",
+    "nothingToExport": "没有可导出的提交",
+    "backToForms": "返回表单",
+    "searchPlaceholder": "搜索提交…",
+    "exportCsv": "导出 CSV",
+    "count": "{count, plural, other {# 条提交}}",
+    "countMatching": "{count, plural, other {# 条提交}}与“{search}”匹配",
+    "noneTitle": "暂无提交",
+    "noneDescription": "分享表单后，回复将显示在这里。",
+    "date": "日期"
+  },
+  "fieldEditor": {
+    "labelPlaceholder": "向用户显示的标签",
+    "keyCustom": "自定义",
+    "keyAuto": "自动",
+    "validationRules": "校验规则",
+    "removeField": "移除字段",
+    "options": "选项（以逗号分隔）",
+    "optionsPickMany": "多选",
+    "optionsRadio": "单选按钮",
+    "optionsDropdown": "下拉菜单",
+    "optionsPlaceholder": "选项 A, 选项 B, 选项 C",
+    "validation": "校验",
+    "rules": {
+      "min": "最小值",
+      "max": "最大值",
+      "integer": "仅限整数",
+      "minLength": "最小长度",
+      "maxLength": "最大长度",
+      "pattern": "模式（正则表达式）",
+      "minItems": "最少项数",
+      "maxItems": "最多项数",
+      "message": "自定义错误消息"
+    },
+    "messagePlaceholder": "此字段校验失败时显示",
+    "itemFields": "项目字段（可重复）",
+    "subFields": "子字段",
+    "addSubField": "添加子字段"
+  },
+  "fieldTypes": {
+    "text": "文本",
+    "textarea": "多行文本",
+    "number": "数字",
+    "email": "邮箱",
+    "url": "URL",
+    "phone": "电话",
+    "date": "日期",
+    "datetime": "日期和时间",
+    "boolean": "布尔值（是/否）",
+    "select": "选择（下拉菜单）",
+    "radio": "单选（单项选择）",
+    "multiselect": "多选",
+    "tags": "标签（自由输入）",
+    "group": "分组（对象）",
+    "repeater": "重复器（列表）"
+  },
+  "builder": {
+    "created": "表单已创建",
+    "updated": "表单已更新",
+    "newTitle": "新建表单",
+    "editTitle": "编辑表单",
+    "newDescription": "定义表单字段并配置通知操作。",
+    "editDescription": "更新表单设置、字段和操作。",
+    "formName": "表单名称",
+    "formNamePlaceholder": "例如 联系我们",
+    "slugPlaceholder": "例如 contact-us",
+    "submitEndpoint": "提交端点：",
+    "status": {
+      "title": "表单状态",
+      "accepting": "正在接受提交",
+      "blocked": "已阻止提交",
+      "active": "启用",
+      "inactive": "停用"
+    },
+    "captcha": {
+      "title": "垃圾信息防护（验证码）",
+      "on": "提交必须包含有效的验证码令牌。",
+      "off": "蜜罐和速率限制仍然生效。开启以启用验证码校验。",
+      "requires": "需要在后端环境变量中设置 <code>{env}</code>。"
+    },
+    "fields": {
+      "title": "字段",
+      "description": "定义用户需要填写的输入项。嵌套数据请使用分组 / 重复器。",
+      "add": "添加字段"
+    },
+    "actions": {
+      "description": "提交成功后执行的操作。在主题中使用 <code>{token}</code> 插入字段值。",
+      "email": "邮件",
+      "empty": "未配置任何操作。提交只会存储在数据库中。",
+      "remove": "移除操作",
+      "sendTo": "发送至",
+      "subject": "主题",
+      "defaultSubject": "来自 {field} 的新提交",
+      "replyToField": "回复地址字段（可选）",
+      "webhookUrl": "Webhook URL",
+      "method": "方法"
+    },
+    "validation": {
+      "nameRequired": "表单名称为必填项",
+      "slugRequired": "别名为必填项",
+      "fieldRequired": "请至少添加一个带有名称和标签的字段"
+    },
+    "creating": "正在创建…",
+    "create": "创建表单",
+    "saveChanges": "保存更改",
+    "preview": {
+      "show": "显示请求体",
+      "hide": "隐藏请求体",
+      "title": "请求体预览",
+      "live": "实时",
+      "disableWrap": "禁用自动换行",
+      "enableWrap": "长行自动换行",
+      "wrap": "换行",
+      "copyJson": "复制 JSON 请求体",
+      "empty": "添加一个字段（包含键名和标签）以生成示例请求体。"
+    }
+  }
+}

@@ -15,6 +15,7 @@ import { MediaModule } from './media/media.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
 import { FormsModule } from './forms/forms.module';
 import { DynamicApiModule } from './dynamic-api/dynamic-api.module';
+import { ComponentsModule } from './components/components.module';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { AuditModule } from './audit/audit.module';
@@ -27,6 +28,9 @@ import { AiModule } from './ai/ai.module';
 import { SearchModule } from './search/search.module';
 import { ServerSettingsModule } from './server-settings/server-settings.module';
 import { SeoModule } from './seo/seo.module';
+import { ImporterModule } from './importer/importer.module';
+import { RedirectsModule } from './redirects/redirects.module';
+import { OpenApiModule } from './openapi/openapi.module';
 import { AppCacheModule } from './cache/cache.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { HttpMetricsInterceptor } from './metrics/http-metrics.interceptor';
@@ -34,6 +38,7 @@ import { ApiKeyRateLimitInterceptor } from './api-keys/api-key-rate-limit.interc
 import { PluginModule } from './plugin/plugin.module';
 import { pluginHostModule } from './plugin/plugin-loader';
 import { PermissionsModule } from './permissions/permissions.module';
+import { RolesModule } from './roles/roles.module';
 import { GraphqlModule } from './graphql/graphql.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { MailModule } from './mail/mail.module';
@@ -101,9 +106,11 @@ import { LocalesModule } from './locales/locales.module';
     JobsModule,         // Global — JobsService (background jobs: form actions, plugin tasks)
     UsersModule,
     PermissionsModule,
+    RolesModule,        // Global — custom roles (RolesService.resolve maps them to their base role)
     GraphqlModule,
     RealtimeModule,
     ContentTypeModule,
+    ComponentsModule,   // Reusable field sets used by group/repeater fields
     EntriesModule,
     MediaModule,
     ApiKeysModule,
@@ -116,6 +123,9 @@ import { LocalesModule } from './locales/locales.module';
     SearchModule,       // Global — optional external search (SEARCH_DRIVER=meilisearch)
     ServerSettingsModule, // Email + storage set up from the admin
     SeoModule,          // GET /sitemap.xml and GET /robots.txt
+    ImporterModule,     // WordPress (WXR) import — POST /api/import/wordpress
+    RedirectsModule,    // Global — redirects manager + GET /redirects/resolve (auto 301 on slug change)
+    OpenApiModule,      // GET /openapi.json — the content API as OpenAPI 3.1
 
     // DynamicApiModule MUST be last — wildcard /:type routes shadow static routes
     DynamicApiModule,

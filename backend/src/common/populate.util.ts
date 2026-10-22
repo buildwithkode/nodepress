@@ -1,5 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { FieldDef, RelationFieldDef, isReverseRelation } from '../fields/field.types';
+import { filterUnauthorizedReadFields } from './field-security.util';
 
 /** Reverse fields return at most this many linked entries per entry. */
 export const REVERSE_LIMIT = 100;
@@ -10,6 +11,22 @@ export interface PopulateOptions {
   publishedOnly?: boolean;
   /** publicId of each entry in `entriesData` (same order) — reverse fields need it. */
   ownerIds?: (string | undefined)[];
+  /** Role whose field read rules apply to related entries (default: public). */
+  readRole?: string;
+}
+
+/**
+ * A resolved related entry as returned to the caller: its data filtered by the
+ * related type's field read rules, and only the content type's name — not its
+ * schema or settings.
+ */
+function relatedRow(row: any, readRole?: string) {
+  const { contentType, ...rest } = row;
+  return {
+    ...rest,
+    data: filterUnauthorizedReadFields(row.data, (contentType?.schema ?? []) as FieldDef[], readRole),
+    ...(contentType ? { contentType: { id: contentType.id, name: contentType.name, displayName: contentType.displayName } } : {}),
+  };
 }
 
 /**
@@ -155,7 +172,7 @@ export async function populateManyDeep(
       const raw = data[field.name];
       if (!raw) continue;
       const ids: string[] = Array.isArray(raw) ? raw : [raw];
-      const resolved = ids.map((id) => byId.get(id)).filter(Boolean) as any[];
+      const resolved = ids.map((id) => byId.get(id)).filter(Boolean).map((r) => relatedRow(r, options.readRole));
       result[field.name] =
         field.options?.cardinality === 'many' ? resolved : (resolved[0] ?? null);
     }
@@ -261,7 +278,7 @@ async function populateReverse(
     }
     result.forEach((d, i) => {
       if (!d) return;
-      const linked = byOwner.get(ownerIds[i] as string) ?? [];
+      const linked = (byOwner.get(ownerIds[i] as string) ?? []).map((r) => relatedRow(r, options.readRole));
       d[field.name] = many ? linked : (linked[0] ?? null);
     });
   }

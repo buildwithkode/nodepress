@@ -1,0 +1,57 @@
+{
+  "title": "Roles",
+  "description": "Built-in roles can't be changed. A custom role opens the same parts of the admin as the role it's based on and has its own content permissions.",
+  "backToUsers": "Users",
+  "managePermissions": "Edit permissions",
+  "newRole": "New role",
+  "manage": "Manage roles",
+  "customGroup": "Custom roles",
+  "basedOn": "Based on {base}",
+  "list": {
+    "role": "Role",
+    "basedOn": "Based on",
+    "users": "Users",
+    "description": "Description",
+    "builtIn": "Built-in",
+    "userCount": "{count, plural, =0 {No users} one {# user} other {# users}}",
+    "empty": "No custom roles yet.",
+    "edit": "Edit role",
+    "delete": "Delete role"
+  },
+  "builtInDescriptions": {
+    "admin": "Full access, including users, settings and API keys",
+    "editor": "Creates, edits, publishes and deletes content",
+    "contributor": "Creates and edits content; cannot publish",
+    "viewer": "Read-only access to the admin"
+  },
+  "form": {
+    "createTitle": "New role",
+    "editTitle": "Edit {label}",
+    "description": "A custom role starts with the content permissions of the role it's based on. Narrow them down on the permissions page.",
+    "label": "Label",
+    "name": "Name",
+    "nameHelp": "Saved as {name}. Users and permissions refer to it, so it can't be changed later.",
+    "nameHelpEmpty": "Lowercase letters, numbers and underscores. It can't be changed later.",
+    "nameLocked": "The name can't be changed.",
+    "baseRole": "Based on",
+    "baseRoleHelp": "Decides which parts of the admin the role can open.",
+    "baseRoleEditHelp": "Changes which parts of the admin the role can open. Saved content permissions stay as they are.",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What this role is for",
+    "save": "Save",
+    "create": "Create role"
+  },
+  "deleteDialog": {
+    "title": "Delete the role “{label}”?",
+    "description": "Its content permissions are deleted too.",
+    "inUse": "{count, plural, one {# user still has} other {# users still have}} this role. Give them another role first."
+  },
+  "toasts": {
+    "created": "Role created",
+    "updated": "Role updated",
+    "deleted": "Role deleted",
+    "saveFailed": "Couldn't save the role",
+    "deleteFailed": "Couldn't delete the role",
+    "inUse": "{count, plural, one {# user still has} other {# users still have}} this role. Give them another role first."
+  }
+}

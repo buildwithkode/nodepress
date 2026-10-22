@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "メディアファイルを読み込めませんでした",
+    "fileDeleted": "ファイルを削除しました",
+    "folderDeleted": "フォルダーを削除しました",
+    "deleteFailed": "削除に失敗しました",
+    "folderRenamed": "フォルダー名を変更しました",
+    "renameFolderFailed": "フォルダー名を変更できませんでした",
+    "folderCreated": "フォルダーを作成しました",
+    "createFolderFailed": "フォルダーを作成できませんでした",
+    "fileMoved": "ファイルを移動しました",
+    "moveFileFailed": "ファイルを移動できませんでした",
+    "urlCopied": "URL をコピーしました",
+    "uploaded": "{name} をアップロードしました",
+    "uploadFailed": "{name} のアップロードに失敗しました"
+  },
+  "folders": {
+    "title": "フォルダー",
+    "allFiles": "すべてのファイル",
+    "unfiled": "未分類",
+    "folder": "フォルダー",
+    "rename": "フォルダー名を変更",
+    "delete": "フォルダーを削除",
+    "deleteConfirmTitle": "フォルダー「{name}」を削除しますか?",
+    "deleteConfirmDescription": "中のファイルは未分類になります。サブフォルダーは削除されます。",
+    "namePlaceholder": "フォルダー名",
+    "new": "新規フォルダー"
+  },
+  "upload": {
+    "uploading": "アップロード中…",
+    "prompt": "クリックするか、ここにファイルをドラッグ",
+    "limits": "{formats} — 最大 {size}"
+  },
+  "library": {
+    "empty": "ファイルはまだありません",
+    "fileCount": "{count, plural, other {# 個のファイル}}",
+    "copyWebpUrl": "WebP の URL をコピー",
+    "copyUrl": "URL をコピー",
+    "focalPointAt": "焦点 {x}, {y}",
+    "setFocalPoint": "焦点を設定",
+    "moveToFolder": "フォルダーへ移動",
+    "deleteConfirmTitle": "ファイルを削除しますか?",
+    "deleteConfirmDescription": "<strong>{name}</strong> は完全に削除されます。",
+    "deleteConfirmWebp": "WebP 版も削除されます。"
+  },
+  "renameDialog": {
+    "title": "フォルダー名の変更",
+    "description": "フォルダー「{name}」の新しい名前を入力してください。",
+    "label": "フォルダー名",
+    "save": "変更を保存"
+  },
+  "moveDialog": {
+    "title": "ファイルをフォルダーへ移動",
+    "description": "<strong>{name}</strong> の移動先フォルダーを選択してください。",
+    "destination": "移動先フォルダー",
+    "selectFolder": "フォルダーを選択",
+    "unfiledRoot": "未分類 (ルート)",
+    "submit": "ファイルを移動"
+  },
+  "focal": {
+    "title": "焦点",
+    "description": "<strong>{name}</strong> の最も重要な部分をクリックしてください。トリミングされた画像でもその部分が枠内に収まります。",
+    "saved": "焦点を保存しました",
+    "cleared": "焦点をクリアしました",
+    "saveFailed": "焦点を保存できませんでした",
+    "previewSquare": "正方形",
+    "previewWide": "横長 16:9",
+    "previewTall": "縦長 3:4",
+    "notSet": "未設定 — 中央でトリミングされます",
+    "clear": "クリア"
+  },
+  "picker": {
+    "title": "メディアライブラリ",
+    "placeholder": "メディアライブラリから画像を選択…",
+    "crop": "トリミング",
+    "cropZoomTitle": "トリミング / ズーム",
+    "cropZoom": "トリミングとズーム",
+    "removeImage": "画像を削除",
+    "change": "変更",
+    "browse": "参照",
+    "upload": "アップロード",
+    "altPrefix": "代替テキスト: {alt}",
+    "empty": "メディアファイルはまだありません。先にアップロードしてください。",
+    "altText": "代替テキスト",
+    "optionalHint": "(任意)",
+    "altPlaceholder": "アクセシビリティのために画像の内容を説明してください…",
+    "dropPrompt": "ファイルをドロップするか、クリックして参照",
+    "useImage": "この画像を使用"
+  }
+}

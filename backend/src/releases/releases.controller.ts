@@ -94,7 +94,7 @@ export class ReleasesController {
 
   private async assertCanPublish(req: any) {
     if (req.user.role === 'admin') return;
-    if (!(await this.permissions.can(req.user.role, '*', 'publish'))) {
+    if (!(await this.permissions.can(req.user.customRole ?? req.user.role, '*', 'publish'))) {
       throw new ForbiddenException('You do not have permission to publish entries');
     }
   }

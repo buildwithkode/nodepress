@@ -86,6 +86,13 @@ export default function AuditLogPage() {
                 <SelectItem value="api_key">{t('auditLog.resources.api_key')}</SelectItem>
                 <SelectItem value="form">{t('auditLog.resources.form')}</SelectItem>
                 <SelectItem value="media">{t('auditLog.resources.media')}</SelectItem>
+                <SelectItem value="plugin">{t('auditLog.resources.plugin')}</SelectItem>
+                <SelectItem value="settings">{t('auditLog.resources.settings')}</SelectItem>
+                <SelectItem value="release">{t('auditLog.resources.release')}</SelectItem>
+                <SelectItem value="role">{t('auditLog.resources.role')}</SelectItem>
+                <SelectItem value="redirect">{t('auditLog.resources.redirect')}</SelectItem>
+                <SelectItem value="component">{t('auditLog.resources.component')}</SelectItem>
+                <SelectItem value="import">{t('auditLog.resources.import')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

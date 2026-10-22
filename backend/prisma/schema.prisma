@@ -9,13 +9,14 @@ datasource db {
 }
 
 model ContentType {
-  id             Int      @id @default(autoincrement())
-  name           String   @unique
-  displayName    String?  // human-readable label shown in the admin UI; snake_case key derives from `name`
+  id             Int                        @id @default(autoincrement())
+  name           String                     @unique
+  displayName    String? // human-readable label shown in the admin UI; snake_case key derives from `name`
   schema         Json
-  allowedMethods Json?    // null = all enabled. e.g. ["list","read","create","update","delete"]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  allowedMethods Json? // null = all enabled. e.g. ["list","read","create","update","delete"]
+  previewUrl     String? // live preview page for the editor, e.g. "https://site.com/blog/{slug}" ({slug}, {locale}, {token} filled in)
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
   entries        Entry[]
   schemaVersions ContentTypeSchemaVersion[]
   entrySlugs     EntrySlug[]
@@ -26,8 +27,8 @@ model ContentType {
 model ContentTypeSchemaVersion {
   id            Int         @id @default(autoincrement())
   contentTypeId Int
-  schema        Json        // snapshot of schema at time of change
-  changedBy     Int?        // userId — null if changed via API key or system
+  schema        Json // snapshot of schema at time of change
+  changedBy     Int? // userId — null if changed via API key or system
   createdAt     DateTime    @default(now())
   contentType   ContentType @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
 
@@ -37,27 +38,27 @@ model ContentTypeSchemaVersion {
 }
 
 model Entry {
-  id            Int            @id @default(autoincrement())
-  publicId      String         @unique @default(uuid())   // public-facing UUID v4 — exposed as "id" in API
+  id            Int                      @id @default(autoincrement())
+  publicId      String                   @unique @default(uuid()) // public-facing UUID v4 — exposed as "id" in API
   slug          String
-  locale        String         @default("en")             // BCP 47 locale code e.g. "en", "fr", "de"
-  status        String         @default("published")       // draft | published | archived
+  locale        String                   @default("en") // BCP 47 locale code e.g. "en", "fr", "de"
+  status        String                   @default("published") // draft | published | archived
   data          Json
-  contentType   ContentType    @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+  contentType   ContentType              @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
   contentTypeId Int
-  seo           Json?                                      // { title?, description?, image?, noIndex? }
-  publishAt     DateTime?                                  // if set and in the past → auto-published by cron
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  deletedAt     DateTime?                                  // null = active; set on soft delete
+  seo           Json? // { title?, description?, image?, noIndex? }
+  publishAt     DateTime? // if set and in the past → auto-published by cron
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  deletedAt     DateTime? // null = active; set on soft delete
   // Generated column (see migration add_entry_search_vector) — Postgres keeps it
   // in sync with slug + data; never written by the app. Backs ?search=.
-  searchVector  Unsupported("tsvector")?                   @default(dbgenerated("to_tsvector('english'::regconfig, ((COALESCE(slug, ''::text) || ' '::text) || COALESCE((data)::text, ''::text)))")) @map("search_vector")
+  searchVector  Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english'::regconfig, ((COALESCE(slug, ''::text) || ' '::text) || COALESCE((data)::text, ''::text)))")) @map("search_vector")
   versions      EntryVersion[]
   releaseItems  ReleaseItem[]
   // The entry's translation group (same content type + slug). Lets a query ask
   // whether an entry has a translation, e.g. the list ?fallback=true.
-  slugGroup     EntrySlug      @relation(fields: [contentTypeId, slug], references: [contentTypeId, slug], onDelete: NoAction)
+  slugGroup     EntrySlug                @relation(fields: [contentTypeId, slug], references: [contentTypeId, slug], onDelete: NoAction)
 
   @@unique([contentTypeId, slug, locale])
   @@index([contentTypeId])
@@ -66,8 +67,8 @@ model Entry {
   @@index([deletedAt])
   @@index([publishAt])
   @@index([createdAt])
-  @@index([contentTypeId, status, deletedAt])   // public API: WHERE contentTypeId=? AND status='published' AND deletedAt IS NULL
-  @@index([contentTypeId, createdAt, id])     // list order + keyset ?cursor= paging
+  @@index([contentTypeId, status, deletedAt]) // public API: WHERE contentTypeId=? AND status='published' AND deletedAt IS NULL
+  @@index([contentTypeId, createdAt, id]) // list order + keyset ?cursor= paging
   @@index([searchVector], map: "entries_search_vector_idx", type: Gin)
   @@map("entries")
 }
@@ -91,7 +92,7 @@ model EntryVersion {
   slug      String
   data      Json
   status    String
-  createdBy Int?     // userId who triggered the update
+  createdBy Int? // userId who triggered the update
   createdAt DateTime @default(now())
   entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
@@ -106,7 +107,7 @@ model User {
   role              String   @default("editor")
   twoFactorEnabled  Boolean  @default(false)
   twoFactorSecret   String?
-  twoFactorRecovery Json?    // Array of SHA-256 hashed recovery codes
+  twoFactorRecovery Json? // Array of SHA-256 hashed recovery codes
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -117,7 +118,7 @@ model ApiKey {
   id          Int       @id @default(autoincrement())
   name        String
   key         String    @unique
-  permissions Json      // { access: "read"|"write"|"all", contentTypes: string[]|"*" }
+  permissions Json // { access: "read"|"write"|"all", contentTypes: string[]|"*" }
   createdAt   DateTime  @default(now())
   lastUsedAt  DateTime?
 
@@ -131,33 +132,33 @@ model ApiKey {
 model MediaFolder {
   id        Int           @id @default(autoincrement())
   name      String
-  parentId  Int?                                   // null = root folder
+  parentId  Int? // null = root folder
   parent    MediaFolder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
   children  MediaFolder[] @relation("FolderTree")
   media     Media[]
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  @@unique([parentId, name])                       // unique name within the same parent
+  @@unique([parentId, name]) // unique name within the same parent
   @@index([parentId])
   @@map("media_folders")
 }
 
 model Media {
   id           Int          @id @default(autoincrement())
-  filename     String       @unique              // stored filename / S3 key
-  webpFilename String?                           // WebP version key (images only)
-  url          String                            // public URL
-  webpUrl      String?                           // WebP version URL
-  originalName String                            // original upload filename
+  filename     String       @unique // stored filename / S3 key
+  webpFilename String? // WebP version key (images only)
+  url          String // public URL
+  webpUrl      String? // WebP version URL
+  originalName String // original upload filename
   mimetype     String
-  size         Int                               // bytes (after optimization)
-  width        Int?                              // pixels (images only)
-  height       Int?                              // pixels (images only)
-  focalX       Float?                            // focal point 0–1 from the left (cover crops keep it in frame)
-  focalY       Float?                            // focal point 0–1 from the top
-  uploadedBy   Int?                              // userId
-  folderId     Int?                              // null = root / unfiled
+  size         Int // bytes (after optimization)
+  width        Int? // pixels (images only)
+  height       Int? // pixels (images only)
+  focalX       Float? // focal point 0–1 from the left (cover crops keep it in frame)
+  focalY       Float? // focal point 0–1 from the top
+  uploadedBy   Int? // userId
+  folderId     Int? // null = root / unfiled
   folder       MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
   createdAt    DateTime     @default(now())
 
@@ -172,10 +173,10 @@ model WebhookDelivery {
   webhookId      Int
   event          String
   payload        Json
-  status         String    @default("pending")  // pending | delivered | failed
+  status         String    @default("pending") // pending | delivered | failed
   attempts       Int       @default(0)
-  nextRetryAt    DateTime?                       // null = done (delivered or max retries hit)
-  responseStatus Int?                           // HTTP status from recipient
+  nextRetryAt    DateTime? // null = done (delivered or max retries hit)
+  responseStatus Int? // HTTP status from recipient
   errorMessage   String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -189,8 +190,8 @@ model Webhook {
   id        Int      @id @default(autoincrement())
   name      String
   url       String
-  secret    String?  // HMAC-SHA256 signing key — sent as X-NodePress-Signature header
-  events    Json     // string[] e.g. ["entry.created","entry.updated","*"]
+  secret    String? // HMAC-SHA256 signing key — sent as X-NodePress-Signature header
+  events    Json // string[] e.g. ["entry.created","entry.updated","*"]
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -202,12 +203,12 @@ model Webhook {
 
 model AuditLog {
   id         Int      @id @default(autoincrement())
-  userId     Int?                         // null if action done via API key
+  userId     Int? // null if action done via API key
   userEmail  String
-  action     String                       // created | updated | deleted | restored | login
-  resource   String                       // entry | content_type | user | api_key | form | media
-  resourceId String                       // slug, id, or name identifying the record
-  metadata   Json?                        // optional context (e.g. changed fields)
+  action     String // created | updated | deleted | restored | login
+  resource   String // entry | content_type | user | api_key | form | media
+  resourceId String // slug, id, or name identifying the record
+  metadata   Json? // optional context (e.g. changed fields)
   ip         String?
   createdAt  DateTime @default(now())
 
@@ -220,10 +221,25 @@ model AuditLog {
 
 // ─── Permissions ─────────────────────────────────────────────────────────────
 
+// Custom roles. A user's `role` may name one of these; `baseRole` (editor,
+// contributor or viewer) decides what the role can do outside content, and
+// Permission rows keyed by `name` decide what it can do per content type.
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  label       String
+  description String?
+  baseRole    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("roles")
+}
+
 model Permission {
   id          Int      @id @default(autoincrement())
-  role        String   // 'editor' | 'viewer' | 'contributor'
-  contentType String   // '*' = all content types, or specific name e.g. 'article'
+  role        String // 'editor' | 'viewer' | 'contributor'
+  contentType String // '*' = all content types, or specific name e.g. 'article'
   actions     String[] // subset of: create, read, update, delete, publish
 
   @@unique([role, contentType])
@@ -236,8 +252,8 @@ model Permission {
 model RefreshToken {
   id        Int      @id @default(autoincrement())
   userId    Int
-  token     String   @unique              // 64 hex chars (32 random bytes)
-  expiresAt DateTime                      // 30 days from creation
+  token     String   @unique // 64 hex chars (32 random bytes)
+  expiresAt DateTime // 30 days from creation
   createdAt DateTime @default(now())
 
   @@index([userId])
@@ -249,8 +265,8 @@ model RefreshToken {
 model PasswordResetToken {
   id        Int      @id @default(autoincrement())
   userId    Int
-  token     String   @unique               // 64 hex chars (32 random bytes)
-  expiresAt DateTime                       // 15 minutes from creation
+  token     String   @unique // 64 hex chars (32 random bytes)
+  expiresAt DateTime // 15 minutes from creation
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -263,8 +279,8 @@ model PasswordResetToken {
 model Form {
   id             Int              @id @default(autoincrement())
   name           String
-  slug           String           @unique  // used in public submit endpoint: POST /api/submit/:slug
-  fields         Json             // FieldDef[]  — see forms/types/form-field.types.ts
+  slug           String           @unique // used in public submit endpoint: POST /api/submit/:slug
+  fields         Json // FieldDef[]  — see forms/types/form-field.types.ts
   actions        Json             @default("[]") // ActionDef[] — email | webhook
   isActive       Boolean          @default(true)
   captchaEnabled Boolean          @default(false) // require captcha token on submit (needs CAPTCHA_PROVIDER env)
@@ -310,7 +326,7 @@ model ReleaseItem {
 
 model Job {
   id          Int      @id @default(autoincrement())
-  type        String   // handler key, e.g. "form.email"
+  type        String // handler key, e.g. "form.email"
   payload     Json
   status      String   @default("pending") // pending | done | failed
   attempts    Int      @default(0)
@@ -328,8 +344,8 @@ model FormSubmission {
   id        Int      @id @default(autoincrement())
   form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId    Int
-  data      Json     // validated key→value pairs
-  ip        String?  // submitter IP (optional, for spam detection)
+  data      Json // validated key→value pairs
+  ip        String? // submitter IP (optional, for spam detection)
   createdAt DateTime @default(now())
 
   @@index([formId])
@@ -341,13 +357,13 @@ model FormSubmission {
 // Used across the admin UI (sidebar, favicon, title), auth pages, and the
 // form-submission email. Managed via GET/PUT /api/brand.
 model Setting {
-  id           Int      @id @default(1)
-  brandName    String   @default("NodePress")
-  brandLogoUrl String?
-  brandColor   String   @default("#4f46e5")
+  id            Int      @id @default(1)
+  brandName     String   @default("NodePress")
+  brandLogoUrl  String?
+  brandColor    String   @default("#4f46e5")
   // Optional admin-UI theme overrides (hex). null = use the built-in theme default.
-  buttonColor  String?  // overrides the primary button colour (--primary)
-  inputColor   String?  // overrides the input border + focus ring (--input / --ring)
+  buttonColor   String? // overrides the primary button colour (--primary)
+  inputColor    String? // overrides the input border + focus ring (--input / --ring)
   // Content languages: enabled locale codes (e.g. ["en","fr"]) and the default.
   // Drive the admin UI and the public API's ?fallback=true; the API still
   // accepts entries in any locale.
@@ -355,9 +371,9 @@ model Setting {
   defaultLocale String   @default("en")
   // Email (SMTP) and file storage set from the admin (setup wizard / Settings → Email & storage).
   // Secrets inside are encrypted (common/secret-box.ts). SMTP_* / STORAGE_* env vars take precedence.
-  mail         Json?
-  storage      Json?
-  updatedAt    DateTime @updatedAt
+  mail          Json?
+  storage       Json?
+  updatedAt     DateTime @updatedAt
 
   @@map("settings")
 }
@@ -379,16 +395,44 @@ model InstalledPlugin {
 model PluginPackage {
   id          String    @id // manifest id
   version     String
-  manifest    Json      // nodepress-plugin.json, so listing never unpacks the archive
-  archive     Bytes     // the zip as uploaded
-  sha256      String    // of archive
+  manifest    Json // nodepress-plugin.json, so listing never unpacks the archive
+  archive     Bytes // the zip as uploaded
+  sha256      String // of archive
   size        Int
-  signature   String    // trusted | untrusted | unsigned
+  signature   String // trusted | untrusted | unsigned
   signerKeyId String?
   uploadedBy  String?
   uploadedAt  DateTime  @default(now())
   bootedAt    DateTime? // first successful startup with this archive
-  loadError   String?   // why it was switched off (failed to load or broke startup); cleared by a new upload
+  loadError   String? // why it was switched off (failed to load or broke startup); cleared by a new upload
 
   @@map("plugin_packages")
+}
+
+// Reusable field sets. A content type uses one as a group or repeater field
+// with options.component = name; saving a component updates every copy.
+model Component {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  displayName String?
+  description String?
+  fields      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("components")
+}
+
+// URL redirects for the site in front of NodePress (served by GET /api/redirects/resolve).
+model Redirect {
+  id         Int       @id @default(autoincrement())
+  from       String    @unique
+  to         String
+  statusCode Int       @default(301)
+  hits       Int       @default(0)
+  lastHitAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("redirects")
 }

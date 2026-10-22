@@ -1,0 +1,143 @@
+{
+  "list": {
+    "loadFailed": "フォームを読み込めませんでした",
+    "deleted": "フォームを削除しました",
+    "deleteFailed": "削除に失敗しました",
+    "statusFailed": "フォームのステータスを更新できませんでした",
+    "searchPlaceholder": "フォームを検索…",
+    "newForm": "新規フォーム",
+    "columns": {
+      "slug": "スラッグ",
+      "fields": "フィールド",
+      "submissions": "送信"
+    },
+    "noMatches": "検索に一致するフォームはありません。",
+    "empty": "フォームはまだありません。最初のフォームを作成しましょう。",
+    "toggleActive": "有効/無効を切り替え",
+    "viewSubmissions": "送信を表示",
+    "deleteConfirmTitle": "「{name}」を削除しますか?",
+    "deleteConfirmDescription": "{count, plural, other {<strong>#</strong> 件の送信もすべて完全に削除されます。}}"
+  },
+  "edit": {
+    "notFound": "フォームが見つかりません。"
+  },
+  "submissions": {
+    "empty": "空",
+    "loadFailed": "送信を読み込めませんでした",
+    "nothingToExport": "エクスポートする送信がありません",
+    "backToForms": "フォームに戻る",
+    "searchPlaceholder": "送信を検索…",
+    "exportCsv": "CSV をエクスポート",
+    "count": "{count, plural, other {# 件の送信}}",
+    "countMatching": "「{search}」に一致する{count, plural, other {送信 # 件}}",
+    "noneTitle": "送信はまだありません",
+    "noneDescription": "フォームを共有すると、ここに回答が表示されます。",
+    "date": "日付"
+  },
+  "fieldEditor": {
+    "labelPlaceholder": "ユーザーに表示するラベル",
+    "keyCustom": "カスタム",
+    "keyAuto": "自動",
+    "validationRules": "検証ルール",
+    "removeField": "フィールドを削除",
+    "options": "選択肢 (カンマ区切り)",
+    "optionsPickMany": "複数選択",
+    "optionsRadio": "ラジオボタン",
+    "optionsDropdown": "ドロップダウン",
+    "optionsPlaceholder": "選択肢 A, 選択肢 B, 選択肢 C",
+    "validation": "検証",
+    "rules": {
+      "min": "最小値",
+      "max": "最大値",
+      "integer": "整数のみ",
+      "minLength": "最小文字数",
+      "maxLength": "最大文字数",
+      "pattern": "パターン (正規表現)",
+      "minItems": "最小項目数",
+      "maxItems": "最大項目数",
+      "message": "カスタムエラーメッセージ"
+    },
+    "messagePlaceholder": "このフィールドの検証に失敗したときに表示",
+    "itemFields": "項目のフィールド (繰り返し)",
+    "subFields": "サブフィールド",
+    "addSubField": "サブフィールドを追加"
+  },
+  "fieldTypes": {
+    "text": "テキスト",
+    "textarea": "テキストエリア",
+    "number": "数値",
+    "email": "メールアドレス",
+    "url": "URL",
+    "phone": "電話番号",
+    "date": "日付",
+    "datetime": "日時",
+    "boolean": "真偽値 (はい/いいえ)",
+    "select": "セレクト (ドロップダウン)",
+    "radio": "ラジオ (単一選択)",
+    "multiselect": "複数選択",
+    "tags": "タグ (自由入力)",
+    "group": "グループ (オブジェクト)",
+    "repeater": "リピーター (リスト)"
+  },
+  "builder": {
+    "created": "フォームを作成しました",
+    "updated": "フォームを更新しました",
+    "newTitle": "新規フォーム",
+    "editTitle": "フォームを編集",
+    "newDescription": "フォームのフィールドを定義し、通知アクションを設定します。",
+    "editDescription": "フォームの設定、フィールド、アクションを更新します。",
+    "formName": "フォーム名",
+    "formNamePlaceholder": "例: お問い合わせ",
+    "slugPlaceholder": "例: contact-us",
+    "submitEndpoint": "送信エンドポイント:",
+    "status": {
+      "title": "フォームのステータス",
+      "accepting": "送信を受け付けています",
+      "blocked": "送信は停止されています",
+      "active": "有効",
+      "inactive": "無効"
+    },
+    "captcha": {
+      "title": "スパム対策 (Captcha)",
+      "on": "送信には有効な Captcha トークンが必要です。",
+      "off": "ハニーポットとレート制限は引き続き適用されます。Captcha 検証を使うにはオンにしてください。",
+      "requires": "バックエンドの環境変数に <code>{env}</code> が必要です。"
+    },
+    "fields": {
+      "title": "フィールド",
+      "description": "ユーザーが入力する項目を定義します。入れ子のデータにはグループ / リピーターを使用してください。",
+      "add": "フィールドを追加"
+    },
+    "actions": {
+      "description": "送信が成功した後の処理です。件名に <code>{token}</code> を使うと値を挿入できます。",
+      "email": "メール",
+      "empty": "アクションは設定されていません。送信はデータベースに保存されるだけです。",
+      "remove": "アクションを削除",
+      "sendTo": "送信先",
+      "subject": "件名",
+      "defaultSubject": "{field} からの新しい送信",
+      "replyToField": "Reply-To フィールド (任意)",
+      "webhookUrl": "Webhook URL",
+      "method": "メソッド"
+    },
+    "validation": {
+      "nameRequired": "フォーム名は必須です",
+      "slugRequired": "スラッグは必須です",
+      "fieldRequired": "名前とラベルを持つフィールドを 1 つ以上追加してください"
+    },
+    "creating": "作成中…",
+    "create": "フォームを作成",
+    "saveChanges": "変更を保存",
+    "preview": {
+      "show": "ペイロードを表示",
+      "hide": "ペイロードを隠す",
+      "title": "ペイロードのプレビュー",
+      "live": "ライブ",
+      "disableWrap": "折り返しを無効化",
+      "enableWrap": "長い行を折り返す",
+      "wrap": "折り返し",
+      "copyJson": "JSON 本文をコピー",
+      "empty": "フィールド (キーとラベル付き) を追加すると、ペイロードの例が生成されます。"
+    }
+  }
+}

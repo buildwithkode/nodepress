@@ -1,0 +1,63 @@
+{
+  "title": "重定向",
+  "description": "将访客和搜索引擎从旧 URL 引导到新 URL。您的网站通过 GET /api/redirects/resolve 向 NodePress 查询某个路径应跳转到哪里。",
+  "importCsv": "导入 CSV",
+  "exportCsv": "导出 CSV",
+  "add": "添加重定向",
+  "forbidden": "只有编辑者和管理员可以管理重定向。",
+  "searchPlaceholder": "搜索路径…",
+  "sort": {
+    "newest": "最新优先",
+    "mostHits": "命中最多",
+    "from": "源路径 A–Z"
+  },
+  "noMatch": "没有与“{query}”匹配的重定向。",
+  "empty": "暂无重定向。添加一个，或导入包含 from,to,status 列的 CSV。",
+  "columns": {
+    "from": "源",
+    "to": "目标",
+    "hits": "命中次数"
+  },
+  "goneTarget": "已删除（无目标）",
+  "openTarget": "在新标签页中打开目标",
+  "statuses": {
+    "s301": "永久移动",
+    "s302": "已找到（临时）",
+    "s307": "临时，保留请求方法",
+    "s308": "永久，保留请求方法",
+    "s410": "已删除"
+  },
+  "lastHit": "最近 {date}",
+  "neverHit": "从未使用",
+  "deleteTitle": "删除此重定向？",
+  "deleteDescription": "访问 {from} 的访客将得到 404。",
+  "count": "{count, plural, other {# 个重定向}}",
+  "autoHint": "当已发布条目的别名更改时，NodePress 会自动从其旧路径添加 301 重定向（可通过 <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono> 关闭）。路径匹配不区分大小写；查询字符串只有在属于源路径的一部分时才会匹配。",
+  "dialog": {
+    "addTitle": "添加重定向",
+    "editTitle": "编辑重定向",
+    "description": "循环重定向以及超过 5 次的重定向链将被拒绝。",
+    "fromHint": "您网站上的路径，例如 /old-page。仅当需要匹配该确切查询时才添加 ?query。",
+    "toHint": "您网站上的路径（/new-page）或完整 URL（https://…）。"
+  },
+  "import": {
+    "title": "导入重定向",
+    "description": "正在检查 <mono>{file}</mono>。各行将被添加，或更新具有相同源路径的重定向；只要有任何一行存在问题，就不会保存任何内容。",
+    "checking": "正在检查文件…",
+    "new": "新增",
+    "changed": "已更改",
+    "unchanged": "未更改",
+    "errors": "{count, plural, other {# 个问题——请修正后重新导入}}",
+    "line": "第 {line} 行：",
+    "apply": "{count, plural, =0 {没有可导入的内容} other {导入 # 个重定向}}",
+    "appliedToast": "已导入：新增 {created} 个，更改 {updated} 个",
+    "failed": "导入失败"
+  },
+  "loadFailed": "无法加载重定向",
+  "createdToast": "重定向已添加",
+  "savedToast": "重定向已保存",
+  "saveFailed": "无法保存重定向",
+  "deletedToast": "来自 {from} 的重定向已删除",
+  "deleteFailed": "无法删除重定向",
+  "exportFailed": "无法导出重定向"
+}

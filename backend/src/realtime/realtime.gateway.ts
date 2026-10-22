@@ -12,6 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { RolesService } from '../roles/roles.service';
 import { corsOrigin } from '../common/cors-origin';
 
 /**
@@ -77,6 +78,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly roles: RolesService,
   ) {}
 
   // Extracts and verifies JWT or API key from the socket handshake.
@@ -104,7 +106,9 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         });
         const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
         if (!user) return null;
-        return { id: user.id, email: user.email, role: user.role };
+        // Custom roles run as their base role, as in JwtStrategy
+        const { role } = await this.roles.resolve(user.role);
+        return { id: user.id, email: user.email, role };
       }
 
       if (apiKey) {

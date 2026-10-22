@@ -1,0 +1,18 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import { loadPages, type PostPage } from '../../lib/cms';
+
+// /page/2, /page/3… — page 1 is the home page.
+export const getStaticPaths = (async () => {
+  const { pages } = await loadPages();
+  return pages.slice(1).map((page) => ({ params: { n: String(page.number) }, props: { page } }));
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props as { page: PostPage };
+---
+
+<Base title={`Page ${page.number}`}>
+  <PostList page={page} />
+</Base>

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionsService } from './permissions.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RolesService } from '../roles/roles.service';
 
 const mockPrisma = {
   permission: {
@@ -9,6 +10,17 @@ const mockPrisma = {
     deleteMany:  jest.fn(),
   },
   $executeRawUnsafe: jest.fn().mockResolvedValue(undefined),
+};
+
+// Custom roles known to the mock: reviewer → contributor, auditor → viewer.
+const CUSTOM: Record<string, string> = { reviewer: 'contributor', auditor: 'viewer' };
+const mockRoles = {
+  resolve: jest.fn(async (name: string) =>
+    ['admin', 'editor', 'contributor', 'viewer'].includes(name)
+      ? { role: name }
+      : { role: CUSTOM[name] ?? 'viewer', customRole: name }),
+  exists: jest.fn(async (name: string) =>
+    ['admin', 'editor', 'contributor', 'viewer'].includes(name) || name in CUSTOM),
 };
 
 describe('PermissionsService', () => {
@@ -21,6 +33,7 @@ describe('PermissionsService', () => {
       providers: [
         PermissionsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: RolesService, useValue: mockRoles },
       ],
     }).compile();
 
@@ -88,8 +101,45 @@ describe('PermissionsService', () => {
       expect(await service.can('editor', 'blog', 'publish')).toBe(true);
     });
 
-    it('unknown role cannot do anything', async () => {
-      expect(await service.can('unknown', 'blog', 'read')).toBe(false);
+    it('a role that no longer exists falls back to viewer', async () => {
+      expect(await service.can('unknown', 'blog', 'read')).toBe(true);
+      expect(await service.can('unknown', 'blog', 'create')).toBe(false);
+    });
+  });
+
+  // ── can() — custom roles ────────────────────────────────────────────────────
+
+  describe('can() — custom roles', () => {
+    it('uses the custom role\'s own rows when present', async () => {
+      mockPrisma.permission.findMany.mockResolvedValueOnce([
+        { role: 'reviewer', contentType: 'blog', actions: ['read', 'update'] },
+      ]);
+      expect(await service.can('reviewer', 'blog', 'update')).toBe(true);
+      expect(mockRoles.resolve).not.toHaveBeenCalled();
+    });
+
+    it('an empty row denies even though the base role would allow', async () => {
+      mockPrisma.permission.findMany.mockResolvedValueOnce([
+        { role: 'reviewer', contentType: '*', actions: [] },
+      ]);
+      expect(await service.can('reviewer', 'blog', 'create')).toBe(false);
+    });
+
+    it('falls back to the base role\'s rows when it has none', async () => {
+      mockPrisma.permission.findMany
+        .mockResolvedValueOnce([]) // reviewer
+        .mockResolvedValueOnce([{ role: 'contributor', contentType: '*', actions: ['read'] }]);
+      expect(await service.can('reviewer', 'blog', 'create')).toBe(false);
+      expect(mockPrisma.permission.findMany).toHaveBeenLastCalledWith({
+        where: { role: 'contributor', contentType: { in: ['blog', '*'] } },
+      });
+    });
+
+    it('falls back to the base role\'s defaults when neither has rows', async () => {
+      mockPrisma.permission.findMany.mockResolvedValue([]);
+      expect(await service.can('reviewer', 'blog', 'create')).toBe(true);
+      expect(await service.can('reviewer', 'blog', 'publish')).toBe(false);
+      expect(await service.can('auditor', 'blog', 'create')).toBe(false);
     });
   });
 
@@ -110,6 +160,19 @@ describe('PermissionsService', () => {
         }),
       );
       expect(result).toEqual(row);
+    });
+  });
+
+  describe('upsert() — role validation', () => {
+    it('accepts an existing custom role', async () => {
+      mockPrisma.permission.upsert.mockResolvedValueOnce({});
+      await expect(service.upsert('reviewer', 'blog', ['read'])).resolves.toBeDefined();
+    });
+
+    it('rejects admin and unknown roles', async () => {
+      await expect(service.upsert('admin', 'blog', ['read'])).rejects.toThrow('Admin always has full access');
+      await expect(service.upsert('ghost', 'blog', ['read'])).rejects.toThrow('Role "ghost" not found');
+      expect(mockPrisma.permission.upsert).not.toHaveBeenCalled();
     });
   });
 

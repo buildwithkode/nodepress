@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "Falha ao carregar os usuários",
+    "createdNoEmail": "Usuário criado — nenhum servidor de e-mail configurado",
+    "createdInviteCopied": "Link de convite copiado para a área de transferência. Envie-o para {email}: {url}",
+    "noEmailServer": "Nenhum servidor de e-mail configurado",
+    "inviteCopied": "Link de convite copiado. Envie-o para {email}: {url}",
+    "inviteSent": "Convite enviado para {email}",
+    "createFailed": "Falha ao criar o usuário",
+    "roleUpdated": "Função atualizada",
+    "roleUpdateFailed": "Falha ao atualizar a função",
+    "deleted": "Usuário excluído",
+    "deleteFailed": "Falha ao excluir o usuário",
+    "inviteFailed": "Falha ao enviar o convite",
+    "passwordUpdated": "Senha atualizada",
+    "passwordUpdateFailed": "Falha ao atualizar a senha",
+    "twoFactorSetupFailed": "Falha ao iniciar a configuração do 2FA",
+    "twoFactorActivated": "Autenticação em dois fatores ativada com sucesso!",
+    "twoFactorInvalidCode": "Código de verificação inválido. Tente novamente.",
+    "twoFactorDisabled": "Autenticação em dois fatores desativada",
+    "twoFactorDisableInvalid": "Código 2FA ou código de recuperação inválido",
+    "recoveryCopied": "Códigos de recuperação copiados para a área de transferência",
+    "recoveryCopyFailed": "Falha ao copiar os códigos de recuperação",
+    "secretCopied": "Chave secreta copiada",
+    "secretCopyFailed": "Falha ao copiar a chave secreta"
+  },
+  "list": {
+    "title": "Membros da equipe",
+    "description": "Gerencie quem tem acesso ao painel de administração e o que cada pessoa pode fazer.",
+    "email": "E-mail",
+    "role": "Função",
+    "joined": "Entrou em",
+    "empty": "Nenhum usuário encontrado",
+    "you": "(você)",
+    "viewPermissions": "Ver a matriz de permissões de {role}",
+    "sendInvite": "Enviar e-mail de convite",
+    "deleteTitle": "Excluir {email}?",
+    "deleteDescription": "Isso remove o acesso dessa pessoa permanentemente. Não pode ser desfeito."
+  },
+  "roleGuide": {
+    "title": "Permissões das funções",
+    "manage": "Gerenciar permissões",
+    "admin": {
+      "p1": "Acesso total a tudo",
+      "p2": "Gerenciar usuários e funções",
+      "p3": "Tipos de conteúdo e chaves de API",
+      "p4": "Log de auditoria e webhooks"
+    },
+    "editor": {
+      "p1": "Criar / editar / excluir entradas",
+      "p2": "Publicar e arquivar entradas",
+      "p3": "Formulários, envio/exclusão de mídia",
+      "p4": "Ler tipos de conteúdo"
+    },
+    "contributor": {
+      "p1": "Criar e editar entradas",
+      "p2": "Não pode excluir entradas",
+      "p3": "Não pode publicar nem arquivar",
+      "p4": "Apenas envio de mídia"
+    },
+    "viewer": {
+      "p1": "Painel somente leitura",
+      "p2": "Ver entradas e formulários",
+      "p3": "Ver a biblioteca de mídia",
+      "p4": "Não pode modificar nada"
+    }
+  },
+  "add": {
+    "title": "Adicionar usuário",
+    "description": "Convide um colega por e-mail — ele receberá um link para definir a própria senha. Não é preciso senha aqui.",
+    "sending": "Enviando convite…",
+    "submit": "Enviar convite"
+  },
+  "twoFactor": {
+    "title": "Autenticação em dois fatores (2FA)",
+    "description": "Proteja sua conta com uma camada extra de segurança usando Google Authenticator, 1Password ou Authy.",
+    "enabledHeading": "O 2FA está protegendo sua conta",
+    "disabledHeading": "Reforce a segurança do seu login com TOTP",
+    "enabledHelp": "Ao fazer login, será solicitado um código de 6 dígitos ou um código de recuperação de emergência.",
+    "disabledHelp": "É preciso escanear um QR code com um app autenticador e guardar os códigos de recuperação.",
+    "enable": "Ativar 2FA",
+    "disable": "Desativar 2FA",
+    "disabling": "Desativando…",
+    "setupTitle": "Configurar a autenticação em dois fatores",
+    "setupDescription": "Escaneie o QR code com Google Authenticator, 1Password ou Authy.",
+    "qrAlt": "QR code do 2FA",
+    "manualKey": "Chave para inserção manual",
+    "recoveryCodes": "Códigos de recuperação de emergência",
+    "copyCodes": "Copiar códigos",
+    "recoveryHelp": "Guarde estes códigos em um lugar seguro. Se você perder o app autenticador, cada código pode ser usado uma vez para entrar.",
+    "verificationCode": "Código de verificação",
+    "verificationPlaceholder": "Digite o código de 6 dígitos",
+    "activating": "Ativando…",
+    "activate": "Ativar 2FA",
+    "disableTitle": "Desativar a autenticação em dois fatores",
+    "disableDescription": "Digite um código de 6 dígitos do seu app autenticador ou um código de recuperação de emergência para confirmar.",
+    "disableCodeLabel": "Código do autenticador ou de recuperação",
+    "disableCodePlaceholder": "Código de 6 dígitos ou XXXX-XXXX"
+  },
+  "password": {
+    "title": "Alterar sua senha",
+    "current": "Senha atual",
+    "new": "Nova senha",
+    "newPlaceholder": "Mín. 8 caracteres",
+    "updating": "Atualizando…",
+    "submit": "Atualizar senha"
+  },
+  "permissions": {
+    "loading": "Carregando permissões…",
+    "toasts": {
+      "loadFailed": "Falha ao carregar as permissões",
+      "schemaLoadFailed": "Falha ao carregar o esquema de \"{name}\"",
+      "roleLoadFailed": "Falha ao carregar as permissões da função",
+      "updated": "Permissão atualizada",
+      "updateFailed": "Falha ao atualizar a permissão",
+      "reset": "Permissões redefinidas para o padrão",
+      "resetFailed": "Falha ao redefinir as permissões",
+      "fieldsSaved": "Permissões de campos salvas para \"{name}\"",
+      "fieldsSaveFailed": "Falha ao salvar as permissões de campos"
+    },
+    "backToUsers": "Usuários",
+    "title": "Controle de acesso e permissões",
+    "resetDefaults": "Redefinir para o padrão",
+    "tabs": {
+      "contentTypes": "Matriz de ações por tipo de conteúdo",
+      "fields": "Matriz de permissões por campo"
+    },
+    "actions": {
+      "create": "Criar",
+      "read": "Ler",
+      "update": "Atualizar",
+      "delete": "Excluir",
+      "publish": "Publicar"
+    },
+    "roleDescriptions": {
+      "editor": "Gerencia todo o conteúdo — pode criar, editar, excluir e publicar.",
+      "contributor": "Cria e edita conteúdo — não pode excluir nem publicar.",
+      "viewer": "Acesso somente leitura ao painel de administração."
+    },
+    "clickToDeselect": "clique para desmarcar",
+    "defaultRow": "Padrão *",
+    "summary": {
+      "title": "Resumo das permissões",
+      "description": "Substituições configuradas para esta função. As linhas não listadas aqui usam o padrão curinga.",
+      "empty": "Nenhuma substituição — usando os padrões de fábrica para todos os tipos de conteúdo."
+    },
+    "matrix": {
+      "title": "Matriz de permissões por tipo de conteúdo",
+      "description": "Defina as ações permitidas por função. A linha <strong>*</strong> é o padrão para todos os tipos de conteúdo. Substitua tipos de conteúdo individuais marcando ações na linha específica deles. As caixas acinzentadas são herdadas da linha curinga.",
+      "contentType": "Tipo de conteúdo",
+      "inherited": "Herdado de {role}/* — clique para substituir"
+    },
+    "fields": {
+      "title": "Matriz de controle de acesso por campo",
+      "description": "Restrinja a visibilidade de leitura e as alterações de escrita de atributos específicos (por exemplo, oculte salário, margem ou notas internas de funções que não sejam de administrador).",
+      "selectContentType": "Selecione o tipo de conteúdo",
+      "save": "Salvar permissões",
+      "loading": "Carregando o esquema dos campos…",
+      "emptyTitle": "Nenhum campo definido para este tipo de conteúdo",
+      "emptyHelp": "Adicione campos a este tipo de conteúdo no construtor de esquemas primeiro.",
+      "field": "Campo",
+      "readVisibility": "Visibilidade de leitura",
+      "writeAccess": "Acesso de escrita / alteração",
+      "nameAndType": "Nome e tipo",
+      "restricted": "Restrito",
+      "adminRead": "O administrador sempre tem acesso total de leitura",
+      "adminWrite": "O administrador sempre tem acesso total de escrita"
+    },
+    "enforcement": {
+      "title": "Segurança sem vazamentos:",
+      "read": "Quando uma função é desmarcada em <strong>Visibilidade de leitura</strong>, o backend remove automaticamente o campo de todas as respostas REST (<path></path>) e GraphQL antes de enviá-las ao cliente.",
+      "write": "Quando uma função é desmarcada em <strong>Acesso de escrita</strong>, o backend rejeita tentativas de alteração não autorizadas com HTTP 403 Forbidden."
+    },
+    "adminNote": "Observação: o administrador sempre tem acesso universal a todos os campos do esquema e não pode ser restringido."
+  }
+}

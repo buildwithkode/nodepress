@@ -6,7 +6,7 @@
  * of the admin, and messages/<locale>/index.ts collects them. English is the
  * source: a key missing in another language shows the English text.
  */
-export const ADMIN_LOCALES = ['en', 'fr', 'de', 'es'] as const;
+export const ADMIN_LOCALES = ['en', 'fr', 'de', 'es', 'pt', 'it', 'nl', 'ja', 'zh'] as const;
 export type AdminLocale = (typeof ADMIN_LOCALES)[number];
 export const DEFAULT_ADMIN_LOCALE: AdminLocale = 'en';
 
@@ -16,6 +16,11 @@ export const ADMIN_LOCALE_NAMES: Record<AdminLocale, string> = {
   fr: 'Français',
   de: 'Deutsch',
   es: 'Español',
+  pt: 'Português',
+  it: 'Italiano',
+  nl: 'Nederlands',
+  ja: '日本語',
+  zh: '简体中文',
 };
 
 /** Cookie (readable by the server later) + localStorage key holding the choice. */

@@ -22,4 +22,15 @@ describe('OIDC helpers', () => {
     expect(mapRole({ groups: ['x'] }, undefined, 'x:admin')).toBeNull();
     expect(mapRole({ groups: ['x'] }, 'groups', undefined)).toBeNull();
   });
+
+  it('mapRole accepts custom role names, ranked as their base role', () => {
+    const custom = { reviewer: 'contributor', lead: 'editor' };
+    const map = 'cms-reviewers:reviewer,cms-leads:lead,cms-viewers:viewer,cms-admins:admin';
+    expect(mapRole({ groups: ['cms-reviewers'] }, 'groups', map, custom)).toBe('reviewer');
+    expect(mapRole({ groups: ['cms-viewers', 'cms-reviewers'] }, 'groups', map, custom)).toBe('reviewer');
+    expect(mapRole({ groups: ['cms-reviewers', 'cms-leads'] }, 'groups', map, custom)).toBe('lead');
+    expect(mapRole({ groups: ['cms-leads', 'cms-admins'] }, 'groups', map, custom)).toBe('admin');
+    // Without the role list, a custom name is unknown
+    expect(mapRole({ groups: ['cms-reviewers'] }, 'groups', map)).toBeNull();
+  });
 });

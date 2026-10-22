@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "出错了",
+    "description": "此页面发生了意外错误。您的数据是安全的——这只是显示错误。",
+    "errorId": "错误 ID：",
+    "goToDashboard": "前往仪表盘",
+    "tryAgain": "重试"
+  },
+  "boundary": {
+    "title": "出错了",
+    "failedToLoad": "{label} 加载失败。已自动上报此问题。",
+    "sectionFailed": "此区域加载失败。已自动上报此问题。",
+    "unknownError": "未知错误",
+    "tryAgain": "重试"
+  }
+}

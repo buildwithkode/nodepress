@@ -9,6 +9,11 @@ const loaders: Record<AdminLocale, () => Promise<Messages>> = {
   fr: () => import('@/messages/fr').then((m) => m.default as Messages),
   de: () => import('@/messages/de').then((m) => m.default as Messages),
   es: () => import('@/messages/es').then((m) => m.default as Messages),
+  pt: () => import('@/messages/pt').then((m) => m.default as Messages),
+  it: () => import('@/messages/it').then((m) => m.default as Messages),
+  nl: () => import('@/messages/nl').then((m) => m.default as Messages),
+  ja: () => import('@/messages/ja').then((m) => m.default as Messages),
+  zh: () => import('@/messages/zh').then((m) => m.default as Messages),
 };
 
 export const englishMessages = en;

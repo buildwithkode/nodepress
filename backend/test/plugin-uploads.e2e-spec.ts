@@ -15,6 +15,8 @@ import { recordBootFailure, loadedPlugins } from '../src/plugin/plugin-loader';
  * booted with the plugins loaded afresh from the database.
  */
 describe('Plugin uploads (e2e)', () => {
+  // Each test reboots the app with plugins; on a cold ts-jest cache that takes well over a minute.
+  jest.setTimeout(180_000);
   let app: INestApplication;
   let token: string;
   let editorToken: string;

@@ -1,0 +1,27 @@
+{
+  "toggle": "Ao vivo",
+  "toggleTitle": "Mostrar esta entrada no seu site, atualizada enquanto você digita",
+  "pane": {
+    "title": "Pré-visualização ao vivo",
+    "device": {
+      "mobile": "Celular",
+      "tablet": "Tablet",
+      "desktop": "Desktop"
+    },
+    "reload": "Recarregar",
+    "openInNewTab": "Abrir em nova aba",
+    "close": "Fechar pré-visualização",
+    "preparing": "Preparando a pré-visualização…",
+    "tokenFailed": "Não foi possível criar um token de pré-visualização.",
+    "retry": "Tentar novamente",
+    "saveFirst": "Salve a entrada para vê-la na pré-visualização ao vivo.",
+    "invalidUrl": "A URL de pré-visualização deste tipo de conteúdo não é uma URL http(s) válida. Corrija-a nas configurações do tipo de conteúdo.",
+    "frameTitle": "Pré-visualização ao vivo de {slug}",
+    "hint": "Suas edições são enviadas à página enquanto você digita. Páginas que usam @nodepress/client/preview são atualizadas sem recarregar; clique em um elemento destacado para ir até o campo dele."
+  },
+  "settings": {
+    "label": "URL de pré-visualização",
+    "hint": "Opcional. A página do seu site que mostra uma entrada, aberta no painel de pré-visualização ao vivo do editor. Estes marcadores são preenchidos:",
+    "invalid": "A URL de pré-visualização deve começar com http:// ou https://"
+  }
+}

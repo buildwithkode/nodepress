@@ -1,0 +1,16 @@
+{
+  "page": {
+    "title": "Algo deu errado",
+    "description": "Ocorreu um erro inesperado nesta página. Seus dados estão seguros — é apenas um erro de exibição.",
+    "errorId": "ID do erro:",
+    "goToDashboard": "Ir para o painel",
+    "tryAgain": "Tentar novamente"
+  },
+  "boundary": {
+    "title": "Algo deu errado",
+    "failedToLoad": "Não foi possível carregar {label}. O erro foi relatado automaticamente.",
+    "sectionFailed": "Não foi possível carregar esta seção. O erro foi relatado automaticamente.",
+    "unknownError": "Erro desconhecido",
+    "tryAgain": "Tentar novamente"
+  }
+}

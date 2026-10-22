@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "Impossibile caricare i file multimediali",
+    "fileDeleted": "File eliminato",
+    "folderDeleted": "Cartella eliminata",
+    "deleteFailed": "Eliminazione non riuscita",
+    "folderRenamed": "Cartella rinominata",
+    "renameFolderFailed": "Impossibile rinominare la cartella",
+    "folderCreated": "Cartella creata",
+    "createFolderFailed": "Impossibile creare la cartella",
+    "fileMoved": "File spostato",
+    "moveFileFailed": "Impossibile spostare il file",
+    "urlCopied": "URL copiato",
+    "uploaded": "{name} caricato",
+    "uploadFailed": "Caricamento di {name} non riuscito"
+  },
+  "folders": {
+    "title": "Cartelle",
+    "allFiles": "Tutti i file",
+    "unfiled": "Senza cartella",
+    "folder": "Cartella",
+    "rename": "Rinomina cartella",
+    "delete": "Elimina cartella",
+    "deleteConfirmTitle": "Eliminare la cartella \"{name}\"?",
+    "deleteConfirmDescription": "I file contenuti resteranno senza cartella. Le sottocartelle verranno eliminate.",
+    "namePlaceholder": "Nome della cartella",
+    "new": "Nuova cartella"
+  },
+  "upload": {
+    "uploading": "Caricamento…",
+    "prompt": "Fai clic o trascina qui i file",
+    "limits": "{formats} — Max {size}"
+  },
+  "library": {
+    "empty": "Ancora nessun file qui",
+    "fileCount": "{count, plural, one {# file} other {# file}}",
+    "copyWebpUrl": "Copia URL WebP",
+    "copyUrl": "Copia URL",
+    "focalPointAt": "Punto focale {x}, {y}",
+    "setFocalPoint": "Imposta punto focale",
+    "moveToFolder": "Sposta nella cartella",
+    "deleteConfirmTitle": "Eliminare il file?",
+    "deleteConfirmDescription": "<strong>{name}</strong> verrà eliminato definitivamente.",
+    "deleteConfirmWebp": "Verrà eliminata anche la versione WebP."
+  },
+  "renameDialog": {
+    "title": "Rinomina cartella",
+    "description": "Inserisci un nuovo nome per la cartella \"{name}\".",
+    "label": "Nome della cartella",
+    "save": "Salva modifiche"
+  },
+  "moveDialog": {
+    "title": "Sposta file nella cartella",
+    "description": "Scegli una cartella di destinazione per <strong>{name}</strong>.",
+    "destination": "Cartella di destinazione",
+    "selectFolder": "Seleziona cartella",
+    "unfiledRoot": "Senza cartella (radice)",
+    "submit": "Sposta file"
+  },
+  "focal": {
+    "title": "Punto focale",
+    "description": "Fai clic sulla parte più importante di <strong>{name}</strong>. Le versioni ritagliate la mantengono nell'inquadratura.",
+    "saved": "Punto focale salvato",
+    "cleared": "Punto focale rimosso",
+    "saveFailed": "Impossibile salvare il punto focale",
+    "previewSquare": "Quadrato",
+    "previewWide": "Largo 16:9",
+    "previewTall": "Alto 3:4",
+    "notSet": "Non impostato: i ritagli sono centrati",
+    "clear": "Rimuovi"
+  },
+  "picker": {
+    "title": "Libreria media",
+    "placeholder": "Scegli un'immagine dalla libreria media…",
+    "crop": "Ritaglia",
+    "cropZoomTitle": "Ritaglia / Zoom",
+    "cropZoom": "Ritaglia e zoom",
+    "removeImage": "Rimuovi immagine",
+    "change": "Cambia",
+    "browse": "Sfoglia",
+    "upload": "Carica",
+    "altPrefix": "Alt: {alt}",
+    "empty": "Ancora nessun file multimediale. Caricane uno prima.",
+    "altText": "Testo alternativo",
+    "optionalHint": "(facoltativo)",
+    "altPlaceholder": "Descrivi l'immagine per l'accessibilità…",
+    "dropPrompt": "Rilascia un file o fai clic per sfogliare",
+    "useImage": "Usa immagine"
+  }
+}

@@ -164,5 +164,37 @@
     "generating": "Generando…",
     "placeholder": "Describe lo que quieres gestionar, p. ej. «Eventos con fecha, lugar, precio de entrada y una lista de ponentes»",
     "suggested": "{count, plural, one {# campo sugerido} other {# campos sugeridos}} — revísalos y guarda"
+  },
+  "condition": {
+    "add": "Mostrar solo si…",
+    "showIf": "Mostrar solo si",
+    "ops": {
+      "eq": "es",
+      "ne": "no es",
+      "in": "es uno de",
+      "notIn": "no es ninguno de",
+      "set": "tiene un valor",
+      "notSet": "está vacío"
+    },
+    "on": "Activado",
+    "off": "Desactivado",
+    "listPlaceholder": "valor, valor…",
+    "valuePlaceholder": "valor",
+    "remove": "Quitar condición"
+  },
+  "migration": {
+    "title": "Actualizar entradas existentes",
+    "description": "{count, plural, one {# entrada usa} other {# entradas usan}} este tipo de contenido. Elige qué pasa con sus valores guardados.",
+    "renames": "Campos renombrados — los valores pasan al nuevo nombre",
+    "entries": "{count, plural, one {# entrada} other {# entradas}}",
+    "converts": "Tipos de campo cambiados",
+    "convertTo": "{from} → {to}: convertir los valores existentes",
+    "lost": "{count, plural, one {# valor no se puede convertir y se eliminará} other {# valores no se pueden convertir y se eliminarán}}",
+    "notConvertible": "«{field}» ({from} → {to}) no se puede convertir automáticamente. Los valores existentes se quedan como están y pueden fallar la validación al guardar de nuevo.",
+    "removed": "Campos eliminados",
+    "removedHint": "Los valores de los campos eliminados se quedan en las entradas salvo que los borres aquí.",
+    "deleteValues": "Borrar los valores guardados de «{field}»",
+    "cancel": "Cancelar",
+    "save": "Guardar y actualizar entradas"
   }
 }

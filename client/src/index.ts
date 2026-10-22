@@ -346,3 +346,7 @@ export function createClient<TTypes extends ContentTypeMap<TTypes> = Record<stri
 ): NodePressClient<TTypes> {
   return new NodePressClient<TTypes>(options);
 }
+
+// Live preview helpers — also importable alone from '@nodepress/client/preview'.
+export { onPreviewUpdate, enableClickToEdit, isInPreviewFrame } from './preview.js';
+export type { PreviewUpdate, PreviewOptions, ClickToEditOptions, PreviewWindow } from './preview.js';

@@ -1,0 +1,56 @@
+{
+  "title": "ダッシュボード",
+  "subtitle": "コンテンツの最新状況です。",
+  "newEntry": "新規エントリー",
+  "overview": "概要",
+  "viewAll": "すべて表示",
+  "createOne": "作成する",
+  "fieldCount": "{count, plural, other {# 個のフィールド}}",
+  "entryCount": "{count, plural, other {# 件のエントリー}}",
+  "stats": {
+    "contentTypes": "コンテンツタイプ",
+    "contentTypesSub": "スキーマ合計",
+    "totalEntries": "エントリー合計",
+    "totalEntriesSub": "全タイプ合計",
+    "mediaFiles": "メディアファイル",
+    "mediaFilesSub": "アップロード済みファイル",
+    "apiKeys": "API キー",
+    "apiKeysSub": "有効なキー",
+    "forms": "フォーム",
+    "formsSub": "有効なフォーム",
+    "submissions": "送信",
+    "submissionsSub": "回答合計"
+  },
+  "pendingReview": {
+    "message": "{count, plural, other {<b>#</b> 件のエントリーがレビュー待ちです}}",
+    "action": "今すぐレビュー →"
+  },
+  "contentTypes": {
+    "title": "コンテンツタイプ",
+    "empty": "コンテンツタイプはまだありません。",
+    "pendingReview": "{count} 件レビュー待ち",
+    "pendingBadge": "{count} 件保留中"
+  },
+  "recentEntries": {
+    "title": "最近のエントリー",
+    "empty": "エントリーはまだありません。"
+  },
+  "forms": {
+    "title": "フォーム",
+    "empty": "フォームはまだありません。",
+    "submissionCount": "{count, plural, other {# 件の送信}}"
+  },
+  "recentSubmissions": {
+    "title": "最近の送信",
+    "empty": "送信はまだありません。フォームを共有して回答を集めましょう。"
+  },
+  "endpoints": {
+    "title": "API エンドポイント",
+    "fullDocs": "詳細ドキュメント",
+    "auth": "認証",
+    "copyUrl": "URL をコピー"
+  },
+  "recentMedia": {
+    "title": "最近のメディア"
+  }
+}

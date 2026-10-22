@@ -3,10 +3,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { env } from '../../config/env';
+import { RolesService } from '../../roles/roles.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private roles: RolesService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -21,6 +25,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     if (!user) throw new UnauthorizedException();
 
-    return { id: user.id, email: user.email, role: user.role };
+    // A custom role runs as its base role (so @Roles() checks keep working);
+    // customRole is what content permission checks use.
+    const { role, customRole } = await this.roles.resolve(user.role);
+    return { id: user.id, email: user.email, role, ...(customRole && { customRole }) };
   }
 }

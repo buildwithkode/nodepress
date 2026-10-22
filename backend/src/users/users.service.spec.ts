@@ -19,6 +19,9 @@ const mockPrisma = {
     delete:     jest.fn(),
     count:      jest.fn(),
   },
+  role: {
+    findUnique: jest.fn(),
+  },
   passwordResetToken: {
     updateMany: jest.fn().mockResolvedValue({}),
     create:     jest.fn().mockResolvedValue({ id: 1, token: 'tok', expiresAt: new Date() }),
@@ -102,6 +105,24 @@ describe('UsersService', () => {
       await expect(
         service.updateRole(1, { role: 'editor' }, 99),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('accepts an existing custom role', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockEditor);
+      mockPrisma.role.findUnique.mockResolvedValue({ name: 'reviewer', baseRole: 'contributor' });
+      mockPrisma.user.update.mockResolvedValue({ ...mockEditor, role: 'reviewer' });
+
+      const result = await service.updateRole(2, { role: 'reviewer' }, 1);
+      expect(result.role).toBe('reviewer');
+      expect(mockPrisma.role.findUnique).toHaveBeenCalledWith({ where: { name: 'reviewer' } });
+    });
+
+    it('rejects a role that does not exist', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockEditor);
+      mockPrisma.role.findUnique.mockResolvedValue(null);
+
+      await expect(service.updateRole(2, { role: 'ghost' }, 1)).rejects.toThrow('Role "ghost" does not exist');
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
     });
   });
 

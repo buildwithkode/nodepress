@@ -1,0 +1,90 @@
+{
+  "toasts": {
+    "loadFailed": "Mediabestanden laden mislukt",
+    "fileDeleted": "Bestand verwijderd",
+    "folderDeleted": "Map verwijderd",
+    "deleteFailed": "Verwijderen mislukt",
+    "folderRenamed": "Map hernoemd",
+    "renameFolderFailed": "Map hernoemen mislukt",
+    "folderCreated": "Map aangemaakt",
+    "createFolderFailed": "Map aanmaken mislukt",
+    "fileMoved": "Bestand verplaatst",
+    "moveFileFailed": "Bestand verplaatsen mislukt",
+    "urlCopied": "URL gekopieerd",
+    "uploaded": "{name} geüpload",
+    "uploadFailed": "Uploaden van {name} mislukt"
+  },
+  "folders": {
+    "title": "Mappen",
+    "allFiles": "Alle bestanden",
+    "unfiled": "Zonder map",
+    "folder": "Map",
+    "rename": "Map hernoemen",
+    "delete": "Map verwijderen",
+    "deleteConfirmTitle": "Map \"{name}\" verwijderen?",
+    "deleteConfirmDescription": "Bestanden in deze map komen zonder map te staan. Submappen worden verwijderd.",
+    "namePlaceholder": "Mapnaam",
+    "new": "Nieuwe map"
+  },
+  "upload": {
+    "uploading": "Uploaden…",
+    "prompt": "Klik of sleep bestanden hierheen",
+    "limits": "{formats} — max. {size}"
+  },
+  "library": {
+    "empty": "Hier staan nog geen bestanden",
+    "fileCount": "{count, plural, one {# bestand} other {# bestanden}}",
+    "copyWebpUrl": "WebP-URL kopiëren",
+    "copyUrl": "URL kopiëren",
+    "focalPointAt": "Focuspunt {x}, {y}",
+    "setFocalPoint": "Focuspunt instellen",
+    "moveToFolder": "Naar map verplaatsen",
+    "deleteConfirmTitle": "Bestand verwijderen?",
+    "deleteConfirmDescription": "<strong>{name}</strong> wordt definitief verwijderd.",
+    "deleteConfirmWebp": "De WebP-versie wordt ook verwijderd."
+  },
+  "renameDialog": {
+    "title": "Map hernoemen",
+    "description": "Voer een nieuwe naam in voor map \"{name}\".",
+    "label": "Mapnaam",
+    "save": "Wijzigingen opslaan"
+  },
+  "moveDialog": {
+    "title": "Bestand naar map verplaatsen",
+    "description": "Kies een doelmap voor <strong>{name}</strong>.",
+    "destination": "Doelmap",
+    "selectFolder": "Kies map",
+    "unfiledRoot": "Zonder map (hoofdniveau)",
+    "submit": "Bestand verplaatsen"
+  },
+  "focal": {
+    "title": "Focuspunt",
+    "description": "Klik op het belangrijkste deel van <strong>{name}</strong>. Bijgesneden versies houden het in beeld.",
+    "saved": "Focuspunt opgeslagen",
+    "cleared": "Focuspunt gewist",
+    "saveFailed": "Kon het focuspunt niet opslaan",
+    "previewSquare": "Vierkant",
+    "previewWide": "Breed 16:9",
+    "previewTall": "Hoog 3:4",
+    "notSet": "Niet ingesteld — uitsneden zijn gecentreerd",
+    "clear": "Wissen"
+  },
+  "picker": {
+    "title": "Mediabibliotheek",
+    "placeholder": "Kies een afbeelding uit de mediabibliotheek…",
+    "crop": "Bijsnijden",
+    "cropZoomTitle": "Bijsnijden / zoomen",
+    "cropZoom": "Bijsnijden & zoomen",
+    "removeImage": "Afbeelding verwijderen",
+    "change": "Wijzigen",
+    "browse": "Bladeren",
+    "upload": "Uploaden",
+    "altPrefix": "Alt: {alt}",
+    "empty": "Nog geen mediabestanden. Upload er eerst een.",
+    "altText": "Alt-tekst",
+    "optionalHint": "(optioneel)",
+    "altPlaceholder": "Beschrijf de afbeelding voor toegankelijkheid…",
+    "dropPrompt": "Sleep een bestand hierheen of klik om te bladeren",
+    "useImage": "Afbeelding gebruiken"
+  }
+}

@@ -45,16 +45,26 @@ export function safeReturnTo(raw: unknown): string {
   return v.startsWith('/') && !v.startsWith('//') && !v.startsWith('/\\') ? v : '/';
 }
 
-/** Highest role granted by the role claim through OIDC_ROLE_MAP ("group:role,…"), or null. */
-export function mapRole(claims: Record<string, any>, claim?: string, map?: string): string | null {
+/**
+ * Highest role granted by the role claim through OIDC_ROLE_MAP ("group:role,…"), or null.
+ * `customRoles` (name → base role) makes custom role names valid targets; a custom
+ * role ranks as its base role, and the first mapping wins a tie.
+ */
+export function mapRole(
+  claims: Record<string, any>,
+  claim?: string,
+  map?: string,
+  customRoles: Record<string, string> = {},
+): string | null {
   if (!claim || !map) return null;
   const raw = claims[claim];
   const values: string[] = Array.isArray(raw) ? raw.map(String) : raw != null ? [String(raw)] : [];
+  const rank = (role: string) => ROLE_RANK[(ROLES as readonly string[]).includes(role) ? role : customRoles[role]];
   let best: string | null = null;
   for (const pair of map.split(',')) {
     const [group, role] = pair.split(':').map((s) => s.trim());
-    if (!group || !(ROLES as readonly string[]).includes(role)) continue;
-    if (values.includes(group) && (best === null || ROLE_RANK[role] > ROLE_RANK[best])) best = role;
+    if (!group || rank(role) === undefined) continue;
+    if (values.includes(group) && (best === null || rank(role) > rank(best))) best = role;
   }
   return best;
 }
@@ -295,7 +305,10 @@ export class OidcService {
   }
 
   private async resolveUser({ email, claims }: OidcIdentity) {
-    const mapped = mapRole(claims, env.OIDC_ROLE_CLAIM, env.OIDC_ROLE_MAP);
+    const customRoles = env.OIDC_ROLE_CLAIM && env.OIDC_ROLE_MAP
+      ? Object.fromEntries((await this.prisma.role.findMany({ select: { name: true, baseRole: true } })).map((r) => [r.name, r.baseRole]))
+      : {};
+    const mapped = mapRole(claims, env.OIDC_ROLE_CLAIM, env.OIDC_ROLE_MAP, customRoles);
     let user = await this.prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } });
 
     if (!user) {

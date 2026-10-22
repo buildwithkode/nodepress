@@ -1,0 +1,12 @@
+node_modules/
+.nuxt/
+.output/
+.data/
+.nitro/
+.cache/
+dist/
+.env
+.env.*
+!.env.example
+# Starters don't ship lockfiles — your project creates its own on install.
+package-lock.json

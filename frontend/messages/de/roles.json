@@ -1,0 +1,57 @@
+{
+  "title": "Rollen",
+  "description": "Integrierte Rollen können nicht geändert werden. Eine eigene Rolle öffnet dieselben Bereiche des Admins wie ihre Basisrolle und hat eigene Inhaltsberechtigungen.",
+  "backToUsers": "Benutzer",
+  "managePermissions": "Berechtigungen bearbeiten",
+  "newRole": "Neue Rolle",
+  "manage": "Rollen verwalten",
+  "customGroup": "Eigene Rollen",
+  "basedOn": "Basiert auf {base}",
+  "list": {
+    "role": "Rolle",
+    "basedOn": "Basiert auf",
+    "users": "Benutzer",
+    "description": "Beschreibung",
+    "builtIn": "Integriert",
+    "userCount": "{count, plural, =0 {Keine Benutzer} one {# Benutzer} other {# Benutzer}}",
+    "empty": "Noch keine eigenen Rollen.",
+    "edit": "Rolle bearbeiten",
+    "delete": "Rolle löschen"
+  },
+  "builtInDescriptions": {
+    "admin": "Vollzugriff, einschließlich Benutzer, Einstellungen und API-Schlüssel",
+    "editor": "Erstellt, bearbeitet, veröffentlicht und löscht Inhalte",
+    "contributor": "Erstellt und bearbeitet Inhalte; kann nicht veröffentlichen",
+    "viewer": "Nur Lesezugriff auf den Admin"
+  },
+  "form": {
+    "createTitle": "Neue Rolle",
+    "editTitle": "{label} bearbeiten",
+    "description": "Eine eigene Rolle übernimmt zunächst die Inhaltsberechtigungen ihrer Basisrolle. Auf der Berechtigungsseite können Sie sie einschränken.",
+    "label": "Bezeichnung",
+    "name": "Name",
+    "nameHelp": "Gespeichert als {name}. Benutzer und Berechtigungen verweisen darauf, daher kann er später nicht geändert werden.",
+    "nameHelpEmpty": "Kleinbuchstaben, Ziffern und Unterstriche. Kann später nicht geändert werden.",
+    "nameLocked": "Der Name kann nicht geändert werden.",
+    "baseRole": "Basiert auf",
+    "baseRoleHelp": "Legt fest, welche Bereiche des Admins die Rolle öffnen kann.",
+    "baseRoleEditHelp": "Ändert, welche Bereiche des Admins die Rolle öffnen kann. Gespeicherte Inhaltsberechtigungen bleiben unverändert.",
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "Wofür diese Rolle gedacht ist",
+    "save": "Speichern",
+    "create": "Rolle erstellen"
+  },
+  "deleteDialog": {
+    "title": "Rolle „{label}“ löschen?",
+    "description": "Ihre Inhaltsberechtigungen werden ebenfalls gelöscht.",
+    "inUse": "{count, plural, one {# Benutzer hat} other {# Benutzer haben}} diese Rolle noch. Weisen Sie ihnen zuerst eine andere Rolle zu."
+  },
+  "toasts": {
+    "created": "Rolle erstellt",
+    "updated": "Rolle aktualisiert",
+    "deleted": "Rolle gelöscht",
+    "saveFailed": "Rolle konnte nicht gespeichert werden",
+    "deleteFailed": "Rolle konnte nicht gelöscht werden",
+    "inUse": "{count, plural, one {# Benutzer hat} other {# Benutzer haben}} diese Rolle noch. Weisen Sie ihnen zuerst eine andere Rolle zu."
+  }
+}

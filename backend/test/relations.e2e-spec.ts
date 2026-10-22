@@ -108,4 +108,19 @@ describe('Two-way relations and relation filters (e2e)', () => {
     expect(await slugs('where[author][slug][eq]=jane&where[title][eq]=Second')).toEqual(['second']);
     expect(await slugs(`where[author][eq]=${ids.joe.publicId}`)).toEqual(['third']);
   });
+
+  it('applies the related type\'s read rules to populated entries and hides its schema', async () => {
+    await http().put(`/api/content-types/${personCt}`).set(auth()).send({
+      schema: [{ name: 'name', type: 'text' }, { name: 'email', type: 'text', readRoles: ['admin'] }, reverseField],
+    }).expect(200);
+    const list = (await http().get(`/api/entries?contentTypeId=${personCt}`).set(auth())).body.data;
+    const jane = list.find((e: any) => e.slug === 'jane');
+    await http().put(`/api/entries/${jane.id}`).set(auth()).send({ data: { name: 'Jane', email: 'jane@example.com' } }).expect(200);
+
+    const res = await http().get('/api/post?populate=author').expect(200);
+    const author = res.body.data.map((p: any) => p.data.author).find((a: any) => a?.slug === 'jane');
+    expect(author.data.name).toBe('Jane');
+    expect(author.data.email).toBeUndefined();
+    expect(author.contentType).toEqual({ id: personCt, name: 'person', displayName: null });
+  });
 });

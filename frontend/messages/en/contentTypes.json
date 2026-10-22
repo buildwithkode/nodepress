@@ -164,5 +164,37 @@
     "generating": "Generating…",
     "placeholder": "Describe what you want to manage, e.g. “Events with a date, venue, ticket price and a list of speakers”",
     "suggested": "Suggested {count, plural, one {# field} other {# fields}} — review them, then save"
+  },
+  "condition": {
+    "add": "Show only if…",
+    "showIf": "Show only if",
+    "ops": {
+      "eq": "is",
+      "ne": "is not",
+      "in": "is one of",
+      "notIn": "is none of",
+      "set": "has a value",
+      "notSet": "is empty"
+    },
+    "on": "On",
+    "off": "Off",
+    "listPlaceholder": "value, value…",
+    "valuePlaceholder": "value",
+    "remove": "Remove condition"
+  },
+  "migration": {
+    "title": "Update existing entries",
+    "description": "{count, plural, one {# entry uses} other {# entries use}} this content type. Choose what happens to their stored values.",
+    "renames": "Renamed fields — values move to the new name",
+    "entries": "{count, plural, one {# entry} other {# entries}}",
+    "converts": "Changed field types",
+    "convertTo": "{from} → {to}: convert existing values",
+    "lost": "{count, plural, one {# value can’t be converted and will be removed} other {# values can’t be converted and will be removed}}",
+    "notConvertible": "“{field}” ({from} → {to}) can’t be converted automatically. Existing values stay as they are and may fail validation on the next save.",
+    "removed": "Removed fields",
+    "removedHint": "Values of removed fields stay in the entries unless you delete them here.",
+    "deleteValues": "Delete stored values of “{field}”",
+    "cancel": "Cancel",
+    "save": "Save and update entries"
   }
 }

@@ -11,9 +11,11 @@
   "items": {
     "dashboard": "Tableau de bord",
     "contentTypes": "Types de contenu",
+    "components": "Composants",
     "entries": "Entrées",
     "releases": "Publications groupées",
     "forms": "Formulaires",
+    "redirects": "Redirections",
     "media": "Médias",
     "plugins": "Extensions",
     "apiKeys": "Clés API",
@@ -22,10 +24,12 @@
     "auditLog": "Journal d’audit",
     "graphql": "Terrain de jeu GraphQL",
     "users": "Utilisateurs",
+    "roles": "Rôles",
     "brand": "Marque",
     "languages": "Langues",
     "docs": "Documentation",
-    "serverSettings": "E-mail et stockage"
+    "serverSettings": "E-mail et stockage",
+    "importer": "Importer"
   },
   "signOut": "Se déconnecter",
   "user": "Utilisateur",

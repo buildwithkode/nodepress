@@ -17,6 +17,10 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuditService } from '../audit/audit.service';
 import { PermissionsService } from '../permissions/permissions.service';
+import { PrismaService } from '../prisma/prisma.service';
+
+/** Content permissions are checked against the custom role when the user has one. */
+const permissionRole = (user: { role: string; customRole?: string }) => user.customRole ?? user.role;
 
 @ApiTags('Entries')
 @Controller('entries')
@@ -25,6 +29,7 @@ export class EntriesController {
     private readonly entriesService: EntriesService,
     private readonly auditService: AuditService,
     private readonly permissionsService: PermissionsService,
+    private readonly prisma: PrismaService,
   ) {}
 
   // ─── Write — editor, contributor, or admin ────────────────────────────────
@@ -38,10 +43,12 @@ export class EntriesController {
   @ApiResponse({ status: 409, description: 'Slug already exists in this content type' })
   async create(@Body() dto: CreateEntryDto, @Request() req: any) {
     if (req.user.role !== 'admin') {
-      const allowed = await this.permissionsService.can(req.user.role, '*', 'create');
-      if (!allowed) throw new ForbiddenException('You do not have permission to create entries');
+      const ct = await this.prisma.contentType.findUnique({ where: { id: dto.contentTypeId }, select: { name: true } });
+      const ctName = ct?.name ?? '*';
+      const allowed = await this.permissionsService.can(permissionRole(req.user), ctName, 'create');
+      if (!allowed) throw new ForbiddenException('You do not have permission to create entries of this content type');
       if (dto.status === 'published') {
-        const canPublish = await this.permissionsService.can(req.user.role, '*', 'publish');
+        const canPublish = await this.permissionsService.can(permissionRole(req.user), ctName, 'publish');
         if (!canPublish) throw new ForbiddenException('You do not have permission to publish entries');
       }
     }
@@ -262,10 +269,10 @@ export class EntriesController {
     if (req.user.role !== 'admin') {
       const entry = await this.entriesService.findOne(id);
       const ctName = (entry as any).contentType?.name || '*';
-      const allowed = await this.permissionsService.can(req.user.role, ctName, 'update');
+      const allowed = await this.permissionsService.can(permissionRole(req.user), ctName, 'update');
       if (!allowed) throw new ForbiddenException('You do not have permission to update entries of this content type');
       if (dto.status === 'published' && entry.status !== 'published') {
-        const canPublish = await this.permissionsService.can(req.user.role, ctName, 'publish');
+        const canPublish = await this.permissionsService.can(permissionRole(req.user), ctName, 'publish');
         if (!canPublish) throw new ForbiddenException('You do not have permission to publish entries of this content type');
       }
     }
@@ -288,7 +295,7 @@ export class EntriesController {
     const entry = await this.entriesService.findOne(id);
     const contentTypeName = (entry as any).contentType?.name;
     if (req.user.role !== 'admin' && contentTypeName) {
-      const allowed = await this.permissionsService.can(req.user.role, contentTypeName, 'delete');
+      const allowed = await this.permissionsService.can(permissionRole(req.user), contentTypeName, 'delete');
       if (!allowed) throw new ForbiddenException('You do not have permission to delete entries of this content type');
     }
     const result = await this.entriesService.remove(id);
@@ -356,6 +363,13 @@ export class EntriesController {
     const userRole = req.user?.role || 'contributor';
     if (userRole === 'contributor' && dto.status !== 'pending_review' && dto.status !== 'draft') {
       throw new ForbiddenException('Contributors can only submit entries for review or save as draft');
+    }
+    if (dto.status === 'published' && userRole !== 'admin') {
+      const entry = await this.entriesService.findOne(id);
+      const ctName = (entry as any).contentType?.name || '*';
+      if (!(await this.permissionsService.can(permissionRole(req.user), ctName, 'publish'))) {
+        throw new ForbiddenException('You do not have permission to publish entries of this content type');
+      }
     }
     const updated = await this.entriesService.promote(id, dto.status, req.user?.id);
     await this.auditService.log(

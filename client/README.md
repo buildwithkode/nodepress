@@ -52,3 +52,34 @@ await cms.submitForm('contact', { email: 'me@example.com', message: 'Hi' });
 Writes: `collection(type).create({ slug, data, locale })`, `.update(slug, data)`, `.delete(slug)`.
 
 Errors are `NodePressError` with `status` and the response `body`.
+
+## Live preview
+
+When a content type has a **Preview URL** (Content types → edit → *Preview URL*, e.g.
+`https://site.example/api/draft?token={token}&slug={slug}&locale={locale}`), the entry editor can
+show that page in a side pane. While you type, the editor posts the form's current values to the
+frame, and clicking an element in the frame jumps to its field. `{token}` is a 1-hour preview token
+(`GET /api/{type}/{slug}/preview?token=…` reads the draft with it); the editor refreshes it before
+it expires.
+
+```ts
+import { onPreviewUpdate, enableClickToEdit } from '@nodepress/client/preview';
+
+const adminOrigin = 'https://cms.example.com'; // where the NodePress admin runs
+
+// Sends `nodepress:ready`, then calls back on every edit (debounced by the editor).
+const stop = onPreviewUpdate((update) => {
+  // { type: 'nodepress:preview', contentType, slug, locale, data }
+  render(update.data);
+}, { adminOrigin });
+
+// <h1 data-np-field="title">…</h1> — outlined on hover; a click focuses "title" in the editor.
+const stopClicks = enableClickToEdit({ adminOrigin });
+```
+
+- Messages from any origin other than `adminOrigin` (a string or a list; `"*"` is refused) are ignored,
+  and both helpers do nothing when the page isn't framed, so they're safe to leave in production code.
+- Both return a function that removes their listeners. They are also exported from the package root.
+- The editor posts to your page's origin only, so the frame must be on the origin of the Preview URL.
+- Your site must allow being framed by the admin: no `X-Frame-Options: DENY`, and a
+  `Content-Security-Policy: frame-ancestors` that includes the admin origin if you send one.

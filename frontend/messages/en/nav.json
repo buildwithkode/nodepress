@@ -11,9 +11,11 @@
   "items": {
     "dashboard": "Dashboard",
     "contentTypes": "Content Types",
+    "components": "Components",
     "entries": "Entries",
     "releases": "Releases",
     "forms": "Forms",
+    "redirects": "Redirects",
     "media": "Media",
     "plugins": "Plugins",
     "apiKeys": "API Keys",
@@ -22,10 +24,12 @@
     "auditLog": "Audit Log",
     "graphql": "GraphQL Playground",
     "users": "Users",
+    "roles": "Roles",
     "brand": "Brand",
     "languages": "Languages",
     "docs": "Documentation",
-    "serverSettings": "Email & storage"
+    "serverSettings": "Email & storage",
+    "importer": "Import"
   },
   "signOut": "Sign out",
   "user": "User",

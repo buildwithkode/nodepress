@@ -1,0 +1,63 @@
+{
+  "title": "リダイレクト",
+  "description": "訪問者や検索エンジンを古い URL から新しい URL へ転送します。サイトは GET /api/redirects/resolve で、パスの転送先を NodePress に問い合わせます。",
+  "importCsv": "CSV をインポート",
+  "exportCsv": "CSV をエクスポート",
+  "add": "リダイレクトを追加",
+  "forbidden": "リダイレクトを管理できるのは編集者と管理者のみです。",
+  "searchPlaceholder": "パスを検索…",
+  "sort": {
+    "newest": "新しい順",
+    "mostHits": "ヒット数順",
+    "from": "転送元パス (A–Z)"
+  },
+  "noMatch": "「{query}」に一致するリダイレクトはありません。",
+  "empty": "リダイレクトはまだありません。追加するか、from,to,status 列を含む CSV をインポートしてください。",
+  "columns": {
+    "from": "転送元",
+    "to": "転送先",
+    "hits": "ヒット数"
+  },
+  "goneTarget": "削除済み (転送先なし)",
+  "openTarget": "転送先を新しいタブで開く",
+  "statuses": {
+    "s301": "恒久的な移動",
+    "s302": "一時的な移動 (Found)",
+    "s307": "一時的、メソッドを維持",
+    "s308": "恒久的、メソッドを維持",
+    "s410": "削除済み (Gone)"
+  },
+  "lastHit": "最終 {date}",
+  "neverHit": "未使用",
+  "deleteTitle": "このリダイレクトを削除しますか?",
+  "deleteDescription": "{from} へのアクセスは 404 になります。",
+  "count": "{count, plural, other {# 件のリダイレクト}}",
+  "autoHint": "公開済みエントリーのスラッグが変更されると、NodePress は古いパスからの 301 を自動的に追加します (<mono>REDIRECTS_ON_SLUG_CHANGE=false</mono> で無効化)。パスは大文字と小文字を区別せずに照合されます。クエリ文字列は転送元に含まれている場合のみ照合されます。",
+  "dialog": {
+    "addTitle": "リダイレクトを追加",
+    "editTitle": "リダイレクトを編集",
+    "description": "ループや 5 回を超えるリダイレクトの連鎖は拒否されます。",
+    "fromHint": "サイト上のパス (例: /old-page)。特定のクエリだけに一致させる場合のみ ?query を付けてください。",
+    "toHint": "サイト上のパス (/new-page) または完全な URL (https://…)。"
+  },
+  "import": {
+    "title": "リダイレクトのインポート",
+    "description": "<mono>{file}</mono> の確認です。各行は追加されるか、同じ転送元のリダイレクトを更新します。問題のある行が 1 つでもあれば、何も保存されません。",
+    "checking": "ファイルを確認中…",
+    "new": "新規",
+    "changed": "変更",
+    "unchanged": "変更なし",
+    "errors": "{count, plural, other {# 件の問題があります。修正してから再度インポートしてください}}",
+    "line": "{line} 行目:",
+    "apply": "{count, plural, =0 {インポートする項目はありません} other {# 件のリダイレクトをインポート}}",
+    "appliedToast": "インポートしました: 新規 {created} 件、変更 {updated} 件",
+    "failed": "インポートに失敗しました"
+  },
+  "loadFailed": "リダイレクトを読み込めませんでした",
+  "createdToast": "リダイレクトを追加しました",
+  "savedToast": "リダイレクトを保存しました",
+  "saveFailed": "リダイレクトを保存できませんでした",
+  "deletedToast": "{from} からのリダイレクトを削除しました",
+  "deleteFailed": "リダイレクトを削除できませんでした",
+  "exportFailed": "リダイレクトをエクスポートできませんでした"
+}

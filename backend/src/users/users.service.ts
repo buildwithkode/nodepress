@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto, ChangePasswordDto } from './dto/update-user.dto';
+import { isBuiltInRole } from '../roles/roles.constants';
 
 const USER_SELECT = { id: true, email: true, role: true, createdAt: true, updatedAt: true } as const;
 
@@ -29,6 +30,7 @@ export class UsersService {
    * it manually (the caller is an authenticated admin).
    */
   async create(dto: CreateUserDto, inviterEmail: string) {
+    if (dto.role) await this.assertRoleExists(dto.role);
     const exists = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (exists) throw new ConflictException(`User "${dto.email}" already exists`);
 
@@ -71,6 +73,13 @@ export class UsersService {
     return `${baseUrl}/reset-password?token=${token}`;
   }
 
+  /** A built-in role or the name of an existing custom role (see RolesModule). */
+  private async assertRoleExists(role: string) {
+    if (isBuiltInRole(role)) return;
+    const custom = await this.prisma.role.findUnique({ where: { name: role } });
+    if (!custom) throw new BadRequestException(`Role "${role}" does not exist`);
+  }
+
   async findAll() {
     return this.prisma.user.findMany({
       orderBy: { createdAt: 'asc' },
@@ -86,6 +95,7 @@ export class UsersService {
 
   async updateRole(id: number, dto: UpdateUserDto, actorId: number) {
     const user = await this.findOne(id);
+    if (dto.role) await this.assertRoleExists(dto.role);
 
     if (dto.role && dto.role !== 'admin') {
       // Make sure we don't remove the last admin

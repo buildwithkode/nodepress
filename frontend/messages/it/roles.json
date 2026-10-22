@@ -1,0 +1,57 @@
+{
+  "title": "Ruoli",
+  "description": "I ruoli predefiniti non possono essere modificati. Un ruolo personalizzato apre le stesse parti dell'amministrazione del ruolo su cui si basa e ha i propri permessi sui contenuti.",
+  "backToUsers": "Utenti",
+  "managePermissions": "Modifica permessi",
+  "newRole": "Nuovo ruolo",
+  "manage": "Gestisci ruoli",
+  "customGroup": "Ruoli personalizzati",
+  "basedOn": "Basato su {base}",
+  "list": {
+    "role": "Ruolo",
+    "basedOn": "Basato su",
+    "users": "Utenti",
+    "description": "Descrizione",
+    "builtIn": "Predefinito",
+    "userCount": "{count, plural, =0 {Nessun utente} one {# utente} other {# utenti}}",
+    "empty": "Ancora nessun ruolo personalizzato.",
+    "edit": "Modifica ruolo",
+    "delete": "Elimina ruolo"
+  },
+  "builtInDescriptions": {
+    "admin": "Accesso completo, inclusi utenti, impostazioni e chiavi API",
+    "editor": "Crea, modifica, pubblica ed elimina contenuti",
+    "contributor": "Crea e modifica contenuti; non può pubblicare",
+    "viewer": "Accesso in sola lettura all'amministrazione"
+  },
+  "form": {
+    "createTitle": "Nuovo ruolo",
+    "editTitle": "Modifica {label}",
+    "description": "Un ruolo personalizzato parte dai permessi sui contenuti del ruolo su cui si basa. Restringili nella pagina dei permessi.",
+    "label": "Etichetta",
+    "name": "Nome",
+    "nameHelp": "Salvato come {name}. Utenti e permessi vi fanno riferimento, quindi non può essere modificato in seguito.",
+    "nameHelpEmpty": "Lettere minuscole, numeri e trattini bassi. Non può essere modificato in seguito.",
+    "nameLocked": "Il nome non può essere modificato.",
+    "baseRole": "Basato su",
+    "baseRoleHelp": "Determina quali parti dell'amministrazione il ruolo può aprire.",
+    "baseRoleEditHelp": "Cambia quali parti dell'amministrazione il ruolo può aprire. I permessi sui contenuti salvati restano invariati.",
+    "descriptionLabel": "Descrizione",
+    "descriptionPlaceholder": "A cosa serve questo ruolo",
+    "save": "Salva",
+    "create": "Crea ruolo"
+  },
+  "deleteDialog": {
+    "title": "Eliminare il ruolo “{label}”?",
+    "description": "Vengono eliminati anche i suoi permessi sui contenuti.",
+    "inUse": "{count, plural, one {# utente ha ancora} other {# utenti hanno ancora}} questo ruolo. Assegna prima un altro ruolo."
+  },
+  "toasts": {
+    "created": "Ruolo creato",
+    "updated": "Ruolo aggiornato",
+    "deleted": "Ruolo eliminato",
+    "saveFailed": "Impossibile salvare il ruolo",
+    "deleteFailed": "Impossibile eliminare il ruolo",
+    "inUse": "{count, plural, one {# utente ha ancora} other {# utenti hanno ancora}} questo ruolo. Assegna prima un altro ruolo."
+  }
+}

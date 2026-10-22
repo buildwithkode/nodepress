@@ -30,6 +30,24 @@
         "types": "./dist/cjs/index.d.ts",
         "default": "./dist/cjs/index.js"
       }
+    },
+    "./preview": {
+      "import": {
+        "types": "./dist/esm/preview.d.ts",
+        "default": "./dist/esm/preview.js"
+      },
+      "require": {
+        "types": "./dist/cjs/preview.d.ts",
+        "default": "./dist/cjs/preview.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "preview": [
+        "./dist/cjs/preview.d.ts"
+      ]
     }
   },
   "files": [
@@ -40,7 +58,7 @@
   "scripts": {
     "build": "node scripts/build.js",
     "typecheck": "node ../node_modules/typescript/bin/tsc -p tsconfig.test.json",
-    "test": "node scripts/build.js && npm run typecheck && node --test test/client.test.js",
+    "test": "node scripts/build.js && npm run typecheck && node --test test/client.test.js test/preview.test.js",
     "prepublishOnly": "npm test"
   },
   "engines": {

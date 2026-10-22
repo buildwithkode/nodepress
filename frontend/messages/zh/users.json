@@ -1,0 +1,176 @@
+{
+  "toasts": {
+    "loadFailed": "加载用户失败",
+    "createdNoEmail": "用户已创建——未配置邮件服务器",
+    "createdInviteCopied": "邀请链接已复制到剪贴板。请将其发送给 {email}：{url}",
+    "noEmailServer": "未配置邮件服务器",
+    "inviteCopied": "邀请链接已复制。请将其发送给 {email}：{url}",
+    "inviteSent": "邀请已发送至 {email}",
+    "createFailed": "创建用户失败",
+    "roleUpdated": "角色已更新",
+    "roleUpdateFailed": "更新角色失败",
+    "deleted": "用户已删除",
+    "deleteFailed": "删除用户失败",
+    "inviteFailed": "发送邀请失败",
+    "passwordUpdated": "密码已更新",
+    "passwordUpdateFailed": "更新密码失败",
+    "twoFactorSetupFailed": "启动双重身份验证设置失败",
+    "twoFactorActivated": "双重身份验证已成功启用！",
+    "twoFactorInvalidCode": "验证码无效。请重试。",
+    "twoFactorDisabled": "双重身份验证已禁用",
+    "twoFactorDisableInvalid": "双重身份验证码或恢复码无效",
+    "recoveryCopied": "恢复码已复制到剪贴板",
+    "recoveryCopyFailed": "复制恢复码失败",
+    "secretCopied": "密钥已复制",
+    "secretCopyFailed": "复制密钥失败"
+  },
+  "list": {
+    "title": "团队成员",
+    "description": "管理谁可以访问管理后台以及他们可以执行的操作。",
+    "email": "邮箱",
+    "role": "角色",
+    "joined": "加入时间",
+    "empty": "未找到用户",
+    "you": "（您）",
+    "viewPermissions": "查看 {role} 权限矩阵",
+    "sendInvite": "发送邀请邮件",
+    "deleteTitle": "删除 {email}？",
+    "deleteDescription": "这将永久移除其访问权限。此操作无法撤销。"
+  },
+  "roleGuide": {
+    "title": "角色权限",
+    "manage": "管理权限",
+    "admin": {
+      "p1": "拥有全部访问权限",
+      "p2": "管理用户和角色",
+      "p3": "内容类型和 API 密钥",
+      "p4": "审计日志和 Webhook"
+    },
+    "editor": {
+      "p1": "创建 / 编辑 / 删除条目",
+      "p2": "发布和归档条目",
+      "p3": "表单、媒体上传/删除",
+      "p4": "读取内容类型"
+    },
+    "contributor": {
+      "p1": "创建和编辑条目",
+      "p2": "不能删除条目",
+      "p3": "不能发布或归档",
+      "p4": "仅可上传媒体"
+    },
+    "viewer": {
+      "p1": "只读仪表盘",
+      "p2": "查看条目和表单",
+      "p3": "查看媒体库",
+      "p4": "不能修改任何内容"
+    }
+  },
+  "add": {
+    "title": "添加用户",
+    "description": "通过邮箱邀请团队成员——对方会收到一个设置密码的链接。此处无需填写密码。",
+    "sending": "正在发送邀请…",
+    "submit": "发送邀请"
+  },
+  "twoFactor": {
+    "title": "双重身份验证（2FA）",
+    "description": "使用 Google Authenticator、1Password 或 Authy 为您的账号增加一层安全保护。",
+    "enabledHeading": "双重身份验证正在保护您的账号",
+    "disabledHeading": "使用 TOTP 增强登录安全性",
+    "enabledHelp": "登录时将要求您输入 6 位验证码或紧急备用恢复码。",
+    "disabledHelp": "需要使用身份验证器应用扫描二维码，并妥善保存备用恢复码。",
+    "enable": "启用 2FA",
+    "disable": "禁用 2FA",
+    "disabling": "正在禁用…",
+    "setupTitle": "设置双重身份验证",
+    "setupDescription": "使用 Google Authenticator、1Password 或 Authy 扫描二维码。",
+    "qrAlt": "2FA 二维码",
+    "manualKey": "手动输入密钥",
+    "recoveryCodes": "紧急备用恢复码",
+    "copyCodes": "复制恢复码",
+    "recoveryHelp": "请妥善保存这些恢复码。如果您丢失了身份验证器应用，每个恢复码可用于登录一次。",
+    "verificationCode": "验证码",
+    "verificationPlaceholder": "输入 6 位验证码",
+    "activating": "正在启用…",
+    "activate": "启用 2FA",
+    "disableTitle": "禁用双重身份验证",
+    "disableDescription": "输入身份验证器应用中的 6 位验证码或紧急恢复码以确认。",
+    "disableCodeLabel": "验证码或恢复码",
+    "disableCodePlaceholder": "6 位验证码或 XXXX-XXXX"
+  },
+  "password": {
+    "title": "修改密码",
+    "current": "当前密码",
+    "new": "新密码",
+    "newPlaceholder": "至少 8 个字符",
+    "updating": "正在更新…",
+    "submit": "更新密码"
+  },
+  "permissions": {
+    "loading": "正在加载权限…",
+    "toasts": {
+      "loadFailed": "加载权限失败",
+      "schemaLoadFailed": "加载“{name}”的架构失败",
+      "roleLoadFailed": "加载角色权限失败",
+      "updated": "权限已更新",
+      "updateFailed": "更新权限失败",
+      "reset": "权限已重置为默认值",
+      "resetFailed": "重置权限失败",
+      "fieldsSaved": "已保存“{name}”的字段权限",
+      "fieldsSaveFailed": "保存字段权限失败"
+    },
+    "backToUsers": "用户",
+    "title": "访问控制与权限",
+    "resetDefaults": "重置为默认值",
+    "tabs": {
+      "contentTypes": "内容类型操作矩阵",
+      "fields": "字段级权限矩阵"
+    },
+    "actions": {
+      "create": "创建",
+      "read": "读取",
+      "update": "更新",
+      "delete": "删除",
+      "publish": "发布"
+    },
+    "roleDescriptions": {
+      "editor": "管理所有内容——可以创建、编辑、删除和发布。",
+      "contributor": "创建和编辑内容——不能删除或发布。",
+      "viewer": "对管理后台只读访问。"
+    },
+    "clickToDeselect": "点击取消选择",
+    "defaultRow": "默认 *",
+    "summary": {
+      "title": "权限摘要",
+      "description": "为此角色配置的覆盖设置。未在此列出的行将回退到通配符默认值。",
+      "empty": "无覆盖设置——所有内容类型均使用出厂默认值。"
+    },
+    "matrix": {
+      "title": "内容类型权限矩阵",
+      "description": "为每个角色设置允许的操作。<strong>*</strong> 行是所有内容类型的默认值。在特定内容类型所在行中切换操作即可单独覆盖。灰色复选框继承自通配符行。",
+      "contentType": "内容类型",
+      "inherited": "继承自 {role}/*——点击以覆盖"
+    },
+    "fields": {
+      "title": "字段级访问控制矩阵",
+      "description": "限制特定属性的读取可见性和写入修改（例如，对非管理员角色隐藏薪资、利润率或内部备注）。",
+      "selectContentType": "选择内容类型",
+      "save": "保存权限",
+      "loading": "正在加载字段架构…",
+      "emptyTitle": "此内容类型未定义字段",
+      "emptyHelp": "请先在架构构建器中为此内容类型添加字段。",
+      "field": "字段",
+      "readVisibility": "读取可见性",
+      "writeAccess": "写入 / 修改权限",
+      "nameAndType": "名称和类型",
+      "restricted": "受限",
+      "adminRead": "管理员始终拥有完全读取权限",
+      "adminWrite": "管理员始终拥有完全写入权限"
+    },
+    "enforcement": {
+      "title": "零泄漏安全强制执行：",
+      "read": "当某个角色在<strong>读取可见性</strong>中被取消勾选时，后端会在发送给客户端之前，自动从所有 REST（<path></path>）和 GraphQL 响应中移除该字段。",
+      "write": "当某个角色在<strong>写入权限</strong>中被取消勾选时，后端会以 HTTP 403 Forbidden 拒绝未经授权的修改请求。"
+    },
+    "adminNote": "注意：管理员始终拥有对所有架构字段的全局访问权限，且无法被限制。"
+  }
+}

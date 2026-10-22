@@ -1,0 +1,40 @@
+---
+import type { GetStaticPaths } from 'astro';
+import type { Entry } from '@nodepress/client';
+import Base from '../../layouts/Base.astro';
+import { cms, loadPages } from '../../lib/cms';
+import { formatDate, readPost } from '../../lib/post';
+import { sanitizeRichText } from '../../lib/sanitize';
+
+// One page per published post. The list responses already carry each entry's
+// full (populated) data, so no extra request per post.
+export const getStaticPaths = (async () => {
+  const { pages } = await loadPages();
+  return pages.flatMap((p) => p.entries).map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props as { entry: Entry };
+const post = readPost(entry.slug, entry.data, entry.createdAt);
+const date = formatDate(post.date);
+const bodyHtml = sanitizeRichText(post.body);
+const coverUrl = post.cover ? cms.imageUrl(post.cover, { w: 1200, format: 'auto' }) : undefined;
+---
+
+<Base title={entry.seo?.title || post.title} description={entry.seo?.description || post.excerpt}>
+  <article class="post">
+    <h1 data-np-field="title">{post.title}</h1>
+    {
+      (post.author || date) && (
+        <p class="meta">
+          {post.author && <span data-np-field="author">{post.author}</span>}
+          {post.author && date && ' · '}
+          {date && <time datetime={post.date}>{date}</time>}
+        </p>
+      )
+    }
+    {coverUrl && <img class="cover" src={coverUrl} alt="" data-np-field="cover" />}
+    {post.excerpt && <p class="excerpt" data-np-field="excerpt">{post.excerpt}</p>}
+    <div class="body" data-np-field="body" set:html={bodyHtml} />
+  </article>
+  <p><a href="/">← All posts</a></p>
+</Base>

@@ -183,7 +183,14 @@
       "user": "Benutzer",
       "api_key": "API-Schlüssel",
       "form": "Formulare",
-      "media": "Medien"
+      "media": "Medien",
+      "plugin": "Plugins",
+      "settings": "Einstellungen",
+      "release": "Releases",
+      "role": "Rollen",
+      "redirect": "Weiterleitungen",
+      "component": "Komponenten",
+      "import": "Importe"
     },
     "colTime": "Zeit",
     "colUser": "Benutzer",
@@ -289,5 +296,42 @@
     "clear": "Löschen",
     "saved": "Konfiguration gespeichert und live im Speicher angewendet.",
     "saveChanges": "Änderungen speichern"
+  },
+  "registry": {
+    "tabs": {
+      "installed": "Installiert",
+      "browse": "Durchsuchen"
+    },
+    "installTitle": "{name} installieren",
+    "installDescription": "NodePress lädt das Paket aus dem Plugin-Verzeichnis herunter, prüft es gegen die sha256 des Verzeichnisses und prüft es genau wie eine hochgeladene ZIP-Datei — es gelten dieselben Signaturregeln.",
+    "downloading": "Paket wird heruntergeladen und geprüft…",
+    "verified": "Stimmt mit der Prüfsumme des Verzeichnisses überein (sha256 <mono>{sha}…</mono>).",
+    "loadFailed": "Das Plugin-Verzeichnis konnte nicht geladen werden",
+    "disabledTitle": "Das Plugin-Verzeichnis ist ausgeschaltet",
+    "disabledBody": "Setzen Sie <mono>{env}</mono> auf dem Server, um hier ein Plugin-Verzeichnis anzuzeigen.",
+    "searchPlaceholder": "Verzeichnis durchsuchen…",
+    "updatedAt": "Aktualisiert {date}",
+    "refresh": "Erneut prüfen",
+    "staleNotice": "Die letzte Kopie des Verzeichnisses wird angezeigt — es konnte nicht aktualisiert werden.",
+    "unavailable": "Das Plugin-Verzeichnis ist derzeit nicht erreichbar.",
+    "loading": "Plugin-Verzeichnis wird geladen…",
+    "noMatch": "Keine Plugins im Verzeichnis passen zu „{query}“.",
+    "empty": "Das Plugin-Verzeichnis enthält keine Plugins.",
+    "paid": "Kostenpflichtig",
+    "free": "Kostenlos",
+    "bundled": "Mitgeliefert",
+    "installed": "Installiert",
+    "installedVersion": "v{version} installiert",
+    "updateAvailable": "Update verfügbar",
+    "compatible": "Kompatibel",
+    "incompatible": "Inkompatibel",
+    "byAuthor": "von {author}",
+    "homepage": "Website",
+    "source": "Quellcode",
+    "install": "Installieren",
+    "update": "Aktualisieren",
+    "bundledHint": "Mit NodePress geliefert — unter Installiert einschalten",
+    "getIt": "Erwerben",
+    "learnMore": "Mehr erfahren"
   }
 }

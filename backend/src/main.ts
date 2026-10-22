@@ -32,6 +32,7 @@ import { SentryExceptionFilter } from './common/sentry-exception.filter';
 import { corsOrigin } from './common/cors-origin';
 import { recordBootFailure } from './plugin/plugin-loader';
 import { PluginService } from './plugin/plugin.service';
+import { setupContentDocs } from './openapi/openapi.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -157,6 +158,8 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: { persistAuthorization: true },
   });
+  // Swagger UI for the generated content API (GET /api/openapi.json).
+  setupContentDocs(app);
 
   // ─── Graceful shutdown ─────────────────────────────────────────────────────
   // enableShutdownHooks() makes NestJS listen for SIGTERM/SIGINT and call
