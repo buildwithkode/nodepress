@@ -26,7 +26,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      {/* Browser extensions (Grammarly, password managers) add attributes to <body> before React hydrates. */}
+      <body suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <AdminIntlProvider>
             <TooltipProvider>

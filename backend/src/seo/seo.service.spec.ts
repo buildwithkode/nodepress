@@ -51,6 +51,27 @@ describe('SeoService', () => {
       expect(xml).toContain('<loc>https://example.com/blog</loc>');
       expect(xml).toContain('<loc>https://example.com/pages</loc>');
     });
+
+    it('leaves out content types the public API does not serve', async () => {
+      mockPrisma.contentType.findMany.mockResolvedValue([
+        { name: 'blog', allowedMethods: null },
+        { name: 'orders', allowedMethods: [] },
+        { name: 'events', allowedMethods: ['read'] },
+      ]);
+      mockPrisma.entry.findMany.mockResolvedValue([
+        makeEntry('hello'),
+        { ...makeEntry('ord-1'), contentType: { name: 'orders' } },
+        { ...makeEntry('launch'), contentType: { name: 'events' } },
+      ]);
+
+      const xml = await service.generateSitemap();
+
+      expect(xml).toContain('https://example.com/blog/hello');
+      expect(xml).not.toContain('orders');
+      // Readable one by one but not listable: entries stay, the list page goes.
+      expect(xml).toContain('https://example.com/events/launch');
+      expect(xml).not.toContain('<loc>https://example.com/events</loc>');
+    });
   });
 
   describe('generateRobots', () => {

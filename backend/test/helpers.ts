@@ -8,6 +8,7 @@ import { AppModule } from '../src/app.module';
 import { parseQueryString } from '../src/common/query-parser';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { reloadPluginHost } from '../src/plugin/plugin-loader';
+import { keepRawBody } from '../src/common/raw-body';
 
 /**
  * AppModule again, with the plugins loaded afresh from the database — what a
@@ -39,7 +40,8 @@ export async function createTestApp(opts: { reloadPlugins?: boolean } = {}): Pro
   // express.json must be registered BEFORE app.init() so Apollo Server can
   // parse GraphQL request bodies. Without this, Apollo falls through to the
   // DynamicApiController wildcard /:type which returns 401.
-  app.use(express.json({ limit: '1mb' }));
+  // `rawBody` keeps the exact bytes for webhook signature checks (HMAC over the body as sent).
+  app.use(express.json({ limit: '1mb', verify: keepRawBody }));
   app.use(express.urlencoded({ extended: true, limit: '500kb' }));
   app.use(cookieParser());
 

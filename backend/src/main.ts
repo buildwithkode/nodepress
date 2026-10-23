@@ -33,6 +33,7 @@ import { corsOrigin } from './common/cors-origin';
 import { recordBootFailure } from './plugin/plugin-loader';
 import { PluginService } from './plugin/plugin.service';
 import { setupContentDocs } from './openapi/openapi.setup';
+import { keepRawBody } from './common/raw-body';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -74,7 +75,8 @@ async function bootstrap() {
   // ─── Request body size limits ──────────────────────────────────────────────
   // Prevents memory exhaustion via large JSON payloads.
   // Multer enforces its own 10 MB limit on file uploads separately.
-  app.use(express.json({ limit: '1mb' }));
+  // `rawBody` keeps the exact bytes for webhook signature checks (HMAC over the body as sent).
+  app.use(express.json({ limit: '1mb', verify: keepRawBody }));
   app.use(express.urlencoded({ extended: true, limit: '500kb' }));
 
   // ─── Content-Type enforcement ──────────────────────────────────────────────

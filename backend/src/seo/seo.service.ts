@@ -11,10 +11,16 @@ export class SeoService {
   }
 
   async generateSitemap(): Promise<string> {
-    // Fetch all published content types
-    const contentTypes = await this.prisma.contentType.findMany({
-      select: { name: true },
+    // Content types the public API serves. One whose allowedMethods leaves out
+    // "read" (or "list") is private — e.g. store orders — and its slugs must not
+    // be advertised here.
+    const types = await this.prisma.contentType.findMany({
+      select: { name: true, allowedMethods: true },
     });
+    const allows = (ct: { allowedMethods: unknown }, method: string) =>
+      !Array.isArray(ct.allowedMethods) || (ct.allowedMethods as string[]).includes(method);
+    const contentTypes = types.filter((ct) => allows(ct, 'list'));
+    const readable = new Set(types.filter((ct) => allows(ct, 'read')).map((ct) => ct.name));
 
     // Fetch all published, non-deleted entries. `seo` is pulled so we can drop
     // entries the author flagged noIndex — listing them in the sitemap would
@@ -30,7 +36,7 @@ export class SeoService {
       orderBy: { updatedAt: 'desc' },
     });
     const entries = allEntries.filter(
-      (e) => (e.seo as { noIndex?: boolean } | null)?.noIndex !== true,
+      (e) => readable.has(e.contentType.name) && (e.seo as { noIndex?: boolean } | null)?.noIndex !== true,
     );
 
     const now = new Date().toISOString().split('T')[0];
