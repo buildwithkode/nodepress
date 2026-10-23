@@ -17,7 +17,7 @@
     "saveFirst": "Speichern Sie den Eintrag, um ihn in der Live-Vorschau zu sehen.",
     "invalidUrl": "Die Vorschau-URL dieses Inhaltstyps ist keine gültige http(s)-URL. Korrigieren Sie sie in den Einstellungen des Inhaltstyps.",
     "frameTitle": "Live-Vorschau von {slug}",
-    "hint": "Ihre Änderungen werden während der Eingabe an die Seite gesendet. Seiten mit @nodepress/client/preview aktualisieren sich ohne Neuladen; klicken Sie auf ein umrandetes Element, um zu seinem Feld zu springen."
+    "hint": "Ihre Änderungen werden während der Eingabe an die Seite gesendet. Seiten mit @nodepress-cms/client/preview aktualisieren sich ohne Neuladen; klicken Sie auf ein umrandetes Element, um zu seinem Feld zu springen."
   },
   "settings": {
     "label": "Vorschau-URL",

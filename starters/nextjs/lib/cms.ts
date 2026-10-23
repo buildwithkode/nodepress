@@ -1,4 +1,4 @@
-import { createClient, type Entry } from '@nodepress/client';
+import { createClient, type Entry } from '@nodepress-cms/client';
 
 export const config = {
   url: process.env.NODEPRESS_URL || 'http://localhost:3000',

@@ -19,7 +19,7 @@ The pages never call NodePress directly: `server/api/posts.get.ts` and
   `NODEPRESS_POPULATE` (default `author`)
 - Field mapping lives in `shared/post.ts`.
 
-## `@nodepress/client`
+## `@nodepress-cms/client`
 
-`package.json` uses the npm package (`"@nodepress/client": "^1.7.0"`). To try changes from a NodePress
+`package.json` uses the npm package (`"@nodepress-cms/client": "^1.7.0"`). To try changes from a NodePress
 checkout instead, point it at `"file:/path/to/nodepress/client"` and run `npm run build` in `client/` first.

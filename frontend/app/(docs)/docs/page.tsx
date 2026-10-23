@@ -3297,12 +3297,12 @@ export const config = { matcher: ['/((?!_next|api|favicon.ico).*)'] };`} />
           {/* ── JS/TS client ───────────────────────────────────────────────── */}
           <Section id="client" title="JavaScript / TypeScript Client" icon={Code2}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              <IC>@nodepress/client</IC> is a small typed client for the public API — no dependencies, works in Node 18+,
+              <IC>@nodepress-cms/client</IC> is a small typed client for the public API — no dependencies, works in Node 18+,
               browsers and edge runtimes. Pair it with <IC>npx nodepress generate:types</IC> for typed entries and filters.
             </p>
-            <CodeBlock code={`npm install @nodepress/client
+            <CodeBlock code={`npm install @nodepress-cms/client
 
-import { createClient } from '@nodepress/client';
+import { createClient } from '@nodepress-cms/client';
 import type { NodePressContentTypes } from './types/nodepress';
 
 const cms = createClient<NodePressContentTypes>({ url: 'https://cms.example.com' });
@@ -3349,9 +3349,9 @@ await admin.collection('post').create({ slug: 'draft-1', data: { title: 'Hi' }, 
             <p className="text-muted-foreground text-sm mb-2">
               Both sides accept messages only from exact origins (never <IC>*</IC>). Your site must allow being framed by the admin&apos;s
               origin (e.g. <IC>Content-Security-Policy: frame-ancestors https://cms.example.com</IC>). The helpers in{' '}
-              <IC>@nodepress/client/preview</IC> handle the protocol:
+              <IC>@nodepress-cms/client/preview</IC> handle the protocol:
             </p>
-            <CodeBlock code={`import { onPreviewUpdate, enableClickToEdit, isInPreviewFrame } from '@nodepress/client/preview';
+            <CodeBlock code={`import { onPreviewUpdate, enableClickToEdit, isInPreviewFrame } from '@nodepress-cms/client/preview';
 
 const adminOrigin = 'https://cms.example.com';
 
@@ -3367,7 +3367,7 @@ if (isInPreviewFrame()) {
           {/* ── Starters ──────────────────────────────────────────────────── */}
           <Section id="starters" title="Framework Starters" icon={Layers}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              The repo&apos;s <IC>starters/</IC> folder has minimal blog frontends built on <IC>@nodepress/client</IC> — copy one out to
+              The repo&apos;s <IC>starters/</IC> folder has minimal blog frontends built on <IC>@nodepress-cms/client</IC> — copy one out to
               start a site. Each has a list page with cursor pagination, a post page that sanitizes richtext again, cover images
               through <IC>cms.imageUrl()</IC> and <IC>?populate=author</IC>.
             </p>
@@ -3385,7 +3385,7 @@ if (isInPreviewFrame()) {
 cp .env.example .env     # NODEPRESS_URL (the backend), NODEPRESS_TYPE=blog, NODEPRESS_POPULATE=author, NODEPRESS_API_KEY (optional)
 npm install && npm run dev`} />
             <p className="text-muted-foreground text-xs mt-2">
-              Starters aren&apos;t workspaces and ship without lockfiles. They depend on the published <IC>@nodepress/client</IC>{' '}
+              Starters aren&apos;t workspaces and ship without lockfiles. They depend on the published <IC>@nodepress-cms/client</IC>{' '}
               (<IC>^1.7.0</IC>), so a copied starter works anywhere; to try unreleased client changes, point it at a NodePress
               checkout&apos;s <IC>client/</IC> (built with <IC>npm run build</IC>).
             </p>

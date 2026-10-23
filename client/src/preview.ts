@@ -2,7 +2,7 @@
  * Live preview helpers for a site shown in the NodePress entry editor's
  * preview pane (an iframe of the content type's preview URL).
  *
- *   import { onPreviewUpdate, enableClickToEdit } from '@nodepress/client/preview';
+ *   import { onPreviewUpdate, enableClickToEdit } from '@nodepress-cms/client/preview';
  *
  *   const stop = onPreviewUpdate((msg) => render(msg.data), { adminOrigin: 'https://cms.example.com' });
  *   enableClickToEdit({ adminOrigin: 'https://cms.example.com' }); // <h1 data-np-field="title">
@@ -52,13 +52,13 @@ const noop = () => {};
 
 function origins(adminOrigin: string | string[]): string[] {
   const list = (Array.isArray(adminOrigin) ? adminOrigin : [adminOrigin]).filter(Boolean);
-  if (!list.length) throw new Error('@nodepress/client/preview: `adminOrigin` is required');
+  if (!list.length) throw new Error('@nodepress-cms/client/preview: `adminOrigin` is required');
   return list.map((o) => {
-    if (o === '*') throw new Error('@nodepress/client/preview: `adminOrigin` must be an origin, not "*"');
+    if (o === '*') throw new Error('@nodepress-cms/client/preview: `adminOrigin` must be an origin, not "*"');
     try {
       return new URL(o).origin;
     } catch {
-      throw new Error(`@nodepress/client/preview: invalid adminOrigin "${o}"`);
+      throw new Error(`@nodepress-cms/client/preview: invalid adminOrigin "${o}"`);
     }
   });
 }

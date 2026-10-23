@@ -100,7 +100,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         slug: 'fetching-posts',
         data: {
           title: 'Fetching posts from your site',
-          excerpt: 'Two lines with @nodepress/client.',
+          excerpt: 'Two lines with @nodepress-cms/client.',
           body: '<p><code>cms.collection(\'post\').list({ populate: [\'author\'] })</code> returns published posts with their author.</p>',
           author: '@author/alex-morgan',
           categories: ['@category/guides'],

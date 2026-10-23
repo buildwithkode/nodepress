@@ -4,8 +4,8 @@ import { AddressInfo } from 'net';
 import { createTestApp, cleanDatabase, registerAdmin } from './helpers';
 import { createClient, NodePressClient } from '../../client/src/index';
 
-/** @nodepress/client against the real API — catches query-string drift between the two. */
-describe('@nodepress/client (e2e)', () => {
+/** @nodepress-cms/client against the real API — catches query-string drift between the two. */
+describe('@nodepress-cms/client (e2e)', () => {
   let app: INestApplication;
   let token: string;
   let cms: NodePressClient;

@@ -17,7 +17,7 @@
     "saveFirst": "Sla het item op om het in het live voorbeeld te zien.",
     "invalidUrl": "De voorbeeld-URL van dit contenttype is geen geldige http(s)-URL. Pas dit aan in de instellingen van het contenttype.",
     "frameTitle": "Live voorbeeld van {slug}",
-    "hint": "Je wijzigingen worden naar de pagina gestuurd terwijl je typt. Pagina's die @nodepress/client/preview gebruiken, worden bijgewerkt zonder te herladen; klik op een omlijnd element om naar het bijbehorende veld te gaan."
+    "hint": "Je wijzigingen worden naar de pagina gestuurd terwijl je typt. Pagina's die @nodepress-cms/client/preview gebruiken, worden bijgewerkt zonder te herladen; klik op een omlijnd element om naar het bijbehorende veld te gaan."
   },
   "settings": {
     "label": "Voorbeeld-URL",

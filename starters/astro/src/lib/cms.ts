@@ -1,4 +1,4 @@
-import { createClient, type Entry } from '@nodepress/client';
+import { createClient, type Entry } from '@nodepress-cms/client';
 
 // .env values (via Vite) or real environment variables.
 const env = (name: string): string | undefined => import.meta.env[name] ?? process.env[name];

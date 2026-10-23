@@ -1353,8 +1353,8 @@ export const config = { matcher: [&#x27;/((?!_next|api|favicon.ico).*)&#x27;] };
           </div>
           <h2 class="text-2xl font-bold text-white">JavaScript / TypeScript Client</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-4"><code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">@nodepress/client</code> is a zero-dependency typed client for the public API (Node 18+, browsers, edge). Pair it with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">npx nodepress generate:types</code>.</p>
-        <div class="code-block" data-code="import { createClient } from &#x27;@nodepress/client&#x27;;
+        <p class="text-zinc-400 leading-relaxed mb-4"><code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">@nodepress-cms/client</code> is a zero-dependency typed client for the public API (Node 18+, browsers, edge). Pair it with <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">npx nodepress generate:types</code>.</p>
+        <div class="code-block" data-code="import { createClient } from &#x27;@nodepress-cms/client&#x27;;
 const cms = createClient({ url: &#x27;https://cms.example.com&#x27; });
 const { data } = await cms.collection(&#x27;post&#x27;).list({ where: { featured: { eq: true } }, populate: [&#x27;author&#x27;] });
 const post = await cms.collection(&#x27;post&#x27;).get(&#x27;hello-world&#x27;);
@@ -1381,7 +1381,7 @@ cms.imageUrl(post?.data.cover, { w: 800, format: &#x27;auto&#x27; });"></div>
           </table>
         </div>
         <p class="text-zinc-400 leading-relaxed mb-4">Messages are accepted only from exact origins. The site must allow framing by the admin origin (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">frame-ancestors</code>).</p>
-        <div class="code-block" data-code="import { onPreviewUpdate, enableClickToEdit, isInPreviewFrame } from &#x27;@nodepress/client/preview&#x27;;
+        <div class="code-block" data-code="import { onPreviewUpdate, enableClickToEdit, isInPreviewFrame } from &#x27;@nodepress-cms/client/preview&#x27;;
 const adminOrigin = &#x27;https://cms.example.com&#x27;;
 if (isInPreviewFrame()) {
   onPreviewUpdate((msg) =&gt; render(msg.data), { adminOrigin });
@@ -1397,11 +1397,11 @@ if (isInPreviewFrame()) {
           </div>
           <h2 class="text-2xl font-bold text-white">Framework Starters</h2>
         </div>
-        <p class="text-zinc-400 leading-relaxed mb-4"><code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">starters/</code> in the repo has minimal blogs on <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">@nodepress/client</code>: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">nextjs</code> (App Router, draft mode + live preview), <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">astro</code> (static build) and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">nuxt</code> (server-rendered, API key stays server-side). Each has cursor pagination, sanitized richtext, resized cover images and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">?populate=author</code>.</p>
+        <p class="text-zinc-400 leading-relaxed mb-4"><code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">starters/</code> in the repo has minimal blogs on <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">@nodepress-cms/client</code>: <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">nextjs</code> (App Router, draft mode + live preview), <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">astro</code> (static build) and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">nuxt</code> (server-rendered, API key stays server-side). Each has cursor pagination, sanitized richtext, resized cover images and <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">?populate=author</code>.</p>
         <div class="code-block" data-code="cp -R starters/nextjs ../my-site &amp;&amp; cd ../my-site
 cp .env.example .env    # NODEPRESS_URL, NODEPRESS_TYPE, NODEPRESS_POPULATE, NODEPRESS_API_KEY
 npm install &amp;&amp; npm run dev"></div>
-        <p class="text-zinc-400 leading-relaxed mb-0">Not workspaces, no lockfiles; they depend on the published <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">@nodepress/client</code> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">^1.7.0</code>), so a copied starter works anywhere.</p>
+        <p class="text-zinc-400 leading-relaxed mb-0">Not workspaces, no lockfiles; they depend on the published <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">@nodepress-cms/client</code> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">^1.7.0</code>), so a copied starter works anywhere.</p>
       </section>
 
       <!-- Schema as Code (CLI) -->

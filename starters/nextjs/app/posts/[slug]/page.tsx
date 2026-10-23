@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cookies, draftMode } from 'next/headers';
-import { NodePressError, type Entry } from '@nodepress/client';
+import { NodePressError, type Entry } from '@nodepress-cms/client';
 import { cms, config, getPreview, posts, PREVIEW_LOCALE_COOKIE, PREVIEW_TOKEN_COOKIE } from '@/lib/cms';
 import { readPost } from '@/lib/post';
 import { sanitizeRichText } from '@/lib/sanitize';

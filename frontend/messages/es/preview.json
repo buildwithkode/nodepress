@@ -17,7 +17,7 @@
     "saveFirst": "Guarda la entrada para verla en la vista previa en vivo.",
     "invalidUrl": "La URL de vista previa de este tipo de contenido no es una URL http(s) válida. Corrígela en los ajustes del tipo de contenido.",
     "frameTitle": "Vista previa en vivo de {slug}",
-    "hint": "Tus cambios se envían a la página mientras escribes. Las páginas que usan @nodepress/client/preview se actualizan sin recargar; haz clic en un elemento resaltado para ir a su campo."
+    "hint": "Tus cambios se envían a la página mientras escribes. Las páginas que usan @nodepress-cms/client/preview se actualizan sin recargar; haz clic en un elemento resaltado para ir a su campo."
   },
   "settings": {
     "label": "URL de vista previa",

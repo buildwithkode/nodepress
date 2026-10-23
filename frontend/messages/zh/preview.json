@@ -17,7 +17,7 @@
     "saveFirst": "保存条目后即可在实时预览中查看。",
     "invalidUrl": "此内容类型的预览 URL 不是有效的 http(s) URL。请在内容类型设置中修正。",
     "frameTitle": "{slug} 的实时预览",
-    "hint": "您的编辑会随输入实时发送到页面。使用 @nodepress/client/preview 的页面无需重新加载即可更新；点击带轮廓的元素可跳转到对应字段。"
+    "hint": "您的编辑会随输入实时发送到页面。使用 @nodepress-cms/client/preview 的页面无需重新加载即可更新；点击带轮廓的元素可跳转到对应字段。"
   },
   "settings": {
     "label": "预览 URL",

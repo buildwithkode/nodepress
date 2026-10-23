@@ -17,7 +17,7 @@
     "saveFirst": "Save the entry to see it in the live preview.",
     "invalidUrl": "This content type's preview URL isn't a valid http(s) URL. Fix it in the content type settings.",
     "frameTitle": "Live preview of {slug}",
-    "hint": "Your edits are sent to the page as you type. Pages using @nodepress/client/preview update without reloading; click an outlined element to jump to its field."
+    "hint": "Your edits are sent to the page as you type. Pages using @nodepress-cms/client/preview update without reloading; click an outlined element to jump to its field."
   },
   "settings": {
     "label": "Preview URL",

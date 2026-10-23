@@ -1,4 +1,4 @@
-import { NodePressError } from '@nodepress/client';
+import { NodePressError } from '@nodepress-cms/client';
 import { readPost } from '#shared/post';
 
 /** GET /api/posts/:slug — one post with its richtext sanitized on the server. */

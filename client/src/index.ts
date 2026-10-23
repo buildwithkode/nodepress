@@ -1,7 +1,7 @@
 /**
- * @nodepress/client — a small typed client for the NodePress public API.
+ * @nodepress-cms/client — a small typed client for the NodePress public API.
  *
- *   import { createClient } from '@nodepress/client';
+ *   import { createClient } from '@nodepress-cms/client';
  *   import type { NodePressContentTypes } from './types/nodepress'; // npx nodepress generate:types
  *
  *   const cms = createClient<NodePressContentTypes>({ url: 'https://cms.example.com' });
@@ -265,10 +265,10 @@ export class NodePressClient<TTypes extends ContentTypeMap<TTypes> = Record<stri
   private readonly fetchImpl: typeof fetch;
 
   constructor(readonly options: ClientOptions) {
-    if (!options?.url) throw new Error('@nodepress/client: `url` is required');
+    if (!options?.url) throw new Error('@nodepress-cms/client: `url` is required');
     this.baseUrl = options.url.replace(/\/+$/, '').replace(/\/api$/, '');
     const f = options.fetch ?? (globalThis as any).fetch;
-    if (typeof f !== 'function') throw new Error('@nodepress/client: no fetch available — pass `fetch` in the options');
+    if (typeof f !== 'function') throw new Error('@nodepress-cms/client: no fetch available — pass `fetch` in the options');
     this.fetchImpl = f.bind(globalThis);
   }
 
@@ -347,6 +347,6 @@ export function createClient<TTypes extends ContentTypeMap<TTypes> = Record<stri
   return new NodePressClient<TTypes>(options);
 }
 
-// Live preview helpers — also importable alone from '@nodepress/client/preview'.
+// Live preview helpers — also importable alone from '@nodepress-cms/client/preview'.
 export { onPreviewUpdate, enableClickToEdit, isInPreviewFrame } from './preview.js';
 export type { PreviewUpdate, PreviewOptions, ClickToEditOptions, PreviewWindow } from './preview.js';

@@ -1,6 +1,6 @@
 import { cookies, draftMode } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { NodePressError } from '@nodepress/client';
+import { NodePressError } from '@nodepress-cms/client';
 import { getPreview, PREVIEW_LOCALE_COOKIE, PREVIEW_TOKEN_COOKIE } from '@/lib/cms';
 
 /**

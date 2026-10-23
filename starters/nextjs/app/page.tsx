@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { Entry, ListResult } from '@nodepress/client';
+import type { Entry, ListResult } from '@nodepress-cms/client';
 import { cms, config, posts } from '@/lib/cms';
 import { formatDate, readPost } from '@/lib/post';
 

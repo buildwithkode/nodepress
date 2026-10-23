@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@nodepress/client';
-import { onPreviewUpdate, enableClickToEdit } from '@nodepress/client/preview';
+import { createClient } from '@nodepress-cms/client';
+import { onPreviewUpdate, enableClickToEdit } from '@nodepress-cms/client/preview';
 import { readPost } from '@/lib/post';
 import { sanitizeInBrowser } from '@/lib/sanitize-dom';
 import { PostArticle } from './PostArticle';

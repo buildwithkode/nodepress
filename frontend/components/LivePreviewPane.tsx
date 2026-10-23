@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
  * as `nodepress:preview` messages (debounced), and the frame may post back
  * `nodepress:ready` (send the data now) and `nodepress:focus-field`. Messages
  * only go to, and are only accepted from, the preview URL's origin.
- * Sites use `@nodepress/client/preview` (onPreviewUpdate, enableClickToEdit).
+ * Sites use `@nodepress-cms/client/preview` (onPreviewUpdate, enableClickToEdit).
  */
 
 const DEVICES = {

@@ -27,7 +27,7 @@ npm run dev                  # http://localhost:3002
 
 `/api/draft` checks the 1-hour preview token with `GET /api/{type}/{slug}/preview?token=`, turns on
 Next.js draft mode and keeps the token in an HttpOnly cookie, then shows the draft. In draft mode
-the post renders through `components/LivePost.tsx`, which uses `@nodepress/client/preview`:
+the post renders through `components/LivePost.tsx`, which uses `@nodepress-cms/client/preview`:
 
 - `onPreviewUpdate()` — re-renders with the editor's unsaved values as you type (only messages from
   `NODEPRESS_ADMIN_URL` are accepted; HTML is sanitized in the browser by `lib/sanitize-dom.ts`)
@@ -38,7 +38,7 @@ the post renders through `components/LivePost.tsx`, which uses `@nodepress/clien
 site, so the preview cookies are `SameSite=None; Secure` — serve the site over HTTPS, and don't
 send `X-Frame-Options: DENY` or a `frame-ancestors` CSP that excludes the admin.
 
-## `@nodepress/client`
+## `@nodepress-cms/client`
 
-`package.json` uses the npm package (`"@nodepress/client": "^1.7.0"`). To try changes from a NodePress
+`package.json` uses the npm package (`"@nodepress-cms/client": "^1.7.0"`). To try changes from a NodePress
 checkout instead, point it at `"file:/path/to/nodepress/client"` and run `npm run build` in `client/` first.

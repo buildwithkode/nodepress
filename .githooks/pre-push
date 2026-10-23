@@ -40,7 +40,7 @@ echo "[pre-push] backend unit tests…"
 echo "[pre-push] admin interface translations…"
 ( cd "$ROOT" && node scripts/check-i18n.js )
 
-echo "[pre-push] @nodepress/client build, types and tests…"
+echo "[pre-push] @nodepress-cms/client build, types and tests…"
 ( cd "$ROOT/client" && npm test --silent )
 
 echo "[pre-push] production dependency audit (all workspaces)…"

@@ -1,4 +1,4 @@
-import { createClient } from '@nodepress/client';
+import { createClient } from '@nodepress-cms/client';
 
 // Read at runtime on the server (Nuxt loads .env in dev).
 export const cmsConfig = {

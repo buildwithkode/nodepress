@@ -17,7 +17,7 @@
     "saveFirst": "Enregistrez l'entrée pour la voir dans l'aperçu en direct.",
     "invalidUrl": "L'URL d'aperçu de ce type de contenu n'est pas une URL http(s) valide. Corrigez-la dans les paramètres du type de contenu.",
     "frameTitle": "Aperçu en direct de {slug}",
-    "hint": "Vos modifications sont envoyées à la page pendant la saisie. Les pages qui utilisent @nodepress/client/preview se mettent à jour sans rechargement ; cliquez sur un élément encadré pour aller à son champ."
+    "hint": "Vos modifications sont envoyées à la page pendant la saisie. Les pages qui utilisent @nodepress-cms/client/preview se mettent à jour sans rechargement ; cliquez sur un élément encadré pour aller à son champ."
   },
   "settings": {
     "label": "URL d'aperçu",

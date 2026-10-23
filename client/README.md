@@ -1,14 +1,14 @@
-# @nodepress/client
+# @nodepress-cms/client
 
 A small, typed client for the [NodePress](https://github.com/buildwithkode/nodepress) public API. No dependencies — it only needs `fetch` (Node 18+, browsers, Deno, Bun, edge runtimes).
 
 ```bash
-npm install @nodepress/client
+npm install @nodepress-cms/client
 npx nodepress generate:types   # optional: TypeScript types for your content types
 ```
 
 ```ts
-import { createClient } from '@nodepress/client';
+import { createClient } from '@nodepress-cms/client';
 import type { NodePressContentTypes } from './types/nodepress';
 
 const cms = createClient<NodePressContentTypes>({ url: 'https://cms.example.com' });
@@ -63,7 +63,7 @@ frame, and clicking an element in the frame jumps to its field. `{token}` is a 1
 it expires.
 
 ```ts
-import { onPreviewUpdate, enableClickToEdit } from '@nodepress/client/preview';
+import { onPreviewUpdate, enableClickToEdit } from '@nodepress-cms/client/preview';
 
 const adminOrigin = 'https://cms.example.com'; // where the NodePress admin runs
 

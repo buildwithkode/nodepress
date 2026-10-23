@@ -50,7 +50,7 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/buildwithkode/nodepress)
 
-**From your frontend:** `npm install @nodepress/client` — see [client/README.md](client/README.md). **From AI assistants:** `npx create-nodepress-app mcp` (MCP server).
+**From your frontend:** `npm install @nodepress-cms/client` — see [client/README.md](client/README.md). **From AI assistants:** `npx create-nodepress-app mcp` (MCP server).
 
 ---
 
@@ -85,7 +85,7 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | Feature | What it does |
 |---|---|
 | **TypeScript Codegen** | Run `npx nodepress generate:types` to generate 100% type-safe TypeScript interfaces |
-| **`@nodepress/client`** | Typed, dependency-free JS/TS client — lists, entries, GraphQL, forms, image URLs, live preview |
+| **`@nodepress-cms/client`** | Typed, dependency-free JS/TS client — lists, entries, GraphQL, forms, image URLs, live preview |
 | **Starter sites** | Next.js, Astro and Nuxt starters in `starters/` |
 | **OpenAPI 3.1** | `/api/openapi.json` describes your own content types — generate clients with any OpenAPI tool |
 | **Schema as code** | `schema:pull` / `schema:diff` / `schema:push` keep the content model in git and check it in CI |

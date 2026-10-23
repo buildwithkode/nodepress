@@ -21,7 +21,7 @@ Content changes need a rebuild: add a NodePress webhook on entry publish/update
 that calls your host's deploy hook. For drafts and live preview, see the Next.js starter — a static
 site has no server to unlock drafts with a preview token.
 
-## `@nodepress/client`
+## `@nodepress-cms/client`
 
-`package.json` uses the npm package (`"@nodepress/client": "^1.7.0"`). To try changes from a NodePress
+`package.json` uses the npm package (`"@nodepress-cms/client": "^1.7.0"`). To try changes from a NodePress
 checkout instead, point it at `"file:/path/to/nodepress/client"` and run `npm run build` in `client/` first.

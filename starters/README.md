@@ -1,6 +1,6 @@
 # NodePress starter frontends
 
-Minimal blogs that read a NodePress content type with [`@nodepress/client`](../client). Copy one
+Minimal blogs that read a NodePress content type with [`@nodepress-cms/client`](../client). Copy one
 out of this folder to start a site.
 
 | Starter | Framework | Rendering | Extras |
@@ -35,9 +35,9 @@ Fields are read from `title`, `excerpt`, `body` (richtext), `cover` (image) and 
 (relation), with common alternatives (`content`, `image`, `name`, …) — edit `post.ts` in the
 starter for your own schema.
 
-## `@nodepress/client`
+## `@nodepress-cms/client`
 
-The starters depend on the npm package, `"@nodepress/client": "^1.7.0"`, so a copied starter works
+The starters depend on the npm package, `"@nodepress-cms/client": "^1.7.0"`, so a copied starter works
 anywhere. To try unreleased client changes, point it at a NodePress checkout instead
 (`"file:/path/to/nodepress/client"`, run `npm run build` in `client/` first).
 
