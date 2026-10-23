@@ -58,9 +58,14 @@ echo "[pre-push] production dependency licences…"
 # NodePress is MIT and EcommPress is sold: no GPL/AGPL/unknown licence may ship.
 node "$ROOT/scripts/check-licenses.js"
 
+echo "[pre-push] dependency install scripts reviewed…"
+# npm 12 blocks dependency install scripts not covered by allowScripts in the
+# root package.json — every package with one needs an explicit decision.
+node "$ROOT/scripts/check-install-scripts.js"
+
 echo "[pre-push] version consistency…"
 # Catches manifests disagreeing, a version listed twice in CHANGELOG.md, or
 # entries out of order — how 1.3.0 shipped twice, after 1.4.0 and 1.5.0.
 node "$ROOT/scripts/check-versions.js"
 
-echo "[pre-push] ✓ type-checks · unit tests · audit · Docker lockfiles · licences · versions passed"
+echo "[pre-push] ✓ type-checks · unit tests · audit · Docker lockfiles · licences · install scripts · versions passed"

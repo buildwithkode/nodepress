@@ -164,7 +164,7 @@ psql --version # v14 or higher? → skip Step 3 (or use Docker)"></div>
             <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
               <strong>Already installed?</strong> Run <code class="text-pink-400 bg-zinc-800 px-1 rounded">node -v</code> — if it shows <code class="text-pink-400 bg-zinc-800 px-1 rounded">v18</code> or higher, skip to Step 2.
             </div>
-            <p class="text-sm text-zinc-400">Node.js is the engine that runs NodePress. Download and install version 18 or newer (LTS recommended).</p>
+            <p class="text-sm text-zinc-400">Node.js is the engine that runs NodePress. Download and install version 18 or newer (LTS recommended). npm 12 works too (it needs Node 22.22+, 24.15+ or 26+): it only runs the dependency install scripts listed under <code class="text-pink-400 bg-zinc-800 px-1 rounded">allowScripts</code> in the root <code class="text-pink-400 bg-zinc-800 px-1 rounded">package.json</code>, which NodePress fills in.</p>
             <a href="https://nodejs.org" target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 text-sm text-blue-400 border border-blue-500/30 rounded-lg px-4 py-2 hover:bg-blue-500/10 transition-colors">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               Download Node.js from nodejs.org

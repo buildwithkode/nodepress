@@ -12,6 +12,9 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Changed
+- **Ready for npm 12.** npm 12 stops running dependency install scripts unless `allowScripts` in the project's `package.json` allows them. NodePress was tested on a clean npm 12 install with every script blocked (all 381 e2e tests, the admin production build, and standalone `backend/` and `frontend/` installs as the Docker images do them): bcrypt loads its bundled binaries (glibc and musl) and `prisma generate` — NodePress's own postinstall — fetches the engines. The root `package.json` now records a decision for each of the 11 dependencies with scripts (allowed: `bcrypt`, `@sentry/cli`, `@sentry/node-cpu-profiler`, `@parcel/watcher`; not needed: the Prisma packages, `fsevents`, `unrs-resolver`, `@apollo/protobufjs`, `@scarf/scarf`), so npm 12 installs finish without warnings. `scripts/check-install-scripts.js` (pre-push) fails when a dependency with an install script has no decision.
+
 ---
 
 ## [1.7.0] — 2026-10-23

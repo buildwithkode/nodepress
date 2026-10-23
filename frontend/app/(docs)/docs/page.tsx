@@ -350,6 +350,11 @@ git --version  # any version?   → skip Step 2`} />
                 <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300">
                   <strong>Already installed?</strong> Run <IC>node -v</IC> in your terminal. If it shows <IC>v18</IC> or higher — skip to Step 2.
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  npm 12 works too (it needs Node <IC>22.22+</IC>, <IC>24.15+</IC> or <IC>26+</IC>): it only runs the dependency install
+                  scripts listed under <IC>allowScripts</IC> in the root <IC>package.json</IC>, and NodePress lists its own. If you add a
+                  dependency with an install script, approve or deny it with <IC>npx npm approve-scripts</IC>.
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Node.js is the engine that runs NodePress. Download and install version 18 or newer.
                 </p>

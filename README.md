@@ -181,7 +181,7 @@ You need three things. **Already have them? Jump to [Quick Start](#get-running-i
 ```bash
 node -v   # must show v18 or higher
 ```
-Download from [nodejs.org](https://nodejs.org) — install the LTS version.
+Download from [nodejs.org](https://nodejs.org) — install the LTS version. npm 12 (bundled with newer Node releases) needs Node.js 22.22+, 24.15+ or 26+; NodePress installs cleanly with it.
 
 **2. Git**
 ```bash

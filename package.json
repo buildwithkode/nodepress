@@ -23,6 +23,19 @@
     "restore": "node scripts/backup.js restore",
     "install:all": "npm install"
   },
+  "allowScripts": {
+    "bcrypt": true,
+    "@sentry/cli": true,
+    "@sentry/node-cpu-profiler": true,
+    "@parcel/watcher": true,
+    "prisma": false,
+    "@prisma/client": false,
+    "@prisma/engines": false,
+    "fsevents": false,
+    "unrs-resolver": false,
+    "@apollo/protobufjs": false,
+    "@scarf/scarf": false
+  },
   "workspaces": [
     "backend",
     "frontend",

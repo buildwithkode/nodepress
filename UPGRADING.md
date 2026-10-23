@@ -52,6 +52,16 @@ in one transaction, so a failed restore leaves the database as it was.
 
 ---
 
+## npm 12
+
+Nothing to do: NodePress installs and runs with npm 12's install-script
+blocking (the root `package.json` lists which dependency scripts may run).
+npm 12 itself needs Node.js `^22.22.2`, `^24.15.0` or `>=26` — upgrade Node
+before npm. If you add a dependency with an install script, decide it with
+`npx npm approve-scripts <pkg>` (or add `"<pkg>": true|false` to
+`allowScripts`) — the pre-push check fails until you do. Keep the list in the
+root `package.json`; npm ignores it in `backend/` and `frontend/`.
+
 ## 1.7.0 (from 1.6.x)
 
 **Action required**
