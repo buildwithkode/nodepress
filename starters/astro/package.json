@@ -10,7 +10,7 @@
     "preview": "astro preview --port 4321"
   },
   "dependencies": {
-    "@nodepress/client": "file:../../client",
+    "@nodepress/client": "^1.7.0",
     "astro": "7.3.5",
     "sanitize-html": "2.18.1"
   },

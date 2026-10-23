@@ -314,7 +314,7 @@ export default function DocsPage() {
           {/* Hero */}
           <div className="mb-14">
             <div className="flex items-center gap-2 mb-4 flex-wrap">
-              {['v1.7 (next)', 'Self-hosted', 'REST API', 'GraphQL', 'Real-time', 'i18n', 'MIT License'].map((t) => (
+              {['v1.7', 'Self-hosted', 'REST API', 'GraphQL', 'Real-time', 'i18n', 'MIT License'].map((t) => (
                 <span key={t} className="text-[11px] px-2 py-0.5 rounded-full border border-border text-muted-foreground">{t}</span>
               ))}
             </div>
@@ -3380,9 +3380,9 @@ if (isInPreviewFrame()) {
 cp .env.example .env     # NODEPRESS_URL (the backend), NODEPRESS_TYPE=blog, NODEPRESS_POPULATE=author, NODEPRESS_API_KEY (optional)
 npm install && npm run dev`} />
             <p className="text-muted-foreground text-xs mt-2">
-              Starters aren&apos;t workspaces and ship without lockfiles. They depend on <IC>@nodepress/client</IC> via{' '}
-              <IC>file:../../client</IC> — after copying one elsewhere, point that at your NodePress checkout&apos;s <IC>client/</IC>{' '}
-              (built with <IC>npm run build</IC>).
+              Starters aren&apos;t workspaces and ship without lockfiles. They depend on the published <IC>@nodepress/client</IC>{' '}
+              (<IC>^1.7.0</IC>), so a copied starter works anywhere; to try unreleased client changes, point it at a NodePress
+              checkout&apos;s <IC>client/</IC> (built with <IC>npm run build</IC>).
             </p>
           </Section>
 

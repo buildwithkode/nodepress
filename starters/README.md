@@ -35,11 +35,10 @@ Fields are read from `title`, `excerpt`, `body` (richtext), `cover` (image) and 
 (relation), with common alternatives (`content`, `image`, `name`, …) — edit `post.ts` in the
 starter for your own schema.
 
-## `@nodepress/client` is not on npm yet
+## `@nodepress/client`
 
-The starters depend on `"@nodepress/client": "file:../../client"`, the package in this repo.
-That path only works while the starter sits in `starters/`. When you copy one elsewhere, either
-point it at your NodePress checkout (`"file:/path/to/nodepress/client"`, run `npm run build` in
-`client/` first) or, once the package is published, switch to `"@nodepress/client": "^1"`.
+The starters depend on the npm package, `"@nodepress/client": "^1.7.0"`, so a copied starter works
+anywhere. To try unreleased client changes, point it at a NodePress checkout instead
+(`"file:/path/to/nodepress/client"`, run `npm run build` in `client/` first).
 
 Starters are not npm workspaces of this repo and ship without lockfiles.

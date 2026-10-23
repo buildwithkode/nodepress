@@ -23,6 +23,5 @@ site has no server to unlock drafts with a preview token.
 
 ## `@nodepress/client`
 
-Not on npm yet: `package.json` uses `"file:../../client"` (the package in the NodePress repo — run
-`npm run build` in `client/` first). Outside the repo, point it at your checkout or switch to the
-npm version once it's published.
+`package.json` uses the npm package (`"@nodepress/client": "^1.7.0"`). To try changes from a NodePress
+checkout instead, point it at `"file:/path/to/nodepress/client"` and run `npm run build` in `client/` first.

@@ -52,7 +52,7 @@ in one transaction, so a failed restore leaves the database as it was.
 
 ---
 
-## Unreleased (next release)
+## 1.7.0 (from 1.6.x)
 
 **Action required**
 

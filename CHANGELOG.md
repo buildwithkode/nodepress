@@ -12,6 +12,10 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+---
+
+## [1.7.0] — 2026-10-23
+
 ### Added
 - **Field data migrations.** Renaming a field moves its values in every existing entry; changing a field's type can convert the stored values (text ↔ number/boolean/richtext/select, single ↔ multiple select — values that can't be converted are removed and counted); removing a field can delete its stored values. Data and schema change in one transaction, reverse relation fields on other types follow a renamed field, and the content type editor shows what will happen before saving. `PUT /api/content-types/:id` takes `fieldMigrations: { renames, convert, drop }` with field paths — `title`, `seo.meta_title` (a group or repeater sub-field, every row) or `blocks.hero.heading` (a flexible layout's field); `POST /api/content-types/:id/schema-impact` previews it and lists removed nested fields. Renaming a component's field migrates the data in every content type using it (`fieldMigrations` on `PUT /api/components/:id`). Retyped fields that aren't converted now produce a warning.
 - **Conditional fields.** `condition: { field, op, value }` (`eq`, `ne`, `in`, `notIn`, `set`, `notSet`) shows a field only when a field next to it matches — at the top level and inside repeater rows, groups and flexible blocks. Hidden fields are never required (API and entry editor). Set it with **Show only if…** in the content type editor.

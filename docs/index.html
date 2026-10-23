@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-version="1.7.0-dev">
+<html lang="en" data-version="1.7.0">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -49,7 +49,7 @@
         <span class="text-zinc-400 text-sm">Documentation</span>
       </div>
       <div class="flex items-center gap-4">
-        <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">v1.7 (next)</span>
+        <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">v1.7.0</span>
         <a href="https://github.com/buildwithkode/nodepress" target="_blank" class="text-zinc-400 hover:text-white text-sm transition-colors flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
           GitHub
@@ -116,7 +116,7 @@
       <!-- Hero -->
       <div class="mb-14">
         <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">v1.7 (next)</span>
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">v1.7.0</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Self-hosted</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">REST + GraphQL</span>
           <span class="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400">Real-time WebSockets</span>
@@ -128,7 +128,7 @@
           An enterprise-grade, self-hosted headless content management system. Design flexible schemas, manage multi-environment workflows, upload assets, and consume content through auto-generated REST APIs, GraphQL, and real-time WebSockets.
         </p>
         <div class="mt-5 rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-xs text-zinc-300">
-          <strong class="text-blue-400">Docs for the next NodePress release (1.7, in development on <code>main</code>).</strong>
+          <strong class="text-blue-400">Docs for NodePress 1.7.</strong>
           New in 1.7: <a href="#schema-changes" class="text-blue-400 hover:underline">field data migrations</a>, <a href="#field-types" class="text-blue-400 hover:underline">conditional fields</a>, <a href="#components" class="text-blue-400 hover:underline">reusable components</a>, <a href="#team" class="text-blue-400 hover:underline">custom roles</a>, the <a href="#wordpress-import" class="text-blue-400 hover:underline">WordPress importer</a>, <a href="#openapi" class="text-blue-400 hover:underline">OpenAPI + Swagger UI</a>, <a href="#schema-cli" class="text-blue-400 hover:underline">schema:pull/diff/push</a>, <a href="#live-preview" class="text-blue-400 hover:underline">live preview</a>, <a href="#starters" class="text-blue-400 hover:underline">framework starters</a>, <a href="#redirects" class="text-blue-400 hover:underline">redirects</a> and the <a href="#plugins" class="text-blue-400 hover:underline">plugin directory</a>. The admin panel in your install has the same docs at <code class="text-pink-400 bg-zinc-800 px-1 rounded">/docs</code>.
         </div>
       </div>
@@ -1401,7 +1401,7 @@ if (isInPreviewFrame()) {
         <div class="code-block" data-code="cp -R starters/nextjs ../my-site &amp;&amp; cd ../my-site
 cp .env.example .env    # NODEPRESS_URL, NODEPRESS_TYPE, NODEPRESS_POPULATE, NODEPRESS_API_KEY
 npm install &amp;&amp; npm run dev"></div>
-        <p class="text-zinc-400 leading-relaxed mb-0">Not workspaces, no lockfiles; they depend on <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">file:../../client</code> — repoint it after copying.</p>
+        <p class="text-zinc-400 leading-relaxed mb-0">Not workspaces, no lockfiles; they depend on the published <code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">@nodepress/client</code> (<code class="text-pink-400 bg-zinc-800 px-1 rounded text-xs">^1.7.0</code>), so a copied starter works anywhere.</p>
       </section>
 
       <!-- Schema as Code (CLI) -->
