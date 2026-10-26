@@ -2,7 +2,7 @@
 title: Webhooks
 description: Send signed HTTP notifications to other services when content changes, with retries, a delivery log and manual re-delivery.
 sidebar:
-  order: 7
+  order: 8
 ---
 
 A webhook sends an HTTP `POST` to a URL of yours when something happens in NodePress: an entry is published, a file is uploaded, a release goes out. Use them to rebuild a static site, sync a search index, or notify a chat channel. Deliveries are queued, signed if you set a secret, and retried when your endpoint fails.

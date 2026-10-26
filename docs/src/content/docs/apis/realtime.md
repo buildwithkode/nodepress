@@ -2,7 +2,7 @@
 title: Real-time events
 description: Receive live entry and media events over Socket.io, and use entry presence and edit locks.
 sidebar:
-  order: 6
+  order: 7
 ---
 
 NodePress pushes events over [Socket.io](https://socket.io) when entries and media change. The admin uses them to refresh lists live and to show who else is editing an entry. You can connect from your own tools too, for example a dashboard or a script that reacts to new uploads.
