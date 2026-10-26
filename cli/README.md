@@ -20,9 +20,22 @@ By default the project is scaffolded for a **local PostgreSQL** database — Doc
 | Flag | Effect |
 |---|---|
 | `--docker` | Include the Docker setup (`docker-compose*.yml`, `nginx/`, `monitoring/`, `docker:*` scripts). |
+| `--no-install` | Skip `npm install` — run it yourself afterwards. |
 | `--sentry` | Include [Sentry](https://sentry.io) error tracking (`@sentry/nestjs`, `@sentry/profiling-node`, `@sentry/nextjs` — ~100 MB). **Off by default**: scaffolds omit these packages and ship no error-tracking code, so the install is smaller. With the flag, set `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` to activate. |
 
 Flags can be combined: `npx create-nodepress-app my-project --docker --sentry`.
+
+## Upgrading a project
+
+Commit your work, then from the project folder:
+
+```bash
+npx create-nodepress-app upgrade --dry-run   # preview (default target: the latest release)
+npx create-nodepress-app upgrade             # or: upgrade 1.8.0
+npm install && cd backend && npx prisma migrate deploy
+```
+
+Your own edits are kept, and lines that both you and NodePress changed get conflict markers. Files your project doesn't have are skipped and listed. Projects created before `nodepress.json` existed add `--from <version>` once (the version in `backend/package.json`).
 
 ---
 
@@ -125,19 +138,20 @@ That's it — NodePress is running!
 
 ## What the CLI does automatically
 
-1. Downloads NodePress from GitHub into a new folder
+1. Downloads the latest NodePress release from GitHub into a new folder
 2. Removes dev-only files (`.claude`, `cli/`, `docs/`, `.github/`, etc.)
 3. Without `--docker`, also removes the Docker files (`docker-compose*.yml`, `nginx/`, `monitoring/`) and the `docker:*` scripts
 4. Without `--sentry`, removes the Sentry packages (`@sentry/*`) and config files, and swaps the client error reporter for a no-op (~100 MB lighter, no error-tracking code)
-5. Generates a fresh git repository
+5. Generates a fresh git repository with NodePress as the `nodepress` remote, and records the release in `nodepress.json` (used by `upgrade`)
 6. Creates `backend/.env` and `frontend/.env.local` with random secret keys (plus a root `.env` for Docker Compose when `--docker` is used)
 7. Generates a workspace-enabled root `package.json` and runs a single `npm install` (installs backend + frontend together via npm workspaces)
+8. Makes the first commit
 
 ---
 
 ## Links
 
-- Full docs: [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com/)
+- Full docs: [nodepress-docs.vercel.app](https://nodepress-docs.vercel.app/)
 - Website: [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com)
 - GitHub: [github.com/buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)
 - Issues: [github.com/buildwithkode/nodepress/issues](https://github.com/buildwithkode/nodepress/issues)

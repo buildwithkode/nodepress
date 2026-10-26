@@ -13,6 +13,7 @@ const schemaCommand = argv.find((a) => /^schema:(pull|diff|push)$/.test(a));
 const opts = {
   docker: flags.includes('--docker'),
   sentry: flags.includes('--sentry'),
+  install: !flags.includes('--no-install'),
   out: outValue,
 };
 
@@ -23,6 +24,9 @@ const HELP = `
     npx nodepress <project-name>                      Scaffold a new NodePress project (local PostgreSQL)
     npx nodepress <project-name> --docker             Scaffold with Docker (Postgres + Redis + nginx)
     npx nodepress <project-name> --sentry             Include Sentry error tracking
+    npx nodepress <project-name> --no-install         Skip npm install (run it yourself later)
+    npx nodepress upgrade [version] [--dry-run]       Update this project's code to a newer release (default: latest)
+    npx nodepress upgrade --from <version>            First upgrade of a project created before nodepress.json existed
     npx nodepress generate:types [--out <path>]       Generate TypeScript interfaces from Content Types
     npx nodepress plugin keygen [--out <key.pem>]     Create a key for signing plugin packages
     npx nodepress plugin pack [dir] [--key <key.pem>] Zip (and sign) a built plugin for Plugins → Upload
@@ -53,6 +57,8 @@ if (flags.includes('--version') || flags.includes('-v')) {
 } else if (schemaCommand) {
   // Flags may come before or after the command: --url/--token/--file/--out/--yes.
   require('../src/schema')(schemaCommand, argv.filter((a, i) => i !== argv.indexOf(schemaCommand)));
+} else if (positionals[0] === 'upgrade') {
+  require('../src/upgrade')(argv.slice(argv.indexOf('upgrade') + 1));
 } else if (positionals[0] === 'plugin') {
   require('../src/plugin')(argv.slice(argv.indexOf('plugin') + 1));
 } else if (positionals[0] === 'generate:types' || positionals[0] === 'types' || positionals[0] === 'generate-types') {

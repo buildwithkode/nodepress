@@ -4,8 +4,9 @@ const { execSync, spawnSync } = require('child_process');
 const { randomBytes } = require('crypto');
 const fs = require('fs');
 const path = require('path');
-
-const REPO_URL = 'https://github.com/buildwithkode/nodepress.git';
+const {
+  REPO_URL, PROJECT_FILE, DEV_ONLY, DOCKER_ONLY, SENTRY_FILES, SENTRY_REPORTER, skipList, latestRelease,
+} = require('./release');
 
 // ANSI colours (degrade gracefully if not supported)
 const c = {
@@ -53,6 +54,7 @@ function removeDeps(pkgPath, names) {
 module.exports = async function createProject(name, opts = {}) {
   const useDocker = opts.docker === true;
   const useSentry = opts.sentry === true;
+  const install = opts.install !== false;
 
   // ── Validate name ──────────────────────────────────────────────────────────
   if (!name) {
@@ -79,51 +81,35 @@ module.exports = async function createProject(name, opts = {}) {
   if (!hasNode) { warn('Node.js 18+ is required.'); process.exit(1); }
   if (!hasGit)  { warn('Git is required. Install from https://git-scm.com'); process.exit(1); }
 
-  // ── Clone repository ───────────────────────────────────────────────────────
-  info(`Cloning NodePress into ./${safeName} …`);
-  const cloneResult = run(`git clone --depth 1 ${REPO_URL} "${safeName}"`, process.cwd(), 'inherit');
+  // ── Clone the latest release ───────────────────────────────────────────────
+  // A release tag, not main: `upgrade` diffs the project's release against the
+  // next one, so the project must start on a tag.
+  const release = latestRelease(REPO_URL);
+  if (!release) warn('No release tags found — using the main branch. `upgrade` will need --from later.');
+  info(`Cloning NodePress ${release || '(main)'} into ./${safeName} …`);
+  const branch = release ? `--branch ${release} ` : '';
+  const cloneResult = run(`git clone --depth 1 ${branch}${REPO_URL} "${safeName}"`, process.cwd(), 'inherit');
   if (cloneResult.status !== 0) {
     warn('Clone failed. Check your internet connection or the repository URL.');
     process.exit(1);
   }
   ok('Repository cloned');
 
-  // Remove git history (this is a fresh project, not a fork)
+  // Remove git history (this is a fresh project, not a fork). The `nodepress`
+  // remote stays so `upgrade` can fetch later releases.
   fs.rmSync(path.join(projectDir, '.git'), { recursive: true, force: true });
   run(`git init`, projectDir);
+  run(`git remote add nodepress ${REPO_URL}`, projectDir);
   ok('Fresh git repository initialized');
 
   // ── Remove dev-only files (not needed in a user project) ───────────────────
-  const devOnly = [
-    '.claude',              // Claude Code AI config
-    'CLAUDE.md',            // Claude Code instructions
-    'cli',                  // The CLI tool itself
-    'specs',                // Internal architecture specifications
-    'scripts',              // Internal release scripts
-    'docs',                 // NodePress GitHub Pages site
-    'CHANGELOG.md',         // NodePress version history
-    'CODE_OF_CONDUCT.md',   // NodePress open source conduct file
-    'CONTRIBUTING.md',      // NodePress contributor guide
-    '.githooks',            // Internal pre-push & commit githooks
-    '.github',              // NodePress CI/CD workflows and issue templates
-    'backend/test',         // Internal E2E integration test suites
-    'backend/scripts',      // Internal benchmark & stress test scripts
-    'package-lock.json',    // Root lockfile (regenerated for the fresh root package.json)
-    'node_modules',
-  ];
-  for (const entry of devOnly) {
+  for (const entry of DEV_ONLY) {
     fs.rmSync(path.join(projectDir, entry), { recursive: true, force: true });
   }
 
   // ── Docker files — keep only when --docker is requested ────────────────────
   if (!useDocker) {
-    const dockerOnly = [
-      'docker-compose.yml',
-      'docker-compose.prod.yml',
-      'nginx',         // reverse-proxy config (Docker production only)
-      'monitoring',    // Prometheus/Grafana stack (Docker only)
-    ];
-    for (const entry of dockerOnly) {
+    for (const entry of DOCKER_ONLY) {
       fs.rmSync(path.join(projectDir, entry), { recursive: true, force: true });
     }
   }
@@ -134,11 +120,7 @@ module.exports = async function createProject(name, opts = {}) {
   // leaves a project that builds and runs cleanly with error tracking disabled.
   if (!useSentry) {
     // 1. Drop the pure-Sentry frontend config files (they statically import the SDK).
-    for (const f of [
-      'frontend/sentry.server.config.ts',
-      'frontend/sentry.client.config.ts',
-      'frontend/sentry.edge.config.ts',
-    ]) {
+    for (const f of SENTRY_FILES) {
       fs.rmSync(path.join(projectDir, f), { force: true });
     }
     // 2. Replace the client error reporter with a no-op — removes the last static
@@ -149,11 +131,20 @@ module.exports = async function createProject(name, opts = {}) {
       '// restore the dynamic import in this file.\n' +
       '// eslint-disable-next-line @typescript-eslint/no-unused-vars\n' +
       'export function reportError(error: unknown, context?: Record<string, unknown>) {}\n';
-    fs.writeFileSync(path.join(projectDir, 'frontend', 'lib', 'report-error.ts'), noopReporter, 'utf8');
+    fs.writeFileSync(path.join(projectDir, SENTRY_REPORTER), noopReporter, 'utf8');
     // 3. Remove the Sentry packages from both workspaces' dependencies.
     removeDeps(path.join(projectDir, 'backend', 'package.json'), ['@sentry/nestjs', '@sentry/profiling-node']);
     removeDeps(path.join(projectDir, 'frontend', 'package.json'), ['@sentry/nextjs']);
   }
+
+  // ── Record the release (read by `upgrade`) ─────────────────────────────────
+  const project = {
+    version: release ? release.slice(1) : null,
+    ref: release || 'main',
+    repository: REPO_URL,
+    skip: skipList({ docker: useDocker, sentry: useSentry }),
+  };
+  fs.writeFileSync(path.join(projectDir, PROJECT_FILE), JSON.stringify(project, null, 2) + '\n', 'utf8');
 
   // ── Generate secrets ───────────────────────────────────────────────────────
   const dbPassword = secret(24);
@@ -260,9 +251,18 @@ module.exports = async function createProject(name, opts = {}) {
   // and a common "stuck after install" hang on filtered/slow networks);
   // --no-fund drops the funding scan. Both shave time and noise — security
   // auditing belongs in CI, not the scaffold step.
-  info('Installing dependencies (backend + frontend) — this takes 1–2 min …');
-  run('npm install --no-audit --no-fund', projectDir, 'inherit');
-  ok('Dependencies installed');
+  if (install) {
+    info('Installing dependencies (backend + frontend) — this takes 1–2 min …');
+    run('npm install --no-audit --no-fund', projectDir, 'inherit');
+    ok('Dependencies installed');
+  }
+
+  // ── First commit — `upgrade` needs a clean tree to start from ──────────────
+  // .gitignore keeps the generated .env files and node_modules out.
+  run('git add -A', projectDir);
+  const commit = run(`git commit -q -m "Create NodePress project (${release || 'main'})"`, projectDir);
+  if (commit.status === 0) ok('First commit created');
+  else warn('Could not create the first commit (is git user.name/user.email set?) — commit the project yourself before upgrading.');
 
   // ── Done ───────────────────────────────────────────────────────────────────
   log('');
@@ -277,6 +277,7 @@ module.exports = async function createProject(name, opts = {}) {
     log(`  ${c.bold}Next steps (Docker — no local PostgreSQL needed):${c.reset}`);
     log('');
     log(`    cd ${safeName}`);
+    if (!install) log(`    npm install`);
     log(`    docker-compose up -d             ${c.dim}# starts PostgreSQL + Redis${c.reset}`);
     log(`    npm run migrate                  ${c.dim}# create DB tables${c.reset}`);
     log(`    npm run dev                      ${c.dim}# backend :3000 + admin panel :5173${c.reset}`);
@@ -289,6 +290,7 @@ module.exports = async function createProject(name, opts = {}) {
     log('');
     log(`  ${c.yellow}2.${c.reset} Run migrations and start both servers:`);
     log(`     cd ${safeName}`);
+    if (!install) log(`     npm install`);
     log(`     npm run migrate                  ${c.dim}# create DB tables${c.reset}`);
     log(`     npm run dev                      ${c.dim}# backend :3000 + admin panel :5173${c.reset}`);
     log('');
@@ -300,6 +302,7 @@ module.exports = async function createProject(name, opts = {}) {
   log(`  ${c.cyan}API docs:${c.reset}     http://localhost:3000/api/docs`);
   log(`  ${c.cyan}Health check:${c.reset} http://localhost:3000/api/health`);
   log('');
+  log(`  ${c.dim}Upgrade later:${c.reset} npx create-nodepress-app upgrade`);
   log(`  ${c.dim}Docs: https://nodepress.buildwithkode.com${c.reset}`);
   log('');
 };

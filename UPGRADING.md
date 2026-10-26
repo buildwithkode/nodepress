@@ -12,18 +12,26 @@ for every version between yours and the target before you start.
 
 ```bash
 npm run backup                 # 1. database + uploads → backups/nodepress-<time>.tar.gz
-git pull                       # 2. new code (or download the release)
+npx create-nodepress-app upgrade   # 2. new code — commit first; --dry-run to preview
 npm install                    # 3. dependencies (also regenerates the Prisma client)
 cd backend && npx prisma migrate deploy && cd ..   # 4. database migrations
 npm run build                  # 5. backend + frontend
 # 6. restart your process manager (pm2 / systemd / …)
 ```
 
+A project made with `create-nodepress-app` has its own git history, so step 2
+applies the release's changes to your code instead of pulling: your edits are
+kept, and lines you and NodePress both changed get conflict markers to resolve.
+Projects created before `nodepress.json` existed add `--from <version>` once.
+A clone of the NodePress repository itself can still `git pull`. A scaffolded
+project has no `npm run backup` script; use `pg_dump` and copy
+`backend/uploads/` instead.
+
 ### Docker
 
 ```bash
 npm run backup                 # or rely on the nightly backup container
-git pull
+npx create-nodepress-app upgrade   # or git pull in a clone of the repository
 docker compose build
 docker compose up -d           # the backend applies migrations on start
 ```
