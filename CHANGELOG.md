@@ -17,12 +17,19 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **Components section in the editors.** Fields that come from a component (as a group, repeater or inline) are listed in their own Components section of the content type editor, below the ordinary fields, and shown as titled, foldable boxes in the entry editor. Display only: the entry JSON is unchanged.
 
 ### Changed
+- **New projects start on the latest release and can be upgraded.** `create-nodepress-app` clones the newest `vX.Y.Z` tag instead of `main`, keeps NodePress as the `nodepress` git remote, records the release in `nodepress.json` and makes the first commit. `npx create-nodepress-app upgrade [version]` (`--dry-run` to preview) applies the changes between the project's release and the target to the code with a three-way merge, so your edits survive and overlaps become conflict markers; it skips files a project doesn't carry and points out root `package.json` changes. Older projects run it once with `--from <version>`. The old README advice (`git pull`) never worked for scaffolded projects, which have no NodePress history. `--no-install` skips the scaffold's `npm install`.
 - **Sitemap leaves out private content types.** A content type whose `allowedMethods` doesn't include `read` no longer has its entries listed in `/api/sitemap.xml` (and one without `list` loses its list page) — their slugs were advertised even though the public API refused them.
 - **Raw request body for webhooks.** The JSON parser keeps the body as received on `req.rawBody` (`common/raw-body.ts`), so plugins can verify signed webhooks (Razorpay, Stripe, …) against the exact bytes.
 - **The JS client is published as `@nodepress-cms/client`** (the `@nodepress` npm scope belongs to someone else): `npm install @nodepress-cms/client`, `import { createClient } from "@nodepress-cms/client"` and `"@nodepress-cms/client/preview"`. The starters use the new name. Nothing was published under the old name.
 - **Ready for npm 12.** npm 12 stops running dependency install scripts unless `allowScripts` in the project's `package.json` allows them. NodePress was tested on a clean npm 12 install with every script blocked (all 381 e2e tests, the admin production build, and standalone `backend/` and `frontend/` installs as the Docker images do them): bcrypt loads its bundled binaries (glibc and musl) and `prisma generate` — NodePress's own postinstall — fetches the engines. The root `package.json` now records a decision for each of the 11 dependencies with scripts (allowed: `bcrypt`, `@sentry/cli`, `@sentry/node-cpu-profiler`, `@parcel/watcher`; not needed: the Prisma packages, `fsevents`, `unrs-resolver`, `@apollo/protobufjs`, `@scarf/scarf`), so npm 12 installs finish without warnings. `scripts/check-install-scripts.js` (pre-push) fails when a dependency with an install script has no decision.
 
 ### Security
+- **Two-factor sign-in could be skipped.** The 5-minute token `POST /auth/login` returns after the password step (`purpose: "2fa_pending"`) was accepted as a full access token, so a password alone was enough. Every place that takes a Bearer token (the JWT strategy, the public write API, draft reads, GraphQL, realtime) now accepts only access tokens; the 2FA, OIDC-state and preview tokens are refused.
+- **Content type schemas are no longer public.** `GET /api/content-types` and `/:id` returned every schema to anonymous callers, private types included. Anonymous callers now get the public view (types open to the public API, without `readRoles` fields or `previewUrl` — what OpenAPI already showed); signed-in users see everything. `/:id/form` needs a login.
+- **GraphQL code-first queries leaked private content.** Anonymous `entry(id)` returned drafts, anonymous `entries` included private types, and `contentTypes`/`contentType` exposed every schema. Anonymous callers now get published entries of public types (relations resolve published entries only) and the public schema view. The optional GraphQL login now goes through the JWT strategy, so `req.user` has the user's role.
+- **Forms are for admins and editors.** Any signed-in user, viewers included, could create, edit and delete forms (with their email and webhook actions) and read submissions. The forms admin API now requires admin or editor, and the admin hides Forms from other roles. The public submit endpoint is unchanged.
+- **The media library list needs a login** (`GET /api/media` was public). Image URLs and `/transform` stay public.
+- **Open redirect in draft mode.** The admin's `/api/draft` and `/api/disable-draft` redirected to any `?redirect=` URL; they now accept only paths on the same site.
 - Dependency updates for new advisories: `multer` 2.5.0 (override — `@nestjs/platform-express` pins 2.4.0), `zod` 4.6.7 (memory exhaustion on oversized collections; all of v3 is affected), `body-parser` 2.4.0, `nodemailer` 10.2.1 and `fast-uri` 3.1.9. The zod 3 → 4 change only touched `z.record()` in the plugin manifest schema.
 
 ### Fixed
@@ -363,12 +370,12 @@ Applies:
 
 ```bash
 cd your-project
-git pull
-cd backend && npx prisma migrate deploy && npm install
-cd ../frontend && npm install
+npx create-nodepress-app upgrade          # commit your work first; --dry-run to preview
+npm install
+cd backend && npx prisma migrate deploy
 ```
 
-Prisma applies only the new migrations — your existing data is safe.
+Prisma applies only the new migrations — your existing data is safe. Projects without a `nodepress.json` add `--from <version>` once. A clone of this repository (not a scaffolded project) can still `git pull`.
 
 ### From a MAJOR version
 

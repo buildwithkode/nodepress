@@ -1,0 +1,40 @@
+---
+title: NodePress
+description: The open-source, self-hosted headless CMS built on NestJS, Next.js and PostgreSQL.
+template: splash
+hero:
+  tagline: An open-source headless CMS you host yourself. Model your content in the admin, and read it from any website or app over REST or GraphQL.
+  actions:
+    - text: Get started
+      link: /getting-started/what-is-nodepress/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/buildwithkode/nodepress
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+```bash
+npx create-nodepress-app my-site
+```
+
+<CardGrid>
+  <Card title="Model content without code" icon="puzzle">
+    Build content types in the admin with 15 field types, including repeaters, groups and
+    flexible page-builder blocks. Reuse fields with components and shared choice lists.
+  </Card>
+  <Card title="APIs that are ready immediately" icon="rocket">
+    Every content type gets REST endpoints, a typed GraphQL schema and OpenAPI docs the moment
+    you save it. Filter, sort, paginate and resolve relations from the URL.
+  </Card>
+  <Card title="Built for teams" icon="star">
+    Drafts, scheduled publishing, versions, releases, roles with field-level permissions,
+    single sign-on, audit logs and live preview.
+  </Card>
+  <Card title="Yours to run and extend" icon="setting">
+    MIT licensed and self-hosted on PostgreSQL. Extend it with plugins, webhooks and hooks,
+    and deploy it anywhere Node.js runs.
+  </Card>
+</CardGrid>

@@ -1,0 +1,92 @@
+---
+// Site header: logo, section links, GitHub stars, Get Started, search and theme.
+// Replaces Starlight's default Header (see `components` in astro.config.mjs).
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import { Icon } from '@astrojs/starlight/components';
+import { REPO_URL, repoStars } from '../lib/github';
+
+const stars = await repoStars();
+const links = [
+  { label: 'Docs', href: '/getting-started/what-is-nodepress/' },
+  { label: 'Starters', href: `${REPO_URL}/tree/main/starters` },
+  { label: 'Changelog', href: `${REPO_URL}/blob/main/CHANGELOG.md` },
+  { label: 'npm', href: 'https://www.npmjs.com/package/create-nodepress-app' },
+];
+---
+
+<div class="header">
+  <div class="title-wrapper sl-flex">
+    <SiteTitle />
+  </div>
+
+  <nav class="links sl-hidden lg:sl-flex" aria-label="Site">
+    {links.map((l) => <a href={l.href}>{l.label}</a>)}
+  </nav>
+
+  <div class="right sl-flex print:hidden">
+    <a class="github sl-hidden md:sl-flex" href={REPO_URL} aria-label="NodePress on GitHub">
+      <Icon name="github" size="1.35rem" />
+      {stars && <span>{stars}</span>}
+    </a>
+    <a class="cta sl-hidden md:sl-flex" href="/getting-started/installation/">Get Started</a>
+    <Search />
+    <div class="sl-hidden md:sl-flex"><ThemeSelect /></div>
+  </div>
+</div>
+
+<style>
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    height: 100%;
+  }
+  .title-wrapper {
+    overflow: clip;
+    padding: 0.25rem;
+    margin: -0.25rem;
+    min-width: 0;
+  }
+  .links {
+    gap: 2rem;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .links a,
+  .github {
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+  }
+  .links a:hover,
+  .github:hover {
+    color: var(--sl-color-white);
+  }
+  .right {
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .github {
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .cta {
+    align-items: center;
+    padding: 0.4rem 0.85rem;
+    border-radius: 0.25rem;
+    background: var(--sl-color-white);
+    color: var(--sl-color-black);
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .cta:hover {
+    opacity: 0.88;
+  }
+</style>

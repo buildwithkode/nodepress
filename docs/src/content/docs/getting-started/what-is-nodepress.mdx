@@ -1,0 +1,66 @@
+---
+title: What is NodePress?
+description: An open-source, self-hosted headless CMS. Define your content in an admin panel and read it from any frontend over REST or GraphQL.
+sidebar:
+  order: 1
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+
+NodePress is an open-source **headless CMS** that you host yourself. You define the shape of your content in an admin panel, your team writes and publishes it there, and your website, app or anything else reads it through an API.
+
+It takes ideas from WordPress with ACF (flexible content, repeaters, plugins) and from Strapi (content types and APIs generated for you), and runs on a modern TypeScript stack:
+
+| Part | Built with |
+|---|---|
+| API server | NestJS, Prisma and PostgreSQL |
+| Admin panel | Next.js 15 (App Router), Tailwind and Radix UI |
+| Optional | Redis (cache and multi-instance), S3-compatible storage, Meilisearch, SMTP |
+
+## Headless, in one minute
+
+A traditional CMS stores your content *and* renders your pages. A headless CMS only stores and serves the content; what you build the frontend with is up to you.
+
+```text
+┌──────────────────┐   define & edit    ┌──────────────┐
+│  Admin panel     │ ─────────────────▶ │  NodePress   │
+│  (your team)     │                    │  + Postgres  │
+└──────────────────┘                    └──────┬───────┘
+                                               │  REST · GraphQL
+                       ┌───────────────────────┼───────────────────────┐
+                       ▼                       ▼                       ▼
+                 Next.js site            Mobile app             Anything else
+```
+
+Create a content type called `blog`, and `GET /api/blog` serves its published posts straight away. You don't write any backend code.
+
+## What you get
+
+- **Content modeling in the admin**: 15 [field types](/content-modeling/fields/), including [repeaters, groups and flexible page-builder blocks](/content-modeling/nested-fields/) nested up to three levels deep, plus reusable [components](/content-modeling/components/) and shared [choice lists](/content-modeling/choice-lists/).
+- **APIs for every content type**: REST with filtering, sorting, cursor pagination, full-text search and relation population, plus a typed GraphQL schema and OpenAPI docs that rebuild when you change a schema.
+- **Editorial workflow**: drafts, staging, scheduled publishing, version history, content releases, multiple languages and live preview of your own site.
+- **Access control**: roles and custom roles, per-content-type and field-level permissions, scoped API keys, single sign-on (OIDC) and two-factor authentication.
+- **Media**: uploads with WebP versions, focal points, on-the-fly image transforms, and local or S3-compatible storage.
+- **Extending**: plugins with lifecycle hooks, signed webhooks, forms with email and webhook actions, and a JavaScript client.
+- **Production basics**: Redis caching, CDN purging, read replicas, Prometheus metrics, audit logs, backups and Docker setups.
+
+## When NodePress fits
+
+NodePress is a good fit when you want:
+
+- your content in **your own PostgreSQL database**, on your own servers;
+- editors to change content **structure** in a UI, without a deploy;
+- one content source for **several frontends** (website, app, kiosk);
+- a codebase you can **read and change**: it's MIT licensed TypeScript.
+
+If you want a hosted service with nothing to run, or a CMS that also renders your site's pages, a SaaS CMS or a traditional CMS will suit you better.
+
+## Next steps
+
+<CardGrid>
+  <LinkCard title="Installation" description="Create a project and open the admin, in about ten minutes." href="/getting-started/installation/" />
+  <LinkCard title="Quick start" description="From an empty install to your first API response." href="/getting-started/quick-start/" />
+  <LinkCard title="Core concepts" description="Content types, entries, statuses and API access." href="/getting-started/concepts/" />
+  <LinkCard title="Content modeling" description="Every field type, components and relations." href="/content-modeling/content-types/" />
+</CardGrid>

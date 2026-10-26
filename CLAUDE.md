@@ -61,7 +61,7 @@ Frontend dev/prod server runs on **port 5173** (`next dev -p 5173`).
 
 ### CLI (`cd cli/`)
 
-Published as `create-nodepress-app` (currently v1.3.0). It is a zero-dependency Node script (`bin/nodepress.js` → `src/new.js`) that scaffolds a new project by **cloning GitHub `main`**, generating `.env` files with random secrets, and running install.
+Published as `create-nodepress-app` (currently v1.3.0). It is a zero-dependency Node script (`bin/nodepress.js` → `src/new.js`) that scaffolds a new project by **cloning the newest `vX.Y.Z` tag** (falling back to `main` when there is none), generating `.env` files with random secrets, and running install. It keeps NodePress as the `nodepress` remote, writes `nodepress.json` (release + the `skip` paths the project doesn't carry) and makes the first commit. `src/upgrade.js` (`upgrade [version] [--dry-run] [--from <v>]`) applies `git diff <from-tag> <to-tag>` minus those paths with `git apply --3way`; the removed-path lists live in `src/release.js`, shared by both — add a path there when the scaffold starts removing it. `NODEPRESS_REPO` points both at another clone (testing).
 
 ```bash
 node bin/nodepress.js <project-name>            # Scaffold (local Postgres)
@@ -69,7 +69,7 @@ node bin/nodepress.js <project-name> --docker   # Scaffold with Docker (Postgres
 node bin/nodepress.js <project-name> --sentry   # Include Sentry (off by default)
 ```
 
-Because the CLI clones `main`, **changes to backend/frontend only reach scaffolded users after they are pushed to `main`** — not when published. Only `cli/` changes require an `npm publish`.
+Because the CLI clones the latest release tag, **changes to backend/frontend only reach new projects and `upgrade` once they are tagged** (`vX.Y.Z`, pushed to GitHub) — not when merged to `main` or published. Only `cli/` changes require an `npm publish`. Upgrades depend on two release rules: never edit, squash or delete a published Prisma migration, and put every breaking change under the release's upgrade notes in CHANGELOG.md.
 
 ### Pre-publish validation
 
@@ -242,6 +242,8 @@ Plugins talk to the core through a scoped **`PluginContext`** (`plugin/plugin-co
 ### Auth system
 
 - **JWT access tokens** via `@nestjs/passport` + `passport-jwt`. Token sent as `Authorization: Bearer <token>`, lifetime `JWT_EXPIRES_IN` (default 7d).
+- **Only access tokens log in.** `JWT_SECRET` also signs the 2FA temp token (`purpose: '2fa_pending'`), the OIDC state cookie and preview tokens (`sub: 'preview'`). Anything that verifies a Bearer token itself must check `isAccessTokenPayload()` (`auth/access-token.ts`), as `JwtStrategy`, `JwtOrApiKeyGuard`, `StageAccessGuard` and the realtime gateway do — otherwise a password alone signs in past 2FA. For optional login use `OptionalJwtAuthGuard` (REST) or `GqlJwtOptionalGuard` (GraphQL), both on the JWT strategy.
+- **Anonymous schema reads** (`GET /content-types`, GraphQL `contentTypes`) get `content-type/public-view.ts`: types open to the public API, `publicReadFields`, no `previewUrl`.
 - **Refresh tokens**: login also sets an HttpOnly cookie `np_refresh` (30 days, `RefreshToken` model). `POST /api/auth/refresh` exchanges it for a new access token and **rotates** the refresh token (old one deleted); `POST /api/auth/logout` invalidates and clears it.
 - **API Keys** via `X-API-Key` header. Two guards:
   - `ApiKeyGuard` — API key only (used on `api-keys` management routes? No — those use JWT)
@@ -324,6 +326,8 @@ Path-traversal is blocked: deletes reject filenames containing `/`, `\`, or `..`
 ## Documentation maintenance
 
 The documentation page lives at `frontend/app/(docs)/docs/page.tsx` and is accessible at `/docs`.
+
+**The public docs site** is being moved to `docs/` — an Astro Starlight site (Markdown pages in `docs/src/content/docs/<section>/`, sidebar in `docs/astro.config.mjs`, deployed by Vercel to https://nodepress-docs.vercel.app (project Root Directory `docs`, builds on push to `main`); `cd docs && npm run dev` / `npm run build`). It is not a workspace and has its own lockfile. Until the move is finished, update both: the page under `docs/` for the topics it covers, and the in-app page. `<!-- screenshot: … -->` comments mark where screenshots will go. Check examples against the code — the server expects `options.subFields` / `options.layouts`, and image fields store `{ url, alt }`.
 
 **Whenever a product change is made, update the docs page to reflect it.** This includes:
 

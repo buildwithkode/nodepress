@@ -431,6 +431,7 @@ git --version  # any version?   → skip Step 2`} />
                 <CodeBlock code={`npx create-nodepress-app my-project`} />
                 <p className="text-xs text-muted-foreground mt-1">Replace <IC>my-project</IC> with whatever you want to call your project. This command downloads NodePress, generates secret keys, and installs all dependencies automatically. It takes 2–5 minutes.</p>
                 <p className="text-xs text-muted-foreground mt-1">Using Docker? Add the <IC>--docker</IC> flag (<IC>npx create-nodepress-app my-project --docker</IC>) to include <IC>docker-compose.yml</IC>, the nginx/monitoring configs, and the <IC>docker:*</IC> scripts. Without it, the project is set up for local PostgreSQL.</p>
+                <p className="text-xs text-muted-foreground mt-1">Upgrading later: commit your work and run <IC>npx create-nodepress-app upgrade</IC> in the project folder (<IC>--dry-run</IC> to preview). It applies the newer release to your code and keeps your edits, leaving conflict markers where you both changed the same lines. Then run <IC>npm install</IC> and <IC>npx prisma migrate deploy</IC> in <IC>backend/</IC>.</p>
               </div>
             </div>
 
@@ -4127,7 +4128,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
 
             <h3 className="font-semibold mb-3">Content Types</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/content-types"              desc="List all content types" auth />
+              <Endpoint method="GET"    path="/api/content-types"              desc="List content types — anonymous callers get only public types, without readRoles fields or previewUrl" />
               <Endpoint method="GET"    path="/api/content-types/export"       desc="Export all content type schemas (+ components, choice lists, preview URLs) as a JSON bundle — admin/editor JWT or a full-access API key" auth />
               <Endpoint method="POST"   path="/api/content-types/import"       desc="Import content type schemas, components and choice lists with dryRun pre-flight validation — admin JWT or a full-access API key" auth />
               <Endpoint method="POST"   path="/api/content-types"              desc="Create a content type (supports field-level readRoles & writeRoles)" auth />
@@ -4163,7 +4164,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
 
             <h3 className="font-semibold mb-3">Media</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
-              <Endpoint method="GET"    path="/api/media"                                  desc="List media files — ?page, ?limit, ?folderId (null=unfiled)" />
+              <Endpoint method="GET"    path="/api/media"                                  desc="List media files — ?page, ?limit, ?folderId (null=unfiled)" auth />
               <Endpoint method="GET"    path="/api/media/:filename/transform"              desc="On-the-fly resize/convert: ?w, ?h (snapped to size buckets), ?q, ?format (auto|webp|avif|jpeg|png), ?fit, ?fp — cached" />
               <Endpoint method="GET"    path="/api/media/:filename/resize"                 desc="Alias for /transform" />
               <Endpoint method="PUT"    path="/api/media/:filename/focal-point"            desc="Set the focal point for cover crops — body: { x, y } (0–1), nulls clear it" auth />
@@ -4298,7 +4299,7 @@ npm run reset-admin admin@nodepress.com MySecurePassword123!`} />
             <h3 className="font-semibold mb-3">Forms API</h3>
             <div className="rounded-xl border border-border overflow-hidden mb-6">
               <Endpoint method="POST"   path="/api/submit/:slug"               desc="Submit a form (public — no auth)" />
-              <Endpoint method="GET"    path="/api/forms"                      desc="List all forms with submission counts — ?page, ?limit" auth />
+              <Endpoint method="GET"    path="/api/forms"                      desc="List all forms with submission counts — ?page, ?limit (forms API: admin, editor)" auth />
               <Endpoint method="POST"   path="/api/forms"                      desc="Create a form" auth />
               <Endpoint method="GET"    path="/api/forms/:id"                  desc="Get a single form" auth />
               <Endpoint method="PUT"    path="/api/forms/:id"                  desc="Update a form" auth />

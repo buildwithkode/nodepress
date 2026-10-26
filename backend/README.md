@@ -3,7 +3,7 @@
 NestJS + PostgreSQL + Prisma — REST, GraphQL, and WebSocket API for the NodePress headless CMS.
 
 > **New to NodePress?** Use the CLI instead: `npx create-nodepress-app my-project`
-> Full setup guide: [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com/)
+> Full setup guide: [nodepress-docs.vercel.app](https://nodepress-docs.vercel.app/)
 
 ---
 

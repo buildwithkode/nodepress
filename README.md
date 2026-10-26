@@ -579,16 +579,22 @@ Add `Authorization: Bearer YOUR_JWT_TOKEN` header for authenticated mutations. P
 
 ## Upgrading
 
-NodePress uses Prisma migrations — your data is safe. Pull and migrate:
+A project made with `create-nodepress-app` starts on a release and records it in `nodepress.json`. To move it to a newer release, commit your work, then:
 
 ```bash
-git pull
-npm install                              # workspaces — backend + frontend
+npx create-nodepress-app upgrade --dry-run   # what would change (default target: the latest release)
+npx create-nodepress-app upgrade             # or: upgrade 1.8.0
+# fix any conflicts it lists, then:
+npm install                                  # workspaces — backend + frontend
 cd backend && npx prisma migrate deploy && cd ..
-# Restart your server
+# restart, check the admin, commit
 ```
 
-See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version.
+The upgrade applies the changes between your release and the new one to your code, keeping your own edits; where you and NodePress changed the same lines it leaves conflict markers. It skips files your project doesn't have (tests, the CLI, files you deleted) and lists them. Your project's root `package.json` is its own, so when NodePress's changes, the command shows how to compare them. Back up the database before `migrate deploy`. Prisma applies only the new migrations, so skipping releases is fine, e.g. 1.7.0 straight to 1.9.2.
+
+**Projects created before `nodepress.json` existed** say once which release they started from: `npx create-nodepress-app upgrade --from 1.7.0` (`backend/package.json` has the version). If you started from an unreleased `main`, use the release before it; the extra changes show up as conflicts you can resolve.
+
+See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version, including upgrade notes for major versions.
 
 ---
 
@@ -675,7 +681,7 @@ NodePress is open source and contributions are welcome.
 
 ## Links
 
-- **Documentation:** `/docs` in your running admin panel, or [nodepress.buildwithkode.com](https://nodepress.buildwithkode.com/)
+- **Documentation:** [nodepress-docs.vercel.app](https://nodepress-docs.vercel.app/), or `/docs` in your running admin panel
 - **npm package:** [npmjs.com/package/create-nodepress-app](https://www.npmjs.com/package/create-nodepress-app)
 - **GitHub:** [github.com/buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)
 - **Issues:** [github.com/buildwithkode/nodepress/issues](https://github.com/buildwithkode/nodepress/issues)
