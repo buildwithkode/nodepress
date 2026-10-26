@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
+import starlightImageZoom from 'starlight-image-zoom';
 
 export default defineConfig({
   site: 'https://nodepress-docs.vercel.app',
@@ -14,7 +15,8 @@ export default defineConfig({
       editLink: { baseUrl: 'https://github.com/buildwithkode/nodepress/edit/main/docs/' },
       lastUpdated: true,
       // Fails the build on a broken internal link or #anchor.
-      plugins: [starlightLinksValidator({ errorOnLocalLinks: false })],
+      // Click a screenshot to see it full size.
+      plugins: [starlightLinksValidator({ errorOnLocalLinks: false }), starlightImageZoom()],
       customCss: ['@fontsource-variable/geist', './src/styles/theme.css'],
       components: {
         Header: './src/components/Header.astro',
