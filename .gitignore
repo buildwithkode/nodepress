@@ -51,3 +51,5 @@ UPGRADE_STRATEGY.md
 
 # Unpacked uploaded plugins (re-created from the database at startup)
 backend/.plugins/
+.vercel
+/.env.local

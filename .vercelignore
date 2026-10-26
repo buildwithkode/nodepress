@@ -1,0 +1,6 @@
+# Vercel CLI uploads: the nodepress-docs project only builds docs/ (Root Directory "docs").
+/*
+!/docs
+/docs/node_modules
+/docs/dist
+/docs/.astro
