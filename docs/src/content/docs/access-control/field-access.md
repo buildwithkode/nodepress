@@ -33,7 +33,7 @@ Admins set them under **Users → Manage permissions**, on the **Field-Level Per
 2. For each field, check which roles get **Read Visibility** and **Write / Mutation Access**.
 3. Click **Save Permissions**.
 
-<!-- screenshot: Field-Level Permissions Matrix with one restricted field -->
+![The Field-Level Permissions Matrix for Page, with internal_notes restricted to admins and editors](../../../assets/screenshots/field-access.png)
 
 All roles checked means no rule. Viewer-based roles have no write column, because they can't change entries at all. Saving updates the content type's schema, so the rules also show up in schema exports.
 

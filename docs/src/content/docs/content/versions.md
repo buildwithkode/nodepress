@@ -22,7 +22,7 @@ Versions aren't pruned. They're deleted only when the entry is purged from the t
 1. Open the entry and expand **Version History** at the bottom of the editor. The newest versions are listed first.
 2. Click **Restore** next to the version you want.
 
-<!-- screenshot: the Version History panel with a list of versions and Restore buttons -->
+![The Version History panel at the bottom of the entry editor, with a Restore button per version](../../../assets/screenshots/versions.png)
 
 Restoring replaces the entry's slug, data and status with the version's. The state you're replacing is saved as a new version first, so a restore can itself be undone.
 

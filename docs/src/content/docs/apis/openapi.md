@@ -47,7 +47,7 @@ Two interactive references come with the backend:
 | `/api/docs/content` | your content API, from `/api/openapi.json` |
 | `/api/docs` | the full NodePress API: authentication, content types, entries, media, forms, webhooks and the rest of the admin API |
 
-<!-- screenshot: Swagger UI at /api/docs/content with a content type expanded -->
+![Swagger UI at /api/docs/content listing the endpoints of each content type](../../../assets/screenshots/openapi-swagger.png)
 
 Both have an **Authorize** button that the UI remembers between page loads. On `/api/docs/content` you can paste an API key or a JWT to try writes and unpublished stages; `/api/docs` takes a JWT, which you get from `POST /api/auth/login`. The content reference picks up content type changes on reload, without a restart.
 

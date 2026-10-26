@@ -9,7 +9,7 @@ A **choice list** is a set of options for `select` fields kept in one place, so 
 
 Manage them under **Settings → Choice lists** (admins only). Each choice has a **value**, which entries store, and an optional **label**, which editors see.
 
-<!-- screenshot: choice list editor -->
+![The Edit choice list dialog with labels, stored values and the Paste several box](../../../assets/screenshots/choice-list-editor.png)
 
 ## Using a list
 

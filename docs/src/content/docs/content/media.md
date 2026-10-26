@@ -52,7 +52,7 @@ The focal point marks the most important part of an image. When the transform en
 
 In **Media**, open an image's menu and choose **Set focal point**, then click the subject. The dialog previews square, wide and tall crops. **Clear** goes back to center crops.
 
-<!-- screenshot: the Focal point dialog with an image and the square, wide and tall previews -->
+![The Focal point dialog with the chosen point and the square, wide and tall crop previews](../../../assets/screenshots/focal-point.png)
 
 ## Resizing images on the fly
 

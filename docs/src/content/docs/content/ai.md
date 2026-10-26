@@ -27,7 +27,7 @@ On the **New Content Type** page, click **Generate with AI** and describe what y
 
 > Events with a date, venue, ticket price and a list of speakers
 
-<!-- screenshot: the Generate with AI box on the New Content Type page -->
+![The Generate with AI box on the New Content Type page with a description typed in](../../../assets/screenshots/ai-generate.png)
 
 The suggestion fills in the name and the fields, using the field types that fit best: a `datetime` for the date, a `number` for the price, a `repeater` for the speakers. Review the fields, change what you like, and save.
 

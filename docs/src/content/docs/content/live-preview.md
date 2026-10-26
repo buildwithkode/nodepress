@@ -9,7 +9,7 @@ Live preview shows the entry you're editing on your real site, in a pane next to
 
 It takes two things: a **Preview URL** on the content type, and a few lines on your site.
 
-<!-- screenshot: the entry editor with the Live preview pane open on the right -->
+![The entry editor with the Live preview pane showing the page on the right](../../../assets/screenshots/live-preview.png)
 
 ## 1. Set the Preview URL
 

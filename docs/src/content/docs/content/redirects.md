@@ -11,7 +11,7 @@ Redirects send visitors and search engines from an old address to a new one. You
 
 Open **Redirects** in the sidebar. Editors and admins can add, change and delete redirects.
 
-<!-- screenshot: the Redirects page with the list of From/To paths, status and hits -->
+![The Redirects page listing From and To paths, status codes and hit counts](../../../assets/screenshots/redirects.png)
 
 Click **Add redirect** and fill in:
 

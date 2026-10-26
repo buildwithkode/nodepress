@@ -31,7 +31,7 @@ Bundled plugins can be turned off and configured, but not deleted or replaced by
 - **Installed** lists every plugin on this server with its version, author, permissions and state. From here you turn plugins on and off, open their settings, and delete uploaded ones.
 - **Browse** lists the plugins in the plugin directory, so you can install them.
 
-<!-- screenshot: Plugins page, Installed tab, with one plugin's permissions and the Configure button -->
+![The Plugins page, Installed tab, with each plugin's permissions, on/off switch and Configure button](../../../assets/screenshots/plugins.png)
 
 The cards at the top count installed and active plugins and the hooks and filters they've registered.
 

@@ -22,7 +22,7 @@ Choose the file and click **Check file**. Nothing is imported yet. The review sh
 - the number of attachments, and what will be skipped and why;
 - the first few items.
 
-<!-- screenshot: the import review with the content type table and the import options -->
+![The WordPress import review: entries per content type, warnings, the first items and the import options](../../../assets/screenshots/wordpress-import.png)
 
 ## 3. Choose options and start
 

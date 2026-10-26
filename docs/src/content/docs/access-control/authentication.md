@@ -102,7 +102,7 @@ In the admin, the **Two-Factor Authentication (2FA)** card is on the **Users** p
 3. Save the 8 **Emergency Backup Recovery Codes**. Each one works once, if you lose the app.
 4. Enter a code from the app and click **Activate 2FA**.
 
-<!-- screenshot: Set Up Two-Factor Authentication dialog with QR code and recovery codes -->
+![The Set Up Two-Factor Authentication dialog with the QR code, manual key and recovery codes](../../../assets/screenshots/two-factor.png)
 
 To turn it off, click **Disable 2FA** and enter a code from the app or a recovery code.
 

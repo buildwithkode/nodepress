@@ -17,7 +17,7 @@ Use releases for anything that must change at one moment: a product launch, a ca
    - from an entry's editor: click **Release** in the toolbar.
 3. In the dialog, pick the release (or **New release…**) and what happens to the entries **When the release goes out**: publish, unpublish or archive them.
 
-<!-- screenshot: the Add to release dialog with the release picker and the action options -->
+![The Add to release dialog with the release picker and the action to apply](../../../assets/screenshots/add-to-release.png)
 
 Each entry appears once per release. Adding an entry that's already in the release changes its action. Remove an entry with **Remove from release** on the release's page.
 

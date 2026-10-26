@@ -135,6 +135,7 @@ header.header {
   color: var(--sl-color-white);
   font-weight: 400;
   box-shadow: inset 2px 0 0 var(--sl-color-white);
+  border-radius: 0;
 }
 
 /* ── Right column ─────────────────────────────────────────────────────────── */
@@ -151,4 +152,10 @@ header.header {
 /* ── Content ──────────────────────────────────────────────────────────────── */
 .sl-markdown-content table {
   font-size: var(--sl-text-sm);
+}
+
+/* Screenshots: a hairline frame so dark UI doesn't melt into the page. */
+.sl-markdown-content img {
+  border: 1px solid var(--sl-color-hairline-light);
+  border-radius: 0.5rem;
 }

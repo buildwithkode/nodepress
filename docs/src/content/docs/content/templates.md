@@ -14,7 +14,7 @@ Starter templates create a set of related content types for a common kind of sit
 3. Leave **Add sample content** on to create sample entries, or turn it off for empty content types.
 4. Click **Create content types**.
 
-<!-- screenshot: the Start from a template dialog with the three templates and the Add sample content switch -->
+![The Start from a template dialog with the Blog, Agency and Docs templates and the sample content switch](../../../assets/screenshots/templates-dialog.png)
 
 A template only creates new content types. If any of its content type names already exists, nothing is created and you get an error naming them, so a template is never applied halfway over your own content.
 

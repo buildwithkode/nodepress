@@ -17,7 +17,7 @@ Onboarding is invite-only. You never set a password for someone else.
 2. Click **Send Invite**.
 3. The user gets a "Set your password" email with a link to `/reset-password`. They choose their own password there and can then sign in.
 
-<!-- screenshot: Users page with the Add User card and the Team Members list -->
+![The Users page with Team Members, Role Permissions and the Add User card](../../../assets/screenshots/users.png)
 
 The invite link is valid for 7 days. Sending a new invite (the **Send invitation email** button on a user's row) makes any earlier link stop working.
 
@@ -108,7 +108,7 @@ To create one, open **Users → Roles** and click **New role**.
 | **Based on** | `editor`, `contributor` or `viewer` |
 | **Description** | Optional, what the role is for |
 
-<!-- screenshot: Roles page listing built-in and custom roles with user counts -->
+![The Roles page listing the built-in roles and a custom Reviewer role](../../../assets/screenshots/roles.png)
 
 Then assign the role to users like any other, and adjust its access under **Edit permissions**.
 

@@ -18,7 +18,7 @@ Only admins can create and revoke keys.
 3. Pick an **Access Level** and the **Allowed Content Types**.
 4. Click **Create Key** and copy the key.
 
-<!-- screenshot: New API Key form with access level and content types -->
+![The New API Key form with key name, access level and allowed content types](../../../assets/screenshots/api-key-new.png)
 
 Keys look like `np_` followed by 48 hex characters. The list shows each key shortened with its access, content types and **Last Used** time, and admins can copy the full key from there.
 

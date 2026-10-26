@@ -49,7 +49,7 @@ With `STORAGE_DRIVER=s3` and a missing bucket, access key or secret key, the bac
 
 Admins can set storage up without touching the server: in **Settings → Email & storage**, under **File storage**, choose **S3-compatible storage** in **Keep uploads on**. Pick a **Provider** (**Amazon S3**, **Cloudflare R2**, **DigitalOcean Spaces**, or **Other (MinIO, Backblaze B2…)**), which fills in the endpoint and region pattern, then enter the **Bucket**, **Access key ID**, **Secret access key** and, optionally, the **Public URL**. **Test connection** writes a small file to the bucket and deletes it again. The setup wizard offers the same form as its last step.
 
-<!-- screenshot: Settings → Email & storage, File storage card with S3-compatible storage selected -->
+![The File storage card with S3-compatible storage selected and the provider, bucket, region and key fields](../../../assets/screenshots/storage-settings.png)
 
 The secret key is stored encrypted, with a key derived from `SETTINGS_SECRET` (or `JWT_SECRET` when that isn't set). If that secret later changes, the saved key can't be read and the backend falls back to local disk, with an error in its log. Keep the secret with your backups.
 

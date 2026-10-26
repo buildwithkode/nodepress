@@ -117,7 +117,7 @@ npm run dev
 
 Open http://localhost:5173. The first visit takes you to the **setup** page: enter your site name, email and a password. The account you create is the admin. Setup works only while there are no users; after that, add teammates by invitation from **Users**.
 
-<!-- screenshot: setup page -->
+![The setup page where you create the first admin account](../../../assets/screenshots/setup.png)
 
 ## Project scripts
 

@@ -33,7 +33,7 @@ Admins open **Settings → Email & storage** and fill in the **Email** card:
 
 Saved settings are used at once, with no restart. **Send test** sends a short message to the address in **Send a test to**, using the values in the form even before you save them. The setup wizard offers the same form as its second step.
 
-<!-- screenshot: Settings → Email & storage, Email card -->
+![The Email card with SMTP server, port, security, login, from address and Send test](../../../assets/screenshots/email-settings.png)
 
 The password is stored encrypted, with a key derived from `SETTINGS_SECRET` (or `JWT_SECRET` when that isn't set). If that secret changes, re-enter the password.
 

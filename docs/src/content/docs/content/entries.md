@@ -11,7 +11,7 @@ An entry is one piece of content of a content type: one post, one product, one p
 
 Open **Entries**, pick a content type and click **New Entry**. The form shows one input per field of the content type's schema (see [Fields](/content-modeling/fields/)). Choose a status and a language at the top, then click **Create Entry** (or **Publish** when the status is Published).
 
-<!-- screenshot: the New Entry form with the slug field, status selector and language selector -->
+![The New Entry form with the language and status selectors, the slug field and the content type fields](../../../assets/screenshots/entry-new.png)
 
 Required fields must have a value before the entry saves. The server checks every value against the schema, so the same rules apply when entries are written through the API.
 

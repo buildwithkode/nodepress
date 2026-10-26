@@ -15,7 +15,7 @@ Forms and their submissions are managed by **admins and editors**. Other roles d
 
 Open **Forms** and click **New Form**.
 
-<!-- screenshot: the form builder with fields, the captcha switch and actions -->
+![The form builder with the captcha switch, fields with validation, the payload preview and actions](../../../assets/screenshots/form-builder.png)
 
 1. Give the form a **Form Name**. The slug is generated from it; it's the form's address in the submit endpoint (`/api/submit/contact-us`).
 2. Under **Fields**, click **Add Field** for each input. Each field has a label, a key (generated from the label, or set yourself), a type, and validation rules.

@@ -23,7 +23,7 @@ A content type describes one kind of content, like a blog post or a product.
 
 4. Save.
 
-<!-- screenshot: content type editor with the three fields -->
+![The content type editor for Blog with the Title, Cover and Body fields and the JSON schema preview](../../../assets/screenshots/content-type-editor.png)
 
 The name you type is kept as the label editors see. The **field key** used in the API is derived from it in `snake_case`, so a field named "Cover Image" is stored as `cover_image`. The editor shows each key under its field.
 
@@ -38,7 +38,7 @@ The name you type is kept as the label editors see. The **field key** used in th
 3. The **slug**, the entry's address, is filled in from the title: `hello-world`. You can change it.
 4. Leave the status on **Published** and click **Publish**.
 
-<!-- screenshot: entry editor -->
+![The entry editor for a blog post with the slug, title, cover image and rich text body](../../../assets/screenshots/entry-editor.png)
 
 ## 3. Read it from the API
 

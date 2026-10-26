@@ -18,7 +18,7 @@ Every entry has an **SEO & Open Graph** section in the editor, apart from the co
 | **OG Image URL** | `image` | The image for social media shares (1200×630 recommended) |
 | **Exclude from search engines (noindex)** | `noIndex` | Ask search engines not to index the page; also keeps it out of the sitemap |
 
-<!-- screenshot: the SEO & Open Graph section of the entry editor -->
+![The SEO & Open Graph section of the entry editor with title, description, image and noindex](../../../assets/screenshots/seo.png)
 
 The API returns these in the entry's `seo` object, or `seo: null` when none are set:
 

@@ -158,4 +158,4 @@ Containers can hold containers. This flexible layout holds a repeater of buttons
 
 The content type editor builds nested fields in place: open a container's settings to add its sub-fields or layouts. In the entry editor, repeater rows and flexible blocks can be added, collapsed, reordered by dragging and removed.
 
-<!-- screenshot: flexible field in the entry editor -->
+![A flexible Blocks field in the entry editor: a Hero block with a Buttons repeater whose items hold a Link group](../../../assets/screenshots/flexible-field.png)

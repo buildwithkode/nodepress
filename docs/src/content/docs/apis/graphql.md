@@ -25,7 +25,7 @@ curl -X POST http://localhost:3000/graphql \
 
 Open `/graphql` in a browser to get the GraphQL Playground, with autocomplete and the full schema in the **Docs** panel. Admins find it in the admin under **Developer → GraphQL Playground**.
 
-<!-- screenshot: GraphQL Playground with a blogPosts query -->
+![GraphQL Playground running a posts query that follows the author relation](../../../assets/screenshots/graphql-playground.png)
 
 ## Typed queries per content type
 

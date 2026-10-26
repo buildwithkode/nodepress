@@ -20,7 +20,7 @@ In the content type editor, click **Add component**, pick one and choose how to 
 | **Inline** | the component's fields added at the top level, with no wrapper | `"full_name": "Ada"` |
 | **Flexible layout** | a layout of a flexible field, built from the component | `"body": [{ "_layout": "cta", … }]` |
 
-<!-- screenshot: Add component dialog -->
+![The New component dialog with display name, key, description and fields](../../../assets/screenshots/component-new.png)
 
 ### Example
 
@@ -98,7 +98,7 @@ The content type editor lists the component fields (group, repeater and inline u
 
 This only affects the display. The schema order and the entry JSON don't change: each component is still a top-level key like `"testimonial": { … }`.
 
-<!-- screenshot: Components section in the content type editor -->
+![The content type editor with a flexible field's layouts and the Components section with SEO and Testimonials](../../../assets/screenshots/components-section.png)
 
 Each field needs its own key, so a component can be used twice only under different names. Adding a component a second time suggests a free name (**Testimonial 2** → `testimonial_2`), and the editor won't save while two fields share a key.
 

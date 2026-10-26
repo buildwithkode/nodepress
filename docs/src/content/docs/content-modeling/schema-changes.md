@@ -13,7 +13,7 @@ Entries keep their values as JSON, keyed by field name. So changing a schema doe
 
 NodePress handles this for you. When you save a content type whose changed fields already hold data, the admin shows a **confirm dialog**: what changes, how many entries each change affects, and how many values a conversion would lose. You choose whether to rename, convert or delete the stored values along with the schema.
 
-<!-- screenshot: schema change confirm dialog -->
+![The Update existing entries dialog shown when a saved schema change affects existing entries](../../../assets/screenshots/schema-change-confirm.png)
 
 The schema change and the data change are applied in **one transaction**: both happen, or neither does.
 

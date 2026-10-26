@@ -17,7 +17,7 @@ Webhooks are managed by admins.
 4. Pick the **Trigger Events**, or **All Events (Wildcard)**.
 5. Click **Register Webhook**.
 
-<!-- screenshot: Register New Webhook form -->
+![The Register New Webhook form with name, endpoint URL, signing secret and trigger events](../../../assets/screenshots/webhook-new.png)
 
 Each webhook can be edited, disabled and enabled again, or deleted from the same page.
 
@@ -172,7 +172,7 @@ Every backend instance sends deliveries, up to `WEBHOOK_CONCURRENCY` (default 10
 
 The **Delivery Logs & DLQ** tab on the Webhooks page lists every delivery with its event, destination, attempts and time. Filter by **All**, **Failed (DLQ)**, **Delivered** or **Pending**, or open one webhook's log from its row. **Inspect Payload & Error** shows the payload, the response status and the error. **Re-deliver** sends the payload again immediately, as a new attempt with `X-NodePress-Redelivery: true`.
 
-<!-- screenshot: Delivery Logs & DLQ tab with a failed delivery -->
+![The Delivery Logs & DLQ tab with one pending and one failed delivery and their Re-deliver buttons](../../../assets/screenshots/webhook-deliveries.png)
 
 Through the API:
 

@@ -13,7 +13,7 @@ Only admins can view it.
 
 Open **Audit Log**. The newest events come first, 50 per page. Filter by resource with the dropdown at the top.
 
-<!-- screenshot: Audit Log page filtered to Entries -->
+![The Audit Log filtered to entries](../../../assets/screenshots/audit-log.png)
 
 | Column | Meaning |
 |---|---|

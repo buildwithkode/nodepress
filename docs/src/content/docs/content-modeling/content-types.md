@@ -7,7 +7,7 @@ sidebar:
 
 A content type is the template for one kind of content. It has a name, a list of [fields](/content-modeling/fields/) and a few settings. Create them under **Content Types → New Content Type** (admins only).
 
-<!-- screenshot: content type editor -->
+![The content type editor with name, preview URL, API endpoints, fields and the JSON schema preview](../../../assets/screenshots/content-type-editor.png)
 
 ## Names and URLs
 

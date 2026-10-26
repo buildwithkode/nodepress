@@ -15,7 +15,7 @@ Only admins can change permissions. Admins themselves always have every permissi
 
 Open **Users** and click **Manage permissions**, or go to **Users → Roles** and click **Edit permissions**. The **Content-Type Actions Matrix** tab has one row per content type, plus a **Default \*** row at the top.
 
-<!-- screenshot: Content-Type Actions Matrix for the editor role, with the Default * row and one overridden content type -->
+![The Content Type Permission Matrix with the Default * row and an override for Page in the Editor columns](../../../assets/screenshots/permissions.png)
 
 - The **Default \*** row is the role's permissions for every content type that has no row of its own.
 - Toggling an action in a content type's row creates an **override** for that type. Greyed checkboxes are inherited from the default row.

@@ -11,7 +11,7 @@ NodePress can hold the same content in several languages. Each entry has a `loca
 
 Admins set the languages under **Settings → Languages**.
 
-<!-- screenshot: the Languages settings page with enabled languages and the Add a language field -->
+![The Languages page with English, French and German enabled and the Add a language field](../../../assets/screenshots/languages.png)
 
 - **Add a language** takes a language code such as `fr`, `pt-BR` or `zh-Hant` (up to 50 languages). Codes are stored in their standard casing, so `pt-br` becomes `pt-BR`.
 - **Make default** sets the **default language**. It's used when an API request doesn't ask for a language, and as the fallback with `?fallback=true`.
