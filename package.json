@@ -59,6 +59,9 @@
     "next": {
       "postcss": "^8.5.23"
     },
-    "deepmerge-ts": "8.0.2"
+    "deepmerge-ts": "8.0.2",
+    "@nestjs/platform-express": {
+      "multer": "^2.5.0"
+    }
   }
 }

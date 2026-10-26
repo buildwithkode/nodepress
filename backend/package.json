@@ -102,7 +102,7 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
     "nestjs-pino": "^4.6.1",
-    "nodemailer": "^10.1.1",
+    "nodemailer": "^10.1.4",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pino-http": "^11.0.0",
@@ -115,7 +115,7 @@
     "semver": "^7.8.5",
     "sharp": "^0.35.3",
     "socket.io": "^4.8.1",
-    "zod": "^3.25.76"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",
@@ -147,6 +147,7 @@
     "@nestjs/swagger": {
       "js-yaml": "^5.5.0"
     },
-    "deepmerge-ts": "8.0.2"
+    "deepmerge-ts": "8.0.2",
+    "multer": "^2.5.0"
   }
 }

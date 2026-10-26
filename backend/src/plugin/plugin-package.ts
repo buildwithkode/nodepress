@@ -42,7 +42,7 @@ const manifestSchema = z.object({
   icon: z.string().max(50).optional(),
   permissions: z.array(z.string()).default([]),
   configSchema: z.array(configField).optional(),
-  defaultConfig: z.record(z.any()).optional(),
+  defaultConfig: z.record(z.string(), z.any()).optional(),
   nodepress: z.string().refine((r) => !!semver.validRange(r), 'nodepress must be a semver range, e.g. ^1.6.0'),
   main: z.string().default('dist/index.js'),
 });
