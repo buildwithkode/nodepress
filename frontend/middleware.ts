@@ -7,12 +7,13 @@ const ADMIN_PATHS = ['/', '/content-types', '/components', '/entries', '/media',
 // Paths that require editor, contributor, or admin role (viewers are redirected to home)
 const EDITOR_PATHS = [
   '/entries/new',
-  '/forms/new',
 ];
 const EDITOR_PATTERNS = [
   /^\/entries\/[^/]+\/edit$/,
-  /^\/forms\/[^/]+\/edit$/,
 ];
+
+// Paths that require admin or editor role (contributors and viewers are redirected to home)
+const ADMIN_OR_EDITOR_PATHS = ['/forms'];
 
 // Paths that require admin role only (editors and viewers are redirected to home)
 const ADMIN_ONLY_PATHS = [
@@ -44,6 +45,10 @@ function isEditorPath(pathname: string): boolean {
     EDITOR_PATHS.includes(pathname) ||
     EDITOR_PATTERNS.some((r) => r.test(pathname))
   );
+}
+
+function isAdminOrEditorPath(pathname: string): boolean {
+  return ADMIN_OR_EDITOR_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
 }
 
 function isAdminOnlyPath(pathname: string): boolean {
@@ -107,6 +112,9 @@ export function middleware(request: NextRequest) {
   // Role-based route protection (UX only — backend enforces real permissions)
   if (token && role) {
     if (isAdminOnlyPath(pathname) && role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    if (isAdminOrEditorPath(pathname) && role !== 'admin' && role !== 'editor') {
       return NextResponse.redirect(new URL('/', request.url));
     }
     if (isEditorPath(pathname) && (role === 'viewer' || !role)) {

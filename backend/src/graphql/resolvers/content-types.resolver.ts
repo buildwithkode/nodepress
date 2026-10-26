@@ -6,6 +6,8 @@ import { DeleteResult } from '../models/entry.model';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { GqlJwtAuthGuard } from '../guards/gql-jwt-auth.guard';
+import { GqlJwtOptionalGuard } from '../guards/gql-jwt-optional.guard';
+import { isPublicContentType, publicContentType } from '../../content-type/public-view';
 
 @Resolver(() => ContentTypeModel)
 export class ContentTypesResolver {
@@ -13,15 +15,21 @@ export class ContentTypesResolver {
 
   // ─── Queries ─────────────────────────────────────────────────────────────────
 
-  @Query(() => [ContentTypeModel], { name: 'contentTypes', description: 'List all content types.' })
-  findAll() {
-    return this.contentTypeService.findAll();
+  @UseGuards(GqlJwtOptionalGuard)
+  @Query(() => [ContentTypeModel], { name: 'contentTypes', description: 'List content types. Public: public types and fields only.' })
+  async findAll(@Context() ctx?: any) {
+    const types = await this.contentTypeService.findAll();
+    if (ctx?.req?.user) return types;
+    return types.filter((ct) => isPublicContentType(ct)).map(publicContentType);
   }
 
-  @Query(() => ContentTypeModel, { name: 'contentType', nullable: true, description: 'Fetch a single content type by ID.' })
-  async findOne(@Args('id', { type: () => Int }) id: number) {
+  @UseGuards(GqlJwtOptionalGuard)
+  @Query(() => ContentTypeModel, { name: 'contentType', nullable: true, description: 'Fetch a single content type by ID. Public: public types only.' })
+  async findOne(@Args('id', { type: () => Int }) id: number, @Context() ctx?: any) {
     try {
-      return await this.contentTypeService.findOne(id);
+      const ct = await this.contentTypeService.findOne(id);
+      if (ctx?.req?.user) return ct;
+      return isPublicContentType(ct) ? publicContentType(ct) : null;
     } catch {
       return null;
     }

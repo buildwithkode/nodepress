@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { env } from '../../config/env';
 import { RolesService } from '../../roles/roles.service';
+import { AccessTokenPayload, isAccessTokenPayload } from '../access-token';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -18,7 +19,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: number; email: string }) {
+  async validate(payload: AccessTokenPayload) {
+    // Refuse 2FA temp tokens, OIDC cookies and preview tokens
+    if (!isAccessTokenPayload(payload)) throw new UnauthorizedException();
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });

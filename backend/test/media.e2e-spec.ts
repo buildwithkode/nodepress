@@ -55,9 +55,14 @@ describe('Media (e2e)', () => {
 
   // ── List ─────────────────────────────────────────────────────────────────────
 
-  it('GET /api/media → returns paginated list without auth', async () => {
+  it('GET /api/media → 401 without auth', async () => {
+    await request(app.getHttpServer()).get('/api/media').expect(401);
+  });
+
+  it('GET /api/media → returns paginated list', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/media')
+      .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
     expect(res.body.data).toBeInstanceOf(Array);
@@ -68,6 +73,7 @@ describe('Media (e2e)', () => {
   it('GET /api/media → respects limit query param', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/media')
+      .set('Authorization', `Bearer ${token}`)
       .query({ limit: 1 })
       .expect(200);
 

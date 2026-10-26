@@ -14,6 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RolesService } from '../roles/roles.service';
 import { corsOrigin } from '../common/cors-origin';
+import { isAccessTokenPayload } from '../auth/access-token';
 
 /**
  * NodePress Real-time Gateway
@@ -101,9 +102,8 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       const token = tokenFromHeader ?? tokenFromAuth;
 
       if (token) {
-        const payload = this.jwtService.verify<{ sub: number; email: string }>(token, {
-          secret: process.env.JWT_SECRET,
-        });
+        const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+        if (!isAccessTokenPayload(payload)) return null;
         const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
         if (!user) return null;
         // Custom roles run as their base role, as in JwtStrategy

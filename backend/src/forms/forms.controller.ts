@@ -6,11 +6,17 @@ import {
   ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { FormsService } from './forms.service';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
 
+// Forms hold submitters' personal data and email/webhook actions, so the
+// whole admin API is for admins and editors. Public submit: SubmitController.
 @ApiTags('Forms')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin', 'editor')
 @Controller('forms')
 export class FormsController {
   constructor(private readonly forms: FormsService) {}
@@ -18,17 +24,15 @@ export class FormsController {
   // ── Recent submissions across all forms (dashboard) ─────────────────────
 
   @Get('submissions/recent')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get 6 most recent submissions across all forms (dashboard)' })
   recentSubmissions() {
     return this.forms.findRecentSubmissions(6);
   }
 
-  // ── CRUD (JWT required) ──────────────────────────────────────────────────
+  // ── CRUD ──────────────────────────────────────────────────
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Create a new form' })
   create(@Body() dto: CreateFormDto) {
@@ -36,7 +40,6 @@ export class FormsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'List all forms (with submission counts)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -49,7 +52,6 @@ export class FormsController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get a single form by id' })
   @ApiParam({ name: 'id', type: Number })
@@ -58,7 +60,6 @@ export class FormsController {
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update a form' })
   @ApiParam({ name: 'id', type: Number })
@@ -70,7 +71,6 @@ export class FormsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Delete a form (and all its submissions)' })
   @ApiParam({ name: 'id', type: Number })
@@ -81,7 +81,6 @@ export class FormsController {
   // ── Submissions (admin view) ─────────────────────────────────────────────
 
   @Get(':id/submissions')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'List submissions for a form (paginated)' })
   @ApiParam({ name: 'id', type: Number })

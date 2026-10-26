@@ -1,28 +1,20 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '@nestjs/passport';
 
 /**
- * Optional JWT guard for GraphQL — populates ctx.req.user if a valid
- * Bearer token is present, but never throws for missing/invalid tokens.
+ * Optional JWT guard for GraphQL — populates ctx.req.user (through
+ * JwtStrategy, so with the user's role) if a valid Bearer access token is
+ * present, but never throws for missing/invalid tokens.
  * Lets resolvers serve public data while enabling authenticated views.
  */
 @Injectable()
-export class GqlJwtOptionalGuard {
-  constructor(private readonly jwtService: JwtService) {}
+export class GqlJwtOptionalGuard extends AuthGuard('jwt') {
+  getRequest(context: ExecutionContext) {
+    return GqlExecutionContext.create(context).getContext().req;
+  }
 
-  canActivate(context: ExecutionContext): boolean {
-    const ctx = GqlExecutionContext.create(context);
-    const req = ctx.getContext().req;
-
-    const auth = req?.headers?.authorization;
-    if (auth?.startsWith('Bearer ')) {
-      try {
-        req.user = this.jwtService.verify(auth.slice(7));
-      } catch {
-        // invalid token — treat as unauthenticated
-      }
-    }
-    return true;
+  handleRequest(_err: unknown, user: any) {
+    return user || undefined;
   }
 }

@@ -6,6 +6,7 @@ import type { Request, Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApiKeysService } from '../api-keys/api-keys.service';
 import { keyCoversType } from '../common/content-type-name';
+import { isAccessTokenPayload } from '../auth/access-token';
 
 /** The stage a public read targets: ?stage= wins, then the environment header. */
 export function requestedStage(req: Request): string {
@@ -60,6 +61,7 @@ export class StageAccessGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });
+      if (!isAccessTokenPayload(payload)) throw new Error('not an access token');
       const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
       if (!user) throw new Error('user not found');
       (req as any).user = user;

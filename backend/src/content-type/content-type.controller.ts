@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Body, Param, ParseIntPipe, UseGuards, Request, HttpCode,
+  Body, Param, ParseIntPipe, UseGuards, Request, HttpCode, NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse,
@@ -14,6 +14,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuditService } from '../audit/audit.service';
 import { FullAccessKeyOrJwtGuard } from '../api-keys/full-access-key-or-jwt.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import { isPublicContentType, publicContentType } from './public-view';
 
 @ApiTags('Content Types')
 @Controller('content-types')
@@ -41,13 +43,17 @@ export class ContentTypeController {
     return ct;
   }
 
-  // ─── Read routes — any authenticated or public ─────────────────────────────
+  // ─── Read routes — signed-in users see everything, anonymous callers only
+  // the public view (types open to the public API, public fields) ──────────
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get()
-  @ApiOperation({ summary: 'List all content types' })
+  @ApiOperation({ summary: 'List content types (anonymous callers get only public types and fields)' })
   @ApiResponse({ status: 200, description: 'Array of content types' })
-  findAll() {
-    return this.contentTypeService.findAll();
+  async findAll(@Request() req: any) {
+    const types = await this.contentTypeService.findAll();
+    if (req.user) return types;
+    return types.filter((ct) => isPublicContentType(ct)).map(publicContentType);
   }
 
   // ─── Schema Export / Import — MUST be before @Get(':id') to avoid route shadowing ─
@@ -81,14 +87,20 @@ export class ContentTypeController {
     return result;
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':id')
-  @ApiOperation({ summary: 'Get a single content type by ID' })
+  @ApiOperation({ summary: 'Get a single content type by ID (anonymous callers: public types only)' })
   @ApiParam({ name: 'id', type: Number })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.contentTypeService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const ct = await this.contentTypeService.findOne(id);
+    if (req.user) return ct;
+    if (!isPublicContentType(ct)) throw new NotFoundException(`Content type #${id} not found`);
+    return publicContentType(ct);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id/form')
+  @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get the generated form structure for a content type' })
   @ApiParam({ name: 'id', type: Number })
   getForm(@Param('id', ParseIntPipe) id: number) {

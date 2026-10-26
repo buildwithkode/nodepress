@@ -1,6 +1,8 @@
 import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { EntriesService } from '../../entries/entries.service';
+import { ContentTypeService } from '../../content-type/content-type.service';
+import { isPublicContentType } from '../../content-type/public-view';
 import { PermissionsService } from '../../permissions/permissions.service';
 import { EntryModel, EntryPage, BulkResult, DeleteResult } from '../models/entry.model';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -13,13 +15,14 @@ export class EntriesResolver {
   constructor(
     private readonly entriesService: EntriesService,
     private readonly permissions: PermissionsService,
+    private readonly contentTypes: ContentTypeService,
   ) {}
 
   // ─── Queries ─────────────────────────────────────────────────────────────────
 
   @UseGuards(GqlJwtOptionalGuard)
-  @Query(() => EntryPage, { name: 'entries', description: 'List entries. Authenticated: all statuses. Public: published only.' })
-  findAll(
+  @Query(() => EntryPage, { name: 'entries', description: 'List entries. Authenticated: all statuses. Public: published entries of public content types only.' })
+  async findAll(
     @Args('contentTypeId', { type: () => Int, nullable: true }) contentTypeId?: number,
     @Args('status', { nullable: true }) status?: string,
     @Args('locale', { nullable: true }) locale?: string,
@@ -29,8 +32,13 @@ export class EntriesResolver {
     @Context() ctx?: any,
   ) {
     const isAuthenticated = !!ctx?.req?.user;
+    // Anonymous callers get what the public REST API would list
+    const contentTypeIds = isAuthenticated
+      ? undefined
+      : (await this.contentTypes.findAll()).filter((ct) => isPublicContentType(ct, 'list')).map((ct) => ct.id);
     return this.entriesService.findAll({
       contentTypeId,
+      contentTypeIds,
       status: isAuthenticated ? status : 'published',
       locale,
       search,
@@ -41,14 +49,18 @@ export class EntriesResolver {
   }
 
   @UseGuards(GqlJwtOptionalGuard)
-  @Query(() => EntryModel, { name: 'entry', nullable: true, description: 'Fetch a single entry by ID.' })
+  @Query(() => EntryModel, { name: 'entry', nullable: true, description: 'Fetch a single entry by ID. Public: published entries of public content types only.' })
   async findOne(
     @Args('id', { type: () => Int }) id: number,
     @Args('populate', { type: () => [String], nullable: true }) populate?: string[],
     @Context() ctx?: any,
   ) {
     try {
-      return await this.entriesService.findOne(id, populate ?? [], ctx?.req?.user);
+      const entry = await this.entriesService.findOne(id, populate ?? [], ctx?.req?.user);
+      if (!ctx?.req?.user && (entry.status !== 'published' || !isPublicContentType(entry.contentType ?? {}, 'read'))) {
+        return null;
+      }
+      return entry;
     } catch {
       return null;
     }

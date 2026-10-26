@@ -167,16 +167,20 @@ type Mutation {
 }
 
 type Query {
-  """Fetch a single content type by ID."""
+  """Fetch a single content type by ID. Public: public types only."""
   contentType(id: Int!): ContentTypeModel
 
-  """List all content types."""
+  """List content types. Public: public types and fields only."""
   contentTypes: [ContentTypeModel!]!
 
-  """List entries. Authenticated: all statuses. Public: published only."""
+  """
+  List entries. Authenticated: all statuses. Public: published entries of public content types only.
+  """
   entries(contentTypeId: Int, limit: Int = 20, locale: String, page: Int = 1, search: String, status: String): EntryPage!
 
-  """Fetch a single entry by ID."""
+  """
+  Fetch a single entry by ID. Public: published entries of public content types only.
+  """
   entry(id: Int!, populate: [String!]): EntryModel
 
   """List all uploaded media files (authenticated)"""

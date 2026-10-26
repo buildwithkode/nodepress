@@ -8,6 +8,7 @@ import { RolesService } from '../roles/roles.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { Request } from 'express';
 import { contentTypeName, keyCoversType } from '../common/content-type-name';
+import { isAccessTokenPayload } from '../auth/access-token';
 
 /**
  * Allows through if the request carries EITHER:
@@ -59,6 +60,7 @@ export class JwtOrApiKeyGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_SECRET,
       });
+      if (!isAccessTokenPayload(payload)) throw new Error('not an access token');
       user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
     } catch {
       throw new UnauthorizedException('Invalid or expired JWT');

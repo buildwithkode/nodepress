@@ -93,8 +93,10 @@ export class MediaController {
   }
 
   @SkipThrottle()
+  @UseGuards(JwtAuthGuard)
   @Get()
-  @ApiOperation({ summary: 'List media files (paginated, optional folder filter)' })
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'List media files (paginated, optional folder filter) — signed-in users' })
   @ApiQuery({ name: 'page',     required: false, type: Number })
   @ApiQuery({ name: 'limit',    required: false, type: Number })
   @ApiQuery({ name: 'folderId', required: false, type: Number, description: 'Filter by folder ID. Omit for all files, use "null" for unfiled.' })

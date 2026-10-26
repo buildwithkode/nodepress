@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { usePlugins } from '../../context/PluginContext';
 import { useBrand } from '../../context/BrandContext';
 import { PluginInitializer } from '@/components/PluginInitializer';
-import { canManageSettings } from '@/lib/roles';
+import { canDeleteContent, canManageSettings } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
@@ -146,7 +146,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const baseGroups: NavGroup[] = ALL_NAV_GROUPS.filter((g) => !g.adminOnly || admin).map((g) => ({
     adminOnly: g.adminOnly,
     label: t(`groups.${g.labelKey}`),
-    items: g.items.map((i) => ({ ...i, label: t(`items.${i.labelKey}`) })),
+    // Forms are for admins and editors only (the API refuses other roles)
+    items: g.items
+      .filter((i) => i.href !== '/forms' || canDeleteContent(user?.role))
+      .map((i) => ({ ...i, label: t(`items.${i.labelKey}`) })),
     externalLinks: g.externalLinks?.map((i) => ({ ...i, label: t(`items.${i.labelKey}`) })),
   }));
 

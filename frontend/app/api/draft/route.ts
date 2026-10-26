@@ -1,6 +1,7 @@
 import { draftMode, cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server';
+import { isLocalPath } from '@/lib/local-path';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -12,13 +13,19 @@ export async function GET(request: NextRequest) {
   if (!secret || !slug) {
     return new NextResponse('Missing secret or slug parameter for draft mode', { status: 400 });
   }
+  if (!/^[a-z0-9_-]+$/i.test(type)) {
+    return new NextResponse('Invalid content type', { status: 400 });
+  }
+  if (customRedirect && !isLocalPath(customRedirect)) {
+    return new NextResponse('redirect must be a path on this site', { status: 400 });
+  }
 
-  const backendUrl = (process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001').replace(/\/$/, '');
+  const backendUrl = (process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
 
   // Validate the preview token against NodePress backend
   try {
     const res = await fetch(
-      `${backendUrl}/api/${type}/${encodeURIComponent(slug)}/preview?token=${secret}`,
+      `${backendUrl}/api/${type}/${encodeURIComponent(slug)}/preview?token=${encodeURIComponent(secret)}`,
       { cache: 'no-store' }
     );
 
@@ -49,6 +56,6 @@ export async function GET(request: NextRequest) {
     maxAge: 3600, // 1 hour
   });
 
-  const destination = customRedirect || `/${type}/${slug}`;
+  const destination = customRedirect || `/${type}/${encodeURIComponent(slug)}`;
   redirect(destination);
 }

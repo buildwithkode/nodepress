@@ -27,6 +27,7 @@ import { PluginEvents, EntryEventSource } from '../plugin/plugin.events';
 
 export interface AdminListQuery {
   contentTypeId?: number;
+  contentTypeIds?: number[]; // restrict to these content types (anonymous GraphQL: public types)
   status?: string;          // filter by status (draft | published | archived)
   deleted?: boolean;        // true = show only soft-deleted entries
   search?: string;          // full-text search on slug + data
@@ -193,6 +194,7 @@ export class EntriesService {
     };
 
     if (query.contentTypeId) where.contentTypeId = query.contentTypeId;
+    if (query.contentTypeIds) where.AND = [{ contentTypeId: { in: query.contentTypeIds } }];
     if (query.status) where.status = query.status;
     if (query.locale) where.locale = query.locale;
 
@@ -210,6 +212,11 @@ export class EntriesService {
       const whereConditions: Prisma.Sql[] = [];
       if (query.contentTypeId) {
         whereConditions.push(Prisma.sql`AND "contentTypeId" = ${query.contentTypeId}`);
+      }
+      if (query.contentTypeIds) {
+        whereConditions.push(query.contentTypeIds.length
+          ? Prisma.sql`AND "contentTypeId" IN (${Prisma.join(query.contentTypeIds)})`
+          : Prisma.sql`AND false`);
       }
       if (query.status) {
         whereConditions.push(Prisma.sql`AND status = ${query.status}`);
@@ -392,7 +399,10 @@ export class EntriesService {
 
     if (populate.length && entry.contentType) {
       const schema = entry.contentType.schema as unknown as FieldDef[];
-      data = await populateDeep(data, schema, populate, this.prisma, 0, { ownerId: entry.publicId, readRole: role });
+      // No role = anonymous (GraphQL `entry`): never resolve drafts
+      data = await populateDeep(data, schema, populate, this.prisma, 0, {
+        ownerId: entry.publicId, readRole: role, publishedOnly: !role,
+      });
     }
 
     if (entry.contentType?.schema) {
