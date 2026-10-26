@@ -70,6 +70,22 @@ before npm. If you add a dependency with an install script, decide it with
 `allowScripts`) — the pre-push check fails until you do. Keep the list in the
 root `package.json`; npm ignores it in `backend/` and `frontend/`.
 
+## 1.7.1 (from 1.7.0)
+
+No migrations. **Behaviour changes** (security fixes):
+
+- Anonymous `GET /api/content-types` (and GraphQL `contentTypes`) return only
+  types open to the public API, without `readRoles` fields or `previewUrl`.
+  A site that reads schemas without credentials sees only its public types.
+- `GET /api/media` and `GET /api/content-types/:id/form` need a login.
+- The forms admin API is for admins and editors only (submitting is unchanged).
+- Anonymous GraphQL `entry(id)` / `entries` return published entries of public
+  types only.
+- `/api/draft?redirect=` accepts only paths on the same site.
+
+Projects created before 1.7.1 have no `nodepress.json`: run
+`npx create-nodepress-app upgrade --from <your version>` once.
+
 ## 1.7.0 (from 1.6.x)
 
 **Action required**

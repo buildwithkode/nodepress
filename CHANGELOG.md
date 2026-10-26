@@ -12,6 +12,8 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+## [1.7.1] — 2026-10-26
+
 ### Added
 - **Nested repeaters, groups and flexible fields** — like ACF flexible content. A flexible layout can hold a repeater of groups, a repeater row another repeater, and so on, up to 3 levels deep; components can contain them too (used as a group, repeater, layout or inline). Every field type works at every level in the entry editor, and the content type and component editors build nested fields. Validation, rich-text sanitizing, choice lists, typed GraphQL, OpenAPI and generated TypeScript types follow the nesting, and field data migrations take deep paths (`blocks.hero.buttons.link.url`), including renames tracked by the editor. Component references, reverse relations, indexes and `?populate=` stay top-level.
 - **Components section in the editors.** Fields that come from a component (as a group, repeater or inline) are listed in their own Components section of the content type editor, below the ordinary fields, and shown as titled, foldable boxes in the entry editor. Display only: the entry JSON is unchanged.
