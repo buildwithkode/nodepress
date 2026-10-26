@@ -92,7 +92,8 @@
     "enterRichText": "Voer {field} in",
     "selectValue": "Kies {field}",
     "fieldRequired": "{field} is verplicht",
-    "required": "Dit veld is verplicht"
+    "required": "Dit veld is verplicht",
+    "components": "Componenten"
   },
   "seo": {
     "heading": "SEO",

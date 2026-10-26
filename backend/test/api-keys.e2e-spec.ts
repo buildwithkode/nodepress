@@ -129,6 +129,29 @@ describe('API Keys (e2e)', () => {
       .expect(403);
   });
 
+  it('serves a multi-word type at its hyphen URL, with key scopes and reserved names following', async () => {
+    const http = () => request(app.getHttpServer());
+    const auth = { Authorization: `Bearer ${token}` };
+    const ct = await http().post('/api/content-types').set(auth)
+      .send({ name: 'About Us', schema: [{ name: 'title', type: 'text', required: true }] }).expect(201);
+    expect(ct.body.name).toBe('about_us');
+
+    const key = (await http().post('/api/api-keys').set(auth)
+      .send({ name: 'About key', permissions: { access: 'all', contentTypes: ['about_us'] } })).body.key;
+    await http().post('/api/about-us').set('X-API-Key', key).send({ slug: 'team', status: 'published', data: { title: 'Team' } }).expect(201);
+    expect((await http().get('/api/about-us/team').expect(200)).body.data.title).toBe('Team');
+    await http().get('/api/about_us/team').expect(200); // the underscore form keeps working
+    await http().get('/api/About-Us').set('X-API-Key', key).expect(200);
+    await http().post('/api/other').set('X-API-Key', key).send({ slug: 'x', data: { title: 'X' } }).expect(403);
+
+    const sitemap = await http().get('/api/sitemap.xml').expect(200);
+    expect(sitemap.text).toContain('/about-us/team');
+
+    // Would be shadowed by the static /api/content-types route.
+    await http().post('/api/content-types').set(auth)
+      .send({ name: 'content types', schema: [{ name: 'title', type: 'text' }] }).expect(400);
+  });
+
   // ── Delete ────────────────────────────────────────────────────────────────────
 
   it('DELETE /api/api-keys/:id → deletes the key', async () => {

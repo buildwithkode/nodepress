@@ -9,6 +9,13 @@ import {
 import { conditionErrors } from './field-condition';
 
 /**
+ * How deep repeaters, groups and flexible fields may nest: a flexible field
+ * whose layout has a repeater of groups is 3 levels. Like ACF's flexible
+ * content, but bounded — every level multiplies editor and query work.
+ */
+export const MAX_NESTING = 3;
+
+/**
  * SchemaValidator — validates that a content type schema (array of field defs)
  * is structurally correct before it is persisted.
  *
@@ -32,7 +39,7 @@ export class SchemaValidator {
     const names = new Set<string>();
 
     for (let i = 0; i < fields.length; i++) {
-      this.validateField(fields[i], `schema[${i}]`, names, errors, false);
+      this.validateField(fields[i], `schema[${i}]`, names, errors, 0);
     }
     errors.push(...conditionErrors(fields, (i) => `schema[${i}]`));
 
@@ -50,8 +57,10 @@ export class SchemaValidator {
     path: string,
     names: Set<string>,
     errors: string[],
-    isSubField: boolean,
+    /** How many repeaters/groups/flexible fields this field is inside (0 = top level). */
+    depth: number,
   ): void {
+    const isSubField = depth > 0;
     if (typeof field !== 'object' || field === null || Array.isArray(field)) {
       errors.push(`${path}: must be an object`);
       return;
@@ -78,9 +87,10 @@ export class SchemaValidator {
       return; // can't validate options without knowing the type
     }
 
-    // Complex types are not allowed inside repeater/flexible/group sub-fields
-    if (isSubField && (field.type === 'repeater' || field.type === 'flexible' || field.type === 'group')) {
-      errors.push(`${path}.type: nested repeater/flexible/group fields are not supported`);
+    // Repeaters, groups and flexible fields nest, up to MAX_NESTING levels.
+    const isContainer = field.type === 'repeater' || field.type === 'flexible' || field.type === 'group';
+    if (isContainer && depth >= MAX_NESTING) {
+      errors.push(`${path}.type: repeater/flexible/group fields can be nested at most ${MAX_NESTING} levels deep`);
       return;
     }
 
@@ -135,13 +145,13 @@ export class SchemaValidator {
         this.validateRelationOptions(field, path, errors, isSubField);
         break;
       case 'repeater':
-        this.validateRepeaterOptions(field.options, path, errors);
+        this.validateRepeaterOptions(field.options, path, errors, depth);
         break;
       case 'flexible':
-        this.validateFlexibleOptions(field.options, path, errors);
+        this.validateFlexibleOptions(field.options, path, errors, depth);
         break;
       case 'group':
-        this.validateGroupOptions(field.options, path, errors);
+        this.validateGroupOptions(field.options, path, errors, depth);
         break;
     }
   }
@@ -270,18 +280,18 @@ export class SchemaValidator {
     if (field.indexed) errors.push(`${path}.indexed: index the forward field instead`);
   }
 
-  private validateRepeaterOptions(options: any, path: string, errors: string[]): void {
+  private validateRepeaterOptions(options: any, path: string, errors: string[], depth: number): void {
     if (!options || typeof options !== 'object') {
       errors.push(`${path}.options: required for repeater fields`);
       return;
     }
-    this.validateComponentOption(options, path, errors);
+    this.validateComponentOption(options, path, errors, depth);
     if (!Array.isArray(options.subFields) || options.subFields.length === 0) {
       errors.push(`${path}.options.subFields: must be a non-empty array`);
     } else {
       const subNames = new Set<string>();
       options.subFields.forEach((sf: any, i: number) => {
-        this.validateField(sf, `${path}.options.subFields[${i}]`, subNames, errors, true);
+        this.validateField(sf, `${path}.options.subFields[${i}]`, subNames, errors, depth + 1);
       });
       errors.push(...conditionErrors(options.subFields, (i) => `${path}.options.subFields[${i}]`));
     }
@@ -300,32 +310,38 @@ export class SchemaValidator {
     }
   }
 
-  /** `options.component` (or a layout's `component`) names a reusable component; its fields are copied in. */
-  private validateComponentOption(options: any, path: string, errors: string[], at = '.options'): void {
+  /**
+   * `options.component` (or a layout's `component`) names a reusable component;
+   * its fields are copied in. Only a content type's top-level fields resolve
+   * components — nested containers (and components themselves) list their fields.
+   */
+  private validateComponentOption(options: any, path: string, errors: string[], depth: number, at = '.options'): void {
     if (options.component === undefined) return;
-    if (typeof options.component !== 'string' || !SchemaValidator.NAME_RE.test(options.component)) {
+    if (depth > 0) {
+      errors.push(`${path}${at}.component: components can only be used by top-level fields`);
+    } else if (typeof options.component !== 'string' || !SchemaValidator.NAME_RE.test(options.component)) {
       errors.push(`${path}${at}.component: must be the name of a component`);
     }
   }
 
-  private validateGroupOptions(options: any, path: string, errors: string[]): void {
+  private validateGroupOptions(options: any, path: string, errors: string[], depth: number): void {
     if (!options || typeof options !== 'object') {
       errors.push(`${path}.options: required for group fields`);
       return;
     }
-    this.validateComponentOption(options, path, errors);
+    this.validateComponentOption(options, path, errors, depth);
     if (!Array.isArray(options.subFields) || options.subFields.length === 0) {
       errors.push(`${path}.options.subFields: must be a non-empty array`);
     } else {
       const subNames = new Set<string>();
       options.subFields.forEach((sf: any, i: number) => {
-        this.validateField(sf, `${path}.options.subFields[${i}]`, subNames, errors, true);
+        this.validateField(sf, `${path}.options.subFields[${i}]`, subNames, errors, depth + 1);
       });
       errors.push(...conditionErrors(options.subFields, (i) => `${path}.options.subFields[${i}]`));
     }
   }
 
-  private validateFlexibleOptions(options: any, path: string, errors: string[]): void {
+  private validateFlexibleOptions(options: any, path: string, errors: string[], depth: number): void {
     if (!options || typeof options !== 'object') {
       errors.push(`${path}.options: required for flexible fields`);
       return;
@@ -348,13 +364,13 @@ export class SchemaValidator {
         if (layout.label !== undefined && typeof layout.label !== 'string') {
           errors.push(`${lPath}.label: must be string`);
         }
-        this.validateComponentOption(layout, lPath, errors, '');
+        this.validateComponentOption(layout, lPath, errors, depth, '');
         if (!Array.isArray(layout.fields) || layout.fields.length === 0) {
           errors.push(`${lPath}.fields: must be a non-empty array`);
         } else {
           const fieldNames = new Set<string>();
           layout.fields.forEach((f: any, fi: number) => {
-            this.validateField(f, `${lPath}.fields[${fi}]`, fieldNames, errors, true);
+            this.validateField(f, `${lPath}.fields[${fi}]`, fieldNames, errors, depth + 1);
           });
           errors.push(...conditionErrors(layout.fields, (fi) => `${lPath}.fields[${fi}]`));
         }

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, Trash2, ChevronDown, ChevronRight, ArrowLeft, GripVertical, ArrowUpDown, Download, Braces, Copy, Check, PanelRight, WrapText, Shield, FileText, Lock } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, GripVertical, ArrowUpDown, Download, Braces, Copy, Check, PanelRight, WrapText, Shield, FileText, Lock } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -40,16 +40,18 @@ import {
 import { INDEXABLE_FIELD_TYPES } from '@/lib/indexable-fields';
 import { RelationFieldOptions } from '@/components/RelationFieldOptions';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
-import { SelectChoicesSource, SubFieldChoiceList } from '@/components/ChoiceListField';
+import { SelectChoicesSource } from '@/components/ChoiceListField';
 import {
-  AddComponentButton, AddComponentLayoutButton, ComponentSubFields, InlineComponentBlock,
+  AddComponentButton, AddComponentLayoutButton, ComponentFieldCard, ComponentsSection, InlineComponentBlock,
   continuesInlineRun, inlineEditorField, moveWithInlineRuns, removeInlineRun,
 } from '@/components/ComponentFieldControls';
+import { duplicateKeys, editorFieldKey, isComponentField, takenKeys } from '@/lib/field-keys';
 import { PreviewUrlSetting } from '@/components/LivePreviewPane';
 import { FieldConditionEditor } from '@/components/FieldConditionEditor';
 import { detectFieldChanges, useSchemaChangeCheck, FieldMigrations } from '@/components/SchemaChangeDialog';
 import type { FieldCondition } from '@/lib/field-condition';
 import { nestedRenames, withLoadedKeys, withoutLoadedKeys } from '@/lib/schema-editor-keys';
+import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
 
 // Labels come from contentTypes.fieldTypes.<value>.
 const FIELD_TYPES = [
@@ -69,10 +71,6 @@ const FIELD_TYPES = [
   { value: 'flexible' },
   { value: 'group' },
 ];
-
-const SIMPLE_FIELD_TYPES = FIELD_TYPES.filter(
-  (t) => t.value !== 'repeater' && t.value !== 'flexible' && t.value !== 'group',
-);
 
 interface SubField { name: string; type: string }
 interface Layout   { name: string; label: string; fields: SubField[]; component?: string }
@@ -190,7 +188,6 @@ export default function EditContentTypePage() {
   const [previewUrl, setPreviewUrl] = useState('');
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
   const schemaCheck = useSchemaChangeCheck(id);
-  const [openLayouts, setOpenLayouts] = useState<Record<string, boolean>>({});
   const [reorderMode, setReorderMode] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(true);
   const [jsonCopied, setJsonCopied] = useState(false);
@@ -230,6 +227,8 @@ export default function EditContentTypePage() {
       setFields((prev) => {
         const oldIndex = prev.findIndex((f) => f._id === active.id);
         const newIndex = prev.findIndex((f) => f._id === over.id);
+        // Fields and components are reordered within their own section.
+        if (isComponentField(prev[oldIndex]) !== isComponentField(prev[newIndex])) return prev;
         // An inline component's fields move together.
         return prev.some((f) => f.component) ? moveWithInlineRuns(prev, oldIndex, newIndex) : arrayMove(prev, oldIndex, newIndex);
       });
@@ -237,6 +236,11 @@ export default function EditContentTypePage() {
   };
 
   const computedName = name.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const dupes = duplicateKeys(fields);
+  // Numbers shown on the field cards — fields only, components are listed separately.
+  const fieldNumbers: number[] = [];
+  fields.reduce((n, f, i) => (isComponentField(f) ? n : ((fieldNumbers[i] = n + 1), n + 1)), 0);
+  const componentCount = fields.filter((f, i) => isComponentField(f) && !continuesInlineRun(fields, i)).length;
 
   useEffect(() => {
     api.get(`/content-types/${id}`)
@@ -262,50 +266,17 @@ export default function EditContentTypePage() {
   const updateField = (i: number, key: keyof Field, val: any) => {
     const u = [...fields];
     if (key === 'type') {
-      u[i] = { ...u[i], type: val, options: undefined };
-      if (val === 'repeater') u[i].options = { subFields: [{ name: '', type: 'text' }] };
-      if (val === 'flexible') u[i].options = { layouts: [{ name: 'section', label: 'Section', fields: [{ name: '', type: 'text' }] }] };
-      if (val === 'relation') u[i].options = { relatedContentType: '', cardinality: 'one' };
-      if (val === 'group') u[i].options = { subFields: [{ name: '', type: 'text' }] };
+      u[i] = { ...u[i], type: val, options: defaultOptionsFor(val) };
     } else { (u[i] as any)[key] = val; }
     setFields(u);
   };
-
-  const addSubField = (fi: number) => {
-    const u = [...fields]; u[fi].options!.subFields!.push({ name: '', type: 'text' }); setFields(u);
-  };
-  const removeSubField = (fi: number, si: number) => {
-    const u = [...fields]; u[fi].options!.subFields = u[fi].options!.subFields!.filter((_, i) => i !== si); setFields(u);
-  };
-  const updateSubField = (fi: number, si: number, key: string, val: any) => {
-    const u = [...fields]; (u[fi].options!.subFields![si] as any)[key] = val; setFields(u);
-  };
-
-  const addLayout = (fi: number) => {
-    const u = [...fields]; u[fi].options!.layouts!.push({ name: '', label: '', fields: [{ name: '', type: 'text' }] }); setFields(u);
-  };
-  const removeLayout = (fi: number, li: number) => {
-    const u = [...fields]; u[fi].options!.layouts = u[fi].options!.layouts!.filter((_, i) => i !== li); setFields(u);
-  };
-  const updateLayout = (fi: number, li: number, key: string, val: string) => {
-    const u = [...fields]; (u[fi].options!.layouts![li] as any)[key] = val; setFields(u);
-  };
-  const addLayoutField = (fi: number, li: number) => {
-    const u = [...fields]; u[fi].options!.layouts![li].fields.push({ name: '', type: 'text' }); setFields(u);
-  };
-  const removeLayoutField = (fi: number, li: number, fli: number) => {
-    const u = [...fields]; u[fi].options!.layouts![li].fields = u[fi].options!.layouts![li].fields.filter((_, i) => i !== fli); setFields(u);
-  };
-  const updateLayoutField = (fi: number, li: number, fli: number, key: string, val: any) => {
-    const u = [...fields]; (u[fi].options!.layouts![li].fields[fli] as any)[key] = val; setFields(u);
-  };
-  const toggleLayout = (key: string) => setOpenLayouts((p) => ({ ...p, [key]: !p[key] }));
 
   /* ── Submit ──────────────────────────────────────────────────────────────── */
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) { setNameError(t('editor.nameRequired')); return; }
     setNameError('');
+    if (dupes.size) { toast.error(t('editor.duplicateKeys', { keys: [...dupes].join(', ') })); return; }
     const named = fields.filter((f) => f.name.trim());
     // Inline component fields are renamed on /components, never by hand here.
     const changes = detectFieldChanges(savedKeys, named.map((f) => ({ key: toSnakeCase(f.name), original: f.component ? undefined : f._key })));
@@ -517,11 +488,6 @@ export default function EditContentTypePage() {
                     <ArrowUpDown className="h-4 w-4 mr-1.5" />
                     {reorderMode ? t('editor.done') : t('editor.reorder')}
                   </Button>
-                  <AddComponentButton
-                    onAdd={(f) => setFields([...fields, { _id: uid(), ...f }])}
-                    onAddInline={(fs) => setFields([...fields, ...fs.map((f) => ({ _id: uid(), ...inlineEditorField(f) }))])}
-                    disabled={reorderMode}
-                  />
                   <Button variant="outline" onClick={addField} disabled={reorderMode}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
@@ -529,22 +495,9 @@ export default function EditContentTypePage() {
               </div>
 
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={fields.filter((_, i) => !continuesInlineRun(fields, i)).map((f) => f._id)} strategy={verticalListSortingStrategy}>
+                <SortableContext items={fields.filter((f) => !isComponentField(f)).map((f) => f._id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-3">
-              {fields.map((field, fi) => field.component ? (
-                continuesInlineRun(fields, fi) ? null : (
-                  <SortableFieldCard key={field._id} id={field._id} disabled={!reorderMode}>
-                    {(dragHandle) => (
-                      <InlineComponentBlock
-                        fields={fields}
-                        index={fi}
-                        dragHandle={reorderMode ? dragHandle : undefined}
-                        onRemove={() => setFields(removeInlineRun(fields, fi))}
-                      />
-                    )}
-                  </SortableFieldCard>
-                )
-              ) : (
+              {fields.map((field, fi) => isComponentField(field) ? null : (
                 <SortableFieldCard key={field._id} id={field._id} disabled={!reorderMode}>
                   {(dragHandle) => (
                   <div className="rounded-md border bg-muted/30 p-4 space-y-3">
@@ -552,19 +505,22 @@ export default function EditContentTypePage() {
                     {reorderMode && dragHandle}
                     {/* Field number */}
                     <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
-                      {fi + 1}
+                      {fieldNumbers[fi]}
                     </span>
                     <div className="flex-1 space-y-1">
                       <Input
                         placeholder={t('editor.fieldNamePlaceholder')}
                         value={field.name}
                         onChange={(e) => updateField(fi, 'name', e.target.value)}
+                        aria-invalid={dupes.has(editorFieldKey(field))}
                       />
-                      {field.name.trim() && (
+                      {field.name.trim() && (dupes.has(editorFieldKey(field)) ? (
+                        <p className="text-xs text-destructive px-0.5">{t('editor.duplicateKey', { key: editorFieldKey(field) })}</p>
+                      ) : (
                         <p className="text-xs text-muted-foreground px-0.5">
                           {t('editor.fieldKey')} <code className="rounded bg-muted px-1 py-0.5 font-mono">{field.name.trim().toLowerCase().replace(/[\s-]+/g, '_')}</code>
                         </p>
-                      )}
+                      ))}
                     </div>
                     <FieldTypeSelect
                       value={field.type}
@@ -657,197 +613,30 @@ export default function EditContentTypePage() {
                     />
                   )}
 
-                  {/* Sub-fields from a reusable component — edited on /components */}
-                  {(field.type === 'group' || field.type === 'repeater') && field.options?.component && (
-                    <ComponentSubFields component={field.options.component} subFields={field.options.subFields ?? []} />
-                  )}
-
-                  {/* Repeater sub-fields */}
-                  {field.type === 'repeater' && field.options?.subFields && !field.options.component && (
+                  {/* Repeater / group sub-fields and flexible layouts — they nest (see NestedFieldsEditor) */}
+                  {(field.type === 'repeater' || field.type === 'group') && field.options?.subFields && !field.options.component && (
                     <div className="pl-7">
-                      <div className="border-l-2 border-orange-400 pl-3 space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">{t('editor.subFields')}</p>
-                        {field.options.subFields.map((sf, si) => (
-                          <div key={si} className="flex items-center gap-2">
-                            <Input
-                              placeholder={t('editor.subFieldPlaceholder')}
-                              value={sf.name}
-                              onChange={(e) => updateSubField(fi, si, 'name', e.target.value)}
-                              className="flex-1"
-                            />
-                            <FieldTypeSelect
-                              value={sf.type}
-                              onChange={(val) => updateSubField(fi, si, 'type', val)}
-                              types={SIMPLE_FIELD_TYPES}
-                              className="w-32"
-                            />
-                            {sf.type === 'select' && (
-                              <SubFieldChoiceList options={(sf as any).options} onChange={(o) => updateSubField(fi, si, 'options', o)} />
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon-xs"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                              disabled={field.options!.subFields!.length === 1}
-                              onClick={() => removeSubField(fi, si)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        ))}
-                        <Button
-                          variant="outline"
-                          onClick={() => addSubField(fi)}
-                        >
-                          <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addSubField')}
-                        </Button>
-                      </div>
+                      <NestedFields
+                        kind={field.type}
+                        fields={field.options.subFields}
+                        depth={1}
+                        onChange={(subFields) => updateField(fi, 'options', { ...field.options, subFields })}
+                      />
                     </div>
                   )}
 
-                  {/* Group fields */}
-                  {field.type === 'group' && field.options?.subFields && !field.options.component && (
-                    <div className="pl-7">
-                      <div className="border-l-2 border-violet-400 pl-3 space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">{t('editor.fields')}</p>
-                        {field.options.subFields.map((sf, si) => (
-                          <div key={si} className="flex items-center gap-2">
-                            <Input
-                              placeholder={t('editor.nestedFieldPlaceholder')}
-                              value={sf.name}
-                              onChange={(e) => updateSubField(fi, si, 'name', e.target.value)}
-                              className="flex-1"
-                            />
-                            <FieldTypeSelect
-                              value={sf.type}
-                              onChange={(val) => updateSubField(fi, si, 'type', val)}
-                              types={SIMPLE_FIELD_TYPES}
-                              className="w-32"
-                            />
-                            {sf.type === 'select' && (
-                              <SubFieldChoiceList options={(sf as any).options} onChange={(o) => updateSubField(fi, si, 'options', o)} />
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon-xs"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                              disabled={field.options!.subFields!.length === 1}
-                              onClick={() => removeSubField(fi, si)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        ))}
-                        <Button
-                          variant="outline"
-                          onClick={() => addSubField(fi)}
-                        >
-                          <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Flexible layouts */}
                   {field.type === 'flexible' && field.options?.layouts && (
                     <div className="pl-7">
-                      <div className="border-l-2 border-pink-400 pl-3 space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">{t('editor.layouts')}</p>
-                        {field.options.layouts.map((layout, li) => {
-                          const key = `${fi}-${li}`;
-                          const isOpen = openLayouts[key] ?? false;
-                          return (
-                            <div key={li} className="rounded border bg-background overflow-hidden">
-                              <div className="flex items-center gap-2 px-2 py-1.5 bg-muted/50">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  onClick={() => toggleLayout(key)}
-                                  className="shrink-0 h-6 w-6"
-                                >
-                                  {isOpen
-                                    ? <ChevronDown className="h-3.5 w-3.5" />
-                                    : <ChevronRight className="h-3.5 w-3.5" />}
-                                </Button>
-                                <Input
-                                  placeholder={t('editor.layoutNamePlaceholder')}
-                                  value={layout.name}
-                                  onChange={(e) => updateLayout(fi, li, 'name', e.target.value)}
-                                  className="w-32"
-                                />
-                                <Input
-                                  placeholder={t('editor.layoutLabelPlaceholder')}
-                                  value={layout.label}
-                                  onChange={(e) => updateLayout(fi, li, 'label', e.target.value)}
-                                  className="flex-1"
-                                />
-                                <Button
-                                  variant="ghost"
-                                  size="icon-xs"
-                                  className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                  disabled={field.options!.layouts!.length === 1}
-                                  onClick={() => removeLayout(fi, li)}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                              {isOpen && layout.component && (
-                                <ComponentSubFields component={layout.component} subFields={layout.fields} className="px-3 py-2 border-t" />
-                              )}
-                              {isOpen && !layout.component && (
-                                <div className="px-3 py-2 space-y-1.5 border-t">
-                                  {layout.fields.map((lf, fli) => (
-                                    <div key={fli} className="flex items-center gap-2">
-                                      <Input
-                                        placeholder={t('editor.nestedFieldPlaceholder')}
-                                        value={lf.name}
-                                        onChange={(e) => updateLayoutField(fi, li, fli, 'name', e.target.value)}
-                                        className="flex-1"
-                                      />
-                                      <FieldTypeSelect
-                                        value={lf.type}
-                                        onChange={(val) => updateLayoutField(fi, li, fli, 'type', val)}
-                                        types={SIMPLE_FIELD_TYPES}
-                                        className="w-32"
-                                      />
-                                      {lf.type === 'select' && (
-                                        <SubFieldChoiceList options={(lf as any).options} onChange={(o) => updateLayoutField(fi, li, fli, 'options', o)} />
-                                      )}
-                                      <Button
-                                        variant="ghost"
-                                        size="icon-xs"
-                                        className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                        disabled={layout.fields.length === 1}
-                                        onClick={() => removeLayoutField(fi, li, fli)}
-                                      >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                      </Button>
-                                    </div>
-                                  ))}
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => addLayoutField(fi, li)}
-                                  >
-                                    <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => addLayout(fi)}
-                          >
-                            <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addLayout')}
-                          </Button>
+                      <NestedLayouts
+                        layouts={field.options.layouts}
+                        depth={1}
+                        onChange={(layouts) => updateField(fi, 'options', { ...field.options, layouts })}
+                        actions={
                           <AddComponentLayoutButton
-                            onAdd={(l) => { const u = [...fields]; u[fi].options!.layouts!.push(l); setFields(u); }}
+                            onAdd={(l) => updateField(fi, 'options', { ...field.options, layouts: [...field.options!.layouts!, l] })}
                           />
-                        </div>
-                      </div>
+                        }
+                      />
                     </div>
                   )}
                   </div>
@@ -856,11 +645,10 @@ export default function EditContentTypePage() {
               ))}
                   </div>
                 </SortableContext>
-              </DndContext>
 
               {/* Bottom controls — duplicate of the header buttons, only once
                   the list is long enough that the header has scrolled away */}
-              {fields.length >= 4 && (
+              {fieldNumbers.filter(Boolean).length >= 4 && (
                 <div className="flex items-center justify-end gap-2 mt-3">
                   <Button
                     variant={reorderMode ? 'secondary' : 'outline'}
@@ -874,6 +662,49 @@ export default function EditContentTypePage() {
                   </Button>
                 </div>
               )}
+
+              {/* Fields from components — their own section, reordered among themselves */}
+              <div className="mt-8">
+                <ComponentsSection
+                  count={componentCount}
+                  addButton={
+                    <AddComponentButton
+                      taken={takenKeys(fields)}
+                      onAdd={(f) => setFields([...fields, { _id: uid(), ...f }])}
+                      onAddInline={(fs) => setFields([...fields, ...fs.map((f) => ({ _id: uid(), ...inlineEditorField(f) }))])}
+                      disabled={reorderMode}
+                    />
+                  }
+                >
+                  <SortableContext items={fields.filter((f, i) => isComponentField(f) && !continuesInlineRun(fields, i)).map((f) => f._id)} strategy={verticalListSortingStrategy}>
+                    {fields.map((field, fi) => !isComponentField(field) || continuesInlineRun(fields, fi) ? null : (
+                      <SortableFieldCard key={field._id} id={field._id} disabled={!reorderMode}>
+                        {(dragHandle) => field.component ? (
+                          <InlineComponentBlock
+                            fields={fields}
+                            index={fi}
+                            duplicates={dupes}
+                            dragHandle={reorderMode ? dragHandle : undefined}
+                            onRemove={() => setFields(removeInlineRun(fields, fi))}
+                          />
+                        ) : (
+                          <ComponentFieldCard
+                            field={field}
+                            duplicate={dupes.has(editorFieldKey(field))}
+                            dragHandle={reorderMode ? dragHandle : undefined}
+                            onName={(v) => updateField(fi, 'name', v)}
+                            onRequired={(v) => updateField(fi, 'required', v)}
+                            onRemove={() => removeField(fi)}
+                            removeDisabled={fields.length === 1}
+                          />
+                        )}
+                      </SortableFieldCard>
+                    ))}
+                  </SortableContext>
+                </ComponentsSection>
+              </div>
+              </DndContext>
+
             </div>
           </form>
           </div>
@@ -941,7 +772,7 @@ export default function EditContentTypePage() {
         {schemaCheck.dialog}
         <CardFooter className="justify-end gap-2">
           <Button variant="outline" onClick={() => router.push('/content-types')}>{tc('cancel')}</Button>
-          <Button type="submit" form="ct-form" disabled={submitting}>
+          <Button type="submit" form="ct-form" disabled={submitting || dupes.size > 0}>
             {submitting ? tc('saving') : t('editor.saveChanges')}
           </Button>
         </CardFooter>

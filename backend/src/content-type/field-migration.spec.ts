@@ -115,7 +115,7 @@ describe('stepQuery', () => {
   it('passes field names as parameters, never in the SQL', () => {
     const top = stepQuery(7, { kind: 'rename', field: 'title', from: 'headline' });
     expect(top.sql).not.toMatch(/title|headline/);
-    expect(top.params).toEqual([7, 'title', 'headline', 'headline']);
+    expect(top.params).toEqual([7, 'title', 'headline']);
 
     const nested = stepQuery(7, { kind: 'convert', field: 'blocks.hero.weight', fromType: 'text', toType: 'number', container: 'flexible' });
     expect(nested.sql).not.toMatch(/blocks|hero|weight/);
@@ -124,5 +124,50 @@ describe('stepQuery', () => {
 
     const impact = impactQuery(7, { kind: 'drop', field: 'links.href', container: 'repeater' });
     expect(impact.params).toEqual([7, 'links', 'href']);
+  });
+});
+
+describe('deeply nested fields', () => {
+  // blocks (flexible) → hero layout → buttons (repeater) → link (group) → url
+  const layout = (buttons: any[]) => [{
+    name: 'blocks', type: 'flexible',
+    options: { layouts: [{ name: 'hero', fields: [{ name: 'heading', type: 'text' }, { name: 'buttons', type: 'repeater', options: { subFields: buttons } }] }] },
+  }];
+  const before = layout([{ name: 'label', type: 'text' }, { name: 'weight', type: 'text' }, { name: 'link', type: 'group', options: { subFields: [{ name: 'href', type: 'text' }, { name: 'old', type: 'text' }] } }]);
+  const after = layout([{ name: 'text', type: 'text' }, { name: 'weight', type: 'number' }, { name: 'link', type: 'group', options: { subFields: [{ name: 'url', type: 'text' }] } }]);
+
+  it('plans renames, conversions and drops at any depth', () => {
+    const steps = planMigrations(before, after, {
+      renames: [{ from: 'blocks.hero.buttons.label', to: 'blocks.hero.buttons.text' }, { from: 'blocks.hero.buttons.link.href', to: 'blocks.hero.buttons.link.url' }],
+      convert: ['blocks.hero.buttons.weight'],
+      drop: ['blocks.hero.buttons.link.old'],
+    });
+    expect(steps.map((s) => `${s.kind}:${s.field}:${s.hops!.map((h) => h.type).join('>')}`)).toEqual([
+      'rename:blocks.hero.buttons.text:flexible>repeater',
+      'rename:blocks.hero.buttons.link.url:flexible>repeater>group',
+      'convert:blocks.hero.buttons.weight:flexible>repeater',
+      'drop:blocks.hero.buttons.link.old:flexible>repeater>group',
+    ]);
+  });
+
+  it('finds removed and retyped fields deep down, following a renamed container', () => {
+    const renamedContainer = layout([]).map((f) => ({
+      ...f, options: { layouts: [{ name: 'hero', fields: [{ name: 'heading', type: 'text' }, { name: 'ctas', type: 'repeater', options: { subFields: [{ name: 'label', type: 'text' }, { name: 'weight', type: 'number' }] } }] }] },
+    }));
+    const renames = [{ from: 'blocks.hero.buttons', to: 'blocks.hero.ctas' }];
+    expect(removedNestedFields(before, renamedContainer, renames)).toEqual(['blocks.hero.ctas.link']);
+    expect(retypedFields(before, renamedContainer, renames)).toEqual([expect.objectContaining({ field: 'blocks.hero.ctas.weight', fromType: 'text', toType: 'number' })]);
+    expect(() => planMigrations(before, renamedContainer, { renames, convert: ['blocks.hero.ctas.weight'] })).not.toThrow();
+  });
+
+  it('builds one parameterised statement through every container', () => {
+    const [step] = planMigrations(before, after, { drop: ['blocks.hero.buttons.link.old'] });
+    const q = stepQuery(3, step);
+    expect(q.sql).not.toMatch(/blocks|hero|buttons|link|old/);
+    expect(q.params).toEqual([3, 'blocks', 'hero', 'buttons', 'link', 'old']);
+    expect(q.sql).toContain("AS t1(el, ord)");
+    expect(q.sql).toContain("AS t2(el, ord)");
+    const impact = impactQuery(3, step);
+    expect(impact.sql).not.toMatch(/blocks|hero|buttons|link|old/);
   });
 });

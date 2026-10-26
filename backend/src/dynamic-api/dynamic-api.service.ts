@@ -31,6 +31,7 @@ import { populateDeep, populateManyDeep } from '../common/populate.util';
 import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
 import { buildAdvancedWhere } from '../common/filter-query.util';
 import { extractRelationFilters } from '../common/relation-filter.util';
+import { contentTypeName } from '../common/content-type-name';
 
 type MethodKey = 'list' | 'read' | 'create' | 'update' | 'delete';
 
@@ -263,7 +264,7 @@ export class DynamicApiService implements OnModuleInit {
   }
 
   private async resolveContentType(typeName: string, method: MethodKey) {
-    const name = typeName.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    const name = contentTypeName(typeName);
 
     // Cache content type meta for 5 minutes — avoids a DB round-trip on every
     // public API request. The content-type service clears it on schema changes.
@@ -317,7 +318,7 @@ export class DynamicApiService implements OnModuleInit {
 
   /** Cache-Tag values for a content type's public responses (for CDN purging). */
   async publicCacheTags(typeName: string): Promise<string[]> {
-    const name = typeName.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    const name = contentTypeName(typeName);
     let contentType = await this.cache.get<any>(ctCacheKey(name));
     if (!contentType) contentType = await this.prisma.contentType.findUnique({ where: { name }, select: { id: true } });
     return contentType ? publicCacheTags(contentType.id) : [];
@@ -804,7 +805,7 @@ export class DynamicApiService implements OnModuleInit {
       throw new UnauthorizedException('Invalid preview token');
     }
 
-    const name = typeName.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    const name = contentTypeName(typeName);
     const contentType = await this.prisma.contentType.findUnique({ where: { name } });
     if (!contentType) {
       throw new NotFoundException(`Content type "${name}" does not exist`);

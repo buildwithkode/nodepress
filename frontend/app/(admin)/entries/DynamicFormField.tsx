@@ -15,6 +15,7 @@ import { MediaPickerModal } from '@/components/MediaPickerModal';
 import { RelationPicker } from '@/components/RelationPicker';
 import { ReverseRelationList } from '@/components/ReverseRelationList';
 import { ChoiceSelect, type ChoiceOptions } from '@/components/ChoiceSelect';
+import type { SubField } from './SubFields';
 
 const RichTextEditor = dynamic(
   () => import('@/components/RichTextEditor'),
@@ -33,14 +34,9 @@ function EditorLoading() {
   );
 }
 
-interface SubField {
-  name: string;
-  type: string;
-}
-
 interface Layout {
   name: string;
-  label: string;
+  label?: string;
   fields: SubField[];
 }
 
@@ -49,54 +45,67 @@ interface Field {
   label?: string;
   type: string;
   required?: boolean;
-  options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string };
+  options?: any;
 }
 
 interface Props {
   field: Field;
+  /** Form path of the value — the field name at top level, `blocks.0.buttons.1.label` deeper down. */
+  name?: string;
   control: any;
   register: any;
   errors: any;
   watch?: any;
   /** The entry being edited — reverse relation fields list what links to it. */
   entryId?: number;
+  /** Leave out a group's or repeater's label row — a component box shows its own title. */
+  bare?: boolean;
 }
 
 function toLabel(name: string) {
   return name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** React Hook Form nests errors like values: `errors.blocks[0].buttons[1].label`. */
+const errorAt = (errors: any, path: string) => path.split('.').reduce((e, k) => e?.[k], errors);
+
 export default function DynamicFormField({
   field,
+  name,
   control,
   register,
   errors,
   watch,
   entryId,
+  bare,
 }: Props) {
   const t = useTranslations('entryEditor');
   const tc = useTranslations('common');
+  const path = name ?? field.name;
   const label = field.label?.trim() || toLabel(field.name);
-  const error = errors?.[field.name];
+  const error = errorAt(errors, path);
 
   // --- Repeater ---
   if (field.type === 'repeater') {
     const subFields =
-      (field.options as { subFields?: SubField[] })?.subFields?.filter((f) => f.name) || [];
+      (field.options?.subFields as SubField[] | undefined)?.filter((f) => f.name) || [];
     return (
       <div className="mb-5">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="text-sm font-medium">{label}</span>
-          <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[11px] font-medium text-orange-600">
-            repeater
-          </span>
-        </div>
+        {!bare && (
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-sm font-medium">{label}</span>
+            <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[11px] font-medium text-orange-600">
+              repeater
+            </span>
+          </div>
+        )}
         <RepeaterField
-          fieldName={field.name}
+          fieldName={path}
           subFields={subFields}
           control={control}
           register={register}
           errors={errors}
+          watch={watch}
         />
       </div>
     );
@@ -105,21 +114,24 @@ export default function DynamicFormField({
   // --- Group ---
   if (field.type === 'group') {
     const subFields =
-      (field.options as { subFields?: SubField[] })?.subFields?.filter((f) => f.name) || [];
+      (field.options?.subFields as SubField[] | undefined)?.filter((f) => f.name) || [];
     return (
       <div className="mb-5">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="text-sm font-medium">{label}</span>
-          <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[11px] font-medium text-violet-600">
-            group
-          </span>
-        </div>
+        {!bare && (
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-sm font-medium">{label}</span>
+            <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[11px] font-medium text-violet-600">
+              group
+            </span>
+          </div>
+        )}
         <GroupField
-          fieldName={field.name}
+          fieldName={path}
           subFields={subFields}
           register={register}
           control={control}
           errors={errors}
+          watch={watch}
         />
       </div>
     );
@@ -128,7 +140,7 @@ export default function DynamicFormField({
   // --- Flexible Content ---
   if (field.type === 'flexible') {
     const layouts =
-      (field.options as { layouts?: Layout[] })?.layouts?.filter((l) => l.name) || [];
+      (field.options?.layouts as Layout[] | undefined)?.filter((l) => l.name) || [];
     return (
       <div className="mb-5">
         <div className="mb-2 flex items-center gap-2">
@@ -138,7 +150,7 @@ export default function DynamicFormField({
           </span>
         </div>
         <FlexibleField
-          fieldName={field.name}
+          fieldName={path}
           layouts={layouts}
           control={control}
           register={register}
@@ -155,9 +167,9 @@ export default function DynamicFormField({
       case 'text':
         return (
           <Input
-            id={field.name}
+            id={path}
             placeholder={t('form.enterValue', { field: label })}
-            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
+            {...register(path, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -165,10 +177,10 @@ export default function DynamicFormField({
       case 'textarea':
         return (
           <Textarea
-            id={field.name}
+            id={path}
             rows={3}
             placeholder={t('form.enterValue', { field: label })}
-            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
+            {...register(path, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -177,7 +189,7 @@ export default function DynamicFormField({
         return (
           <Controller
             control={control}
-            name={field.name}
+            name={path}
             render={({ field: f }) => (
               <RichTextEditor
                 value={f.value || ''}
@@ -191,10 +203,10 @@ export default function DynamicFormField({
       case 'number':
         return (
           <Input
-            id={field.name}
+            id={path}
             type="number"
             placeholder={t('form.enterValue', { field: label })}
-            {...register(field.name, { valueAsNumber: true, required: field.required ? t('form.fieldRequired', { field: label }) : false })}
+            {...register(path, { valueAsNumber: true, required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -203,14 +215,14 @@ export default function DynamicFormField({
         return (
           <Controller
             control={control}
-            name={field.name}
+            name={path}
             render={({ field: f }) => (
               <div className="flex h-9 items-center justify-between rounded-md border border-input bg-background px-3">
                 <span className="text-xs text-muted-foreground">
                   {f.value ? tc('enabled') : tc('disabled')}
                 </span>
                 <Switch
-                  id={`switch-${field.name}`}
+                  id={`switch-${path}`}
                   checked={!!f.value}
                   onCheckedChange={f.onChange}
                 />
@@ -223,7 +235,7 @@ export default function DynamicFormField({
         return (
           <ChoiceSelect
             control={control}
-            name={field.name}
+            name={path}
             options={field.options as ChoiceOptions | undefined}
             placeholder={t('form.selectValue', { field: label })}
             invalid={!!error}
@@ -234,7 +246,7 @@ export default function DynamicFormField({
         return (
           <Controller
             control={control}
-            name={field.name}
+            name={path}
             render={({ field: f }) => (
               <MediaPickerModal value={f.value ?? null} onChange={f.onChange} />
             )}
@@ -256,7 +268,7 @@ export default function DynamicFormField({
         return (
           <Controller
             control={control}
-            name={field.name}
+            name={path}
             render={({ field: f }) => (
               <RelationPicker
                 relatedContentType={relOpts?.relatedContentType ?? ''}
@@ -273,7 +285,7 @@ export default function DynamicFormField({
         return (
           <Controller
             control={control}
-            name={field.name}
+            name={path}
             render={({ field: f }) => (
               <div className="flex items-center gap-2">
                 <input
@@ -296,9 +308,9 @@ export default function DynamicFormField({
       case 'date':
         return (
           <Input
-            id={field.name}
+            id={path}
             type="date"
-            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
+            {...register(path, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -306,9 +318,9 @@ export default function DynamicFormField({
       case 'datetime':
         return (
           <Input
-            id={field.name}
+            id={path}
             type="datetime-local"
-            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
+            {...register(path, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -317,7 +329,7 @@ export default function DynamicFormField({
         return (
           <Controller
             control={control}
-            name={field.name}
+            name={path}
             defaultValue={{}}
             render={({ field: f }) => {
               const display = typeof f.value === 'string'
@@ -325,7 +337,7 @@ export default function DynamicFormField({
                 : JSON.stringify(f.value ?? {}, null, 2);
               return (
                 <textarea
-                  id={field.name}
+                  id={path}
                   rows={6}
                   value={display}
                   onChange={(e) => {
@@ -351,9 +363,9 @@ export default function DynamicFormField({
       default:
         return (
           <Input
-            id={field.name}
+            id={path}
             placeholder={t('form.enterValue', { field: label })}
-            {...register(field.name, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
+            {...register(path, { required: field.required ? t('form.fieldRequired', { field: label }) : false })}
             className={cn(error && 'border-destructive focus-visible:ring-destructive')}
           />
         );
@@ -363,7 +375,7 @@ export default function DynamicFormField({
   return (
     <div className="space-y-1.5 mb-5">
       <Label
-        htmlFor={field.type === 'boolean' ? `switch-${field.name}` : field.name}
+        htmlFor={field.type === 'boolean' ? `switch-${path}` : path}
         className="text-xs font-semibold text-foreground/90 flex items-center gap-1"
       >
         <span>{label}</span>

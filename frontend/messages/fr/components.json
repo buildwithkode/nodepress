@@ -29,7 +29,7 @@
   "editor": {
     "newTitle": "Nouveau composant",
     "editTitle": "Modifier le composant",
-    "hint": "Les composants ne contiennent que des champs simples — pas de répéteurs, de contenu flexible, de groupes ni de relations inverses.",
+    "hint": "Les champs peuvent aussi être des répéteurs, des groupes ou du contenu flexible, imbriqués jusqu’à 3 niveaux. Un composant ne peut pas utiliser d’autres composants ni des relations inverses.",
     "displayName": "Nom affiché",
     "displayNamePlaceholder": "ex. SEO",
     "name": "Clé",
@@ -71,7 +71,10 @@
     "confirm": "Ajouter",
     "inline": "Intégré",
     "inlineHint": "Ses champs, ajoutés directement",
-    "inlineNote": "Les champs sont ajoutés directement à ce type de contenu : les entrées les stockent à plat. Ils restent synchronisés avec le composant."
+    "inlineNote": "Les champs sont ajoutés directement à ce type de contenu : les entrées les stockent à plat. Ils restent synchronisés avec le composant.",
+    "keyTaken": "Ce type de contenu a déjà un champ avec la clé {key}.",
+    "inlineKeysTaken": "Ces champs entrent en conflit avec des clés existantes : {keys}",
+    "fieldKey": "Clé du champ :"
   },
   "readOnly": {
     "usesComponent": "Champs du composant",
@@ -86,6 +89,18 @@
     "from": "Depuis le composant",
     "open": "Ouvrir le composant",
     "remove": "Retirer ces champs",
-    "note": "Ajoutés directement à ce type de contenu. Modifiez le composant pour changer ces champs."
+    "note": "Ajoutés directement à ce type de contenu. Modifiez le composant pour changer ces champs.",
+    "keysTaken": "Ces clés sont aussi utilisées par un autre champ : {keys}"
+  },
+  "section": {
+    "title": "Composants",
+    "hint": "Ensembles de champs réutilisables de la page Composants. Chacun est enregistré sous sa propre clé.",
+    "empty": "Aucun composant ajouté."
+  },
+  "card": {
+    "toggle": "Afficher ou masquer les champs du composant",
+    "duplicate": "Un autre champ utilise déjà la clé {key}. Renommez l'un des deux.",
+    "required": "Obligatoire",
+    "remove": "Retirer ce composant"
   }
 }

@@ -92,7 +92,8 @@
     "enterRichText": "{field} eingeben",
     "selectValue": "{field} auswählen",
     "fieldRequired": "{field} ist erforderlich",
-    "required": "Dieses Feld ist erforderlich"
+    "required": "Dieses Feld ist erforderlich",
+    "components": "Komponenten"
   },
   "seo": {
     "heading": "SEO",

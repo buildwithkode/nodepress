@@ -92,7 +92,8 @@
     "enterRichText": "Digite {field}",
     "selectValue": "Selecione {field}",
     "fieldRequired": "{field} é obrigatório",
-    "required": "Este campo é obrigatório"
+    "required": "Este campo é obrigatório",
+    "components": "Componentes"
   },
   "seo": {
     "heading": "SEO",

@@ -86,7 +86,7 @@ describe('choice-list.util', () => {
     expect(removedValuesQuery(top)).toContain(`jsonb_typeof("data" -> 'gender')`);
     expect(removedValuesQuery(rep)).toContain(`jsonb_typeof("data" -> 'kids') = 'array'`);
     expect(removedValuesQuery(group)).toContain(`"data" -> 'contact' -> 'gender'`);
-    expect(removedValuesQuery(flex)).toContain(`it.item ->> '_layout' = 'person'`);
+    expect(removedValuesQuery(flex)).toContain(`it1.item ->> '_layout' = 'person'`);
     expect(removedValuesQuery({ path: 'x', field: "x'; drop" })).toBeNull();
   });
 

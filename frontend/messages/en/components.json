@@ -29,7 +29,7 @@
   "editor": {
     "newTitle": "New component",
     "editTitle": "Edit component",
-    "hint": "Components hold simple fields only — no repeaters, flexible content, groups or reverse relations.",
+    "hint": "Fields can be repeaters, groups or flexible content too, nested up to 3 levels deep. Components can't use other components or reverse relations.",
     "displayName": "Display name",
     "displayNamePlaceholder": "e.g. SEO",
     "name": "Key",
@@ -71,7 +71,10 @@
     "confirm": "Add",
     "inline": "Inline",
     "inlineHint": "Its fields, added directly",
-    "inlineNote": "The fields are added directly to this content type, so entries store them flat. They stay in sync with the component."
+    "inlineNote": "The fields are added directly to this content type, so entries store them flat. They stay in sync with the component.",
+    "keyTaken": "This content type already has a field with the key {key}.",
+    "inlineKeysTaken": "These fields clash with keys already in this content type: {keys}",
+    "fieldKey": "Field key:"
   },
   "readOnly": {
     "usesComponent": "Fields from component",
@@ -86,6 +89,18 @@
     "from": "From component",
     "open": "Open component",
     "remove": "Remove these fields",
-    "note": "Added directly to this content type. Edit the component to change these fields."
+    "note": "Added directly to this content type. Edit the component to change these fields.",
+    "keysTaken": "These keys are also used by another field: {keys}"
+  },
+  "section": {
+    "title": "Components",
+    "hint": "Reusable field sets from the Components page. Each one is saved under its own field key.",
+    "empty": "No components added yet."
+  },
+  "card": {
+    "toggle": "Show or hide the component's fields",
+    "duplicate": "Another field already uses the key {key}. Rename one of them.",
+    "required": "Required",
+    "remove": "Remove this component"
   }
 }

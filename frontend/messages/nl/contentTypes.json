@@ -127,7 +127,9 @@
     "loadFailed": "Contenttype laden mislukt",
     "invalidImportFile": "Ongeldig bestand: contentType.name of contentType.schema ontbreekt",
     "imported": "\"{name}\" geïmporteerd — controleer en sla op",
-    "parseFailed": "JSON-bestand verwerken mislukt"
+    "parseFailed": "JSON-bestand verwerken mislukt",
+    "duplicateKey": "Een ander veld gebruikt de sleutel {key} al. Hernoem een van beide.",
+    "duplicateKeys": "Twee velden kunnen geen sleutel delen. Hernoem de dubbele: {keys}"
   },
   "relation": {
     "relatedType": "Gerelateerd contenttype",

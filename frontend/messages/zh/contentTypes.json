@@ -127,7 +127,9 @@
     "loadFailed": "加载内容类型失败",
     "invalidImportFile": "无效文件：缺少 contentType.name 或 contentType.schema",
     "imported": "已导入“{name}”——请检查后保存",
-    "parseFailed": "解析 JSON 文件失败"
+    "parseFailed": "解析 JSON 文件失败",
+    "duplicateKey": "另一个字段已在使用键 {key}。请重命名其中一个。",
+    "duplicateKeys": "两个字段不能使用同一个键。请重命名重复项：{keys}"
   },
   "relation": {
     "relatedType": "关联的内容类型",

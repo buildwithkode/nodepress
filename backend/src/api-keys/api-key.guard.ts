@@ -4,6 +4,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ApiKeysService } from './api-keys.service';
 import { Request } from 'express';
+import { keyCoversType } from '../common/content-type-name';
 
 /** Metadata key used by @RequireAccess() */
 export const REQUIRE_ACCESS_KEY = 'require_access';
@@ -42,7 +43,7 @@ export class ApiKeyGuard implements CanActivate {
 
     // Check content type restriction
     const type: string | undefined = (req.params as Record<string, string>)?.type;
-    if (type && perms.contentTypes[0] !== '*' && !perms.contentTypes.includes(type)) {
+    if (type && !keyCoversType(perms.contentTypes, type)) {
       throw new ForbiddenException(`This API key does not have access to content type "${type}"`);
     }
 

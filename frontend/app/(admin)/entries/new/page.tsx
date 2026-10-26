@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn, ctLabel, formatSlugInput, cleanSlug } from '@/lib/utils';
 import DynamicFormField from '../DynamicFormField';
+import { SchemaFormFields } from '../SchemaFormFields';
 import { AiDraftButton } from '@/components/AiAssist';
 import {
   Select,
@@ -465,9 +466,12 @@ export default function NewEntryPage() {
                       />
                     </div>
                     <div>
-                      {selectedCT.schema.map((field) => withCondition(field as any, { control, fields: selectedCT.schema as any, path: '' }, (
-                        <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} />
-                      )))}
+                      <SchemaFormFields
+                        schema={selectedCT.schema}
+                        renderField={(field, bare) => withCondition(field as any, { control, fields: selectedCT.schema as any, path: '' }, (
+                          <DynamicFormField key={field.name} field={field} control={control} register={register} errors={errors} watch={watch} bare={bare} />
+                        ))}
+                      />
                     </div>
                   </div>
                 )}

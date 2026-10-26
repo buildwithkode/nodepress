@@ -92,7 +92,8 @@
     "enterRichText": "Inserisci {field}",
     "selectValue": "Seleziona {field}",
     "fieldRequired": "{field} è obbligatorio",
-    "required": "Questo campo è obbligatorio"
+    "required": "Questo campo è obbligatorio",
+    "components": "Componenti"
   },
   "seo": {
     "heading": "SEO",

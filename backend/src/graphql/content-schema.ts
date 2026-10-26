@@ -16,6 +16,7 @@ import {
   validateSchema,
 } from 'graphql';
 import { FieldDef, FlexibleLayout, RelationFieldDef, SimpleFieldDef, isReverseRelation } from '../fields/field.types';
+import { contentTypePath } from '../common/content-type-name';
 
 /**
  * Typed GraphQL for content types: for each content type `blog_post` the
@@ -198,13 +199,63 @@ export function buildContentSchema(
 
   const usable = (f: any): boolean => !!f && typeof f.name === 'string' && GQL_NAME.test(f.name) && !f.name.startsWith('__');
 
-  const subObject = (name: string, fields: SimpleFieldDef[], extra: GraphQLFieldConfigMap<any, any> = {}) => {
+  const isContainer = (f: any) => f?.type === 'group' || f?.type === 'repeater' || f?.type === 'flexible';
+
+  /** An object type for a group, a repeater item or a flexible block; nested containers get their own types. */
+  const subObject = (name: string, fields: FieldDef[], extra: GraphQLFieldConfigMap<any, any> = {}) => {
     const map: GraphQLFieldConfigMap<any, any> = { ...extra };
-    for (const sf of fields ?? []) if (usable(sf) && !(sf.name in map)) map[sf.name] = valueField(sf, (p) => p?.[sf.name]);
+    for (const sf of fields ?? []) {
+      if (!usable(sf) || sf.name in map) continue;
+      const get = (p: any) => p?.[sf.name];
+      map[sf.name] = isContainer(sf)
+        ? containerField(`${name}${pascal(sf.name)}`, sf, get)
+        : valueField(sf as SimpleFieldDef, get);
+    }
     if (Object.keys(map).length === 0) return null;
     const type = new GraphQLObjectType({ name: claim(name), fields: map });
     newTypes.push(type);
     return type;
+  };
+
+  /** A group (object), repeater (list of items) or flexible field (list of a union of blocks), at any depth. */
+  const containerField = (typeName: string, f: any, get: (parent: any) => unknown): GraphQLFieldConfig<any, any> => {
+    const description = f.description || f.label || undefined;
+    const json = { type: JSONScalar, description, resolve: (p: any) => get(p) ?? null };
+    switch (f.type) {
+      case 'group': {
+        const type = subObject(typeName, f.options?.subFields);
+        return type ? { type, description, resolve: (p) => { const v = get(p); return v && typeof v === 'object' ? v : null; } } : json;
+      }
+      case 'repeater': {
+        const type = subObject(`${typeName}Item`, f.options?.subFields, { _id: { type: GraphQLString } })!;
+        return {
+          type: new GraphQLList(new GraphQLNonNull(type)),
+          description,
+          resolve: (p) => { const v = get(p); return Array.isArray(v) ? v.filter((i) => i && typeof i === 'object') : null; },
+        };
+      }
+      default: {
+        const layouts: FlexibleLayout[] = (f.options?.layouts ?? []).filter((l: any) => l?.name);
+        const blockTypes = new Map<string, GraphQLObjectType>();
+        for (const layout of layouts) {
+          blockTypes.set(layout.name, subObject(`${typeName}${pascal(layout.name)}`, layout.fields, {
+            _layout: { type: new GraphQLNonNull(GraphQLString) },
+          })!);
+        }
+        if (blockTypes.size === 0) return json;
+        const union = new GraphQLUnionType({
+          name: claim(`${typeName}Block`),
+          types: [...blockTypes.values()],
+          resolveType: (v: any) => blockTypes.get(v?._layout)?.name,
+        });
+        newTypes.push(union);
+        return {
+          type: new GraphQLList(new GraphQLNonNull(union)),
+          description,
+          resolve: (p) => { const v = get(p); return Array.isArray(v) ? v.filter((i) => i && blockTypes.has(i._layout)) : null; },
+        };
+      }
+    }
   };
 
   const dataFields = (prefix: string, ct: ContentTypeRow): GraphQLFieldConfigMap<any, any> => {
@@ -234,53 +285,11 @@ export function buildContentSchema(
           };
           break;
         }
-        case 'group': {
-          const type = subObject(`${prefix}${pascal(f.name)}`, (f as any).options?.subFields);
-          map[f.name] = type
-            ? { type, description, resolve: (p) => { const v = get(p); return v && typeof v === 'object' ? v : null; } }
-            : { type: JSONScalar, description, resolve: (p) => get(p) ?? null };
+        case 'group':
+        case 'repeater':
+        case 'flexible':
+          map[f.name] = containerField(`${prefix}${pascal(f.name)}`, f, get);
           break;
-        }
-        case 'repeater': {
-          const type = subObject(`${prefix}${pascal(f.name)}Item`, (f as any).options?.subFields, { _id: { type: GraphQLString } })!;
-          map[f.name] = {
-            type: new GraphQLList(new GraphQLNonNull(type)),
-            description,
-            resolve: (p) => { const v = get(p); return Array.isArray(v) ? v.filter((i) => i && typeof i === 'object') : null; },
-          };
-          break;
-        }
-        case 'flexible': {
-          const layouts: FlexibleLayout[] = ((f as any).options?.layouts ?? []).filter((l: any) => l?.name);
-          const blockTypes = new Map<string, GraphQLObjectType>();
-          for (const layout of layouts) {
-            blockTypes.set(
-              layout.name,
-              subObject(`${prefix}${pascal(f.name)}${pascal(layout.name)}`, layout.fields, {
-                _layout: { type: new GraphQLNonNull(GraphQLString) },
-              })!,
-            );
-          }
-          if (blockTypes.size === 0) {
-            map[f.name] = { type: JSONScalar, description, resolve: (p) => get(p) ?? null };
-            break;
-          }
-          const union = new GraphQLUnionType({
-            name: claim(`${prefix}${pascal(f.name)}Block`),
-            types: [...blockTypes.values()],
-            resolveType: (v: any) => blockTypes.get(v?._layout)?.name,
-          });
-          newTypes.push(union);
-          map[f.name] = {
-            type: new GraphQLList(new GraphQLNonNull(union)),
-            description,
-            resolve: (p) => {
-              const v = get(p);
-              return Array.isArray(v) ? v.filter((i) => i && blockTypes.has(i._layout)) : null;
-            },
-          };
-          break;
-        }
         default:
           map[f.name] = valueField(f as SimpleFieldDef, get);
       }
@@ -346,7 +355,7 @@ export function buildContentSchema(
       queries[ct.name].list = list;
       queryFields[list] = {
         type: new GraphQLNonNull(listType),
-        description: `Published ${ct.displayName || ct.name} entries — the same filters as GET /api/${ct.name}.`,
+        description: `Published ${ct.displayName || ct.name} entries — the same filters as GET /api/${contentTypePath(ct.name)}.`,
         args: {
           ...localeArgs,
           where: { type: JSONScalar, description: 'Same shape as ?where[...] — e.g. { "price": { "gte": 10 }, "author": { "slug": { "eq": "jane" } } }.' },

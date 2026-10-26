@@ -127,7 +127,9 @@
     "loadFailed": "Failed to load content type",
     "invalidImportFile": "Invalid file: missing contentType.name or contentType.schema",
     "imported": "Imported \"{name}\" — review and save",
-    "parseFailed": "Failed to parse JSON file"
+    "parseFailed": "Failed to parse JSON file",
+    "duplicateKey": "Another field already uses the key {key}. Rename one of them.",
+    "duplicateKeys": "Two fields can't share a key. Rename the duplicates: {keys}"
   },
   "relation": {
     "relatedType": "Related Content Type",

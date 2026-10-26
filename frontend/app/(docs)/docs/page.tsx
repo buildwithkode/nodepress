@@ -170,8 +170,8 @@ const FIELD_TYPES = [
   { type: 'date',     label: 'Date',           color: 'bg-teal-500/10 text-teal-400',    desc: 'Calendar date (no time). Stored as ISO 8601 date string.',        example: '"2024-12-25"' },
   { type: 'datetime', label: 'Date & Time',    color: 'bg-sky-500/10 text-sky-400',      desc: 'Full timestamp with time. Stored as ISO 8601 datetime string.',   example: '"2024-12-25T10:30:00.000Z"' },
   { type: 'json',     label: 'JSON',           color: 'bg-amber-500/10 text-amber-400',  desc: 'Arbitrary JSON object or array. Edited via a monospace textarea with live parse.', example: '{"key":"value","tags":["a","b"]}' },
-  { type: 'repeater', label: 'Repeater',       color: 'bg-red-500/10 text-red-400',      desc: 'A list of items, each sharing the same sub-fields. Set options.component to reuse a component\'s fields.', example: '[{"name":"Alice","role":"Dev"}]' },
-  { type: 'flexible', label: 'Flexible',       color: 'bg-indigo-500/10 text-indigo-400',desc: 'A list of blocks where each block can be a different layout.',    example: '[{"_layout":"hero","heading":"Welcome"}]' },
+  { type: 'repeater', label: 'Repeater',       color: 'bg-red-500/10 text-red-400',      desc: 'A list of items, each sharing the same sub-fields — which can be repeaters, groups or flexible fields again (up to 3 levels). Set options.component to reuse a component\'s fields.', example: '[{"name":"Alice","role":"Dev"}]' },
+  { type: 'flexible', label: 'Flexible',       color: 'bg-indigo-500/10 text-indigo-400',desc: 'A list of blocks where each block can be a different layout. A layout\'s fields can include repeaters, groups and other flexible fields (up to 3 levels), like ACF flexible content.',    example: '[{"_layout":"hero","heading":"Welcome"}]' },
   { type: 'group',    label: 'Group',          color: 'bg-violet-500/10 text-violet-400',desc: 'A single nested object with fixed sub-fields. Good for SEO metadata, address, social links. Set options.component to reuse a component\'s fields.', example: '{"title":"My Post","description":"..."}' },
   { type: 'relation', label: 'Relation',       color: 'bg-teal-500/10 text-teal-400',    desc: 'Link to one or many entries in another content type. Returns publicId UUID(s). Use ?populate= to inline the related data.', example: '"uuid-v4" or ["uuid1","uuid2"]' },
 ];
@@ -668,7 +668,9 @@ npm run dev`} />
               <p className="text-muted-foreground mt-1">
                 Content type names are stored as <IC>snake_case</IC> internally.
                 "My Blog Posts" → stored as <IC>my_blog_posts</IC>, but the API URL uses hyphens:{' '}
-                <IC>GET /api/my-blog-posts</IC>. The API endpoint is shown as you type on the Create page.
+                <IC>GET /api/my-blog-posts</IC>. The API endpoint is shown as you type on the Create page. The
+                underscore form (<IC>/api/my_blog_posts</IC>) keeps working, and API key scopes, permissions and the sitemap
+                accept either.
               </p>
             </div>
 
@@ -723,6 +725,13 @@ https://www.example.com/{locale}/docs/{slug}`} />
               Conditional fields below), <IC>group</IC> / <IC>repeater</IC> fields and flexible layouts can take their fields from a
               reusable component, and a <IC>select</IC> field can take its choices from a shared{' '}
               <a href="#choice-lists" className="text-primary hover:underline">choice list</a>.
+            </p>
+            <p className="text-muted-foreground mb-6">
+              <IC>repeater</IC>, <IC>group</IC> and <IC>flexible</IC> fields nest: a flexible layout can hold a repeater of groups, a
+              repeater row can hold another repeater, and so on, up to <strong className="text-foreground">3 levels</strong> deep (a
+              4th level is a <IC>400</IC>). Every field type works at every level, and entry data nests the same way —{' '}
+              <IC>{'{"blocks":[{"_layout":"hero","buttons":[{"label":"Docs","link":{"url":"/docs"}}]}]}'}</IC>. Components are
+              resolved only by top-level fields; reverse relations, field indexes and <IC>?populate=</IC> stay top-level too.
             </p>
 
             <div className="rounded-xl border border-border overflow-hidden mb-8">
@@ -886,7 +895,7 @@ GET /api/blog?where[category][eq]=news`} />
           {/* ── Components ────────────────────────────────────────────────── */}
           <Section id="components" title="Reusable Components" icon={Boxes}>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              A component is a named set of simple fields — an SEO block, a call-to-action, a person&apos;s details — defined once under{' '}
+              A component is a named set of fields — an SEO block, a call-to-action with a list of buttons, a person&apos;s details — defined once under{' '}
               <strong className="text-foreground">Content → Components</strong> (<IC>/components</IC>) and reused in any content type.
               In the content type editor, click <strong className="text-foreground">Add component</strong> and pick how to use it.
               There are four ways:
@@ -928,10 +937,11 @@ GET /api/blog?where[category][eq]=news`} />
             <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mt-3 mb-4">
               <li>On every save the server copies the component&apos;s fields into the content type (the sub-fields of a group or repeater, the fields of a layout, or the inline fields), so the API output is exactly that of ordinary fields. Never edit those copies — edit the component.</li>
               <li><strong className="text-foreground">Inline</strong> keeps entry data flat: a content type that uses a <IC>person_details</IC> component inline stores <IC>{'{ "full_name": "Ada", "gender": "male" }'}</IC>, not a nested object. A content type can use a component inline only once, and its field names must not clash with the content type&apos;s other fields (a clash is a <IC>400</IC>). In the editor the inline fields show as one read-only <strong className="text-foreground">From component</strong> block that moves as a unit when you reorder.</li>
+              <li><strong className="text-foreground">Components section</strong>: the content type editor lists group, repeater and inline component uses in their own <strong className="text-foreground">Components</strong> section, below the ordinary fields, and the entry editor shows each one as a titled box you can fold away. This is display only — the JSON is unchanged, each component is still a top-level key (<IC>{'"testimonial": { … }'}</IC>). Every field needs its own key: the editor marks a key used twice and won&apos;t save until it&apos;s renamed, and adding a component a second time suggests a free name (<IC>Testimonial 2</IC> → <IC>testimonial_2</IC>).</li>
               <li><strong className="text-foreground">Flexible layouts</strong>: in a flexible field, click <strong className="text-foreground">Add layout from component</strong>. You can mix component layouts with layouts you define by hand.</li>
               <li>Editing a component updates every content type that uses it, in all four ways (each gets a schema version). The response lists <IC>updatedContentTypes</IC> and any <IC>propagationErrors</IC>.</li>
               <li>Renaming a component field moves the data too: <IC>PUT /api/components/:id</IC> accepts <IC>fieldMigrations</IC> with component field names (<IC>{'{ "renames": [{ "from": "title", "to": "heading" }] }'}</IC>). They are applied as <IC>&lt;field&gt;.&lt;name&gt;</IC> for a group or repeater, <IC>&lt;name&gt;</IC> for an inline use and <IC>&lt;field&gt;.&lt;layout&gt;.&lt;name&gt;</IC> for a flexible layout. The Components page sends renames automatically; retyped or removed component fields keep their data.</li>
-              <li>Components hold simple fields only (no repeater, flexible, group or reverse relations). An unknown component name is a <IC>400</IC>; deleting one that is in use is a <IC>409</IC>.</li>
+              <li>A component&apos;s fields can be repeaters, groups or flexible fields (nested up to 3 levels, counting the group, repeater or layout that uses it), but not other components or reverse relations. Renames inside them are paths within the component (<IC>buttons.label</IC>). An unknown component name is a <IC>400</IC>; deleting one that is in use is a <IC>409</IC>.</li>
               <li><IC>GET /api/components/:id</IC> returns <IC>usage[]</IC> — each content type and field using it, with its type (<IC>group</IC>, <IC>repeater</IC>, <IC>inline</IC> or <IC>layout</IC>).</li>
               <li>Schema export includes the components the exported types use, and import creates them first.</li>
             </ul>
@@ -1013,7 +1023,7 @@ GET /api/choice-lists?names=gender,country     // up to 50 names
             </p>
             <CodeBlock code={`# Preview — same body as PUT, changes nothing
 POST /api/content-types/:id/schema-impact
-→ { entryCount, diff, steps: [{ kind, field, from?, fromType?, toType?, container?, entries, lost }], retyped, removedNested, warnings }
+→ { entryCount, diff, steps: [{ kind, field, from?, fromType?, toType?, container?, hops?, entries, lost }], retyped, removedNested, warnings }
 
 # Apply the schema and migrate the data in one transaction
 PUT /api/content-types/:id
@@ -1029,7 +1039,7 @@ PUT /api/content-types/:id
   }
 }`} />
             <ul className="text-muted-foreground text-sm space-y-1.5 list-disc pl-4 mt-3">
-              <li>A field is named by its path: <IC>title</IC> (top level), <IC>seo.meta_title</IC> (a group sub-field, or a repeater sub-field in every row) or <IC>blocks.hero.heading</IC> (a field of one flexible layout). Nested paths use the container&apos;s <em>new</em> name, and a rename must stay in the same group, repeater or layout.</li>
+              <li>A field is named by its path: <IC>title</IC> (top level), <IC>seo.meta_title</IC> (a group sub-field, or a repeater sub-field in every row) or <IC>blocks.hero.heading</IC> (a field of one flexible layout) — and deeper: <IC>blocks.hero.buttons.link.url</IC> is the <IC>url</IC> of the <IC>link</IC> group in every row of the <IC>buttons</IC> repeater of every <IC>hero</IC> block. Nested paths use the containers&apos; <em>new</em> names, and a rename must stay in the same group, repeater or layout.</li>
               <li>Steps run in order: top-level renames, nested renames, conversions (by the new path), then drops. The schema change and the data change commit together or not at all.</li>
               <li>The schema-impact preview also returns <IC>removedNested</IC> — fields removed from inside a group, repeater or layout that still exists — and the confirm dialog offers to drop their data. The editor tracks sub-field renames and sends them for you.</li>
               <li>Renaming a flexible <em>layout</em> is not migrated: rows saved with the old layout name keep it.</li>

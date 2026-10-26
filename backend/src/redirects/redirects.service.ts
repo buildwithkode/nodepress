@@ -9,6 +9,7 @@ import { env } from '../config/env';
 import {
   assertStatus, csvCell, findChainProblems, normalizeFrom, normalizeTo, parseRedirectCsv, RedirectEdge, targetKey,
 } from './redirect-path';
+import { contentTypePath } from '../common/content-type-name';
 
 const CACHE_PREFIX = 'redirects:';
 const CACHE_TTL_MS = 5 * 60_000;
@@ -354,7 +355,7 @@ export function publicEntryPath(
       return path.replace(/\{slug\}/g, encodeURIComponent(slug)).replace(/\{locale\}/g, encodeURIComponent(locale));
     }
   }
-  const type = contentType.name.replace(/_/g, '-');
+  const type = contentTypePath(contentType.name);
   return `${locale && locale !== defaultLocale ? `/${locale}` : ''}/${type}/${encodeURIComponent(slug)}`;
 }
 

@@ -29,7 +29,7 @@
   "editor": {
     "newTitle": "Novo componente",
     "editTitle": "Editar componente",
-    "hint": "Componentes contêm apenas campos simples — sem repetidores, conteúdo flexível, grupos ou relações reversas.",
+    "hint": "Os campos também podem ser repetidores, grupos ou conteúdo flexível, aninhados até 3 níveis. Um componente não pode usar outros componentes nem relações reversas.",
     "displayName": "Nome de exibição",
     "displayNamePlaceholder": "ex.: SEO",
     "name": "Chave",
@@ -71,7 +71,10 @@
     "confirm": "Adicionar",
     "inline": "Integrado",
     "inlineHint": "Os seus campos, adicionados diretamente",
-    "inlineNote": "Os campos são adicionados diretamente a este tipo de conteúdo, por isso as entradas guardam-nos sem aninhamento. Permanecem sincronizados com o componente."
+    "inlineNote": "Os campos são adicionados diretamente a este tipo de conteúdo, por isso as entradas guardam-nos sem aninhamento. Permanecem sincronizados com o componente.",
+    "keyTaken": "Este tipo de conteúdo já tem um campo com a chave {key}.",
+    "inlineKeysTaken": "Estes campos conflitam com chaves existentes: {keys}",
+    "fieldKey": "Chave do campo:"
   },
   "readOnly": {
     "usesComponent": "Campos do componente",
@@ -86,6 +89,18 @@
     "from": "Do componente",
     "open": "Abrir componente",
     "remove": "Remover estes campos",
-    "note": "Adicionados diretamente a este tipo de conteúdo. Edite o componente para alterar estes campos."
+    "note": "Adicionados diretamente a este tipo de conteúdo. Edite o componente para alterar estes campos.",
+    "keysTaken": "Estas chaves também são usadas por outro campo: {keys}"
+  },
+  "section": {
+    "title": "Componentes",
+    "hint": "Conjuntos de campos reutilizáveis da página Componentes. Cada um é salvo com sua própria chave.",
+    "empty": "Nenhum componente adicionado."
+  },
+  "card": {
+    "toggle": "Mostrar ou ocultar os campos do componente",
+    "duplicate": "Outro campo já usa a chave {key}. Renomeie um deles.",
+    "required": "Obrigatório",
+    "remove": "Remover este componente"
   }
 }

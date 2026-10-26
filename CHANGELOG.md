@@ -12,6 +12,10 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Added
+- **Nested repeaters, groups and flexible fields** — like ACF flexible content. A flexible layout can hold a repeater of groups, a repeater row another repeater, and so on, up to 3 levels deep; components can contain them too (used as a group, repeater, layout or inline). Every field type works at every level in the entry editor, and the content type and component editors build nested fields. Validation, rich-text sanitizing, choice lists, typed GraphQL, OpenAPI and generated TypeScript types follow the nesting, and field data migrations take deep paths (`blocks.hero.buttons.link.url`), including renames tracked by the editor. Component references, reverse relations, indexes and `?populate=` stay top-level.
+- **Components section in the editors.** Fields that come from a component (as a group, repeater or inline) are listed in their own Components section of the content type editor, below the ordinary fields, and shown as titled, foldable boxes in the entry editor. Display only: the entry JSON is unchanged.
+
 ### Changed
 - **Sitemap leaves out private content types.** A content type whose `allowedMethods` doesn't include `read` no longer has its entries listed in `/api/sitemap.xml` (and one without `list` loses its list page) — their slugs were advertised even though the public API refused them.
 - **Raw request body for webhooks.** The JSON parser keeps the body as received on `req.rawBody` (`common/raw-body.ts`), so plugins can verify signed webhooks (Razorpay, Stripe, …) against the exact bytes.
@@ -19,6 +23,9 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **Ready for npm 12.** npm 12 stops running dependency install scripts unless `allowScripts` in the project's `package.json` allows them. NodePress was tested on a clean npm 12 install with every script blocked (all 381 e2e tests, the admin production build, and standalone `backend/` and `frontend/` installs as the Docker images do them): bcrypt loads its bundled binaries (glibc and musl) and `prisma generate` — NodePress's own postinstall — fetches the engines. The root `package.json` now records a decision for each of the 11 dependencies with scripts (allowed: `bcrypt`, `@sentry/cli`, `@sentry/node-cpu-profiler`, `@parcel/watcher`; not needed: the Prisma packages, `fsevents`, `unrs-resolver`, `@apollo/protobufjs`, `@scarf/scarf`), so npm 12 installs finish without warnings. `scripts/check-install-scripts.js` (pre-push) fails when a dependency with an install script has no decision.
 
 ### Fixed
+- Rich text inside a **group** field was not sanitized (repeaters and flexible blocks were).
+- **Multi-word content types at their hyphen URL.** An API key scoped to `about_us` was refused (403) on `/api/about-us` — and on `/api/About_Us` — because the key check compared the raw URL; API keys, draft access and permissions now normalize the name. The content types list, the public site's navigation, the sitemap and the OpenAPI paths show `/about-us` like the rest of the admin (`/about_us` keeps working). Names that would be hidden behind a built-in route (`content types`, `users`, `webhooks`, …) are refused.
+- **Duplicate field keys are caught in the editor.** The content type editor marks a key used by two fields as you type and won't save until one is renamed (the server's `schema[6].name … duplicate field name` was the only warning before, numbered from 0). Adding a component a second time suggests a free name (`Testimonial 2`).
 - The admin no longer logs a hydration error when a browser extension (Grammarly, password managers) adds attributes to `<body>`.
 
 ---

@@ -92,7 +92,8 @@
     "enterRichText": "输入 {field}",
     "selectValue": "选择 {field}",
     "fieldRequired": "{field} 为必填项",
-    "required": "此字段为必填项"
+    "required": "此字段为必填项",
+    "components": "组件"
   },
   "seo": {
     "heading": "SEO",

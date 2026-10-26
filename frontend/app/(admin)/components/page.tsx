@@ -9,6 +9,8 @@ import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { canManageSettings } from '@/lib/roles';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
+import { nestedRenames, withLoadedKeys, withoutLoadedKeys } from '@/lib/schema-editor-keys';
+import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
 import { SelectChoicesSource } from '@/components/ChoiceListField';
 import { ctLabel, humanizeName } from '@/lib/utils';
 import type { ReusableComponent } from '@/components/ComponentFieldControls';
@@ -30,8 +32,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
-// Components hold simple fields only — the same rule as group/repeater sub-fields.
-const SIMPLE_FIELD_TYPES = ['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'color', 'date', 'datetime', 'json', 'relation'];
+// A component's fields sit inside a group, repeater or layout where they're used, so
+// they may be repeaters, groups or flexible fields too — nesting up to MAX_NESTING
+// levels (see NestedFieldsEditor) — but can't use other components.
+const FIELD_TYPES = ['text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'image', 'color', 'date', 'datetime', 'json', 'relation', 'repeater', 'group', 'flexible'];
 
 // inline: `field` is the first inserted field and `fields` all of them; layout: `field` is the flexible field.
 interface Usage {
@@ -52,7 +56,7 @@ const toDraft = (c: Component): Draft => ({
   displayName: c.displayName ?? '',
   name: c.name,
   description: c.description ?? '',
-  fields: c.fields.map((f) => ({ label: f.label ?? humanizeName(f.name), type: f.type, required: !!f.required, options: optionsForEditor(f.options), _key: f.name })),
+  fields: c.fields.map((f) => ({ label: f.label ?? humanizeName(f.name), type: f.type, required: !!f.required, options: withLoadedKeys(optionsForEditor(f.options)), _key: f.name })),
 });
 
 const fieldForSave = (f: DraftField) => ({
@@ -60,7 +64,7 @@ const fieldForSave = (f: DraftField) => ({
   label: f.label.trim(),
   type: f.type,
   required: f.required,
-  ...(f.options ? { options: optionsForSave(f.options) } : {}),
+  ...(f.options ? { options: optionsForSave(withoutLoadedKeys(f.options)) } : {}),
 });
 
 export default function ComponentsPage() {
@@ -106,8 +110,7 @@ export default function ComponentsPage() {
   const patch = (p: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...p } : d));
   const patchField = (i: number, p: Partial<DraftField>) =>
     setDraft((d) => d ? { ...d, fields: d.fields.map((f, idx) => (idx === i ? { ...f, ...p } : f)) } : d);
-  const setType = (i: number, type: string) =>
-    patchField(i, { type, options: type === 'relation' ? { relatedContentType: '', cardinality: 'one' } : undefined });
+  const setType = (i: number, type: string) => patchField(i, { type, options: defaultOptionsFor(type) });
   const moveField = (i: number, by: number) => setDraft((d) => {
     if (!d) return d;
     const fields = [...d.fields];
@@ -128,7 +131,9 @@ export default function ComponentsPage() {
     const loaded = new Set(draft.fields.map((f) => f._key).filter(Boolean));
     const renames = draft.fields
       .filter((f) => f._key && f.label.trim() && toSnakeCase(f.label) !== f._key && !keys.has(f._key) && !loaded.has(toSnakeCase(f.label)))
-      .map((f) => ({ from: f._key!, to: toSnakeCase(f.label) }));
+      .map((f) => ({ from: f._key!, to: toSnakeCase(f.label) }))
+      // …and renames inside the component's repeaters, groups and layouts, as paths within it.
+      .concat(nestedRenames(draft.fields.filter((f) => f.label.trim()).map((f) => ({ name: f.label, type: f.type, options: f.options }))));
     const body = {
       name, displayName: draft.displayName.trim(), description: draft.description.trim(), fields,
       ...(draft.id && renames.length ? { fieldMigrations: { renames } } : {}),
@@ -314,7 +319,7 @@ export default function ComponentsPage() {
                       <Select value={f.type} onValueChange={(v) => setType(i, String(v))}>
                         <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {SIMPLE_FIELD_TYPES.map((ft) => <SelectItem key={ft} value={ft}>{tct(`fieldTypes.${ft}`)}</SelectItem>)}
+                          {FIELD_TYPES.map((ft) => <SelectItem key={ft} value={ft}>{tct(`fieldTypes.${ft}`)}</SelectItem>)}
                         </SelectContent>
                       </Select>
                       <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none pt-2">
@@ -336,6 +341,22 @@ export default function ComponentsPage() {
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
+
+                    {(f.type === 'repeater' || f.type === 'group') && (
+                      <NestedFields
+                        kind={f.type}
+                        fields={f.options?.subFields ?? []}
+                        depth={2}
+                        onChange={(subFields) => patchField(i, { options: { ...f.options, subFields } })}
+                      />
+                    )}
+                    {f.type === 'flexible' && (
+                      <NestedLayouts
+                        layouts={f.options?.layouts ?? []}
+                        depth={2}
+                        onChange={(layouts) => patchField(i, { options: { ...f.options, layouts } })}
+                      />
+                    )}
 
                     {f.type === 'select' && (
                       <SelectChoicesSource options={f.options} onChange={(o) => patchField(i, { options: o })}>

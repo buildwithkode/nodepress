@@ -75,3 +75,29 @@ export function normalizeDataKeys(data: Record<string, any>): Record<string, any
   }
   return result;
 }
+
+/**
+ * Normalize the names of a raw schema's fields, layouts and sub-fields to
+ * snake_case, at every depth of groups, repeaters and flexible layouts (runs
+ * before validation, so "Button Label" is saved as `button_label`).
+ */
+export function normalizeSchemaNames(schema: any[]): any[] {
+  return schema.map((f) => {
+    if (!f || typeof f !== 'object') return f;
+    const field: any = { ...f, name: typeof f.name === 'string' && f.name ? normalizeKey(f.name) : f.name };
+    if (Array.isArray(field.options?.subFields)) {
+      field.options = { ...field.options, subFields: normalizeSchemaNames(field.options.subFields) };
+    }
+    if (Array.isArray(field.options?.layouts)) {
+      field.options = {
+        ...field.options,
+        layouts: field.options.layouts.map((l: any) => ({
+          ...l,
+          name: typeof l?.name === 'string' && l.name ? normalizeKey(l.name) : l?.name,
+          ...(Array.isArray(l?.fields) ? { fields: normalizeSchemaNames(l.fields) } : {}),
+        })),
+      };
+    }
+    return field;
+  });
+}

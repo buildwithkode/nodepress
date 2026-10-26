@@ -57,32 +57,22 @@ function mapSimpleFieldType(field) {
   }
 }
 
-function mapFieldType(field, typePrefix) {
+function mapFieldType(field, typePrefix, indent = '  ') {
+  const inner = `${indent}  `;
+  // Properties at indentation `at`; nested repeaters, groups and layouts recurse.
+  const props = (fields, at = inner) =>
+    (fields ?? []).map((sf) => `${at}${sf.name}${sf.required ? '' : '?'}: ${mapFieldType(sf, typePrefix, at)};`).join('\n');
   switch (field.type) {
-    case 'repeater': {
-      const subFields = field.options?.subFields ?? [];
-      const subTypes = subFields
-        .map((sf) => `    ${sf.name}${sf.required ? '' : '?'}: ${mapSimpleFieldType(sf)};`)
-        .join('\n');
-      return `Array<{\n${subTypes}\n    _id?: string;\n  }>`;
-    }
-    case 'group': {
-      const subFields = field.options?.subFields ?? [];
-      const subTypes = subFields
-        .map((sf) => `    ${sf.name}${sf.required ? '' : '?'}: ${mapSimpleFieldType(sf)};`)
-        .join('\n');
-      return `{\n${subTypes}\n  }`;
-    }
+    case 'repeater':
+      return `Array<{\n${props(field.options?.subFields)}\n${inner}_id?: string;\n${indent}}>`;
+    case 'group':
+      return `{\n${props(field.options?.subFields)}\n${indent}}`;
     case 'flexible': {
       const layouts = field.options?.layouts ?? [];
       if (layouts.length === 0) return 'Array<Record<string, any>>';
-      const layoutUnions = layouts.map((layout) => {
-        const fields = (layout.fields ?? [])
-          .map((sf) => `      ${sf.name}${sf.required ? '' : '?'}: ${mapSimpleFieldType(sf)};`)
-          .join('\n');
-        return `    | {\n      _layout: ${JSON.stringify(layout.name)};\n${fields}\n    }`;
-      });
-      return `Array<\n${layoutUnions.join('\n')}\n  >`;
+      const blocks = layouts.map((layout) =>
+        `${inner}| {\n${inner}  _layout: ${JSON.stringify(layout.name)};\n${props(layout.fields, `${inner}  `)}\n${inner}}`);
+      return `Array<\n${blocks.join('\n')}\n${indent}>`;
     }
     default:
       return mapSimpleFieldType(field);

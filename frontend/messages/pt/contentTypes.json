@@ -127,7 +127,9 @@
     "loadFailed": "Falha ao carregar o tipo de conteúdo",
     "invalidImportFile": "Arquivo inválido: falta contentType.name ou contentType.schema",
     "imported": "\"{name}\" importado — revise e salve",
-    "parseFailed": "Falha ao interpretar o arquivo JSON"
+    "parseFailed": "Falha ao interpretar o arquivo JSON",
+    "duplicateKey": "Outro campo já usa a chave {key}. Renomeie um deles.",
+    "duplicateKeys": "Dois campos não podem compartilhar uma chave. Renomeie os duplicados: {keys}"
   },
   "relation": {
     "relatedType": "Tipo de conteúdo relacionado",

@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import type { Request, Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApiKeysService } from '../api-keys/api-keys.service';
+import { keyCoversType } from '../common/content-type-name';
 
 /** The stage a public read targets: ?stage= wins, then the environment header. */
 export function requestedStage(req: Request): string {
@@ -44,8 +45,8 @@ export class StageAccessGuard implements CanActivate {
       const apiKey = await this.apiKeysService.validate(keyHeader);
       if (!apiKey) throw new UnauthorizedException('Invalid API key');
       const perms = apiKey.permissions as { access: string; contentTypes: string[] };
-      const type = (req.params as Record<string, string>)?.type?.toLowerCase();
-      if (type && perms.contentTypes[0] !== '*' && !perms.contentTypes.includes(type)) {
+      const type = (req.params as Record<string, string>)?.type;
+      if (type && !keyCoversType(perms.contentTypes, type)) {
         throw new ForbiddenException(`This API key does not have access to content type "${type}"`);
       }
       (req as any).apiKey = apiKey;

@@ -62,24 +62,24 @@ describe('buildOpenApiDocument', () => {
   });
 
   it('creates list/get/create/update/delete paths, respecting allowedMethods', () => {
-    expect(Object.keys(doc.paths['/blog_post'])).toEqual(['get', 'post']);
-    expect(Object.keys(doc.paths['/blog_post/{slug}'])).toEqual(['get', 'put', 'delete']);
+    expect(Object.keys(doc.paths['/blog-post'])).toEqual(['get', 'post']);
+    expect(Object.keys(doc.paths['/blog-post/{slug}'])).toEqual(['get', 'put', 'delete']);
     expect(Object.keys(doc.paths['/author'])).toEqual(['get']);
     expect(Object.keys(doc.paths['/author/{slug}'])).toEqual(['get']);
     expect(S.AuthorInput).toBeUndefined();
-    expect(doc.paths['/blog_post'].get.operationId).toBe('listBlogPosts');
-    expect(doc.paths['/blog_post/{slug}'].put.operationId).toBe('updateBlogPost');
+    expect(doc.paths['/blog-post'].get.operationId).toBe('listBlogPosts');
+    expect(doc.paths['/blog-post/{slug}'].put.operationId).toBe('updateBlogPost');
     expect(doc.paths['/author'].get.tags).toEqual(['Author']);
   });
 
   it('documents every list query parameter and the write security', () => {
-    const names = doc.paths['/blog_post'].get.parameters.map((p: any) => p.name);
+    const names = doc.paths['/blog-post'].get.parameters.map((p: any) => p.name);
     for (const n of ['page', 'limit', 'cursor', 'sort', 'fields', 'populate', 'search', 'locale', 'fallback', 'stage', 'where']) {
       expect(names).toContain(n);
     }
-    expect(doc.paths['/blog_post'].post.security).toEqual([{ ApiKey: [] }, { bearerAuth: [] }]);
+    expect(doc.paths['/blog-post'].post.security).toEqual([{ ApiKey: [] }, { bearerAuth: [] }]);
     expect(doc.components.securitySchemes.ApiKey).toMatchObject({ type: 'apiKey', in: 'header', name: 'X-API-Key' });
-    expect(doc.paths['/blog_post'].post.requestBody.content['application/json'].schema.properties.data).toEqual({
+    expect(doc.paths['/blog-post'].post.requestBody.content['application/json'].schema.properties.data).toEqual({
       $ref: '#/components/schemas/BlogPostInput',
     });
   });

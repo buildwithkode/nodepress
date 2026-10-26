@@ -8,7 +8,7 @@ import type { FieldMigrations } from '../content-type/field-migration';
 import { ModuleRef } from '@nestjs/core';
 import { PrismaService } from '../prisma/prisma.service';
 import { SchemaValidator } from '../fields/schema.validator';
-import { normalizeKey } from '../common/normalize';
+import { normalizeKey, normalizeSchemaNames } from '../common/normalize';
 import { CreateComponentDto, UpdateComponentDto } from './dto/component.dto';
 
 const NAME_RE = /^[a-z_][a-z0-9_]*$/;
@@ -119,8 +119,9 @@ const errorText = (err: any): string => {
 };
 
 /**
- * Reusable components — a named list of simple fields that content types use
- * in four ways:
+ * Reusable components — a named list of fields (repeaters, groups and
+ * flexible fields included, nested up to MAX_NESTING levels counting the
+ * container that uses the component) that content types use in four ways:
  *  - a group field (one) or a repeater field (many) with `options.component`;
  *  - inline (seamless): the fields themselves, at top level, each tagged
  *    `component: "<name>"` — entry data stays flat;
@@ -146,9 +147,7 @@ export class ComponentsService {
   /** Validate a component's fields with the group/repeater subField rules. */
   validateFields(raw: unknown): any[] {
     if (!Array.isArray(raw)) throw new BadRequestException('fields must be an array of field definitions');
-    const fields = raw.map((f: any) =>
-      f && typeof f === 'object' && typeof f.name === 'string' ? { ...f, name: normalizeKey(f.name) } : f,
-    );
+    const fields = normalizeSchemaNames(raw);
     try {
       this.schemaValidator.validate([{ name: 'component', type: 'group', options: { subFields: fields } }]);
     } catch (err: any) {

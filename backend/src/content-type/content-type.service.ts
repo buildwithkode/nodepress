@@ -14,7 +14,7 @@ import { FormGenerator } from '../fields/form.generator';
 import { FieldIndexService } from './field-index.service';
 import { normalizePreviewUrl } from './preview-url';
 import { FieldDef, RelationFieldDef, isReverseRelation } from '../fields/field.types';
-import { normalizeKey } from '../common/normalize';
+import { normalizeSchemaNames, normalizeKey } from '../common/normalize';
 import { Optional } from '@nestjs/common';
 import { ComponentsService } from '../components/components.service';
 import { ChoiceListsService } from '../choice-lists/choice-lists.service';
@@ -22,6 +22,7 @@ import type { Choice } from '../choice-lists/choice-list.util';
 import {
   FieldMigrations, MigrationStep, impactQuery, planMigrations, removedNestedFields, retypedFields, stepQuery,
 } from './field-migration';
+import { contentTypeName } from '../common/content-type-name';
 
 /** Field names in migrations get the same snake_case normalization as the schema. */
 const normalizeMigrations = (m: FieldMigrations): FieldMigrations => ({
@@ -33,38 +34,18 @@ const normalizeMigrations = (m: FieldMigrations): FieldMigrations => ({
 const ctCacheKey = (name: string) => `ct:meta:${name}`;
 const CT_ALL_CACHE_KEY = 'ct:meta:all_content_types';
 
-// These route names are already taken by static controllers
-const RESERVED_NAMES = ['auth', 'media', 'entries', 'content-types', 'uploads', 'components', 'roles', 'redirects', 'import', 'choice-lists', 'choice_lists'];
+// Static /api routes. A content type is served at /api/<name with hyphens>, so
+// one named like these would be shadowed by the route (compared as stored names).
+const RESERVED_NAMES = [
+  'ai', 'api-keys', 'audit-log', 'auth', 'brand', 'choice-lists', 'components', 'content-types', 'entries',
+  'forms', 'graphql', 'health', 'import', 'jobs', 'locales', 'media', 'metrics', 'permissions', 'plugins',
+  'redirects', 'releases', 'roles', 'search', 'server-settings', 'submit', 'templates', 'uploads', 'users', 'webhooks',
+].map(contentTypeName);
 
-const normalizeName = (name: string): string =>
-  name.trim().toLowerCase().replace(/[\s-]+/g, '_');
+const normalizeName = contentTypeName;
 
 /** Normalize all field/sub-field/layout names in a raw schema to snake_case (runs before validation) */
-const normalizeSchema = (schema: any[]): any[] =>
-  schema.map((f) => {
-    const field: any = { ...f, name: f.name ? normalizeKey(f.name) : f.name };
-    if (field.options?.subFields) {
-      field.options = {
-        ...field.options,
-        subFields: field.options.subFields.map((sf: any) => ({
-          ...sf, name: sf.name ? normalizeKey(sf.name) : sf.name,
-        })),
-      };
-    }
-    if (field.options?.layouts) {
-      field.options = {
-        ...field.options,
-        layouts: field.options.layouts.map((l: any) => ({
-          ...l,
-          name: l.name ? normalizeKey(l.name) : l.name,
-          fields: l.fields?.map((lf: any) => ({
-            ...lf, name: lf.name ? normalizeKey(lf.name) : lf.name,
-          })),
-        })),
-      };
-    }
-    return field;
-  });
+const normalizeSchema = normalizeSchemaNames;
 
 @Injectable()
 export class ContentTypeService {

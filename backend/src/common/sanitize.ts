@@ -1,5 +1,5 @@
 import sanitizeHtml from 'sanitize-html';
-import { FieldDef, RepeaterFieldDef, FlexibleFieldDef } from '../fields/field.types';
+import { FieldDef, RepeaterFieldDef, FlexibleFieldDef, GroupFieldDef } from '../fields/field.types';
 
 /** Tags and attributes allowed in richtext output */
 const ALLOWED_TAGS = [
@@ -39,7 +39,7 @@ export function sanitizeRichText(html: string): string {
 
 /**
  * Walk entry data against its schema and sanitize all richtext fields.
- * Handles nested richtext inside repeater and flexible fields.
+ * Handles richtext at any depth of groups, repeaters and flexible layouts.
  */
 export function sanitizeEntryData(
   data: Record<string, any>,
@@ -60,6 +60,8 @@ export function sanitizeEntryData(
           ? sanitizeEntryData(item as Record<string, any>, subFields)
           : item,
       );
+    } else if (field.type === 'group' && typeof val === 'object' && !Array.isArray(val)) {
+      result[field.name] = sanitizeEntryData(val, (field as GroupFieldDef).options?.subFields ?? []);
     } else if (field.type === 'flexible' && Array.isArray(val)) {
       const layouts = (field as FlexibleFieldDef).options?.layouts ?? [];
       result[field.name] = val.map((item) => {

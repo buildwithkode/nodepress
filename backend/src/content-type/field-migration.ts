@@ -7,7 +7,9 @@ import { BadRequestException } from '@nestjs/common';
  *
  * A field is named by its path: `title` (top level), `seo.meta_title` (a
  * group or repeater sub-field, in every row) or `blocks.hero.heading` (a
- * field of one flexible layout). Nested paths use the container's new name.
+ * field of one flexible layout) — and so on down nested containers:
+ * `blocks.hero.buttons.label` is the `label` of every row of the `buttons`
+ * repeater inside the `hero` layout. Nested paths use the containers' new names.
  * Steps run in this order: top-level renames, nested renames, conversions
  * (by the new path), then drops.
  */
@@ -22,6 +24,13 @@ export interface FieldMigrations {
 
 export type Container = 'group' | 'repeater' | 'flexible';
 
+/** One container on the way to a nested field: its key, its type and (flexible) the layout. */
+export interface Hop {
+  type: Container;
+  key: string;
+  layout?: string;
+}
+
 export interface MigrationStep {
   kind: 'rename' | 'convert' | 'drop';
   /** Path of the field (its new path for renames and conversions) */
@@ -31,8 +40,10 @@ export interface MigrationStep {
   /** convert: old and new field type */
   fromType?: string;
   toType?: string;
-  /** Where nested fields live — absent for top-level fields */
+  /** The innermost container of a nested field — absent for top-level fields */
   container?: Container;
+  /** Every container from the top down to the field — absent for top-level fields */
+  hops?: Hop[];
 }
 
 const STRING_TYPES = new Set(['text', 'textarea', 'richtext', 'color', 'date', 'datetime']);
@@ -96,51 +107,80 @@ interface Slot {
   /** The field itself (undefined when it doesn't exist) */
   field: any;
   container?: Container;
+  hops: Hop[];
 }
 
 const split = (path: string) => path.split('.');
 const parentOf = (path: string) => split(path).slice(0, -1).join('.');
 const leafOf = (path: string) => split(path).pop()!;
 
-/** Find a field by path in a schema, or null when the path can't exist there. */
+/**
+ * Find a field by path in a schema, or null when the path can't exist there.
+ * Each group or repeater on the way takes one segment (its name), each
+ * flexible field two (its name, then the layout's).
+ */
 function locate(schema: any[], path: string): Slot | null {
   const parts = split(path);
-  if (parts.length === 1) return { fields: schema, field: schema.find((f) => f?.name === parts[0]) };
-  const parent = schema.find((f) => f?.name === parts[0]);
-  if (!parent) return null;
-  if (parts.length === 2 && (parent.type === 'group' || parent.type === 'repeater')) {
-    const fields = parent.options?.subFields ?? [];
-    return { fields, field: fields.find((f: any) => f?.name === parts[1]), container: parent.type };
+  let fields = schema;
+  const hops: Hop[] = [];
+  for (let i = 0; ; ) {
+    const name = parts[i];
+    if (i === parts.length - 1) {
+      return { fields, field: fields.find((f) => f?.name === name), hops, container: hops[hops.length - 1]?.type };
+    }
+    const parent = fields.find((f) => f?.name === name);
+    if (parent?.type === 'group' || parent?.type === 'repeater') {
+      hops.push({ type: parent.type, key: name });
+      fields = parent.options?.subFields ?? [];
+      i += 1;
+    } else if (parent?.type === 'flexible' && i + 2 < parts.length) {
+      const layout = (parent.options?.layouts ?? []).find((l: any) => l?.name === parts[i + 1]);
+      if (!layout) return null;
+      hops.push({ type: 'flexible', key: name, layout: parts[i + 1] });
+      fields = layout.fields ?? [];
+      i += 2;
+    } else {
+      return null;
+    }
   }
-  if (parts.length === 3 && parent.type === 'flexible') {
-    const layout = (parent.options?.layouts ?? []).find((l: any) => l?.name === parts[1]);
-    if (!layout) return null;
-    return { fields: layout.fields ?? [], field: (layout.fields ?? []).find((f: any) => f?.name === parts[2]), container: 'flexible' };
-  }
-  return null;
 }
 
-/** Every field path in a schema: top-level fields and the fields inside groups, repeaters and layouts. */
-function allPaths(schema: any[]): string[] {
+/** Every field path in a schema, at every depth of groups, repeaters and layouts. */
+function allPaths(schema: any[], prefix = ''): string[] {
   const out: string[] = [];
-  for (const f of schema) {
-    out.push(f.name);
-    if (f.type === 'group' || f.type === 'repeater') for (const sf of f.options?.subFields ?? []) out.push(`${f.name}.${sf.name}`);
-    if (f.type === 'flexible') {
-      for (const l of f.options?.layouts ?? []) for (const lf of l.fields ?? []) out.push(`${f.name}.${l.name}.${lf.name}`);
-    }
+  for (const f of schema ?? []) {
+    const path = `${prefix}${f.name}`;
+    out.push(path);
+    if (f.type === 'group' || f.type === 'repeater') out.push(...allPaths(f.options?.subFields, `${path}.`));
+    if (f.type === 'flexible') for (const l of f.options?.layouts ?? []) out.push(...allPaths(l.fields, `${path}.${l.name}.`));
   }
   return out;
 }
 
-/** Where a field was in the old schema, following top-level and nested renames. */
+/**
+ * Where a field was in the old schema. Renames name both paths with the
+ * containers' new names, so each segment is mapped back on its own: a rename
+ * whose `to` is the path so far gives that segment's old name.
+ */
 function oldPathOf(path: string, renames: { from: string; to: string }[]): string {
-  const direct = renames.find((r) => r.to === path);
-  if (direct) return direct.from;
   const parts = split(path);
-  if (parts.length === 1) return path;
-  const top = renames.find((r) => !r.to.includes('.') && r.to === parts[0]);
-  return top ? [top.from, ...parts.slice(1)].join('.') : path;
+  return parts
+    .map((part, i) => {
+      const r = renames.find((x) => x.to === parts.slice(0, i + 1).join('.'));
+      return r ? leafOf(r.from) : part;
+    })
+    .join('.');
+}
+
+/** The reverse: where an old path is in the new schema (each segment followed through its rename). */
+function newPathOf(oldPath: string, renames: { from: string; to: string }[]): string {
+  const parts = split(oldPath);
+  const out: string[] = [];
+  parts.forEach((part) => {
+    const r = renames.find((x) => x.from === [...out, part].join('.'));
+    out.push(r ? leafOf(r.to) : part);
+  });
+  return out.join('.');
 }
 
 // ─── Planning ─────────────────────────────────────────────────────────────────
@@ -172,8 +212,9 @@ export function planMigrations(oldSchema: any[], newSchema: any[], m: FieldMigra
     else renames.push({ from, to });
   }
 
+  const nestedAt = (slot: Slot | null) => (slot?.hops.length ? { container: slot.container, hops: slot.hops } : {});
   const steps: MigrationStep[] = renames.map(({ from, to }) => ({
-    kind: 'rename', field: to, from, ...(to.includes('.') ? { container: locate(newSchema, to)!.container } : {}),
+    kind: 'rename', field: to, from, ...nestedAt(locate(newSchema, to)),
   }));
 
   for (const path of m.convert ?? []) {
@@ -190,7 +231,7 @@ export function planMigrations(oldSchema: any[], newSchema: any[], m: FieldMigra
       errors.push(`Convert: values can't be converted from ${fromType} to ${toType} ("${path}")`);
       continue;
     }
-    steps.push({ kind: 'convert', field: path, fromType, toType, ...(next.container ? { container: next.container } : {}) });
+    steps.push({ kind: 'convert', field: path, fromType, toType, ...nestedAt(next) });
   }
 
   for (const path of m.drop ?? []) {
@@ -201,7 +242,7 @@ export function planMigrations(oldSchema: any[], newSchema: any[], m: FieldMigra
     else if (next?.field) errors.push(`Drop: "${path}" is still in the new schema`);
     else if (renames.some((r) => r.from === path)) errors.push(`Drop: "${path}" is being renamed`);
     else if (nested && !next) errors.push(`Drop: the container of "${path}" is not in the new schema — drop the container instead`);
-    else steps.push({ kind: 'drop', field: path, ...(nested ? { container: next!.container } : {}) });
+    else steps.push({ kind: 'drop', field: path, ...nestedAt(next) });
   }
 
   if (errors.length) throw new BadRequestException({ message: 'Invalid field migrations', errors });
@@ -224,14 +265,12 @@ export function retypedFields(oldSchema: any[], newSchema: any[], renames: Field
 
 /** Nested fields that exist in the old schema but not the new one (their container still exists). */
 export function removedNestedFields(oldSchema: any[], newSchema: any[], renames: FieldMigrations['renames'] = []) {
-  const renamedFrom = new Set((renames ?? []).map((r) => r.from));
-  const topRename = new Map((renames ?? []).filter((r) => !r.to.includes('.')).map((r) => [r.from, r.to]));
+  const list = renames ?? [];
+  const renamedFrom = new Set(list.map((r) => r.from));
   return allPaths(oldSchema)
     .filter((p) => p.includes('.'))
-    .map((p) => {
-      const parts = split(p);
-      return [topRename.get(parts[0]) ?? parts[0], ...parts.slice(1)].join('.');
-    })
+    // The containers' new names with the field's old name — the form renames and drops use.
+    .map((p) => [parentOf(newPathOf(p, list)), leafOf(p)].join('.'))
     .filter((p) => {
       const slot = locate(newSchema, p);
       return slot && !slot.field && !renamedFrom.has(p);
@@ -247,6 +286,8 @@ class Params {
     this.values = [contentTypeId];
   }
   text(value: string) {
+    const at = this.values.indexOf(value, 1);
+    if (at > 0) return `$${at + 1}::text`;
     this.values.push(value);
     return `$${this.values.length}::text`;
   }
@@ -275,48 +316,74 @@ function transform(step: MigrationStep, o: string, p: Params): string {
 /** The key whose presence marks an object the step touches. */
 const touchedKey = (step: MigrationStep) => leafOf(step.kind === 'rename' ? step.from! : step.field);
 
+/** The containers of a nested step (older callers pass only `container`, for one level). */
+function hopsOf(step: MigrationStep): Hop[] {
+  if (step.hops?.length) return step.hops;
+  if (!step.container) return [];
+  const parts = split(step.field);
+  return [{ type: step.container, key: parts[0], ...(step.container === 'flexible' ? { layout: parts[1] } : {}) }];
+}
+
+/**
+ * SQL rebuilding the jsonb object `o` with the step applied inside the
+ * containers `hops`: a group is replaced in place, every row of a repeater
+ * (every block of the layout, for a flexible field) is rebuilt in order.
+ * Anything not shaped as expected is left alone.
+ */
+function nestedTransform(step: MigrationStep, o: string, hops: Hop[], p: Params, depth = 1): string {
+  if (!hops.length) return transform(step, o, p);
+  const [hop, ...rest] = hops;
+  const key = p.text(hop.key);
+  if (hop.type === 'group') {
+    return `CASE WHEN jsonb_typeof(${o} -> ${key}) = 'object' THEN jsonb_set(${o}, ARRAY[${key}], ${nestedTransform(step, `(${o} -> ${key})`, rest, p, depth + 1)}) ELSE ${o} END`;
+  }
+  const t = `t${depth}`;
+  const match = hop.type === 'flexible'
+    ? `jsonb_typeof(${t}.el) = 'object' AND ${t}.el ->> '_layout' = ${p.text(hop.layout!)}`
+    : `jsonb_typeof(${t}.el) = 'object'`;
+  const row = nestedTransform(step, `${t}.el`, rest, p, depth + 1);
+  return `CASE WHEN jsonb_typeof(${o} -> ${key}) = 'array' AND jsonb_array_length(${o} -> ${key}) > 0 THEN jsonb_set(${o}, ARRAY[${key}], (
+            SELECT jsonb_agg(CASE WHEN ${match} THEN ${row} ELSE ${t}.el END ORDER BY ${t}.ord)
+            FROM jsonb_array_elements(${o} -> ${key}) WITH ORDINALITY AS ${t}(el, ord)
+          )) ELSE ${o} END`;
+}
+
 /** One parameterised UPDATE for a step. */
 export function stepQuery(contentTypeId: number, step: MigrationStep): { sql: string; params: unknown[] } {
   const p = new Params(contentTypeId);
-  const parts = split(step.field);
-  if (!step.container) {
+  const hops = hopsOf(step);
+  if (!hops.length) {
     const t = transform(step, `"data"`, p);
     return { sql: `UPDATE "entries" SET "data" = ${t} WHERE "contentTypeId" = $1 AND "data" ? ${p.text(touchedKey(step))}`, params: p.values };
   }
-  const parent = p.text(parts[0]);
-  if (step.container === 'group') {
-    const t = transform(step, `("data" -> ${parent})`, p);
-    return {
-      sql: `UPDATE "entries" SET "data" = jsonb_set("data", ARRAY[${parent}], ${t})
-            WHERE "contentTypeId" = $1 AND jsonb_typeof("data" -> ${parent}) = 'object'`,
-      params: p.values,
-    };
-  }
-  const layout = step.container === 'flexible' ? `t.el ->> '_layout' = ${p.text(parts[1])}` : 'true';
-  const t = transform(step, 't.el', p);
+  const t = nestedTransform(step, `"data"`, hops, p);
+  const top = p.text(hops[0].key);
   return {
-    sql: `UPDATE "entries" SET "data" = jsonb_set("data", ARRAY[${parent}], (
-            SELECT jsonb_agg(CASE WHEN ${layout} THEN ${t} ELSE t.el END ORDER BY t.ord)
-            FROM jsonb_array_elements("data" -> ${parent}) WITH ORDINALITY AS t(el, ord)
-          ))
-          WHERE "contentTypeId" = $1 AND jsonb_typeof("data" -> ${parent}) = 'array' AND jsonb_array_length("data" -> ${parent}) > 0`,
+    sql: `UPDATE "entries" SET "data" = ${t}
+          WHERE "contentTypeId" = $1 AND jsonb_typeof("data" -> ${top}) IN ('object', 'array')`,
     params: p.values,
   };
+}
+
+/** SQL selecting, as `o`, every object a nested step touches (one row per group / repeater row / block). */
+function objectsAt(hops: Hop[], p: Params): string {
+  let from = `SELECT e."data" AS o`;
+  hops.forEach((hop, i) => {
+    const x = `x${i}`;
+    const key = p.text(hop.key);
+    from = hop.type === 'group'
+      ? `SELECT ${x}.o -> ${key} AS o FROM (${from}) ${x} WHERE jsonb_typeof(${x}.o -> ${key}) = 'object'`
+      : `SELECT el AS o FROM (${from}) ${x}
+           CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(${x}.o -> ${key}) = 'array' THEN ${x}.o -> ${key} ELSE '[]'::jsonb END) el
+           WHERE jsonb_typeof(el) = 'object'${hop.type === 'flexible' ? ` AND el ->> '_layout' = ${p.text(hop.layout!)}` : ''}`;
+  });
+  return from;
 }
 
 /** For the impact preview: how many entries hold the field, and how many values a conversion would lose. */
 export function impactQuery(contentTypeId: number, step: MigrationStep): { sql: string; params: unknown[] } {
   const p = new Params(contentTypeId);
-  const parts = split(step.field);
-  let objects: string;
-  if (!step.container) objects = `SELECT e."data" AS o`;
-  else {
-    const parent = p.text(parts[0]);
-    objects = step.container === 'group'
-      ? `SELECT e."data" -> ${parent} AS o WHERE jsonb_typeof(e."data" -> ${parent}) = 'object'`
-      : `SELECT el AS o FROM jsonb_array_elements(CASE WHEN jsonb_typeof(e."data" -> ${parent}) = 'array' THEN e."data" -> ${parent} ELSE '[]'::jsonb END) el
-         WHERE jsonb_typeof(el) = 'object'${step.container === 'flexible' ? ` AND el ->> '_layout' = ${p.text(parts[1])}` : ''}`;
-  }
+  const objects = objectsAt(hopsOf(step), p);
   const key = p.text(touchedKey(step));
   const lost = step.kind === 'convert'
     ? `count(*) FILTER (WHERE x.o ? ${key} AND jsonb_typeof(x.o -> ${key}) <> 'null'

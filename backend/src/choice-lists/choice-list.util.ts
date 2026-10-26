@@ -30,41 +30,51 @@ export function choiceListOf(field: any): string | null {
   return typeof n === 'string' && n.trim() ? normalizeChoiceListName(n) : null;
 }
 
-/** Where a select field sits in a schema: top level, or inside a group/repeater/flexible layout. */
+/** A container on the way to a nested select field. */
+export interface SelectHop {
+  name: string;
+  type: 'group' | 'repeater' | 'flexible';
+  layout?: string;
+}
+
+/** Where a select field sits in a schema: top level, or inside groups/repeaters/flexible layouts (any depth). */
 export interface SelectPath {
-  /** Display path: `size`, `seo.size`, `items.size`, `blocks[hero].size` */
+  /** Display path: `size`, `seo.size`, `items.size`, `blocks[hero].size`, `blocks[hero].buttons.size` */
   path: string;
   field: string;
-  container?: { name: string; type: 'group' | 'repeater' | 'flexible'; layout?: string };
+  /** The innermost container (absent at top level) */
+  container?: SelectHop;
+  /** Every container from the top down (absent at top level) */
+  hops?: SelectHop[];
 }
 
 /**
- * Rewrite every select field of a schema (top level, group/repeater subFields,
- * flexible layout fields) through `fn`. Unchanged parts keep their identity.
+ * Rewrite every select field of a schema — top level and inside groups,
+ * repeaters and flexible layouts, at any depth — through `fn`. Unchanged
+ * parts keep their identity.
  */
-export function mapSelectFields(schema: any[], fn: (field: any, at: SelectPath) => any): any[] {
-  return schema.map((f: any) => {
+export function mapSelectFields(schema: any[], fn: (field: any, at: SelectPath) => any, prefix = '', hops: SelectHop[] = []): any[] {
+  const mapped = schema.map((f: any) => {
     if (!f || typeof f !== 'object') return f;
-    if (f.type === 'select') return fn(f, { path: f.name, field: f.name });
+    if (f.type === 'select') {
+      return fn(f, { path: `${prefix}${f.name}`, field: f.name, ...(hops.length ? { container: hops[hops.length - 1], hops } : {}) });
+    }
     const o = f.options;
     if ((f.type === 'group' || f.type === 'repeater') && Array.isArray(o?.subFields)) {
-      const subFields = o.subFields.map((sf: any) => sf?.type === 'select'
-        ? fn(sf, { path: `${f.name}.${sf.name}`, field: sf.name, container: { name: f.name, type: f.type } })
-        : sf);
-      return subFields.some((sf: any, i: number) => sf !== o.subFields[i]) ? { ...f, options: { ...o, subFields } } : f;
+      const subFields = mapSelectFields(o.subFields, fn, `${prefix}${f.name}.`, [...hops, { name: f.name, type: f.type }]);
+      return subFields !== o.subFields ? { ...f, options: { ...o, subFields } } : f;
     }
     if (f.type === 'flexible' && Array.isArray(o?.layouts)) {
       const layouts = o.layouts.map((l: any) => {
         if (!Array.isArray(l?.fields)) return l;
-        const fields = l.fields.map((lf: any) => lf?.type === 'select'
-          ? fn(lf, { path: `${f.name}[${l.name}].${lf.name}`, field: lf.name, container: { name: f.name, type: 'flexible', layout: l.name } })
-          : lf);
-        return fields.some((lf: any, i: number) => lf !== l.fields[i]) ? { ...l, fields } : l;
+        const fields = mapSelectFields(l.fields, fn, `${prefix}${f.name}[${l.name}].`, [...hops, { name: f.name, type: 'flexible', layout: l.name }]);
+        return fields !== l.fields ? { ...l, fields } : l;
       });
       return layouts.some((l: any, i: number) => l !== o.layouts[i]) ? { ...f, options: { ...o, layouts } } : f;
     }
     return f;
   });
+  return mapped.some((f, i) => f !== schema[i]) ? mapped : schema;
 }
 
 /** Every select field in a schema that uses one of the given lists (all lists when omitted). */
@@ -163,8 +173,17 @@ const holdsValue = (v: string) =>
       WHEN 'array' THEN EXISTS (SELECT 1 FROM jsonb_array_elements_text(${v}) AS x(val) WHERE x.val = ANY($2::text[]))
       ELSE false END)`;
 
-const items = (container: string) =>
-  `jsonb_array_elements(CASE WHEN jsonb_typeof("data" -> '${container}') = 'array' THEN "data" -> '${container}' ELSE '[]'::jsonb END)`;
+/** SQL: whether the jsonb object `o` holds one of the values in `field`, looking through `hops`. */
+function holdsAt(o: string, hops: SelectHop[], field: string, depth = 1): string {
+  if (!hops.length) return holdsValue(`${o} -> '${field}'`);
+  const [hop, ...rest] = hops;
+  const child = `${o} -> '${hop.name}'`;
+  if (hop.type === 'group') return holdsAt(child, rest, field, depth);
+  const it = `it${depth}`;
+  const layout = hop.type === 'flexible' ? `${it}.item ->> '_layout' = '${hop.layout}' AND ` : '';
+  return `EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(${child}) = 'array' THEN ${child} ELSE '[]'::jsonb END) AS ${it}(item)
+          WHERE ${layout}${holdsAt(`${it}.item`, rest, field, depth + 1)})`;
+}
 
 /**
  * One count query per select field: the live entries of a content type ($1)
@@ -172,16 +191,8 @@ const items = (container: string) =>
  * with names that aren't plain identifiers (never the case after validation).
  */
 export function removedValuesQuery(at: SelectPath): string | null {
-  const names = [at.field, at.container?.name, at.container?.layout].filter((n): n is string => n !== undefined);
+  const hops = at.hops ?? (at.container ? [at.container] : []);
+  const names = [at.field, ...hops.flatMap((h) => [h.name, h.layout])].filter((n): n is string => n !== undefined);
   if (!names.every((n) => IDENT_RE.test(n))) return null;
-  let cond: string;
-  if (!at.container) {
-    cond = holdsValue(`"data" -> '${at.field}'`);
-  } else if (at.container.type === 'group') {
-    cond = holdsValue(`"data" -> '${at.container.name}' -> '${at.field}'`);
-  } else {
-    const layout = at.container.type === 'flexible' ? `it.item ->> '_layout' = '${at.container.layout}' AND ` : '';
-    cond = `EXISTS (SELECT 1 FROM ${items(at.container.name)} AS it(item) WHERE ${layout}${holdsValue(`it.item -> '${at.field}'`)})`;
-  }
-  return `SELECT COUNT(*)::int AS n FROM "entries" WHERE "contentTypeId" = $1 AND "deletedAt" IS NULL AND ${cond}`;
+  return `SELECT COUNT(*)::int AS n FROM "entries" WHERE "contentTypeId" = $1 AND "deletedAt" IS NULL AND ${holdsAt('"data"', hops, at.field)}`;
 }

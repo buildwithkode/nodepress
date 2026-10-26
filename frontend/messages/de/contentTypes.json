@@ -127,7 +127,9 @@
     "loadFailed": "Inhaltstyp konnte nicht geladen werden",
     "invalidImportFile": "Ungültige Datei: contentType.name oder contentType.schema fehlt",
     "imported": "„{name}“ importiert — prüfen und speichern",
-    "parseFailed": "JSON-Datei konnte nicht gelesen werden"
+    "parseFailed": "JSON-Datei konnte nicht gelesen werden",
+    "duplicateKey": "Ein anderes Feld verwendet bereits den Schlüssel {key}. Benenne eines davon um.",
+    "duplicateKeys": "Zwei Felder können keinen Schlüssel teilen. Benenne die Duplikate um: {keys}"
   },
   "relation": {
     "relatedType": "Verknüpfter Inhaltstyp",

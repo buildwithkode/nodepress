@@ -92,7 +92,8 @@
     "enterRichText": "{field} を入力",
     "selectValue": "{field} を選択",
     "fieldRequired": "{field} は必須です",
-    "required": "この項目は必須です"
+    "required": "この項目は必須です",
+    "components": "コンポーネント"
   },
   "seo": {
     "heading": "SEO",

@@ -52,32 +52,22 @@ function mapSimpleFieldType(field: SimpleFieldDef): string {
 }
 
 /** Map any field definition (simple or complex) to TypeScript property declaration */
-function mapFieldType(field: FieldDef, typePrefix: string): string {
+function mapFieldType(field: FieldDef, typePrefix: string, indent = '  '): string {
+  const inner = `${indent}  `;
+  // Properties at indentation `at`; nested repeaters, groups and layouts recurse.
+  const props = (fields: any[], at = inner) =>
+    (fields ?? []).map((sf: any) => `${at}${sf.name}${sf.required ? '' : '?'}: ${mapFieldType(sf, typePrefix, at)};`).join('\n');
   switch (field.type) {
-    case 'repeater': {
-      const subFields = (field as any).options?.subFields ?? [];
-      const subTypes = subFields
-        .map((sf: SimpleFieldDef) => `    ${sf.name}${sf.required ? '' : '?'}: ${mapSimpleFieldType(sf)};`)
-        .join('\n');
-      return `Array<{\n${subTypes}\n    _id?: string;\n  }>`;
-    }
-    case 'group': {
-      const subFields = (field as any).options?.subFields ?? [];
-      const subTypes = subFields
-        .map((sf: SimpleFieldDef) => `    ${sf.name}${sf.required ? '' : '?'}: ${mapSimpleFieldType(sf)};`)
-        .join('\n');
-      return `{\n${subTypes}\n  }`;
-    }
+    case 'repeater':
+      return `Array<{\n${props((field as any).options?.subFields)}\n${inner}_id?: string;\n${indent}}>`;
+    case 'group':
+      return `{\n${props((field as any).options?.subFields)}\n${indent}}`;
     case 'flexible': {
-      const layouts: FlexibleLayout[] = (field as any).options?.layouts ?? [];
+      const layouts: any[] = (field as any).options?.layouts ?? [];
       if (layouts.length === 0) return 'Array<Record<string, any>>';
-      const layoutUnions = layouts.map((layout) => {
-        const fields = (layout.fields ?? [])
-          .map((sf) => `      ${sf.name}${sf.required ? '' : '?'}: ${mapSimpleFieldType(sf)};`)
-          .join('\n');
-        return `    | {\n      _layout: ${JSON.stringify(layout.name)};\n${fields}\n    }`;
-      });
-      return `Array<\n${layoutUnions.join('\n')}\n  >`;
+      const blocks = layouts.map((layout) =>
+        `${inner}| {\n${inner}  _layout: ${JSON.stringify(layout.name)};\n${props(layout.fields, `${inner}  `)}\n${inner}}`);
+      return `Array<\n${blocks.join('\n')}\n${indent}>`;
     }
     default:
       return mapSimpleFieldType(field as SimpleFieldDef);

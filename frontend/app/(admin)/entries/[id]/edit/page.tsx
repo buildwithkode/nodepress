@@ -58,6 +58,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn, ctLabel, formatSlugInput, cleanSlug } from '@/lib/utils';
 import DynamicFormField from '../../DynamicFormField';
+import { SchemaFormFields } from '../../SchemaFormFields';
 import { AiDraftButton } from '@/components/AiAssist';
 import { LivePreviewPane, focusEntryField } from '@/components/LivePreviewPane';
 import {
@@ -887,12 +888,15 @@ export default function EditEntryPage() {
                   />
                 </div>
                 <div>
-                  {contentType.schema.map((field) => withCondition(field as any, { control, fields: contentType.schema as any, path: '' }, (
-                    // data-np-field: the live preview's click-to-edit finds the field by it.
-                    <div key={field.name} data-np-field={field.name}>
-                      <DynamicFormField field={field} control={control} register={register} errors={errors} watch={watch} entryId={Number(id)} />
-                    </div>
-                  )))}
+                  <SchemaFormFields
+                    schema={contentType.schema}
+                    renderField={(field, bare) => withCondition(field as any, { control, fields: contentType.schema as any, path: '' }, (
+                      // data-np-field: the live preview's click-to-edit finds the field by it.
+                      <div key={field.name} data-np-field={field.name}>
+                        <DynamicFormField field={field} control={control} register={register} errors={errors} watch={watch} entryId={Number(id)} bare={bare} />
+                      </div>
+                    ))}
+                  />
                 </div>
               </div>
             )}

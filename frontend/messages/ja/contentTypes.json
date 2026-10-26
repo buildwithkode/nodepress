@@ -127,7 +127,9 @@
     "loadFailed": "コンテンツタイプを読み込めませんでした",
     "invalidImportFile": "無効なファイルです: contentType.name または contentType.schema がありません",
     "imported": "「{name}」をインポートしました。確認して保存してください",
-    "parseFailed": "JSON ファイルを解析できませんでした"
+    "parseFailed": "JSON ファイルを解析できませんでした",
+    "duplicateKey": "別のフィールドがすでにキー {key} を使っています。どちらかの名前を変更してください。",
+    "duplicateKeys": "2 つのフィールドで同じキーは使えません。重複を名前変更してください: {keys}"
   },
   "relation": {
     "relatedType": "関連コンテンツタイプ",

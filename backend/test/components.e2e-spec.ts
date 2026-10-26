@@ -38,11 +38,11 @@ describe('Components (e2e)', () => {
     expect(res.body.fields).toEqual(seoFields);
   });
 
-  it('rejects nested complex fields, duplicates and non-admins', async () => {
+  it('rejects components inside components, duplicates and non-admins', async () => {
     const bad = await request(server()).post('/api/components').set(auth)
-      .send({ name: 'nested', fields: [{ name: 'items', type: 'repeater', options: { subFields: [{ name: 'a', type: 'text' }] } }] })
+      .send({ name: 'nested', fields: [{ name: 'items', type: 'repeater', options: { component: 'page_seo', subFields: [{ name: 'a', type: 'text' }] } }] })
       .expect(400);
-    expect(bad.body.errors[0]).toMatch(/^fields\[0\]/);
+    expect(bad.body.errors[0]).toMatch(/^fields\[0\]\.options\.component: components can only be used by top-level fields/);
     await request(server()).post('/api/components').set(auth).send({ name: 'page_seo', fields: seoFields }).expect(409);
     await request(server()).post('/api/components').set(editorAuth).send({ name: 'x', fields: seoFields }).expect(403);
     await request(server()).get('/api/components').expect(401);

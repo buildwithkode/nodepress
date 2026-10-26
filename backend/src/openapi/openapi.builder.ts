@@ -2,6 +2,7 @@ import type { FieldCondition } from '../fields/field-condition';
 import { FieldDef, FlexibleLayout, SimpleFieldDef, isReverseRelation } from '../fields/field.types';
 import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
 import { pascal, plural } from '../graphql/content-schema';
+import { contentTypePath } from '../common/content-type-name';
 
 /**
  * OpenAPI 3.1 document for the content API (`/api/:type`, `/api/:type/:slug`):
@@ -348,8 +349,8 @@ export function buildOpenApiDocument(contentTypes: OpenApiContentType[], opts: O
       };
     }
 
-    const base = `/${ct.name}`;
-    const item = `/${ct.name}/{slug}`;
+    const base = `/${contentTypePath(ct.name)}`;
+    const item = `${base}/{slug}`;
     const P2 = pascal(plural(ct.name)) === P ? `${P}List` : pascal(plural(ct.name));
     const readSecurity = [{}, { ApiKey: [] }, { bearerAuth: [] }];
     const writeSecurity = [{ ApiKey: [] }, { bearerAuth: [] }];

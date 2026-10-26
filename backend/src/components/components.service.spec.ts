@@ -43,14 +43,24 @@ describe('ComponentsService', () => {
       expect(service.validateFields([{ name: 'Meta Title', type: 'text' }])).toEqual([{ name: 'meta_title', type: 'text' }]);
     });
 
-    it('rejects nested complex fields with paths relative to the component', () => {
-      try {
-        service.validateFields([{ name: 'items', type: 'repeater', options: { subFields: [{ name: 'a', type: 'text' }] } }]);
-        fail('expected a BadRequestException');
-      } catch (err: any) {
-        expect(err).toBeInstanceOf(BadRequestException);
-        expect(err.response.errors[0]).toMatch(/^fields\[0\]\.type: nested/);
+    it('accepts repeaters, groups and flexible fields inside a component', () => {
+      const fields = [
+        { name: 'heading', type: 'text' },
+        { name: 'buttons', type: 'repeater', options: { subFields: [{ name: 'label', type: 'text' }, { name: 'link', type: 'group', options: { subFields: [{ name: 'url', type: 'text' }] } }] } },
+      ];
+      expect(service.validateFields(fields)).toEqual(fields);
+    });
+
+    it('rejects nesting past the limit and component references, with paths relative to the component', () => {
+      const deep = { name: 'a', type: 'group', options: { subFields: [{ name: 'b', type: 'group', options: { subFields: [{ name: 'c', type: 'group', options: { subFields: [{ name: 'd', type: 'text' }] } }] } }] } };
+      expect(() => service.validateFields([deep])).toThrow(BadRequestException);
+      try { service.validateFields([deep]); } catch (err: any) {
+        expect(err.response.errors[0]).toMatch(/^fields\[0\]\.options\.subFields\[0\]\.options\.subFields\[0\]\.type: .*at most 3 levels/);
       }
+      try { service.validateFields([{ name: 'seo', type: 'group', options: { component: 'seo', subFields: [{ name: 'a', type: 'text' }] } }]); } catch (err: any) {
+        expect(err.response.errors[0]).toMatch(/components can only be used by top-level fields/);
+      }
+      expect(() => service.validateFields([{ name: 'seo', type: 'group', options: { component: 'seo', subFields: [{ name: 'a', type: 'text' }] } }])).toThrow(BadRequestException);
     });
 
     it('rejects reverse relations, empty lists and duplicates', () => {

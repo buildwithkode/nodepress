@@ -29,7 +29,7 @@
   "editor": {
     "newTitle": "Neue Komponente",
     "editTitle": "Komponente bearbeiten",
-    "hint": "Komponenten enthalten nur einfache Felder — keine Repeater, flexiblen Inhalte, Gruppen oder umgekehrten Relationen.",
+    "hint": "Felder können auch Repeater, Gruppen oder flexible Inhalte sein, bis zu 3 Ebenen tief verschachtelt. Komponenten können keine anderen Komponenten oder umgekehrten Relationen verwenden.",
     "displayName": "Anzeigename",
     "displayNamePlaceholder": "z. B. SEO",
     "name": "Schlüssel",
@@ -71,7 +71,10 @@
     "confirm": "Hinzufügen",
     "inline": "Eingebettet",
     "inlineHint": "Ihre Felder, direkt eingefügt",
-    "inlineNote": "Die Felder werden direkt zu diesem Inhaltstyp hinzugefügt, Einträge speichern sie also flach. Sie bleiben mit der Komponente synchron."
+    "inlineNote": "Die Felder werden direkt zu diesem Inhaltstyp hinzugefügt, Einträge speichern sie also flach. Sie bleiben mit der Komponente synchron.",
+    "keyTaken": "Dieser Inhaltstyp hat bereits ein Feld mit dem Schlüssel {key}.",
+    "inlineKeysTaken": "Diese Felder kollidieren mit vorhandenen Schlüsseln: {keys}",
+    "fieldKey": "Feldschlüssel:"
   },
   "readOnly": {
     "usesComponent": "Felder aus Komponente",
@@ -86,6 +89,18 @@
     "from": "Aus Komponente",
     "open": "Komponente öffnen",
     "remove": "Diese Felder entfernen",
-    "note": "Direkt zu diesem Inhaltstyp hinzugefügt. Bearbeiten Sie die Komponente, um diese Felder zu ändern."
+    "note": "Direkt zu diesem Inhaltstyp hinzugefügt. Bearbeiten Sie die Komponente, um diese Felder zu ändern.",
+    "keysTaken": "Diese Schlüssel werden auch von einem anderen Feld verwendet: {keys}"
+  },
+  "section": {
+    "title": "Komponenten",
+    "hint": "Wiederverwendbare Feldgruppen von der Seite Komponenten. Jede wird unter ihrem eigenen Feldschlüssel gespeichert.",
+    "empty": "Noch keine Komponenten hinzugefügt."
+  },
+  "card": {
+    "toggle": "Felder der Komponente ein- oder ausblenden",
+    "duplicate": "Ein anderes Feld verwendet bereits den Schlüssel {key}. Benenne eines davon um.",
+    "required": "Pflichtfeld",
+    "remove": "Diese Komponente entfernen"
   }
 }

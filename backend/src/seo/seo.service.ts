@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { contentTypePath } from '../common/content-type-name';
 
 @Injectable()
 export class SeoService {
@@ -48,13 +49,13 @@ export class SeoService {
       // Content type list pages
       ...contentTypes.map(
         (ct) =>
-          `  <url>\n    <loc>${this.siteUrl}/${ct.name}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>`,
+          `  <url>\n    <loc>${this.siteUrl}/${contentTypePath(ct.name)}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>`,
       ),
 
       // Individual entry pages
       ...entries.map((e) => {
         const lastmod = e.updatedAt.toISOString().split('T')[0];
-        return `  <url>\n    <loc>${this.siteUrl}/${e.contentType.name}/${e.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`;
+        return `  <url>\n    <loc>${this.siteUrl}/${contentTypePath(e.contentType.name)}/${e.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`;
       }),
     ].join('\n');
 

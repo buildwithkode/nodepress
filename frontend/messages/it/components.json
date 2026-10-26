@@ -29,7 +29,7 @@
   "editor": {
     "newTitle": "Nuovo componente",
     "editTitle": "Modifica componente",
-    "hint": "I componenti contengono solo campi semplici: niente ripetitori, contenuti flessibili, gruppi o relazioni inverse.",
+    "hint": "I campi possono essere anche ripetitori, gruppi o contenuti flessibili, annidati fino a 3 livelli. Un componente non può usare altri componenti né relazioni inverse.",
     "displayName": "Nome visualizzato",
     "displayNamePlaceholder": "es. SEO",
     "name": "Chiave",
@@ -71,7 +71,10 @@
     "confirm": "Aggiungi",
     "inline": "Integrato",
     "inlineHint": "I suoi campi, aggiunti direttamente",
-    "inlineNote": "I campi vengono aggiunti direttamente a questo tipo di contenuto, quindi le voci li salvano senza annidamento. Restano sincronizzati con il componente."
+    "inlineNote": "I campi vengono aggiunti direttamente a questo tipo di contenuto, quindi le voci li salvano senza annidamento. Restano sincronizzati con il componente.",
+    "keyTaken": "Questo tipo di contenuto ha già un campo con la chiave {key}.",
+    "inlineKeysTaken": "Questi campi sono in conflitto con chiavi esistenti: {keys}",
+    "fieldKey": "Chiave del campo:"
   },
   "readOnly": {
     "usesComponent": "Campi dal componente",
@@ -86,6 +89,18 @@
     "from": "Dal componente",
     "open": "Apri componente",
     "remove": "Rimuovi questi campi",
-    "note": "Aggiunti direttamente a questo tipo di contenuto. Modifica il componente per cambiare questi campi."
+    "note": "Aggiunti direttamente a questo tipo di contenuto. Modifica il componente per cambiare questi campi.",
+    "keysTaken": "Queste chiavi sono usate anche da un altro campo: {keys}"
+  },
+  "section": {
+    "title": "Componenti",
+    "hint": "Gruppi di campi riutilizzabili dalla pagina Componenti. Ognuno è salvato con la propria chiave.",
+    "empty": "Nessun componente aggiunto."
+  },
+  "card": {
+    "toggle": "Mostra o nascondi i campi del componente",
+    "duplicate": "Un altro campo usa già la chiave {key}. Rinominane uno.",
+    "required": "Obbligatorio",
+    "remove": "Rimuovi questo componente"
   }
 }

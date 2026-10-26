@@ -29,7 +29,7 @@
   "editor": {
     "newTitle": "Nieuw component",
     "editTitle": "Component bewerken",
-    "hint": "Componenten bevatten alleen eenvoudige velden — geen repeaters, flexibele content, groepen of omgekeerde relaties.",
+    "hint": "Velden kunnen ook repeaters, groepen of flexibele content zijn, tot 3 niveaus diep genest. Een component kan geen andere componenten of omgekeerde relaties gebruiken.",
     "displayName": "Weergavenaam",
     "displayNamePlaceholder": "bijv. SEO",
     "name": "Sleutel",
@@ -71,7 +71,10 @@
     "confirm": "Toevoegen",
     "inline": "Ingevoegd",
     "inlineHint": "De velden, direct toegevoegd",
-    "inlineNote": "De velden worden direct aan dit contenttype toegevoegd, dus items slaan ze plat op. Ze blijven gelijk met het component."
+    "inlineNote": "De velden worden direct aan dit contenttype toegevoegd, dus items slaan ze plat op. Ze blijven gelijk met het component.",
+    "keyTaken": "Dit contenttype heeft al een veld met de sleutel {key}.",
+    "inlineKeysTaken": "Deze velden botsen met bestaande sleutels: {keys}",
+    "fieldKey": "Veldsleutel:"
   },
   "readOnly": {
     "usesComponent": "Velden uit component",
@@ -86,6 +89,18 @@
     "from": "Uit component",
     "open": "Component openen",
     "remove": "Deze velden verwijderen",
-    "note": "Direct aan dit contenttype toegevoegd. Bewerk het component om deze velden te wijzigen."
+    "note": "Direct aan dit contenttype toegevoegd. Bewerk het component om deze velden te wijzigen.",
+    "keysTaken": "Deze sleutels worden ook door een ander veld gebruikt: {keys}"
+  },
+  "section": {
+    "title": "Componenten",
+    "hint": "Herbruikbare veldsets van de pagina Componenten. Elk wordt onder een eigen veldsleutel opgeslagen.",
+    "empty": "Nog geen componenten toegevoegd."
+  },
+  "card": {
+    "toggle": "Velden van het component tonen of verbergen",
+    "duplicate": "Een ander veld gebruikt de sleutel {key} al. Hernoem een van beide.",
+    "required": "Verplicht",
+    "remove": "Dit component verwijderen"
   }
 }

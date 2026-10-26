@@ -29,7 +29,7 @@
   "editor": {
     "newTitle": "Nuevo componente",
     "editTitle": "Editar componente",
-    "hint": "Los componentes solo contienen campos simples — sin repetidores, contenido flexible, grupos ni relaciones inversas.",
+    "hint": "Los campos también pueden ser repetidores, grupos o contenido flexible, anidados hasta 3 niveles. Un componente no puede usar otros componentes ni relaciones inversas.",
     "displayName": "Nombre visible",
     "displayNamePlaceholder": "p. ej. SEO",
     "name": "Clave",
@@ -71,7 +71,10 @@
     "confirm": "Añadir",
     "inline": "Integrado",
     "inlineHint": "Sus campos, añadidos directamente",
-    "inlineNote": "Los campos se añaden directamente a este tipo de contenido, así que las entradas los guardan sin anidar. Se mantienen sincronizados con el componente."
+    "inlineNote": "Los campos se añaden directamente a este tipo de contenido, así que las entradas los guardan sin anidar. Se mantienen sincronizados con el componente.",
+    "keyTaken": "Este tipo de contenido ya tiene un campo con la clave {key}.",
+    "inlineKeysTaken": "Estos campos chocan con claves existentes: {keys}",
+    "fieldKey": "Clave del campo:"
   },
   "readOnly": {
     "usesComponent": "Campos del componente",
@@ -86,6 +89,18 @@
     "from": "Del componente",
     "open": "Abrir componente",
     "remove": "Quitar estos campos",
-    "note": "Añadidos directamente a este tipo de contenido. Edita el componente para cambiar estos campos."
+    "note": "Añadidos directamente a este tipo de contenido. Edita el componente para cambiar estos campos.",
+    "keysTaken": "Estas claves también las usa otro campo: {keys}"
+  },
+  "section": {
+    "title": "Componentes",
+    "hint": "Conjuntos de campos reutilizables de la página Componentes. Cada uno se guarda con su propia clave.",
+    "empty": "Aún no hay componentes."
+  },
+  "card": {
+    "toggle": "Mostrar u ocultar los campos del componente",
+    "duplicate": "Otro campo ya usa la clave {key}. Cambia el nombre de uno de ellos.",
+    "required": "Obligatorio",
+    "remove": "Quitar este componente"
   }
 }

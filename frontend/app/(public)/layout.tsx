@@ -21,7 +21,7 @@ async function getContentTypes(): Promise<NavItem[]> {
       .map((ct: any) => ({
         name: ct.name,
         label: ct.displayName || ct.name.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-        href: `/${ct.name}`,
+        href: `/${ct.name.replace(/_/g, '-')}`,
       }));
   } catch {
     return [];

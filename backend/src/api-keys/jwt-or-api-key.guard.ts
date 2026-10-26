@@ -7,6 +7,7 @@ import { ApiKeysService } from './api-keys.service';
 import { RolesService } from '../roles/roles.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { Request } from 'express';
+import { contentTypeName, keyCoversType } from '../common/content-type-name';
 
 /**
  * Allows through if the request carries EITHER:
@@ -40,7 +41,7 @@ export class JwtOrApiKeyGuard implements CanActivate {
       if (perms.access === 'read') throw new ForbiddenException('This API key is read-only');
 
       const type: string | undefined = (req.params as Record<string, string>)?.type;
-      if (type && perms.contentTypes[0] !== '*' && !perms.contentTypes.includes(type)) {
+      if (type && !keyCoversType(perms.contentTypes, type)) {
         throw new ForbiddenException(`This API key does not have access to content type "${type}"`);
       }
 
@@ -76,7 +77,7 @@ export class JwtOrApiKeyGuard implements CanActivate {
     const action = req.method === 'POST' ? 'create' : req.method === 'PUT' ? 'update' : req.method === 'DELETE' ? 'delete' : null;
     if (!action) return;
 
-    const ctName = type.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    const ctName = contentTypeName(type);
     const permRole = customRole ?? role;
     if (!(await this.permissions.can(permRole, ctName, action))) {
       throw new ForbiddenException(`You do not have permission to ${action} entries of "${ctName}"`);
