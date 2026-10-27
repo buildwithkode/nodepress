@@ -325,21 +325,20 @@ Path-traversal is blocked: deletes reject filenames containing `/`, `\`, or `..`
 
 ## Documentation maintenance
 
-The documentation page lives at `frontend/app/(docs)/docs/page.tsx` and is accessible at `/docs`.
+**The docs site** is `docs/` — an Astro Starlight site (Markdown pages in `docs/src/content/docs/<section>/`, sidebar in `docs/astro.config.mjs`, deployed by Vercel to https://nodepress-docs.vercel.app (project Root Directory `docs`, builds on push to `main`); `cd docs && npm run dev` / `npm run build`). It is not a workspace and has its own lockfile. `<!-- screenshot: … -->` comments mark where screenshots will go. Check examples against the code — the server expects `options.subFields` / `options.layouts`, and image fields store `{ url, alt }`.
 
-**The public docs site** is being moved to `docs/` — an Astro Starlight site (Markdown pages in `docs/src/content/docs/<section>/`, sidebar in `docs/astro.config.mjs`, deployed by Vercel to https://nodepress-docs.vercel.app (project Root Directory `docs`, builds on push to `main`); `cd docs && npm run dev` / `npm run build`). It is not a workspace and has its own lockfile. Until the move is finished, update both: the page under `docs/` for the topics it covers, and the in-app page. `<!-- screenshot: … -->` comments mark where screenshots will go. Check examples against the code — the server expects `options.subFields` / `options.layouts`, and image fields store `{ url, alt }`.
+The in-app page `frontend/app/(docs)/docs/page.tsx` (`/docs`) only shows the install's own endpoints (live, from `GET /api/content-types`), a short quick reference and links to every docs-site page (`TOPICS` — keep it in step with the docs sidebar when pages are added or renamed).
 
-**Whenever a product change is made, update the docs page to reflect it.** This includes:
+**Whenever a product change is made, update the docs site to reflect it.** This includes:
 
-- Adding a new field type → update the Field Types table
-- Adding/changing/removing an API endpoint → update the API Reference section
-- Adding a new feature (duplicate, export/import, drag-and-drop, etc.) → update the relevant section
-- Changing how slugs, names, or keys are normalized → update the relevant explanation
-- Adding a new admin page or nav item → update the Quick Start or relevant section
-- Changing media upload limits or allowed file types → update the Media section
-- Any change to API key permissions or behaviour → update the API Keys section
-
-The docs page also has a **"Your Endpoints"** live section that fetches real content types — no update needed there, it's dynamic.
+- Adding a new field type → `content-modeling/fields.md`
+- Adding/changing/removing an API endpoint → the API page and `reference/api-endpoints.md`
+- Adding a new feature (duplicate, export/import, drag-and-drop, etc.) → the relevant page, or a new one (add it to `TOPICS` on the in-app page)
+- Changing how slugs, names, or keys are normalized → the relevant explanation
+- Adding a new admin page or nav item → the relevant page
+- Changing media upload limits or allowed file types → `content/media.md`
+- Any change to API key permissions or behaviour → `access-control/api-keys.md`
+- A new environment variable → `reference/environment-variables.md`
 
 ---
 

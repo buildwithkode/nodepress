@@ -12,6 +12,12 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Security
+- **Webhooks no longer reach private addresses.** Admin webhooks and form webhook actions could be pointed at `localhost`, the internal network or the cloud metadata address (`169.254.169.254`), and followed redirects there. They now refuse every non-public address — checked when the connection is made, so DNS tricks don't get past it — and don't follow redirects (a 3xx is a failed delivery). **If your webhooks call services on your own network, set `WEBHOOK_ALLOW_PRIVATE=true`.**
+
+### Changed
+- **The admin's `/docs` page points to the docs site.** The 4,500-line in-app copy of the documentation had drifted from https://nodepress-docs.vercel.app; the page now shows this install's own REST endpoints (live, from its content types), a quick reference and links to every docs-site page.
+
 ### Fixed
 - **Public `PUT /api/:type/:slug` no longer erases fields it doesn't send.** The update was validated as partial but saved as the whole `data`, so every field left out was removed — including fields the caller wasn't allowed to write. Top-level fields you send are now merged into the stored data; send `null` to clear one. (The JS client's `update()` and the MCP `update_entry` tool use this route.)
 - **Contributor and custom-role badges were unreadable in dark mode** (white on white). Tailwind didn't scan `lib/`, where the role and release badge colours live.
