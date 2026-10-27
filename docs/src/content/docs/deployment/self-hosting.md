@@ -37,9 +37,9 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | `DOMAIN` | none | Public hostname. Without it the site runs on `http://<server-ip>`. |
 | `ACME_EMAIL` | none | Email for Let's Encrypt expiry notices. |
 | `NODEPRESS_DIR` | `./nodepress` | Install directory. |
-| `NODEPRESS_REF` | `main` | Git branch or tag to install. |
+| `NODEPRESS_REF` | the newest release | Git branch or tag to install. Without it, the newest `vX.Y.Z` release. Installs made before this followed `main` and stay on it (`NODEPRESS_TRACK=main` in `.env`). |
 
-When it finishes, open `/setup` on your site to create the admin account. Running the installer again in the same place updates the code and restarts the stack. See [Docker](/deployment/docker/) for what it runs.
+When it finishes, open `/setup` on your site to create the admin account. Running the installer again in the same place updates to the newest release and restarts the stack; `DOMAIN` and `ACME_EMAIL` are remembered, so you don't need to pass them again. For a full walkthrough, from renting the server to backups, see [Deploy on a server](/deployment/deploy-vps/). See [Docker](/deployment/docker/) for what it runs.
 
 ## Build
 
@@ -242,13 +242,13 @@ The repository's `render.yaml` blueprint (the **Deploy to Render** button in the
 | `nodepress-api` | The backend. Runs `prisma migrate deploy` on every start, health check `/api/health`, generates `JWT_SECRET`. |
 | `nodepress-web` | The admin panel on port 3001. |
 
-Render asks for four values on create. Fill them in after the first deploy, when you know the services' URLs, then redeploy:
+Render asks for five values on create. Fill them in after the first deploy, when you know the services' URLs, then redeploy:
 
 | Service | Variable | Value |
 |---|---|---|
 | `nodepress-api` | `SITE_URL`, `CORS_ORIGIN` | The frontend's URL, such as `https://nodepress-web-xxxx.onrender.com` |
 | `nodepress-api` | `APP_URL` | The backend's URL |
-| `nodepress-web` | `BACKEND_URL` | The backend's URL |
+| `nodepress-web` | `BACKEND_URL`, `NEXT_PUBLIC_API_URL` | The backend's URL. Both are read at build time, so redeploy the admin after setting them. |
 
 :::caution[Uploads on Render]
 Render's disk is wiped on every deploy. Use [S3-compatible storage](/deployment/storage/), or attach a disk at `/app/uploads` (paid plans).
@@ -264,7 +264,7 @@ Most hosts run one process per service, so deploy the backend and the frontend a
 | Build | `npm install && npx prisma generate && npm run build` | `npm install && npm run build` |
 | Start | `npx prisma migrate deploy && npm run start:prod` | `npx next start -p $PORT` |
 
-The backend reads `PORT`, which these hosts set for you. Deploy the backend first, then set the frontend's `BACKEND_URL` to its URL and the backend's `SITE_URL` and `CORS_ORIGIN` to the frontend's URL, and redeploy both.
+The backend reads `PORT`, which these hosts set for you. Deploy the backend first, then set the frontend's `BACKEND_URL` and `NEXT_PUBLIC_API_URL` to its URL (before the frontend builds) and the backend's `SITE_URL` and `CORS_ORIGIN` to the frontend's URL, and redeploy both. Step-by-step guides for Railway and DigitalOcean App Platform: [Deploy on a platform](/deployment/deploy-platforms/).
 
 ## Production checklist
 

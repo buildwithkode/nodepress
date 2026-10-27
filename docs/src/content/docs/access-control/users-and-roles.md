@@ -13,11 +13,15 @@ Admins manage users, and can let another role do it with **Users → Edit** on t
 
 Onboarding is invite-only. You never set a password for someone else.
 
-1. Open **Users** and fill in **Add User**: an email address and a role.
-2. Click **Send Invite**.
+1. Open **Users** and click **Add user**. A panel opens on the right.
+2. Enter the email address, pick a role and click **Send Invite**.
 3. The user gets a "Set your password" email with a link to `/reset-password`. They choose their own password there and can then sign in.
 
-![The Users page with Team Members, Role Permissions and the Add User card](../../../assets/screenshots/users.png)
+![The Users page: Team Members with the Add user button, and Role Permissions showing what each role can use](../../../assets/screenshots/users.png)
+
+![The Add user panel with Email and Role fields and Send Invite](../../../assets/screenshots/user-add.png)
+
+The **Role Permissions** card below the list shows what each role can use right now, custom roles included. It follows the [permissions](/access-control/permissions/) page, and only admins see it.
 
 The invite link is valid for 7 days. Sending a new invite (the **Send invitation email** button on a user's row) makes any earlier link stop working.
 
@@ -56,7 +60,10 @@ On the **Users** page you can change a user's role from the role dropdown on the
 - You can't delete your own account.
 - You can't delete or demote the **last admin**. Promote someone else first.
 - Deleting a user stops their login tokens from working right away.
+- To change your own password, click the key icon on your row. Forgot the current one? **Forgot it?** in the same panel emails you a reset link (valid 15 minutes); if email isn't set up, another admin can send you a new invite link, or run `npm run reset-password` on the server (on a Docker install, see [Reset the admin password on the server](/deployment/deploy-vps/#reset-the-admin-password-on-the-server)).
 - Someone who isn't an admin can't give the `admin` role, change, delete or re-invite an admin, or change their own role.
+
+![The Change password panel with current, new and confirm fields and the Forgot it? link](../../../assets/screenshots/change-password.png)
 
 ## Built-in roles
 
@@ -117,7 +124,7 @@ Admins can call every route; other roles need the level shown.
 | `PUT` | `/api/users/:id/role` | Users → Edit | Changes a user's role: `{ role }` |
 | `POST` | `/api/users/:id/invite` | Users → Edit | Sends a new invite link |
 | `DELETE` | `/api/users/:id` | Users → Edit | Deletes a user |
-| `PUT` | `/api/users/me/password` | any signed-in user | Changes your own password: `{ currentPassword, newPassword }` (at least 8 characters) |
+| `PUT` | `/api/users/me/password` | any signed-in user | Changes your own password: `{ currentPassword, newPassword }` (at least 8 characters). Signs out your other sessions and voids open reset links; 5 attempts per minute |
 
 ## Single sign-on users
 

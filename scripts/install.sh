@@ -12,16 +12,24 @@
 #   DOMAIN       public hostname; its DNS must point here. Without it the site runs on http://<server-ip>
 #   ACME_EMAIL   email for Let's Encrypt expiry notices (optional)
 #   NODEPRESS_DIR  install directory (default: ./nodepress)
-#   NODEPRESS_REF  git branch or tag (default: main)
+#   NODEPRESS_REF  git branch or tag (default: the newest vX.Y.Z release, else main;
+#                  NODEPRESS_TRACK=main in .env keeps an install on main)
 #
-# Re-running it in an existing install directory updates the code and restarts.
+# Re-running it in an existing install directory updates to the newest release and
+# restarts; DOMAIN and ACME_EMAIL are remembered in .env, so they needn't be repeated.
 set -euo pipefail
 
 REPO="https://github.com/buildwithkode/nodepress.git"
 DIR="${NODEPRESS_DIR:-nodepress}"
-REF="${NODEPRESS_REF:-main}"
+REF="${NODEPRESS_REF:-}"
 DOMAIN="${DOMAIN:-}"
 ACME_EMAIL="${ACME_EMAIL:-}"
+
+# Re-run in an existing install: keep the domain it was set up with, or the update
+# would rewrite the URLs to http://<server-ip> and drop HTTPS.
+env_value() { [ -f "$DIR/.env" ] && sed -n "s/^$1=//p" "$DIR/.env" | tail -n 1; }
+[ -z "$DOMAIN" ] && DOMAIN="$(env_value DOMAIN || true)"
+[ -z "$ACME_EMAIL" ] && ACME_EMAIL="$(env_value ACME_EMAIL || true)"
 
 say()  { printf '\033[1;36m▸\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31m✖ %s\033[0m\n' "$*" >&2; exit 1; }
@@ -41,6 +49,23 @@ if [ -n "$DOMAIN" ]; then
   if [ "${major:-0}" -lt 2 ] || { [ "${major:-0}" -eq 2 ] && [ "${minor:-0}" -lt 24 ]; }; then
     fail "HTTPS needs Docker Compose v2.24 or newer (found ${ver:-unknown})"
   fi
+fi
+
+# What to install: NODEPRESS_REF if given; otherwise the newest vX.Y.Z release (the
+# same rule as create-nodepress-app). Installs made before releases were tracked
+# followed main, which may be ahead of the newest tag — they stay on main rather
+# than step back past migrations already applied.
+TRACK="$(env_value NODEPRESS_TRACK || true)"
+if [ -z "$REF" ] && [ -d "$DIR/.git" ] && [ -z "$TRACK" ]; then
+  TRACK=main
+fi
+if [ -z "$REF" ] && [ "$TRACK" = main ]; then
+  REF=main
+elif [ -z "$REF" ]; then
+  TRACK=release
+  REF="$(git ls-remote --tags --refs "$REPO" 'v*' 2>/dev/null \
+    | sed 's|.*refs/tags/||' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
+  REF="${REF:-main}"
 fi
 
 if [ -d "$DIR/.git" ]; then
@@ -66,12 +91,14 @@ set_env() {
   fi
 }
 
+[ -n "$TRACK" ] && set_env NODEPRESS_TRACK "$TRACK"
+
 COMPOSE=(docker compose -f docker-compose.yml)
 if [ -n "$DOMAIN" ]; then
   set_env DOMAIN "$DOMAIN"
   [ -n "$ACME_EMAIL" ] && set_env ACME_EMAIL "$ACME_EMAIL"
   set_env SITE_URL "https://$DOMAIN"
-  set_env APP_URL "https://$DOMAIN/api"
+  set_env APP_URL "https://$DOMAIN"
   set_env CORS_ORIGIN "https://$DOMAIN"
   COMPOSE+=(-f docker-compose.https.yml)
   URL="https://$DOMAIN"
@@ -79,7 +106,7 @@ else
   HOST="$(hostname -I 2>/dev/null | awk '{print $1}')"
   HOST="${HOST:-localhost}"
   set_env SITE_URL "http://$HOST"
-  set_env APP_URL "http://$HOST/api"
+  set_env APP_URL "http://$HOST"
   set_env CORS_ORIGIN "http://$HOST"
   URL="http://$HOST"
 fi

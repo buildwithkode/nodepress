@@ -34,7 +34,7 @@ services:
   backend:
     environment:
       SITE_URL:    https://${DOMAIN}
-      APP_URL:     https://${DOMAIN}/api
+      APP_URL:     https://${DOMAIN}
       CORS_ORIGIN: https://${DOMAIN}
 
 volumes:

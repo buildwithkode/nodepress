@@ -19,6 +19,8 @@ Admins always have edit on every module. Only admins can change permissions.
 
 Open **Users** and click **Manage permissions**, or go to **Users → Roles** and click **Edit permissions**. The **Module access** tab shows one list per role: pick the role at the top, then choose a level for each module. Changes save right away.
 
+![Module access for the Editor role: Content with Can publish and Can delete and the per-content-type list, then Media library, Forms, Releases, Redirects, Content model and Languages](../../../assets/screenshots/permissions.png)
+
 - Modules are grouped into **Content**, **Structure**, **Team & developer**, **Settings** and **Plugins**.
 - Users, API keys, Plugins and Server settings carry a warning: edit on those is close to admin access (a role could create an API key with `all` access, turn on a plugin, or point email at another server).
 - **Reset to defaults** restores the built-in levels and content permissions for every role.

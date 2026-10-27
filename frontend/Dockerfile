@@ -11,6 +11,10 @@ COPY . .
 # Build-time env — BACKEND_URL is used in server components at build time
 ARG BACKEND_URL=http://backend:3000
 ENV BACKEND_URL=${BACKEND_URL}
+# Browser-reachable API origin for live updates, inlined at build. Leave empty when
+# /api/realtime is served on the admin's own domain (the Docker/nginx setup).
+ARG NEXT_PUBLIC_API_URL=
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 RUN npm run build
 

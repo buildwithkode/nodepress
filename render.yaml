@@ -6,6 +6,7 @@
 #   backend  SITE_URL / CORS_ORIGIN = the frontend's URL (https://nodepress-web-xxxx.onrender.com)
 #   backend  APP_URL                = the backend's URL
 #   frontend BACKEND_URL            = the backend's URL
+#   frontend NEXT_PUBLIC_API_URL    = the backend's URL (live updates; both are read at build time)
 # Uploads: Render's disk is wiped on every deploy — set STORAGE_DRIVER=s3 (+ STORAGE_S3_*)
 # or attach a disk at /app/uploads (paid plans).
 
@@ -51,4 +52,6 @@ services:
       - key: PORT
         value: 3001
       - key: BACKEND_URL
+        sync: false
+      - key: NEXT_PUBLIC_API_URL
         sync: false

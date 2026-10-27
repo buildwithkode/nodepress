@@ -60,14 +60,14 @@ Docker Compose reads `.env` in the project folder for these values:
 |---|---|---|
 | `SITE_URL` | `http://localhost` | The site's public URL. |
 | `CORS_ORIGIN` | `SITE_URL` | Allowed browser origins. |
-| `APP_URL` | `http://localhost/api` | The backend's public URL. See the note below. |
+| `APP_URL` | `http://localhost` | The site's public URL, without `/api`. Files on local disk get URLs under `<APP_URL>/uploads/`. |
 | `POSTGRES_DB`, `POSTGRES_USER` | `nodepress`, `postgres` | Database name and user. |
 | `JWT_SECRET`, `DB_PASSWORD` | generated | See [Secrets](#secrets). |
 
 The backend container doesn't read `backend/.env`: it gets only the variables listed under `backend.environment` in the Compose file. To set anything else, such as `SMTP_*`, `STORAGE_*` or `METRICS_TOKEN`, add it there. Email and file storage can also be set up in the admin under **Settings → Email & storage**, with no file changes. See [Email](/deployment/email/) and [Storage](/deployment/storage/).
 
-:::caution[APP_URL and local uploads]
-Files on local disk get URLs under `<APP_URL>/uploads/`, and the bundled nginx serves them at `/uploads/`, not `/api/uploads/`. With the default `APP_URL` ending in `/api`, uploaded files on local disk get URLs that don't load. Set `APP_URL` to the bare origin, such as `https://cms.example.com`. `docker-compose.https.yml` sets it to `https://<DOMAIN>/api` itself, so edit it there. S3 storage isn't affected.
+:::note[Older installs]
+Before 1.7.2 the default `APP_URL` ended in `/api`, which gave files on local disk URLs under `/api/uploads/`. nginx now serves those too, so existing media keeps loading; new uploads get `/uploads/` URLs.
 :::
 
 ## HTTPS with Caddy
