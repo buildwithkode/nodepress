@@ -22,7 +22,10 @@
     "recoveryCopied": "恢复码已复制到剪贴板",
     "recoveryCopyFailed": "复制恢复码失败",
     "secretCopied": "密钥已复制",
-    "secretCopyFailed": "复制密钥失败"
+    "secretCopyFailed": "复制密钥失败",
+    "resetLinkSent": "重置链接已发送至 {email}",
+    "resetLinkCopied": "重置链接已复制到剪贴板（开发环境）",
+    "resetLinkFailed": "无法发送重置链接"
   },
   "list": {
     "title": "团队成员",
@@ -91,7 +94,10 @@
     "confirm": "确认新密码",
     "mismatch": "两次输入的密码不一致",
     "updating": "正在更新…",
-    "submit": "更新密码"
+    "submit": "更新密码",
+    "forgot": "忘记了？",
+    "sendingReset": "发送中…",
+    "resetHint": "15 分钟内有效。如果没有收到，请让管理员重新发送邀请链接。"
   },
   "permissions": {
     "loading": "正在加载权限…",

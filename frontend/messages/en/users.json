@@ -22,7 +22,10 @@
     "recoveryCopied": "Recovery codes copied to clipboard",
     "recoveryCopyFailed": "Failed to copy recovery codes",
     "secretCopied": "Secret key copied",
-    "secretCopyFailed": "Failed to copy secret"
+    "secretCopyFailed": "Failed to copy secret",
+    "resetLinkSent": "Reset link sent to {email}",
+    "resetLinkCopied": "Reset link copied to your clipboard (development)",
+    "resetLinkFailed": "Couldn't send the reset link"
   },
   "list": {
     "title": "Team Members",
@@ -91,7 +94,10 @@
     "confirm": "Confirm New Password",
     "mismatch": "The passwords don't match",
     "updating": "Updating…",
-    "submit": "Update Password"
+    "submit": "Update Password",
+    "forgot": "Forgot it?",
+    "sendingReset": "Sending…",
+    "resetHint": "Valid for 15 minutes. If it doesn't arrive, ask an admin to send you a new invite link."
   },
   "permissions": {
     "loading": "Loading permissions…",

@@ -22,7 +22,10 @@
     "recoveryCopied": "Codes de récupération copiés dans le presse-papiers",
     "recoveryCopyFailed": "Impossible de copier les codes de récupération",
     "secretCopied": "Clé secrète copiée",
-    "secretCopyFailed": "Impossible de copier la clé secrète"
+    "secretCopyFailed": "Impossible de copier la clé secrète",
+    "resetLinkSent": "Lien de réinitialisation envoyé à {email}",
+    "resetLinkCopied": "Lien de réinitialisation copié dans le presse-papiers (développement)",
+    "resetLinkFailed": "Impossible d'envoyer le lien de réinitialisation"
   },
   "list": {
     "title": "Membres de l’équipe",
@@ -91,7 +94,10 @@
     "confirm": "Confirmer le nouveau mot de passe",
     "mismatch": "Les mots de passe ne correspondent pas",
     "updating": "Mise à jour…",
-    "submit": "Mettre à jour le mot de passe"
+    "submit": "Mettre à jour le mot de passe",
+    "forgot": "Oublié ?",
+    "sendingReset": "Envoi…",
+    "resetHint": "Valable 15 minutes. S'il n'arrive pas, demandez à un administrateur de vous renvoyer un lien d'invitation."
   },
   "permissions": {
     "loading": "Chargement des permissions…",

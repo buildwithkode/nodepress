@@ -166,7 +166,12 @@ export class UsersService {
     };
   }
 
-  async changePassword(userId: number, dto: ChangePasswordDto) {
+  /**
+   * Change your own password. Every other session (refresh token) is signed out
+   * and unused reset/invite links stop working; `keepRefreshToken` — the caller's
+   * own np_refresh cookie — survives so this browser stays signed in.
+   */
+  async changePassword(userId: number, dto: ChangePasswordDto, keepRefreshToken?: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -174,7 +179,13 @@ export class UsersService {
     if (!valid) throw new BadRequestException('Current password is incorrect');
 
     const hashed = await bcrypt.hash(dto.newPassword, 10);
-    await this.prisma.user.update({ where: { id: userId }, data: { password: hashed } });
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { password: hashed } }),
+      this.prisma.refreshToken.deleteMany({
+        where: { userId, ...(keepRefreshToken ? { token: { not: keepRefreshToken } } : {}) },
+      }),
+      this.prisma.passwordResetToken.updateMany({ where: { userId, used: false }, data: { used: true } }),
+    ]);
     return { message: 'Password updated successfully' };
   }
 }

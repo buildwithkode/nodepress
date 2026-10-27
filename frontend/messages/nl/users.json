@@ -22,7 +22,10 @@
     "recoveryCopied": "Herstelcodes naar klembord gekopieerd",
     "recoveryCopyFailed": "Herstelcodes kopiëren mislukt",
     "secretCopied": "Geheime sleutel gekopieerd",
-    "secretCopyFailed": "Geheime sleutel kopiëren mislukt"
+    "secretCopyFailed": "Geheime sleutel kopiëren mislukt",
+    "resetLinkSent": "Resetlink verstuurd naar {email}",
+    "resetLinkCopied": "Resetlink naar het klembord gekopieerd (ontwikkeling)",
+    "resetLinkFailed": "Resetlink kon niet worden verstuurd"
   },
   "list": {
     "title": "Teamleden",
@@ -91,7 +94,10 @@
     "confirm": "Nieuw wachtwoord bevestigen",
     "mismatch": "De wachtwoorden komen niet overeen",
     "updating": "Bijwerken…",
-    "submit": "Wachtwoord bijwerken"
+    "submit": "Wachtwoord bijwerken",
+    "forgot": "Vergeten?",
+    "sendingReset": "Versturen…",
+    "resetHint": "15 minuten geldig. Komt hij niet aan, vraag dan een beheerder om een nieuwe uitnodigingslink."
   },
   "permissions": {
     "loading": "Rechten laden…",

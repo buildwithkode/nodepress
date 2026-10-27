@@ -22,7 +22,10 @@
     "recoveryCopied": "Codici di recupero copiati negli appunti",
     "recoveryCopyFailed": "Impossibile copiare i codici di recupero",
     "secretCopied": "Chiave segreta copiata",
-    "secretCopyFailed": "Impossibile copiare la chiave segreta"
+    "secretCopyFailed": "Impossibile copiare la chiave segreta",
+    "resetLinkSent": "Link di reimpostazione inviato a {email}",
+    "resetLinkCopied": "Link di reimpostazione copiato negli appunti (sviluppo)",
+    "resetLinkFailed": "Impossibile inviare il link di reimpostazione"
   },
   "list": {
     "title": "Membri del team",
@@ -91,7 +94,10 @@
     "confirm": "Conferma nuova password",
     "mismatch": "Le password non corrispondono",
     "updating": "Aggiornamento…",
-    "submit": "Aggiorna password"
+    "submit": "Aggiorna password",
+    "forgot": "Dimenticata?",
+    "sendingReset": "Invio…",
+    "resetHint": "Valido per 15 minuti. Se non arriva, chiedi a un amministratore di inviarti un nuovo link di invito."
   },
   "permissions": {
     "loading": "Caricamento dei permessi…",

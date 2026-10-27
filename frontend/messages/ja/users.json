@@ -22,7 +22,10 @@
     "recoveryCopied": "リカバリーコードをクリップボードにコピーしました",
     "recoveryCopyFailed": "リカバリーコードをコピーできませんでした",
     "secretCopied": "シークレットキーをコピーしました",
-    "secretCopyFailed": "シークレットをコピーできませんでした"
+    "secretCopyFailed": "シークレットをコピーできませんでした",
+    "resetLinkSent": "リセットリンクを {email} に送信しました",
+    "resetLinkCopied": "リセットリンクをクリップボードにコピーしました（開発環境）",
+    "resetLinkFailed": "リセットリンクを送信できませんでした"
   },
   "list": {
     "title": "チームメンバー",
@@ -91,7 +94,10 @@
     "confirm": "新しいパスワード（確認）",
     "mismatch": "パスワードが一致しません",
     "updating": "更新中…",
-    "submit": "パスワードを更新"
+    "submit": "パスワードを更新",
+    "forgot": "お忘れですか？",
+    "sendingReset": "送信中…",
+    "resetHint": "有効期限は15分です。届かない場合は、管理者に招待リンクの再送を依頼してください。"
   },
   "permissions": {
     "loading": "権限を読み込み中…",

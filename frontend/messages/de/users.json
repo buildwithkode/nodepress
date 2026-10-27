@@ -22,7 +22,10 @@
     "recoveryCopied": "Wiederherstellungscodes in die Zwischenablage kopiert",
     "recoveryCopyFailed": "Wiederherstellungscodes konnten nicht kopiert werden",
     "secretCopied": "Geheimschlüssel kopiert",
-    "secretCopyFailed": "Geheimschlüssel konnte nicht kopiert werden"
+    "secretCopyFailed": "Geheimschlüssel konnte nicht kopiert werden",
+    "resetLinkSent": "Link zum Zurücksetzen an {email} gesendet",
+    "resetLinkCopied": "Link zum Zurücksetzen in die Zwischenablage kopiert (Entwicklung)",
+    "resetLinkFailed": "Link zum Zurücksetzen konnte nicht gesendet werden"
   },
   "list": {
     "title": "Teammitglieder",
@@ -91,7 +94,10 @@
     "confirm": "Neues Passwort bestätigen",
     "mismatch": "Die Passwörter stimmen nicht überein",
     "updating": "Wird aktualisiert…",
-    "submit": "Passwort aktualisieren"
+    "submit": "Passwort aktualisieren",
+    "forgot": "Vergessen?",
+    "sendingReset": "Wird gesendet…",
+    "resetHint": "15 Minuten gültig. Falls er nicht ankommt, bitte einen Admin, dir einen neuen Einladungslink zu senden."
   },
   "permissions": {
     "loading": "Berechtigungen werden geladen…",

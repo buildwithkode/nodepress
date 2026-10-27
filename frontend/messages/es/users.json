@@ -22,7 +22,10 @@
     "recoveryCopied": "Códigos de recuperación copiados al portapapeles",
     "recoveryCopyFailed": "No se pudieron copiar los códigos de recuperación",
     "secretCopied": "Clave secreta copiada",
-    "secretCopyFailed": "No se pudo copiar la clave secreta"
+    "secretCopyFailed": "No se pudo copiar la clave secreta",
+    "resetLinkSent": "Enlace de restablecimiento enviado a {email}",
+    "resetLinkCopied": "Enlace de restablecimiento copiado al portapapeles (desarrollo)",
+    "resetLinkFailed": "No se pudo enviar el enlace de restablecimiento"
   },
   "list": {
     "title": "Miembros del equipo",
@@ -91,7 +94,10 @@
     "confirm": "Confirmar nueva contraseña",
     "mismatch": "Las contraseñas no coinciden",
     "updating": "Actualizando…",
-    "submit": "Actualizar contraseña"
+    "submit": "Actualizar contraseña",
+    "forgot": "¿La olvidaste?",
+    "sendingReset": "Enviando…",
+    "resetHint": "Válido durante 15 minutos. Si no llega, pide a un administrador que te envíe un nuevo enlace de invitación."
   },
   "permissions": {
     "loading": "Cargando permisos…",

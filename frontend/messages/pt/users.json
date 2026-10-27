@@ -22,7 +22,10 @@
     "recoveryCopied": "Códigos de recuperação copiados para a área de transferência",
     "recoveryCopyFailed": "Falha ao copiar os códigos de recuperação",
     "secretCopied": "Chave secreta copiada",
-    "secretCopyFailed": "Falha ao copiar a chave secreta"
+    "secretCopyFailed": "Falha ao copiar a chave secreta",
+    "resetLinkSent": "Link de redefinição enviado para {email}",
+    "resetLinkCopied": "Link de redefinição copiado para a área de transferência (desenvolvimento)",
+    "resetLinkFailed": "Não foi possível enviar o link de redefinição"
   },
   "list": {
     "title": "Membros da equipe",
@@ -91,7 +94,10 @@
     "confirm": "Confirmar nova senha",
     "mismatch": "As senhas não coincidem",
     "updating": "Atualizando…",
-    "submit": "Atualizar senha"
+    "submit": "Atualizar senha",
+    "forgot": "Esqueceu?",
+    "sendingReset": "Enviando…",
+    "resetHint": "Válido por 15 minutos. Se não chegar, peça a um administrador para enviar um novo link de convite."
   },
   "permissions": {
     "loading": "Carregando permissões…",

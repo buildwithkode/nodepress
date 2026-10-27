@@ -428,12 +428,12 @@ function PermissionsPageContent() {
               })}</p>
               <p>• {t.rich('enforcement.write', { strong: (chunks) => <strong>{chunks}</strong> })}</p>
             </div>
+
+            <p className="text-xs text-muted-foreground">
+              {t('adminNote')}
+            </p>
           </TabsContent>
         </Tabs>
-
-        <p className="text-xs text-muted-foreground">
-          {t('adminNote')}
-        </p>
       </div>
     </AdminGuard>
   );

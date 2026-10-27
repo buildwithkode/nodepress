@@ -2,6 +2,7 @@ import {
   Controller, Get, Post, Put, Delete,
   Body, Param, ParseIntPipe, UseGuards, Request,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -98,11 +99,12 @@ export class UsersController {
   // ─── Self-service ──────────────────────────────────────────────────────────
 
   @Put('me/password')
-  @ApiOperation({ summary: 'Change your own password' })
+  @Throttle({ default: { ttl: 60_000, limit: 5 } }) // the current-password check must not be guessable
+  @ApiOperation({ summary: 'Change your own password; signs out your other sessions' })
   @ApiResponse({ status: 200, description: 'Password updated' })
   @ApiResponse({ status: 400, description: 'Current password incorrect' })
   async changePassword(@Body() dto: ChangePasswordDto, @Request() req: any) {
-    const result = await this.usersService.changePassword(req.user.id, dto);
+    const result = await this.usersService.changePassword(req.user.id, dto, req.cookies?.['np_refresh']);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'password_changed', 'user', String(req.user.id),

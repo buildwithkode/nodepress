@@ -186,4 +186,28 @@ describe('Users (e2e)', () => {
       .send({ currentPassword: 'wrongpassword', newPassword: 'Something999!' })
       .expect(400);
   });
+
+  it('PUT /api/users/me/password → signs out other sessions, keeps this one', async () => {
+    const login = async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: 'admin@test.com', password: 'NewPassword456!' })
+        .expect(201);
+      const cookie = ([] as string[]).concat(res.headers['set-cookie'] ?? []).find((c) => c.startsWith('np_refresh='))!;
+      return { token: res.body.access_token as string, cookie: cookie.split(';')[0] };
+    };
+    const here = await login();
+    const elsewhere = await login();
+
+    await request(app.getHttpServer())
+      .put('/api/users/me/password')
+      .set('Authorization', `Bearer ${here.token}`)
+      .set('Cookie', here.cookie)
+      .send({ currentPassword: 'NewPassword456!', newPassword: 'Third789!' })
+      .expect(200);
+
+    await request(app.getHttpServer()).post('/api/auth/refresh').set('Cookie', elsewhere.cookie).expect(401);
+    const kept = await request(app.getHttpServer()).post('/api/auth/refresh').set('Cookie', here.cookie);
+    expect(kept.status).toBeLessThan(300);
+  });
 });

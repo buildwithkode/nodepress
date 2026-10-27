@@ -22,6 +22,10 @@ const mockPrisma = {
   role: {
     findUnique: jest.fn(),
   },
+  refreshToken: {
+    deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+  },
+  $transaction: jest.fn(async (ops: any[]) => Promise.all(ops)),
   passwordResetToken: {
     updateMany: jest.fn().mockResolvedValue({}),
     create:     jest.fn().mockResolvedValue({ id: 1, token: 'tok', expiresAt: new Date() }),
@@ -194,6 +198,18 @@ describe('UsersService', () => {
       });
       expect(result.message).toContain('updated');
       expect(mockPrisma.user.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('signs out other sessions but keeps the current one, and voids reset links', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockAdmin);
+      mockPrisma.user.update.mockResolvedValue(mockAdmin);
+
+      await service.changePassword(1, { currentPassword: 'Password123!', newPassword: 'NewPassword456!' }, 'mine');
+      expect(mockPrisma.refreshToken.deleteMany).toHaveBeenCalledWith({ where: { userId: 1, token: { not: 'mine' } } });
+      expect(mockPrisma.passwordResetToken.updateMany).toHaveBeenCalledWith({ where: { userId: 1, used: false }, data: { used: true } });
+
+      await service.changePassword(1, { currentPassword: 'Password123!', newPassword: 'NewPassword456!' });
+      expect(mockPrisma.refreshToken.deleteMany).toHaveBeenLastCalledWith({ where: { userId: 1 } });
     });
 
     it('throws BadRequestException when current password is wrong', async () => {
