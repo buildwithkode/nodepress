@@ -4,6 +4,9 @@ module.exports = {
   content: [
     './app/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
+    // Class names also live in lib/ (role and release badge colours) and context/.
+    './lib/**/*.{ts,tsx}',
+    './context/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
