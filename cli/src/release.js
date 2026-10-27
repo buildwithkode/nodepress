@@ -20,15 +20,24 @@ const DEV_ONLY = [
   'CLAUDE.md',            // Claude Code instructions
   'cli',                  // The CLI tool itself
   'specs',                // Internal architecture specifications
-  'scripts',              // Internal release scripts
+  'scripts/check-docker-lockfiles.sh', // Internal pre-push checks…
+  'scripts/check-i18n.js',
+  'scripts/check-install-scripts.js',
+  'scripts/check-licenses.js',
+  'scripts/check-versions.js',
+  'scripts/validate.sh',
+  'scripts/install.sh',   // One-line server installer (runs from the NodePress repo)
   'docs',                 // NodePress GitHub Pages site
   'CHANGELOG.md',         // NodePress version history
   'CODE_OF_CONDUCT.md',   // NodePress open source conduct file
   'CONTRIBUTING.md',      // NodePress contributor guide
   '.githooks',            // Internal pre-push & commit githooks
   '.github',              // NodePress CI/CD workflows and issue templates
+  '.vercelignore',        // Vercel config for the NodePress docs site
   'backend/test',         // Internal E2E integration test suites
-  'backend/scripts',      // Internal benchmark & stress test scripts
+  'backend/scripts/brutal-plugin-test.ts',    // Internal plugin & launch test scripts
+  'backend/scripts/test-e2e-launch-flow.ts',  // (reset-admin-password.ts stays)
+  'backend/scripts/test-plugin-e2e.ts',
   'package-lock.json',    // Root lockfile (regenerated for the fresh root package.json)
   'node_modules',
 ];
@@ -39,7 +48,15 @@ const DOCKER_ONLY = [
   'docker-compose.prod.yml',
   'nginx',         // reverse-proxy config (Docker production only)
   'monitoring',    // Prometheus/Grafana stack (Docker only)
+  'scripts/docker-secrets-init.sh',  // mounted by docker-compose.yml
+  'scripts/backup.sh',               // mounted by docker-compose.prod.yml
+  'scripts/backup-crontab',
 ];
+
+// Before 1.7.2 the whole of `scripts/` and `backend/scripts/` was removed, which
+// took the Docker, backup and password-reset scripts with it. A project whose
+// nodepress.json still skips them gets the current list instead.
+const LEGACY_SKIP = ['scripts', 'backend/scripts'];
 
 // Removed (or, for report-error.ts, replaced) unless scaffolded with --sentry.
 const SENTRY_FILES = [
@@ -65,6 +82,23 @@ function defaultSkip(root) {
     docker: fs.existsSync(path.join(root, 'docker-compose.yml')),
     sentry: fs.existsSync(path.join(root, SENTRY_FILES[0])),
   });
+}
+
+/** A project's recorded skip list, with the pre-1.7.2 entries replaced. */
+function currentSkip(skip, root) {
+  if (!skip) return defaultSkip(root);
+  if (!LEGACY_SKIP.some((p) => skip.includes(p))) return skip;
+  return [...new Set([...skip.filter((p) => !LEGACY_SKIP.includes(p)), ...defaultSkip(root)])];
+}
+
+/** Files a project should carry that the pre-1.7.2 scaffold removed. */
+function legacyRemovedFiles({ docker }) {
+  return [
+    'scripts/backup.js',
+    'scripts/check-db.js',
+    'backend/scripts/reset-admin-password.ts',
+    ...(docker ? ['scripts/docker-secrets-init.sh', 'scripts/backup.sh', 'scripts/backup-crontab'] : []),
+  ];
 }
 
 const toTag = (v) => (String(v).startsWith('v') ? String(v) : `v${v}`);
@@ -94,5 +128,5 @@ function latestRelease(remote) {
 
 module.exports = {
   REPO_URL, PROJECT_FILE, DEV_ONLY, DOCKER_ONLY, SENTRY_FILES, SENTRY_REPORTER,
-  skipList, defaultSkip, toTag, compareVersions, latestRelease,
+  LEGACY_SKIP, skipList, defaultSkip, currentSkip, legacyRemovedFiles, toTag, compareVersions, latestRelease,
 };

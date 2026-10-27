@@ -32,8 +32,8 @@ The project name becomes the folder name. Characters other than letters, digits,
 
 1. Finds the newest release tag (`vX.Y.Z`, pre-releases ignored) and clones it. If the repository has no release tags, it clones `main` and warns that `upgrade` will need `--from` later.
 2. Replaces the git history with a fresh repository and adds NodePress as a remote named `nodepress`, which `upgrade` fetches from.
-3. Removes files that are only for developing NodePress: `.claude`, `CLAUDE.md`, `cli/`, `specs/`, `scripts/`, `docs/`, `CHANGELOG.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `.githooks`, `.github`, `backend/test`, `backend/scripts` and the root `package-lock.json`.
-4. Without `--docker`, removes `docker-compose.yml`, `docker-compose.prod.yml`, `nginx/` and `monitoring/`.
+3. Removes files that are only for developing NodePress: `.claude`, `CLAUDE.md`, `cli/`, `specs/`, `docs/`, `CHANGELOG.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `.githooks`, `.github`, `.vercelignore`, `backend/test`, the release checks in `scripts/`, the test scripts in `backend/scripts/` and the root `package-lock.json`. The backup, database-check and password-reset scripts stay.
+4. Without `--docker`, removes `docker-compose.yml`, `docker-compose.prod.yml`, `nginx/`, `monitoring/` and the scripts they mount (`scripts/docker-secrets-init.sh`, `scripts/backup.sh`, `scripts/backup-crontab`).
 5. Without `--sentry`, removes the Sentry config files and packages and replaces the admin's error reporter with a no-op, so the project builds without the SDK.
 6. Writes `nodepress.json`, `backend/.env`, `frontend/.env.local`, a root `package.json` and, with `--docker`, a root `.env`.
 7. Runs `npm install --no-audit --no-fund` in the project root. npm workspaces install the backend and the admin in one go.

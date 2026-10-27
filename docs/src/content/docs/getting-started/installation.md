@@ -130,6 +130,8 @@ Run these from the project folder:
 | `npm run build` | Production build of both |
 | `npm run migrate` | Applies database migrations in development (`prisma migrate dev`) |
 | `npm run studio` | Opens Prisma Studio, a database browser |
+| `npm run backup` / `npm run restore -- <file>` | [Backs up or restores](/deployment/backups/) the database and local uploads |
+| `npm run reset-password` | Resets an admin's password from the command line |
 | `npm run docker:dev` / `docker:prod` / `docker:down` | Docker stack commands (only with `--docker`) |
 
 ## Upgrading

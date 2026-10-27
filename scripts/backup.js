@@ -139,7 +139,12 @@ function codeMigrations() {
     .sort();
 }
 
-const version = () => require(path.join(ROOT, 'package.json')).version;
+// The NodePress release: nodepress.json in a scaffolded project (its own
+// package.json carries the project's version), else the root package.json.
+const version = () => {
+  try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'nodepress.json'), 'utf8')).version || require(path.join(ROOT, 'package.json')).version; }
+  catch { return require(path.join(ROOT, 'package.json')).version; }
+};
 
 /** -1 / 0 / 1 for dotted numeric versions. */
 function compareVersions(a, b) {

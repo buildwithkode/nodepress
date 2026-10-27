@@ -216,12 +216,15 @@ module.exports = async function createProject(name, opts = {}) {
     build: 'cd backend && npm run build && cd ../frontend && npm run build',
     migrate: 'cd backend && npx prisma migrate dev',
     studio: 'cd backend && npx prisma studio',
+    'reset-password': 'cd backend && npx tsx scripts/reset-admin-password.ts',
+    backup: 'node scripts/backup.js',
+    restore: 'node scripts/backup.js restore',
     'install:all': 'npm install',
   };
   if (useDocker) {
-    scripts['docker:dev']  = 'docker-compose up -d';
-    scripts['docker:prod'] = 'docker-compose -f docker-compose.prod.yml up -d --build';
-    scripts['docker:down'] = 'docker-compose down';
+    scripts['docker:dev']  = 'docker compose up -d --build';
+    scripts['docker:prod'] = 'docker compose -f docker-compose.prod.yml up -d --build';
+    scripts['docker:down'] = 'docker compose down';
   }
   const rootPkg = {
     name: safeName,
@@ -277,10 +280,9 @@ module.exports = async function createProject(name, opts = {}) {
     log(`  ${c.bold}Next steps (Docker — no local PostgreSQL needed):${c.reset}`);
     log('');
     log(`    cd ${safeName}`);
-    if (!install) log(`    npm install`);
-    log(`    docker-compose up -d             ${c.dim}# starts PostgreSQL + Redis${c.reset}`);
-    log(`    npm run migrate                  ${c.dim}# create DB tables${c.reset}`);
-    log(`    npm run dev                      ${c.dim}# backend :3000 + admin panel :5173${c.reset}`);
+    log(`    docker compose up -d --build     ${c.dim}# builds and starts the whole stack; the backend runs migrations itself${c.reset}`);
+    log(`    open http://localhost            ${c.dim}# admin panel behind nginx — create your admin account${c.reset}`);
+    log(`    ${c.dim}For local development without containers: set DATABASE_URL in backend/.env to your own PostgreSQL, then npm run migrate && npm run dev${c.reset}`);
   } else {
     log(`  ${c.bold}Next steps:${c.reset}`);
     log('');
@@ -297,12 +299,15 @@ module.exports = async function createProject(name, opts = {}) {
     log(`  ${c.dim}Prefer Docker to run PostgreSQL for you? Re-scaffold with: npx create-nodepress-app <name> --docker${c.reset}`);
   }
 
+  // Docker serves everything through nginx on port 80; local dev runs the two servers directly.
+  const admin = useDocker ? 'http://localhost' : 'http://localhost:5173';
+  const api = useDocker ? 'http://localhost/api' : 'http://localhost:3000/api';
   log('');
-  log(`  ${c.cyan}Admin panel:${c.reset}  http://localhost:5173`);
-  log(`  ${c.cyan}API docs:${c.reset}     http://localhost:3000/api/docs`);
-  log(`  ${c.cyan}Health check:${c.reset} http://localhost:3000/api/health`);
+  log(`  ${c.cyan}Admin panel:${c.reset}  ${admin}`);
+  log(`  ${c.cyan}API docs:${c.reset}     ${api}/docs`);
+  log(`  ${c.cyan}Health check:${c.reset} ${api}/health`);
   log('');
   log(`  ${c.dim}Upgrade later:${c.reset} npx create-nodepress-app upgrade`);
-  log(`  ${c.dim}Docs: https://nodepress.buildwithkode.com${c.reset}`);
+  log(`  ${c.dim}Docs: https://nodepress-docs.vercel.app${c.reset}`);
   log('');
 };

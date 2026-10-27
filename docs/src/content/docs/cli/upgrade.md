@@ -65,6 +65,8 @@ Changed files fall into four groups:
 
 The skip list comes from `nodepress.json`. For a project without it, `upgrade` works it out from your files: it treats the project as a Docker project if `docker-compose.yml` exists and as a Sentry project if `frontend/sentry.server.config.ts` exists.
 
+Projects created before 1.7.2 were scaffolded without `scripts/` and `backend/scripts/`, which took the backup, database-check and password-reset scripts (and, with `--docker`, the scripts `docker-compose.yml` mounts) with them. `upgrade` restores those files from the target release, lists them under **Restored**, and updates the skip list in `nodepress.json`.
+
 ### The root `package.json`
 
 Your project has its own root `package.json` (the scaffold writes it), so NodePress's is never applied. When it changed in the new release (for example new `overrides` or `allowScripts` entries), the command says so and prints the command to compare:

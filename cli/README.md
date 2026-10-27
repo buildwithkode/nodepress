@@ -139,8 +139,8 @@ That's it — NodePress is running!
 ## What the CLI does automatically
 
 1. Downloads the latest NodePress release from GitHub into a new folder
-2. Removes dev-only files (`.claude`, `cli/`, `docs/`, `.github/`, etc.)
-3. Without `--docker`, also removes the Docker files (`docker-compose*.yml`, `nginx/`, `monitoring/`) and the `docker:*` scripts
+2. Removes dev-only files (`.claude`, `cli/`, `docs/`, `.github/`, the release checks in `scripts/`, etc.) — the backup and password-reset scripts stay
+3. Without `--docker`, also removes the Docker files (`docker-compose*.yml`, `nginx/`, `monitoring/`, the scripts they mount) and the `docker:*` scripts
 4. Without `--sentry`, removes the Sentry packages (`@sentry/*`) and config files, and swaps the client error reporter for a no-op (~100 MB lighter, no error-tracking code)
 5. Generates a fresh git repository with NodePress as the `nodepress` remote, and records the release in `nodepress.json` (used by `upgrade`)
 6. Creates `backend/.env` and `frontend/.env.local` with random secret keys (plus a root `.env` for Docker Compose when `--docker` is used)

@@ -20,7 +20,7 @@ const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const {
-  REPO_URL, PROJECT_FILE, latestRelease, compareVersions, toTag, defaultSkip,
+  REPO_URL, PROJECT_FILE, LEGACY_SKIP, latestRelease, compareVersions, toTag, currentSkip, legacyRemovedFiles,
 } = require('./release');
 
 const c = {
@@ -117,7 +117,13 @@ module.exports = function upgrade(args) {
   const B = refOf(toTagName);
 
   // ── Decide what applies ────────────────────────────────────────────────────
-  const skip = project?.skip || defaultSkip(root);
+  const skip = currentSkip(project?.skip, root);
+  // Scripts the pre-1.7.2 scaffold removed by mistake — put back from the target release.
+  const legacy = Boolean(project?.skip?.some((p) => LEGACY_SKIP.includes(p)));
+  const restore = legacy
+    ? legacyRemovedFiles({ docker: fs.existsSync(path.join(root, 'docker-compose.yml')) })
+      .filter((f) => !fs.existsSync(path.join(root, f)) && git(['cat-file', '-e', `${B}:${f}`]).status === 0)
+    : [];
   const changes = gitOut(['diff', '--no-renames', '--name-status', A, B], 'Could not compare the releases')
     .split('\n').filter(Boolean).map((line) => {
       const [status, file] = line.split('\t');
@@ -129,6 +135,7 @@ module.exports = function upgrade(args) {
   const missing = [];   // changed upstream, deleted from this project
   const existing = [];  // new upstream, but the project already has a file there
   for (const ch of changes) {
+    if (restore.includes(ch.file)) continue;
     if (skip.some((p) => covers(p, ch.file))) { skipped.push(ch.file); continue; }
     const here = fs.existsSync(path.join(root, ch.file));
     if (ch.status === 'A' && here) { existing.push(ch.file); continue; }
@@ -163,6 +170,13 @@ module.exports = function upgrade(args) {
       fail(`The changes could not be applied — nothing was changed.\n     ${applied.stderr.trim().split('\n').join('\n     ')}`);
     }
   }
+  for (const f of restore) {
+    const blob = git(['show', `${B}:${f}`], { encoding: 'buffer' });
+    if (blob.status !== 0) continue;
+    const mode = git(['ls-tree', B, '--', f]).stdout.split(' ')[0] === '100755' ? 0o755 : 0o644;
+    fs.mkdirSync(path.dirname(path.join(root, f)), { recursive: true });
+    fs.writeFileSync(path.join(root, f), blob.stdout, { mode });
+  }
 
   const next = { ...(project || {}), version: toTagName.slice(1), ref: toTagName, repository: repo, skip };
   fs.writeFileSync(projectPath, JSON.stringify(next, null, 2) + '\n', 'utf8');
@@ -185,6 +199,11 @@ module.exports = function upgrade(args) {
   log('');
 
   function report() {
+    if (restore.length) {
+      log('');
+      info(`${dryRun ? 'Will restore' : 'Restored'} — removed by the scaffold before 1.7.2, but your project needs them (${restore.length}):`);
+      for (const f of restore) log(`       ${f}`);
+    }
     if (changes.some((ch) => ch.file === 'package.json')) {
       log('');
       info(`NodePress's root package.json changed (overrides, allowScripts, scripts). Your project has its own, so compare by hand:`);

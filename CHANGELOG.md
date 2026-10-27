@@ -12,6 +12,13 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Fixed
+- **Public `PUT /api/:type/:slug` no longer erases fields it doesn't send.** The update was validated as partial but saved as the whole `data`, so every field left out was removed — including fields the caller wasn't allowed to write. Top-level fields you send are now merged into the stored data; send `null` to clear one. (The JS client's `update()` and the MCP `update_entry` tool use this route.)
+- **Contributor and custom-role badges were unreadable in dark mode** (white on white). Tailwind didn't scan `lib/`, where the role and release badge colours live.
+- **`create-nodepress-app --docker` projects didn't start.** The scaffold removed all of `scripts/`, including `docker-secrets-init.sh` (mounted by `docker-compose.yml`) and `backup.sh`/`backup-crontab` (mounted by `docker-compose.prod.yml`), so `docker compose up` failed. It now removes only the release checks and test scripts: `npm run backup`, `npm run restore` and `npm run reset-password` work in new projects (the root `package.json` gains them), and the Docker files stay in `--docker` projects. `upgrade` restores the missing files in projects created before this release and fixes their skip list in `nodepress.json`.
+- The scaffold's Docker next steps are `docker compose up -d --build` and http://localhost (the backend runs its migrations itself); the `docker:*` scripts use `docker compose`, and the docs link points at the docs site.
+- `npm run backup` records the project's NodePress release from `nodepress.json`.
+
 ## [1.7.1] — 2026-10-26
 
 ### Added
