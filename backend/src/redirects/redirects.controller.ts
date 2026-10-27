@@ -5,7 +5,7 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
 import { RedirectsService } from './redirects.service';
 import { CreateRedirectDto, ImportRedirectsDto, UpdateRedirectDto } from './redirects.dto';
@@ -31,7 +31,7 @@ export class RedirectsPublicController {
 @ApiTags('Redirects')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin', 'editor')
+@Access('redirects', 'view')
 @Controller('redirects')
 export class RedirectsController {
   constructor(
@@ -53,6 +53,7 @@ export class RedirectsController {
     return this.redirects.exportCsv();
   }
 
+  @Access('redirects', 'edit')
   @Post('import')
   @ApiOperation({ summary: 'Import from,to,status CSV rows (all or nothing; dryRun only reports)' })
   async import(@Body() dto: ImportRedirectsDto, @Request() req: any) {
@@ -63,6 +64,7 @@ export class RedirectsController {
     return report;
   }
 
+  @Access('redirects', 'edit')
   @Post()
   @ApiOperation({ summary: 'Create a redirect' })
   async create(@Body() dto: CreateRedirectDto, @Request() req: any) {
@@ -71,6 +73,7 @@ export class RedirectsController {
     return created;
   }
 
+  @Access('redirects', 'edit')
   @Patch(':id')
   @ApiOperation({ summary: 'Change a redirect' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateRedirectDto, @Request() req: any) {
@@ -79,6 +82,7 @@ export class RedirectsController {
     return updated;
   }
 
+  @Access('redirects', 'edit')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a redirect' })
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {

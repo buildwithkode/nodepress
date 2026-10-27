@@ -1,6 +1,7 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RolesService } from '../roles/roles.service';
+import { AccessService } from '../roles/access.service';
 import { DEFAULT_PERMISSIONS, isBaseRole, isBuiltInRole } from '../roles/roles.constants';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class PermissionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly roles: RolesService,
+    @Optional() private readonly access?: AccessService,
   ) {}
 
   /** Get all permission rows — used by admin UI. */
@@ -53,11 +55,13 @@ export class PermissionsService {
     }
   }
 
-  /** assertCanTypes for the content types of these (non-deleted) entries. */
-  async assertCanEntries(user: { role: string; customRole?: string }, ids: number[], action: string) {
+  /** assertCanTypes for the content types of these entries (non-deleted unless `includeDeleted`). */
+  async assertCanEntries(
+    user: { role: string; customRole?: string }, ids: number[], action: string, opts: { includeDeleted?: boolean } = {},
+  ) {
     if (user.role === 'admin' || !Array.isArray(ids) || ids.length === 0) return;
     const rows = await this.prisma.entry.findMany({
-      where: { id: { in: ids }, deletedAt: null },
+      where: { id: { in: ids }, ...(!opts.includeDeleted && { deletedAt: null }) },
       select: { contentType: { select: { name: true } } },
     });
     await this.assertCanTypes(user, rows.map((r) => r.contentType?.name).filter((n): n is string => !!n), action);
@@ -104,22 +108,26 @@ export class PermissionsService {
    */
   async upsert(role: string, contentType: string, actions: string[]) {
     await this.assertAssignable(role);
-    return this.prisma.permission.upsert({
+    const row = await this.prisma.permission.upsert({
       where: { role_contentType: { role, contentType } },
       create: { role, contentType, actions },
       update: { actions },
     });
+    await this.access?.invalidate();
+    return row;
   }
 
   /** Remove a specific (role, contentType) override — the role falls back to its wildcard. */
   async remove(role: string, contentType: string) {
     await this.prisma.permission.deleteMany({ where: { role, contentType } });
+    await this.access?.invalidate();
     return { message: `Permission for ${role}/${contentType} reset to default` };
   }
 
   /**
-   * Reset all permissions to defaults. Custom roles get their ('<name>', '*')
-   * row back with their base role's defaults — the same row role creation writes.
+   * Reset all permissions and module access to defaults. Custom roles get their
+   * ('<name>', '*') row back with their base role's defaults — the same row role
+   * creation writes.
    */
   async resetAll() {
     const customRoles = await this.prisma.role.findMany({ select: { name: true, baseRole: true } });
@@ -133,7 +141,9 @@ export class PermissionsService {
     await this.prisma.$transaction([
       this.prisma.permission.deleteMany({}),
       this.prisma.permission.createMany({ data: [...builtIn, ...custom] }),
+      this.prisma.roleAccess.deleteMany({}),
     ]);
+    await this.access?.invalidate();
     return { message: 'All permissions reset to defaults' };
   }
 }

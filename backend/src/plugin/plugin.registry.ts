@@ -35,6 +35,17 @@ export interface PluginManifest {
    * An incompatible plugin is loaded disabled, with the reason on the Plugins page.
    */
   nodepress?: string;
+  /**
+   * Admin areas this plugin adds to Users → Permissions → Module access. Guard
+   * its routes with @Access('<key>', 'view' | 'edit') from the SDK. Roles get
+   * `defaults` (none when unset) until an admin changes them.
+   */
+  adminModules?: Array<{
+    key: string;
+    label: string;
+    description?: string;
+    defaults?: Partial<Record<'editor' | 'contributor' | 'viewer', 'none' | 'view' | 'edit'>>;
+  }>;
 }
 
 export interface RegisteredPlugin {

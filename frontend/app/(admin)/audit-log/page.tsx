@@ -61,7 +61,7 @@ export default function AuditLogPage() {
   const totalPages = Math.ceil(total / LIMIT);
 
   return (
-    <AdminGuard>
+    <AdminGuard module="audit_log">
     <div className="space-y-4 w-full">
       <Card>
         <CardHeader>

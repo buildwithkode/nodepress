@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "権限を読み込めませんでした",
       "schemaLoadFailed": "「{name}」のスキーマを読み込めませんでした",
-      "roleLoadFailed": "ロールの権限を読み込めませんでした",
       "updated": "権限を更新しました",
       "updateFailed": "権限を更新できませんでした",
       "reset": "権限をデフォルトに戻しました",
@@ -122,33 +121,13 @@
     "title": "アクセス制御と権限",
     "resetDefaults": "デフォルトに戻す",
     "tabs": {
-      "contentTypes": "コンテンツタイプ操作マトリックス",
-      "fields": "フィールドレベル権限マトリックス"
-    },
-    "actions": {
-      "create": "作成",
-      "read": "閲覧",
-      "update": "更新",
-      "delete": "削除",
-      "publish": "公開"
+      "modules": "モジュールアクセス",
+      "fields": "フィールド単位（詳細）"
     },
     "roleDescriptions": {
       "editor": "すべてのコンテンツを管理します。作成、編集、削除、公開が可能です。",
       "contributor": "コンテンツを作成・編集します。削除と公開はできません。",
       "viewer": "管理画面の閲覧のみ可能です。"
-    },
-    "clickToDeselect": "クリックで選択解除",
-    "defaultRow": "デフォルト *",
-    "summary": {
-      "title": "権限の概要",
-      "description": "このロールに設定された上書きです。ここに表示されない行は、ワイルドカードのデフォルトが適用されます。",
-      "empty": "上書きはありません。すべてのコンテンツタイプで初期設定のデフォルトを使用しています。"
-    },
-    "matrix": {
-      "title": "コンテンツタイプ権限マトリックス",
-      "description": "ロールごとに許可する操作を設定します。<strong>*</strong> 行はすべてのコンテンツタイプのデフォルトです。個別のコンテンツタイプは、その行の操作を切り替えて上書きします。グレーのチェックボックスはワイルドカード行から継承されています。",
-      "contentType": "コンテンツタイプ",
-      "inherited": "{role}/* から継承 — クリックして上書き"
     },
     "fields": {
       "title": "フィールドレベルのアクセス制御マトリックス",
@@ -172,6 +151,98 @@
       "read": "<strong>閲覧権限</strong> でロールのチェックを外すと、バックエンドはクライアントに送信する前に、すべての REST (<path></path>) および GraphQL レスポンスからそのフィールドを自動的に除去します。",
       "write": "<strong>書き込み権限</strong> でロールのチェックを外すと、バックエンドは許可されていない変更を HTTP 403 Forbidden で拒否します。"
     },
-    "adminNote": "注: 管理者はすべてのスキーマフィールドに常にアクセスでき、制限することはできません。"
+    "adminNote": "注: 管理者はすべてのスキーマフィールドに常にアクセスでき、制限することはできません。",
+    "modules": {
+      "title": "— このロールが使える範囲",
+      "description": "管理画面の各部分について「アクセスなし」「閲覧」「編集」を選んでください。変更はすぐに保存されます。",
+      "role": "ロール",
+      "levels": {
+        "none": "アクセスなし",
+        "view": "閲覧",
+        "edit": "編集"
+      },
+      "groups": {
+        "content": "コンテンツ",
+        "structure": "構造",
+        "team": "チームと開発",
+        "settings": "設定",
+        "plugins": "プラグイン"
+      },
+      "items": {
+        "content": {
+          "label": "コンテンツ",
+          "description": "すべてのコンテンツタイプのエントリー"
+        },
+        "media": {
+          "label": "メディアライブラリ",
+          "description": "ファイルのアップロード、整理、削除"
+        },
+        "forms": {
+          "label": "フォーム",
+          "description": "フォームと送信内容"
+        },
+        "releases": {
+          "label": "リリース",
+          "description": "予約公開のまとめ"
+        },
+        "redirects": {
+          "label": "リダイレクト",
+          "description": "URL リダイレクト"
+        },
+        "content_model": {
+          "label": "コンテンツモデル",
+          "description": "コンテンツタイプ、コンポーネント、選択肢リスト、テンプレート"
+        },
+        "languages": {
+          "label": "言語",
+          "description": "コンテンツの言語"
+        },
+        "users": {
+          "label": "ユーザー",
+          "description": "メンバーの招待とロールの変更"
+        },
+        "api_keys": {
+          "label": "API キー",
+          "description": "公開 API のキー"
+        },
+        "webhooks": {
+          "label": "Webhook",
+          "description": "Webhook と配信"
+        },
+        "jobs": {
+          "label": "ジョブ",
+          "description": "バックグラウンドジョブ"
+        },
+        "audit_log": {
+          "label": "監査ログ",
+          "description": "誰が何を変更したか"
+        },
+        "plugins": {
+          "label": "プラグイン",
+          "description": "プラグインのオン・オフと設定の変更"
+        },
+        "import": {
+          "label": "インポート",
+          "description": "WordPress インポート"
+        },
+        "brand": {
+          "label": "ブランド",
+          "description": "名前、ロゴ、色"
+        },
+        "server_settings": {
+          "label": "サーバー設定",
+          "description": "メール、ストレージ、検索"
+        }
+      },
+      "canPublish": "公開できる",
+      "canDelete": "削除できる",
+      "perType": "コンテンツタイプ別",
+      "overrides": "{count, plural, other {例外 # 件}}",
+      "useDefault": "既定に戻す",
+      "asDefault": "既定と同じ",
+      "fromPlugin": "{plugin} より",
+      "powerful": "ここでの編集権限は管理者に近いものです。信頼できる人だけに付与してください。",
+      "adminOnlyNote": "ロールと権限、プラグインのインストール、エントリーの完全削除は管理者のみです。管理者は常にすべてにアクセスできます。"
+    }
   }
 }

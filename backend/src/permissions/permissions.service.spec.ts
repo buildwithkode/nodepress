@@ -13,6 +13,9 @@ const mockPrisma = {
   role: {
     findMany:    jest.fn().mockResolvedValue([]),
   },
+  roleAccess: {
+    deleteMany:  jest.fn(),
+  },
   $transaction: jest.fn(async (ops: unknown[]) => Promise.all(ops)),
 };
 

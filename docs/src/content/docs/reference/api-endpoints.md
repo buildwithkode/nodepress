@@ -17,8 +17,8 @@ The **Auth** column says who can call an endpoint:
 |---|---|
 | Public | No credentials needed. |
 | Signed in | A JWT access token (`Authorization: Bearer <token>`) for a user of any role. |
-| Role names | A JWT for a user with one of these roles. Custom roles count as their base role. See [Users and roles](/access-control/users-and-roles/). |
-| Admin | A JWT for an admin. |
+| Role names | A JWT for a user whose role has access to the route's module. The names are the roles that have it by default; admins can change that per role on the [permissions](/access-control/permissions/) page. Reads need **View**, changes **Edit**. |
+| Admin | A JWT for an admin. Most of these belong to a module (API keys, webhooks, jobs, settings, …) that only admins have by default, and can be opened to other roles on the [permissions](/access-control/permissions/) page. Roles, permissions, plugin packages, restart and permanent delete stay admin-only. |
 
 Entry routes also check the role's [permissions](/access-control/permissions/) for the content type, so a role listed here can still get 403 for a type it has no rights on. A few routes accept an [API key](/access-control/api-keys/) (`X-API-Key`), as noted.
 
@@ -48,7 +48,7 @@ Details: [REST API](/apis/rest/) and [Querying](/apis/querying/).
 | POST | `/api/auth/login` | Public | Sign in: returns an access token and sets the refresh cookie. 10/min in production. |
 | POST | `/api/auth/refresh` | Refresh cookie | New access token; rotates the refresh token |
 | POST | `/api/auth/logout` | Refresh cookie | Invalidate the refresh token and clear the cookie |
-| GET | `/api/auth/me` | Signed in | The current user |
+| GET | `/api/auth/me` | Signed in | The current user, with `access: { modules, content }` |
 | POST | `/api/auth/2fa/verify-login` | Public | Finish signing in with a 6-digit code or a recovery code. 10/min. |
 | GET | `/api/auth/2fa/status` | Signed in | Whether two-factor authentication is on |
 | GET | `/api/auth/2fa/setup` | Signed in | New TOTP secret, QR code and recovery codes |
@@ -213,13 +213,15 @@ See [Templates](/content/templates/), [WordPress import](/content/wordpress-impo
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/users` | Admin | List users |
-| POST | `/api/users` | Admin | Invite a user (email and role, no password) |
-| PUT | `/api/users/:id/role` | Admin | Change a user's role |
-| DELETE | `/api/users/:id` | Admin | Delete a user (not yourself or the last admin) |
-| POST | `/api/users/:id/invite` | Admin | Resend the invitation |
+| GET | `/api/users` | Admin, or Users → View | List users |
+| POST | `/api/users` | Admin, or Users → Edit | Invite a user (email and role, no password) |
+| PUT | `/api/users/:id/role` | Admin, or Users → Edit | Change a user's role |
+| DELETE | `/api/users/:id` | Admin, or Users → Edit | Delete a user (not yourself or the last admin) |
+| POST | `/api/users/:id/invite` | Admin, or Users → Edit | Resend the invitation |
 | PUT | `/api/users/me/password` | Signed in | Change your own password |
-| GET | `/api/roles` | Admin | Built-in and custom roles with user counts |
+| GET | `/api/roles` | Admin, or Users → View | Built-in and custom roles with user counts |
+| GET | `/api/roles/access` | Admin | Module list and every role's module levels |
+| PUT | `/api/roles/access/:role` | Admin | Set a role's module levels: `{ modules: { forms: "view" } }` |
 | POST | `/api/roles` | Admin | Create a custom role based on editor, contributor or viewer |
 | PUT | `/api/roles/:name` | Admin | Change a custom role's label, description or base role |
 | DELETE | `/api/roles/:name` | Admin | Delete a custom role (409 while users have it) |
@@ -227,7 +229,7 @@ See [Templates](/content/templates/), [WordPress import](/content/wordpress-impo
 | GET | `/api/permissions/:role` | Admin | A role's permissions |
 | PUT | `/api/permissions/:role/:contentType` | Admin | Set a role's allowed actions on a content type (`*` for all types) |
 | DELETE | `/api/permissions/:role/:contentType` | Admin | Remove an override, so the role falls back to its `*` row |
-| PUT | `/api/permissions/reset/all` | Admin | Reset all permissions to the defaults |
+| PUT | `/api/permissions/reset/all` | Admin | Reset all module levels and content permissions to the defaults |
 
 See [Users and roles](/access-control/users-and-roles/) and [Permissions](/access-control/permissions/).
 

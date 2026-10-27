@@ -39,6 +39,7 @@ import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { usePlugins } from '@/context/PluginContext';
 import { useTranslations } from 'use-intl';
+import { useAccess } from '@/lib/use-access';
 
 const CATEGORY_TABS = [
   { id: 'all' },
@@ -52,6 +53,7 @@ const CATEGORY_TABS = [
 export default function PluginsPage() {
   const t = useTranslations('developer');
   const tc = useTranslations('common');
+  const editable = useAccess().canEdit('plugins');
   const { refreshPlugins } = usePlugins();
   const [plugins, setPlugins] = useState<PluginItem[]>([]);
   const [meta, setMeta] = useState<{
@@ -447,6 +449,7 @@ export default function PluginsPage() {
                       aria-checked={plugin.enabled}
                       aria-label={t('plugins.toggleAria', { name: plugin.name })}
                       disabled={
+                        !editable ||
                         togglingId === plugin.id ||
                         plugin.pending === 'install' ||
                         (!!(plugin.incompatible || plugin.loadError) && !plugin.enabled)
@@ -566,7 +569,7 @@ export default function PluginsPage() {
                     variant="outline"
                     size="sm"
                     className="h-7 text-xs px-2.5"
-                    disabled={plugin.pending === 'install'}
+                    disabled={!editable || plugin.pending === 'install'}
                     onClick={() => handleOpenSettings(plugin)}
                   >
                     <Settings2 className="w-3.5 h-3.5 mr-1" />

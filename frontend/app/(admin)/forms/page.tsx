@@ -6,7 +6,7 @@ import { Plus, Pencil, Trash2, Inbox, ToggleLeft, ToggleRight } from 'lucide-rea
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
-import { canDeleteContent } from '@/lib/roles';
+import { canEdit as canEditModule } from '@/lib/access';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,7 +39,7 @@ export default function FormsPage() {
   const tc = useTranslations('common');
   const router = useRouter();
   const { user } = useAuth();
-  const canEdit = canDeleteContent(user?.role);
+  const canEdit = canEditModule(user, 'forms');
   const [forms, setForms]   = useState<FormRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch]   = useState('');

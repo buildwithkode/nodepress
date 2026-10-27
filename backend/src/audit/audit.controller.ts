@@ -2,13 +2,13 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 
 @ApiTags('Audit Log')
 @Controller('audit-log')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Access('audit_log', 'view')
 @ApiBearerAuth('JWT')
 export class AuditController {
   constructor(private prisma: PrismaService) {}

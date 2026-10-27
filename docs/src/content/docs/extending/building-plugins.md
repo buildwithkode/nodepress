@@ -105,6 +105,7 @@ The bundled `word-count` and `seo-analyzer` plugins in `backend/src/plugins/` fo
 | `icon` | | A [Lucide](https://lucide.dev/icons/) icon name, such as `FileText` |
 | `configSchema` | | Settings fields; see [Settings](#settings) |
 | `defaultConfig` | | Initial settings values |
+| `adminModules` | | Admin modules the plugin adds to **Users → Permissions**; see [Adding API routes](#adding-api-routes) |
 
 An uploaded package has its manifest in `nodepress-plugin.json` with two more keys, `main` and `files`; see [Packaging an uploaded plugin](#packaging-an-uploaded-plugin).
 
@@ -243,6 +244,29 @@ export class ExcerptController {
 The route is served under `/api`: `GET /api/excerpt/status`.
 
 - **Routes are public unless you add a guard.** To require a NodePress login, use `@UseGuards(AuthGuard('jwt'))` from `@nestjs/passport`, the same guard the core uses; `req.user` then has `id`, `email` and `role`. Declare `routes:public` if any route needs no login.
+- **To let admins decide who can use a route**, declare a module in the manifest and check it with `@Access`:
+
+  ```ts
+  // manifest
+  adminModules: [{ key: 'excerpt', label: 'Excerpts', defaults: { editor: 'edit', contributor: 'view' } }],
+  ```
+
+  ```ts
+  import { UseGuards, Post } from '@nestjs/common';
+  import { AuthGuard } from '@nestjs/passport';
+  import { Access, RolesGuard } from '@nodepress/plugin-sdk';
+
+  @Controller('excerpt')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Access('excerpt', 'view')
+  export class ExcerptController {
+    @Post('rebuild')
+    @Access('excerpt', 'edit')
+    rebuild() { /* … */ }
+  }
+  ```
+
+  While the plugin is on, the module is listed under **Plugins** on the permissions page with No access / View / Edit per role. Roles missing from `defaults` start at No access; admins always pass. Module keys are snake_case and must not clash with a core module. A nav item in the admin can name the same `module` to be hidden from roles without access.
 - When the plugin is turned off, its routes answer `404`.
 - Plugin routes take precedence over content type routes, so a route at `/api/products` would shadow a content type named `products`. Use your plugin id as the path prefix.
 

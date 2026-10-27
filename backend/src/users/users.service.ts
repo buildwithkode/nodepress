@@ -29,7 +29,8 @@ export class UsersService {
    * When SMTP is not configured, the link is returned so the admin can deliver
    * it manually (the caller is an authenticated admin).
    */
-  async create(dto: CreateUserDto, inviterEmail: string) {
+  async create(dto: CreateUserDto, inviterEmail: string, actorRole = 'admin') {
+    this.assertMayManage(actorRole, null, dto.role ?? 'editor');
     if (dto.role) await this.assertRoleExists(dto.role);
     const exists = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (exists) throw new ConflictException(`User "${dto.email}" already exists`);
@@ -73,6 +74,16 @@ export class UsersService {
     return `${baseUrl}/reset-password?token=${token}`;
   }
 
+  /**
+   * Users → Edit can be given to non-admin roles, but only admins create,
+   * change, remove or re-invite admins (an invite link sets the password).
+   */
+  private assertMayManage(actorRole: string, target: { role: string } | null, newRole?: string) {
+    if (actorRole === 'admin') return;
+    if (target?.role === 'admin') throw new ForbiddenException('Only an admin can change an admin account');
+    if (newRole === 'admin') throw new ForbiddenException('Only an admin can give the admin role');
+  }
+
   /** A built-in role or the name of an existing custom role (see RolesModule). */
   private async assertRoleExists(role: string) {
     if (isBuiltInRole(role)) return;
@@ -93,8 +104,10 @@ export class UsersService {
     return user;
   }
 
-  async updateRole(id: number, dto: UpdateUserDto, actorId: number) {
+  async updateRole(id: number, dto: UpdateUserDto, actorId: number, actorRole = 'admin') {
     const user = await this.findOne(id);
+    this.assertMayManage(actorRole, user, dto.role);
+    if (actorRole !== 'admin' && id === actorId) throw new ForbiddenException('You cannot change your own role');
     if (dto.role) await this.assertRoleExists(dto.role);
 
     if (dto.role && dto.role !== 'admin') {
@@ -112,12 +125,13 @@ export class UsersService {
     });
   }
 
-  async remove(id: number, actorId: number) {
+  async remove(id: number, actorId: number, actorRole = 'admin') {
     if (id === actorId) {
       throw new ForbiddenException('You cannot delete your own account');
     }
 
     const user = await this.findOne(id);
+    this.assertMayManage(actorRole, user);
 
     // Protect the last admin
     if (user.role === 'admin') {
@@ -136,9 +150,10 @@ export class UsersService {
    * invitation email containing a "Set Your Password" link.
    * Reuses the same PasswordResetToken table as the forgot-password flow.
    */
-  async sendInvitation(userId: number, inviterEmail: string): Promise<{ message: string; inviteUrl?: string }> {
+  async sendInvitation(userId: number, inviterEmail: string, actorRole = 'admin'): Promise<{ message: string; inviteUrl?: string }> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException(`User #${userId} not found`);
+    this.assertMayManage(actorRole, user);
 
     const setPasswordUrl = await this.issueInviteToken(user.id);
     this.mail.sendInvitation(user.email, setPasswordUrl, inviterEmail).catch((err: any) => {

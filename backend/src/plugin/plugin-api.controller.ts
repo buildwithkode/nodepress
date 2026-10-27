@@ -7,6 +7,8 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiConsumes, ApiQuery } 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
+import { AccessService } from '../roles/access.service';
 import { PluginService } from './plugin.service';
 import { PluginHookBus } from './plugin-hook-bus';
 import { pluginUploadSettings } from './plugin-upload.settings';
@@ -19,32 +21,38 @@ export class PluginApiController {
   constructor(
     private readonly pluginService: PluginService,
     private readonly hookBus: PluginHookBus,
+    private readonly access: AccessService,
   ) {}
 
+  /** Settings are shown to roles that may change them (masked secrets either way). */
+  private async showSettings(user: any): Promise<boolean> {
+    return !!user && (await this.access.allows(user, 'plugins', 'edit'));
+  }
+
+  // Open to every signed-in user: the admin reads plugin nav items from it.
   @Get()
-  @Roles('admin', 'editor')
-  @ApiOperation({ summary: 'List all registered plugins, active state, and configuration' })
-  list(@Req() req?: any) {
-    return this.pluginService.listPlugins(req?.user?.role);
+  @ApiOperation({ summary: 'List all registered plugins, active state, and configuration (settings only for roles that can edit plugins)' })
+  async list(@Req() req?: any) {
+    return this.pluginService.listPlugins(req?.user?.role, await this.showSettings(req?.user));
   }
 
   @Get('hooks')
-  @Roles('admin', 'editor')
+  @Access('plugins', 'view')
   @ApiOperation({ summary: 'Get summary of registered lifecycle hooks and filters' })
   getHooks() {
     return this.hookBus.getSummary();
   }
 
   @Get(':id')
-  @Roles('admin', 'editor')
+  @Access('plugins', 'view')
   @ApiOperation({ summary: 'Get details and config for a single plugin' })
-  getOne(@Param('id') id: string, @Req() req?: any) {
-    return this.pluginService.getPlugin(id, req?.user?.role);
+  async getOne(@Param('id') id: string, @Req() req?: any) {
+    return this.pluginService.getPlugin(id, (await this.showSettings(req?.user)) ? 'admin' : req?.user?.role);
   }
 
   @Patch(':id/toggle')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Enable or disable a plugin (Admin only)' })
+  @Access('plugins', 'edit')
+  @ApiOperation({ summary: 'Enable or disable a plugin' })
   @ApiBody({ schema: { type: 'object', properties: { enabled: { type: 'boolean' } } } })
   toggle(
     @Param('id') id: string,
@@ -56,8 +64,8 @@ export class PluginApiController {
   }
 
   @Put(':id/config')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Update runtime configuration for a plugin (Admin only)' })
+  @Access('plugins', 'edit')
+  @ApiOperation({ summary: 'Update runtime configuration for a plugin' })
   @ApiBody({ schema: { type: 'object', description: 'Key-value config object' } })
   updateConfig(
     @Param('id') id: string,
@@ -68,6 +76,7 @@ export class PluginApiController {
     return this.pluginService.updatePluginConfig(id, config, userEmail);
   }
 
+  // Installing, removing and restarting run code on the server — admin only.
   @Post('packages')
   @Roles('admin')
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: pluginUploadSettings().maxUploadBytes } }))

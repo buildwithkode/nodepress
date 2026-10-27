@@ -18,6 +18,9 @@ const mockPrisma = {
     upsert:     jest.fn((args) => ({ __op: 'permission.upsert', ...args })),
     deleteMany: jest.fn((args) => ({ __op: 'permission.deleteMany', ...args })),
   },
+  roleAccess: {
+    deleteMany: jest.fn((args) => ({ __op: 'roleAccess.deleteMany', ...args })),
+  },
   user: {
     groupBy: jest.fn(),
     count:   jest.fn(),
@@ -30,6 +33,7 @@ const mockCache = {
   get: jest.fn(async (k: string) => store.get(k)),
   set: jest.fn(async (k: string, v: any) => { store.set(k, v); }),
   del: jest.fn(async (k: string) => { store.delete(k); }),
+  invalidatePrefix: jest.fn(async () => {}),
 };
 
 describe('RolesService', () => {

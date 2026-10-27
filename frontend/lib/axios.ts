@@ -55,6 +55,7 @@ api.interceptors.response.use(
       // Refresh failed — clear auth cookies
       Cookies.remove('np_token', { path: '/' });
       Cookies.remove('np_role', { path: '/' });
+      Cookies.remove('np_access', { path: '/' });
 
       // Only redirect if user is on an authenticated page.
       // If already on an auth or public page, never force-redirect (prevents refresh / bounce loops).

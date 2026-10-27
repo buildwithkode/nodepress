@@ -3,7 +3,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
 import { LocalesService } from './locales.service';
 
@@ -23,7 +23,7 @@ export class LocalesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Access('languages', 'view')
   @Get('usage')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Number of entries per locale' })
@@ -32,7 +32,7 @@ export class LocalesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('languages', 'edit')
   @Put()
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Set the enabled content languages and the default (admin)' })

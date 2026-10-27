@@ -8,7 +8,7 @@ import { useLocale, useTranslations } from 'use-intl';
 import { CalendarClock, Loader2, Package, Plus } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
-import { canPublishContent } from '@/lib/roles';
+import { canEdit as canEditModule } from '@/lib/access';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,7 +22,7 @@ export default function ReleasesPage() {
   const tc = useTranslations('common');
   const locale = useLocale();
   const { user } = useAuth();
-  const canEdit = canPublishContent(user?.role);
+  const canEdit = canEditModule(user, 'releases');
   const [releases, setReleases] = useState<ReleaseSummary[] | null>(null);
   const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);

@@ -65,7 +65,7 @@ import api from '@/lib/axios';
 import { cn, ctLabel } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { AddToReleaseDialog } from '@/components/AddToReleaseDialog';
-import { canManageContent, canManageSettings, canPublishContent } from '@/lib/roles';
+import { useAccess } from '@/lib/use-access';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
 
 function formatDate(iso: string) {
@@ -113,8 +113,7 @@ export default function EntriesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const canEdit = canManageContent(user?.role);
-  const isAdmin = canManageSettings(user?.role);
+  const access = useAccess();
   const ctParam     = searchParams?.get('ct')     ?? '';
   const statusParam = searchParams?.get('status') ?? '';
 
@@ -146,6 +145,13 @@ export default function EntriesPage() {
   const [deletedCount, setDeletedCount] = useState(0);
 
   const selectedCT = contentTypes.find((ct) => ct.name === ctParam) ?? null;
+  // Content permissions for the open content type (Users → Permissions)
+  const ctName = selectedCT?.name;
+  const canCreate = access.canContent('create', ctName);
+  const canEdit = access.canContent('update', ctName);
+  const canPublish = access.canContent('publish', ctName);
+  const canDelete = access.canContent('delete', ctName);
+  const canSelect = canEdit || canPublish || canDelete;
 
   const fetchDeletedCount = async () => {
     if (!selectedCT) { setDeletedCount(0); return; }
@@ -611,7 +617,7 @@ export default function EntriesPage() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto gap-2">
-                {canEdit && (
+                {access.canContent('create', ct.name) && (
                   <Button onClick={() => router.push(`/entries/new?ct=${ct.id}`)}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
                   </Button>
@@ -688,7 +694,7 @@ export default function EntriesPage() {
           </>
         )}
 
-        {selectedCT && isAdmin && !showTrash && (
+        {selectedCT && access.canEdit('content_model') && !showTrash && (
           <div className="flex items-center gap-1 ml-1">
             <Button
               variant="ghost"
@@ -814,7 +820,7 @@ export default function EntriesPage() {
               {t('trash.button', { count: deletedCount })}
             </Button>
           )}
-          {canEdit && !showTrash && (
+          {canCreate && !showTrash && (
             <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
               <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
             </Button>
@@ -863,79 +869,89 @@ export default function EntriesPage() {
       />
 
       {/* Bulk action bar */}
-      {canEdit && selected.size > 0 && !showTrash && (
+      {canSelect && selected.size > 0 && !showTrash && (
         <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2.5">
           <CheckSquare className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">
             {t('bulk.selected', { count: selected.size })}
           </span>
           <div className="ml-auto flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
-              disabled={bulkLoading}
-              onClick={() => handleBulkAction('bulk-stage')}
-            >
-              <Rocket className="h-3.5 w-3.5 mr-1" />
-              {t('bulk.stage')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={bulkLoading}
-              onClick={() => handleBulkAction('bulk-publish')}
-            >
-              {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
-              {t('bulk.publish')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={bulkLoading}
-              onClick={() => handleBulkAction('bulk-pending-review')}
-            >
-              {t('bulk.submitReview')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={bulkLoading}
-              onClick={() => handleBulkAction('bulk-archive')}
-            >
-              {t('bulk.archive')}
-            </Button>
-            {canPublishContent(user?.role) && (
+            {canPublish && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+                  disabled={bulkLoading}
+                  onClick={() => handleBulkAction('bulk-stage')}
+                >
+                  <Rocket className="h-3.5 w-3.5 mr-1" />
+                  {t('bulk.stage')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={bulkLoading}
+                  onClick={() => handleBulkAction('bulk-publish')}
+                >
+                  {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+                  {t('bulk.publish')}
+                </Button>
+              </>
+            )}
+            {canEdit && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={bulkLoading}
+                onClick={() => handleBulkAction('bulk-pending-review')}
+              >
+                {t('bulk.submitReview')}
+              </Button>
+            )}
+            {canPublish && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={bulkLoading}
+                onClick={() => handleBulkAction('bulk-archive')}
+              >
+                {t('bulk.archive')}
+              </Button>
+            )}
+            {canPublish && access.canEdit('releases') && (
               <Button size="sm" variant="outline" disabled={bulkLoading} onClick={() => setReleaseOpen(true)}>
                 <Package className="h-3.5 w-3.5 mr-1" />
                 {t('bulk.addToRelease')}
               </Button>
             )}
-            <AlertDialog>
-              <AlertDialogTrigger render={
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  disabled={bulkLoading}
-                />
-              }>
-                {tc('delete')}
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('bulk.deleteTitle', { count: selected.size })}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t('bulk.deleteDescription')}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={() => handleBulkAction('bulk-delete')}>
-                    {tc('delete')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {canDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger render={
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={bulkLoading}
+                  />
+                }>
+                  {tc('delete')}
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('bulk.deleteTitle', { count: selected.size })}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('bulk.deleteDescription')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction variant="destructive" onClick={() => handleBulkAction('bulk-delete')}>
+                      {tc('delete')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
       )}
@@ -944,7 +960,7 @@ export default function EntriesPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            {canEdit && !showTrash && (
+            {canSelect && !showTrash && (
               <TableHead className="w-10">
                 <input
                   type="checkbox"
@@ -970,7 +986,7 @@ export default function EntriesPage() {
           {loadingEntries ? (
             Array.from({ length: 4 }).map((_, i) => (
               <TableRow key={i}>
-                {canEdit && !showTrash && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
+                {canSelect && !showTrash && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 {schemaColumns.map((col) => (
@@ -983,7 +999,7 @@ export default function EntriesPage() {
           ) : paginatedEntries.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={schemaColumns.length + (canEdit && !showTrash ? 4 : 3)}
+                colSpan={schemaColumns.length + (canSelect && !showTrash ? 4 : 3)}
                 className="py-12 text-center text-muted-foreground"
               >
                 <div className="flex flex-col items-center justify-center gap-2">
@@ -1003,7 +1019,7 @@ export default function EntriesPage() {
             </TableRow>
           ) : paginatedEntries.map((entry) => (
             <TableRow key={entry.id} className={selected.has(entry.id) ? 'bg-muted/40' : ''}>
-              {canEdit && !showTrash && (
+              {canSelect && !showTrash && (
                 <TableCell>
                   <input
                     type="checkbox"
@@ -1101,45 +1117,49 @@ export default function EntriesPage() {
                 <div className="flex items-center justify-end gap-1">
                   {showTrash ? (
                     <>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        title={t('actions.restore')}
-                        className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
-                        onClick={() => handleRestore(entry.id)}
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger render={
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            title={t('actions.purgeTitle')}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          />
-                        }>
-                          <X className="h-3.5 w-3.5" />
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>{t('actions.purgeConfirmTitle')}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t.rich('actions.purgeConfirmDescription', { slug: entry.slug, strong: (chunks) => <strong>{chunks}</strong> })}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
-                            <AlertDialogAction variant="destructive" onClick={() => handlePurge(entry.id)}>
-                              {t('actions.purge')}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title={t('actions.restore')}
+                          className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+                          onClick={() => handleRestore(entry.id)}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      {user?.role === 'admin' && (
+                        <AlertDialog>
+                          <AlertDialogTrigger render={
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              title={t('actions.purgeTitle')}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            />
+                          }>
+                            <X className="h-3.5 w-3.5" />
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t('actions.purgeConfirmTitle')}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t.rich('actions.purgeConfirmDescription', { slug: entry.slug, strong: (chunks) => <strong>{chunks}</strong> })}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+                              <AlertDialogAction variant="destructive" onClick={() => handlePurge(entry.id)}>
+                                {t('actions.purge')}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </>
                   ) : (
                     <>
-                      {canEdit && (entry.status === 'draft' || entry.status === 'pending_review') && (
+                      {canPublish && (entry.status === 'draft' || entry.status === 'pending_review') && (
                         <Button
                           variant="ghost"
                           size="icon-sm"
@@ -1150,7 +1170,7 @@ export default function EntriesPage() {
                           <Rocket className="h-3.5 w-3.5" />
                         </Button>
                       )}
-                      {canEdit && entry.status === 'staging' && (
+                      {canPublish && entry.status === 'staging' && (
                         <Button
                           variant="ghost"
                           size="icon-sm"
@@ -1171,7 +1191,7 @@ export default function EntriesPage() {
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                       )}
-                      {canEdit && (
+                      {canCreate && (
                         <Button
                           variant="ghost"
                           size="icon-sm"
@@ -1203,7 +1223,7 @@ export default function EntriesPage() {
                       >
                         <Link2 className="h-3.5 w-3.5" />
                       </Button>
-                      {canEdit && (
+                      {canDelete && (
                         <AlertDialog>
                           <AlertDialogTrigger render={
                             <Button

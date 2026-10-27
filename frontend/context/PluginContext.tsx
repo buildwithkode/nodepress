@@ -15,6 +15,8 @@ export interface PluginNavItem {
   /** Which sidebar group to append to. Defaults to a new 'Plugins' group. */
   group?: string;
   adminOnly?: boolean;
+  /** Module key (manifest `adminModules`) — shown only to roles that can view it. */
+  module?: string;
 }
 
 /** A widget a plugin can inject into the admin dashboard */

@@ -35,10 +35,9 @@ export class EntriesController {
   // ─── Write — editor, contributor, or admin ────────────────────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Post()
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Create a new entry (contributor, editor, or admin)' })
+  @ApiOperation({ summary: 'Create a new entry (needs create on the type, and publish to create it published)' })
   @ApiResponse({ status: 201, description: 'Entry created' })
   @ApiResponse({ status: 409, description: 'Slug already exists in this content type' })
   async create(@Body() dto: CreateEntryDto, @Request() req: any) {
@@ -113,41 +112,47 @@ export class EntriesController {
   // would match :id='export' and ParseIntPipe would throw 400.
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @SkipThrottle()
   @Get('export')
   @ApiBearerAuth('JWT')
   @ApiOperation({
-    summary: 'Export all entries for a content type as JSON or CSV (editor, admin)',
+    summary: 'Export all entries for a content type as JSON or CSV (needs read on the type)',
     description: 'Returns all non-deleted entries as JSON or formatted RFC 4180 CSV.',
   })
   @ApiQuery({ name: 'contentTypeId', required: true, type: Number })
   @ApiQuery({ name: 'format', required: false, enum: ['json', 'csv'] })
-  exportEntries(
+  async exportEntries(
+    @Request() req: any,
     @Query('contentTypeId') contentTypeId: string,
     @Query('format') format?: 'json' | 'csv',
   ) {
     const id = parseInt(contentTypeId, 10);
     if (isNaN(id)) throw new BadRequestException('contentTypeId must be a number');
+    await this.permissionsService.assertCanContentType(req.user, id, 'read');
     return this.entriesService.exportEntries(id, format || 'json');
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Post('import')
   @ApiBearerAuth('JWT')
   @ApiOperation({
-    summary: 'Import entries into a content type (JSON or CSV) with Dry-Run support (editor, admin)',
+    summary: 'Import entries into a content type (JSON or CSV) with Dry-Run support (needs create + update, and publish for published rows)',
     description: 'Accepts an array of entries or an object containing { entries, csvContent, dryRun, updateDuplicates }.',
   })
   @ApiQuery({ name: 'contentTypeId', required: true, type: Number })
-  importEntries(
+  async importEntries(
     @Query('contentTypeId') contentTypeId: string,
     @Body() payload: any,
     @Request() req: any,
   ) {
     const id = parseInt(contentTypeId, 10);
     if (isNaN(id)) throw new BadRequestException('contentTypeId must be a number');
+    await this.permissionsService.assertCanContentType(req.user, id, 'create');
+    if (payload?.updateDuplicates !== false) await this.permissionsService.assertCanContentType(req.user, id, 'update');
+    const rows = Array.isArray(payload) ? payload : payload?.entries;
+    if (typeof payload?.csvContent === 'string' || (Array.isArray(rows) && rows.some((r: any) => r?.status === 'published'))) {
+      await this.permissionsService.assertCanContentType(req.user, id, 'publish');
+    }
     return this.entriesService.importEntries(id, payload, req.user.id);
   }
 
@@ -162,8 +167,12 @@ export class EntriesController {
     return this.permissionsService.assertCanEntries(user, ids, action);
   }
 
+  /** Changing what's live (publish, staging, archive) needs publish; draft / review need update. */
+  private static actionFor(status: string): 'update' | 'publish' {
+    return status === 'published' || status === 'staging' || status === 'archived' ? 'publish' : 'update';
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Post('bulk-delete')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk soft-delete entries' })
@@ -173,7 +182,6 @@ export class EntriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Post('bulk-publish')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk publish entries' })
@@ -183,17 +191,15 @@ export class EntriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Post('bulk-archive')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk archive entries' })
   async bulkArchive(@Body() dto: BulkActionDto, @Request() req: any) {
-    await this.assertBulkAllowed(req.user, dto.ids, 'update');
+    await this.assertBulkAllowed(req.user, dto.ids, 'publish');
     return this.entriesService.bulkArchive(dto.ids);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Post('bulk-pending-review')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk set entries to pending_review — contributors can submit work for approval' })
@@ -203,17 +209,15 @@ export class EntriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Post('bulk-stage')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk promote entries to staging environment' })
   async bulkStage(@Body() dto: BulkActionDto, @Request() req: any) {
-    await this.assertBulkAllowed(req.user, dto.ids, 'update');
+    await this.assertBulkAllowed(req.user, dto.ids, 'publish');
     return this.entriesService.bulkStage(dto.ids);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Post('bulk-promote')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Bulk promote entries to a target environment stage' })
@@ -222,7 +226,7 @@ export class EntriesController {
       throw new BadRequestException('ids must be a non-empty array of numbers');
     }
     if (!dto.status) throw new BadRequestException('status is required');
-    await this.assertBulkAllowed(req.user, dto.ids, dto.status === 'published' ? 'publish' : 'update');
+    await this.assertBulkAllowed(req.user, dto.ids, EntriesController.actionFor(dto.status));
     return this.entriesService.bulkPromote(dto.ids, dto.status, req.user?.id);
   }
 
@@ -244,7 +248,6 @@ export class EntriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Post(':id/translate')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Create or get a translation entry for a given locale' })
@@ -254,6 +257,7 @@ export class EntriesController {
     @Body() body: { targetLocale: string; copyData?: boolean },
     @Request() req: any,
   ) {
+    await this.permissionsService.assertCanEntries(req.user, [id], 'create');
     const result = await this.entriesService.createTranslation(
       id,
       body.targetLocale,
@@ -271,10 +275,9 @@ export class EntriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Put(':id')
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Update an entry — auto-snapshots a version before saving (contributor, editor, or admin)' })
+  @ApiOperation({ summary: 'Update an entry — auto-snapshots a version before saving (needs update, and publish to publish it)' })
   @ApiParam({ name: 'id', type: Number })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -301,7 +304,6 @@ export class EntriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Delete(':id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Soft-delete an entry (moves to trash)' })
@@ -322,12 +324,12 @@ export class EntriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Post(':id/restore')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Restore a trashed entry' })
   @ApiParam({ name: 'id', type: Number })
   async restore(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    await this.permissionsService.assertCanEntries(req.user, [id], 'delete', { includeDeleted: true });
     const entry = await this.entriesService.restore(id);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
@@ -349,7 +351,6 @@ export class EntriesController {
   // ─── Content preview ──────────────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Post(':id/preview-url')
   @ApiBearerAuth('JWT')
   @ApiOperation({
@@ -359,12 +360,12 @@ export class EntriesController {
       '`GET /api/:type/:slug/preview` to read the entry regardless of its publish status.',
   })
   @ApiParam({ name: 'id', type: Number })
-  generatePreviewUrl(@Param('id', ParseIntPipe) id: number) {
+  async generatePreviewUrl(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    await this.permissionsService.assertCanEntries(req.user, [id], 'update');
     return this.entriesService.generatePreviewToken(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Post(':id/promote')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Promote an entry across workflow/environment stages (draft -> pending_review -> staging -> published)' })
@@ -375,17 +376,7 @@ export class EntriesController {
     @Request() req: any,
   ) {
     if (!dto.status) throw new BadRequestException('status is required');
-    const userRole = req.user?.role || 'contributor';
-    if (userRole === 'contributor' && dto.status !== 'pending_review' && dto.status !== 'draft') {
-      throw new ForbiddenException('Contributors can only submit entries for review or save as draft');
-    }
-    if (dto.status === 'published' && userRole !== 'admin') {
-      const entry = await this.entriesService.findOne(id);
-      const ctName = (entry as any).contentType?.name || '*';
-      if (!(await this.permissionsService.can(permissionRole(req.user), ctName, 'publish'))) {
-        throw new ForbiddenException('You do not have permission to publish entries of this content type');
-      }
-    }
+    await this.permissionsService.assertCanEntries(req.user, [id], EntriesController.actionFor(dto.status));
     const updated = await this.entriesService.promote(id, dto.status, req.user?.id);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
@@ -408,7 +399,6 @@ export class EntriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Post(':id/versions/:versionId/restore')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Restore a specific version of an entry (auto-snapshots current before overwriting)' })
@@ -419,6 +409,7 @@ export class EntriesController {
     @Param('versionId', ParseIntPipe) versionId: number,
     @Request() req: any,
   ) {
+    await this.permissionsService.assertCanEntries(req.user, [id], 'update');
     const entry = await this.entriesService.restoreVersion(id, versionId, req.user.id);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },

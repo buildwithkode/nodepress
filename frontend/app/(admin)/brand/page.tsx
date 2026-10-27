@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import { Loader2, Palette } from 'lucide-react';
 import AdminGuard from '@/components/AdminGuard';
+import { ReadOnly } from '@/components/ReadOnly';
 import api from '@/lib/axios';
 import { useBrand } from '../../../context/BrandContext';
 import { MediaPickerModal } from '@/components/MediaPickerModal';
@@ -88,187 +89,189 @@ export default function BrandPage() {
     'w-full rounded-md bg-background border border-border px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring';
 
   return (
-    <AdminGuard>
-      <div className="w-full space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Palette className="h-5 w-5" /> {t('title')}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t('subtitle')}
-          </p>
+    <AdminGuard module="brand">
+      <ReadOnly module="brand">
+        <div className="w-full space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Palette className="h-5 w-5" /> {t('title')}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t('subtitle')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('identity.title')}</CardTitle>
+              <CardDescription>{t('identity.description')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Name */}
+              <div className="space-y-1.5">
+                <label htmlFor="brandName" className="block text-sm font-medium">{t('identity.name')}</label>
+                <input
+                  id="brandName"
+                  className={inputCls}
+                  value={name}
+                  maxLength={60}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Acme Inc."
+                />
+              </div>
+
+              {/* Logo */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">{t('identity.logo')}</label>
+                <p className="text-xs text-muted-foreground">{t('identity.logoHelp')}</p>
+                <MediaPickerModal
+                  value={logo ? { url: logo, alt: name } : null}
+                  onChange={(val) => setLogo(val?.url ?? '')}
+                />
+              </div>
+
+              {/* Color */}
+              <div className="space-y-1.5">
+                <label htmlFor="brandColor" className="block text-sm font-medium">{t('identity.accent')}</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    aria-label={t('identity.accentPicker')}
+                    value={colorValid ? color : '#4f46e5'}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="h-9 w-12 rounded border border-border bg-background p-1 cursor-pointer"
+                  />
+                  <input
+                    id="brandColor"
+                    className={inputCls + ' max-w-[140px] font-mono'}
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    placeholder="#4f46e5"
+                  />
+                  {!colorValid && <span className="text-xs text-red-400">{t('invalidHex')}</span>}
+                </div>
+              </div>
+
+              {/* Sidebar header preview */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">{t('preview')}</label>
+                <p className="text-xs text-muted-foreground">{t('identity.previewHelp')}</p>
+                <div className="flex items-center gap-2 w-64 px-4 h-14 rounded-md border border-border bg-sidebar">
+                  {logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logo} alt={name} className="h-6 w-6 rounded object-contain shrink-0" />
+                  ) : (
+                    <span className="h-6 w-6 rounded shrink-0" style={{ backgroundColor: colorValid ? color : '#4f46e5' }} />
+                  )}
+                  <span className="font-semibold text-sm truncate">{name || 'NodePress'}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Theme — button + input colours */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('theme.title')}</CardTitle>
+              <CardDescription>{t('theme.description')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Button colour */}
+              <div className="space-y-1.5">
+                <label htmlFor="buttonColor" className="block text-sm font-medium">{t('theme.button')}</label>
+                <p className="text-xs text-muted-foreground">{t('theme.buttonHelp')}</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    aria-label={t('theme.buttonPicker')}
+                    value={HEX_RE.test(buttonColor) ? buttonColor : '#4f46e5'}
+                    onChange={(e) => setButtonColor(e.target.value)}
+                    className="h-9 w-12 rounded border border-border bg-background p-1 cursor-pointer"
+                  />
+                  <input
+                    id="buttonColor"
+                    className={inputCls + ' max-w-[140px] font-mono'}
+                    value={buttonColor}
+                    onChange={(e) => setButtonColor(e.target.value)}
+                    placeholder={t('theme.defaultPlaceholder')}
+                  />
+                  {buttonColor && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setButtonColor('')}>{t('theme.reset')}</Button>
+                  )}
+                  {!buttonValid && <span className="text-xs text-red-400">{t('invalidHex')}</span>}
+                </div>
+              </div>
+
+              {/* Input colour */}
+              <div className="space-y-1.5">
+                <label htmlFor="inputColor" className="block text-sm font-medium">{t('theme.input')}</label>
+                <p className="text-xs text-muted-foreground">{t('theme.inputHelp')}</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    aria-label={t('theme.inputPicker')}
+                    value={HEX_RE.test(inputColor) ? inputColor : '#4f46e5'}
+                    onChange={(e) => setInputColor(e.target.value)}
+                    className="h-9 w-12 rounded border border-border bg-background p-1 cursor-pointer"
+                  />
+                  <input
+                    id="inputColor"
+                    className={inputCls + ' max-w-[140px] font-mono'}
+                    value={inputColor}
+                    onChange={(e) => setInputColor(e.target.value)}
+                    placeholder={t('theme.defaultPlaceholder')}
+                  />
+                  {inputColor && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setInputColor('')}>{t('theme.reset')}</Button>
+                  )}
+                  {!inputValid && <span className="text-xs text-red-400">{t('invalidHex')}</span>}
+                </div>
+              </div>
+
+              {/* Live preview of button + input */}
+              <div className="rounded-lg border border-border p-4 flex flex-col gap-4">
+                <p className="text-xs text-muted-foreground">{t('preview')}</p>
+                <button
+                  type="button"
+                  className="self-start rounded-md px-4 py-2 text-sm font-medium"
+                  style={{
+                    backgroundColor: HEX_RE.test(buttonColor) ? buttonColor : undefined,
+                    color: HEX_RE.test(buttonColor) ? '#fff' : undefined,
+                  }}
+                >
+                  {t('theme.sampleButton')}
+                </button>
+                <input
+                  className="w-full max-w-xs rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                  style={{ borderColor: HEX_RE.test(inputColor) ? inputColor : undefined }}
+                  placeholder={t('theme.sampleInput')}
+                  readOnly
+                />
+              </div>
+            </CardContent>
+          </Card>
+          </div>
+
+          <AlertDialog>
+            <AlertDialogTrigger render={<Button disabled={saving || !dirty} />}>
+              {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> {tc('saving')}</> : (dirty ? t('saveChanges') : t('noChanges'))}
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('confirm.title')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('confirm.description')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={save}>{t('saveChanges')}</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('identity.title')}</CardTitle>
-            <CardDescription>{t('identity.description')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Name */}
-            <div className="space-y-1.5">
-              <label htmlFor="brandName" className="block text-sm font-medium">{t('identity.name')}</label>
-              <input
-                id="brandName"
-                className={inputCls}
-                value={name}
-                maxLength={60}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Acme Inc."
-              />
-            </div>
-
-            {/* Logo */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium">{t('identity.logo')}</label>
-              <p className="text-xs text-muted-foreground">{t('identity.logoHelp')}</p>
-              <MediaPickerModal
-                value={logo ? { url: logo, alt: name } : null}
-                onChange={(val) => setLogo(val?.url ?? '')}
-              />
-            </div>
-
-            {/* Color */}
-            <div className="space-y-1.5">
-              <label htmlFor="brandColor" className="block text-sm font-medium">{t('identity.accent')}</label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  aria-label={t('identity.accentPicker')}
-                  value={colorValid ? color : '#4f46e5'}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="h-9 w-12 rounded border border-border bg-background p-1 cursor-pointer"
-                />
-                <input
-                  id="brandColor"
-                  className={inputCls + ' max-w-[140px] font-mono'}
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  placeholder="#4f46e5"
-                />
-                {!colorValid && <span className="text-xs text-red-400">{t('invalidHex')}</span>}
-              </div>
-            </div>
-
-            {/* Sidebar header preview */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium">{t('preview')}</label>
-              <p className="text-xs text-muted-foreground">{t('identity.previewHelp')}</p>
-              <div className="flex items-center gap-2 w-64 px-4 h-14 rounded-md border border-border bg-sidebar">
-                {logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={logo} alt={name} className="h-6 w-6 rounded object-contain shrink-0" />
-                ) : (
-                  <span className="h-6 w-6 rounded shrink-0" style={{ backgroundColor: colorValid ? color : '#4f46e5' }} />
-                )}
-                <span className="font-semibold text-sm truncate">{name || 'NodePress'}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Theme — button + input colours */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('theme.title')}</CardTitle>
-            <CardDescription>{t('theme.description')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Button colour */}
-            <div className="space-y-1.5">
-              <label htmlFor="buttonColor" className="block text-sm font-medium">{t('theme.button')}</label>
-              <p className="text-xs text-muted-foreground">{t('theme.buttonHelp')}</p>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  aria-label={t('theme.buttonPicker')}
-                  value={HEX_RE.test(buttonColor) ? buttonColor : '#4f46e5'}
-                  onChange={(e) => setButtonColor(e.target.value)}
-                  className="h-9 w-12 rounded border border-border bg-background p-1 cursor-pointer"
-                />
-                <input
-                  id="buttonColor"
-                  className={inputCls + ' max-w-[140px] font-mono'}
-                  value={buttonColor}
-                  onChange={(e) => setButtonColor(e.target.value)}
-                  placeholder={t('theme.defaultPlaceholder')}
-                />
-                {buttonColor && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setButtonColor('')}>{t('theme.reset')}</Button>
-                )}
-                {!buttonValid && <span className="text-xs text-red-400">{t('invalidHex')}</span>}
-              </div>
-            </div>
-
-            {/* Input colour */}
-            <div className="space-y-1.5">
-              <label htmlFor="inputColor" className="block text-sm font-medium">{t('theme.input')}</label>
-              <p className="text-xs text-muted-foreground">{t('theme.inputHelp')}</p>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  aria-label={t('theme.inputPicker')}
-                  value={HEX_RE.test(inputColor) ? inputColor : '#4f46e5'}
-                  onChange={(e) => setInputColor(e.target.value)}
-                  className="h-9 w-12 rounded border border-border bg-background p-1 cursor-pointer"
-                />
-                <input
-                  id="inputColor"
-                  className={inputCls + ' max-w-[140px] font-mono'}
-                  value={inputColor}
-                  onChange={(e) => setInputColor(e.target.value)}
-                  placeholder={t('theme.defaultPlaceholder')}
-                />
-                {inputColor && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setInputColor('')}>{t('theme.reset')}</Button>
-                )}
-                {!inputValid && <span className="text-xs text-red-400">{t('invalidHex')}</span>}
-              </div>
-            </div>
-
-            {/* Live preview of button + input */}
-            <div className="rounded-lg border border-border p-4 flex flex-col gap-4">
-              <p className="text-xs text-muted-foreground">{t('preview')}</p>
-              <button
-                type="button"
-                className="self-start rounded-md px-4 py-2 text-sm font-medium"
-                style={{
-                  backgroundColor: HEX_RE.test(buttonColor) ? buttonColor : undefined,
-                  color: HEX_RE.test(buttonColor) ? '#fff' : undefined,
-                }}
-              >
-                {t('theme.sampleButton')}
-              </button>
-              <input
-                className="w-full max-w-xs rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                style={{ borderColor: HEX_RE.test(inputColor) ? inputColor : undefined }}
-                placeholder={t('theme.sampleInput')}
-                readOnly
-              />
-            </div>
-          </CardContent>
-        </Card>
-        </div>
-
-        <AlertDialog>
-          <AlertDialogTrigger render={<Button disabled={saving || !dirty} />}>
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> {tc('saving')}</> : (dirty ? t('saveChanges') : t('noChanges'))}
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t('confirm.title')}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t('confirm.description')}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={save}>{t('saveChanges')}</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      </ReadOnly>
     </AdminGuard>
   );
 }

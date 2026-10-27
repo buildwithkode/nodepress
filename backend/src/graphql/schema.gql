@@ -95,7 +95,7 @@ type Mutation {
     schema: String!
   ): ContentTypeModel!
 
-  """Create a new entry. Requires editor or admin role."""
+  """Create a new entry. Needs create permission on the content type."""
   createEntry(
     contentTypeId: Int!
 
@@ -122,7 +122,7 @@ type Mutation {
   """Delete a content type and all its entries. Admin only."""
   deleteContentType(id: Int!): ContentTypeModel!
 
-  """Soft-delete an entry (recoverable). Requires editor or admin."""
+  """Soft-delete an entry (recoverable). Needs delete permission."""
   deleteEntry(id: Int!): DeleteResult!
 
   """Delete a media file by filename (admin/editor only)"""

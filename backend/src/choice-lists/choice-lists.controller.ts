@@ -6,22 +6,29 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags }
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
+import { AccessService } from '../roles/access.service';
 import { ChoiceListsService } from './choice-lists.service';
 import { CreateChoiceListDto, UpdateChoiceListDto } from './dto/choice-list.dto';
 
 /** Short public cache: a CDN or the site's fetch cache absorbs repeat reads. */
 const PUBLIC_CACHE_CONTROL = 'public, max-age=60';
 
-/** `GET /choice-lists?names=…` is public; the plain list (with usage) is admin-only. */
+/** `GET /choice-lists?names=…` is public; the plain list (with usage) needs content model access. */
 @Injectable()
-class PublicNamesOrAdminGuard extends JwtAuthGuard {
+class PublicNamesOrModelGuard extends JwtAuthGuard {
+  constructor(private readonly access: AccessService) {
+    super();
+  }
+
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest();
     if (typeof req.query?.names === 'string') return true;
     await super.canActivate(ctx); // throws 401 without a valid token
-    if (req.user?.role !== 'admin') throw new ForbiddenException('This action requires one of these roles: admin');
+    if (!(await this.access.allows(req.user, 'content_model', 'view'))) {
+      throw new ForbiddenException('Your role has no access to content model');
+    }
     return true;
   }
 }
@@ -34,11 +41,11 @@ export class ChoiceListsController {
     private readonly auditService: AuditService,
   ) {}
 
-  @UseGuards(PublicNamesOrAdminGuard)
+  @UseGuards(PublicNamesOrModelGuard)
   @Get()
   @ApiBearerAuth('JWT')
   @ApiOperation({
-    summary: 'With ?names=a,b: the named lists (public — name, label, choices). Without: every list with its usage (admin only)',
+    summary: 'With ?names=a,b: the named lists (public — name, label, choices). Without: every list with its usage (content model access)',
   })
   @ApiQuery({ name: 'names', required: false, example: 'gender,country' })
   findAll(@Query('names') names: string | undefined, @Res({ passthrough: true }) res: Response) {
@@ -59,13 +66,13 @@ export class ChoiceListsController {
     return this.lists.publicOne(name);
   }
 
-  // ─── Write routes — admin only ─────────────────────────────────────────────
+  // ─── Write routes — content model edit ─────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @ApiBearerAuth('JWT')
   @Post()
-  @ApiOperation({ summary: 'Create a choice list (admin only)' })
+  @ApiOperation({ summary: 'Create a choice list' })
   @ApiResponse({ status: 409, description: 'Name already exists' })
   async create(@Body() dto: CreateChoiceListDto, @Request() req: any) {
     const list = await this.lists.create(dto);
@@ -77,11 +84,11 @@ export class ChoiceListsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @ApiBearerAuth('JWT')
   @Put(':id')
   @ApiOperation({
-    summary: 'Update a choice list and every content type and component that uses it (admin only). ' +
+    summary: 'Update a choice list and every content type and component that uses it. ' +
       'removedValuesInUse counts entries still holding a removed value.',
   })
   @ApiParam({ name: 'id', type: Number })
@@ -99,10 +106,10 @@ export class ChoiceListsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @ApiBearerAuth('JWT')
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a choice list (admin only) — 409 while a field uses it' })
+  @ApiOperation({ summary: 'Delete a choice list — 409 while a field uses it' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 409, description: 'Choice list is in use' })
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {

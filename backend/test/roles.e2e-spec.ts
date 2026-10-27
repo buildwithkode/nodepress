@@ -128,14 +128,15 @@ describe('Custom roles (e2e)', () => {
   });
 
   it('changing the base role takes effect for the signed-in user', async () => {
-    await http().put('/api/roles/blog_writer').set(asAdmin()).send({ baseRole: 'viewer' }).expect(200);
+    // Module access with no saved row follows the base role: editors get Forms, contributors don't.
+    await http().get('/api/forms').set(asWriter()).expect(403);
+    await http().put('/api/roles/blog_writer').set(asAdmin()).send({ baseRole: 'editor' }).expect(200);
     const me = await http().get('/api/auth/me').set(asWriter()).expect(200);
-    expect(me.body.role).toBe('viewer');
-    // Viewers are blocked from writes by @Roles() before content permissions apply
-    await http().post('/api/entries').set(asWriter())
-      .send({ contentTypeId: blogId, slug: 'again', data: { title: 'x' }, status: 'draft' })
-      .expect(403);
+    expect(me.body.role).toBe('editor');
+    expect(me.body.access.modules.forms).toBe('edit');
+    await http().get('/api/forms').set(asWriter()).expect(200);
     await http().put('/api/roles/blog_writer').set(asAdmin()).send({ baseRole: 'contributor' }).expect(200);
+    await http().get('/api/forms').set(asWriter()).expect(403);
   });
 
   it('a role still assigned to users cannot be deleted', async () => {
@@ -246,16 +247,21 @@ describe('Custom roles — field rules, bulk routes, reset and base role changes
       expect(await statusOf(blogEntry)).toBe('published');
     });
 
-    it('checks publish on bulk-promote to published, delete on bulk-delete, update otherwise', async () => {
+    it('checks publish for published / staging / archive, delete on bulk-delete, update otherwise', async () => {
       await http().post('/api/entries/bulk-promote').set(as(reviewerToken))
         .send({ ids: [newsEntry], status: 'published' }).expect(403);
       await http().post('/api/entries/bulk-promote').set(as(reviewerToken))
-        .send({ ids: [newsEntry], status: 'staging' }).expect(201);
+        .send({ ids: [newsEntry], status: 'staging' }).expect(403);
+      await http().post('/api/entries/bulk-promote').set(as(reviewerToken))
+        .send({ ids: [newsEntry], status: 'pending_review' }).expect(201);
       await http().post('/api/entries/bulk-delete').set(as(reviewerToken))
         .send({ ids: [blogEntry, newsEntry] }).expect(403);
-      await http().post('/api/entries/bulk-archive').set(as(reviewerToken))
-        .send({ ids: [blogEntry, newsEntry] }).expect(201);
-      expect(await statusOf(newsEntry)).toBe('archived');
+      const archive = await http().post('/api/entries/bulk-archive').set(as(reviewerToken))
+        .send({ ids: [blogEntry, newsEntry] }).expect(403);
+      expect(archive.body.forbiddenContentTypes).toEqual(['news']);
+      await http().post('/api/entries/bulk-archive').set(as(reviewerToken)).send({ ids: [blogEntry] }).expect(201);
+      expect(await statusOf(blogEntry)).toBe('archived');
+      expect(await statusOf(newsEntry)).toBe('pending_review');
     });
 
     it('admin passes', async () => {

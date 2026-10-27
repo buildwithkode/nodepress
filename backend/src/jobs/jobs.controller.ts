@@ -3,14 +3,14 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { JobsService } from './jobs.service';
 
 /** Background job queue inspection — payloads can hold form submissions, so admin only. */
 @ApiTags('Jobs')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Access('jobs', 'view')
 @Controller('jobs')
 export class JobsController {
   constructor(private readonly jobs: JobsService) {}
@@ -37,6 +37,7 @@ export class JobsController {
   }
 
   // Static path — must stay before ':id' routes.
+  @Access('jobs', 'edit')
   @Post('retry-failed')
   @ApiOperation({ summary: 'Requeue all failed jobs, optionally of one type (admin)' })
   @ApiQuery({ name: 'type', required: false })
@@ -44,12 +45,14 @@ export class JobsController {
     return this.jobs.retryFailed(type || undefined);
   }
 
+  @Access('jobs', 'edit')
   @Post(':id/retry')
   @ApiOperation({ summary: 'Run a failed job again now with fresh attempts (admin)' })
   retry(@Param('id', ParseIntPipe) id: number) {
     return this.jobs.retry(id);
   }
 
+  @Access('jobs', 'edit')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a finished (done/failed) job (admin)' })
   remove(@Param('id', ParseIntPipe) id: number) {

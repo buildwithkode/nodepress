@@ -52,7 +52,7 @@ import { cn } from '@/lib/utils';
 import api from '../../../lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
-import { canManageContent } from '@/lib/roles';
+import { canEdit as canEditModule } from '@/lib/access';
 import { transformUrl } from '@/lib/media-url';
 import { FocalPointDialog } from './_components/FocalPointDialog';
 import { useTranslations } from 'use-intl';
@@ -90,7 +90,7 @@ export default function MediaPage() {
   const t = useTranslations('media');
   const tc = useTranslations('common');
   const { user } = useAuth();
-  const canEdit = canManageContent(user?.role);
+  const canEdit = canEditModule(user, 'media');
 
   const [files, setFiles]       = useState<MediaFile[]>([]);
   const [folders, setFolders]   = useState<MediaFolder[]>([]);

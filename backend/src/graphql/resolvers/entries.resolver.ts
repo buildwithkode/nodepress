@@ -69,8 +69,7 @@ export class EntriesResolver {
   // ─── Mutations ────────────────────────────────────────────────────────────────
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
-  @Mutation(() => EntryModel, { name: 'createEntry', description: 'Create a new entry. Requires editor or admin role.' })
+  @Mutation(() => EntryModel, { name: 'createEntry', description: 'Create a new entry. Needs create permission on the content type.' })
   async createEntry(
     @Args('contentTypeId', { type: () => Int }) contentTypeId: number,
     @Args('slug') slug: string,
@@ -90,7 +89,6 @@ export class EntriesResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Mutation(() => EntryModel, { name: 'updateEntry', description: 'Update an existing entry.' })
   async updateEntry(
     @Args('id', { type: () => Int }) id: number,
@@ -110,8 +108,7 @@ export class EntriesResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
-  @Mutation(() => DeleteResult, { name: 'deleteEntry', description: 'Soft-delete an entry (recoverable). Requires editor or admin.' })
+  @Mutation(() => DeleteResult, { name: 'deleteEntry', description: 'Soft-delete an entry (recoverable). Needs delete permission.' })
   async deleteEntry(@Args('id', { type: () => Int }) id: number, @Context() ctx: any) {
     await this.permissions.assertCanEntries(ctx.req.user, [id], 'delete');
     return this.entriesService.remove(id);
@@ -125,14 +122,13 @@ export class EntriesResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Mutation(() => EntryModel, { name: 'restoreEntry', description: 'Restore a soft-deleted entry.' })
-  restoreEntry(@Args('id', { type: () => Int }) id: number) {
+  async restoreEntry(@Args('id', { type: () => Int }) id: number, @Context() ctx: any) {
+    await this.permissions.assertCanEntries(ctx.req.user, [id], 'delete', { includeDeleted: true });
     return this.entriesService.restore(id);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Mutation(() => EntryModel, { name: 'restoreEntryVersion', description: 'Restore an entry to a previous version.' })
   async restoreVersion(
     @Args('entryId', { type: () => Int }) entryId: number,
@@ -144,7 +140,6 @@ export class EntriesResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkDeleteEntries', description: 'Soft-delete multiple entries.' })
   async bulkDelete(@Args('ids', { type: () => [Int] }) ids: number[], @Context() ctx: any) {
     await this.permissions.assertCanEntries(ctx.req.user, ids, 'delete');
@@ -152,7 +147,6 @@ export class EntriesResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkPublishEntries', description: 'Publish multiple entries.' })
   async bulkPublish(@Args('ids', { type: () => [Int] }) ids: number[], @Context() ctx: any) {
     await this.permissions.assertCanEntries(ctx.req.user, ids, 'publish');
@@ -160,15 +154,13 @@ export class EntriesResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
   @Mutation(() => BulkResult, { name: 'bulkArchiveEntries', description: 'Archive multiple entries.' })
   async bulkArchive(@Args('ids', { type: () => [Int] }) ids: number[], @Context() ctx: any) {
-    await this.permissions.assertCanEntries(ctx.req.user, ids, 'update');
+    await this.permissions.assertCanEntries(ctx.req.user, ids, 'publish');
     return this.entriesService.bulkArchive(ids);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor', 'contributor')
   @Mutation(() => BulkResult, { name: 'bulkSetPendingReviewEntries', description: 'Set multiple entries to pending_review.' })
   async bulkSetPendingReview(@Args('ids', { type: () => [Int] }) ids: number[], @Context() ctx: any) {
     await this.permissions.assertCanEntries(ctx.req.user, ids, 'update');

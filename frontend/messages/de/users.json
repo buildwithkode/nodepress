@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "Berechtigungen konnten nicht geladen werden",
       "schemaLoadFailed": "Schema für „{name}“ konnte nicht geladen werden",
-      "roleLoadFailed": "Rollenberechtigungen konnten nicht geladen werden",
       "updated": "Berechtigung aktualisiert",
       "updateFailed": "Berechtigung konnte nicht aktualisiert werden",
       "reset": "Berechtigungen auf Standard zurückgesetzt",
@@ -122,33 +121,13 @@
     "title": "Zugriffskontrolle & Berechtigungen",
     "resetDefaults": "Auf Standard zurücksetzen",
     "tabs": {
-      "contentTypes": "Aktionsmatrix nach Inhaltstyp",
-      "fields": "Berechtigungsmatrix auf Feldebene"
-    },
-    "actions": {
-      "create": "Erstellen",
-      "read": "Lesen",
-      "update": "Bearbeiten",
-      "delete": "Löschen",
-      "publish": "Veröffentlichen"
+      "modules": "Modulzugriff",
+      "fields": "Pro Feld (erweitert)"
     },
     "roleDescriptions": {
       "editor": "Verwaltet alle Inhalte — kann erstellen, bearbeiten, löschen und veröffentlichen.",
       "contributor": "Erstellt und bearbeitet Inhalte — kann nicht löschen oder veröffentlichen.",
       "viewer": "Nur-Lese-Zugriff auf das Admin-Panel."
-    },
-    "clickToDeselect": "zum Abwählen klicken",
-    "defaultRow": "Standard *",
-    "summary": {
-      "title": "Berechtigungsübersicht",
-      "description": "Für diese Rolle konfigurierte Überschreibungen. Nicht aufgeführte Zeilen verwenden den Platzhalter-Standard.",
-      "empty": "Keine Überschreibungen — Werkseinstellungen für alle Inhaltstypen."
-    },
-    "matrix": {
-      "title": "Berechtigungsmatrix nach Inhaltstyp",
-      "description": "Legen Sie die erlaubten Aktionen pro Rolle fest. Die Zeile <strong>*</strong> ist der Standard für alle Inhaltstypen. Überschreiben Sie einzelne Inhaltstypen, indem Sie Aktionen in deren Zeile umschalten. Ausgegraute Kontrollkästchen werden von der Platzhalterzeile geerbt.",
-      "contentType": "Inhaltstyp",
-      "inherited": "Geerbt von {role}/* — zum Überschreiben klicken"
     },
     "fields": {
       "title": "Zugriffskontrollmatrix auf Feldebene",
@@ -172,6 +151,98 @@
       "read": "Wird eine Rolle bei <strong>Lesesichtbarkeit</strong> abgewählt, entfernt das Backend das Feld automatisch aus allen REST- (<path></path>) und GraphQL-Antworten, bevor sie an den Client gesendet werden.",
       "write": "Wird eine Rolle bei <strong>Schreibzugriff</strong> abgewählt, lehnt das Backend unberechtigte Änderungsversuche mit HTTP 403 Forbidden ab."
     },
-    "adminNote": "Hinweis: Admins haben immer uneingeschränkten Zugriff auf alle Schemafelder und können nicht eingeschränkt werden."
+    "adminNote": "Hinweis: Admins haben immer uneingeschränkten Zugriff auf alle Schemafelder und können nicht eingeschränkt werden.",
+    "modules": {
+      "title": "— was diese Rolle nutzen darf",
+      "description": "Wählen Sie für jeden Bereich der Verwaltung Kein Zugriff, Ansehen oder Bearbeiten. Änderungen werden sofort gespeichert.",
+      "role": "Rolle",
+      "levels": {
+        "none": "Kein Zugriff",
+        "view": "Ansehen",
+        "edit": "Bearbeiten"
+      },
+      "groups": {
+        "content": "Inhalte",
+        "structure": "Struktur",
+        "team": "Team & Entwicklung",
+        "settings": "Einstellungen",
+        "plugins": "Plugins"
+      },
+      "items": {
+        "content": {
+          "label": "Inhalte",
+          "description": "Einträge aller Inhaltstypen"
+        },
+        "media": {
+          "label": "Medienbibliothek",
+          "description": "Dateien hochladen, ordnen und löschen"
+        },
+        "forms": {
+          "label": "Formulare",
+          "description": "Formulare und ihre Einsendungen"
+        },
+        "releases": {
+          "label": "Releases",
+          "description": "Gebündelte, geplante Veröffentlichungen"
+        },
+        "redirects": {
+          "label": "Weiterleitungen",
+          "description": "URL-Weiterleitungen"
+        },
+        "content_model": {
+          "label": "Inhaltsmodell",
+          "description": "Inhaltstypen, Komponenten, Auswahllisten und Vorlagen"
+        },
+        "languages": {
+          "label": "Sprachen",
+          "description": "Inhaltssprachen"
+        },
+        "users": {
+          "label": "Benutzer",
+          "description": "Personen einladen und ihre Rolle ändern"
+        },
+        "api_keys": {
+          "label": "API-Schlüssel",
+          "description": "Schlüssel für die öffentliche API"
+        },
+        "webhooks": {
+          "label": "Webhooks",
+          "description": "Webhooks und ihre Zustellungen"
+        },
+        "jobs": {
+          "label": "Jobs",
+          "description": "Hintergrundaufgaben"
+        },
+        "audit_log": {
+          "label": "Audit-Log",
+          "description": "Wer was geändert hat"
+        },
+        "plugins": {
+          "label": "Plugins",
+          "description": "Plugins ein- und ausschalten und ihre Einstellungen ändern"
+        },
+        "import": {
+          "label": "Import",
+          "description": "WordPress-Import"
+        },
+        "brand": {
+          "label": "Marke",
+          "description": "Name, Logo und Farben"
+        },
+        "server_settings": {
+          "label": "Servereinstellungen",
+          "description": "E-Mail, Speicher und Suche"
+        }
+      },
+      "canPublish": "Darf veröffentlichen",
+      "canDelete": "Darf löschen",
+      "perType": "Pro Inhaltstyp",
+      "overrides": "{count, plural, one {# Abweichung} other {# Abweichungen}}",
+      "useDefault": "Standard verwenden",
+      "asDefault": "Wie der Standard",
+      "fromPlugin": "Von {plugin}",
+      "powerful": "Bearbeiten ist hier fast ein Admin-Zugriff — nur für vertrauenswürdige Personen.",
+      "adminOnlyNote": "Rollen und Berechtigungen, das Installieren von Plugins und das endgültige Löschen von Einträgen bleiben Admins vorbehalten. Admins haben immer vollen Zugriff."
+    }
   }
 }

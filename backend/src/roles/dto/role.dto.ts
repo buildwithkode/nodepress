@@ -1,4 +1,4 @@
-import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsNotEmpty, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BASE_ROLES } from '../roles.constants';
 
@@ -45,4 +45,10 @@ export class UpdateRoleDto {
   @IsOptional()
   @IsIn(BASE_ROLES as unknown as string[])
   baseRole?: string;
+}
+
+export class SetAccessDto {
+  @ApiProperty({ example: { media: 'edit', forms: 'view', users: 'none' }, description: 'Module key → none | view | edit' })
+  @IsObject()
+  modules: Record<string, string>;
 }

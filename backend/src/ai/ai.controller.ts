@@ -4,7 +4,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IsInt, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AiService } from './ai.service';
 
 class ContentModelDto {
@@ -39,7 +39,7 @@ export class AiController {
     return this.ai.status();
   }
 
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Post('content-model')
   @ApiOperation({ summary: 'Suggest a content type from a description (not saved)' })
@@ -47,7 +47,7 @@ export class AiController {
     return this.ai.generateContentModel(dto.prompt);
   }
 
-  @Roles('admin', 'editor', 'contributor')
+  @Access('content', 'edit')
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @Post('draft')
   @ApiOperation({ summary: 'Draft field values for an entry (not saved)' })

@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'use-intl';
 import { ArrowRight, Download, ExternalLink, Loader2, Pencil, Plus, Signpost, Trash2, Upload, XCircle } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
-import { canPublishContent } from '@/lib/roles';
+import { canEdit as canEditModule } from '@/lib/access';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,7 +56,7 @@ export default function RedirectsPage() {
   const tc = useTranslations('common');
   const locale = useLocale();
   const { user } = useAuth();
-  const canEdit = canPublishContent(user?.role);
+  const canEdit = canEditModule(user, 'redirects');
 
   const [rows, setRows] = useState<Redirect[] | null>(null);
   const [total, setTotal] = useState(0);

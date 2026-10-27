@@ -46,7 +46,7 @@ import { useLocales, loadLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
-import { canManageSettings } from '@/lib/roles';
+import { useAccess } from '@/lib/use-access';
 import { AddToReleaseDialog } from '@/components/AddToReleaseDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -114,6 +114,7 @@ export default function EditEntryPage() {
   const params = useParams() ?? {};
   const id = (params.id ?? '') as string;
   const { user: me } = useAuth();
+  const access = useAccess();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -303,7 +304,8 @@ export default function EditEntryPage() {
     }
   };
 
-  const canApprove = me?.role === 'admin' || me?.role === 'editor';
+  // Publishing (and approving reviews) is the content type's "Can publish" permission
+  const canApprove = access.canContent('publish', contentType?.name);
   const [releaseOpen, setReleaseOpen] = useState(false);
 
   const handleApprove = async () => {
@@ -477,29 +479,29 @@ export default function EditEntryPage() {
             </div>
           )}
 
-          {contentType && canManageSettings(me?.role) && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5 h-8 text-xs"
-                onClick={() => router.push(`/content-types/${contentType.id}/edit`)}
-                title={t('header.editSchemaTitle')}
-              >
-                <Settings className="h-3.5 w-3.5 text-indigo-400" />
-                {t('header.editSchema')}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5 h-8 text-xs"
-                onClick={() => router.push(`/users/permissions?tab=fields&ct=${contentType.name}`)}
-                title={t('header.fieldPermissionsTitle')}
-              >
-                <Shield className="h-3.5 w-3.5 text-amber-400" />
-                {t('header.fieldPermissions')}
-              </Button>
-            </>
+          {contentType && access.canEdit('content_model') && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => router.push(`/content-types/${contentType.id}/edit`)}
+              title={t('header.editSchemaTitle')}
+            >
+              <Settings className="h-3.5 w-3.5 text-indigo-400" />
+              {t('header.editSchema')}
+            </Button>
+          )}
+          {contentType && me?.role === 'admin' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => router.push(`/users/permissions?tab=fields&ct=${contentType.name}`)}
+              title={t('header.fieldPermissionsTitle')}
+            >
+              <Shield className="h-3.5 w-3.5 text-amber-400" />
+              {t('header.fieldPermissions')}
+            </Button>
           )}
         </div>
       </div>
@@ -513,7 +515,7 @@ export default function EditEntryPage() {
               {t.rich('presence.lockedBy', { email: lock?.email ?? '', b: (chunks) => <strong>{chunks}</strong> })}
             </span>
           </div>
-          {(me?.role === 'admin' || me?.role === 'editor') && (
+          {canApprove && (
             <Button
               size="sm"
               variant="outline"
@@ -688,7 +690,7 @@ export default function EditEntryPage() {
                 </SelectContent>
               </Select>
 
-              {canApprove && (
+              {canApprove && access.canEdit('releases') && (
                 <Button type="button" variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => setReleaseOpen(true)} title={t('edit.releaseTitle')}>
                   <Package className="h-3.5 w-3.5" />
                   {t('edit.release')}

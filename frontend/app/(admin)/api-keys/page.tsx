@@ -37,6 +37,7 @@ import {
 import { SearchInput } from '@/components/ui/search-input';
 import { Pagination } from '@/components/ui/data-table';
 import { useTranslations } from 'use-intl';
+import { useAccess } from '@/lib/use-access';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -61,6 +62,7 @@ const ACCESS_BADGE: Record<string, 'blue' | 'orange' | 'green'> = {
 // ---------------------------------------------------------------------------
 export default function ApiKeysPage() {
   const t = useTranslations('developer');
+  const editable = useAccess().canEdit('api_keys');
   const tc = useTranslations('common');
   const router = useRouter();
   const [keys, setKeys]               = useState<ApiKey[]>([]);
@@ -113,7 +115,7 @@ export default function ApiKeysPage() {
   // Render
   // ---------------------------------------------------------------------------
   return (
-    <AdminGuard>
+    <AdminGuard module="api_keys">
     <TooltipProvider>
       <div>
         {/* Description */}
@@ -135,12 +137,14 @@ export default function ApiKeysPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="ml-auto">
-            <Button onClick={() => router.push('/api-keys/new')}>
-              <Plus className="h-4 w-4 mr-1.5" />
-              {t('apiKeys.newKey')}
-            </Button>
-          </div>
+          {editable && (
+            <div className="ml-auto">
+              <Button onClick={() => router.push('/api-keys/new')}>
+                <Plus className="h-4 w-4 mr-1.5" />
+                {t('apiKeys.newKey')}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Table */}
@@ -231,7 +235,7 @@ export default function ApiKeysPage() {
                 {/* Revoke */}
                 <TableCell>
                   <AlertDialog>
-                    <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title={t('apiKeys.revoke')} />}>
+                    <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title={t('apiKeys.revoke')} disabled={!editable} />}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </AlertDialogTrigger>
                     <AlertDialogContent>

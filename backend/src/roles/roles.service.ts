@@ -11,6 +11,8 @@ import {
 
 const CACHE_PREFIX = 'roles:def:';
 const CACHE_TTL_MS = 60_000;
+/** AccessService's cache — a role's access follows its base role. */
+const ACCESS_CACHE_PREFIX = 'access:';
 const NAME_PATTERN = /^[a-z][a-z0-9_]{0,49}$/;
 
 const BUILT_IN_INFO: Record<BuiltInRole, { label: string; description: string }> = {
@@ -104,6 +106,7 @@ export class RolesService {
       }),
     ]);
     await this.cache.del(CACHE_PREFIX + name);
+    await this.cache.invalidatePrefix(ACCESS_CACHE_PREFIX);
     return role;
   }
 
@@ -159,10 +162,11 @@ export class RolesService {
       role = await updateRole;
     }
     await this.cache.del(CACHE_PREFIX + name);
+    await this.cache.invalidatePrefix(ACCESS_CACHE_PREFIX);
     return { role, previous: existing, warnings };
   }
 
-  /** 409 while any user still has the role; its permission rows go with it. */
+  /** 409 while any user still has the role; its permission and access rows go with it. */
   async remove(rawName: string) {
     const name = normalizeRoleName(rawName);
     if (isBuiltInRole(name)) throw new BadRequestException('Built-in roles cannot be deleted');
@@ -181,9 +185,11 @@ export class RolesService {
 
     await this.prisma.$transaction([
       this.prisma.permission.deleteMany({ where: { role: name } }),
+      this.prisma.roleAccess.deleteMany({ where: { role: name } }),
       this.prisma.role.delete({ where: { name } }),
     ]);
     await this.cache.del(CACHE_PREFIX + name);
+    await this.cache.invalidatePrefix(ACCESS_CACHE_PREFIX);
     return { message: `Role "${name}" deleted` };
   }
 

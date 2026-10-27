@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "Falha ao carregar as permissões",
       "schemaLoadFailed": "Falha ao carregar o esquema de \"{name}\"",
-      "roleLoadFailed": "Falha ao carregar as permissões da função",
       "updated": "Permissão atualizada",
       "updateFailed": "Falha ao atualizar a permissão",
       "reset": "Permissões redefinidas para o padrão",
@@ -122,33 +121,13 @@
     "title": "Controle de acesso e permissões",
     "resetDefaults": "Redefinir para o padrão",
     "tabs": {
-      "contentTypes": "Matriz de ações por tipo de conteúdo",
-      "fields": "Matriz de permissões por campo"
-    },
-    "actions": {
-      "create": "Criar",
-      "read": "Ler",
-      "update": "Atualizar",
-      "delete": "Excluir",
-      "publish": "Publicar"
+      "modules": "Acesso a módulos",
+      "fields": "Por campo (avançado)"
     },
     "roleDescriptions": {
       "editor": "Gerencia todo o conteúdo — pode criar, editar, excluir e publicar.",
       "contributor": "Cria e edita conteúdo — não pode excluir nem publicar.",
       "viewer": "Acesso somente leitura ao painel de administração."
-    },
-    "clickToDeselect": "clique para desmarcar",
-    "defaultRow": "Padrão *",
-    "summary": {
-      "title": "Resumo das permissões",
-      "description": "Substituições configuradas para esta função. As linhas não listadas aqui usam o padrão curinga.",
-      "empty": "Nenhuma substituição — usando os padrões de fábrica para todos os tipos de conteúdo."
-    },
-    "matrix": {
-      "title": "Matriz de permissões por tipo de conteúdo",
-      "description": "Defina as ações permitidas por função. A linha <strong>*</strong> é o padrão para todos os tipos de conteúdo. Substitua tipos de conteúdo individuais marcando ações na linha específica deles. As caixas acinzentadas são herdadas da linha curinga.",
-      "contentType": "Tipo de conteúdo",
-      "inherited": "Herdado de {role}/* — clique para substituir"
     },
     "fields": {
       "title": "Matriz de controle de acesso por campo",
@@ -172,6 +151,98 @@
       "read": "Quando uma função é desmarcada em <strong>Visibilidade de leitura</strong>, o backend remove automaticamente o campo de todas as respostas REST (<path></path>) e GraphQL antes de enviá-las ao cliente.",
       "write": "Quando uma função é desmarcada em <strong>Acesso de escrita</strong>, o backend rejeita tentativas de alteração não autorizadas com HTTP 403 Forbidden."
     },
-    "adminNote": "Observação: o administrador sempre tem acesso universal a todos os campos do esquema e não pode ser restringido."
+    "adminNote": "Observação: o administrador sempre tem acesso universal a todos os campos do esquema e não pode ser restringido.",
+    "modules": {
+      "title": "— o que este papel pode usar",
+      "description": "Escolha Sem acesso, Ver ou Editar para cada parte do painel. As alterações são salvas na hora.",
+      "role": "Papel",
+      "levels": {
+        "none": "Sem acesso",
+        "view": "Ver",
+        "edit": "Editar"
+      },
+      "groups": {
+        "content": "Conteúdo",
+        "structure": "Estrutura",
+        "team": "Equipe e desenvolvimento",
+        "settings": "Configurações",
+        "plugins": "Plugins"
+      },
+      "items": {
+        "content": {
+          "label": "Conteúdo",
+          "description": "Entradas de todos os tipos de conteúdo"
+        },
+        "media": {
+          "label": "Biblioteca de mídia",
+          "description": "Enviar, organizar e excluir arquivos"
+        },
+        "forms": {
+          "label": "Formulários",
+          "description": "Formulários e seus envios"
+        },
+        "releases": {
+          "label": "Lançamentos",
+          "description": "Lotes de publicação agendada"
+        },
+        "redirects": {
+          "label": "Redirecionamentos",
+          "description": "Redirecionamentos de URL"
+        },
+        "content_model": {
+          "label": "Modelo de conteúdo",
+          "description": "Tipos de conteúdo, componentes, listas de opções e modelos"
+        },
+        "languages": {
+          "label": "Idiomas",
+          "description": "Idiomas do conteúdo"
+        },
+        "users": {
+          "label": "Usuários",
+          "description": "Convidar pessoas e mudar seu papel"
+        },
+        "api_keys": {
+          "label": "Chaves de API",
+          "description": "Chaves da API pública"
+        },
+        "webhooks": {
+          "label": "Webhooks",
+          "description": "Webhooks e suas entregas"
+        },
+        "jobs": {
+          "label": "Tarefas",
+          "description": "Tarefas em segundo plano"
+        },
+        "audit_log": {
+          "label": "Log de auditoria",
+          "description": "Quem alterou o quê"
+        },
+        "plugins": {
+          "label": "Plugins",
+          "description": "Ativar e desativar plugins e alterar suas configurações"
+        },
+        "import": {
+          "label": "Importação",
+          "description": "Importação do WordPress"
+        },
+        "brand": {
+          "label": "Marca",
+          "description": "Nome, logotipo e cores"
+        },
+        "server_settings": {
+          "label": "Configurações do servidor",
+          "description": "E-mail, armazenamento e busca"
+        }
+      },
+      "canPublish": "Pode publicar",
+      "canDelete": "Pode excluir",
+      "perType": "Por tipo de conteúdo",
+      "overrides": "{count, plural, one {# exceção} other {# exceções}}",
+      "useDefault": "Usar o padrão",
+      "asDefault": "Igual ao padrão",
+      "fromPlugin": "De {plugin}",
+      "powerful": "Editar aqui é quase um acesso de administrador — dê apenas a pessoas de confiança.",
+      "adminOnlyNote": "Papéis e permissões, instalação de plugins e exclusão definitiva de entradas continuam restritos a administradores. Administradores sempre têm acesso total."
+    }
   }
 }

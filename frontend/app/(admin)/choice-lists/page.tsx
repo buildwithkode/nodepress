@@ -23,6 +23,7 @@ import {
   AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { useAccess } from '@/lib/use-access';
 
 interface Usage {
   contentTypes: { contentTypeId: number; contentType: string; displayName: string | null; field: string }[];
@@ -56,6 +57,7 @@ const usageCount = (u: Usage) => u.contentTypes.length + u.components.length;
 
 export default function ChoiceListsPage() {
   const t = useTranslations('choiceLists');
+  const editable = useAccess().canEdit('content_model');
   const [lists, setLists] = useState<ChoiceList[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -196,7 +198,7 @@ export default function ChoiceListsPage() {
               <CardTitle className="flex items-center gap-2"><ListOrdered className="h-5 w-5" /> {t('title')}</CardTitle>
               <CardDescription>{t('description')}</CardDescription>
             </div>
-            <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1.5" /> {t('new')}</Button>
+            {editable && <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1.5" /> {t('new')}</Button>}
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
@@ -265,13 +267,13 @@ export default function ChoiceListsPage() {
                     )}
                   </TableCell>
                   <TableCell className="align-top py-3 text-right whitespace-nowrap">
-                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(l)} title={t('edit')}>
+                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(l)} title={t('edit')} disabled={!editable}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       variant="ghost" size="icon-sm"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      disabled={usageCount(l.usage) > 0}
+                      disabled={!editable || usageCount(l.usage) > 0}
                       title={usageCount(l.usage) > 0 ? t('inUse') : t('delete')}
                       onClick={() => setDeleting(l)}
                     >

@@ -59,5 +59,6 @@
     "time": "Heure",
     "clear": "Effacer",
     "done": "Terminé"
-  }
+  },
+  "readOnly": "Vous pouvez consulter cette page, mais votre rôle ne permet pas de la modifier."
 }

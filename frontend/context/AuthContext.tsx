@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import Cookies from 'js-cookie';
 import api from '../lib/axios';
+import { encodeAccessCookie, type UserAccess } from '../lib/access';
 
 interface User {
   id: number;
@@ -11,6 +12,22 @@ interface User {
   role: string;
   /** Custom role name, when the user has one. */
   customRole?: string;
+  /** What the role can use in the admin (from GET /auth/me). */
+  access?: UserAccess;
+}
+
+/**
+ * Role and module access in cookies so middleware can route before the page
+ * loads. UX only — the backend enforces actual permissions.
+ */
+function rememberAccess(user: User) {
+  Cookies.set('np_role', user.role, { expires: 30, sameSite: 'lax', path: '/' });
+  if (user.access) Cookies.set('np_access', encodeAccessCookie(user.access) || '_', { expires: 30, sameSite: 'lax', path: '/' });
+}
+
+function forgetAccess() {
+  Cookies.remove('np_role', { path: '/' });
+  Cookies.remove('np_access', { path: '/' });
 }
 
 interface AuthContextType {
@@ -38,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       api
         .get<User>('/auth/me')
-        .then((res) => setUser(res.data))
+        .then((res) => { rememberAccess(res.data); setUser(res.data); })
         .catch(() => {
           Cookies.remove('np_token');
           setUser(null);
@@ -57,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         Cookies.set('np_token', res.data.access_token, { expires: 7, sameSite: 'lax', path: '/' });
         return api.get<User>('/auth/me');
       })
-      .then((res) => setUser(res.data))
+      .then((res) => { rememberAccess(res.data); setUser(res.data); })
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
@@ -66,15 +83,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Store JWT in a cookie — readable by Next.js middleware for SSR route protection.
     // The user object lives only in React state, never in localStorage.
     Cookies.set('np_token', token, { expires: 7, sameSite: 'lax', path: '/' }); // 7 days — matches JWT expiry
-    // Store role in a separate cookie so middleware can enforce role-based routing.
-    // This cookie is for UX only — the backend enforces actual permissions.
-    Cookies.set('np_role', newUser.role, { expires: 30, sameSite: 'lax', path: '/' });
+    rememberAccess(newUser);
     setUser(newUser);
+    // The login response has no module access — load it.
+    api.get<User>('/auth/me').then((res) => { rememberAccess(res.data); setUser(res.data); }).catch(() => {});
   };
 
   const logout = () => {
     Cookies.remove('np_token', { path: '/' });
-    Cookies.remove('np_role', { path: '/' });
+    forgetAccess();
     setUser(null);
     // Ask the backend to clear the HttpOnly refresh cookie
     api.post('/auth/logout').catch(() => {});

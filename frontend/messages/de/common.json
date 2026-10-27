@@ -59,5 +59,6 @@
     "time": "Uhrzeit",
     "clear": "Löschen",
     "done": "Fertig"
-  }
+  },
+  "readOnly": "Sie können diese Seite ansehen, aber Ihre Rolle darf hier nichts ändern."
 }

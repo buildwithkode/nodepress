@@ -3,7 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
 import { ServerSettingsService } from './server-settings.service';
 import { MailSettingsDto, MailTestDto, StorageSettingsDto } from './server-settings.dto';
@@ -11,7 +11,7 @@ import { MailSettingsDto, MailTestDto, StorageSettingsDto } from './server-setti
 @ApiTags('Settings')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Access('server_settings', 'view')
 @Controller('server-settings')
 export class ServerSettingsController {
   constructor(private readonly settings: ServerSettingsService, private readonly audit: AuditService) {}
@@ -22,6 +22,7 @@ export class ServerSettingsController {
     return this.settings.get();
   }
 
+  @Access('server_settings', 'edit')
   @Put('mail')
   @ApiOperation({ summary: 'Save SMTP settings — applies immediately' })
   async saveMail(@Body() dto: MailSettingsDto, @Request() req: any) {
@@ -31,6 +32,7 @@ export class ServerSettingsController {
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Access('server_settings', 'edit')
   @Post('mail/test')
   @HttpCode(200)
   @ApiOperation({ summary: 'Send a test email (with the given, or the saved, settings)' })
@@ -38,6 +40,7 @@ export class ServerSettingsController {
     return this.settings.testMail(dto.to, dto.host ? { ...dto, enabled: true } : undefined);
   }
 
+  @Access('server_settings', 'edit')
   @Put('storage')
   @ApiOperation({ summary: 'Save storage settings — takes effect after a restart' })
   async saveStorage(@Body() dto: StorageSettingsDto, @Request() req: any) {
@@ -47,6 +50,7 @@ export class ServerSettingsController {
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Access('server_settings', 'edit')
   @Post('storage/test')
   @HttpCode(200)
   @ApiOperation({ summary: 'Write and delete a test object in the bucket' })

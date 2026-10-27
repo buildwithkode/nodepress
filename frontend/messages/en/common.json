@@ -59,5 +59,6 @@
     "time": "Time",
     "clear": "Clear",
     "done": "Done"
-  }
+  },
+  "readOnly": "You can view this page, but your role can't change anything here."
 }

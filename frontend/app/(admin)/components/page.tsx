@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
-import { canManageSettings } from '@/lib/roles';
+import { canEdit } from '@/lib/access';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
 import { nestedRenames, withLoadedKeys, withoutLoadedKeys } from '@/lib/schema-editor-keys';
 import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
@@ -71,7 +71,7 @@ export default function ComponentsPage() {
   const t = useTranslations('components');
   const tct = useTranslations('contentTypes');
   const { user } = useAuth();
-  const isAdmin = canManageSettings(user?.role);
+  const canEditModel = canEdit(user, 'content_model');
   const [components, setComponents] = useState<Component[]>([]);
   const [contentTypes, setContentTypes] = useState<{ id: number; name: string; displayName?: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ export default function ComponentsPage() {
       // ?edit=<name> — the content type editors link here from a component field.
       const edit = new URLSearchParams(window.location.search).get('edit');
       const c = edit ? list.find((x) => x.name === edit) : undefined;
-      if (c && isAdmin) openEdit(c);
+      if (c && canEditModel) openEdit(c);
     });
     api.get('/content-types').then((r) => setContentTypes(r.data ?? [])).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,7 +180,7 @@ export default function ComponentsPage() {
               <CardTitle className="flex items-center gap-2"><Blocks className="h-5 w-5" /> {t('title')}</CardTitle>
               <CardDescription>{t('description')}</CardDescription>
             </div>
-            {isAdmin && (
+            {canEditModel && (
               <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1.5" /> {t('new')}</Button>
             )}
           </div>
@@ -192,7 +192,7 @@ export default function ComponentsPage() {
                 <TableHead>{t('columns.name')}</TableHead>
                 <TableHead>{t('columns.fields')}</TableHead>
                 <TableHead>{t('columns.usedBy')}</TableHead>
-                {isAdmin && <TableHead className="text-right">{t('columns.actions')}</TableHead>}
+                {canEditModel && <TableHead className="text-right">{t('columns.actions')}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -202,12 +202,12 @@ export default function ComponentsPage() {
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    {isAdmin && <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>}
+                    {canEditModel && <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>}
                   </TableRow>
                 ))
               ) : components.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 4 : 3} className="py-12 text-center text-muted-foreground">{t('empty')}</TableCell>
+                  <TableCell colSpan={canEditModel ? 4 : 3} className="py-12 text-center text-muted-foreground">{t('empty')}</TableCell>
                 </TableRow>
               ) : components.map((c) => (
                 <TableRow key={c.id}>
@@ -247,7 +247,7 @@ export default function ComponentsPage() {
                       </ul>
                     )}
                   </TableCell>
-                  {isAdmin && (
+                  {canEditModel && (
                     <TableCell className="align-top py-3 text-right whitespace-nowrap">
                       <Button variant="ghost" size="icon-sm" onClick={() => openEdit(c)} title={t('edit')}>
                         <Pencil className="h-3.5 w-3.5" />

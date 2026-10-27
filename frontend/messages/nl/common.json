@@ -59,5 +59,6 @@
     "time": "Tijd",
     "clear": "Wissen",
     "done": "Klaar"
-  }
+  },
+  "readOnly": "Je kunt deze pagina bekijken, maar je rol mag hier niets wijzigen."
 }

@@ -17,7 +17,7 @@ describe('FullAccessKeyOrJwtGuard', () => {
     np_read: { name: 'r', permissions: { access: 'read', contentTypes: ['*'] } },
     np_scoped: { name: 's', permissions: { access: 'all', contentTypes: ['blog'] } },
   };
-  const guard = new FullAccessKeyOrJwtGuard({ validate: async (k: string) => keys[k] ?? null } as any, new Reflector());
+  const guard = new FullAccessKeyOrJwtGuard({ validate: async (k: string) => keys[k] ?? null } as any, new Reflector(), {} as any);
 
   it('accepts an all-access key for every content type', async () => {
     const req: any = { headers: { 'x-api-key': 'np_full' } };

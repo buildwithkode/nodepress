@@ -4,7 +4,7 @@ import { ContentTypeService } from '../../content-type/content-type.service';
 import { ContentTypeModel } from '../models/content-type.model';
 import { DeleteResult } from '../models/entry.model';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Access } from '../../auth/decorators/access.decorator';
 import { GqlJwtAuthGuard } from '../guards/gql-jwt-auth.guard';
 import { GqlJwtOptionalGuard } from '../guards/gql-jwt-optional.guard';
 import { isPublicContentType, publicContentType } from '../../content-type/public-view';
@@ -38,7 +38,7 @@ export class ContentTypesResolver {
   // ─── Mutations ────────────────────────────────────────────────────────────────
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Mutation(() => ContentTypeModel, { name: 'createContentType', description: 'Create a new content type. Admin only.' })
   createContentType(
     @Args('name') name: string,
@@ -53,7 +53,7 @@ export class ContentTypesResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Mutation(() => ContentTypeModel, { name: 'updateContentType', description: 'Update a content type schema or name. Admin only.' })
   updateContentType(
     @Args('id', { type: () => Int }) id: number,
@@ -74,7 +74,7 @@ export class ContentTypesResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Mutation(() => ContentTypeModel, { name: 'deleteContentType', description: 'Delete a content type and all its entries. Admin only.' })
   deleteContentType(@Args('id', { type: () => Int }) id: number) {
     return this.contentTypeService.remove(id);

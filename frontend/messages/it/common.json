@@ -59,5 +59,6 @@
     "time": "Ora",
     "clear": "Cancella",
     "done": "Fatto"
-  }
+  },
+  "readOnly": "Puoi vedere questa pagina, ma il tuo ruolo non può modificare nulla qui."
 }

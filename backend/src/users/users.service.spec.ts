@@ -126,6 +126,32 @@ describe('UsersService', () => {
     });
   });
 
+  // ── non-admins with Users → Edit ───────────────────────────────────────────
+
+  describe('a non-admin managing users', () => {
+    const viewer = { ...mockEditor, id: 3, email: 'v@test.com', role: 'viewer' };
+
+    it('cannot give the admin role, change an admin or their own role', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(viewer);
+      await expect(service.updateRole(3, { role: 'admin' }, 2, 'editor')).rejects.toThrow('Only an admin can give the admin role');
+      await expect(service.updateRole(3, { role: 'viewer' }, 3, 'editor')).rejects.toThrow('You cannot change your own role');
+      mockPrisma.user.findUnique.mockResolvedValue(mockAdmin);
+      await expect(service.updateRole(1, { role: 'viewer' }, 2, 'editor')).rejects.toThrow('Only an admin can change an admin account');
+      await expect(service.remove(1, 2, 'editor')).rejects.toThrow(ForbiddenException);
+      await expect(service.sendInvitation(1, 'e@test.com', 'editor')).rejects.toThrow(ForbiddenException);
+      await expect(service.create({ email: 'x@test.com', role: 'admin' } as any, 'e@test.com', 'editor')).rejects.toThrow(ForbiddenException);
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+      expect(mockPrisma.user.delete).not.toHaveBeenCalled();
+    });
+
+    it('can change other non-admin users', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(viewer);
+      mockPrisma.user.update.mockResolvedValue({ ...viewer, role: 'contributor' });
+      const result = await service.updateRole(3, { role: 'contributor' }, 2, 'editor');
+      expect(result.role).toBe('contributor');
+    });
+  });
+
   // ── remove ─────────────────────────────────────────────────────────────────
 
   describe('remove()', () => {

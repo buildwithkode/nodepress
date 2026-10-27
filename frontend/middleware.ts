@@ -1,60 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { decodeAccessCookie, levelAllows, levelForPath, moduleForPath, ADMIN_ONLY } from './lib/access';
 
 // Paths that require any authenticated user
 const ADMIN_PATHS = ['/', '/content-types', '/components', '/entries', '/media', '/api-keys', '/forms', '/users', '/webhooks', '/jobs', '/audit-log', '/brand', '/plugins', '/languages', '/releases', '/server-settings', '/import', '/redirects', '/choice-lists'];
 
-// Paths that require editor, contributor, or admin role (viewers are redirected to home)
-const EDITOR_PATHS = [
-  '/entries/new',
-];
-const EDITOR_PATTERNS = [
-  /^\/entries\/[^/]+\/edit$/,
-];
-
-// Paths that require admin or editor role (contributors and viewers are redirected to home)
-const ADMIN_OR_EDITOR_PATHS = ['/forms'];
-
-// Paths that require admin role only (editors and viewers are redirected to home)
-const ADMIN_ONLY_PATHS = [
-  '/users',
-  '/api-keys',
-  '/webhooks',
-  '/jobs',
-  '/audit-log',
-  '/plugins',
-  '/brand',
-  '/languages',
-  '/server-settings',
-  '/import',
-  '/choice-lists',
-  '/content-types/new',
-];
-const ADMIN_ONLY_PATTERNS = [
-  /^\/content-types\/[^/]+\/edit$/,
-];
-
 function isAdminPath(pathname: string): boolean {
   return ADMIN_PATHS.some(
     (p) => pathname === p || pathname.startsWith(p + '/'),
-  );
-}
-
-function isEditorPath(pathname: string): boolean {
-  return (
-    EDITOR_PATHS.includes(pathname) ||
-    EDITOR_PATTERNS.some((r) => r.test(pathname))
-  );
-}
-
-function isAdminOrEditorPath(pathname: string): boolean {
-  return ADMIN_OR_EDITOR_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
-}
-
-function isAdminOnlyPath(pathname: string): boolean {
-  return (
-    ADMIN_ONLY_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/')) ||
-    ADMIN_ONLY_PATTERNS.some((r) => r.test(pathname))
   );
 }
 
@@ -91,6 +44,7 @@ export function middleware(request: NextRequest) {
     const res = NextResponse.redirect(new URL('/login?reason=expired', request.url));
     res.cookies.delete('np_token');
     res.cookies.delete('np_role');
+    res.cookies.delete('np_access');
     return res;
   }
 
@@ -109,16 +63,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Role-based route protection (UX only — backend enforces real permissions)
-  if (token && role) {
-    if (isAdminOnlyPath(pathname) && role !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
-    if (isAdminOrEditorPath(pathname) && role !== 'admin' && role !== 'editor') {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
-    if (isEditorPath(pathname) && (role === 'viewer' || !role)) {
-      return NextResponse.redirect(new URL('/', request.url));
+  // Module access (UX only — backend enforces real permissions). np_access is
+  // written from GET /auth/me; without it the page loads and the API decides.
+  const accessCookie = request.cookies.get('np_access')?.value;
+  if (token && role && role !== 'admin' && isAdminPath(pathname)) {
+    const module = moduleForPath(pathname);
+    if (module === ADMIN_ONLY) return NextResponse.redirect(new URL('/', request.url));
+    if (module && accessCookie !== undefined) {
+      const level = decodeAccessCookie(accessCookie)[module];
+      if (!levelAllows(level, levelForPath(pathname))) return NextResponse.redirect(new URL('/', request.url));
     }
   }
 

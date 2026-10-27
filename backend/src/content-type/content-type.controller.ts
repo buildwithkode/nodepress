@@ -11,7 +11,7 @@ import { CreateContentTypeDto } from './dto/create-content-type.dto';
 import { UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
 import { FullAccessKeyOrJwtGuard } from '../api-keys/full-access-key-or-jwt.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -28,7 +28,7 @@ export class ContentTypeController {
   // ─── Write routes — admin only ─────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Post()
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Create a new content type (admin only)' })
@@ -59,7 +59,7 @@ export class ContentTypeController {
   // ─── Schema Export / Import — MUST be before @Get(':id') to avoid route shadowing ─
 
   @UseGuards(FullAccessKeyOrJwtGuard)
-  @Roles('admin', 'editor')
+  @Access('content_model', 'view')
   @Get('export')
   @ApiBearerAuth('JWT')
   @ApiHeader({ name: 'X-API-Key', required: false, description: 'Alternative to JWT: a key with "all" access to every content type' })
@@ -69,7 +69,7 @@ export class ContentTypeController {
   }
 
   @UseGuards(FullAccessKeyOrJwtGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Post('import')
   @ApiBearerAuth('JWT')
   @ApiHeader({ name: 'X-API-Key', required: false, description: 'Alternative to JWT: a key with "all" access to every content type' })
@@ -108,7 +108,7 @@ export class ContentTypeController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Put(':id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update a content type (admin only)' })
@@ -127,7 +127,7 @@ export class ContentTypeController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Post(':id/schema-impact')
   @HttpCode(200)
   @ApiBearerAuth('JWT')
@@ -142,7 +142,7 @@ export class ContentTypeController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'view')
   @Get(':id/schema-history')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get schema change history for a content type (admin only)' })
@@ -152,7 +152,7 @@ export class ContentTypeController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Delete(':id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Delete a content type and all its entries (admin only)' })

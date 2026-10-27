@@ -4,7 +4,7 @@ import { BrandService } from './brand.service';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 
 @ApiTags('Brand')
 @Controller('brand')
@@ -21,7 +21,7 @@ export class BrandController {
 
   @Put()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('brand', 'edit')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update the install brand (admin only)' })
   update(@Body() dto: UpdateBrandDto) {

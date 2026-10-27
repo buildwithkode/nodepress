@@ -25,7 +25,7 @@ describe('Choice lists (e2e)', () => {
 
   const server = () => app.getHttpServer();
 
-  it('POST /api/choice-lists → creates a list (admin only), validates choices', async () => {
+  it('POST /api/choice-lists → creates a list (content model edit), validates choices', async () => {
     const res = await request(server()).post('/api/choice-lists').set(auth).send({
       name: 'Gender', label: 'Gender',
       choices: [{ value: 'female', label: 'Female' }, { value: 'male', label: 'Male' }, { value: 'other' }],
@@ -39,7 +39,7 @@ describe('Choice lists (e2e)', () => {
     expect(bad.body.errors).toEqual(['choices[1].value "a": duplicate value']);
     await request(server()).post('/api/choice-lists').set(auth).send({ name: 'empty', label: 'E', choices: [] }).expect(400);
     await request(server()).post('/api/choice-lists').set(editorAuth).send({ name: 'x', label: 'X', choices: ['a'] }).expect(403);
-    await request(server()).get('/api/choice-lists').set(editorAuth).expect(403);
+    await request(server()).get('/api/choice-lists').set(editorAuth).expect(200); // Content model: view
     await request(server()).get('/api/choice-lists').expect(401);
   });
 

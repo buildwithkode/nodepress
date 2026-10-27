@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "加载权限失败",
       "schemaLoadFailed": "加载“{name}”的架构失败",
-      "roleLoadFailed": "加载角色权限失败",
       "updated": "权限已更新",
       "updateFailed": "更新权限失败",
       "reset": "权限已重置为默认值",
@@ -122,33 +121,13 @@
     "title": "访问控制与权限",
     "resetDefaults": "重置为默认值",
     "tabs": {
-      "contentTypes": "内容类型操作矩阵",
-      "fields": "字段级权限矩阵"
-    },
-    "actions": {
-      "create": "创建",
-      "read": "读取",
-      "update": "更新",
-      "delete": "删除",
-      "publish": "发布"
+      "modules": "模块权限",
+      "fields": "字段级（高级）"
     },
     "roleDescriptions": {
       "editor": "管理所有内容——可以创建、编辑、删除和发布。",
       "contributor": "创建和编辑内容——不能删除或发布。",
       "viewer": "对管理后台只读访问。"
-    },
-    "clickToDeselect": "点击取消选择",
-    "defaultRow": "默认 *",
-    "summary": {
-      "title": "权限摘要",
-      "description": "为此角色配置的覆盖设置。未在此列出的行将回退到通配符默认值。",
-      "empty": "无覆盖设置——所有内容类型均使用出厂默认值。"
-    },
-    "matrix": {
-      "title": "内容类型权限矩阵",
-      "description": "为每个角色设置允许的操作。<strong>*</strong> 行是所有内容类型的默认值。在特定内容类型所在行中切换操作即可单独覆盖。灰色复选框继承自通配符行。",
-      "contentType": "内容类型",
-      "inherited": "继承自 {role}/*——点击以覆盖"
     },
     "fields": {
       "title": "字段级访问控制矩阵",
@@ -172,6 +151,98 @@
       "read": "当某个角色在<strong>读取可见性</strong>中被取消勾选时，后端会在发送给客户端之前，自动从所有 REST（<path></path>）和 GraphQL 响应中移除该字段。",
       "write": "当某个角色在<strong>写入权限</strong>中被取消勾选时，后端会以 HTTP 403 Forbidden 拒绝未经授权的修改请求。"
     },
-    "adminNote": "注意：管理员始终拥有对所有架构字段的全局访问权限，且无法被限制。"
+    "adminNote": "注意：管理员始终拥有对所有架构字段的全局访问权限，且无法被限制。",
+    "modules": {
+      "title": "— 此角色可以使用的内容",
+      "description": "为后台的每个部分选择“无权限”“查看”或“编辑”。更改会立即保存。",
+      "role": "角色",
+      "levels": {
+        "none": "无权限",
+        "view": "查看",
+        "edit": "编辑"
+      },
+      "groups": {
+        "content": "内容",
+        "structure": "结构",
+        "team": "团队与开发",
+        "settings": "设置",
+        "plugins": "插件"
+      },
+      "items": {
+        "content": {
+          "label": "内容",
+          "description": "所有内容类型的条目"
+        },
+        "media": {
+          "label": "媒体库",
+          "description": "上传、整理和删除文件"
+        },
+        "forms": {
+          "label": "表单",
+          "description": "表单及其提交"
+        },
+        "releases": {
+          "label": "发布批次",
+          "description": "定时发布的批次"
+        },
+        "redirects": {
+          "label": "重定向",
+          "description": "URL 重定向"
+        },
+        "content_model": {
+          "label": "内容模型",
+          "description": "内容类型、组件、选项列表和模板"
+        },
+        "languages": {
+          "label": "语言",
+          "description": "内容语言"
+        },
+        "users": {
+          "label": "用户",
+          "description": "邀请成员并更改其角色"
+        },
+        "api_keys": {
+          "label": "API 密钥",
+          "description": "公开 API 的密钥"
+        },
+        "webhooks": {
+          "label": "Webhook",
+          "description": "Webhook 及其投递"
+        },
+        "jobs": {
+          "label": "任务",
+          "description": "后台任务"
+        },
+        "audit_log": {
+          "label": "审计日志",
+          "description": "谁更改了什么"
+        },
+        "plugins": {
+          "label": "插件",
+          "description": "启用或停用插件并更改其设置"
+        },
+        "import": {
+          "label": "导入",
+          "description": "WordPress 导入"
+        },
+        "brand": {
+          "label": "品牌",
+          "description": "名称、Logo 和颜色"
+        },
+        "server_settings": {
+          "label": "服务器设置",
+          "description": "邮件、存储和搜索"
+        }
+      },
+      "canPublish": "可以发布",
+      "canDelete": "可以删除",
+      "perType": "按内容类型",
+      "overrides": "{count, plural, other {# 个例外}}",
+      "useDefault": "使用默认",
+      "asDefault": "与默认相同",
+      "fromPlugin": "来自 {plugin}",
+      "powerful": "此处的编辑权限接近管理员权限——只授予你信任的人。",
+      "adminOnlyNote": "角色与权限、安装插件以及永久删除条目仍仅限管理员。管理员始终拥有全部权限。"
+    }
   }
 }

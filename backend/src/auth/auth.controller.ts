@@ -10,11 +10,15 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AccessService } from '../roles/access.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly accessService: AccessService,
+  ) {}
 
   @SkipThrottle()
   @Get('setup-status')
@@ -66,10 +70,10 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get current authenticated user' })
-  @ApiResponse({ status: 200, description: 'Returns current user info' })
+  @ApiResponse({ status: 200, description: 'Returns current user info, with `access` — what the role can use in the admin' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  me(@Request() req) {
-    return req.user;
+  async me(@Request() req) {
+    return { ...req.user, access: await this.accessService.forUser(req.user) };
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 10 } })

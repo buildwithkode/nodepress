@@ -8,13 +8,13 @@ import { ApiKeysService } from './api-keys.service';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
 
 @ApiTags('API Keys')
 @Controller('api-keys')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Access('api_keys', 'view')
 @ApiBearerAuth('JWT')
 export class ApiKeysController {
   constructor(
@@ -22,6 +22,7 @@ export class ApiKeysController {
     private readonly auditService: AuditService,
   ) {}
 
+  @Access('api_keys', 'edit')
   @Post()
   @ApiOperation({ summary: 'Create a new API key (admin only)' })
   @ApiResponse({ status: 201, description: 'API key created — copy the key now, it is shown in full only once' })
@@ -42,6 +43,7 @@ export class ApiKeysController {
     return this.apiKeysService.findAll();
   }
 
+  @Access('api_keys', 'edit')
   @Delete(':id')
   @ApiOperation({ summary: 'Revoke an API key' })
   @ApiParam({ name: 'id', type: Number })

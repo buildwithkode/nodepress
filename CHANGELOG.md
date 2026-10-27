@@ -12,10 +12,18 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Added
+- **Module access: choose what each role can use in the admin.** Users → Permissions now lists the parts of the admin — Content, Media library, Forms, Releases, Redirects, Content model, Languages, Users, API keys, Webhooks, Jobs, Audit log, Plugins, Import, Brand, Server settings — with **No access / View / Edit** per role, instead of a grid of ~120 checkboxes. View opens a module read-only (settings pages show their fields disabled); Edit allows changes. Content has **Can publish** and **Can delete** switches and a per-content-type expand, stored as the same permission rows as before. Field rules moved to the **Field-level (advanced)** tab. The backend enforces the levels on every admin REST and GraphQL route (`@Access(module, level)`), and the sidebar and page routing follow them. Existing installs keep their current access: the defaults are what each built-in role could do before, and **Reset to defaults** restores them. New `role_access` table (migration `20261027090000_add_role_access`); `GET /api/roles/access` and `PUT /api/roles/access/:role` (admin); `GET /api/auth/me` returns `access: { modules, content }`.
+- **Plugins can add modules.** A manifest's `adminModules` adds a module (with per-role defaults) to the permissions page while the plugin is on; plugin routes check it with `@Access` and `RolesGuard`, now exported by `@nodepress/plugin-sdk`.
+
 ### Security
 - **Webhooks no longer reach private addresses.** Admin webhooks and form webhook actions could be pointed at `localhost`, the internal network or the cloud metadata address (`169.254.169.254`), and followed redirects there. They now refuse every non-public address — checked when the connection is made, so DNS tricks don't get past it — and don't follow redirects (a 3xx is a failed delivery). **If your webhooks call services on your own network, set `WEBHOOK_ALLOW_PRIVATE=true`.**
 
 ### Changed
+- **A role's base role is now only its starting point.** A custom role used to open exactly the pages of its base role; it now has its own module levels, starting from the base role's and following it for modules you haven't changed.
+- **Staging and archiving entries need `publish`**, like publishing — in the editor, in bulk and by promote. They used to need only `update`, so a contributor-based role could take a published entry offline. Restoring from the trash needs `delete`, entry import needs `create` (+ `update` when it overwrites, + `publish` for published rows), export needs `read`.
+- **Users → Edit can be given to non-admins**, with limits: they can't give the `admin` role, change, delete or re-invite an admin, or change their own role. Roles, permissions, plugin uploads/installs/restart and permanent delete stay admin-only.
+- `GET /api/plugins` answers every signed-in user (the admin builds plugin nav items from it); plugin settings are included only for roles with Plugins → Edit, upload details only for admins.
 - **The admin's `/docs` page points to the docs site.** The 4,500-line in-app copy of the documentation had drifted from https://nodepress-docs.vercel.app; the page now shows this install's own REST endpoints (live, from its content types), a quick reference and links to every docs-site page.
 
 ### Fixed

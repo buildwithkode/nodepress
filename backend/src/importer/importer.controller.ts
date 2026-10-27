@@ -6,7 +6,7 @@ import { memoryStorage } from 'multer';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { ImporterService, MAX_IMPORT_FILE_BYTES } from './importer.service';
 
 const flag = (v?: string) => v === 'true' || v === '1';
@@ -14,11 +14,12 @@ const flag = (v?: string) => v === 'true' || v === '1';
 @ApiTags('Import')
 @Controller('import')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Access('import', 'view')
 @ApiBearerAuth('JWT')
 export class ImporterController {
   constructor(private readonly importer: ImporterService) {}
 
+  @Access('import', 'edit')
   @Post('wordpress')
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: MAX_IMPORT_FILE_BYTES, files: 1 } }))
   @ApiOperation({

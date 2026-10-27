@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "Impossibile caricare i permessi",
       "schemaLoadFailed": "Impossibile caricare lo schema di \"{name}\"",
-      "roleLoadFailed": "Impossibile caricare i permessi del ruolo",
       "updated": "Permesso aggiornato",
       "updateFailed": "Impossibile aggiornare il permesso",
       "reset": "Permessi ripristinati ai valori predefiniti",
@@ -122,33 +121,13 @@
     "title": "Controllo degli accessi e permessi",
     "resetDefaults": "Ripristina predefiniti",
     "tabs": {
-      "contentTypes": "Matrice delle azioni per tipo di contenuto",
-      "fields": "Matrice dei permessi a livello di campo"
-    },
-    "actions": {
-      "create": "Creare",
-      "read": "Leggere",
-      "update": "Aggiornare",
-      "delete": "Eliminare",
-      "publish": "Pubblicare"
+      "modules": "Accesso ai moduli",
+      "fields": "Per campo (avanzato)"
     },
     "roleDescriptions": {
       "editor": "Gestisce tutti i contenuti: può creare, modificare, eliminare e pubblicare.",
       "contributor": "Crea e modifica contenuti: non può eliminare né pubblicare.",
       "viewer": "Accesso in sola lettura al pannello di amministrazione."
-    },
-    "clickToDeselect": "fai clic per deselezionare",
-    "defaultRow": "Predefinito *",
-    "summary": {
-      "title": "Riepilogo dei permessi",
-      "description": "Personalizzazioni configurate per questo ruolo. Le righe non elencate qui usano il valore predefinito con carattere jolly.",
-      "empty": "Nessuna personalizzazione: vengono usati i valori di fabbrica per tutti i tipi di contenuto."
-    },
-    "matrix": {
-      "title": "Matrice dei permessi per tipo di contenuto",
-      "description": "Imposta le azioni consentite per ruolo. La riga <strong>*</strong> è il valore predefinito per tutti i tipi di contenuto. Personalizza i singoli tipi di contenuto attivando o disattivando le azioni nella loro riga. Le caselle in grigio sono ereditate dalla riga con carattere jolly.",
-      "contentType": "Tipo di contenuto",
-      "inherited": "Ereditato da {role}/*: fai clic per personalizzare"
     },
     "fields": {
       "title": "Matrice del controllo degli accessi a livello di campo",
@@ -172,6 +151,98 @@
       "read": "Quando un ruolo viene deselezionato da <strong>Visibilità in lettura</strong>, il backend rimuove automaticamente il campo da tutte le risposte REST (<path></path>) e GraphQL prima di inviarle al client.",
       "write": "Quando un ruolo viene deselezionato da <strong>Accesso in scrittura</strong>, il backend rifiuta i tentativi di modifica non autorizzati con HTTP 403 Forbidden."
     },
-    "adminNote": "Nota: l'amministratore ha sempre accesso universale a tutti i campi dello schema e non può essere limitato."
+    "adminNote": "Nota: l'amministratore ha sempre accesso universale a tutti i campi dello schema e non può essere limitato.",
+    "modules": {
+      "title": "— cosa può usare questo ruolo",
+      "description": "Scegli Nessun accesso, Visualizza o Modifica per ogni parte dell'amministrazione. Le modifiche vengono salvate subito.",
+      "role": "Ruolo",
+      "levels": {
+        "none": "Nessun accesso",
+        "view": "Visualizza",
+        "edit": "Modifica"
+      },
+      "groups": {
+        "content": "Contenuti",
+        "structure": "Struttura",
+        "team": "Team e sviluppo",
+        "settings": "Impostazioni",
+        "plugins": "Plugin"
+      },
+      "items": {
+        "content": {
+          "label": "Contenuti",
+          "description": "Le voci di tutti i tipi di contenuto"
+        },
+        "media": {
+          "label": "Libreria media",
+          "description": "Caricare, organizzare ed eliminare file"
+        },
+        "forms": {
+          "label": "Moduli",
+          "description": "I moduli e i loro invii"
+        },
+        "releases": {
+          "label": "Rilasci",
+          "description": "Pubblicazioni programmate in blocco"
+        },
+        "redirects": {
+          "label": "Reindirizzamenti",
+          "description": "Reindirizzamenti URL"
+        },
+        "content_model": {
+          "label": "Modello dei contenuti",
+          "description": "Tipi di contenuto, componenti, liste di scelte e modelli"
+        },
+        "languages": {
+          "label": "Lingue",
+          "description": "Lingue dei contenuti"
+        },
+        "users": {
+          "label": "Utenti",
+          "description": "Invitare persone e cambiarne il ruolo"
+        },
+        "api_keys": {
+          "label": "Chiavi API",
+          "description": "Chiavi per l'API pubblica"
+        },
+        "webhooks": {
+          "label": "Webhook",
+          "description": "I webhook e le loro consegne"
+        },
+        "jobs": {
+          "label": "Job",
+          "description": "Attività in background"
+        },
+        "audit_log": {
+          "label": "Registro attività",
+          "description": "Chi ha cambiato cosa"
+        },
+        "plugins": {
+          "label": "Plugin",
+          "description": "Attivare e disattivare i plugin e cambiarne le impostazioni"
+        },
+        "import": {
+          "label": "Importazione",
+          "description": "Importazione da WordPress"
+        },
+        "brand": {
+          "label": "Brand",
+          "description": "Nome, logo e colori"
+        },
+        "server_settings": {
+          "label": "Impostazioni server",
+          "description": "Email, archiviazione e ricerca"
+        }
+      },
+      "canPublish": "Può pubblicare",
+      "canDelete": "Può eliminare",
+      "perType": "Per tipo di contenuto",
+      "overrides": "{count, plural, one {# eccezione} other {# eccezioni}}",
+      "useDefault": "Usa il predefinito",
+      "asDefault": "Come il predefinito",
+      "fromPlugin": "Da {plugin}",
+      "powerful": "Modifica qui equivale quasi a un accesso da amministratore: concedila solo a persone fidate.",
+      "adminOnlyNote": "Ruoli e permessi, l'installazione di plugin e l'eliminazione definitiva delle voci restano riservati agli amministratori. Gli amministratori hanno sempre accesso completo."
+    }
   }
 }

@@ -40,6 +40,7 @@ import {
 import { cn } from '@/lib/utils';
 import api from '../../../lib/axios';
 import { useTranslations } from 'use-intl';
+import { useAccess } from '@/lib/use-access';
 
 interface Webhook {
   id: number;
@@ -93,6 +94,7 @@ const EVENT_COLORS: Record<string, string> = {
 
 export default function WebhooksPage() {
   const t = useTranslations('developer');
+  const editable = useAccess().canEdit('webhooks');
   const tc = useTranslations('common');
   const [activeTab, setActiveTab] = useState('webhooks');
   const [webhooks, setWebhooks] = useState<Webhook[]>([]);
@@ -265,7 +267,7 @@ export default function WebhooksPage() {
   const failedCount = deliveries.filter((d) => d.status === 'failed').length;
 
   return (
-    <AdminGuard>
+    <AdminGuard module="webhooks">
     <div className="space-y-6">
       {/* Top Navigation / Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -296,10 +298,12 @@ export default function WebhooksPage() {
                   <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5', loading && 'animate-spin')} />
                   {tc('refresh')}
                 </Button>
-                <Button size="sm" onClick={openCreate}>
-                  <Plus className="h-4 w-4 mr-1.5" />
-                  {t('webhooks.addWebhook')}
-                </Button>
+                {editable && (
+                  <Button size="sm" onClick={openCreate}>
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    {t('webhooks.addWebhook')}
+                  </Button>
+                )}
               </>
             ) : (
               <Button variant="outline" size="sm" onClick={() => fetchDeliveries()} disabled={deliveriesLoading}>
@@ -421,7 +425,7 @@ export default function WebhooksPage() {
               <Zap className="h-10 w-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm font-medium">{t('webhooks.emptyTitle')}</p>
               <p className="text-xs mt-1 text-muted-foreground">{t('webhooks.emptyDescription')}</p>
-              <Button size="sm" onClick={openCreate} className="mt-4">
+              <Button size="sm" onClick={openCreate} className="mt-4" disabled={!editable}>
                 <Plus className="h-4 w-4 mr-1.5" />
                 {t('webhooks.registerFirst')}
               </Button>
@@ -490,6 +494,7 @@ export default function WebhooksPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => handleToggle(hook)}
+                        disabled={!editable}
                         title={hook.enabled ? t('webhooks.disableWebhook') : t('webhooks.enableWebhook')}
                       >
                         {hook.enabled ? <ToggleRight className="h-4 w-4 text-emerald-400" /> : <ToggleLeft className="h-4 w-4" />}
@@ -499,6 +504,7 @@ export default function WebhooksPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => openEdit(hook)}
+                        disabled={!editable}
                         title={t('webhooks.editTitle')}
                       >
                         <Pencil className="h-3.5 w-3.5" />
@@ -508,7 +514,7 @@ export default function WebhooksPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => handlePing(hook)}
-                        disabled={pinging === hook.id}
+                        disabled={!editable || pinging === hook.id}
                         title={t('webhooks.sendPing')}
                       >
                         {pinging === hook.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
@@ -516,7 +522,7 @@ export default function WebhooksPage() {
 
                       <AlertDialog>
                         <AlertDialogTrigger render={
-                          <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" />
+                          <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" disabled={!editable} />
                         }>
                           <Trash2 className="h-3.5 w-3.5" />
                         </AlertDialogTrigger>
@@ -674,7 +680,7 @@ export default function WebhooksPage() {
                           <Button
                             variant="outline"
                             size="xs"
-                            disabled={retryingDeliveryId === del.id}
+                            disabled={!editable || retryingDeliveryId === del.id}
                             onClick={() => handleRedeliver(del.id)}
                             className="text-xs h-7 gap-1 hover:bg-primary hover:text-primary-foreground transition-colors"
                             title={t('webhooks.redispatchHint')}
@@ -769,6 +775,7 @@ export default function WebhooksPage() {
             <Button
               variant="outline"
               size="sm"
+              disabled={!editable}
               onClick={() => {
                 if (inspectDelivery) handleRedeliver(inspectDelivery.id);
                 setInspectDelivery(null);

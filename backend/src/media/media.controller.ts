@@ -16,7 +16,7 @@ import { MediaService } from './media.service';
 import { ImageTransformService } from './image-transform.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 
 const storage = diskStorage({
   destination: join(process.cwd(), 'uploads'),
@@ -65,7 +65,7 @@ export class MediaController {
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Access('media', 'edit')
   @Post('upload')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Upload a file — auto-optimized (images resized + WebP generated)' })
@@ -129,7 +129,7 @@ export class MediaController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Access('media', 'edit')
   @Post('folders')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Create a media folder' })
@@ -142,7 +142,7 @@ export class MediaController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Access('media', 'edit')
   @Put('folders/:id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Rename a media folder' })
@@ -155,7 +155,7 @@ export class MediaController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Access('media', 'edit')
   @Delete('folders/:id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Delete a folder (cascades to sub-folders; files become unfiled)' })
@@ -165,7 +165,7 @@ export class MediaController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Access('media', 'edit')
   @Put(':filename/folder')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Move a file into a folder (or to root with folderId: null)' })
@@ -228,7 +228,7 @@ export class MediaController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Access('media', 'edit')
   @Put(':filename/focal-point')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Set (or clear with nulls) the focal point used for cover crops' })
@@ -244,7 +244,7 @@ export class MediaController {
   // ── File delete — must come after all static /folders/* routes ─────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Access('media', 'edit')
   @Delete(':filename')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Delete a file (also deletes WebP sibling + S3 key)' })

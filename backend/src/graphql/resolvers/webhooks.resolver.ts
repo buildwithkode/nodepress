@@ -4,7 +4,7 @@ import { WebhooksService } from '../../webhooks/webhooks.service';
 import { WebhookModel, WebhookDeliveryModel } from '../models/webhook.model';
 import { DeleteResult } from '../models/entry.model';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { Access } from '../../auth/decorators/access.decorator';
 import { GqlJwtAuthGuard } from '../guards/gql-jwt-auth.guard';
 
 @Resolver(() => WebhookModel)
@@ -14,14 +14,14 @@ export class WebhooksResolver {
   // ─── Queries ─────────────────────────────────────────────────────────────────
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('webhooks', 'view')
   @Query(() => [WebhookModel], { name: 'webhooks', description: 'List all webhooks. Admin only.' })
   findAll() {
     return this.webhooksService.findAll().then((r) => r.data);
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('webhooks', 'view')
   @Query(() => WebhookModel, { name: 'webhook', nullable: true, description: 'Get a webhook by ID. Admin only.' })
   async findOne(@Args('id', { type: () => Int }) id: number) {
     try {
@@ -32,7 +32,7 @@ export class WebhooksResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('webhooks', 'view')
   @Query(() => [WebhookDeliveryModel], { name: 'webhookDeliveries', description: 'Delivery log for a webhook. Admin only.' })
   deliveries(
     @Args('webhookId', { type: () => Int }) webhookId: number,
@@ -45,7 +45,7 @@ export class WebhooksResolver {
   // ─── Mutations ────────────────────────────────────────────────────────────────
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('webhooks', 'edit')
   @Mutation(() => WebhookModel, { name: 'createWebhook', description: 'Create a new webhook. Admin only.' })
   createWebhook(
     @Args('name') name: string,
@@ -58,7 +58,7 @@ export class WebhooksResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('webhooks', 'edit')
   @Mutation(() => WebhookModel, { name: 'toggleWebhook', description: 'Enable or disable a webhook. Admin only.' })
   toggleWebhook(
     @Args('id', { type: () => Int }) id: number,
@@ -68,7 +68,7 @@ export class WebhooksResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('webhooks', 'edit')
   @Mutation(() => DeleteResult, { name: 'pingWebhook', description: 'Send a test ping to a webhook. Admin only.' })
   async pingWebhook(@Args('id', { type: () => Int }) id: number) {
     await this.webhooksService.ping(id);
@@ -76,7 +76,7 @@ export class WebhooksResolver {
   }
 
   @UseGuards(GqlJwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Access('webhooks', 'edit')
   @Mutation(() => DeleteResult, { name: 'deleteWebhook', description: 'Delete a webhook. Admin only.' })
   deleteWebhook(@Args('id', { type: () => Int }) id: number) {
     return this.webhooksService.remove(id);

@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "No se pudieron cargar los permisos",
       "schemaLoadFailed": "No se pudo cargar el esquema de «{name}»",
-      "roleLoadFailed": "No se pudieron cargar los permisos del rol",
       "updated": "Permiso actualizado",
       "updateFailed": "No se pudo actualizar el permiso",
       "reset": "Permisos restablecidos a los valores predeterminados",
@@ -122,33 +121,13 @@
     "title": "Control de acceso y permisos",
     "resetDefaults": "Restablecer valores predeterminados",
     "tabs": {
-      "contentTypes": "Matriz de acciones por tipo de contenido",
-      "fields": "Matriz de permisos por campo"
-    },
-    "actions": {
-      "create": "Crear",
-      "read": "Leer",
-      "update": "Editar",
-      "delete": "Eliminar",
-      "publish": "Publicar"
+      "modules": "Acceso a módulos",
+      "fields": "Por campo (avanzado)"
     },
     "roleDescriptions": {
       "editor": "Gestiona todo el contenido — puede crear, editar, eliminar y publicar.",
       "contributor": "Crea y edita contenido — no puede eliminar ni publicar.",
       "viewer": "Acceso de solo lectura al panel de administración."
-    },
-    "clickToDeselect": "haz clic para deseleccionar",
-    "defaultRow": "Predeterminado *",
-    "summary": {
-      "title": "Resumen de permisos",
-      "description": "Excepciones configuradas para este rol. Las filas que no aparecen usan el valor predeterminado comodín.",
-      "empty": "Sin excepciones — se usan los valores de fábrica para todos los tipos de contenido."
-    },
-    "matrix": {
-      "title": "Matriz de permisos por tipo de contenido",
-      "description": "Define las acciones permitidas por rol. La fila <strong>*</strong> es el valor predeterminado para todos los tipos de contenido. Personaliza un tipo de contenido activando acciones en su propia fila. Las casillas atenuadas se heredan de la fila comodín.",
-      "contentType": "Tipo de contenido",
-      "inherited": "Heredado de {role}/* — haz clic para personalizar"
     },
     "fields": {
       "title": "Matriz de control de acceso por campo",
@@ -172,6 +151,98 @@
       "read": "Cuando se desmarca un rol en <strong>Visibilidad de lectura</strong>, el backend elimina automáticamente el campo de todas las respuestas REST (<path></path>) y GraphQL antes de enviarlas al cliente.",
       "write": "Cuando se desmarca un rol en <strong>Acceso de escritura</strong>, el backend rechaza los intentos de modificación no autorizados con HTTP 403 Forbidden."
     },
-    "adminNote": "Nota: el administrador siempre tiene acceso universal a todos los campos del esquema y no se puede restringir."
+    "adminNote": "Nota: el administrador siempre tiene acceso universal a todos los campos del esquema y no se puede restringir.",
+    "modules": {
+      "title": "— lo que este rol puede usar",
+      "description": "Elige Sin acceso, Ver o Editar para cada parte del panel. Los cambios se guardan al momento.",
+      "role": "Rol",
+      "levels": {
+        "none": "Sin acceso",
+        "view": "Ver",
+        "edit": "Editar"
+      },
+      "groups": {
+        "content": "Contenido",
+        "structure": "Estructura",
+        "team": "Equipo y desarrollo",
+        "settings": "Ajustes",
+        "plugins": "Plugins"
+      },
+      "items": {
+        "content": {
+          "label": "Contenido",
+          "description": "Entradas de todos los tipos de contenido"
+        },
+        "media": {
+          "label": "Biblioteca de medios",
+          "description": "Subir, organizar y eliminar archivos"
+        },
+        "forms": {
+          "label": "Formularios",
+          "description": "Formularios y sus envíos"
+        },
+        "releases": {
+          "label": "Lanzamientos",
+          "description": "Lotes de publicación programada"
+        },
+        "redirects": {
+          "label": "Redirecciones",
+          "description": "Redirecciones de URL"
+        },
+        "content_model": {
+          "label": "Modelo de contenido",
+          "description": "Tipos de contenido, componentes, listas de opciones y plantillas"
+        },
+        "languages": {
+          "label": "Idiomas",
+          "description": "Idiomas del contenido"
+        },
+        "users": {
+          "label": "Usuarios",
+          "description": "Invitar personas y cambiar su rol"
+        },
+        "api_keys": {
+          "label": "Claves API",
+          "description": "Claves de la API pública"
+        },
+        "webhooks": {
+          "label": "Webhooks",
+          "description": "Webhooks y sus entregas"
+        },
+        "jobs": {
+          "label": "Tareas",
+          "description": "Tareas en segundo plano"
+        },
+        "audit_log": {
+          "label": "Registro de auditoría",
+          "description": "Quién cambió qué"
+        },
+        "plugins": {
+          "label": "Plugins",
+          "description": "Activar y desactivar plugins y cambiar sus ajustes"
+        },
+        "import": {
+          "label": "Importación",
+          "description": "Importación de WordPress"
+        },
+        "brand": {
+          "label": "Marca",
+          "description": "Nombre, logotipo y colores"
+        },
+        "server_settings": {
+          "label": "Ajustes del servidor",
+          "description": "Correo, almacenamiento y búsqueda"
+        }
+      },
+      "canPublish": "Puede publicar",
+      "canDelete": "Puede eliminar",
+      "perType": "Por tipo de contenido",
+      "overrides": "{count, plural, one {# excepción} other {# excepciones}}",
+      "useDefault": "Usar el predeterminado",
+      "asDefault": "Igual que el predeterminado",
+      "fromPlugin": "De {plugin}",
+      "powerful": "Editar aquí es casi un acceso de administrador: dalo solo a personas de confianza.",
+      "adminOnlyNote": "Los roles y permisos, la instalación de plugins y la eliminación definitiva de entradas siguen siendo solo para administradores. Los administradores siempre tienen acceso total."
+    }
   }
 }

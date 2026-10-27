@@ -7,7 +7,7 @@ import { ComponentsService } from './components.service';
 import { CreateComponentDto, UpdateComponentDto } from './dto/component.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
 
 @ApiTags('Components')
@@ -38,7 +38,7 @@ export class ComponentsController {
   // ─── Write routes — admin only ─────────────────────────────────────────────
 
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Post()
   @ApiOperation({ summary: 'Create a component (admin only)' })
   @ApiResponse({ status: 409, description: 'Name already exists' })
@@ -52,7 +52,7 @@ export class ComponentsController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Put(':id')
   @ApiOperation({ summary: 'Update a component and every content type that uses it (admin only)' })
   @ApiParam({ name: 'id', type: Number })
@@ -71,7 +71,7 @@ export class ComponentsController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Access('content_model', 'edit')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a component (admin only) — 409 while a content type uses it' })
   @ApiParam({ name: 'id', type: Number })

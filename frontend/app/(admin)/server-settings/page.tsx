@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmailSettingsForm, ServerSettings, StorageSettingsForm } from '@/components/ServerSettingsForms';
+import { ReadOnly } from '@/components/ReadOnly';
 
 /** Settings → Email & storage (admin): SMTP, file storage and the search engine. */
 export default function ServerSettingsPage() {
@@ -45,46 +46,48 @@ export default function ServerSettingsPage() {
         <p className="text-sm text-muted-foreground mt-1">{t('server.subtitle')}</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Mail className="h-4 w-4" />{t('server.mail.title')}</CardTitle>
-          <CardDescription>{t('server.mail.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <EmailSettingsForm settings={settings.mail} onSaved={setSettings} defaultTestTo={user?.email ?? ''} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><HardDrive className="h-4 w-4" />{t('server.storage.title')}</CardTitle>
-          <CardDescription>{t('server.storage.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <StorageSettingsForm settings={settings.storage} onSaved={setSettings} />
-        </CardContent>
-      </Card>
-
-      {search && (
+      <ReadOnly module="server_settings">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><Search className="h-4 w-4" />{t('server.search.title')}</CardTitle>
-            <CardDescription>
-              {search.driver === 'meilisearch'
-                ? t('server.search.meilisearch', { index: search.index ?? '' })
-                : t.rich('server.search.postgres', { code: (c) => <code className="font-mono text-xs">{c}</code> })}
-            </CardDescription>
+            <CardTitle className="text-base flex items-center gap-2"><Mail className="h-4 w-4" />{t('server.mail.title')}</CardTitle>
+            <CardDescription>{t('server.mail.description')}</CardDescription>
           </CardHeader>
-          {search.driver === 'meilisearch' && (
-            <CardContent>
-              <Button variant="outline" onClick={reindex} disabled={reindexing}>
-                {reindexing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1.5" />}
-                {t('server.search.reindex')}
-              </Button>
-            </CardContent>
-          )}
+          <CardContent>
+            <EmailSettingsForm settings={settings.mail} onSaved={setSettings} defaultTestTo={user?.email ?? ''} />
+          </CardContent>
         </Card>
-      )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><HardDrive className="h-4 w-4" />{t('server.storage.title')}</CardTitle>
+            <CardDescription>{t('server.storage.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <StorageSettingsForm settings={settings.storage} onSaved={setSettings} />
+          </CardContent>
+        </Card>
+
+        {search && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><Search className="h-4 w-4" />{t('server.search.title')}</CardTitle>
+              <CardDescription>
+                {search.driver === 'meilisearch'
+                  ? t('server.search.meilisearch', { index: search.index ?? '' })
+                  : t.rich('server.search.postgres', { code: (c) => <code className="font-mono text-xs">{c}</code> })}
+              </CardDescription>
+            </CardHeader>
+            {search.driver === 'meilisearch' && (
+              <CardContent>
+                <Button variant="outline" onClick={reindex} disabled={reindexing}>
+                  {reindexing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1.5" />}
+                  {t('server.search.reindex')}
+                </Button>
+              </CardContent>
+            )}
+          </Card>
+        )}
+      </ReadOnly>
     </div>
   );
 }

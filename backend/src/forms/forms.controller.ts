@@ -7,7 +7,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { FormsService } from './forms.service';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
@@ -16,7 +16,7 @@ import { UpdateFormDto } from './dto/update-form.dto';
 // whole admin API is for admins and editors. Public submit: SubmitController.
 @ApiTags('Forms')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin', 'editor')
+@Access('forms', 'view')
 @Controller('forms')
 export class FormsController {
   constructor(private readonly forms: FormsService) {}
@@ -32,6 +32,7 @@ export class FormsController {
 
   // ── CRUD ──────────────────────────────────────────────────
 
+  @Access('forms', 'edit')
   @Post()
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Create a new form' })
@@ -59,6 +60,7 @@ export class FormsController {
     return this.forms.findOne(id);
   }
 
+  @Access('forms', 'edit')
   @Put(':id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update a form' })
@@ -70,6 +72,7 @@ export class FormsController {
     return this.forms.update(id, dto);
   }
 
+  @Access('forms', 'edit')
   @Delete(':id')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Delete a form (and all its submissions)' })

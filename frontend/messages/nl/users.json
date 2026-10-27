@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "Rechten laden mislukt",
       "schemaLoadFailed": "Schema voor \"{name}\" laden mislukt",
-      "roleLoadFailed": "Rolrechten laden mislukt",
       "updated": "Recht bijgewerkt",
       "updateFailed": "Recht bijwerken mislukt",
       "reset": "Rechten teruggezet naar standaard",
@@ -122,33 +121,13 @@
     "title": "Toegangsbeheer & rechten",
     "resetDefaults": "Terugzetten naar standaard",
     "tabs": {
-      "contentTypes": "Actiematrix per contenttype",
-      "fields": "Rechtenmatrix per veld"
-    },
-    "actions": {
-      "create": "Aanmaken",
-      "read": "Lezen",
-      "update": "Bijwerken",
-      "delete": "Verwijderen",
-      "publish": "Publiceren"
+      "modules": "Moduletoegang",
+      "fields": "Per veld (geavanceerd)"
     },
     "roleDescriptions": {
       "editor": "Beheert alle content — kan aanmaken, bewerken, verwijderen en publiceren.",
       "contributor": "Maakt en bewerkt content — kan niet verwijderen of publiceren.",
       "viewer": "Alleen-lezen toegang tot het beheerpaneel."
-    },
-    "clickToDeselect": "klik om te deselecteren",
-    "defaultRow": "Standaard *",
-    "summary": {
-      "title": "Overzicht van rechten",
-      "description": "Afwijkingen die voor deze rol zijn ingesteld. Rijen die hier niet staan, vallen terug op de wildcard-standaard.",
-      "empty": "Geen afwijkingen — de fabrieksinstellingen gelden voor alle contenttypes."
-    },
-    "matrix": {
-      "title": "Rechtenmatrix per contenttype",
-      "description": "Stel per rol de toegestane acties in. De rij <strong>*</strong> is de standaard voor alle contenttypes. Wijk af voor afzonderlijke contenttypes door acties in hun eigen rij aan of uit te zetten. Grijze vinkjes zijn overgenomen van de wildcard-rij.",
-      "contentType": "Contenttype",
-      "inherited": "Overgenomen van {role}/* — klik om af te wijken"
     },
     "fields": {
       "title": "Toegangsmatrix per veld",
@@ -172,6 +151,98 @@
       "read": "Als een rol niet is aangevinkt bij <strong>Leeszichtbaarheid</strong>, haalt de backend het veld automatisch uit alle REST- (<path></path>) en GraphQL-antwoorden voordat ze naar de client gaan.",
       "write": "Als een rol niet is aangevinkt bij <strong>Schrijftoegang</strong>, weigert de backend ongeautoriseerde wijzigingspogingen met HTTP 403 Forbidden."
     },
-    "adminNote": "Let op: de beheerder heeft altijd toegang tot alle schemavelden en kan niet worden beperkt."
+    "adminNote": "Let op: de beheerder heeft altijd toegang tot alle schemavelden en kan niet worden beperkt.",
+    "modules": {
+      "title": "— wat deze rol mag gebruiken",
+      "description": "Kies Geen toegang, Bekijken of Bewerken voor elk deel van het beheer. Wijzigingen worden meteen opgeslagen.",
+      "role": "Rol",
+      "levels": {
+        "none": "Geen toegang",
+        "view": "Bekijken",
+        "edit": "Bewerken"
+      },
+      "groups": {
+        "content": "Inhoud",
+        "structure": "Structuur",
+        "team": "Team & ontwikkeling",
+        "settings": "Instellingen",
+        "plugins": "Plug-ins"
+      },
+      "items": {
+        "content": {
+          "label": "Inhoud",
+          "description": "Items van elk contenttype"
+        },
+        "media": {
+          "label": "Mediabibliotheek",
+          "description": "Bestanden uploaden, ordenen en verwijderen"
+        },
+        "forms": {
+          "label": "Formulieren",
+          "description": "Formulieren en hun inzendingen"
+        },
+        "releases": {
+          "label": "Releases",
+          "description": "Gebundelde, geplande publicaties"
+        },
+        "redirects": {
+          "label": "Doorverwijzingen",
+          "description": "URL-doorverwijzingen"
+        },
+        "content_model": {
+          "label": "Contentmodel",
+          "description": "Contenttypes, componenten, keuzelijsten en sjablonen"
+        },
+        "languages": {
+          "label": "Talen",
+          "description": "Talen van de inhoud"
+        },
+        "users": {
+          "label": "Gebruikers",
+          "description": "Mensen uitnodigen en hun rol wijzigen"
+        },
+        "api_keys": {
+          "label": "API-sleutels",
+          "description": "Sleutels voor de publieke API"
+        },
+        "webhooks": {
+          "label": "Webhooks",
+          "description": "Webhooks en hun leveringen"
+        },
+        "jobs": {
+          "label": "Taken",
+          "description": "Achtergrondtaken"
+        },
+        "audit_log": {
+          "label": "Auditlog",
+          "description": "Wie wat heeft gewijzigd"
+        },
+        "plugins": {
+          "label": "Plug-ins",
+          "description": "Plug-ins aan- en uitzetten en hun instellingen wijzigen"
+        },
+        "import": {
+          "label": "Import",
+          "description": "WordPress-import"
+        },
+        "brand": {
+          "label": "Merk",
+          "description": "Naam, logo en kleuren"
+        },
+        "server_settings": {
+          "label": "Serverinstellingen",
+          "description": "E-mail, opslag en zoeken"
+        }
+      },
+      "canPublish": "Mag publiceren",
+      "canDelete": "Mag verwijderen",
+      "perType": "Per contenttype",
+      "overrides": "{count, plural, one {# afwijking} other {# afwijkingen}}",
+      "useDefault": "Standaard gebruiken",
+      "asDefault": "Zelfde als standaard",
+      "fromPlugin": "Van {plugin}",
+      "powerful": "Bewerken is hier bijna beheerderstoegang — geef het alleen aan mensen die je vertrouwt.",
+      "adminOnlyNote": "Rollen en rechten, plug-ins installeren en items definitief verwijderen blijven voorbehouden aan beheerders. Beheerders hebben altijd volledige toegang."
+    }
   }
 }

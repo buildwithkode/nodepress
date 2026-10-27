@@ -11,16 +11,17 @@ import { CreateWebhookDto } from './dto/create-webhook.dto';
 import { UpdateWebhookDto } from './dto/update-webhook.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 
 @ApiTags('Webhooks')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Access('webhooks', 'view')
 @Controller('webhooks')
 export class WebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}
 
+  @Access('webhooks', 'edit')
   @Post()
   @ApiOperation({ summary: 'Register a new webhook (admin)' })
   create(@Body() dto: CreateWebhookDto) {
@@ -60,6 +61,7 @@ export class WebhooksController {
     );
   }
 
+  @Access('webhooks', 'edit')
   @Post('deliveries/:id/retry')
   @ApiOperation({ summary: '1-Click re-delivery of a past or failed webhook payload (admin)' })
   @ApiParam({ name: 'id', type: Number })
@@ -67,6 +69,7 @@ export class WebhooksController {
     return this.webhooksService.redeliver(id);
   }
 
+  @Access('webhooks', 'edit')
   @Patch(':id/toggle')
   @ApiOperation({ summary: 'Enable or disable a webhook (admin)' })
   @ApiParam({ name: 'id', type: Number })
@@ -74,6 +77,7 @@ export class WebhooksController {
     return this.webhooksService.toggle(id, enabled);
   }
 
+  @Access('webhooks', 'edit')
   @Post(':id/ping')
   @ApiOperation({ summary: 'Send a test ping to a webhook (admin)' })
   @ApiParam({ name: 'id', type: Number })
@@ -81,6 +85,7 @@ export class WebhooksController {
     return this.webhooksService.ping(id);
   }
 
+  @Access('webhooks', 'edit')
   @Patch(':id')
   @ApiOperation({ summary: 'Update a webhook (admin)' })
   @ApiParam({ name: 'id', type: Number })
@@ -88,6 +93,7 @@ export class WebhooksController {
     return this.webhooksService.update(id, dto);
   }
 
+  @Access('webhooks', 'edit')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a webhook (admin)' })
   @ApiParam({ name: 'id', type: Number })

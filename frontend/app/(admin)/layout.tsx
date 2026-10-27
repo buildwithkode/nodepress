@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { usePlugins } from '../../context/PluginContext';
 import { useBrand } from '../../context/BrandContext';
 import { PluginInitializer } from '@/components/PluginInitializer';
-import { canDeleteContent, canManageSettings } from '@/lib/roles';
+import { canView, moduleForPath } from '@/lib/access';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
@@ -35,18 +35,20 @@ import {
   X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, Upload, ListOrdered } from 'lucide-react';
 
 interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
-interface NavGroup { label: string; adminOnly: boolean; items: NavLink[]; externalLinks?: NavLink[] }
+interface NavGroup { label: string; items: NavLink[]; externalLinks?: NavLink[] }
 
-/** Labels are keys into messages/<locale>/nav.json (groups.* and items.*). */
+/**
+ * Labels are keys into messages/<locale>/nav.json (groups.* and items.*).
+ * Items show when the role can view their module (lib/access.ts moduleForPath);
+ * a group with no visible items is hidden.
+ */
 const ALL_NAV_GROUPS: Array<{
   labelKey: string;
-  adminOnly: boolean;
   items: Array<{ href: string; labelKey: string; icon: NavLink['icon'] }>;
   externalLinks?: Array<{ href: string; labelKey: string; icon: NavLink['icon'] }>;
 }> = [
   {
     labelKey: 'content',
-    adminOnly: false,
     items: [
       { href: '/',              labelKey: 'dashboard',     icon: LayoutDashboard },
       { href: '/content-types', labelKey: 'contentTypes', icon: Layers },
@@ -59,14 +61,12 @@ const ALL_NAV_GROUPS: Array<{
   },
   {
     labelKey: 'assets',
-    adminOnly: false,
     items: [
       { href: '/media', labelKey: 'media', icon: Image },
     ],
   },
   {
     labelKey: 'developer',
-    adminOnly: true,
     items: [
       { href: '/plugins',   labelKey: 'plugins',   icon: Puzzle },
       { href: '/api-keys',  labelKey: 'apiKeys',  icon: Key },
@@ -80,7 +80,6 @@ const ALL_NAV_GROUPS: Array<{
   },
   {
     labelKey: 'team',
-    adminOnly: true,
     items: [
       { href: '/users', labelKey: 'users', icon: Users },
       { href: '/users/roles', labelKey: 'roles', icon: UserCog },
@@ -88,7 +87,6 @@ const ALL_NAV_GROUPS: Array<{
   },
   {
     labelKey: 'settings',
-    adminOnly: true,
     items: [
       { href: '/brand', labelKey: 'brand', icon: Palette },
       { href: '/languages', labelKey: 'languages', icon: Languages },
@@ -99,7 +97,6 @@ const ALL_NAV_GROUPS: Array<{
   },
   {
     labelKey: 'help',
-    adminOnly: false,
     items: [
       { href: '/docs', labelKey: 'docs', icon: BookOpen },
     ],
@@ -142,25 +139,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Interceptor already fired window.location but render one null frame to be safe.
   if (!user) return null;
 
-  const admin = canManageSettings(user?.role);
-  const baseGroups: NavGroup[] = ALL_NAV_GROUPS.filter((g) => !g.adminOnly || admin).map((g) => ({
-    adminOnly: g.adminOnly,
+  const visible = (href: string) => {
+    const module = moduleForPath(href);
+    return !module || canView(user, module);
+  };
+  const baseGroups: NavGroup[] = ALL_NAV_GROUPS.map((g) => ({
     label: t(`groups.${g.labelKey}`),
-    // Forms are for admins and editors only (the API refuses other roles)
-    items: g.items
-      .filter((i) => i.href !== '/forms' || canDeleteContent(user?.role))
-      .map((i) => ({ ...i, label: t(`items.${i.labelKey}`) })),
+    items: g.items.filter((i) => visible(i.href)).map((i) => ({ ...i, label: t(`items.${i.labelKey}`) })),
     externalLinks: g.externalLinks?.map((i) => ({ ...i, label: t(`items.${i.labelKey}`) })),
-  }));
+  })).filter((g) => g.items.length > 0);
 
   // Merge plugin-contributed nav items into a 'Plugins' group
-  const allNavGroups: NavGroup[] = pluginNavItems.length > 0
+  const pluginItems = pluginNavItems.filter((item) =>
+    item.adminOnly ? user.role === 'admin' : !item.module || canView(user, item.module));
+  const allNavGroups: NavGroup[] = pluginItems.length > 0
     ? [
         ...baseGroups,
         {
           label: t('groups.plugins'),
-          adminOnly: false,
-          items: pluginNavItems.map((item) => ({ ...item, icon: item.icon ?? Puzzle })),
+          items: pluginItems.map((item) => ({ ...item, icon: item.icon ?? Puzzle })),
         },
       ]
     : baseGroups;

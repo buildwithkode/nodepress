@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "Failed to load permissions",
       "schemaLoadFailed": "Failed to load schema for \"{name}\"",
-      "roleLoadFailed": "Failed to load role permissions",
       "updated": "Permission updated",
       "updateFailed": "Failed to update permission",
       "reset": "Permissions reset to defaults",
@@ -122,33 +121,13 @@
     "title": "Access Control & Permissions",
     "resetDefaults": "Reset to defaults",
     "tabs": {
-      "contentTypes": "Content-Type Actions Matrix",
-      "fields": "Field-Level Permissions Matrix"
-    },
-    "actions": {
-      "create": "Create",
-      "read": "Read",
-      "update": "Update",
-      "delete": "Delete",
-      "publish": "Publish"
+      "modules": "Module access",
+      "fields": "Field-level (advanced)"
     },
     "roleDescriptions": {
       "editor": "Manages all content — can create, edit, delete, and publish.",
       "contributor": "Creates and edits content — cannot delete or publish.",
       "viewer": "Read-only access to the admin panel."
-    },
-    "clickToDeselect": "click to deselect",
-    "defaultRow": "Default *",
-    "summary": {
-      "title": "Permission Summary",
-      "description": "Overrides configured for this role. Rows not listed here fall back to the wildcard default.",
-      "empty": "No overrides — using factory defaults for all content types."
-    },
-    "matrix": {
-      "title": "Content Type Permission Matrix",
-      "description": "Set allowed actions per role. The <strong>*</strong> row is the default for all content types. Override individual content types by toggling actions in their specific row. Greyed checkboxes are inherited from the wildcard row.",
-      "contentType": "Content Type",
-      "inherited": "Inherited from {role}/* — click to override"
     },
     "fields": {
       "title": "Field-Level Access Control Matrix",
@@ -172,6 +151,98 @@
       "read": "When a role is unchecked from <strong>Read Visibility</strong>, the backend automatically strips the field from all REST (<path></path>) and GraphQL responses before sending to the client.",
       "write": "When a role is unchecked from <strong>Write Access</strong>, the backend rejects unauthorized mutation attempts with HTTP 403 Forbidden."
     },
-    "adminNote": "Note: Admin always has universal access across all schema fields and cannot be restricted."
+    "adminNote": "Note: Admin always has universal access across all schema fields and cannot be restricted.",
+    "modules": {
+      "title": "— what this role can use",
+      "description": "Choose No access, View or Edit for each part of the admin. Changes save right away.",
+      "role": "Role",
+      "levels": {
+        "none": "No access",
+        "view": "View",
+        "edit": "Edit"
+      },
+      "groups": {
+        "content": "Content",
+        "structure": "Structure",
+        "team": "Team & developer",
+        "settings": "Settings",
+        "plugins": "Plugins"
+      },
+      "items": {
+        "content": {
+          "label": "Content",
+          "description": "Entries of every content type"
+        },
+        "media": {
+          "label": "Media library",
+          "description": "Upload, organise and delete files"
+        },
+        "forms": {
+          "label": "Forms",
+          "description": "Forms and their submissions"
+        },
+        "releases": {
+          "label": "Releases",
+          "description": "Batches of scheduled publishing"
+        },
+        "redirects": {
+          "label": "Redirects",
+          "description": "URL redirects"
+        },
+        "content_model": {
+          "label": "Content model",
+          "description": "Content types, components, choice lists and templates"
+        },
+        "languages": {
+          "label": "Languages",
+          "description": "Content languages"
+        },
+        "users": {
+          "label": "Users",
+          "description": "Invite people and change their roles"
+        },
+        "api_keys": {
+          "label": "API keys",
+          "description": "Keys for the public API"
+        },
+        "webhooks": {
+          "label": "Webhooks",
+          "description": "Webhooks and their deliveries"
+        },
+        "jobs": {
+          "label": "Jobs",
+          "description": "Background jobs"
+        },
+        "audit_log": {
+          "label": "Audit log",
+          "description": "Who changed what"
+        },
+        "plugins": {
+          "label": "Plugins",
+          "description": "Turn plugins on and off and change their settings"
+        },
+        "import": {
+          "label": "Import",
+          "description": "WordPress import"
+        },
+        "brand": {
+          "label": "Brand",
+          "description": "Name, logo and colours"
+        },
+        "server_settings": {
+          "label": "Server settings",
+          "description": "Email, storage and search"
+        }
+      },
+      "canPublish": "Can publish",
+      "canDelete": "Can delete",
+      "perType": "Per content type",
+      "overrides": "{count, plural, one {# override} other {# overrides}}",
+      "useDefault": "Use default",
+      "asDefault": "Same as the default",
+      "fromPlugin": "From {plugin}",
+      "powerful": "Edit here is close to admin access — give it only to people you trust.",
+      "adminOnlyNote": "Roles and permissions, installing plugins and permanently deleting entries stay admin-only. Admins always have full access."
+    }
   }
 }

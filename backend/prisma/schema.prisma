@@ -247,6 +247,18 @@ model Permission {
   @@map("permissions")
 }
 
+/// Module access per role (Users → Permissions → Module access). A module with
+/// no row gets the role's base-role default (roles/access-modules.ts).
+model RoleAccess {
+  id     Int    @id @default(autoincrement())
+  role   String
+  module String
+  level  String // 'none' | 'view' | 'edit'
+
+  @@unique([role, module])
+  @@map("role_access")
+}
+
 // ─── Refresh Tokens ───────────────────────────────────────────────────────────
 
 model RefreshToken {

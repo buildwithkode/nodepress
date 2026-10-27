@@ -22,7 +22,7 @@ import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
-import { canManageSettings } from '@/lib/roles';
+import { canEdit } from '@/lib/access';
 import { TemplatePickerDialog } from '@/components/TemplatePickerDialog';
 import { cn, ctLabel } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -121,7 +121,7 @@ export default function ContentTypesPage() {
   const tc = useTranslations('common');
   const router = useRouter();
   const { user } = useAuth();
-  const isAdmin = canManageSettings(user?.role);
+  const canEditModel = canEdit(user, 'content_model');
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [loading, setLoading]           = useState(false);
@@ -314,7 +314,7 @@ export default function ContentTypesPage() {
             {t('list.exportSchemas')}
           </Button>
 
-          {isAdmin && (
+          {canEditModel && (
             <Button
               variant="outline"
               size="sm"
@@ -326,7 +326,7 @@ export default function ContentTypesPage() {
             </Button>
           )}
 
-          {isAdmin && (
+          {canEditModel && (
             <Button variant="outline" size="sm" onClick={() => setTemplatesOpen(true)}>
               <LayoutTemplate className="h-4 w-4 mr-1.5" />
               {t('templates.open')}
@@ -334,7 +334,7 @@ export default function ContentTypesPage() {
           )}
           <TemplatePickerDialog open={templatesOpen} onOpenChange={setTemplatesOpen} onApplied={fetchContentTypes} />
 
-          {isAdmin && (
+          {canEditModel && (
             <Button onClick={() => router.push('/content-types/new')} size="sm">
               <Plus className="h-4 w-4 mr-1.5" />
               {t('list.newContentType')}
@@ -437,7 +437,7 @@ export default function ContentTypesPage() {
                   >
                     <FileText className="h-3.5 w-3.5 text-blue-400" />
                   </Button>
-                  {isAdmin && (
+                  {canEditModel && (
                     <Button
                       variant="ghost"
                       size="icon-sm"
@@ -447,12 +447,12 @@ export default function ContentTypesPage() {
                       <Shield className="h-3.5 w-3.5 text-amber-400" />
                     </Button>
                   )}
-                  {isAdmin && (
+                  {canEditModel && (
                     <Button variant="ghost" size="icon-sm" onClick={() => router.push(`/content-types/${ct.id}/edit`)} title={tc('edit')}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                   )}
-                  {isAdmin && (
+                  {canEditModel && (
                     <Button
                       variant="ghost"
                       size="icon-sm"
@@ -468,7 +468,7 @@ export default function ContentTypesPage() {
                   <Button variant="ghost" size="icon-sm" onClick={() => exportContentType(ct)} title={t('list.exportJson')}>
                     <Download className="h-3.5 w-3.5" />
                   </Button>
-                  {isAdmin && (
+                  {canEditModel && (
                     <AlertDialog>
                       <AlertDialogTrigger render={<Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" title={tc('delete')} />}>
                         <Trash2 className="h-3.5 w-3.5" />

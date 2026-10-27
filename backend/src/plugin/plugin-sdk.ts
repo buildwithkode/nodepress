@@ -30,3 +30,9 @@ export { PluginVetoError, isPluginVeto } from './plugin-veto.error';
 // Permissions a manifest can declare
 export { PLUGIN_PERMISSIONS, EVENT_PERMISSIONS } from './plugin-permissions';
 export type { PluginPermission } from './plugin-permissions';
+
+// Module access for plugin routes: declare `adminModules` in the manifest, then
+// @UseGuards(AuthGuard('jwt'), RolesGuard) + @Access('<module>', 'view' | 'edit')
+export { Access } from '../auth/decorators/access.decorator';
+export { RolesGuard } from '../auth/guards/roles.guard';
+export type { AccessLevel } from '../roles/access-modules';

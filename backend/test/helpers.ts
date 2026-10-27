@@ -9,6 +9,7 @@ import { parseQueryString } from '../src/common/query-parser';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { reloadPluginHost } from '../src/plugin/plugin-loader';
 import { keepRawBody } from '../src/common/raw-body';
+import { AccessService } from '../src/roles/access.service';
 
 /**
  * AppModule again, with the plugins loaded afresh from the database — what a
@@ -70,6 +71,7 @@ export async function cleanDatabase(app: INestApplication) {
   await prisma.$executeRawUnsafe(`DELETE FROM "forms"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "media"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "permissions"`);
+  await prisma.$executeRawUnsafe(`DELETE FROM "role_access"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "password_reset_tokens"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "refresh_tokens"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "users"`);
@@ -78,6 +80,7 @@ export async function cleanDatabase(app: INestApplication) {
   await prisma.$executeRawUnsafe(`DELETE FROM "components"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "redirects"`);
   await prisma.$executeRawUnsafe(`DELETE FROM "choice_lists"`);
+  await app.get(AccessService).invalidate();
 }
 
 /** Register the first admin user and return the token. */

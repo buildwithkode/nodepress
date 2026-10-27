@@ -46,22 +46,25 @@ describe('EntriesController — bulk permission checks', () => {
     }));
   });
 
-  it('uses delete for bulk-delete and update for archive / review / stage', async () => {
+  it('uses delete for bulk-delete, update for review, and publish for archive / stage', async () => {
     await expect(controller.bulkDelete(dto, { user: reviewer })).rejects.toThrow(ForbiddenException);
-    await controller.bulkArchive(dto, { user: reviewer });
     await controller.bulkPendingReview(dto, { user: reviewer });
-    await controller.bulkStage(dto, { user: reviewer });
-    expect(entriesService.bulkArchive).toHaveBeenCalledWith([1, 2, 3]);
     expect(entriesService.bulkSetPendingReview).toHaveBeenCalledWith([1, 2, 3]);
-    expect(entriesService.bulkStage).toHaveBeenCalledWith([1, 2, 3]);
-    expect(permissions.can.mock.calls.filter((c) => c[2] === 'update')).toHaveLength(6);
+    expect(permissions.can.mock.calls.filter((c) => c[2] === 'update')).toHaveLength(2);
+    // Archiving and staging change what's live, like publishing.
+    await expect(controller.bulkArchive(dto, { user: reviewer })).rejects.toThrow(ForbiddenException);
+    await expect(controller.bulkStage(dto, { user: reviewer })).rejects.toThrow(ForbiddenException);
+    expect(entriesService.bulkArchive).not.toHaveBeenCalled();
+    expect(entriesService.bulkStage).not.toHaveBeenCalled();
   });
 
-  it('bulk-promote needs publish only when promoting to published', async () => {
+  it('bulk-promote needs publish for published / staging / archived, update otherwise', async () => {
     await expect(controller.bulkPromote({ ids: [1, 2], status: 'published' }, { user: reviewer }))
       .rejects.toThrow(ForbiddenException);
-    await controller.bulkPromote({ ids: [1, 2], status: 'staging' }, { user: reviewer });
-    expect(entriesService.bulkPromote).toHaveBeenCalledWith([1, 2], 'staging', 2);
+    await expect(controller.bulkPromote({ ids: [1, 2], status: 'staging' }, { user: reviewer }))
+      .rejects.toThrow(ForbiddenException);
+    await controller.bulkPromote({ ids: [1, 2], status: 'pending_review' }, { user: reviewer });
+    expect(entriesService.bulkPromote).toHaveBeenCalledWith([1, 2], 'pending_review', 2);
   });
 
   it('falls back to the base role without a custom role', async () => {

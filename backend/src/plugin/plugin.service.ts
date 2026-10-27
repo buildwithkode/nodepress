@@ -175,10 +175,11 @@ export class PluginService implements OnModuleInit {
     }
   }
 
-  async listPlugins(role?: string) {
+  /** `showSettings` lets a non-admin with Plugins → edit see settings (uploads stay admin-only). */
+  async listPlugins(role?: string, showSettings = role === 'admin') {
     const hooksSummary = this.hookBus.getSummary();
     const pkgs = await this.packages();
-    const plugins = this.registry.getAll().map((p) => this.serialize(p, role, pkgs));
+    const plugins = this.registry.getAll().map((p) => this.serialize(p, showSettings ? 'admin' : role, pkgs));
     for (const pkg of pkgs.values()) {
       if (!this.registry.get(pkg.id)) plugins.push(this.serializePendingInstall(pkg));
     }

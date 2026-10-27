@@ -10,7 +10,7 @@ import { useLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
-import { canManageSettings } from '@/lib/roles';
+import { canEdit } from '@/lib/access';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -41,7 +41,7 @@ export default function NewEntryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user: me } = useAuth();
-  const isAdmin = canManageSettings(me?.role);
+  const canEditModel = canEdit(me, 'content_model');
   const ctId = Number(searchParams?.get('ct') ?? 0);
 
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
@@ -175,7 +175,7 @@ export default function NewEntryPage() {
         <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(selectedCT ? `/entries?ct=${selectedCT.name}` : '/entries')}>
           <ArrowLeft className="h-4 w-4" /> {t('header.backTo', { name: selectedCT ? ctLabel(selectedCT) : t('header.entries') })}
         </Button>
-        {selectedCT && isAdmin && (
+        {selectedCT && canEditModel && (
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

@@ -6,7 +6,7 @@ import {
   ArrowLeft,
   RotateCcw,
   Loader2,
-  Shield,
+  LayoutGrid,
   Lock,
   Eye,
   Edit3,
@@ -24,32 +24,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { roleBadgeColor, roleLabel, useRoleList } from '@/lib/custom-roles';
+import { roleLabel, useRoleList } from '@/lib/custom-roles';
+import { ModuleAccessEditor } from '@/components/ModuleAccessEditor';
 
-/** Built-in roles with permission rows; custom roles are appended at runtime. */
+/** Built-in non-admin roles; custom roles are appended at runtime. */
 const BUILT_IN_ROLES = ['editor', 'contributor', 'viewer'] as const;
 type BuiltInRole = typeof BUILT_IN_ROLES[number];
-type Role = string;
 const isBuiltIn = (role: string): role is BuiltInRole => (BUILT_IN_ROLES as readonly string[]).includes(role);
-
-const ALL_ACTIONS = ['create', 'read', 'update', 'delete', 'publish'] as const;
-type Action = typeof ALL_ACTIONS[number];
-
-/** Message keys (users.permissions.actions.*) — translated at render. */
-const ACTION_LABELS: Record<Action, string> = {
-  create:  'actions.create',
-  read:    'actions.read',
-  update:  'actions.update',
-  delete:  'actions.delete',
-  publish: 'actions.publish',
-};
-
-/** Message keys (users.permissions.roleDescriptions.*) — translated at render. */
-const ROLE_DESCRIPTIONS: Record<BuiltInRole, string> = {
-  editor:      'roleDescriptions.editor',
-  contributor: 'roleDescriptions.contributor',
-  viewer:      'roleDescriptions.viewer',
-};
 
 interface SchemaField {
   name: string;
@@ -74,45 +55,24 @@ interface ContentTypeSummary {
   displayName?: string;
 }
 
-interface PermRow {
-  role: string;
-  contentType: string;
-  actions: string[];
-}
-
-type MatrixKey = `${Role}::${string}`;
-
 function PermissionsPageContent() {
   const t = useTranslations('users.permissions');
   const tc = useTranslations('common');
-  const tr = useTranslations('roles');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { roles, customRoles } = useRoleList();
-  const ROLES: Role[] = [...BUILT_IN_ROLES, ...customRoles.map((r) => r.name)];
   const labelOf = (role: string) => roleLabel(role, roles, tc);
   const baseOf = (role: string) => customRoles.find((r) => r.name === role)?.baseRole ?? 'viewer';
-  const describe = (role: string) => {
-    if (isBuiltIn(role)) return t(ROLE_DESCRIPTIONS[role]);
-    const custom = customRoles.find((r) => r.name === role);
-    return custom?.description || tr('basedOn', { base: labelOf(baseOf(role)) });
-  };
   const initialCt = searchParams.get('ct') ?? '';
   const initialTab = searchParams.get('tab') ?? '';
 
-  const [activeTab, setActiveTab] = useState<'content-types' | 'fields'>(
-    initialTab === 'fields' || initialCt ? 'fields' : 'content-types'
+  const [activeTab, setActiveTab] = useState<'modules' | 'fields'>(
+    initialTab === 'fields' || initialCt ? 'fields' : 'modules'
   );
 
-  // Content type permissions matrix state
   const [contentTypes, setContentTypes] = useState<ContentTypeSummary[]>([]);
-  const [perms, setPerms]               = useState<PermRow[]>([]);
-  const [saving, setSaving]             = useState<MatrixKey | null>(null);
   const [resetting, setResetting]       = useState(false);
-  const [loading, setLoading]           = useState(true);
-  const [focusedRole, setFocusedRole]   = useState<Role | null>(null);
-  const [rolePerms, setRolePerms]       = useState<PermRow[] | null>(null);
-  const [roleLoading, setRoleLoading]   = useState(false);
+  const [moduleReload, setModuleReload] = useState(0);
 
   // Field-level permissions matrix state
   const [selectedContentTypeName, setSelectedContentTypeName] = useState<string>(initialCt);
@@ -123,15 +83,10 @@ function PermissionsPageContent() {
   const [hasFieldChanges, setHasFieldChanges] = useState(false);
 
   const load = async () => {
-    setLoading(true);
     try {
-      const [ctRes, permRes] = await Promise.all([
-        api.get('/content-types'),
-        api.get('/permissions'),
-      ]);
+      const ctRes = await api.get('/content-types');
       const list = ctRes.data ?? [];
       setContentTypes(list);
-      setPerms(permRes.data ?? []);
 
       if (list.length > 0) {
         if (initialCt && list.some((c: any) => c.name === initialCt)) {
@@ -142,8 +97,6 @@ function PermissionsPageContent() {
       }
     } catch {
       toast.error(t('toasts.loadFailed'));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -168,62 +121,11 @@ function PermissionsPageContent() {
       .finally(() => setLoadingSchema(false));
   }, [selectedContentTypeName, contentTypes]);
 
-  const focusRole = async (role: Role) => {
-    if (focusedRole === role) { setFocusedRole(null); setRolePerms(null); return; }
-    setFocusedRole(role);
-    setRoleLoading(true);
-    try {
-      const res = await api.get(`/permissions/${role}`);
-      setRolePerms(res.data ?? []);
-    } catch {
-      toast.error(t('toasts.roleLoadFailed'));
-    } finally {
-      setRoleLoading(false);
-    }
-  };
-
-  const getActions = (role: Role, contentType: string): string[] => {
-    const specific = perms.find((p) => p.role === role && p.contentType === contentType);
-    const wildcard = perms.find((p) => p.role === role && p.contentType === '*');
-    const own = specific ?? wildcard;
-    // A custom role with no row of its own uses its base role's (as the backend does)
-    if (!own && !isBuiltIn(role)) return getActions(baseOf(role), contentType);
-    return own?.actions ?? [];
-  };
-
-  const isInherited = (role: Role, contentType: string): boolean => {
-    if (contentType === '*') return !isBuiltIn(role) && !perms.some((p) => p.role === role && p.contentType === '*');
-    return !perms.some((p) => p.role === role && p.contentType === contentType);
-  };
-
-  /** Whose rows an inherited cell shows: the role's own wildcard, or a custom role's base role. */
-  const inheritsFrom = (role: Role): string =>
-    !isBuiltIn(role) && !perms.some((p) => p.role === role && p.contentType === '*') ? baseOf(role) : role;
-
-  const toggleAction = async (role: Role, contentType: string, action: Action) => {
-    const current = getActions(role, contentType);
-    const next = current.includes(action)
-      ? current.filter((a) => a !== action)
-      : [...current, action];
-
-    const key: MatrixKey = `${role}::${contentType}`;
-    setSaving(key);
-    try {
-      await api.put(`/permissions/${role}/${contentType}`, { actions: next });
-      await load();
-      toast.success(t('toasts.updated'));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toasts.updateFailed'));
-    } finally {
-      setSaving(null);
-    }
-  };
-
   const handleReset = async () => {
     setResetting(true);
     try {
       await api.put('/permissions/reset/all');
-      await load();
+      setModuleReload((n) => n + 1);
       toast.success(t('toasts.reset'));
     } catch {
       toast.error(t('toasts.resetFailed'));
@@ -287,8 +189,6 @@ function PermissionsPageContent() {
     }
   };
 
-  const rows = ['*', ...contentTypes.map((ct) => ct.name)];
-
   return (
     <AdminGuard>
       <div className="space-y-6 w-full">
@@ -305,7 +205,7 @@ function PermissionsPageContent() {
           <span className="text-muted-foreground/40">/</span>
           <span className="text-sm font-medium">{t('title')}</span>
           <div className="ml-auto">
-            {activeTab === 'content-types' && (
+            {activeTab === 'modules' && (
               <Button
                 variant="outline"
                 size="sm"
@@ -324,9 +224,9 @@ function PermissionsPageContent() {
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
           <TabsList className="bg-muted/50 p-1 mb-2">
-            <TabsTrigger value="content-types" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              <span>{t('tabs.contentTypes')}</span>
+            <TabsTrigger value="modules" className="flex items-center gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              <span>{t('tabs.modules')}</span>
             </TabsTrigger>
             <TabsTrigger value="fields" className="flex items-center gap-2">
               <Sliders className="h-4 w-4" />
@@ -334,165 +234,9 @@ function PermissionsPageContent() {
             </TabsTrigger>
           </TabsList>
 
-          {/* ── Tab 1: Content Type Actions Matrix ──────────────────────────── */}
-          <TabsContent value="content-types" className="space-y-6 pt-2">
-            {/* Role overview — click to focus */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {ROLES.map((r) => (
-                <Card
-                  key={r}
-                  className={`text-sm cursor-pointer transition-all hover:border-primary/50 ${focusedRole === r ? 'ring-2 ring-primary border-primary' : ''}`}
-                  onClick={() => focusRole(r)}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(r)}`}>
-                        {labelOf(r)}
-                      </span>
-                      {focusedRole === r && (
-                        <span className="text-[10px] text-muted-foreground">{t('clickToDeselect')}</span>
-                      )}
-                    </div>
-                    <CardDescription className="text-xs mt-1">{describe(r)}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-
-            {/* Focused role detail */}
-            {focusedRole && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(focusedRole)}`}>
-                      {labelOf(focusedRole)}
-                    </span>
-                    — {t('summary.title')}
-                  </CardTitle>
-                  <CardDescription>{t('summary.description')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {roleLoading ? (
-                    <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" /> {tc('loading')}
-                    </div>
-                  ) : !rolePerms || rolePerms.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-2">{t('summary.empty')}</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {rolePerms.map((p) => (
-                        <div key={p.contentType} className="flex items-center gap-3 rounded-md border border-border px-3 py-2 text-sm">
-                          <span className="w-28 font-medium text-foreground capitalize shrink-0">
-                            {p.contentType === '*' ? <Badge variant="secondary" className="text-xs">{t('defaultRow')}</Badge> : p.contentType.replace(/_/g, ' ')}
-                          </span>
-                          <div className="flex flex-wrap gap-1">
-                            {ALL_ACTIONS.map((a) => (
-                              <span
-                                key={a}
-                                className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                                  p.actions.includes(a)
-                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                                    : 'bg-muted text-muted-foreground line-through opacity-50'
-                                }`}
-                              >
-                                {t(ACTION_LABELS[a])}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Permission matrix */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('matrix.title')}</CardTitle>
-                <CardDescription>
-                  {t.rich('matrix.description', { strong: (chunks) => <strong>{chunks}</strong> })}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 pr-4 font-medium text-muted-foreground w-36">{t('matrix.contentType')}</th>
-                          {ROLES.map((r) => (
-                            <th key={r} colSpan={ALL_ACTIONS.length} className="text-center py-2 px-2 font-medium">
-                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(r)}`}>
-                                {labelOf(r)}
-                              </span>
-                            </th>
-                          ))}
-                        </tr>
-                        <tr className="border-b bg-muted/30">
-                          <th className="py-1.5 pr-4" />
-                          {ROLES.flatMap((r) =>
-                            ALL_ACTIONS.map((a) => (
-                              <th key={`${r}-${a}`} className="py-1.5 px-1.5 text-center text-xs font-normal text-muted-foreground min-w-[52px]">
-                                {t(ACTION_LABELS[a])}
-                              </th>
-                            ))
-                          )}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rows.map((ct) => {
-                          const isWildcard = ct === '*';
-                          return (
-                            <tr key={ct} className={`border-b last:border-0 ${isWildcard ? 'bg-muted/20 font-medium' : ''}`}>
-                              <td className="py-2 pr-4">
-                                {isWildcard ? (
-                                  <span className="flex items-center gap-1.5">
-                                    <Badge variant="secondary" className="text-xs">{t('defaultRow')}</Badge>
-                                  </span>
-                                ) : (
-                                  <span className="text-xs capitalize">{ct.replace(/_/g, ' ')}</span>
-                                )}
-                              </td>
-                              {ROLES.flatMap((role) =>
-                                ALL_ACTIONS.map((action) => {
-                                  const key: MatrixKey = `${role}::${ct}`;
-                                  const actions = getActions(role, ct);
-                                  const checked = actions.includes(action);
-                                  const inherited = isInherited(role, ct);
-                                  const isSaving = saving === key;
-
-                                  return (
-                                    <td key={`${role}-${ct}-${action}`} className="py-2 px-1.5 text-center">
-                                      {isSaving ? (
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin mx-auto text-muted-foreground" />
-                                      ) : (
-                                        <input
-                                          type="checkbox"
-                                          checked={checked}
-                                          onChange={() => toggleAction(role, ct, action)}
-                                          className={`h-4 w-4 rounded cursor-pointer accent-primary ${inherited ? 'opacity-40' : ''}`}
-                                          title={inherited ? t('matrix.inherited', { role: inheritsFrom(role) }) : undefined}
-                                        />
-                                      )}
-                                    </td>
-                                  );
-                                })
-                              )}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          {/* ── Tab 1: Module access ───────────────────────────────────────── */}
+          <TabsContent value="modules" className="pt-2">
+            <ModuleAccessEditor roles={roles} reloadKey={moduleReload} />
           </TabsContent>
 
           {/* ── Tab 2: Granular Field-Level Permissions Matrix ──────────────── */}

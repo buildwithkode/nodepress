@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { useTranslations } from 'use-intl';
+import { useAccess } from '@/lib/use-access';
 
 type Job = {
   id: number;
@@ -34,6 +35,7 @@ const LIMIT = 25;
 export default function JobsPage() {
   const t = useTranslations('developer');
   const tc = useTranslations('common');
+  const editable = useAccess().canEdit('jobs');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [counts, setCounts] = useState<Counts>({ pending: 0, done: 0, failed: 0 });
   const [types, setTypes] = useState<string[]>([]);
@@ -87,7 +89,7 @@ export default function JobsPage() {
         >
           <RefreshCw className="h-3.5 w-3.5" /> {tc('refresh')}
         </button>
-        {counts.failed > 0 && (
+        {editable && counts.failed > 0 && (
           <button
             disabled={busy === 'all'}
             onClick={() => act('all', () => api.post('/jobs/retry-failed', null, { params: { type: type || undefined } }), t('jobs.failedRequeued'))}
@@ -178,7 +180,7 @@ export default function JobsPage() {
                       {new Date(j.createdAt).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                      {j.status !== 'done' && (
+                      {editable && j.status !== 'done' && (
                         <button
                           disabled={busy === `r${j.id}`}
                           onClick={() => act(`r${j.id}`, () => api.post(`/jobs/${j.id}/retry`), t('jobs.requeued', { id: j.id }))}
@@ -187,7 +189,7 @@ export default function JobsPage() {
                           <RotateCcw className="h-3 w-3" /> {tc('retry')}
                         </button>
                       )}
-                      {j.status !== 'pending' && (
+                      {editable && j.status !== 'pending' && (
                         <button
                           disabled={busy === `d${j.id}`}
                           onClick={() => act(`d${j.id}`, () => api.delete(`/jobs/${j.id}`), t('jobs.deleted', { id: j.id }))}

@@ -44,6 +44,7 @@ import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { roleBadgeColor, roleLabel, useRoleList } from '@/lib/custom-roles';
+import { useAccess } from '@/lib/use-access';
 
 interface User {
   id: number;
@@ -65,13 +66,17 @@ export default function UsersPage() {
   const tr = useTranslations('roles');
   const router = useRouter();
   const { user: me } = useAuth();
+  const editable = useAccess().canEdit('users');
+  const isAdmin = me?.role === 'admin';
+  // Only admins change admin accounts or give the admin role (the API refuses others)
+  const canManage = (u: { id: number; role: string }) => editable && u.id !== me?.id && (isAdmin || u.role !== 'admin');
   const { roles, customRoles } = useRoleList();
   const labelOf = (name: string) => roleLabel(name, roles, tc);
 
   // Built-ins, then custom roles — rendered inline so the Select sees every item
   const roleOptions = () => (
     <>
-      <SelectItem value="admin">{tc('roles.admin')}</SelectItem>
+      {isAdmin && <SelectItem value="admin">{tc('roles.admin')}</SelectItem>}
       <SelectItem value="editor">{tc('roles.editor')}</SelectItem>
       <SelectItem value="contributor">{tc('roles.contributor')}</SelectItem>
       <SelectItem value="viewer">{tc('roles.viewer')}</SelectItem>
@@ -302,7 +307,7 @@ export default function UsersPage() {
   };
 
   return (
-    <AdminGuard>
+    <AdminGuard module="users">
     <div className="space-y-6 w-full">
 
       {/* ── User list ─────────────────────────────────────────────────────── */}
@@ -340,7 +345,7 @@ export default function UsersPage() {
                     {u.id === me?.id && <span className="ml-2 text-xs text-muted-foreground">{t('list.you')}</span>}
                   </TableCell>
                   <TableCell>
-                    {u.id === me?.id ? (
+                    {!canManage(u) ? (
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(u.role)}`}>
                         {labelOf(u.role)}
                       </span>
@@ -360,15 +365,17 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        title={t('list.viewPermissions', { role: labelOf(u.role) })}
-                        onClick={() => router.push('/users/permissions?tab=content-types')}
-                      >
-                        <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
-                      </Button>
-                      {u.id !== me?.id && (
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title={t('list.viewPermissions', { role: labelOf(u.role) })}
+                          onClick={() => router.push('/users/permissions')}
+                        >
+                          <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
+                        </Button>
+                      )}
+                      {canManage(u) && (
                         <>
                           <Button
                             variant="ghost"
@@ -418,14 +425,14 @@ export default function UsersPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> {t('roleGuide.title')}</CardTitle>
-            <div className="flex items-center gap-3">
+            {isAdmin && <div className="flex items-center gap-3">
               <a href="/users/roles" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                 <UserCog className="h-3.5 w-3.5" /> {tr('manage')}
               </a>
               <a href="/users/permissions" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                 <Settings2 className="h-3.5 w-3.5" /> {t('roleGuide.manage')}
               </a>
-            </div>
+            </div>}
           </div>
         </CardHeader>
         <CardContent>
@@ -449,35 +456,37 @@ export default function UsersPage() {
       </Card>
 
       {/* ── Invite user ───────────────────────────────────────────────────── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Plus className="h-4 w-4" /> {t('add.title')}</CardTitle>
-          <CardDescription>{t('add.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-            <div className="sm:col-span-2 space-y-1">
-              <Label>{t('list.email')}</Label>
-              <Input type="email" placeholder="editor@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-1">
-              <Label>{t('list.role')}</Label>
-              <Select value={role} onValueChange={(v: string | null) => v && setRole(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {roleOptions()}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="sm:col-span-3 flex justify-end">
-              <Button type="submit" disabled={creating}>
-                <Plus className="h-4 w-4 mr-1.5" />
-                {creating ? t('add.sending') : t('add.submit')}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      {editable && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Plus className="h-4 w-4" /> {t('add.title')}</CardTitle>
+            <CardDescription>{t('add.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div className="sm:col-span-2 space-y-1">
+                <Label>{t('list.email')}</Label>
+                <Input type="email" placeholder="editor@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              </div>
+              <div className="space-y-1">
+                <Label>{t('list.role')}</Label>
+                <Select value={role} onValueChange={(v: string | null) => v && setRole(v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {roleOptions()}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="sm:col-span-3 flex justify-end">
+                <Button type="submit" disabled={creating}>
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  {creating ? t('add.sending') : t('add.submit')}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── Two-Factor Authentication (2FA) ────────────────────────────────── */}
       <Card className="border-border">

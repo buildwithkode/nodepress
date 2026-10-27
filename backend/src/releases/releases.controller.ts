@@ -4,7 +4,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { ReleasesService } from './releases.service';
@@ -13,6 +13,7 @@ import { AddReleaseItemsDto, CreateReleaseDto, ScheduleReleaseDto, UpdateRelease
 @ApiTags('Releases')
 @ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Access('releases', 'view')
 @Controller('releases')
 export class ReleasesController {
   constructor(
@@ -33,7 +34,7 @@ export class ReleasesController {
     return this.releases.findOne(id);
   }
 
-  @Roles('admin', 'editor')
+  @Access('releases', 'edit')
   @Post()
   @ApiOperation({ summary: 'Create a release (editor or admin)' })
   async create(@Body() dto: CreateReleaseDto, @Request() req: any) {
@@ -42,14 +43,14 @@ export class ReleasesController {
     return release;
   }
 
-  @Roles('admin', 'editor')
+  @Access('releases', 'edit')
   @Patch(':id')
   @ApiOperation({ summary: 'Rename or describe a release' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateReleaseDto) {
     return this.releases.update(id, dto);
   }
 
-  @Roles('admin', 'editor')
+  @Access('releases', 'edit')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a release (its entries are not touched)' })
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
@@ -58,21 +59,21 @@ export class ReleasesController {
     return res;
   }
 
-  @Roles('admin', 'editor')
+  @Access('releases', 'edit')
   @Post(':id/items')
   @ApiOperation({ summary: 'Add entries (or change their action): publish | unpublish | archive' })
   addItems(@Param('id', ParseIntPipe) id: number, @Body() dto: AddReleaseItemsDto) {
     return this.releases.addItems(id, dto);
   }
 
-  @Roles('admin', 'editor')
+  @Access('releases', 'edit')
   @Delete(':id/items/:itemId')
   @ApiOperation({ summary: 'Remove an entry from a release' })
   removeItem(@Param('id', ParseIntPipe) id: number, @Param('itemId', ParseIntPipe) itemId: number) {
     return this.releases.removeItem(id, itemId);
   }
 
-  @Roles('admin', 'editor')
+  @Access('releases', 'edit')
   @Put(':id/schedule')
   @ApiOperation({ summary: 'Publish automatically at scheduledAt (null unschedules)' })
   async schedule(@Param('id', ParseIntPipe) id: number, @Body() dto: ScheduleReleaseDto, @Request() req: any) {
@@ -82,7 +83,7 @@ export class ReleasesController {
     return release;
   }
 
-  @Roles('admin', 'editor')
+  @Access('releases', 'edit')
   @Post(':id/publish')
   @ApiOperation({ summary: 'Publish now — every change in one transaction' })
   async publish(@Param('id', ParseIntPipe) id: number, @Request() req: any) {

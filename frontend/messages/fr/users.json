@@ -110,7 +110,6 @@
     "toasts": {
       "loadFailed": "Impossible de charger les permissions",
       "schemaLoadFailed": "Impossible de charger le schéma de « {name} »",
-      "roleLoadFailed": "Impossible de charger les permissions du rôle",
       "updated": "Permission mise à jour",
       "updateFailed": "Impossible de mettre à jour la permission",
       "reset": "Permissions rétablies par défaut",
@@ -122,33 +121,13 @@
     "title": "Contrôle d’accès et permissions",
     "resetDefaults": "Rétablir les valeurs par défaut",
     "tabs": {
-      "contentTypes": "Matrice des actions par type de contenu",
-      "fields": "Matrice des permissions par champ"
-    },
-    "actions": {
-      "create": "Créer",
-      "read": "Lire",
-      "update": "Modifier",
-      "delete": "Supprimer",
-      "publish": "Publier"
+      "modules": "Accès aux modules",
+      "fields": "Par champ (avancé)"
     },
     "roleDescriptions": {
       "editor": "Gère tout le contenu — peut créer, modifier, supprimer et publier.",
       "contributor": "Crée et modifie du contenu — ne peut ni supprimer ni publier.",
       "viewer": "Accès en lecture seule au panneau d’administration."
-    },
-    "clickToDeselect": "cliquer pour désélectionner",
-    "defaultRow": "Par défaut *",
-    "summary": {
-      "title": "Résumé des permissions",
-      "description": "Surcharges configurées pour ce rôle. Les lignes absentes utilisent la valeur par défaut générique.",
-      "empty": "Aucune surcharge — valeurs d’usine pour tous les types de contenu."
-    },
-    "matrix": {
-      "title": "Matrice des permissions par type de contenu",
-      "description": "Définissez les actions autorisées par rôle. La ligne <strong>*</strong> est la valeur par défaut pour tous les types de contenu. Surchargez un type de contenu en cochant les actions dans sa propre ligne. Les cases grisées sont héritées de la ligne générique.",
-      "contentType": "Type de contenu",
-      "inherited": "Hérité de {role}/* — cliquer pour surcharger"
     },
     "fields": {
       "title": "Matrice de contrôle d’accès par champ",
@@ -172,6 +151,98 @@
       "read": "Lorsqu’un rôle est décoché dans <strong>Visibilité en lecture</strong>, le backend retire automatiquement le champ de toutes les réponses REST (<path></path>) et GraphQL avant l’envoi au client.",
       "write": "Lorsqu’un rôle est décoché dans <strong>Accès en écriture</strong>, le backend rejette les tentatives de modification non autorisées avec une erreur HTTP 403 Forbidden."
     },
-    "adminNote": "Remarque : l’administrateur a toujours un accès universel à tous les champs du schéma et ne peut pas être restreint."
+    "adminNote": "Remarque : l’administrateur a toujours un accès universel à tous les champs du schéma et ne peut pas être restreint.",
+    "modules": {
+      "title": "— ce que ce rôle peut utiliser",
+      "description": "Choisissez Aucun accès, Lecture ou Modification pour chaque partie de l'administration. Les changements sont enregistrés immédiatement.",
+      "role": "Rôle",
+      "levels": {
+        "none": "Aucun accès",
+        "view": "Lecture",
+        "edit": "Modification"
+      },
+      "groups": {
+        "content": "Contenu",
+        "structure": "Structure",
+        "team": "Équipe et développement",
+        "settings": "Paramètres",
+        "plugins": "Extensions"
+      },
+      "items": {
+        "content": {
+          "label": "Contenu",
+          "description": "Les entrées de tous les types de contenu"
+        },
+        "media": {
+          "label": "Médiathèque",
+          "description": "Importer, classer et supprimer des fichiers"
+        },
+        "forms": {
+          "label": "Formulaires",
+          "description": "Les formulaires et leurs soumissions"
+        },
+        "releases": {
+          "label": "Publications groupées",
+          "description": "Lots de publications planifiées"
+        },
+        "redirects": {
+          "label": "Redirections",
+          "description": "Redirections d'URL"
+        },
+        "content_model": {
+          "label": "Modèle de contenu",
+          "description": "Types de contenu, composants, listes de choix et modèles"
+        },
+        "languages": {
+          "label": "Langues",
+          "description": "Langues du contenu"
+        },
+        "users": {
+          "label": "Utilisateurs",
+          "description": "Inviter des personnes et changer leur rôle"
+        },
+        "api_keys": {
+          "label": "Clés API",
+          "description": "Clés de l'API publique"
+        },
+        "webhooks": {
+          "label": "Webhooks",
+          "description": "Les webhooks et leurs envois"
+        },
+        "jobs": {
+          "label": "Tâches",
+          "description": "Tâches en arrière-plan"
+        },
+        "audit_log": {
+          "label": "Journal d'audit",
+          "description": "Qui a modifié quoi"
+        },
+        "plugins": {
+          "label": "Extensions",
+          "description": "Activer ou désactiver les extensions et modifier leurs réglages"
+        },
+        "import": {
+          "label": "Import",
+          "description": "Import WordPress"
+        },
+        "brand": {
+          "label": "Marque",
+          "description": "Nom, logo et couleurs"
+        },
+        "server_settings": {
+          "label": "Paramètres du serveur",
+          "description": "E-mail, stockage et recherche"
+        }
+      },
+      "canPublish": "Peut publier",
+      "canDelete": "Peut supprimer",
+      "perType": "Par type de contenu",
+      "overrides": "{count, plural, one {# exception} other {# exceptions}}",
+      "useDefault": "Revenir au défaut",
+      "asDefault": "Comme le défaut",
+      "fromPlugin": "De {plugin}",
+      "powerful": "La modification ici équivaut presque à un accès administrateur — réservez-la aux personnes de confiance.",
+      "adminOnlyNote": "Les rôles et permissions, l'installation d'extensions et la suppression définitive d'entrées restent réservés aux administrateurs. Les administrateurs ont toujours un accès complet."
+    }
   }
 }

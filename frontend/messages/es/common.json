@@ -59,5 +59,6 @@
     "time": "Hora",
     "clear": "Borrar",
     "done": "Listo"
-  }
+  },
+  "readOnly": "Puedes ver esta página, pero tu rol no puede cambiar nada aquí."
 }
