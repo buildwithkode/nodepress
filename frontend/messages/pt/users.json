@@ -40,32 +40,16 @@
   "roleGuide": {
     "title": "Permissões das funções",
     "manage": "Gerenciar permissões",
-    "admin": {
-      "p1": "Acesso total a tudo",
-      "p2": "Gerenciar usuários e funções",
-      "p3": "Tipos de conteúdo e chaves de API",
-      "p4": "Log de auditoria e webhooks"
-    },
-    "editor": {
-      "p1": "Criar / editar / excluir entradas",
-      "p2": "Publicar e arquivar entradas",
-      "p3": "Formulários, envio/exclusão de mídia",
-      "p4": "Ler tipos de conteúdo"
-    },
-    "contributor": {
-      "p1": "Criar e editar entradas",
-      "p2": "Não pode excluir entradas",
-      "p3": "Não pode publicar nem arquivar",
-      "p4": "Apenas envio de mídia"
-    },
-    "viewer": {
-      "p1": "Painel somente leitura",
-      "p2": "Ver entradas e formulários",
-      "p3": "Ver a biblioteca de mídia",
-      "p4": "Não pode modificar nada"
-    }
+    "admin": "Acesso total a tudo, sempre",
+    "edits": "Editar: {modules}",
+    "views": "Ver: {modules}",
+    "nothing": "Sem acesso a nenhum módulo",
+    "noPublish": "Não pode publicar entradas",
+    "noDelete": "Não pode excluir entradas",
+    "loadFailed": "Não foi possível carregar o acesso dos papéis."
   },
   "add": {
+    "open": "Adicionar usuário",
     "title": "Adicionar usuário",
     "description": "Convide um colega por e-mail — ele receberá um link para definir a própria senha. Não é preciso senha aqui.",
     "sending": "Enviando convite…",
@@ -98,10 +82,14 @@
     "disableCodePlaceholder": "Código de 6 dígitos ou XXXX-XXXX"
   },
   "password": {
+    "open": "Alterar senha",
     "title": "Alterar sua senha",
+    "description": "Digite sua senha atual e escolha uma nova com pelo menos 8 caracteres.",
     "current": "Senha atual",
     "new": "Nova senha",
     "newPlaceholder": "Mín. 8 caracteres",
+    "confirm": "Confirmar nova senha",
+    "mismatch": "As senhas não coincidem",
     "updating": "Atualizando…",
     "submit": "Atualizar senha"
   },

@@ -29,6 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from '@/components/ui/table';
@@ -45,6 +46,8 @@ import {
 } from '@/components/ui/select';
 import { roleBadgeColor, roleLabel, useRoleList } from '@/lib/custom-roles';
 import { useAccess } from '@/lib/use-access';
+import { RoleAccessSummary } from '@/components/RoleAccessSummary';
+import { ChangePasswordSheet } from '@/components/ChangePasswordSheet';
 
 interface User {
   id: number;
@@ -103,11 +106,10 @@ export default function UsersPage() {
 
   // Per-user invite loading state
   const [inviting, setInviting] = useState<number | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   // Change own password form
-  const [currentPw, setCurrentPw] = useState('');
-  const [newPw, setNewPw] = useState('');
-  const [changingPw, setChangingPw] = useState(false);
 
   // 2FA state
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -160,7 +162,7 @@ export default function UsersPage() {
       } else {
         toast.success(t('toasts.inviteSent', { email }));
       }
-      setEmail(''); setRole('editor');
+      setEmail(''); setRole('editor'); setAddOpen(false);
       load();
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('toasts.createFailed'));
@@ -206,20 +208,6 @@ export default function UsersPage() {
       toast.error(err.response?.data?.message || t('toasts.inviteFailed'));
     } finally {
       setInviting(null);
-    }
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setChangingPw(true);
-    try {
-      await api.put('/users/me/password', { currentPassword: currentPw, newPassword: newPw });
-      toast.success(t('toasts.passwordUpdated'));
-      setCurrentPw(''); setNewPw('');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toasts.passwordUpdateFailed'));
-    } finally {
-      setChangingPw(false);
     }
   };
 
@@ -312,9 +300,16 @@ export default function UsersPage() {
 
       {/* ── User list ─────────────────────────────────────────────────────── */}
       <Card>
-        <CardHeader>
-          <CardTitle>{t('list.title')}</CardTitle>
-          <CardDescription>{t('list.description')}</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div className="space-y-1.5">
+            <CardTitle>{t('list.title')}</CardTitle>
+            <CardDescription>{t('list.description')}</CardDescription>
+          </div>
+          {editable && (
+            <Button size="sm" onClick={() => setAddOpen(true)} className="shrink-0">
+              <Plus className="h-4 w-4 mr-1.5" /> {t('add.open')}
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -365,6 +360,11 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {u.id === me?.id && (
+                        <Button variant="ghost" size="icon-sm" title={t('password.open')} onClick={() => setPasswordOpen(true)}>
+                          <KeyRound className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       {isAdmin && (
                         <Button
                           variant="ghost"
@@ -421,71 +421,61 @@ export default function UsersPage() {
       </Card>
 
       {/* ── Role guide ────────────────────────────────────────────────────── */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> {t('roleGuide.title')}</CardTitle>
-            {isAdmin && <div className="flex items-center gap-3">
-              <a href="/users/roles" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-                <UserCog className="h-3.5 w-3.5" /> {tr('manage')}
-              </a>
-              <a href="/users/permissions" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-                <Settings2 className="h-3.5 w-3.5" /> {t('roleGuide.manage')}
-              </a>
-            </div>}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-            {[
-              'admin', 'editor', 'contributor', 'viewer',
-            ].map((r) => (
-              <div key={r} className="space-y-2">
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleBadgeColor(r)}`}>
-                  {tc(`roles.${r}`)}
-                </span>
-                <ul className="space-y-1">
-                  {(['p1', 'p2', 'p3', 'p4'] as const).map((p) => (
-                    <li key={p} className="text-xs text-muted-foreground">• {t(`roleGuide.${r}.${p}`)}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ── Invite user ───────────────────────────────────────────────────── */}
-      {editable && (
+      {isAdmin && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Plus className="h-4 w-4" /> {t('add.title')}</CardTitle>
-            <CardDescription>{t('add.description')}</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> {t('roleGuide.title')}</CardTitle>
+              <div className="flex items-center gap-3">
+                <a href="/users/roles" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+                  <UserCog className="h-3.5 w-3.5" /> {tr('manage')}
+                </a>
+                <a href="/users/permissions" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+                  <Settings2 className="h-3.5 w-3.5" /> {t('roleGuide.manage')}
+                </a>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-              <div className="sm:col-span-2 space-y-1">
-                <Label>{t('list.email')}</Label>
-                <Input type="email" placeholder="editor@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <RoleAccessSummary labelOf={labelOf} />
+          </CardContent>
+        </Card>
+      )}
+
+      <ChangePasswordSheet open={passwordOpen} onOpenChange={setPasswordOpen} />
+
+      {/* ── Invite user (slide-over) ──────────────────────────────────────── */}
+      {editable && (
+        <Sheet open={addOpen} onOpenChange={setAddOpen}>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{t('add.title')}</SheetTitle>
+              <SheetDescription>{t('add.description')}</SheetDescription>
+            </SheetHeader>
+            <form onSubmit={handleCreate} className="flex flex-1 flex-col gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="invite-email">{t('list.email')}</Label>
+                <Input id="invite-email" type="email" placeholder="editor@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
               </div>
               <div className="space-y-1">
                 <Label>{t('list.role')}</Label>
                 <Select value={role} onValueChange={(v: string | null) => v && setRole(v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {roleOptions()}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="sm:col-span-3 flex justify-end">
+              <SheetFooter>
+                <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>{tc('cancel')}</Button>
                 <Button type="submit" disabled={creating}>
                   <Plus className="h-4 w-4 mr-1.5" />
                   {creating ? t('add.sending') : t('add.submit')}
                 </Button>
-              </div>
+              </SheetFooter>
             </form>
-          </CardContent>
-        </Card>
+          </SheetContent>
+        </Sheet>
       )}
 
       {/* ── Two-Factor Authentication (2FA) ────────────────────────────────── */}
@@ -651,27 +641,6 @@ export default function UsersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Change own password ───────────────────────────────────────────── */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('password.title')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleChangePassword} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-            <div className="space-y-1">
-              <Label>{t('password.current')}</Label>
-              <Input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} required />
-            </div>
-            <div className="space-y-1">
-              <Label>{t('password.new')}</Label>
-              <Input type="password" placeholder={t('password.newPlaceholder')} value={newPw} onChange={(e) => setNewPw(e.target.value)} required minLength={8} />
-            </div>
-            <Button type="submit" disabled={changingPw}>
-              {changingPw ? t('password.updating') : t('password.submit')}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
     </div>
     </AdminGuard>
   );

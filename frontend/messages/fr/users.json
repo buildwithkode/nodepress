@@ -40,32 +40,16 @@
   "roleGuide": {
     "title": "Permissions des rôles",
     "manage": "Gérer les permissions",
-    "admin": {
-      "p1": "Accès complet à tout",
-      "p2": "Gérer les utilisateurs et les rôles",
-      "p3": "Types de contenu et clés API",
-      "p4": "Journal d’audit et webhooks"
-    },
-    "editor": {
-      "p1": "Créer / modifier / supprimer des entrées",
-      "p2": "Publier et archiver des entrées",
-      "p3": "Formulaires, envoi/suppression de médias",
-      "p4": "Lire les types de contenu"
-    },
-    "contributor": {
-      "p1": "Créer et modifier des entrées",
-      "p2": "Ne peut pas supprimer d’entrées",
-      "p3": "Ne peut pas publier ni archiver",
-      "p4": "Envoi de médias uniquement"
-    },
-    "viewer": {
-      "p1": "Tableau de bord en lecture seule",
-      "p2": "Voir les entrées et les formulaires",
-      "p3": "Voir la médiathèque",
-      "p4": "Ne peut rien modifier"
-    }
+    "admin": "Accès complet à tout, toujours",
+    "edits": "Modification : {modules}",
+    "views": "Lecture : {modules}",
+    "nothing": "Aucun accès à un module",
+    "noPublish": "Ne peut pas publier d'entrées",
+    "noDelete": "Ne peut pas supprimer d'entrées",
+    "loadFailed": "Impossible de charger les accès des rôles."
   },
   "add": {
+    "open": "Ajouter un utilisateur",
     "title": "Ajouter un utilisateur",
     "description": "Invitez un membre de l’équipe par e-mail — il recevra un lien pour définir son propre mot de passe. Aucun mot de passe requis ici.",
     "sending": "Envoi de l’invitation…",
@@ -98,10 +82,14 @@
     "disableCodePlaceholder": "Code à 6 chiffres ou XXXX-XXXX"
   },
   "password": {
+    "open": "Changer le mot de passe",
     "title": "Changer votre mot de passe",
+    "description": "Saisissez votre mot de passe actuel, puis choisissez-en un nouveau d'au moins 8 caractères.",
     "current": "Mot de passe actuel",
     "new": "Nouveau mot de passe",
     "newPlaceholder": "8 caractères min.",
+    "confirm": "Confirmer le nouveau mot de passe",
+    "mismatch": "Les mots de passe ne correspondent pas",
     "updating": "Mise à jour…",
     "submit": "Mettre à jour le mot de passe"
   },

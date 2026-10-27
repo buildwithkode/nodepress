@@ -40,32 +40,16 @@
   "roleGuide": {
     "title": "Rollenberechtigungen",
     "manage": "Berechtigungen verwalten",
-    "admin": {
-      "p1": "Vollzugriff auf alles",
-      "p2": "Benutzer & Rollen verwalten",
-      "p3": "Inhaltstypen & API-Schlüssel",
-      "p4": "Audit-Log & Webhooks"
-    },
-    "editor": {
-      "p1": "Einträge erstellen / bearbeiten / löschen",
-      "p2": "Einträge veröffentlichen & archivieren",
-      "p3": "Formulare, Medien hochladen/löschen",
-      "p4": "Inhaltstypen lesen"
-    },
-    "contributor": {
-      "p1": "Einträge erstellen & bearbeiten",
-      "p2": "Kann keine Einträge löschen",
-      "p3": "Kann nicht veröffentlichen oder archivieren",
-      "p4": "Nur Medien hochladen"
-    },
-    "viewer": {
-      "p1": "Dashboard nur lesen",
-      "p2": "Einträge & Formulare ansehen",
-      "p3": "Mediathek ansehen",
-      "p4": "Kann nichts ändern"
-    }
+    "admin": "Immer vollen Zugriff auf alles",
+    "edits": "Bearbeiten: {modules}",
+    "views": "Ansehen: {modules}",
+    "nothing": "Kein Zugriff auf Module",
+    "noPublish": "Kann keine Einträge veröffentlichen",
+    "noDelete": "Kann keine Einträge löschen",
+    "loadFailed": "Rollenzugriffe konnten nicht geladen werden."
   },
   "add": {
+    "open": "Benutzer hinzufügen",
     "title": "Benutzer hinzufügen",
     "description": "Laden Sie ein Teammitglied per E-Mail ein — es erhält einen Link, um sein eigenes Passwort festzulegen. Hier ist kein Passwort nötig.",
     "sending": "Einladung wird gesendet…",
@@ -98,10 +82,14 @@
     "disableCodePlaceholder": "6-stelliger Code oder XXXX-XXXX"
   },
   "password": {
+    "open": "Passwort ändern",
     "title": "Passwort ändern",
+    "description": "Gib dein aktuelles Passwort ein und wähle dann ein neues mit mindestens 8 Zeichen.",
     "current": "Aktuelles Passwort",
     "new": "Neues Passwort",
     "newPlaceholder": "Mind. 8 Zeichen",
+    "confirm": "Neues Passwort bestätigen",
+    "mismatch": "Die Passwörter stimmen nicht überein",
     "updating": "Wird aktualisiert…",
     "submit": "Passwort aktualisieren"
   },

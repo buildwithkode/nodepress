@@ -21,7 +21,6 @@ import {
   FileText,
   Image,
   Key,
-  ArrowRight,
   BookOpen,
   ClipboardList,
   Users,
@@ -32,7 +31,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, Upload, ListOrdered } from 'lucide-react';
+  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, Upload, ListOrdered, LogOut } from 'lucide-react';
 
 interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
 interface NavGroup { label: string; items: NavLink[]; externalLinks?: NavLink[] }
@@ -263,32 +262,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* User info + sign out */}
         <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
-          <div className="mb-4 px-1">
-            <p className="text-sm font-bold text-sidebar-foreground truncate">
-              {user?.email?.split('@')[0] ?? t('user')}
-            </p>
-            <p className="text-xs text-muted-foreground truncate mt-0.5">
-              {user?.email ?? '—'}
-            </p>
-            <span className={`inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
-              user?.role === 'admin'
-                ? 'border-yellow-500/60 text-yellow-400'
-                : user?.role === 'editor'
-                ? 'border-blue-500/60 text-blue-400'
-                : 'border-muted-foreground/40 text-muted-foreground'
-            }`}>
-              {/* A custom role's name is data — shown as stored */}
-              {user?.customRole ?? tc(`roles.${user?.role ?? 'viewer'}`)}
-            </span>
+          <div className="flex items-start justify-between gap-2 px-1">
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-sidebar-foreground truncate">
+                {user?.email?.split('@')[0] ?? t('user')}
+              </p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {user?.email ?? '—'}
+              </p>
+              <span className={`inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
+                user?.role === 'admin'
+                  ? 'border-yellow-500/60 text-yellow-400'
+                  : user?.role === 'editor'
+                  ? 'border-blue-500/60 text-blue-400'
+                  : 'border-muted-foreground/40 text-muted-foreground'
+              }`}>
+                {/* A custom role's name is data — shown as stored */}
+                {user?.customRole ?? tc(`roles.${user?.role ?? 'viewer'}`)}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleLogout}
+              title={t('signOut')}
+              aria-label={t('signOut')}
+              className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="w-full justify-start gap-1.5 px-2 text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-border/50"
-          >
-            <ArrowRight className="h-4 w-4 shrink-0" />
-            {t('signOut')}
-          </Button>
         </div>
       </aside>
 

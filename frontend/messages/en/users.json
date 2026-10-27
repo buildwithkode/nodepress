@@ -40,32 +40,16 @@
   "roleGuide": {
     "title": "Role Permissions",
     "manage": "Manage permissions",
-    "admin": {
-      "p1": "Full access to everything",
-      "p2": "Manage users & roles",
-      "p3": "Content types & API keys",
-      "p4": "Audit log & webhooks"
-    },
-    "editor": {
-      "p1": "Create / edit / delete entries",
-      "p2": "Publish & archive entries",
-      "p3": "Forms, media upload/delete",
-      "p4": "Read content types"
-    },
-    "contributor": {
-      "p1": "Create & edit entries",
-      "p2": "Cannot delete entries",
-      "p3": "Cannot publish or archive",
-      "p4": "Media upload only"
-    },
-    "viewer": {
-      "p1": "Read-only dashboard",
-      "p2": "View entries & forms",
-      "p3": "View media library",
-      "p4": "Cannot modify anything"
-    }
+    "admin": "Full access to everything, always",
+    "edits": "Edit: {modules}",
+    "views": "View: {modules}",
+    "nothing": "No access to any module",
+    "noPublish": "Can't publish entries",
+    "noDelete": "Can't delete entries",
+    "loadFailed": "Couldn't load role access."
   },
   "add": {
+    "open": "Add user",
     "title": "Add User",
     "description": "Invite a teammate by email — they'll get a link to set their own password. No password needed here.",
     "sending": "Sending invite…",
@@ -98,10 +82,14 @@
     "disableCodePlaceholder": "6-digit code or XXXX-XXXX"
   },
   "password": {
+    "open": "Change password",
     "title": "Change Your Password",
+    "description": "Enter your current password, then choose a new one of at least 8 characters.",
     "current": "Current Password",
     "new": "New Password",
     "newPlaceholder": "Min 8 chars",
+    "confirm": "Confirm New Password",
+    "mismatch": "The passwords don't match",
     "updating": "Updating…",
     "submit": "Update Password"
   },

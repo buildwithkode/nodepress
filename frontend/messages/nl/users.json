@@ -40,32 +40,16 @@
   "roleGuide": {
     "title": "Rechten per rol",
     "manage": "Rechten beheren",
-    "admin": {
-      "p1": "Volledige toegang tot alles",
-      "p2": "Gebruikers & rollen beheren",
-      "p3": "Contenttypes & API-sleutels",
-      "p4": "Auditlog & webhooks"
-    },
-    "editor": {
-      "p1": "Items aanmaken / bewerken / verwijderen",
-      "p2": "Items publiceren & archiveren",
-      "p3": "Formulieren, media uploaden/verwijderen",
-      "p4": "Contenttypes lezen"
-    },
-    "contributor": {
-      "p1": "Items aanmaken & bewerken",
-      "p2": "Kan geen items verwijderen",
-      "p3": "Kan niet publiceren of archiveren",
-      "p4": "Alleen media uploaden"
-    },
-    "viewer": {
-      "p1": "Dashboard alleen-lezen",
-      "p2": "Items & formulieren bekijken",
-      "p3": "Mediabibliotheek bekijken",
-      "p4": "Kan niets wijzigen"
-    }
+    "admin": "Altijd volledige toegang tot alles",
+    "edits": "Bewerken: {modules}",
+    "views": "Bekijken: {modules}",
+    "nothing": "Geen toegang tot modules",
+    "noPublish": "Kan geen items publiceren",
+    "noDelete": "Kan geen items verwijderen",
+    "loadFailed": "Roltoegang kon niet worden geladen."
   },
   "add": {
+    "open": "Gebruiker toevoegen",
     "title": "Gebruiker toevoegen",
     "description": "Nodig een teamgenoot uit per e-mail — die krijgt een link om zelf een wachtwoord in te stellen. Hier is geen wachtwoord nodig.",
     "sending": "Uitnodiging versturen…",
@@ -98,10 +82,14 @@
     "disableCodePlaceholder": "6-cijferige code of XXXX-XXXX"
   },
   "password": {
+    "open": "Wachtwoord wijzigen",
     "title": "Wachtwoord wijzigen",
+    "description": "Voer je huidige wachtwoord in en kies daarna een nieuw wachtwoord van minstens 8 tekens.",
     "current": "Huidig wachtwoord",
     "new": "Nieuw wachtwoord",
     "newPlaceholder": "Min. 8 tekens",
+    "confirm": "Nieuw wachtwoord bevestigen",
+    "mismatch": "De wachtwoorden komen niet overeen",
     "updating": "Bijwerken…",
     "submit": "Wachtwoord bijwerken"
   },

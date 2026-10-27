@@ -40,32 +40,16 @@
   "roleGuide": {
     "title": "Permessi dei ruoli",
     "manage": "Gestisci permessi",
-    "admin": {
-      "p1": "Accesso completo a tutto",
-      "p2": "Gestione di utenti e ruoli",
-      "p3": "Tipi di contenuto e chiavi API",
-      "p4": "Registro attività e webhook"
-    },
-    "editor": {
-      "p1": "Crea / modifica / elimina voci",
-      "p2": "Pubblica e archivia voci",
-      "p3": "Moduli, caricamento/eliminazione media",
-      "p4": "Lettura dei tipi di contenuto"
-    },
-    "contributor": {
-      "p1": "Crea e modifica voci",
-      "p2": "Non può eliminare voci",
-      "p3": "Non può pubblicare né archiviare",
-      "p4": "Solo caricamento media"
-    },
-    "viewer": {
-      "p1": "Dashboard in sola lettura",
-      "p2": "Visualizza voci e moduli",
-      "p3": "Visualizza la libreria media",
-      "p4": "Non può modificare nulla"
-    }
+    "admin": "Accesso completo a tutto, sempre",
+    "edits": "Modifica: {modules}",
+    "views": "Visualizza: {modules}",
+    "nothing": "Nessun accesso ai moduli",
+    "noPublish": "Non può pubblicare voci",
+    "noDelete": "Non può eliminare voci",
+    "loadFailed": "Impossibile caricare gli accessi dei ruoli."
   },
   "add": {
+    "open": "Aggiungi utente",
     "title": "Aggiungi utente",
     "description": "Invita un collega via email: riceverà un link per impostare la propria password. Qui non serve alcuna password.",
     "sending": "Invio dell'invito…",
@@ -98,10 +82,14 @@
     "disableCodePlaceholder": "Codice a 6 cifre o XXXX-XXXX"
   },
   "password": {
+    "open": "Cambia password",
     "title": "Cambia la tua password",
+    "description": "Inserisci la password attuale, poi scegline una nuova di almeno 8 caratteri.",
     "current": "Password attuale",
     "new": "Nuova password",
     "newPlaceholder": "Min 8 caratteri",
+    "confirm": "Conferma nuova password",
+    "mismatch": "Le password non corrispondono",
     "updating": "Aggiornamento…",
     "submit": "Aggiorna password"
   },

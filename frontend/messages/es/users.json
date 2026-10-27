@@ -40,32 +40,16 @@
   "roleGuide": {
     "title": "Permisos de los roles",
     "manage": "Gestionar permisos",
-    "admin": {
-      "p1": "Acceso completo a todo",
-      "p2": "Gestionar usuarios y roles",
-      "p3": "Tipos de contenido y claves API",
-      "p4": "Registro de auditoría y webhooks"
-    },
-    "editor": {
-      "p1": "Crear / editar / eliminar entradas",
-      "p2": "Publicar y archivar entradas",
-      "p3": "Formularios, subir/eliminar medios",
-      "p4": "Leer tipos de contenido"
-    },
-    "contributor": {
-      "p1": "Crear y editar entradas",
-      "p2": "No puede eliminar entradas",
-      "p3": "No puede publicar ni archivar",
-      "p4": "Solo subir medios"
-    },
-    "viewer": {
-      "p1": "Panel de solo lectura",
-      "p2": "Ver entradas y formularios",
-      "p3": "Ver la biblioteca de medios",
-      "p4": "No puede modificar nada"
-    }
+    "admin": "Acceso total a todo, siempre",
+    "edits": "Editar: {modules}",
+    "views": "Ver: {modules}",
+    "nothing": "Sin acceso a ningún módulo",
+    "noPublish": "No puede publicar entradas",
+    "noDelete": "No puede eliminar entradas",
+    "loadFailed": "No se pudo cargar el acceso de los roles."
   },
   "add": {
+    "open": "Añadir usuario",
     "title": "Añadir usuario",
     "description": "Invita a un compañero por correo — recibirá un enlace para establecer su propia contraseña. Aquí no hace falta contraseña.",
     "sending": "Enviando invitación…",
@@ -98,10 +82,14 @@
     "disableCodePlaceholder": "Código de 6 dígitos o XXXX-XXXX"
   },
   "password": {
+    "open": "Cambiar contraseña",
     "title": "Cambiar tu contraseña",
+    "description": "Introduce tu contraseña actual y elige una nueva de al menos 8 caracteres.",
     "current": "Contraseña actual",
     "new": "Nueva contraseña",
     "newPlaceholder": "Mín. 8 caracteres",
+    "confirm": "Confirmar nueva contraseña",
+    "mismatch": "Las contraseñas no coinciden",
     "updating": "Actualizando…",
     "submit": "Actualizar contraseña"
   },
