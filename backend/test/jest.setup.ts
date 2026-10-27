@@ -20,6 +20,10 @@ if (process.env.E2E_ALLOW_SMTP !== '1') {
   process.env.SMTP_PASS = '';
 }
 
+// The webhook and form-action tests deliver to receivers on 127.0.0.1, which
+// the SSRF guard refuses by default.
+process.env.WEBHOOK_ALLOW_PRIVATE ??= 'true';
+
 // The e2e suite DELETEs every table between tests. Refuse to run it against a
 // database that is not on this machine, so a production DATABASE_URL in .env can
 // never be wiped by `npm run test:e2e`. Set E2E_ALLOW_REMOTE_DB=1 to override.

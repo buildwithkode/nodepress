@@ -21,6 +21,10 @@ Webhooks are managed by admins.
 
 Each webhook can be edited, disabled and enabled again, or deleted from the same page.
 
+:::note[Public addresses only]
+Deliveries go only to addresses on the public internet: a URL that resolves to `localhost`, a private network (`10.x`, `192.168.x`, `172.16–31.x`), a cloud metadata address (`169.254.169.254`) or another non-public range fails with an error in the delivery log. Redirects aren't followed, so a 3xx response counts as a failure. To call a service on your own network (n8n on the same machine, another container), set `WEBHOOK_ALLOW_PRIVATE=true`. This applies to form webhook actions too.
+:::
+
 Through the API, with an admin's token:
 
 ```bash

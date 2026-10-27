@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { env } from '../../config/env';
+import { outboundPost } from '../../common/outbound-post';
 import { WebhookAction } from '../types/form-field.types';
 
 /** Per-request timeout, well inside the job lease. */
@@ -13,11 +15,12 @@ export class WebhookActionHandler {
     const method  = action.method ?? 'POST';
     const headers = { 'Content-Type': 'application/json', ...(action.headers ?? {}) };
 
-    const res = await fetch(action.url, {
+    const res = await outboundPost(action.url, {
       method,
       headers,
       body: JSON.stringify({ data }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      timeoutMs: TIMEOUT_MS,
+      allowPrivate: env.WEBHOOK_ALLOW_PRIVATE === 'true',
     });
 
     if (!res.ok) throw new Error(`Form webhook ${action.url} returned HTTP ${res.status}`);

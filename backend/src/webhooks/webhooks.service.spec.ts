@@ -4,6 +4,10 @@ import { createHmac } from 'crypto';
 import { WebhooksService } from './webhooks.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
+import { outboundPost } from '../common/outbound-post';
+
+jest.mock('../common/outbound-post', () => ({ outboundPost: jest.fn() }));
+const mockPost = outboundPost as jest.Mock;
 
 const mockHook = {
   id: 1,
@@ -150,11 +154,9 @@ describe('WebhooksService', () => {
     });
 
     it('does not send anything inline — the worker does', async () => {
-      const originalFetch = global.fetch;
-      global.fetch = jest.fn();
+      mockPost.mockReset();
       await service.enqueue('entry.created', { id: 1 });
-      expect(global.fetch).not.toHaveBeenCalled();
-      global.fetch = originalFetch;
+      expect(mockPost).not.toHaveBeenCalled();
     });
 
     it('skips non-matching events', async () => {
@@ -192,19 +194,16 @@ describe('WebhooksService', () => {
 
   describe('deliver()', () => {
     const claimed = { id: 7, webhookId: 1, event: 'entry.created', payload: { id: 1 }, attempts: 1, createdAt: new Date() };
-    let originalFetch: typeof fetch;
-
     beforeEach(() => {
-      originalFetch = global.fetch;
+      mockPost.mockReset();
       mockPrisma.webhook.findMany.mockResolvedValue([mockHook]);
     });
-    afterEach(() => { global.fetch = originalFetch; });
 
     it('marks a successful delivery as delivered, signed with the hook secret', async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200 } as any);
+      mockPost.mockResolvedValue({ ok: true, status: 200 } as any);
       await service.deliver(claimed);
 
-      const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+      const [, init] = mockPost.mock.calls[0];
       const expected = 'sha256=' + createHmac('sha256', 'mysecret').update(init.body).digest('hex');
       expect(init.headers['X-NodePress-Signature']).toBe(expected);
       expect(init.headers['X-NodePress-Attempt']).toBe('1');
@@ -215,7 +214,7 @@ describe('WebhooksService', () => {
     });
 
     it('reschedules a failed attempt with backoff', async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 503 } as any);
+      mockPost.mockResolvedValue({ ok: false, status: 503 } as any);
       const before = Date.now();
       await service.deliver(claimed);
 
@@ -225,7 +224,7 @@ describe('WebhooksService', () => {
     });
 
     it('fails permanently after the last attempt', async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error('ECONNREFUSED'));
+      mockPost.mockRejectedValue(new Error('ECONNREFUSED'));
       await service.deliver({ ...claimed, attempts: 3 });
       expect(mockPrisma.webhookDelivery.update).toHaveBeenCalledWith({
         where: { id: 7 },
@@ -235,9 +234,8 @@ describe('WebhooksService', () => {
 
     it('fails the delivery when its webhook was disabled or deleted', async () => {
       mockPrisma.webhook.findMany.mockResolvedValue([]);
-      global.fetch = jest.fn();
       await service.deliver(claimed);
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(mockPost).not.toHaveBeenCalled();
       expect(mockPrisma.webhookDelivery.update).toHaveBeenCalledWith({
         where: { id: 7 },
         data: expect.objectContaining({ status: 'failed', errorMessage: 'Webhook disabled or deleted' }),
@@ -245,7 +243,7 @@ describe('WebhooksService', () => {
     });
 
     it('never throws when recording the outcome fails', async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200 } as any);
+      mockPost.mockResolvedValue({ ok: true, status: 200 } as any);
       mockPrisma.webhookDelivery.update.mockRejectedValueOnce(new Error('db down'));
       await expect(service.deliver(claimed)).resolves.toBeUndefined();
     });
@@ -319,16 +317,14 @@ describe('WebhooksService', () => {
       mockPrisma.webhook.findUnique.mockResolvedValue(mockHook);
       mockPrisma.webhookDelivery.update.mockResolvedValue({});
 
-      // Mock global fetch
-      const originalFetch = global.fetch;
-      global.fetch = jest.fn().mockResolvedValue({
+      mockPost.mockResolvedValue({
         ok: true,
         status: 200,
       } as any);
 
       const result = await service.redeliver(42);
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mockPost).toHaveBeenCalledWith(
         mockHook.url,
         expect.objectContaining({
           method: 'POST',
@@ -352,8 +348,6 @@ describe('WebhooksService', () => {
 
       expect(result.success).toBe(true);
       expect(result.status).toBe(200);
-
-      global.fetch = originalFetch;
     });
 
     it('handles remote server failure on re-delivery', async () => {
@@ -361,8 +355,7 @@ describe('WebhooksService', () => {
       mockPrisma.webhook.findUnique.mockResolvedValue(mockHook);
       mockPrisma.webhookDelivery.update.mockResolvedValue({});
 
-      const originalFetch = global.fetch;
-      global.fetch = jest.fn().mockResolvedValue({
+      mockPost.mockResolvedValue({
         ok: false,
         status: 502,
       } as any);
@@ -382,8 +375,6 @@ describe('WebhooksService', () => {
 
       expect(result.success).toBe(false);
       expect(result.status).toBe(502);
-
-      global.fetch = originalFetch;
     });
   });
 });

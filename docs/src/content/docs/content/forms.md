@@ -183,6 +183,8 @@ Sends the submission to a URL as JSON, with a 10-second timeout:
 
 A response other than 2xx counts as a failure and is retried. Through the API, a webhook action can also have `headers`, for example an authorization header for the receiving service.
 
+Like the site-wide webhooks, a form webhook only calls [public addresses](/apis/webhooks/#creating-a-webhook) unless `WEBHOOK_ALLOW_PRIVATE=true`.
+
 Form webhooks are separate from the site-wide [webhooks](/apis/webhooks/), which report entry and media changes.
 
 ## Submissions

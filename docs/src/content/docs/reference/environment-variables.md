@@ -122,6 +122,7 @@ See [CDN](/deployment/cdn/).
 | `QUEUE_POLL_MS` | `1000` | How often an idle worker checks for due work, in milliseconds. |
 | `WEBHOOK_CONCURRENCY` | `10` | Webhook deliveries in flight per instance. |
 | `JOB_CONCURRENCY` | `5` | Background jobs (form emails and webhooks, imports…) in flight per instance. |
+| `WEBHOOK_ALLOW_PRIVATE` | `false` | Let webhooks and form webhook actions call private, loopback and link-local addresses. By default they're refused. |
 
 ### Forms
 

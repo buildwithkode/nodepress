@@ -78,6 +78,9 @@ const EnvSchema = z.object({
   QUEUE_POLL_MS:       z.coerce.number().int().positive().default(1000), // how often an idle worker checks for due work
   WEBHOOK_CONCURRENCY: z.coerce.number().int().positive().default(10),   // webhook deliveries in flight per instance
   JOB_CONCURRENCY:     z.coerce.number().int().positive().default(5),    // jobs (form emails/webhooks…) in flight per instance
+  // Webhooks and form webhook actions refuse private, loopback and metadata
+  // addresses (SSRF). Set true when they call services on your own network.
+  WEBHOOK_ALLOW_PRIVATE: z.enum(['true', 'false']).default('false'),
 
   // Single sign-on via OpenID Connect (auth/oidc.service.ts) — Google,
   // Microsoft Entra ID, Okta, Auth0, Keycloak… Enabled when OIDC_ISSUER is set.

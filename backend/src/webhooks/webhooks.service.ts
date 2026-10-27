@@ -1,6 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createHmac, randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { env } from '../config/env';
+import { outboundPost } from '../common/outbound-post';
 import { AppCacheService } from '../cache/app-cache.service';
 import { CreateWebhookDto } from './dto/create-webhook.dto';
 import { UpdateWebhookDto } from './dto/update-webhook.dto';
@@ -323,7 +325,7 @@ export class WebhooksService {
     }
 
     try {
-      const res = await fetch(hook.url, { method: 'POST', headers, body, signal: AbortSignal.timeout(10_000) });
+      const res = await outboundPost(hook.url, { method: 'POST', headers, body, timeoutMs: 10_000, allowPrivate: env.WEBHOOK_ALLOW_PRIVATE === 'true' });
       return res.ok ? { ok: true, status: res.status } : { ok: false, status: res.status, error: `HTTP ${res.status}` };
     } catch (err: any) {
       return { ok: false, status: null, error: err?.message ?? 'Request failed' };
