@@ -153,8 +153,10 @@ curl -X PUT http://localhost:3000/api/blog/my-first-post \
 
 `PUT` takes `data` and an optional `locale` (default `en`). It returns `200` with the updated entry.
 
-:::caution[`data` is replaced, not merged]
-The `data` you send replaces the entry's stored data. Fields you leave out are removed. Send the complete set of values, for example by reading the entry first and changing what you need. Required fields aren't enforced on update.
+:::note[`data` is merged]
+The fields you send replace those fields; fields you leave out keep their values. Send `null` to clear a field. The merge is top-level: a group, repeater or flexible field you send is replaced as a whole. Required fields aren't enforced on update.
+
+Before NodePress 1.7.2, `PUT` replaced the whole `data` and fields you left out were removed.
 :::
 
 The REST update doesn't change the slug or status. Use the admin or the admin API for that.

@@ -148,6 +148,21 @@ describe('Dynamic API (e2e)', () => {
     expect(res.body.data.title).toBe('Updated via API Key');
   });
 
+  it('PUT /api/article/:slug → keeps the fields it does not send; null clears one', async () => {
+    const http = () => request(app.getHttpServer());
+    await http().post('/api/article').set('X-API-Key', apiKey)
+      .send({ slug: 'partial-put', data: { title: 'Partial', body: 'Original body' } }).expect(201);
+
+    const res = await http().put('/api/article/partial-put').set('X-API-Key', apiKey)
+      .send({ data: { body: 'New body' } }).expect(200);
+    expect(res.body.data).toMatchObject({ title: 'Partial', body: 'New body' });
+
+    const cleared = await http().put('/api/article/partial-put').set('X-API-Key', apiKey)
+      .send({ data: { body: null } }).expect(200);
+    expect(cleared.body.data.title).toBe('Partial');
+    expect(cleared.body.data.body ?? null).toBeNull();
+  });
+
   it('DELETE /api/article/:slug → deletes entry via API key', async () => {
     await request(app.getHttpServer())
       .delete('/api/article/api-key-post')

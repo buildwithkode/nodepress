@@ -126,8 +126,8 @@ await posts.delete('from-the-client');
 
 `create` takes `slug`, `data` and optionally `locale` and `status`. `update` and `delete` take `{ locale }` as their last argument.
 
-:::caution
-`update` replaces the entry's `data` with what you pass. Fields you leave out are removed. See [Writing entries](/apis/rest/#writing-entries).
+:::note
+`update` changes only the fields you pass; send `null` to clear one. Before NodePress 1.7.2 it replaced the whole `data`. See [Writing entries](/apis/rest/#writing-entries).
 :::
 
 ## Images

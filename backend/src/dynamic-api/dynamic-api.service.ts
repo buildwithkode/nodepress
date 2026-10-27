@@ -738,8 +738,11 @@ export class DynamicApiService implements OnModuleInit {
     validateFieldWritePermissions(data, entry.data as Record<string, any>, schema, undefined);
     this.dataValidator?.validate(data, schema, { partial: true });
 
+    // A partial update: fields that aren't sent keep their stored values
+    // (including fields this caller may not write), as the partial validation implies.
+    const merged = { ...(entry.data as Record<string, any> | null ?? {}), ...data };
     const before = {
-      id: entry.id, slug, status: entry.status, contentType: contentType.name, locale, data, source: 'api' as const,
+      id: entry.id, slug, status: entry.status, contentType: contentType.name, locale, data: merged, source: 'api' as const,
     };
     await this.hookBus?.emit(PluginEvents.ENTRY_BEFORE_UPDATE, before);
 
