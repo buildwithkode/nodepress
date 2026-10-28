@@ -27,6 +27,7 @@ const DEV_ONLY = [
   'scripts/check-versions.js',
   'scripts/validate.sh',
   'scripts/install.sh',   // One-line server installer (runs from the NodePress repo)
+  'scripts/release-images.sh', // Publishes the official release images
   'docs',                 // NodePress GitHub Pages site
   'CHANGELOG.md',         // NodePress version history
   'CODE_OF_CONDUCT.md',   // NodePress open source conduct file

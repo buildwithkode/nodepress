@@ -16,19 +16,41 @@ NodePress ships Docker Compose files that run the whole stack on one machine: Po
 | `docker-compose.search.yml` | Adds Meilisearch for search. Combine with `docker-compose.yml`. |
 | `docker-compose.prod.yml` | A larger standalone stack: PgBouncer, several backend replicas, Prometheus, Grafana and nightly database backups. |
 
-All of them build the images from `backend/Dockerfile` and `frontend/Dockerfile` (Node.js 22).
+The API and admin images come from `backend/Dockerfile` and `frontend/Dockerfile` (Node.js 22). You can pull them ready-made or build them yourself.
+
+## Ready-made images
+
+Every release is published as two images, for `linux/amd64` and `linux/arm64`:
+
+| Image | What it is |
+|---|---|
+| `ghcr.io/buildwithkode/nodepress-backend` | The API |
+| `ghcr.io/buildwithkode/nodepress-frontend` | The admin panel |
+
+Each release is tagged with its version (`1.8.0`), its minor line (`1.8`) and `latest`. Set the version to run in `.env`, so the server doesn't move to a new release by itself:
+
+```bash title=".env"
+NODEPRESS_VERSION=1.8.0
+```
+
+Then `docker compose pull && docker compose up -d` runs it without building. The [one-line installer](/deployment/self-hosting/#one-line-installer) does this for you.
+
+The ready-made images contain stock NodePress only. Build your own when you've changed the code or added bundled plugins (plugins uploaded in the admin work with both). The admin's error reporting to Sentry (`NEXT_PUBLIC_SENTRY_DSN`) is fixed when the admin is built, so it also needs your own build; the API's `SENTRY_DSN` works with either.
 
 :::caution[Projects created with create-nodepress-app]
 `--docker` keeps the Compose files and `nginx/`, but a scaffolded project has no `scripts/` folder, and the Compose files mount files from it: `docker-compose.yml` needs `scripts/docker-secrets-init.sh`, and the backup service in `docker-compose.prod.yml` needs `scripts/backup.sh` and `scripts/backup-crontab`. Copy them from the [NodePress repository](https://github.com/buildwithkode/nodepress/tree/main/scripts) before the first `up`.
+
+A project has its own code, so build its images (`up -d --build`) rather than pulling the ready-made ones. New projects name their images `localhost/<project>/…` in `.env` (`NODEPRESS_IMAGE_PREFIX`, `NODEPRESS_VERSION=local`), so a stray `docker compose pull` can't replace them. In a project created before that, add those two lines to `.env` yourself.
 :::
 
 ## The standard stack
 
 ```bash
-docker compose up -d --build
+docker compose pull && docker compose up -d   # ready-made images
+docker compose up -d --build                  # or build from this folder
 ```
 
-Open `http://localhost/setup` (or your server's address) to create the admin account. The first build takes a few minutes.
+Open `http://localhost/setup` (or your server's address) to create the admin account. Pulling takes about a minute; the first build takes a few minutes.
 
 | Service | What it does |
 |---|---|
@@ -108,8 +130,11 @@ APP_URL=https://cms.example.com
 ```
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+# or build from this folder: docker compose -f docker-compose.prod.yml up -d --build
 ```
+
+It uses the same images as the standard stack; set `NODEPRESS_VERSION` in `.env` as above.
 
 | Service | What it does |
 |---|---|
@@ -189,7 +214,8 @@ nginx runs on the Docker network, so the backend's default `TRUST_PROXY` already
 docker compose logs -f backend          # follow the API's logs
 docker compose ps                       # what's running
 docker compose exec db psql -U postgres nodepress   # database shell
-docker compose build && docker compose up -d        # rebuild after an upgrade
+docker compose pull && docker compose up -d         # after changing NODEPRESS_VERSION
+docker compose build && docker compose up -d        # rebuild your own images after an upgrade
 ```
 
 To upgrade, see [Upgrading](/deployment/upgrading/#docker).

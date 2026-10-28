@@ -1,0 +1,176 @@
+name: Release images
+
+# A vX.Y.Z tag builds the backend and frontend images for amd64 and arm64,
+# starts the stack from them as a smoke test, and only then tags them
+# X.Y.Z, X.Y and latest on GHCR. Servers then pull instead of building
+# (scripts/install.sh, the `image:` lines in docker-compose.yml).
+#
+# The first release creates the two GHCR packages as private: make them public
+# once (Package settings → Change visibility) so servers can pull without a login.
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # ── The tag must match every manifest ─────────────────────────────────────
+  version:
+    name: Check version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      prefix: ${{ steps.v.outputs.prefix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/check-versions.js
+      - id: v
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$manifest" ]; then
+            echo "::error::Tag v$tag doesn't match the manifest version $manifest"
+            exit 1
+          fi
+          echo "version=$tag" >> "$GITHUB_OUTPUT"
+          echo "prefix=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+  # ── One image per service and platform, pushed by digest (no tag yet) ─────
+  # arm64 builds on a native runner: bcrypt and sharp compile or download
+  # native code, and emulating arm64 under QEMU is many times slower.
+  build:
+    name: Build ${{ matrix.service }} (${{ matrix.arch }})
+    needs: version
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: true
+      matrix:
+        service: [backend, frontend]
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          platforms: linux/${{ matrix.arch }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.version.outputs.version }}
+            org.opencontainers.image.licenses=MIT
+          outputs: type=image,name=${{ needs.version.outputs.prefix }}/nodepress-${{ matrix.service }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.service }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}-${{ matrix.arch }}
+      - run: |
+          mkdir -p digests
+          echo "${{ steps.build.outputs.digest }}" > "digests/${{ matrix.service }}-${{ matrix.arch }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.service }}-${{ matrix.arch }}
+          path: digests/*
+          retention-days: 1
+
+  # ── Start the stack from the new amd64 images ─────────────────────────────
+  smoke:
+    name: Smoke test
+    needs: [version, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      PREFIX: ${{ needs.version.outputs.prefix }}
+      NODEPRESS_IMAGE_PREFIX: ${{ needs.version.outputs.prefix }}
+      NODEPRESS_VERSION: smoke
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: digest-*-amd64
+          path: digests
+          merge-multiple: true
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull the images by digest
+        run: |
+          for s in backend frontend; do
+            docker pull "$PREFIX/nodepress-$s@$(cat digests/$s-amd64)"
+            docker tag "$PREFIX/nodepress-$s@$(cat digests/$s-amd64)" "$PREFIX/nodepress-$s:smoke"
+          done
+      - name: Start without building
+        run: docker compose up -d --no-build
+      - name: Wait for the API and the admin
+        run: |
+          for _ in $(seq 1 60); do
+            if curl -fsS http://localhost/api/health >/dev/null 2>&1 \
+              && curl -fsS -o /dev/null http://localhost/setup; then
+              echo "API and admin are up"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::The stack didn't come up in 5 minutes"
+          exit 1
+      - name: Logs
+        if: always()
+        run: docker compose logs --tail 200 backend frontend nginx
+      - if: always()
+        run: docker compose down -v
+
+  # ── Smoke test passed: give the digests their version tags ────────────────
+  publish:
+    name: Publish ${{ matrix.service }}
+    needs: [version, smoke]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    env:
+      IMAGE: ${{ needs.version.outputs.prefix }}/nodepress-${{ matrix.service }}
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: digest-${{ matrix.service }}-*
+          path: digests
+          merge-multiple: true
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create the multi-arch tags
+        run: |
+          refs=()
+          for f in digests/*; do refs+=("$IMAGE@$(cat "$f")"); done
+          # A pre-release (1.8.0-rc.1) gets only its own tag, never latest.
+          tags=(-t "$IMAGE:$VERSION")
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            tags+=(-t "$IMAGE:${VERSION%.*}" -t "$IMAGE:latest")
+          fi
+          docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+          docker buildx imagetools inspect "$IMAGE:$VERSION"

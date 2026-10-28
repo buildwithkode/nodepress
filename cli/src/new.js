@@ -197,6 +197,11 @@ module.exports = async function createProject(name, opts = {}) {
       CORS_ORIGIN:   'http://localhost',
       APP_URL:       'http://localhost:3000',
       SITE_URL:      'http://localhost',
+      // The project's own builds. Without these, docker-compose.yml names the images
+      // after the official GHCR release, and a `docker compose pull` would replace
+      // this project's code with stock NodePress.
+      NODEPRESS_IMAGE_PREFIX: `localhost/${safeName}`,
+      NODEPRESS_VERSION:      'local',
     };
     writeEnvFile(path.join(projectDir, '.env'), rootEnv);
     ok('.env generated for Docker Compose');

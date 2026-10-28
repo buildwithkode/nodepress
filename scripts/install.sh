@@ -14,6 +14,8 @@
 #   NODEPRESS_DIR  install directory (default: ./nodepress)
 #   NODEPRESS_REF  git branch or tag (default: the newest vX.Y.Z release, else main;
 #                  NODEPRESS_TRACK=main in .env keeps an install on main)
+#   NODEPRESS_BUILD=1  build the images on this server instead of pulling the
+#                  prebuilt release images from GHCR (main is always built)
 #
 # Re-running it in an existing install directory updates to the newest release and
 # restarts; DOMAIN and ACME_EMAIL are remembered in .env, so they needn't be repeated.
@@ -24,6 +26,7 @@ DIR="${NODEPRESS_DIR:-nodepress}"
 REF="${NODEPRESS_REF:-}"
 DOMAIN="${DOMAIN:-}"
 ACME_EMAIL="${ACME_EMAIL:-}"
+BUILD="${NODEPRESS_BUILD:-}"
 
 # Re-run in an existing install: keep the domain it was set up with, or the update
 # would rewrite the URLs to http://<server-ip> and drop HTTPS.
@@ -93,6 +96,13 @@ set_env() {
 
 [ -n "$TRACK" ] && set_env NODEPRESS_TRACK "$TRACK"
 
+# Release installs run the prebuilt images for exactly that release; anything
+# else (main, a branch) has no images and is built here.
+case "$REF" in
+  v[0-9]*.[0-9]*.[0-9]*) set_env NODEPRESS_VERSION "${REF#v}" ;;
+  *) set_env NODEPRESS_VERSION "$(printf '%s' "$REF" | tr -c 'A-Za-z0-9_.-' '-')"; BUILD=1 ;;
+esac
+
 COMPOSE=(docker compose -f docker-compose.yml)
 if [ -n "$DOMAIN" ]; then
   set_env DOMAIN "$DOMAIN"
@@ -112,8 +122,22 @@ else
 fi
 chmod 600 .env
 
-say "Building and starting (the first build takes a few minutes)"
-"${COMPOSE[@]}" up -d --build
+# Releases made before the images existed (or a GHCR outage) fall back to a build.
+if [ -z "$BUILD" ]; then
+  say "Downloading the NodePress $REF images"
+  if ! "${COMPOSE[@]}" pull backend frontend; then
+    say "No prebuilt images for $REF — building them here instead"
+    BUILD=1
+  fi
+fi
+
+if [ -n "$BUILD" ]; then
+  say "Building and starting (the first build takes a few minutes)"
+  "${COMPOSE[@]}" up -d --build
+else
+  say "Starting"
+  "${COMPOSE[@]}" up -d
+fi
 
 say "Waiting for the API to come up"
 for _ in $(seq 1 60); do

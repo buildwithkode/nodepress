@@ -66,9 +66,11 @@ docker compose build
 docker compose up -d
 ```
 
+That builds your own images, which a project with its own code needs. A clone of the repository with no code changes can run the [ready-made images](/deployment/docker/#ready-made-images) instead: check out the release, set `NODEPRESS_VERSION` in `.env` to it, then `docker compose pull && docker compose up -d`.
+
 With `docker-compose.yml`, the backend applies migrations when it starts. With `docker-compose.prod.yml`, the `migrate` service applies them before any backend replica starts. Add `-f docker-compose.prod.yml` (and any override files you use) to both commands.
 
-If you installed with the [one-line installer](/deployment/self-hosting/#one-line-installer), run it again in the same place: it fetches the newest release, rebuilds and restarts. The domain is remembered from the first run.
+If you installed with the [one-line installer](/deployment/self-hosting/#one-line-installer), run it again in the same place: it fetches the newest release, pulls its images and restarts. The domain is remembered from the first run.
 
 ## Managed hosts
 

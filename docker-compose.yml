@@ -1,5 +1,11 @@
 # NodePress — Docker Compose (One-Click & Production Deployment)
-# Usage: docker compose up -d --build
+# Usage:
+#   docker compose pull && docker compose up -d   # prebuilt release images (GHCR)
+#   docker compose up -d --build                  # build from this checkout instead
+#
+# NODEPRESS_VERSION (in .env) picks the release, e.g. 1.8.0; scripts/install.sh
+# pins it for you. Builds are tagged with the same name, so a custom build
+# replaces the pulled image locally until the next pull.
 #
 # No .env is required: JWT_SECRET and the database password are generated on the
 # first `up` by the secrets-init service. Set them in .env only to use your own.
@@ -64,6 +70,7 @@ services:
 
   # ── NestJS Backend ──────────────────────────────────────────────────────────
   backend:
+    image: ${NODEPRESS_IMAGE_PREFIX:-ghcr.io/buildwithkode}/nodepress-backend:${NODEPRESS_VERSION:-latest}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -103,6 +110,7 @@ services:
 
   # ── Next.js Frontend ─────────────────────────────────────────────────────────
   frontend:
+    image: ${NODEPRESS_IMAGE_PREFIX:-ghcr.io/buildwithkode}/nodepress-frontend:${NODEPRESS_VERSION:-latest}
     build:
       context: ./frontend
       dockerfile: Dockerfile

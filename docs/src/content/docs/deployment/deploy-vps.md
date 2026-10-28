@@ -75,7 +75,7 @@ sudo usermod -aG docker $USER
 exit
 ```
 
-**Server with 1 GB of memory?** Add 2 GB of swap first, or the first build can run out of memory:
+**Server with 1 GB of memory?** Add 2 GB of swap first. NodePress normally arrives ready-made, but if it ever has to be built on the server, 1 GB isn't enough:
 
 ```bash
 fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
@@ -101,10 +101,10 @@ The installer:
 
 1. downloads the latest NodePress release into a `nodepress` folder;
 2. generates the secrets (login signing key, database password);
-3. builds and starts the database, API, admin, nginx and Caddy;
+3. downloads NodePress ready-made for that release and starts the database, API, admin, nginx and Caddy;
 4. waits until the API is healthy.
 
-The first build takes 5–10 minutes. When it's done you'll see:
+This usually takes a few minutes. (Releases made before ready-made images existed are built on the server instead, which takes 5–10 minutes.) When it's done you'll see:
 
 ```
 ✔ NodePress is running at https://cms.example.com
@@ -170,7 +170,7 @@ Connect to the server and run the same install command again from the same folde
 curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/scripts/install.sh | bash
 ```
 
-It downloads the newest release, rebuilds and restarts; database changes are applied automatically. See [Upgrading](/deployment/upgrading/) before a major version.
+It downloads the newest release and restarts; database changes are applied automatically. Your content, uploads and settings stay as they are. See [Upgrading](/deployment/upgrading/) before a major version.
 
 ## If something goes wrong
 
@@ -185,7 +185,7 @@ docker compose -f docker-compose.yml -f docker-compose.https.yml ps             
 | Problem | What to do |
 |---|---|
 | The browser shows a certificate or "not secure" error | DNS isn't pointing at the server yet, or ports 80/443 are blocked. Check with `dig +short cms.example.com` (should print the server's IP), wait a few minutes, then restart Caddy: `docker compose -f docker-compose.yml -f docker-compose.https.yml restart caddy`. On Cloudflare, use **DNS only**. |
-| The build stops with `Killed` or an out-of-memory error | Add swap (step 4) and run the installer again. |
+| The installer stops with `Killed` or an out-of-memory error while building | Add swap (step 4) and run the installer again. |
 | `HTTPS needs Docker Compose v2.24 or newer` | Update Docker: run the step 4 command again. |
 | `The backend didn't become healthy in 5 minutes` | Read the backend log (above). Run the installer again after fixing what it reports. |
 | `502 Bad Gateway` right after starting | The API is still starting; wait a minute. |
