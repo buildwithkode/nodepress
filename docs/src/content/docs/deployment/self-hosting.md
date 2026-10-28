@@ -14,7 +14,7 @@ NodePress is two Node.js programs: the API (`backend/`, NestJS) and the admin pa
 | [Docker Compose](/deployment/docker/) | One server (VPS) running everything: PostgreSQL, Redis, API, admin and nginx. |
 | One-line installer | The Docker setup on a fresh Linux server, with optional automatic HTTPS. See [below](#one-line-installer). |
 | [Render](#render) | A managed host with the `render.yaml` blueprint. |
-| Node.js on your own server | Full control. The rest of this page. |
+| Node.js on your own server | Full control. The rest of this page; [Deploy on a server without Docker](/deployment/deploy-vps-node/) is the same as a step-by-step guide. |
 | Other managed hosts | Railway, Fly.io, DigitalOcean App Platform and similar. See [Other managed hosts](#other-managed-hosts). |
 
 ## One-line installer
@@ -90,7 +90,8 @@ module.exports = {
     {
       name: 'nodepress-admin',
       cwd: './frontend',
-      script: 'node_modules/.bin/next',
+      // npm workspaces install Next.js in the root node_modules
+      script: '../node_modules/next/dist/bin/next',
       args: 'start -p 3001',
       env: { NODE_ENV: 'production' },
     },

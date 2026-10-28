@@ -44,7 +44,12 @@ const nextConfig = {
     ? {
         BACKEND_URL,
         NEXT_PUBLIC_BACKEND_URL: BACKEND_URL,
-        NEXT_PUBLIC_API_URL: BACKEND_URL,
+        // Live updates: `next dev` talks to the local backend directly. A production
+        // build (a server without Docker, BACKEND_URL=http://127.0.0.1:3000) must not
+        // inline localhost — every visitor's browser would connect to its own machine.
+        // Left empty, the page's own origin is used, which the reverse proxy routes.
+        NEXT_PUBLIC_API_URL:
+          process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? '' : BACKEND_URL),
       }
     : {},
   async rewrites() {

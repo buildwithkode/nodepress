@@ -21,6 +21,10 @@
 # restarts; DOMAIN and ACME_EMAIL are remembered in .env, so they needn't be repeated.
 set -euo pipefail
 
+# Everything runs inside main(), called on the last line: with `curl | bash`, a
+# download cut off half-way then runs nothing instead of half a script.
+main() {
+
 REPO="https://github.com/buildwithkode/nodepress.git"
 DIR="${NODEPRESS_DIR:-nodepress}"
 REF="${NODEPRESS_REF:-}"
@@ -122,7 +126,11 @@ else
 fi
 chmod 600 .env
 
-# Releases made before the images existed (or a GHCR outage) fall back to a build.
+# Releases made before the images existed name no image in their compose file:
+# `pull` then succeeds without fetching anything and `up` would keep the images an
+# earlier install built, so those always build. A failed pull (GHCR outage, a
+# release whose images weren't published) falls back to a build too.
+grep -qF 'nodepress-backend:${NODEPRESS_VERSION' docker-compose.yml || BUILD=1
 if [ -z "$BUILD" ]; then
   say "Downloading the NodePress $REF images"
   if ! "${COMPOSE[@]}" pull backend frontend; then
@@ -151,3 +159,6 @@ for _ in $(seq 1 60); do
   sleep 5
 done
 fail "The backend didn't become healthy in 5 minutes — check: ${COMPOSE[*]} logs backend"
+}
+
+main "$@"

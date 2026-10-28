@@ -2,7 +2,7 @@
 title: Deploy on a platform
 description: Step by step on Railway and DigitalOcean App Platform (and Render) — two services from your GitHub repository, a managed database, and the settings that connect them.
 sidebar:
-  order: -1
+  order: 0
 ---
 
 On a platform you don't manage a server: you connect your GitHub repository and the platform builds and runs NodePress for you. Every platform follows the same shape, so read [the shape](#the-shape-every-platform-uses) once, then follow the steps for yours.

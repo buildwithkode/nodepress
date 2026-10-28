@@ -122,6 +122,8 @@ const TOPICS: { title: string; pages: [string, string][] }[] = [
     ['Generate types', 'cli/generate-types'], ['Schema sync', 'cli/schema'], ['MCP server', 'cli/mcp'],
   ] },
   { title: 'Deployment', pages: [
+    ['Choose a host', 'deployment/deploy'], ['Deploy on a server', 'deployment/deploy-vps'],
+    ['Server without Docker', 'deployment/deploy-vps-node'], ['Deploy on a platform', 'deployment/deploy-platforms'],
     ['Self-hosting', 'deployment/self-hosting'], ['Docker', 'deployment/docker'], ['File storage', 'deployment/storage'],
     ['Email', 'deployment/email'], ['Scaling', 'deployment/scaling'], ['Search', 'deployment/search'],
     ['CDN caching', 'deployment/cdn'], ['Backups', 'deployment/backups'], ['Upgrading', 'deployment/upgrading'],

@@ -9,8 +9,10 @@
 # 1. checks HEAD is the vX.Y.Z tag matching every manifest, with a clean tree;
 # 2. builds both images for this machine and starts the stack from them (smoke
 #    test: /api/health and /setup through nginx on port 80);
-# 3. builds linux/amd64 + linux/arm64 and pushes X.Y.Z, X.Y and latest
-#    (a pre-release such as 1.8.0-rc.1 gets only its own tag).
+# 3. builds linux/amd64 + linux/arm64 with an SBOM and build provenance, and
+#    pushes X.Y.Z, X.Y, X and latest (a pre-release such as 1.8.0-rc.1 gets only
+#    its own tag). Sigstore keyless signing needs GitHub's OIDC identity, so only
+#    the Actions workflow signs; images published from here are unsigned.
 #
 # Options (environment variables):
 #   NODEPRESS_IMAGE_PREFIX  registry/owner (default ghcr.io/buildwithkode)
@@ -41,7 +43,7 @@ TAG="$(git describe --exact-match --tags HEAD 2>/dev/null || true)"
 
 TAGS=("$VERSION")
 if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  TAGS+=("${VERSION%.*}" latest)
+  TAGS+=("${VERSION%.*}" "${VERSION%%.*}" latest)
 fi
 
 # Multi-platform pushes need a docker-container builder.
@@ -88,6 +90,7 @@ for s in backend frontend; do
   for t in "${TAGS[@]}"; do args+=(-t "$PREFIX/nodepress-$s:$t"); done
   say "Building and pushing nodepress-$s ($PLATFORMS): ${TAGS[*]}"
   docker buildx build --builder "$BUILDER" --platform "$PLATFORMS" --push \
+    --provenance=mode=max --sbom=true \
     --label "org.opencontainers.image.source=https://github.com/buildwithkode/nodepress" \
     --label "org.opencontainers.image.version=$VERSION" \
     --label "org.opencontainers.image.licenses=MIT" \

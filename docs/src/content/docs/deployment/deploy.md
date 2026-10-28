@@ -16,9 +16,11 @@ NodePress runs anywhere that can run **Node.js and PostgreSQL** around the clock
 | Monthly cost | Lowest — one small server runs everything | Higher — you pay for two services and a database |
 | You look after | Server updates and backups (both are a few commands) | Almost nothing; the platform runs it |
 | Uploaded files | Stay on the server | Need [S3-compatible storage](/deployment/storage/) or a paid disk |
-| Guide | [Deploy on a server](/deployment/deploy-vps/) | [Deploy on a platform](/deployment/deploy-platforms/) |
+| Guide | [Deploy on a server](/deployment/deploy-vps/) (with Docker, one command) or [without Docker](/deployment/deploy-vps-node/) | [Deploy on a platform](/deployment/deploy-platforms/) |
 
-**Not sure? Use a server.** A VPS with 2 GB of memory runs the whole stack — database, API, admin and automatic HTTPS — and the installer sets it all up in one command.
+**Not sure? Use a server with Docker.** A VPS with 2 GB of memory runs the whole stack — database, API, admin and automatic HTTPS — and the installer sets it all up in one command. Docker here is just the tool the installer uses; you don't need to know it.
+
+**Can't or don't want to use Docker?** [Deploy on a server without Docker](/deployment/deploy-vps-node/) installs Node.js, PostgreSQL and Caddy directly, with the same result. It takes more steps.
 
 :::danger[Shared hosting won't work]
 Plans sold as "web hosting" or "shared hosting" with cPanel or Plesk (Hostinger shared, Bluehost, GoDaddy shared and similar) are made for PHP sites like WordPress. They can't keep a Node.js server and a PostgreSQL database running, so NodePress can't run there. Choose a VPS or one of the platforms above instead.
@@ -45,7 +47,7 @@ Knowing the parts makes the guides easier to follow:
 | **Admin** (`frontend/`) | The admin panel you sign in to. Listens on port 3001 and passes `/api` calls on to the API. |
 | **Uploads** | Images and files: on the server's disk, or in S3-compatible storage. |
 
-On a server, the installer runs all of these together with Docker, behind one domain. On a platform, the API and the admin are two services with two addresses, and the database is the platform's own.
+On a server, the installer runs all of these together with Docker, behind one domain; without Docker, each runs as a service on the server. On a platform, the API and the admin are two services with two addresses, and the database is the platform's own.
 
 ## Go-live checklist
 
