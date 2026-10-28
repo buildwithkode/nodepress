@@ -50,7 +50,7 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/buildwithkode/nodepress)
 
-**Putting it live for a client?** The [deploy guides](https://nodepress-docs.vercel.app/deployment/deploy/) walk through it step by step: [your own server](https://nodepress-docs.vercel.app/deployment/deploy-vps/) (DigitalOcean, Hetzner, Lightsail…), [Railway or DigitalOcean App Platform](https://nodepress-docs.vercel.app/deployment/deploy-platforms/), and a go-live checklist. Shared hosting (cPanel) can't run NodePress.
+**Putting it live for a client?** The [deploy guides](https://nodepress-docs.vercel.app/deployment/deploy/) walk through it step by step: your own server (DigitalOcean, Hetzner, Lightsail…) [with Docker](https://nodepress-docs.vercel.app/deployment/deploy-vps/) or [without Docker](https://nodepress-docs.vercel.app/deployment/deploy-vps-node/), [Railway or DigitalOcean App Platform](https://nodepress-docs.vercel.app/deployment/deploy-platforms/), and a go-live checklist. Shared hosting (cPanel) can't run NodePress.
 
 **From your frontend:** `npm install @nodepress-cms/client` — see [client/README.md](client/README.md). **From AI assistants:** `npx create-nodepress-app mcp` (MCP server).
 
