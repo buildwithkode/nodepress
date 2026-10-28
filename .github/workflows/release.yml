@@ -7,8 +7,10 @@ name: Release images
 #
 #   cosign verify ghcr.io/buildwithkode/nodepress-backend:1.8.0 \
 #     --certificate-identity-regexp '^https://github.com/buildwithkode/nodepress/' \
-#     --certificate-oidc-issuer https://token.actions.githubusercontent.com Servers then pull instead of building
-# (scripts/install.sh, the `image:` lines in docker-compose.yml).
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com
+#
+# Servers then pull instead of building (scripts/install.sh, the `image:` lines
+# in docker-compose.yml).
 #
 # The first release creates the two GHCR packages as private: make them public
 # once (Package settings → Change visibility) so servers can pull without a login.

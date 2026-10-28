@@ -70,6 +70,50 @@ before npm. If you add a dependency with an install script, decide it with
 `allowScripts`) — the pre-push check fails until you do. Keep the list in the
 root `package.json`; npm ignores it in `backend/` and `frontend/`.
 
+## 1.8.0 (from 1.7.x)
+
+One migration (`20261027090000_add_role_access`, a new `role_access` table),
+applied by `prisma migrate deploy` or, with Docker, when the backend starts.
+Existing roles keep the access they had.
+
+**Action required**
+
+- **Webhooks to your own network.** Admin webhooks and form webhook actions now
+  refuse private, loopback and cloud-metadata addresses and don't follow
+  redirects. If yours call a service on your own network, set
+  `WEBHOOK_ALLOW_PRIVATE=true`.
+
+**Behaviour changes**
+
+- A custom role now has its own module levels (Users → Permissions), starting
+  from its base role's; it no longer opens exactly its base role's pages.
+- Staging and archiving entries need `publish`; restoring from the trash needs
+  `delete`; entry import needs `create` (plus `update` / `publish` as needed);
+  export needs `read`.
+- Public `PUT /api/:type/:slug` merges the fields you send into the entry
+  instead of replacing all of its data. Send `null` to clear a field.
+- Changing your password signs out your other sessions.
+
+**Docker and the one-line installer**
+
+- Releases are now published as ready-made images
+  (`ghcr.io/buildwithkode/nodepress-backend` / `-frontend`). Running the
+  installer again pulls 1.8.0 instead of building it (or builds it when the
+  images can't be pulled), and pins
+  `NODEPRESS_VERSION=1.8.0` in `.env`.
+- Docker without the installer: set `NODEPRESS_VERSION=1.8.0` in `.env` and run
+  `docker compose pull && docker compose up -d`, or keep building your own
+  images with `docker compose build`.
+- A project from `create-nodepress-app --docker` has its own code, so keep
+  building (`docker compose build`). Add `NODEPRESS_IMAGE_PREFIX=localhost/<project>`
+  and `NODEPRESS_VERSION=local` to its root `.env`, so a `docker compose pull`
+  can never replace its images with stock NodePress.
+
+**Servers without Docker**
+
+- Rebuild the admin (`npm run build`): live updates were broken on production
+  builds whose `BACKEND_URL` was `localhost` / `127.0.0.1`.
+
 ## 1.7.1 (from 1.7.0)
 
 No migrations. **Behaviour changes** (security fixes):

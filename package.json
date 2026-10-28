@@ -1,6 +1,6 @@
 {
   "name": "nodepress",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "NodePress — self-hosted headless CMS (NestJS + Next.js)",
   "private": true,
   "license": "MIT",
