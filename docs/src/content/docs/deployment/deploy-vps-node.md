@@ -7,7 +7,7 @@ sidebar:
 
 This guide puts NodePress on a Linux server you rent (a VPS) **without Docker**: you install each part yourself and the server runs NodePress as two services. It takes about 45 minutes. You copy and paste every command.
 
-If you don't need to avoid Docker, [Deploy on a server](/deployment/deploy-vps/) is shorter: one command installs everything.
+If you don't need to avoid Docker, [Deploy on a server with Docker](/deployment/deploy-vps/) is shorter: one command installs everything.
 
 You'll end up with the database, API and admin on one server, at `https://cms.example.com`. Use your own domain wherever this guide says `cms.example.com`.
 
@@ -19,7 +19,7 @@ You'll end up with the database, API and admin on one server, at `https://cms.ex
 
 ## 1. Create the server and point your domain at it
 
-Follow steps 1–3 of [Deploy on a server](/deployment/deploy-vps/): an **Ubuntu 24.04** server with **2 GB of memory or more**, an `A` record for your domain pointing at its IP address, and a terminal on the server (`ssh root@<server-ip>`).
+Follow steps 1–3 of [Deploy on a server with Docker](/deployment/deploy-vps/): an **Ubuntu 24.04** server with **2 GB of memory or more**, an `A` record for your domain pointing at its IP address, and a terminal on the server (`ssh root@<server-ip>`).
 
 Everything from here on runs **on the server**, as `root`. On AWS Lightsail and other hosts where you log in as `ubuntu`, run `sudo -i` first.
 

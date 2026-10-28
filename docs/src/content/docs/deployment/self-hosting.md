@@ -40,7 +40,7 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | `NODEPRESS_REF` | the newest release | Git branch or tag to install. Without it, the newest `vX.Y.Z` release. Installs made before this followed `main` and stay on it (`NODEPRESS_TRACK=main` in `.env`). |
 | `NODEPRESS_BUILD` | none | `1` builds the images on the server instead of pulling them. A branch such as `main`, and a release without images, are always built. |
 
-When it finishes, open `/setup` on your site to create the admin account. The installer pins the release in `.env` (`NODEPRESS_VERSION`), so the server keeps running exactly that version. Running the installer again in the same place updates to the newest release and restarts the stack; `DOMAIN` and `ACME_EMAIL` are remembered, so you don't need to pass them again. For a full walkthrough, from renting the server to backups, see [Deploy on a server](/deployment/deploy-vps/). See [Docker](/deployment/docker/) for what it runs.
+When it finishes, open `/setup` on your site to create the admin account. The installer pins the release in `.env` (`NODEPRESS_VERSION`), so the server keeps running exactly that version. Running the installer again in the same place updates to the newest release and restarts the stack; `DOMAIN` and `ACME_EMAIL` are remembered, so you don't need to pass them again. For a full walkthrough, from renting the server to backups, see [Deploy on a server with Docker](/deployment/deploy-vps/). See [Docker](/deployment/docker/) for what it runs.
 
 ## Build
 

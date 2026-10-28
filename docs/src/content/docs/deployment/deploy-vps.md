@@ -1,11 +1,13 @@
 ---
-title: Deploy on a server
+title: Deploy on a server with Docker
 description: Step by step — rent a Linux server, point your domain at it, run one command, and get NodePress with automatic HTTPS, then set up email and backups.
 sidebar:
   order: -2
 ---
 
 This guide puts NodePress on a Linux server you rent (a VPS) with automatic HTTPS. It takes about 20 minutes, most of it waiting. You copy and paste every command; no programming is needed.
+
+The installer uses Docker to set everything up, but you don't need to know Docker: you install it with one command in step 4 and never touch it again. If you'd rather not use Docker, follow [Deploy on a server without Docker](/deployment/deploy-vps-node/) instead.
 
 You'll end up with the database, API and admin all on one server, at `https://cms.example.com` (use your own domain wherever this guide says `cms.example.com`).
 
