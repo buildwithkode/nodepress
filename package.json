@@ -24,7 +24,6 @@
     "install:all": "npm install"
   },
   "allowScripts": {
-    "bcrypt": true,
     "@sentry/cli": true,
     "@sentry/node-cpu-profiler": true,
     "@parcel/watcher": true,

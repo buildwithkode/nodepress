@@ -123,6 +123,7 @@ const TOPICS: { title: string; pages: [string, string][] }[] = [
   ] },
   { title: 'Deployment', pages: [
     ['Choose a host', 'deployment/deploy'], ['Server with Docker', 'deployment/deploy-vps'],
+    ['Server zip (no Docker)', 'deployment/deploy-zip'], ['cPanel hosting', 'deployment/deploy-cpanel'],
     ['Server without Docker', 'deployment/deploy-vps-node'], ['Deploy on a platform', 'deployment/deploy-platforms'],
     ['Self-hosting', 'deployment/self-hosting'], ['Docker', 'deployment/docker'], ['File storage', 'deployment/storage'],
     ['Email', 'deployment/email'], ['Scaling', 'deployment/scaling'], ['Search', 'deployment/search'],

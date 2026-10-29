@@ -12,8 +12,8 @@ A NodePress site is its PostgreSQL database plus its uploaded files. Content typ
 | What | Where | Notes |
 |---|---|---|
 | Database | PostgreSQL | Everything except uploaded files. |
-| Uploads | `backend/uploads/`, or your S3 bucket | Skip `uploads/.cache`: it only holds resized variants and temporary files. |
-| `JWT_SECRET` (or `SETTINGS_SECRET`) | `backend/.env`, or the `secrets_data` Docker volume | Email and storage passwords saved in the admin are encrypted with it. Restoring the database under a different secret makes them unreadable. |
+| Uploads | `backend/uploads/` (`nodepress-data/uploads/` for the [server zip](/deployment/deploy-zip/)), or your S3 bucket | Skip `uploads/.cache`: it only holds resized variants and temporary files. |
+| `JWT_SECRET` (or `SETTINGS_SECRET`) | `backend/.env` (`nodepress-data/.env` for the server zip), or the `secrets_data` Docker volume | Email and storage passwords saved in the admin are encrypted with it. Restoring the database under a different secret makes them unreadable. |
 
 Backups contain password hashes, API keys and webhook secrets. Store them somewhere private.
 
@@ -25,6 +25,8 @@ A clone of the NodePress repository has a backup and restore script:
 npm run backup                          # → backups/nodepress-<timestamp>.tar.gz
 npm run backup -- --out /mnt/backups    # choose the folder
 ```
+
+The [server zip](/deployment/deploy-zip/) includes it too: run it in the app folder, and it reads `nodepress-data/.env` and writes to `nodepress-data/backups/`.
 
 :::note[Scaffolded projects]
 A project made with `create-nodepress-app` doesn't include the `scripts/` folder, so it has no `npm run backup` or `npm run restore`. Use [pg_dump](#with-pg_dump) instead.

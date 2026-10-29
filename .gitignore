@@ -53,3 +53,6 @@ UPGRADE_STRATEGY.md
 backend/.plugins/
 .vercel
 /.env.local
+
+# Server zips (scripts/build-bundle.sh)
+/bundles/

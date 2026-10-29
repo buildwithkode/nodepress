@@ -16,14 +16,14 @@ NodePress runs anywhere that can run **Node.js and PostgreSQL** around the clock
 | Monthly cost | Lowest — one small server runs everything | Higher — you pay for two services and a database |
 | You look after | Server updates and backups (both are a few commands) | Almost nothing; the platform runs it |
 | Uploaded files | Stay on the server | Need [S3-compatible storage](/deployment/storage/) or a paid disk |
-| Guide | [With Docker](/deployment/deploy-vps/) (one command) or [without Docker](/deployment/deploy-vps-node/) | [Deploy on a platform](/deployment/deploy-platforms/) |
+| Guide | [With Docker](/deployment/deploy-vps/) (one command), [from the server zip](/deployment/deploy-zip/) (no Docker, no build) or [without Docker, step by step](/deployment/deploy-vps-node/) | [Deploy on a platform](/deployment/deploy-platforms/) |
 
 **Not sure? Use a server with Docker.** A VPS with 2 GB of memory runs the whole stack — database, API, admin and automatic HTTPS — and the installer sets it all up in one command. Docker here is just the tool the installer uses; you don't need to know it.
 
-**Can't or don't want to use Docker?** [Deploy on a server without Docker](/deployment/deploy-vps-node/) installs Node.js, PostgreSQL and Caddy directly, with the same result. It takes more steps.
+**Can't or don't want to use Docker?** [Install from the server zip](/deployment/deploy-zip/): unzip NodePress, already built, start it with Node.js and finish the setup in the browser. To build from source instead, [Deploy on a server without Docker](/deployment/deploy-vps-node/) installs everything step by step.
 
-:::danger[Shared hosting won't work]
-Plans sold as "web hosting" or "shared hosting" with cPanel or Plesk (Hostinger shared, Bluehost, GoDaddy shared and similar) are made for PHP sites like WordPress. They can't keep a Node.js server and a PostgreSQL database running, so NodePress can't run there. Choose a VPS or one of the platforms above instead.
+:::caution[Shared hosting]
+Plans sold as "web hosting" or "shared hosting" are made for PHP sites like WordPress, and most can't run NodePress. Some cPanel hosts can: if yours has **Setup Node.js App** with Node.js 22 and a PostgreSQL database (or you use a hosted one), follow [Install on cPanel hosting](/deployment/deploy-cpanel/). The host stops idle apps, so scheduled publishing waits for the next visit. Otherwise choose a VPS or one of the platforms above.
 :::
 
 ## What you need

@@ -33,13 +33,20 @@ const BACKEND_URL = resolveBackendUrl();
 // `env` values are inlined into the client bundle at build time. Only do that for a
 // local backend: a remote BACKEND_URL may be an internal hostname (e.g. http://backend:3000
 // in Docker) that browsers can't reach, so NEXT_PUBLIC_* must then be set explicitly.
-const isLocalBackend = /localhost|127\.0\.0\.1/.test(BACKEND_URL);
+// The server zip (NODEPRESS_BUNDLE=1) runs the admin inside the API's process
+// (backend/src/admin-host.ts), on whatever port and domain it's installed at:
+// nothing about the backend may be inlined, so server code reads BACKEND_URL at
+// runtime and the browser uses the page's own origin.
+const isBundle = process.env.NODEPRESS_BUNDLE === '1';
+const isLocalBackend = !isBundle && /localhost|127\.0\.0\.1/.test(BACKEND_URL);
 
 const nextConfig = {
   // The admin never uses next/image, so switch off the /_next/image optimizer
   // endpoint entirely — it is attack surface with nothing to gain (it was the
   // vector for an unauthenticated RCE fixed in Next 15.5.24).
   images: { unoptimized: true },
+  // Don't advertise the framework (the API's Express header is already off via Helmet).
+  poweredByHeader: false,
   env: isLocalBackend
     ? {
         BACKEND_URL,

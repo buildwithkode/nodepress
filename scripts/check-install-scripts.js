@@ -6,8 +6,8 @@
  * Why this exists:
  *   npm 12 no longer runs dependency install scripts (preinstall, install,
  *   postinstall, implicit node-gyp builds) unless `allowScripts` allows them.
- *   NodePress works with all of them blocked — bcrypt and Prisma ship or fetch
- *   what they need — but a new dependency might not, and npm only says so in a
+ *   NodePress works with all of them blocked — Prisma ships or fetches what
+ *   it needs — but a new dependency might not, and npm only says so in a
  *   warning at the end of an install. Every package with a script must be
  *   listed as true (allowed) or false (reviewed, not needed) so a new one shows
  *   up here instead of as a silent breakage on someone's npm 12 install.
@@ -27,7 +27,7 @@ const ROOT = path.join(__dirname, '..');
 const LOCKFILES = ['package-lock.json', 'backend/package-lock.json', 'frontend/package-lock.json'];
 
 const allow = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).allowScripts ?? {};
-// Entries may be name-only ("bcrypt") or pinned ("bcrypt@6.0.0").
+// Entries may be name-only ("prisma") or pinned ("prisma@6.19.3").
 const decided = new Set(Object.keys(allow).map((k) => k.replace(/@[^@/]+$/, '')));
 
 const missing = new Map(); // package → lockfiles

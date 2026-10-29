@@ -607,7 +607,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version, including u
 | **Backend** | NestJS · TypeScript · Prisma ORM |
 | **Database** | PostgreSQL 16 · PgBouncer |
 | **Cache** | Redis (ioredis) |
-| **Auth** | JWT · Passport · bcrypt |
+| **Auth** | JWT · Passport · bcryptjs |
 | **API** | REST · Apollo GraphQL · Swagger |
 | **Real-time** | Socket.io (Redis adapter for multi-instance) |
 | **Media** | Multer · Sharp (WebP) · S3 compatible |

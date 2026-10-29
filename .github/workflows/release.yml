@@ -1,4 +1,4 @@
-name: Release images
+name: Release
 
 # A vX.Y.Z tag builds the backend and frontend images for amd64 and arm64,
 # starts the stack from them as a smoke test, and only then tags them
@@ -11,6 +11,10 @@ name: Release images
 #
 # Servers then pull instead of building (scripts/install.sh, the `image:` lines
 # in docker-compose.yml).
+#
+# The same tag builds the server zips (scripts/build-bundle.sh: NodePress
+# without Docker, for x64 and arm64), starts the x64 one on a clean runner, and
+# once the images are published creates the GitHub release with the zips.
 #
 # The first release creates the two GHCR packages as private: make them public
 # once (Package settings → Change visibility) so servers can pull without a login.
@@ -53,7 +57,7 @@ jobs:
           echo "prefix=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
 
   # ── One image per service and platform, pushed by digest (no tag yet) ─────
-  # arm64 builds on a native runner: bcrypt and sharp compile or download
+  # arm64 builds on a native runner: sharp downloads
   # native code, and emulating arm64 under QEMU is many times slower.
   build:
     name: Build ${{ matrix.service }} (${{ matrix.arch }})
@@ -149,6 +153,52 @@ jobs:
       - if: always()
         run: docker compose down -v
 
+  # ── Server zips (no Docker): scripts/build-bundle.sh on the tag ───────────
+  zips:
+    name: Build server zips
+    needs: version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: bash scripts/build-bundle.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: server-zips
+          path: bundles/nodepress-linux-*
+          retention-days: 1
+
+  # ── Unpack the x64 zip on a clean runner and start it (scripts/smoke-zip.sh)
+  zips-smoke:
+    name: Smoke test the server zip
+    needs: zips
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: smoke
+          POSTGRES_DB: nodepress
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: server-zips
+          path: bundles
+      - run: bash scripts/smoke-zip.sh bundles/nodepress-linux-x64.zip
+        env:
+          DATABASE_URL: postgresql://postgres:smoke@localhost:5432/nodepress
+
   # ── Smoke test passed: give the digests their version tags ────────────────
   publish:
     name: Publish ${{ matrix.service }}
@@ -192,3 +242,24 @@ jobs:
         run: |
           digest="$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{json .Manifest}}' | jq -r .digest)"
           cosign sign --yes "$IMAGE@$digest"
+
+  # ── Images published and the zip works: the GitHub release, zips attached ─
+  # (scripts/release-zips.sh — the same script publishes by hand.)
+  release:
+    name: GitHub release
+    needs: [version, publish, zips-smoke]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: server-zips
+          path: bundles
+      - run: bash scripts/release-zips.sh
+        env:
+          SKIP_BUILD: 1
+          SKIP_SMOKE: 1
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODEPRESS_REPO: ${{ github.repository }}

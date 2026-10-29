@@ -3,16 +3,20 @@
  * Backup and restore for a NodePress install — database + local uploads.
  *
  *   npm run backup                          → backups/nodepress-<timestamp>.tar.gz
+ *                                             (in the data folder for the server zip)
  *   npm run backup -- --out /mnt/backups    → choose the folder
  *   npm run restore -- backups/nodepress-….tar.gz [--yes] [--force]
  *
  * A backup archive holds:
  *   db.dump        pg_dump custom-format dump (schema + data, no owners/grants)
- *   uploads/       backend/uploads when STORAGE_DRIVER is local (S3 media is not
+ *   uploads/       the data folder's uploads/ when STORAGE_DRIVER is local (S3 media is not
  *                  copied — back the bucket up with your provider's tooling)
  *   manifest.json  NodePress version, time, applied migrations, what's included
  *
- * The database is read from the environment first, then backend/.env:
+ * The data folder is backend/ in a source checkout, ../nodepress-data for the
+ * server zip, or NODEPRESS_DATA (scripts/data-dir.js).
+ *
+ * The database is read from the environment first, then the data folder's .env:
  * DIRECT_URL is preferred over DATABASE_URL, because a transaction-mode pooler
  * (Supabase/pgbouncer on :6543) cannot run pg_dump/pg_restore.
  *
@@ -29,7 +33,7 @@
  * written with mode 0600. Store them somewhere private.
  *
  * Requires the PostgreSQL client tools (pg_dump, pg_restore, psql) and tar.
- * Environment overrides: UPLOADS_DIR (default backend/uploads).
+ * Environment overrides: NODEPRESS_DATA, UPLOADS_DIR (default <data folder>/uploads).
  */
 
 const { spawnSync } = require('child_process');
@@ -37,11 +41,16 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const readline = require('readline');
+const { dataDir } = require('./data-dir');
 
 const ROOT = path.join(__dirname, '..');
 const BACKEND = path.join(ROOT, 'backend');
-const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(BACKEND, 'uploads');
+const DATA = dataDir(ROOT);
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(DATA, 'uploads');
 const MIGRATIONS_DIR = path.join(BACKEND, 'prisma', 'migrations');
+// Next to the data, outside the app folder an upgrade replaces; backups/ at the
+// repo root in a source checkout, as before.
+const BACKUPS_DIR = path.join(DATA === BACKEND ? ROOT : DATA, 'backups');
 
 // Prisma-only connection-string parameters that libpq (pg_dump/psql) rejects.
 const PRISMA_ONLY_PARAMS = [
@@ -57,7 +66,7 @@ function die(msg) {
 }
 
 function readEnvFile() {
-  const envPath = path.join(BACKEND, '.env');
+  const envPath = path.join(DATA, '.env');
   if (!fs.existsSync(envPath)) return {};
   const out = {};
   for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
@@ -73,7 +82,7 @@ const setting = (key) => process.env[key] ?? fileEnv[key];
 
 /**
  * DATABASE_URL and DIRECT_URL always come from ONE source: the environment if
- * either is set there, otherwise backend/.env. Mixing them would let
+ * either is set there, otherwise the data folder's .env. Mixing them would let
  * `DATABASE_URL=<test db> npm run restore` pick up DIRECT_URL from .env and
  * restore into the real database instead.
  */
@@ -87,7 +96,7 @@ function databaseUrls() {
 function databaseTarget() {
   const { databaseUrl, directUrl } = databaseUrls();
   const raw = directUrl || databaseUrl;
-  if (!raw) die('No DIRECT_URL or DATABASE_URL in the environment or backend/.env');
+  if (!raw) die(`No DIRECT_URL or DATABASE_URL in the environment or ${path.join(DATA, '.env')}`);
   let url;
   try {
     url = new URL(raw);
@@ -182,7 +191,7 @@ function humanSize(bytes) {
 
 function backup(args) {
   const outIdx = args.indexOf('--out');
-  const outDir = path.resolve(outIdx >= 0 ? args[outIdx + 1] : path.join(ROOT, 'backups'));
+  const outDir = path.resolve(outIdx >= 0 ? args[outIdx + 1] : BACKUPS_DIR);
   const target = databaseTarget();
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, '').replace('T', '-');
   const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'nodepress-backup-'));

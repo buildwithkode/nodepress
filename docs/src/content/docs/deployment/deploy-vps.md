@@ -199,7 +199,7 @@ docker compose -f docker-compose.yml -f docker-compose.https.yml ps             
 When there's no other admin and email isn't working, set a new password directly. In the `nodepress` folder, replace the password and email and run:
 
 ```bash
-HASH=$(docker compose exec -T backend node -e "process.stdout.write(require('bcrypt').hashSync(process.argv[1], 10))" 'NewPassword123')
+HASH=$(docker compose exec -T backend node -e "let b; try { b = require('bcryptjs') } catch { b = require('bcrypt') } process.stdout.write(b.hashSync(process.argv[1], 10))" 'NewPassword123')
 docker compose exec -T db psql -U postgres nodepress -c "UPDATE users SET password='$HASH' WHERE email='you@example.com';"
 ```
 

@@ -43,8 +43,10 @@ export class ContentGraphqlModule {}
       imports: [ContentGraphqlModule],
       inject: [ContentGraphqlService],
       useFactory: (content: ContentGraphqlService) => ({
-        // Code-first: auto-generate schema from decorators
-        autoSchemaFile: join(process.cwd(), 'src/graphql/schema.gql'),
+        // Code-first: auto-generate schema from decorators. Development writes it
+        // to src/graphql/schema.gql for reference; production keeps it in memory
+        // (the working directory may be the data folder — see server.js).
+        autoSchemaFile: process.env.NODE_ENV === 'production' ? true : join(process.cwd(), 'src/graphql/schema.gql'),
         sortSchema: true,
         // Path is relative to the Express root, NOT to the NestJS global prefix.
         // Global prefix 'api' is applied to NestJS controllers only, not Apollo middleware.

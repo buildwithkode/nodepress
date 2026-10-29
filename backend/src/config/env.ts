@@ -27,6 +27,10 @@ const EnvSchema = z.object({
   // public IP (e.g. Cloudflare → nginx), set a hop count such as "2".
   TRUST_PROXY: z.string().default('loopback, linklocal, uniquelocal'),
 
+  // Single-process mode (the server zip): the built admin's folder. The API then
+  // serves the admin on its own port too — see admin-host.ts.
+  NODEPRESS_ADMIN_DIR: z.string().optional(),
+
   // S3 — required when STORAGE_DRIVER=s3 (must match what s3.adapter.ts reads)
   STORAGE_S3_BUCKET:      z.string().optional(),
   STORAGE_S3_REGION:      z.string().optional(),

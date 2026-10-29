@@ -34,6 +34,7 @@ import { recordBootFailure } from './plugin/plugin-loader';
 import { PluginService } from './plugin/plugin.service';
 import { setupContentDocs } from './openapi/openapi.setup';
 import { keepRawBody } from './common/raw-body';
+import { mountAdmin } from './admin-host';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -71,6 +72,11 @@ async function bootstrap() {
       contentSecurityPolicy: false,
     }),
   );
+
+  // ─── Admin in the same process (server zip) ───────────────────────────────
+  // Before the body parsers and the Content-Type check: admin pages get the
+  // request untouched, as `next start` would.
+  if (env.NODEPRESS_ADMIN_DIR) await mountAdmin(app, env.NODEPRESS_ADMIN_DIR, env.PORT);
 
   // ─── Request body size limits ──────────────────────────────────────────────
   // Prevents memory exhaustion via large JSON payloads.
@@ -179,6 +185,7 @@ async function bootstrap() {
   console.log(`📚 API Docs at   http://localhost:${port}/api/docs`);
   console.log(`📁 Uploads at    http://localhost:${port}/uploads`);
   console.log(`❤️  Health at     http://localhost:${port}/api/health`);
+  if (env.NODEPRESS_ADMIN_DIR) console.log(`🖥️  Admin at      http://localhost:${port}/`);
 
   // Uploaded plugins that started fine are no longer suspects for a failed startup.
   await app.get(PluginService).recordBootSuccess();

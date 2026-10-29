@@ -196,6 +196,16 @@ See [Monitoring](/deployment/monitoring/).
 | `ROBOTS_DISALLOW` | none | Comma-separated paths added as `Disallow` rules to `/api/robots.txt`. |
 | `GRAPHQL_SCHEMA_POLL_MS` | `10000` | How often each instance checks whether content types changed on another instance, to rebuild its GraphQL schema. |
 
+### Server zip
+
+Read by `server.js`, the start file of the [server zip](/deployment/deploy-zip/), before it loads `.env`, so set them in the service or the hosting panel, not in `.env`.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `NODEPRESS_DATA` | `nodepress-data` next to the app folder (`backend/` in a source checkout) | Where `.env`, `uploads/`, uploaded plugins and backups live. |
+| `NODEPRESS_MIGRATE` | on for the zip, off in a source checkout | `0` stops `server.js` applying database updates when it starts; `1` turns that on anywhere. |
+| `NODEPRESS_ADMIN_DIR` | set by `server.js` | The built admin's folder. When set, the API serves the admin on its own port too. |
+
 ## Admin (frontend)
 
 | Variable | Default | Meaning |
