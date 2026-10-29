@@ -585,7 +585,7 @@ A project made with `create-nodepress-app` starts on a release and records it in
 
 ```bash
 npx create-nodepress-app upgrade --dry-run   # what would change (default target: the latest release)
-npx create-nodepress-app upgrade             # or: upgrade 1.8.0
+npx create-nodepress-app upgrade             # or: upgrade 1.9.0
 # fix any conflicts it lists, then:
 npm install                                  # workspaces — backend + frontend
 cd backend && npx prisma migrate deploy && cd ..

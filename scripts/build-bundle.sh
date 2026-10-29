@@ -12,7 +12,7 @@
 # systemd or a hosting panel's Node.js app at server.js), open the site and
 # finish in the browser (scripts/setup-wizard.js).
 #
-#   git checkout v1.8.0 && scripts/build-bundle.sh     # a release
+#   git checkout v1.9.0 && scripts/build-bundle.sh     # a release
 #   BUNDLE_FROM_WORKTREE=1 scripts/build-bundle.sh     # test build of the working tree
 #
 # Runs on macOS or Linux with Node.js 22 and zip — no Docker. The build output

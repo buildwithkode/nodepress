@@ -31,7 +31,7 @@ Commit your work, then from the project folder:
 
 ```bash
 npx create-nodepress-app upgrade --dry-run   # preview (default target: the latest release)
-npx create-nodepress-app upgrade             # or: upgrade 1.8.0
+npx create-nodepress-app upgrade             # or: upgrade 1.9.0
 npm install && cd backend && npx prisma migrate deploy
 ```
 

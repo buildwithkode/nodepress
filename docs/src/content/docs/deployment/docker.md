@@ -27,18 +27,18 @@ Every release is published as two images, for `linux/amd64` and `linux/arm64`:
 | `ghcr.io/buildwithkode/nodepress-backend` | The API |
 | `ghcr.io/buildwithkode/nodepress-frontend` | The admin panel |
 
-Each release is tagged with its version (`1.8.0`), its minor line (`1.8`), its major line (`1`) and `latest`; pre-releases such as `1.8.0-rc.1` get only their own tag. Every image includes an SBOM and build provenance. Set the version to run in `.env`, so the server doesn't move to a new release by itself:
+Each release is tagged with its version (`1.9.0`), its minor line (`1.9`), its major line (`1`) and `latest`; pre-releases such as `1.9.0-rc.1` get only their own tag. Every image includes an SBOM and build provenance. Set the version to run in `.env`, so the server doesn't move to a new release by itself:
 
 ```bash title=".env"
-NODEPRESS_VERSION=1.8.0
+NODEPRESS_VERSION=1.9.0
 ```
 
 Then `docker compose pull && docker compose up -d` runs it without building. The [one-line installer](/deployment/self-hosting/#one-line-installer) does this for you.
 
-Releases built by GitHub Actions are signed with [Sigstore](https://www.sigstore.dev/). To check an image came from the NodePress repository:
+Releases built by GitHub Actions are signed with [Sigstore](https://www.sigstore.dev/). Releases published by hand with `scripts/release-images.sh` (1.8.0 and 1.9.0 among them) are not, so the check below fails for them; their SBOM and provenance are still attached. To check a signed image came from the NodePress repository:
 
 ```bash
-cosign verify ghcr.io/buildwithkode/nodepress-backend:1.8.0 \
+cosign verify ghcr.io/buildwithkode/nodepress-backend:1.9.0 \
   --certificate-identity-regexp '^https://github.com/buildwithkode/nodepress/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```

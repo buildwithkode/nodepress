@@ -32,7 +32,7 @@ In a project made with `create-nodepress-app`, commit your work, then:
 ```bash
 npx create-nodepress-app upgrade --dry-run    # see what would change
 npx create-nodepress-app upgrade              # latest release
-npx create-nodepress-app upgrade 1.8.0        # or a specific one
+npx create-nodepress-app upgrade 1.9.0        # or a specific one
 ```
 
 It applies the release's changes to your code instead of replacing it: your edits are kept, and lines that both you and NodePress changed get conflict markers to resolve. See [create-nodepress-app upgrade](/cli/upgrade/) for the details, including projects made before `nodepress.json` existed (`--from <version>`).
@@ -40,7 +40,7 @@ It applies the release's changes to your code instead of replacing it: your edit
 In a clone of the NodePress repository, pull or check out the release instead:
 
 ```bash
-git fetch --tags && git checkout v1.8.0
+git fetch --tags && git checkout v1.9.0
 ```
 
 ### 3. Install, migrate, build

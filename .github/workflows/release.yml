@@ -5,7 +5,7 @@ name: Release
 # X.Y.Z, X.Y, X and latest on GHCR. Every image carries an SBOM and build
 # provenance, and the published index is signed with Sigstore (keyless):
 #
-#   cosign verify ghcr.io/buildwithkode/nodepress-backend:1.8.0 \
+#   cosign verify ghcr.io/buildwithkode/nodepress-backend:1.9.0 \
 #     --certificate-identity-regexp '^https://github.com/buildwithkode/nodepress/' \
 #     --certificate-oidc-issuer https://token.actions.githubusercontent.com
 #
@@ -231,7 +231,7 @@ jobs:
         run: |
           refs=()
           for f in digests/*; do refs+=("$IMAGE@$(cat "$f")"); done
-          # A pre-release (1.8.0-rc.1) gets only its own tag, never latest.
+          # A pre-release (1.9.0-rc.1) gets only its own tag, never latest.
           tags=(-t "$IMAGE:$VERSION")
           if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             tags+=(-t "$IMAGE:${VERSION%.*}" -t "$IMAGE:${VERSION%%.*}" -t "$IMAGE:latest")

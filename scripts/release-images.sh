@@ -3,14 +3,14 @@
 # .github/workflows/release.yml, for when GitHub Actions isn't running.
 #
 #   docker login ghcr.io          # once; a token with the write:packages scope
-#   git checkout v1.8.0
+#   git checkout v1.9.0
 #   scripts/release-images.sh
 #
 # 1. checks HEAD is the vX.Y.Z tag matching every manifest, with a clean tree;
 # 2. builds both images for this machine and starts the stack from them (smoke
 #    test: /api/health and /setup through nginx on port 80);
 # 3. builds linux/amd64 + linux/arm64 with an SBOM and build provenance, and
-#    pushes X.Y.Z, X.Y, X and latest (a pre-release such as 1.8.0-rc.1 gets only
+#    pushes X.Y.Z, X.Y, X and latest (a pre-release such as 1.9.0-rc.1 gets only
 #    its own tag). Sigstore keyless signing needs GitHub's OIDC identity, so only
 #    the Actions workflow signs; images published from here are unsigned.
 #

@@ -20,7 +20,7 @@ npx create-nodepress-app upgrade             # apply the latest release
 
 | Argument | Meaning |
 |---|---|
-| `[version]` | Target release, with or without the `v`: `1.8.0` or `v1.8.0`. Default: the newest release tag. |
+| `[version]` | Target release, with or without the `v`: `1.9.0` or `v1.9.0`. Default: the newest release tag. |
 | `--dry-run` | Shows what would change and changes nothing. Works with uncommitted changes. |
 | `--from <version>` | The release the project is on, for projects created before `nodepress.json` existed. Needed once. |
 
@@ -30,7 +30,7 @@ Then:
 npm install
 cd backend && npx prisma migrate deploy && cd ..
 # restart, check the admin, then:
-git add -A && git commit -m "Upgrade NodePress to v1.8.0"
+git add -A && git commit -m "Upgrade NodePress to v1.9.0"
 ```
 
 Back up the database before `migrate deploy`. It changes the database, and undoing the code doesn't undo a migration.
@@ -72,7 +72,7 @@ Projects created before 1.7.2 were scaffolded without `scripts/` and `backend/sc
 Your project has its own root `package.json` (the scaffold writes it), so NodePress's is never applied. When it changed in the new release (for example new `overrides` or `allowScripts` entries), the command says so and prints the command to compare:
 
 ```bash
-git diff refs/nodepress/v1.7.0 refs/nodepress/v1.8.0 -- package.json
+git diff refs/nodepress/v1.8.0 refs/nodepress/v1.9.0 -- package.json
 ```
 
 Copy over what applies to you by hand.
@@ -80,11 +80,11 @@ Copy over what applies to you by hand.
 ## Dry run
 
 ```bash
-npx create-nodepress-app upgrade 1.8.0 --dry-run
+npx create-nodepress-app upgrade 1.9.0 --dry-run
 ```
 
 ```text
-  NodePress v1.7.0 → v1.8.0  42 file(s) to update
+  NodePress v1.8.0 → v1.9.0  42 file(s) to update
 
     backend/src/entries/entries.service.ts |  18 ++++---
     frontend/components/RichTextEditor.tsx |   6 +-
