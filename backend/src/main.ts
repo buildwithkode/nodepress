@@ -74,7 +74,7 @@ async function bootstrap() {
 
   // ─── Request body size limits ──────────────────────────────────────────────
   // Prevents memory exhaustion via large JSON payloads.
-  // Multer enforces its own 10 MB limit on file uploads separately.
+  // Multer enforces its own limit on file uploads separately (MEDIA_MAX_MB, default 10).
   // `rawBody` keeps the exact bytes for webhook signature checks (HMAC over the body as sent).
   app.use(express.json({ limit: '1mb', verify: keepRawBody }));
   app.use(express.urlencoded({ extended: true, limit: '500kb' }));
@@ -129,6 +129,10 @@ async function bootstrap() {
   // ─── Static uploads ────────────────────────────────────────────────────────
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads',
+    // SVGs are sanitized on upload; opened directly they still can't run anything.
+    setHeaders: (res, path) => {
+      if (path.endsWith('.svg')) res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox");
+    },
   });
 
   // ─── Swagger ───────────────────────────────────────────────────────────────

@@ -83,7 +83,12 @@
   "layout": {
     "button": "Layout aus Komponente hinzufügen",
     "title": "Layout aus einer Komponente hinzufügen",
-    "description": "Die Felder des Layouts stammen aus der Komponente und bleiben mit ihr synchron."
+    "description": "Verwende die Felder der Komponente in diesem Layout als Gruppe, als wiederholbare Liste oder als eigene Felder des Layouts. Sie bleiben mit der Komponente synchron.",
+    "groupHint": "Das Layout enthält eine Gruppe",
+    "repeaterHint": "Das Layout enthält eine Liste",
+    "inlineHint": "Ihre Felder bilden das Layout",
+    "name": "Layout-Name",
+    "nameTaken": "Dieses flexible Feld hat bereits ein Layout namens {key}."
   },
   "inline": {
     "from": "Aus Komponente",

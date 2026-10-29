@@ -10,6 +10,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { ImporterService } from '../src/importer/importer.service';
 
 const fixture = readFileSync(join(__dirname, 'fixtures/wordpress-sample.xml'), 'utf8');
+const acfFixture = readFileSync(join(__dirname, 'fixtures/wordpress-acf.xml'), 'utf8');
 
 describe('WordPress import (e2e)', () => {
   jest.setTimeout(120_000);
@@ -21,6 +22,7 @@ describe('WordPress import (e2e)', () => {
   let mediaBase: string;
   let mediaRequests = 0;
   let png: Buffer;
+  let jpg: Buffer;
 
   const upload = (xml: string, query = '') =>
     request(app.getHttpServer())
@@ -53,11 +55,17 @@ describe('WordPress import (e2e)', () => {
 
   beforeAll(async () => {
     png = await sharp({ create: { width: 8, height: 8, channels: 3, background: '#a0522d' } }).png().toBuffer();
+    jpg = await sharp({ create: { width: 8, height: 8, channels: 3, background: '#203040' } }).jpeg().toBuffer();
     mediaServer = createServer((req, res) => {
       mediaRequests++;
-      if (req.url === '/wp-content/uploads/2025/01/v60-grinder.png') {
+      if (req.url === '/wp-content/uploads/2025/01/v60-grinder.png' || req.url === '/wp-content/uploads/2026/10/star.png') {
         res.setHeader('Content-Type', 'image/png');
         res.end(png);
+        return;
+      }
+      if (req.url === '/wp-content/uploads/2026/10/hero.jpg') {
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.end(jpg);
         return;
       }
       res.statusCode = 404;
@@ -125,6 +133,7 @@ describe('WordPress import (e2e)', () => {
     expect(res.body.stats).toEqual({
       nestedCategories: 2, taxonomies: { origin: 1 }, authors: 2,
       comments: { approved: 2, pending: 1, spam: 1, trash: 1, other: 0 },
+      acf: { groups: 0, fields: {} },
     });
     expect(await prisma.contentType.count()).toBe(0);
     expect(await prisma.job.count()).toBe(0);
@@ -168,7 +177,7 @@ describe('WordPress import (e2e)', () => {
     expect(future!.publishAt!.toISOString()).toBe('2031-06-01T08:00:00.000Z');
     expect(await entry('page', 'about')).toMatchObject({ status: 'published' });
     const bean = await entry('coffee_bean', 'ethiopia-yirgacheffe');
-    expect((bean!.data as any).meta).toEqual({ roast_level: 'light', tasting_notes: 'a:2:{i:0;s:7:"jasmine";i:1;s:5:"lemon";}' });
+    expect((bean!.data as any).meta).toEqual({ roast_level: 'light', tasting_notes: ['jasmine', 'lemon'] });
     expect(bean!.contentType.displayName).toBe('Coffee Bean');
     expect(await prisma.entry.count()).toBe(6);
 
@@ -323,6 +332,81 @@ describe('WordPress import (e2e)', () => {
       expect(withPending.result.byType.wp_comment).toEqual({ created: 1, updated: 0, skipped: 2, failed: 0 });
       expect(await entry('wp_comment', 'comment-3')).toMatchObject({ status: 'pending_review' });
       expect(await prisma.entry.count({ where: { contentType: { name: 'wp_author' } } })).toBe(2);
+    });
+  });
+
+  describe('a site built with Advanced Custom Fields', () => {
+    const acfXml = () => acfFixture.replace(/https:\/\/studio\.example\.com\/wp-content\/uploads/g, `${mediaBase}/wp-content/uploads`);
+
+    beforeAll(async () => {
+      // Start from no content types, as a fresh install would.
+      await prisma.$executeRawUnsafe(`DELETE FROM "entry_versions"`);
+      await prisma.$executeRawUnsafe(`DELETE FROM "entries"`);
+      await prisma.$executeRawUnsafe(`DELETE FROM "content_types"`);
+      importer.downloadOptions = { ...importer.downloadOptions, allowPrivate: true }; // the test server is on 127.0.0.1
+    });
+    afterAll(() => {
+      importer.downloadOptions = { ...importer.downloadOptions, allowPrivate: false };
+    });
+
+    it('dry run reports the field groups and the options page', async () => {
+      const res = await upload(acfXml(), '?dryRun=true').expect(201);
+      expect(res.body.contentTypesToCreate).toEqual(['post', 'page', 'site_settings']);
+      expect(res.body.stats.acf).toEqual({ groups: 2, fields: { page: 6, site_settings: 1 } });
+      expect(res.body.warnings).toEqual(expect.arrayContaining([
+        expect.stringMatching(/options page "Site Settings".*"site_settings"/),
+        expect.stringMatching(/1 value\(s\) of ACF fields that were deleted/),
+      ]));
+    });
+
+    it('imports ACF fields as structured fields, with media and relations', async () => {
+      const status = await runImport(acfXml(), '?importMedia=true', 2);
+      expect(status.status).toBe('done');
+      expect(status.result.errors).toEqual([]);
+      expect(status.result.contentTypesCreated).toEqual(['post', 'page', 'site_settings']);
+      expect(status.result.media).toEqual({ imported: 2, reused: 0, failed: 0 });
+
+      const settings = await prisma.contentType.findUnique({ where: { name: 'site_settings' } });
+      expect(settings).toMatchObject({ displayName: 'Site Settings' });
+      expect((settings!.schema as any[]).map((f) => [f.name, f.type])).toEqual([['footer_text', 'textarea']]);
+
+      const page = await prisma.contentType.findUnique({ where: { name: 'page' } });
+      const sections = (page!.schema as any[]).find((f) => f.name === 'sections');
+      expect(sections.type).toBe('flexible');
+      expect(sections.options.layouts.map((l: any) => l.name)).toEqual(['text_block', 'feature_list', 'divider']);
+
+      const post = await entry('post', 'new-studio');
+      const home = await entry('page', 'home');
+      const data = home!.data as any;
+      const heroUrl = data.hero_image.url;
+      expect(heroUrl).toMatch(/\/uploads\/[^/]+\.(jpg|webp)$/);
+      expect(data).toMatchObject({
+        hero_title: 'Design that ships',
+        hero_image: { alt: 'Studio at night' },
+        cta: { title: 'Get in touch', url: 'https://studio.example.com/contact/?ref=home&utm=1' },
+        theme: 'dark',
+        featured_post: post!.publicId,
+      });
+      expect(data.sections.map((s: any) => s._layout)).toEqual(['text_block', 'feature_list', 'divider']);
+      // The resized copy in the body points at the imported original.
+      expect(data.sections[0].body).toContain(`src="${heroUrl}"`);
+      expect(data.sections[1].items).toMatchObject([
+        { label: 'Fast', highlight: true, icon: { url: expect.stringMatching(/\/uploads\//) } },
+        { label: 'Friendly', highlight: false },
+      ]);
+      expect(JSON.stringify(data)).not.toMatch(/stale|__wp_ref|127\.0\.0\.1/);
+
+      const pub = await request(app.getHttpServer()).get('/api/page/home?populate=featured_post').expect(200);
+      expect(pub.body.data.featured_post.slug).toBe('new-studio');
+    });
+
+    it('imports again into the existing types without errors', async () => {
+      const again = await runImport(acfXml(), '?importMedia=true&overwrite=true', 2);
+      expect(again.result.errors).toEqual([]);
+      expect(again.result.byType.page).toMatchObject({ updated: 1, failed: 0 });
+      expect(again.result.media).toMatchObject({ reused: 2, failed: 0 });
+      const home = await entry('page', 'home');
+      expect((home!.data as any).featured_post).toBe((await entry('post', 'new-studio'))!.publicId);
     });
   });
 

@@ -57,6 +57,7 @@ There's also `GET /api/:type/:slug/preview?token=…`, which returns a draft for
 - `id` is the entry's permanent public ID (a UUID). It doesn't change when the slug does, and it's what relation fields store.
 - `data` holds the field values, keyed by field key.
 - `seo` holds the entry's SEO fields, or `null`.
+- Each top-level flexible field also comes as `<field>_by_key`: its sections by [section key](/content-modeling/nested-fields/#section-keys), or by layout name for a layout used once.
 - Status isn't included: without credentials you only ever get published entries.
 
 A list wraps entries in `data` and adds `meta`:

@@ -96,6 +96,9 @@ const EnvSchema = z.object({
   OIDC_ROLE_CLAIM:      z.string().optional(),         // e.g. "groups" or "roles"
   OIDC_ROLE_MAP:        z.string().optional(),         // e.g. "cms-admins:admin,cms-editors:editor"
 
+  // Largest media file, by upload or WordPress import (media/upload-limits.ts). Default 10.
+  MEDIA_MAX_MB: z.coerce.number().positive().max(1024).optional(),
+
   // On-the-fly image transforms (media/image-transform.service.ts)
   IMAGE_TRANSFORM_CONCURRENCY: z.coerce.number().int().positive().optional(), // default 2
   IMAGE_VARIANT_CACHE_MB:      z.coerce.number().int().positive().optional(), // default 2048

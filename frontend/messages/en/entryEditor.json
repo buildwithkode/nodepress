@@ -167,7 +167,15 @@
     "sectionType": "Section Type",
     "chooseLayout": "Choose section layout…",
     "addBlock": "+ Add Block…",
-    "enterValue": "Enter {field}"
+    "enterValue": "Enter {field}",
+    "sectionKey": "Section key (optional)",
+    "sectionKeyPlaceholder": "e.g. hero_section",
+    "sectionKeyHint": "Read this section as {field}_by_key.[key] in the API.",
+    "sectionKeyInvalid": "Use lowercase letters, digits and underscores, starting with a letter.",
+    "sectionKeyDuplicate": "Another section already uses the key {key}.",
+    "sectionKeyRequiredLabel": "Section key",
+    "sectionKeyRequired": "Required: {layout} is used more than once here, so each one needs its own key.",
+    "sectionKeyLayoutHint": "Optional. Without a key, read it as {field}_by_key.{layout} in the API."
   },
   "richText": {
     "visual": "Visual Editor",
@@ -231,7 +239,7 @@
     "emptyHint": "Upload your first image in the Upload tab",
     "uploading": "Uploading image to server…",
     "dropzone": "Click to upload or drag & drop",
-    "dropzoneHint": "PNG, JPG, WebP, GIF, or SVG (Up to 10 MB)",
+    "dropzoneHint": "PNG, JPG, WebP, GIF, or SVG (Up to {size} MB)",
     "selectFile": "Select File",
     "directUrl": "Direct Image URL",
     "directUrlPlaceholder": "https://images.unsplash.com/... or CDN link",

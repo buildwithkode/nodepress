@@ -129,7 +129,8 @@
     "imported": "\"{name}\" geïmporteerd — controleer en sla op",
     "parseFailed": "JSON-bestand verwerken mislukt",
     "duplicateKey": "Een ander veld gebruikt de sleutel {key} al. Hernoem een van beide.",
-    "duplicateKeys": "Twee velden kunnen geen sleutel delen. Hernoem de dubbele: {keys}"
+    "duplicateKeys": "Twee velden kunnen geen sleutel delen. Hernoem de dubbele: {keys}",
+    "duplicateLayout": "Een andere lay-out gebruikt de naam {name} al. Hernoem er één."
   },
   "relation": {
     "relatedType": "Gerelateerd contenttype",

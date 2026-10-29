@@ -129,7 +129,8 @@
     "imported": "« {name} » importé — vérifiez puis enregistrez",
     "parseFailed": "Impossible d’analyser le fichier JSON",
     "duplicateKey": "Un autre champ utilise déjà la clé {key}. Renommez l'un des deux.",
-    "duplicateKeys": "Deux champs ne peuvent pas avoir la même clé. Renommez les doublons : {keys}"
+    "duplicateKeys": "Deux champs ne peuvent pas avoir la même clé. Renommez les doublons : {keys}",
+    "duplicateLayout": "Une autre disposition utilise déjà le nom {name}. Renommez l’une d’elles."
   },
   "relation": {
     "relatedType": "Type de contenu lié",

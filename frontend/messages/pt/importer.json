@@ -21,7 +21,7 @@
   "skippedList": "Ignorados: {list}",
   "sample": "Primeiros itens",
   "importMedia": "Importar mídia",
-  "importMediaHint": "Baixa os anexos (imagens, PDF, MP4 de até 10 MB cada) para a biblioteca de mídia e aponta as imagens destacadas e o conteúdo para as novas cópias.",
+  "importMediaHint": "Baixa os anexos (imagens, SVG, PDF, MP4 de até {size} MB cada) para a biblioteca de mídia e aponta as imagens destacadas e o conteúdo para as novas cópias.",
   "overwrite": "Sobrescrever entradas existentes",
   "overwriteHint": "Entradas cujo slug já existe são atualizadas (a versão antiga fica no histórico). Caso contrário, são ignoradas.",
   "run": "Iniciar importação ({total, plural, one {# item} other {# itens}})",

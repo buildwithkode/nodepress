@@ -129,7 +129,8 @@
     "imported": "„{name}“ importiert — prüfen und speichern",
     "parseFailed": "JSON-Datei konnte nicht gelesen werden",
     "duplicateKey": "Ein anderes Feld verwendet bereits den Schlüssel {key}. Benenne eines davon um.",
-    "duplicateKeys": "Zwei Felder können keinen Schlüssel teilen. Benenne die Duplikate um: {keys}"
+    "duplicateKeys": "Zwei Felder können keinen Schlüssel teilen. Benenne die Duplikate um: {keys}",
+    "duplicateLayout": "Ein anderes Layout verwendet bereits den Namen {name}. Benennen Sie eines davon um."
   },
   "relation": {
     "relatedType": "Verknüpfter Inhaltstyp",

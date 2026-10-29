@@ -129,7 +129,8 @@
     "imported": "Imported \"{name}\" — review and save",
     "parseFailed": "Failed to parse JSON file",
     "duplicateKey": "Another field already uses the key {key}. Rename one of them.",
-    "duplicateKeys": "Two fields can't share a key. Rename the duplicates: {keys}"
+    "duplicateKeys": "Two fields can't share a key. Rename the duplicates: {keys}",
+    "duplicateLayout": "Another layout already uses the name {name}. Rename one of them."
   },
   "relation": {
     "relatedType": "Related Content Type",

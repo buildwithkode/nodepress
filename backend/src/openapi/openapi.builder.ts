@@ -247,7 +247,11 @@ export function buildOpenApiDocument(contentTypes: OpenApiContentType[], opts: O
             schemas[name] = {
               ...base,
               ...(l.label ? { title: l.label } : {}),
-              properties: { _layout: { type: 'string', const: l.name }, ...base.properties },
+              properties: {
+                _layout: { type: 'string', const: l.name },
+                _key: { type: 'string', pattern: '^[a-z][a-z0-9_]{0,63}$', description: 'Optional section name, unique within the field' },
+                ...base.properties,
+              },
               required: ['_layout', ...(base.required ?? [])],
             };
             mapping[l.name] = `#/components/schemas/${name}`;
@@ -289,6 +293,15 @@ export function buildOpenApiDocument(contentTypes: OpenApiContentType[], opts: O
       } else if (mode === 'create' && f.required) {
         properties[f.name] = s;
         required.push(f.name);
+      }
+      // Public reads add the keyed sections of a top-level flexible field (common/section-keys.ts).
+      const byKey = `${f.name}_by_key`;
+      if (mode === 'read' && owner === '' && f.type === 'flexible' && !fields.some((x) => x?.name === byKey)) {
+        properties[byKey] = {
+          type: 'object',
+          additionalProperties: (s as Schema).items ?? {},
+          description: `The sections of ${f.name} that have a _key, by key. Read-only; ${f.name} keeps the order.`,
+        };
       }
     }
     const out: Schema = { type: 'object', properties };

@@ -22,6 +22,27 @@ In the content type editor, click **Add component**, pick one and choose how to 
 
 ![The New component dialog with display name, key, description and fields](../../../assets/screenshots/component-new.png)
 
+### In a flexible field
+
+Under a flexible field's layouts, **Add layout from component** asks the same question, plus the layout's name:
+
+| Use | The layout holds | Section data |
+|---|---|---|
+| **One** | one `group` field with the component's fields | `{ "_layout": "featured", "review": { "name": "…" } }` |
+| **Many** | one `repeater` field, each row holding the component's fields | `{ "_layout": "reviews", "items": [{ "name": "…" }] }` |
+| **Inline** | the component's fields directly | `{ "_layout": "testimonial", "name": "…" }` |
+
+The layout name is suggested from the component and avoids names the field already has, so the same component can become several layouts (`testimonial`, `testimonial_2`). In the schema, One and Many are a group or repeater with `options.component` inside the layout:
+
+```json
+{ "name": "sections", "type": "flexible", "options": { "layouts": [
+  { "name": "reviews", "label": "Reviews", "fields": [
+    { "name": "heading", "type": "text" },
+    { "name": "items", "type": "repeater", "options": { "component": "review" } }
+  ] }
+] } }
+```
+
 ### Example
 
 A `testimonial` component with three fields:
@@ -90,7 +111,7 @@ Renaming a field in the Components editor moves the stored values too, in every 
 }
 ```
 
-Fields you retype or remove keep their stored values. See [Schema changes](/content-modeling/schema-changes/) for how migrations work.
+This includes uses inside flexible layouts: a rename in the Review component above moves `sections[].items[].name` too. Fields you retype or remove keep their stored values. See [Schema changes](/content-modeling/schema-changes/) for how migrations work.
 
 ## The Components section
 
@@ -104,7 +125,8 @@ Each field needs its own key, so a component can be used twice only under differ
 
 ## Rules
 
-- Components are referenced by **top-level** fields only: a repeater inside a repeater can't use a component.
+- Components are referenced by **top-level** fields only — or by a group or repeater directly in a layout of a top-level flexible field. A repeater inside a repeater can't use a component.
+- Layout names must be unique within a flexible field; the content type editor flags duplicates as you type, at every level.
 - A component's fields can nest repeaters, groups and flexible fields, but count the group, repeater or layout that uses the component as the first of the [three levels](/content-modeling/nested-fields/#limits).
 - A component can't contain other components or reverse relations.
 - Using a component name that doesn't exist is refused with `400`. Deleting a component that is in use is refused with `409`.

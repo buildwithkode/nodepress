@@ -129,7 +129,8 @@
     "imported": "\"{name}\" importato: controlla e salva",
     "parseFailed": "Impossibile analizzare il file JSON",
     "duplicateKey": "Un altro campo usa già la chiave {key}. Rinominane uno.",
-    "duplicateKeys": "Due campi non possono avere la stessa chiave. Rinomina i duplicati: {keys}"
+    "duplicateKeys": "Due campi non possono avere la stessa chiave. Rinomina i duplicati: {keys}",
+    "duplicateLayout": "Un altro layout usa già il nome {name}. Rinominane uno."
   },
   "relation": {
     "relatedType": "Tipo di contenuto correlato",

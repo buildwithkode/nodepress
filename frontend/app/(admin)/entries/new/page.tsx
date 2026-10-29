@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { withCondition } from '@/components/ConditionalField';
+import { pruneEntryData } from '@/lib/prune-entry-data';
 
 interface Field { name: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[]; previewUrl?: string | null }
@@ -144,7 +145,7 @@ export default function NewEntryPage() {
         slug: cleanFinalSlug,
         locale,
         status: saveStatus,
-        data: rest,
+        data: pruneEntryData(rest, selectedCT?.schema ?? []),
         seo: hasSeo ? seo : null,
         publishAt: saveStatus === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
@@ -310,7 +311,8 @@ export default function NewEntryPage() {
           </div>
         </CardHeader>
 
-        <div ref={containerRef} className="flex items-start border-t border-border">
+        {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
+        <div ref={containerRef} className="flex border-t border-border">
           {/* Left pane: form */}
           <div style={{ width: selectedCT && jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
             {/* Content type selector (if not pre-selected) */}
@@ -581,14 +583,15 @@ export default function NewEntryPage() {
               status,
               locale,
               contentTypeId: selectedCT.id,
-              data: fieldData,
+              data: pruneEntryData(fieldData, selectedCT?.schema ?? []),
               seo: hasSeo ? previewSeo : null,
               publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (
               <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
-                <div className="sticky top-4 px-4 py-4 space-y-2">
+                {/* Stays in view just below the sticky top bar (h-14); the JSON scrolls inside. */}
+                <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] flex flex-col gap-2 px-4 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />
@@ -630,7 +633,7 @@ export default function NewEntryPage() {
                       </Button>
                     </div>
                   </div>
-                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
+                  <pre className={`flex-1 min-h-0 overflow-auto p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
                 </div>
               </div>
             );

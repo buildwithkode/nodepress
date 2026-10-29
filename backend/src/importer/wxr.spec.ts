@@ -2,11 +2,12 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { assertValidSlug } from '../common/slug-locale.util';
 import {
-  AUTHOR_TYPE, COMMENT_TYPE, buildImportPlan, contentTypeNameFor, mapStatus, parseWxr, publicMeta, rewriteMediaUrls,
+  AUTHOR_TYPE, COMMENT_TYPE, buildImportPlan, mediaUrlRewriter, contentTypeNameFor, mapStatus, parseWxr, publicMeta, rewriteMediaUrls,
   slugify, stripHtml, wpDateToIso,
 } from './wxr';
 
 const fixture = readFileSync(join(__dirname, '../../test/fixtures/wordpress-sample.xml'), 'utf8');
+const acfFixture = readFileSync(join(__dirname, '../../test/fixtures/wordpress-acf.xml'), 'utf8');
 
 describe('parseWxr', () => {
   const doc = parseWxr(fixture);
@@ -14,19 +15,19 @@ describe('parseWxr', () => {
   it('reads the site, authors and terms', () => {
     expect(doc).toMatchObject({ title: 'Sample Coffee Blog', link: 'https://coffee.example.com', language: 'en-US', version: '1.2' });
     expect(doc.authors).toEqual([
-      { login: 'jane', email: 'jane@coffee.example.com', displayName: 'Jane Barista', firstName: 'Jane', lastName: 'Barista' },
-      { login: 'sam', email: 'sam@coffee.example.com', displayName: 'Sam Roaster', firstName: '', lastName: '' },
+      { id: 1, login: 'jane', email: 'jane@coffee.example.com', displayName: 'Jane Barista', firstName: 'Jane', lastName: 'Barista' },
+      { id: 2, login: 'sam', email: 'sam@coffee.example.com', displayName: 'Sam Roaster', firstName: '', lastName: '' },
     ]);
     expect(doc.categories).toEqual([
-      { slug: 'brewing', name: 'Brewing', parent: undefined },
-      { slug: 'pour-over', name: 'Pour Over', parent: 'brewing' },
-      { slug: 'kettles', name: 'Kettles', parent: 'pour-over' },
+      { id: 2, slug: 'brewing', name: 'Brewing', parent: undefined },
+      { id: 3, slug: 'pour-over', name: 'Pour Over', parent: 'brewing' },
+      { id: 6, slug: 'kettles', name: 'Kettles', parent: 'pour-over' },
     ]);
     expect(doc.tags.map((t) => t.name)).toEqual(['V60', 'Espresso']);
     expect(doc.terms).toEqual([
-      { taxonomy: 'origin', slug: 'africa', name: 'Africa', parent: undefined },
-      { taxonomy: 'origin', slug: 'ethiopia', name: 'Ethiopia', parent: 'africa' },
-      { taxonomy: 'nav_menu', slug: 'main-menu', name: 'Main menu', parent: undefined },
+      { id: 7, taxonomy: 'origin', slug: 'africa', name: 'Africa', parent: undefined },
+      { id: 8, taxonomy: 'origin', slug: 'ethiopia', name: 'Ethiopia', parent: 'africa' },
+      { id: 9, taxonomy: 'nav_menu', slug: 'main-menu', name: 'Main menu', parent: undefined },
     ]);
   });
 
@@ -94,7 +95,7 @@ describe('buildImportPlan', () => {
     });
     expect(bySlug('perfect-v60').featuredAttachmentId).toBe(10);
     expect(bySlug('ethiopia-yirgacheffe').data.meta).toEqual({
-      roast_level: 'light', tasting_notes: 'a:2:{i:0;s:7:"jasmine";i:1;s:5:"lemon";}',
+      roast_level: 'light', tasting_notes: ['jasmine', 'lemon'], // serialized PHP, read
     });
     expect(bySlug('espresso-basics').data.content).toBe('<p>Espresso is about pressure &#8212; and patience.</p>');
     expect(bySlug('espresso-basics').data.author).toBe('Sam Roaster');
@@ -118,7 +119,7 @@ describe('buildImportPlan', () => {
     expect(bySlug('perfect-v60').authorLogin).toBeUndefined();
     // …but the dry run still learns what the file holds.
     expect(plan.stats).toEqual({
-      nestedCategories: 2, taxonomies: { origin: 1 }, authors: 2,
+      nestedCategories: 2, taxonomies: { origin: 1 }, authors: 2, acf: { groups: 0, fields: {} },
       comments: { approved: 2, pending: 1, spam: 1, trash: 1, other: 0 },
     });
   });
@@ -296,5 +297,51 @@ describe('helpers', () => {
     expect(rewriteMediaUrls('$& https://old.test/wp-content/uploads/2025/01/a.png', new Map([[
       'https://old.test/wp-content/uploads/2025/01/a.png', 'https://x.test/$&.png',
     ]]))).toBe('$& https://x.test/$&.png');
+  });
+});
+
+describe('buildImportPlan with ACF', () => {
+  const plan = buildImportPlan(parseWxr(acfFixture));
+  const home = plan.entries.find((e) => e.slug === 'home')!;
+
+  it('turns field groups into fields, and options pages into their own types', () => {
+    expect(Object.keys(plan.schemas)).toEqual(['post', 'page', 'site_settings']);
+    const page = plan.schemas.page as any[];
+    expect(page.slice(-6).map((f) => [f.name, f.type])).toEqual([
+      ['hero_title', 'text'], ['hero_image', 'image'], ['cta', 'group'], ['theme', 'select'],
+      ['featured_post', 'relation'], ['sections', 'flexible'],
+    ]);
+    const sections = page.find((f) => f.name === 'sections');
+    expect(sections.options.layouts[1].fields[0]).toMatchObject({ name: 'items', type: 'repeater' });
+    expect(sections.options.layouts[2].fields).toHaveLength(1); // an empty layout gets a placeholder field
+    expect(plan.optionsPages).toEqual({ site_settings: { title: 'Site Settings', slug: 'site-settings' } });
+    expect(plan.stats.acf).toEqual({ groups: 2, fields: { page: 6, site_settings: 1 } });
+  });
+
+  it('reads flat post meta into nested values', () => {
+    expect(home.data).toMatchObject({
+      hero_image: { url: 'https://studio.example.com/wp-content/uploads/2026/10/hero.jpg', alt: 'Studio at night' },
+      cta: { title: 'Get in touch', url: 'https://studio.example.com/contact/?ref=home&utm=1' },
+      theme: 'dark',
+      featured_post: { __wp_ref: [50] },
+      sections: [
+        { _layout: 'text_block' },
+        { _layout: 'feature_list', items: [{ label: 'Fast', highlight: true }, { label: 'Friendly', highlight: false }] },
+        { _layout: 'divider' },
+      ],
+      meta: {},
+    });
+    expect(JSON.stringify(home.data)).not.toContain('stale');
+  });
+});
+
+describe('mediaUrlRewriter', () => {
+  it('rewrites many URLs in one pass, longest match first', () => {
+    const rewrite = mediaUrlRewriter(new Map([
+      ['https://old.test/u/a.jpg', '/uploads/1.jpg'],
+      ['https://old.test/u/a.jpg.webp', '/uploads/2.webp'],
+    ]));
+    expect(rewrite('x https://old.test/u/a.jpg.webp y http://old.test/u/a-150x150.jpg')).toBe('x /uploads/2.webp y /uploads/1.jpg');
+    expect(mediaUrlRewriter(new Map())('https://old.test/u/a.jpg')).toBe('https://old.test/u/a.jpg');
   });
 });

@@ -129,7 +129,8 @@
     "imported": "\"{name}\" importado — revise e salve",
     "parseFailed": "Falha ao interpretar o arquivo JSON",
     "duplicateKey": "Outro campo já usa a chave {key}. Renomeie um deles.",
-    "duplicateKeys": "Dois campos não podem compartilhar uma chave. Renomeie os duplicados: {keys}"
+    "duplicateKeys": "Dois campos não podem compartilhar uma chave. Renomeie os duplicados: {keys}",
+    "duplicateLayout": "Outro layout já usa o nome {name}. Renomeie um deles."
   },
   "relation": {
     "relatedType": "Tipo de conteúdo relacionado",

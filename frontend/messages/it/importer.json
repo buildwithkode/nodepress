@@ -21,7 +21,7 @@
   "skippedList": "Saltati: {list}",
   "sample": "Primi elementi",
   "importMedia": "Importa media",
-  "importMediaHint": "Scarica gli allegati (immagini, PDF, MP4 fino a 10 MB ciascuno) nella libreria media e fa puntare immagini in evidenza e contenuti alle nuove copie.",
+  "importMediaHint": "Scarica gli allegati (immagini, SVG, PDF, MP4 fino a {size} MB ciascuno) nella libreria media e fa puntare immagini in evidenza e contenuti alle nuove copie.",
   "overwrite": "Sovrascrivi le voci esistenti",
   "overwriteHint": "Le voci il cui slug esiste già vengono aggiornate (la versione precedente resta nella cronologia). Altrimenti vengono saltate.",
   "run": "Avvia importazione ({total, plural, one {# elemento} other {# elementi}})",

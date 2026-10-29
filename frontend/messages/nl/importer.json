@@ -21,7 +21,7 @@
   "skippedList": "Overgeslagen: {list}",
   "sample": "Eerste items",
   "importMedia": "Media importeren",
-  "importMediaHint": "Download bijlagen (afbeeldingen, PDF, MP4 tot 10 MB per stuk) naar de mediabibliotheek en laat uitgelichte afbeeldingen en content naar de nieuwe kopieën verwijzen.",
+  "importMediaHint": "Download bijlagen (afbeeldingen, SVG, PDF, MP4 tot {size} MB per stuk) naar de mediabibliotheek en laat uitgelichte afbeeldingen en content naar de nieuwe kopieën verwijzen.",
   "overwrite": "Bestaande items overschrijven",
   "overwriteHint": "Items waarvan de slug al bestaat, worden bijgewerkt (de oude versie blijft in hun geschiedenis). Anders worden ze overgeslagen.",
   "run": "Import starten ({total, plural, one {# item} other {# items}})",

@@ -316,7 +316,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ThemeToggle />
           </div>
         </div>
-        <div className="flex-1 bg-muted/20 p-3 sm:p-4 md:p-6 min-w-0 overflow-x-auto">
+        {/* overflow-x-clip, not -auto: any other overflow makes this a scroll box, and side panes (position: sticky) would stick to it instead of the window. */}
+        <div className="flex-1 bg-muted/20 p-3 sm:p-4 md:p-6 min-w-0 overflow-x-clip">
           <ErrorBoundary label={pageTitle}>
             {children}
           </ErrorBoundary>

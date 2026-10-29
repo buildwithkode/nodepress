@@ -6,6 +6,7 @@ import Cookies from 'js-cookie';
 import { toast } from 'sonner';
 import { AlertTriangle, CheckCircle2, FileUp, Loader2, Play, XCircle } from 'lucide-react';
 import { useTranslations } from 'use-intl';
+import { useUploadLimitMb } from '@/lib/use-upload-limit';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -69,6 +70,7 @@ async function postExport(file: File, query: string, fallback: { tooLarge: strin
 /** Import a WordPress export (Tools → Export → All content) — dry run first, then a background job. */
 export default function ImportPage() {
   const t = useTranslations('importer');
+  const uploadMb = useUploadLimitMb();
   const tc = useTranslations('common');
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -261,7 +263,7 @@ export default function ImportPage() {
                 <Checkbox checked={importMedia} onCheckedChange={(v) => setImportMedia(!!v)} className="mt-0.5" />
                 <span>
                   {t('importMedia')}
-                  <span className="block text-xs text-muted-foreground">{t('importMediaHint')}</span>
+                  <span className="block text-xs text-muted-foreground">{t('importMediaHint', { size: uploadMb })}</span>
                 </span>
               </label>
               <label className="flex items-start gap-2 text-sm cursor-pointer">

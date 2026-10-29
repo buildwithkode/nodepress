@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Synthetic WordPress export of a site built with Advanced Custom Fields (no real data). -->
+<!-- generator="WordPress/6.8.1" created="2026-10-05 10:00" -->
+<rss version="2.0"
+	xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:wp="http://wordpress.org/export/1.2/"
+>
+
+<channel>
+	<title>Sample Studio</title>
+	<link>https://studio.example.com</link>
+	<description>A design studio</description>
+	<language>en-US</language>
+	<wp:wxr_version>1.2</wp:wxr_version>
+	<wp:base_site_url>https://studio.example.com</wp:base_site_url>
+	<wp:base_blog_url>https://studio.example.com</wp:base_blog_url>
+
+	<wp:author><wp:author_id>1</wp:author_id><wp:author_login><![CDATA[alex]]></wp:author_login><wp:author_email><![CDATA[alex@studio.example.com]]></wp:author_email><wp:author_display_name><![CDATA[Alex]]></wp:author_display_name><wp:author_first_name><![CDATA[]]></wp:author_first_name><wp:author_last_name><![CDATA[]]></wp:author_last_name></wp:author>
+
+	<item>
+		<title><![CDATA[Page Builder]]></title>
+		<link>https://studio.example.com/?p=100</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=100</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:3:{s:8:"location";a:1:{i:0;a:1:{i:0;a:3:{s:5:"param";s:9:"post_type";s:8:"operator";s:2:"==";s:5:"value";s:4:"page";}}}s:8:"position";s:6:"normal";s:6:"active";b:1;}]]></content:encoded>
+		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+		<wp:post_id>100</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[group_page]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field-group]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Site Settings]]></title>
+		<link>https://studio.example.com/?p=101</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=101</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:3:{s:8:"location";a:1:{i:0;a:1:{i:0;a:3:{s:5:"param";s:12:"options_page";s:8:"operator";s:2:"==";s:5:"value";s:13:"site-settings";}}}s:8:"position";s:6:"normal";s:6:"active";b:1;}]]></content:encoded>
+		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+		<wp:post_id>101</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[group_options]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field-group]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Content]]></title>
+		<link>https://studio.example.com/?p=110</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=110</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:1:{s:4:"type";s:3:"tab";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+		<wp:post_id>110</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_tab]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>100</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Hero title]]></title>
+		<link>https://studio.example.com/?p=111</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=111</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:1:{s:4:"type";s:4:"text";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[hero_title]]></excerpt:encoded>
+		<wp:post_id>111</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_hero_title]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>100</wp:post_parent>
+		<wp:menu_order>1</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Hero image]]></title>
+		<link>https://studio.example.com/?p=112</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=112</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:2:{s:4:"type";s:5:"image";s:13:"return_format";s:5:"array";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[hero_image]]></excerpt:encoded>
+		<wp:post_id>112</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_hero_image]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>100</wp:post_parent>
+		<wp:menu_order>2</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Call to action]]></title>
+		<link>https://studio.example.com/?p=113</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=113</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:1:{s:4:"type";s:4:"link";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[cta]]></excerpt:encoded>
+		<wp:post_id>113</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_cta]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>100</wp:post_parent>
+		<wp:menu_order>3</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Theme]]></title>
+		<link>https://studio.example.com/?p=114</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=114</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:2:{s:4:"type";s:6:"select";s:7:"choices";a:2:{s:4:"dark";s:4:"Dark";s:5:"light";s:5:"Light";}}]]></content:encoded>
+		<excerpt:encoded><![CDATA[theme]]></excerpt:encoded>
+		<wp:post_id>114</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_theme]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>100</wp:post_parent>
+		<wp:menu_order>4</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Featured post]]></title>
+		<link>https://studio.example.com/?p=115</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=115</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:3:{s:4:"type";s:11:"post_object";s:9:"post_type";a:1:{i:0;s:4:"post";}s:8:"multiple";i:0;}]]></content:encoded>
+		<excerpt:encoded><![CDATA[featured_post]]></excerpt:encoded>
+		<wp:post_id>115</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_featured]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>100</wp:post_parent>
+		<wp:menu_order>5</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Sections]]></title>
+		<link>https://studio.example.com/?p=116</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=116</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:2:{s:4:"type";s:16:"flexible_content";s:7:"layouts";a:3:{s:11:"layout_text";a:3:{s:3:"key";s:11:"layout_text";s:4:"name";s:10:"text_block";s:5:"label";s:10:"Text block";}s:11:"layout_list";a:3:{s:3:"key";s:11:"layout_list";s:4:"name";s:12:"feature_list";s:5:"label";s:12:"Feature list";}s:12:"layout_empty";a:3:{s:3:"key";s:12:"layout_empty";s:4:"name";s:7:"divider";s:5:"label";s:7:"Divider";}}}]]></content:encoded>
+		<excerpt:encoded><![CDATA[sections]]></excerpt:encoded>
+		<wp:post_id>116</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_sections]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>100</wp:post_parent>
+		<wp:menu_order>6</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Body]]></title>
+		<link>https://studio.example.com/?p=120</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=120</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:2:{s:4:"type";s:7:"wysiwyg";s:13:"parent_layout";s:11:"layout_text";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[body]]></excerpt:encoded>
+		<wp:post_id>120</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_text_body]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>116</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Items]]></title>
+		<link>https://studio.example.com/?p=121</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=121</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:2:{s:4:"type";s:8:"repeater";s:13:"parent_layout";s:11:"layout_list";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[items]]></excerpt:encoded>
+		<wp:post_id>121</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_list_items]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>116</wp:post_parent>
+		<wp:menu_order>1</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Label]]></title>
+		<link>https://studio.example.com/?p=122</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=122</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:1:{s:4:"type";s:4:"text";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[label]]></excerpt:encoded>
+		<wp:post_id>122</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_item_label]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>121</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Highlight]]></title>
+		<link>https://studio.example.com/?p=123</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=123</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:1:{s:4:"type";s:10:"true_false";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[highlight]]></excerpt:encoded>
+		<wp:post_id>123</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_item_highlight]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>121</wp:post_parent>
+		<wp:menu_order>1</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Icon]]></title>
+		<link>https://studio.example.com/?p=124</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=124</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:1:{s:4:"type";s:5:"image";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[icon]]></excerpt:encoded>
+		<wp:post_id>124</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_item_icon]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>121</wp:post_parent>
+		<wp:menu_order>2</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Footer text]]></title>
+		<link>https://studio.example.com/?p=130</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=130</guid>
+		<description></description>
+		<content:encoded><![CDATA[a:1:{s:4:"type";s:8:"textarea";}]]></content:encoded>
+		<excerpt:encoded><![CDATA[footer_text]]></excerpt:encoded>
+		<wp:post_id>130</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[field_footer_text]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>101</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[acf-field]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[hero]]></title>
+		<link>https://studio.example.com/?p=30</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=30</guid>
+		<description></description>
+		<content:encoded><![CDATA[]]></content:encoded>
+		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+		<wp:post_id>30</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[hero]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[attachment]]></wp:post_type>
+		<wp:attachment_url><![CDATA[https://studio.example.com/wp-content/uploads/2026/10/hero.jpg]]></wp:attachment_url>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_wp_attachment_image_alt]]></wp:meta_key>
+			<wp:meta_value><![CDATA[Studio at night]]></wp:meta_value>
+		</wp:postmeta>
+	</item>
+	<item>
+		<title><![CDATA[star]]></title>
+		<link>https://studio.example.com/?p=31</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=31</guid>
+		<description></description>
+		<content:encoded><![CDATA[]]></content:encoded>
+		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+		<wp:post_id>31</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[star]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[attachment]]></wp:post_type>
+		<wp:attachment_url><![CDATA[https://studio.example.com/wp-content/uploads/2026/10/star.png]]></wp:attachment_url>
+	</item>
+	<item>
+		<title><![CDATA[Our new studio]]></title>
+		<link>https://studio.example.com/?p=50</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=50</guid>
+		<description></description>
+		<content:encoded><![CDATA[<p>We moved.</p>]]></content:encoded>
+		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+		<wp:post_id>50</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[new-studio]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[post]]></wp:post_type>
+	</item>
+	<item>
+		<title><![CDATA[Home]]></title>
+		<link>https://studio.example.com/?p=40</link>
+		<pubDate>Mon, 05 Oct 2026 10:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<guid isPermaLink="false">https://studio.example.com/?p=40</guid>
+		<description></description>
+		<content:encoded><![CDATA[]]></content:encoded>
+		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+		<wp:post_id>40</wp:post_id>
+		<wp:post_date><![CDATA[2026-10-05 10:00:00]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-10-05 10:00:00]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[home]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[page]]></wp:post_type>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_edit_last]]></wp:meta_key>
+			<wp:meta_value><![CDATA[1]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[hero_title]]></wp:meta_key>
+			<wp:meta_value><![CDATA[Design that ships]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_hero_title]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_hero_title]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[hero_image]]></wp:meta_key>
+			<wp:meta_value><![CDATA[30]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_hero_image]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_hero_image]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[cta]]></wp:meta_key>
+			<wp:meta_value><![CDATA[a:3:{s:5:"title";s:12:"Get in touch";s:3:"url";s:54:"https://studio.example.com/contact/?ref=home&amp;utm=1";s:6:"target";s:0:"";}]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_cta]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_cta]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[theme]]></wp:meta_key>
+			<wp:meta_value><![CDATA[dark]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_theme]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_theme]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[featured_post]]></wp:meta_key>
+			<wp:meta_value><![CDATA[50]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_featured_post]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_featured]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections]]></wp:meta_key>
+			<wp:meta_value><![CDATA[a:3:{i:0;s:10:"text_block";i:1;s:12:"feature_list";i:2;s:7:"divider";}]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_sections]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections_0_body]]></wp:meta_key>
+			<wp:meta_value><![CDATA[<p>See <img src="https://studio.example.com/wp-content/uploads/2026/10/hero-300x200.jpg"></p>]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections_0_body]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_text_body]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections_1_items]]></wp:meta_key>
+			<wp:meta_value><![CDATA[2]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections_1_items]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_list_items]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections_1_items_0_label]]></wp:meta_key>
+			<wp:meta_value><![CDATA[Fast]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections_1_items_0_label]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_item_label]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections_1_items_0_highlight]]></wp:meta_key>
+			<wp:meta_value><![CDATA[1]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections_1_items_0_highlight]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_item_highlight]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections_1_items_0_icon]]></wp:meta_key>
+			<wp:meta_value><![CDATA[31]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections_1_items_0_icon]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_item_icon]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections_1_items_1_label]]></wp:meta_key>
+			<wp:meta_value><![CDATA[Friendly]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections_1_items_1_label]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_item_label]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections_1_items_1_highlight]]></wp:meta_key>
+			<wp:meta_value><![CDATA[0]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections_1_items_1_highlight]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_item_highlight]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[sections_1_items_0_old_note]]></wp:meta_key>
+			<wp:meta_value><![CDATA[stale]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_sections_1_items_0_old_note]]></wp:meta_key>
+			<wp:meta_value><![CDATA[field_deleted]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_yoast_wpseo_metadesc]]></wp:meta_key>
+			<wp:meta_value><![CDATA[We design and build.]]></wp:meta_value>
+		</wp:postmeta>
+	</item>
+</channel>
+</rss>

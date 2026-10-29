@@ -167,7 +167,15 @@
     "sectionType": "セクションの種類",
     "chooseLayout": "セクションのレイアウトを選択…",
     "addBlock": "+ ブロックを追加…",
-    "enterValue": "{field} を入力"
+    "enterValue": "{field} を入力",
+    "sectionKey": "セクションキー（任意）",
+    "sectionKeyPlaceholder": "例: hero_section",
+    "sectionKeyHint": "このセクションは API で {field}_by_key.[キー] として読み取れます。",
+    "sectionKeyInvalid": "英小文字・数字・アンダースコアを使い、英字で始めてください。",
+    "sectionKeyDuplicate": "別のセクションがすでにキー {key} を使っています。",
+    "sectionKeyRequiredLabel": "セクションキー",
+    "sectionKeyRequired": "必須：{layout} はここで複数回使われているため、それぞれに固有のキーが必要です。",
+    "sectionKeyLayoutHint": "任意。キーがない場合は API で {field}_by_key.{layout} として読み取れます。"
   },
   "richText": {
     "visual": "ビジュアルエディター",
@@ -231,7 +239,7 @@
     "emptyHint": "アップロードタブで最初の画像をアップロードしてください",
     "uploading": "画像をサーバーにアップロード中…",
     "dropzone": "クリックしてアップロード、またはドラッグ＆ドロップ",
-    "dropzoneHint": "PNG、JPG、WebP、GIF、SVG (最大 10 MB)",
+    "dropzoneHint": "PNG、JPG、WebP、GIF、SVG (最大 {size} MB)",
     "selectFile": "ファイルを選択",
     "directUrl": "画像の直接 URL",
     "directUrlPlaceholder": "https://images.unsplash.com/... または CDN のリンク",

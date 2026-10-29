@@ -1,11 +1,11 @@
 ---
 title: WordPress import
-description: Move posts, pages, custom post types, media, authors and comments from a WordPress export file into NodePress.
+description: Move posts, pages, custom post types, Advanced Custom Fields, media, authors and comments from a WordPress export file into NodePress.
 sidebar:
   order: 11
 ---
 
-The WordPress importer reads a WordPress export file (WXR) and turns posts, pages and custom post types into NodePress entries. It can also bring over attachments, authors and comments. You check a summary first, and the import itself runs in the background.
+The WordPress importer reads a WordPress export file (WXR) and turns posts, pages and custom post types into NodePress entries. Fields built with Advanced Custom Fields (ACF) become real NodePress fields — flexible content, repeaters, groups, images, links — so a site built in WordPress can move over by exporting and importing one file. It can also bring over attachments, authors and comments. You check a summary first, and the import itself runs in the background.
 
 Admins can import, under **Settings → Import**.
 
@@ -28,7 +28,7 @@ Choose the file and click **Check file**. Nothing is imported yet. The review sh
 
 | Option | What it does |
 |---|---|
-| **Import media** | Downloads attachments (images, PDF and MP4, up to 10 MB each) into the media library, in a folder named "WordPress import", and points featured images and links in the content at the new copies. Without it, entries keep pointing at the files on your WordPress site. |
+| **Import media** | Downloads attachments (JPEG, PNG, GIF, WebP, SVG, PDF and MP4, up to [`MEDIA_MAX_MB`](/reference/environment-variables/) each — 10 MB unless you raise it) into the media library, in a folder named "WordPress import". Featured images, ACF image fields and every link to a file — in the content and in custom fields, including WordPress's resized copies such as `photo-300x200.jpg` — then point at the new copies. Without it, entries keep pointing at the files on your WordPress site. |
 | **Overwrite existing entries** | Updates entries whose slug already exists (their previous content is kept in their [version history](/content/versions/)). Without it they're skipped. |
 | **Keep the category hierarchy** | Adds a `category_paths` field with full paths such as `Parent/Child`, next to the plain category names. |
 | **Import custom taxonomies** | Adds a `taxonomies` field, `{ "taxonomy": ["term", …] }`, to entries that use custom taxonomies. |
@@ -56,9 +56,37 @@ A content type that doesn't exist yet is created with these fields:
 | `tags` | JSON | Tag names |
 | `author` | text | The author's display name |
 | `wp_id` | number | The WordPress post ID |
-| `meta` | JSON | Custom fields, ACF values included. Keys starting with `_` (WordPress and plugin internals) are left out. |
+| `meta` | JSON | Custom fields that aren't ACF fields (ACF fields get real fields, below). Keys starting with `_` (WordPress and plugin internals) are left out. |
 
-If the content type already exists, it keeps its own schema, and only the fields it has are filled.
+If the content type already exists, it keeps its own schema, and only the fields it has are filled. Values are fitted to that schema — a number stored as text becomes a number, a choice the field doesn't offer is dropped — so an entry is never refused for its data.
+
+### Advanced Custom Fields
+
+WordPress exports include ACF's field groups, so the importer knows what every value means. Each field group shown on a post type (by its location rules) adds its fields to that content type:
+
+| ACF field | NodePress field |
+|---|---|
+| Text, Text area, WYSIWYG, URL, Email, oEmbed | text, textarea, rich text |
+| Number, Range | number |
+| True / False | boolean |
+| Select, Checkbox, Radio, Button group | select (multiple when ACF allows several) |
+| Image | image (`{ url, alt }`) |
+| File | text (the file's URL) |
+| Gallery | repeater of images |
+| Link | group: `title`, `url`, `target` |
+| Date picker, Date time picker | date, date-time |
+| Color picker | color |
+| Post object, Page link, Relationship | relation to the imported entries, when they all point at one post type; otherwise JSON with each linked post's type, slug and title |
+| Group, Clone | group |
+| Repeater | repeater |
+| Flexible content | flexible content: each ACF layout becomes a layout, each row a section |
+| Taxonomy, User, Google Map, anything else | JSON |
+
+- Tabs, messages and accordions only arrange ACF's editing screen, so they're left out.
+- Containers nested deeper than NodePress allows (three levels) are stored as JSON, so nothing is lost.
+- A field group shown on an **options page** becomes its own content type, named after the page. WordPress doesn't export options values, so it starts empty; fill it in the admin.
+- A flexible field in which one layout is used more than once gets a [section key](/content-modeling/nested-fields/#section-keys) on each of those sections: `real_magic`, `real_magic_2`… You can rename them afterwards.
+- Sites whose ACF fields are registered in theme code (PHP or local JSON) have no field groups in the export. Their values are still structured from the meta key names (`sections_0_heading` → `sections[0].heading`) and kept in `meta`.
 
 ### Entries
 
@@ -76,7 +104,7 @@ If the content type already exists, it keeps its own schema, and only the fields
 | Private | `draft` (NodePress has no private entries) |
 | Trash, auto-draft | skipped |
 
-WordPress internals are skipped: revisions, menu items, block patterns and templates, global styles, custom CSS, ACF field definitions, WooCommerce orders and similar.
+WordPress internals are skipped: revisions, menu items, block patterns and templates, global styles, custom CSS, WooCommerce orders and similar. ACF field definitions are read to build the fields, not imported as entries.
 
 ## Running it again
 
@@ -91,7 +119,7 @@ The uploaded file waits in `uploads/.cache/imports` until the job runs, and the 
 ## Safety
 
 - The importer reads the XML with its own parser, which refuses files that declare entities or a DTD, so a crafted file can't read server files or exhaust memory.
-- Attachments are downloaded only from public internet addresses, never from private or internal networks, with a size limit and a timeout per file. Each file's type is checked from its content.
+- Attachments are downloaded only from public internet addresses, never from private or internal networks, with a size limit and a timeout per file. Each file's type is checked from its content, and SVGs are [cleaned](/content/media/#svg) like any upload.
 
 ## API
 

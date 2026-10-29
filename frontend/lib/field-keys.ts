@@ -38,3 +38,34 @@ export function freeFieldName(name: string, taken: Set<string>): string {
   while (taken.has(toFieldKey(`${name} ${n}`))) n++;
   return `${name} ${n}`;
 }
+
+interface NestedEditorField { name: string; type?: string; options?: { subFields?: NestedEditorField[]; layouts?: { name: string; fields?: NestedEditorField[] }[] } }
+
+/**
+ * Repeated names inside containers, as paths (`sections.testimonial`,
+ * `sections.hero.title`): layout names within a flexible field, and field keys
+ * within a group, repeater or layout, at every level.
+ */
+export function nestedDuplicates(fields: NestedEditorField[], prefix = ''): string[] {
+  const out: string[] = [];
+  const repeats = (names: string[]) => {
+    const seen = new Set<string>();
+    return [...new Set(names.map(toFieldKey).filter((k) => k && (seen.has(k) || !seen.add(k))))];
+  };
+  for (const f of fields) {
+    const path = `${prefix}${toFieldKey(f.name)}`;
+    const subs = f.options?.subFields;
+    if ((f.type === 'group' || f.type === 'repeater') && Array.isArray(subs)) {
+      out.push(...repeats(subs.map((s) => s.name)).map((k) => `${path}.${k}`), ...nestedDuplicates(subs, `${path}.`));
+    }
+    const layouts = f.options?.layouts;
+    if (f.type === 'flexible' && Array.isArray(layouts)) {
+      out.push(...repeats(layouts.map((l) => l.name)).map((k) => `${path}.${k}`));
+      for (const l of layouts) {
+        const lf = l.fields ?? [];
+        out.push(...repeats(lf.map((s) => s.name)).map((k) => `${path}.${toFieldKey(l.name)}.${k}`), ...nestedDuplicates(lf, `${path}.${toFieldKey(l.name)}.`));
+      }
+    }
+  }
+  return out;
+}

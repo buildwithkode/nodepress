@@ -83,7 +83,12 @@
   "layout": {
     "button": "Layout uit component toevoegen",
     "title": "Een layout uit een component toevoegen",
-    "description": "De velden van de layout komen uit het component en blijven ermee gelijk."
+    "description": "Gebruik de velden van het component in deze lay-out als groep, als herhaalbare lijst of als eigen velden van de lay-out. Ze blijven gesynchroniseerd met het component.",
+    "groupHint": "De lay-out bevat één groep",
+    "repeaterHint": "De lay-out bevat een lijst",
+    "inlineHint": "De velden vormen de lay-out",
+    "name": "Lay-outnaam",
+    "nameTaken": "Dit flexibele veld heeft al een lay-out met de naam {key}."
   },
   "inline": {
     "from": "Uit component",

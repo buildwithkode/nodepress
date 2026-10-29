@@ -83,7 +83,12 @@
   "layout": {
     "button": "Aggiungi layout da componente",
     "title": "Aggiungi un layout da un componente",
-    "description": "I campi del layout provengono dal componente e restano sincronizzati con esso."
+    "description": "Usa i campi del componente in questo layout come gruppo, come elenco ripetibile o come campi propri del layout. Restano sincronizzati con il componente.",
+    "groupHint": "Il layout contiene un gruppo",
+    "repeaterHint": "Il layout contiene un elenco",
+    "inlineHint": "I suoi campi formano il layout",
+    "name": "Nome del layout",
+    "nameTaken": "Questo campo flessibile ha già un layout chiamato {key}."
   },
   "inline": {
     "from": "Dal componente",

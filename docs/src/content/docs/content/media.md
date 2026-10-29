@@ -13,8 +13,10 @@ Open **Media** and drop files on the upload area, or click it to browse. Admins 
 
 | | |
 |---|---|
-| Allowed types | JPEG, PNG, GIF, WebP, PDF, MP4 |
-| Maximum size | 10 MB per file |
+| Allowed types | JPEG, PNG, GIF, WebP, SVG, PDF, MP4 |
+| Maximum size | 10 MB per file, or what [`MEDIA_MAX_MB`](/reference/environment-variables/) sets |
+
+Behind nginx, `client_max_body_size` (50 MB in the shipped `nginx/proxy.conf`) must be at least `MEDIA_MAX_MB`, or larger uploads are refused before they reach NodePress. The same limit applies to files the [WordPress importer](/content/wordpress-import/) downloads.
 
 NodePress checks each file's first bytes, so a file whose content doesn't match its type is refused. Uploaded files get a new name: the upload time and a random suffix, such as `1730000000000-9f86d081884c7d65.jpg`. The original name is kept in the library.
 
@@ -28,6 +30,16 @@ JPEG, PNG and WebP images are processed when you upload them:
 - JPEG and PNG images also get a **WebP copy** next to the original.
 
 The library has **Copy URL** and **Copy WebP URL** for each image. GIFs are stored as they are, with their dimensions recorded but no WebP copy. If the server is busy processing other uploads, an image is stored without optimization rather than failing.
+
+### SVG
+
+An SVG is a document that can contain script, so every uploaded SVG is rebuilt before it's stored:
+
+- only drawing, text, gradient, mask, pattern and filter elements are kept — no `<script>`, `<foreignObject>`, animation or unknown elements; links (`<a>`) are replaced by their content;
+- event handlers (`onclick`…) are removed, and references may only point inside the file (`href="#id"`, `url(#id)`); `<style>` loses `@import` and outside URLs;
+- a file that declares entities, or isn't a valid SVG, is refused.
+
+SVGs are served with a Content-Security-Policy that blocks scripts, so even opened directly they can't run anything. They're never converted to other formats: the width and height come from the file, and the transform endpoint returns the SVG itself.
 
 ## Folders
 

@@ -83,7 +83,12 @@
   "layout": {
     "button": "从组件添加布局",
     "title": "从组件添加布局",
-    "description": "布局的字段来自组件，并与组件保持同步。"
+    "description": "在此布局中将组件的字段用作一个分组、一个可重复列表，或作为布局本身的字段。它们会与组件保持同步。",
+    "groupHint": "布局包含一个分组",
+    "repeaterHint": "布局包含一个列表",
+    "inlineHint": "其字段构成布局",
+    "name": "布局名称",
+    "nameTaken": "此弹性字段已有名为 {key} 的布局。"
   },
   "inline": {
     "from": "来自组件",

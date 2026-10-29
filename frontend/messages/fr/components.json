@@ -83,7 +83,12 @@
   "layout": {
     "button": "Ajouter une disposition depuis un composant",
     "title": "Ajouter une disposition depuis un composant",
-    "description": "Les champs de la disposition viennent du composant et restent synchronisés avec lui."
+    "description": "Utilisez les champs du composant dans cette mise en page comme un groupe, comme une liste répétable ou comme champs propres de la mise en page. Ils restent synchronisés avec le composant.",
+    "groupHint": "La mise en page contient un groupe",
+    "repeaterHint": "La mise en page contient une liste",
+    "inlineHint": "Ses champs forment la mise en page",
+    "name": "Nom de la disposition",
+    "nameTaken": "Ce champ flexible a déjà une disposition nommée {key}."
   },
   "inline": {
     "from": "Depuis le composant",

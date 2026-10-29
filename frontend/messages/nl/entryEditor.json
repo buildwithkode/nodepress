@@ -167,7 +167,15 @@
     "sectionType": "Sectietype",
     "chooseLayout": "Kies sectie-lay-out…",
     "addBlock": "+ Blok toevoegen…",
-    "enterValue": "Voer {field} in"
+    "enterValue": "Voer {field} in",
+    "sectionKey": "Sectiesleutel (optioneel)",
+    "sectionKeyPlaceholder": "bijv. hero_section",
+    "sectionKeyHint": "Lees deze sectie in de API als {field}_by_key.[sleutel].",
+    "sectionKeyInvalid": "Gebruik kleine letters, cijfers en underscores, beginnend met een letter.",
+    "sectionKeyDuplicate": "Een andere sectie gebruikt de sleutel {key} al.",
+    "sectionKeyRequiredLabel": "Sectiesleutel",
+    "sectionKeyRequired": "Verplicht: {layout} wordt hier meer dan eens gebruikt, dus elk exemplaar heeft een eigen sleutel nodig.",
+    "sectionKeyLayoutHint": "Optioneel. Zonder sleutel lees je haar in de API als {field}_by_key.{layout}."
   },
   "richText": {
     "visual": "Visuele editor",
@@ -231,7 +239,7 @@
     "emptyHint": "Upload je eerste afbeelding op het tabblad Uploaden",
     "uploading": "Afbeelding uploaden naar de server…",
     "dropzone": "Klik om te uploaden of sleep een bestand hierheen",
-    "dropzoneHint": "PNG, JPG, WebP, GIF of SVG (tot 10 MB)",
+    "dropzoneHint": "PNG, JPG, WebP, GIF of SVG (tot {size} MB)",
     "selectFile": "Bestand kiezen",
     "directUrl": "Directe afbeeldings-URL",
     "directUrlPlaceholder": "https://images.unsplash.com/... of CDN-link",

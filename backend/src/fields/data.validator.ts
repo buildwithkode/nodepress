@@ -13,6 +13,7 @@ import {
   RelationFieldDef,
 } from './field.types';
 import { hiddenFields } from './field-condition';
+import { sectionKeyErrors } from '../common/section-keys';
 
 /**
  * DataValidator — validates that entry data satisfies a content type schema.
@@ -356,6 +357,7 @@ export class DataValidator {
 
     const { layouts, minItems, maxItems } = field.options;
     const layoutMap = new Map(layouts.map((l) => [l.name, l]));
+    errors.push(...sectionKeyErrors(value, path));
 
     if (minItems !== undefined && value.length < minItems) {
       errors.push(`${path}: must have at least ${minItems} block(s)`);

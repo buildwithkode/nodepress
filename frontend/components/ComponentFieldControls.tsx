@@ -41,8 +41,11 @@ export interface ComponentFieldDraft {
 /** A top-level field inserted inline from a component — sent to the server tagged with `component`. */
 export type InlineComponentField = ComponentField & { component: string; condition?: any };
 
-/** A flexible layout whose fields come from a component. */
-export interface ComponentLayoutDraft { name: string; label: string; component: string; fields: ComponentField[] }
+/**
+ * A flexible layout made from a component: its fields are the component's
+ * (inline, `component` set), or one group / repeater field using it.
+ */
+export interface ComponentLayoutDraft { name: string; label: string; component?: string; fields: ComponentField[] }
 
 /** Editor state for an inline field: its key as the name, the saved object kept as-is in `inline`. */
 export const inlineEditorField = (f: InlineComponentField) => ({
@@ -223,24 +226,55 @@ export function AddComponentButton({ onAdd, onAddInline, disabled, taken = new S
   );
 }
 
-/** "Add layout from component" for a flexible field's layouts. */
-export function AddComponentLayoutButton({ onAdd, disabled }: { onAdd: (layout: ComponentLayoutDraft) => void; disabled?: boolean }) {
+/**
+ * "Add layout from component" for a flexible field's layouts. `taken` holds the
+ * field's layout names: the suggested name avoids them (`testimonial_2`), so the
+ * same component can be added twice, and a name already used is refused.
+ */
+export function AddComponentLayoutButton({ onAdd, disabled, taken = new Set() }: {
+  onAdd: (layout: ComponentLayoutDraft) => void;
+  disabled?: boolean;
+  taken?: Set<string>;
+}) {
   const tcm = useTranslations('components');
   const [open, setOpen] = useState(false);
   const components = useComponentList(open);
   const [selected, setSelected] = useState('');
+  const [kind, setKind] = useState<'group' | 'repeater' | 'inline'>('inline');
+  const [fieldName, setFieldName] = useState('');
+  const [layoutName, setLayoutName] = useState('');
   const component = components?.find((c) => c.name === selected);
+  const layoutKey = toFieldKey(layoutName);
+  const layoutTaken = !!layoutKey && taken.has(layoutKey);
+  const ready = !!component && !!layoutKey && !layoutTaken && (kind === 'inline' || !!fieldName.trim());
+
+  const pick = (name: string) => {
+    setSelected(name);
+    const c = components?.find((x) => x.name === name);
+    setFieldName(c ? c.displayName || c.name : '');
+    setLayoutName(c ? toFieldKey(freeFieldName(c.name, taken)) : '');
+  };
 
   const add = () => {
-    if (!component) return;
-    onAdd({
-      name: component.name,
-      label: component.displayName || component.name,
-      component: component.name,
-      fields: component.fields.map((f) => ({ ...f })),
-    });
+    if (!component || !ready) return;
+    const fields = component.fields.map((f) => ({ ...f }));
+    // A second copy of the same component gets a numbered label too (`Testimonial 2`).
+    const base = component.displayName || component.name;
+    const suffix = layoutKey.startsWith(`${component.name}_`) ? layoutKey.slice(component.name.length + 1) : '';
+    const label = /^\d+$/.test(suffix) ? `${base} ${suffix}` : base;
+    onAdd(kind === 'inline'
+      ? { name: layoutKey, label, component: component.name, fields }
+      : {
+          name: layoutKey,
+          label,
+          // The layout holds one field: a group (one) or repeater (many) kept in sync with the component.
+          fields: [{ name: toFieldKey(fieldName), label: fieldName.trim(), type: kind, options: { component: component.name, subFields: fields } }],
+        });
     setOpen(false);
     setSelected('');
+    setFieldName('');
+    setLayoutName('');
+    setKind('inline');
   };
 
   return (
@@ -259,11 +293,48 @@ export function AddComponentLayoutButton({ onAdd, disabled }: { onAdd: (layout: 
               {tcm.rich('add.none', { link: (chunks) => <Link href="/components" className="text-primary underline">{chunks}</Link> })}
             </p>
           ) : (
-            <ComponentPicker components={components} value={selected} onChange={setSelected} />
+            <div className="space-y-4">
+              <ComponentPicker components={components} value={selected} onChange={pick} />
+              {component && (
+                <div className="space-y-1.5">
+                  <Label>{tcm('layout.name')}</Label>
+                  <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} aria-invalid={layoutTaken} />
+                  {layoutTaken
+                    ? <p className="text-xs text-destructive">{tcm('layout.nameTaken', { key: layoutKey })}</p>
+                    : layoutName.trim() && layoutKey !== layoutName && <p className="text-xs text-muted-foreground">{tcm('add.fieldKey')} <code className="rounded bg-muted px-1 py-0.5 font-mono">{layoutKey}</code></p>}
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label>{tcm('add.kind')}</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['group', 'repeater', 'inline'] as const).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setKind(k)}
+                      className={cn(
+                        'rounded-md border px-3 py-2 text-left text-sm transition-colors',
+                        kind === k ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                      )}
+                    >
+                      <span className="font-medium">{tcm(`add.${k}`)}</span>
+                      <span className="block text-xs text-muted-foreground">{tcm(`layout.${k}Hint`)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {kind !== 'inline' && (
+                <div className="space-y-1.5">
+                  <Label>{tcm('add.fieldName')}</Label>
+                  <Input value={fieldName} onChange={(e) => setFieldName(e.target.value)} />
+                  {fieldName.trim() && <p className="text-xs text-muted-foreground">{tcm('add.fieldKey')} <code className="rounded bg-muted px-1 py-0.5 font-mono">{toFieldKey(fieldName)}</code></p>}
+                </div>
+              )}
+            </div>
           )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>{tcm('cancel')}</Button>
-            <Button type="button" onClick={add} disabled={!component}>{tcm('add.confirm')}</Button>
+            <Button type="button" onClick={add} disabled={!ready}>{tcm('add.confirm')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -13,13 +13,15 @@ import { MediaService } from '../media/media.service';
 import { AuditService } from '../audit/audit.service';
 import { FieldDef, isReverseRelation } from '../fields/field.types';
 import { XmlParseError } from './xml';
-import { AUTHOR_TYPE, COMMENT_TYPE, ImportPlan, PlanOptions, buildImportPlan, parseWxr, rewriteMediaUrls } from './wxr';
+import { AUTHOR_TYPE, COMMENT_TYPE, ImportPlan, PlanOptions, buildImportPlan, mediaUrlRewriter, parseWxr } from './wxr';
+import { WP_REF } from './acf';
 import { DownloadError, SafeDownloadOptions, safeDownload } from './safe-download';
+import { looksLikeSvg } from '../media/svg-sanitize';
+import { maxUploadBytes } from '../media/upload-limits';
+import { autoSectionKeys } from '../common/section-keys';
 
 export const WORDPRESS_IMPORT_JOB = 'import.wordpress';
 export const MAX_IMPORT_FILE_BYTES = 50 * 1024 * 1024;
-const MAX_MEDIA_BYTES = 10 * 1024 * 1024;   // same as POST /media/upload
-const MEDIA_TIMEOUT_MS = 15_000;
 const MEDIA_FOLDER = 'WordPress import';
 const MAX_ERRORS = 200;
 const HEARTBEAT_MS = 20_000;                 // well inside the job lease
@@ -27,10 +29,10 @@ const STALE_FILE_MS = 7 * 24 * 60 * 60_000;  // uploads of failed/abandoned impo
 
 /** Same types as media uploads (media.controller.ts), told apart by their first bytes. */
 function sniffMime(path: string): string | null {
-  const buf = Buffer.alloc(12);
+  const buf = Buffer.alloc(4096);
   const fd = openSync(path, 'r');
   let n = 0;
-  try { n = readSync(fd, buf, 0, 12, 0); } finally { closeSync(fd); }
+  try { n = readSync(fd, buf, 0, buf.length, 0); } finally { closeSync(fd); }
   if (n < 12) return null;
   if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
   if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image/png';
@@ -38,12 +40,16 @@ function sniffMime(path: string): string | null {
   if (buf.toString('latin1', 0, 4) === 'RIFF' && buf.toString('latin1', 8, 12) === 'WEBP') return 'image/webp';
   if (buf.toString('latin1', 0, 4) === '%PDF') return 'application/pdf';
   if (buf.toString('latin1', 4, 8) === 'ftyp') return 'video/mp4';
+  if (looksLikeSvg(buf.subarray(0, n))) return 'image/svg+xml'; // sanitized by MediaService.processUpload
   return null;
 }
 const MIME_EXT: Record<string, string> = {
   'image/jpeg': '.jpg', 'image/png': '.png', 'image/gif': '.gif', 'image/webp': '.webp',
-  'application/pdf': '.pdf', 'video/mp4': '.mp4',
+  'application/pdf': '.pdf', 'video/mp4': '.mp4', 'image/svg+xml': '.svg',
 };
+
+/** A whole download's deadline: 15 s, or 2 s per MB of the size limit for large limits. */
+const mediaTimeoutMs = () => Math.max(15_000, Math.round(maxUploadBytes() / 1024 / 1024) * 2_000);
 
 export interface ImportOptions extends PlanOptions {
   importMedia?: boolean;
@@ -60,6 +66,9 @@ interface WriteItem {
   data: Record<string, unknown>;
   /** Relation field → [content type it must point at, publicId]; filled only when the field matches. */
   relations?: Record<string, [string, string | undefined]>;
+  /** Set by the write: its publicId and what happened. */
+  publicId?: string;
+  outcome?: 'created' | 'updated' | 'skipped';
 }
 
 type TypeInfo = { id: number; fields: Map<string, FieldDef> };
@@ -110,7 +119,7 @@ export class ImporterService implements OnModuleInit {
   readonly importsDir = join(this.uploadsDir, '.cache', 'imports');
 
   /** Media download limits. Tests flip `allowPrivate` to fetch from 127.0.0.1. */
-  downloadOptions: SafeDownloadOptions = { maxBytes: MAX_MEDIA_BYTES, timeoutMs: MEDIA_TIMEOUT_MS, maxRedirects: 3 };
+  downloadOptions: SafeDownloadOptions = { maxBytes: maxUploadBytes(), timeoutMs: mediaTimeoutMs(), maxRedirects: 3 };
 
   constructor(
     private prisma: PrismaService,
@@ -277,7 +286,7 @@ export class ImporterService implements OnModuleInit {
       let ct = await this.prisma.contentType.findUnique({ where: { name } });
       if (!ct) {
         try {
-          ct = await this.contentTypes.create({ name, displayName: displayNameFor(postTypeOf(plan, name)), schema: schema as any });
+          ct = await this.contentTypes.create({ name, displayName: plan.optionsPages[name]?.title ?? displayNameFor(postTypeOf(plan, name)), schema: schema as any });
           result.contentTypesCreated.push(name);
         } catch (err) {
           if (!(err instanceof ConflictException)) throw err;
@@ -296,6 +305,9 @@ export class ImporterService implements OnModuleInit {
       const folderId = await this.mediaFolderId();
       let done = 0;
       for (const att of plan.attachments) {
+        // A large file can take longer than the lease: keep beating while it downloads.
+        const progress = { phase: 'media' as const, done, total: plan.attachments.length };
+        const keepAlive = setInterval(() => { beat(progress, true).catch(() => { /* next beat retries */ }); }, HEARTBEAT_MS);
         try {
           const outcome = await this.importAttachment(att.url, folderId, payload.actor);
           urlMap.set(att.url, outcome.url);
@@ -303,6 +315,8 @@ export class ImporterService implements OnModuleInit {
         } catch (err: any) {
           result.media.failed++;
           addError(`Media ${att.url}: ${err?.message ?? err}`);
+        } finally {
+          clearInterval(keepAlive);
         }
         await beat({ phase: 'media', done: ++done, total: plan.attachments.length });
       }
@@ -318,6 +332,7 @@ export class ImporterService implements OnModuleInit {
       try {
         const outcome = await this.writeEntry(item, types.get(item.contentType)!, locale, payload);
         counts[outcome.outcome]++;
+        item.outcome = outcome.outcome;
         publicId = outcome.publicId;
       } catch (err: any) {
         counts.failed++;
@@ -334,24 +349,44 @@ export class ImporterService implements OnModuleInit {
       if (id) authorIds.set(a.login, id);
     }
 
+    // Media URLs anywhere in the data — body HTML, featured image, ACF images, links, text.
+    const rewrite = mediaUrlRewriter(urlMap);
     const postIds = new Map<number, string>();       // WordPress post ID → publicId
+    const linkLater: { item: WriteItem; label: string }[] = [];
     for (const entry of plan.entries) {
-      const id = await write({
+      const item: WriteItem = {
         contentType: entry.contentType,
         slug: entry.slug,
         status: entry.status,
         publishAt: entry.publishAt,
         date: entry.date,
-        data: {
-          ...entry.data,
-          content: rewriteMediaUrls(entry.data.content, urlMap),
-          featured_image: entry.data.featured_image
-            ? { ...entry.data.featured_image, url: urlMap.get(entry.data.featured_image.url) ?? entry.data.featured_image.url }
-            : undefined,
-        },
+        data: mapStrings(entry.data, rewrite) as Record<string, unknown>,
         relations: entry.authorLogin ? { author_ref: [AUTHOR_TYPE, authorIds.get(entry.authorLogin)] } : undefined,
-      }, `WordPress #${entry.wpId}`);
-      if (id) postIds.set(entry.wpId, id);
+      };
+      const label = `WordPress #${entry.wpId}`;
+      // ACF relation fields point at posts by WordPress ID — written without them
+      // now (fitToSchema drops the placeholders) and linked once every post has a publicId.
+      const id = await write(item, label);
+      if (id) {
+        postIds.set(entry.wpId, id);
+        if (hasWpRef(item.data)) linkLater.push({ item: { ...item, publicId: id }, label });
+      }
+    }
+    for (const { item, label } of linkLater) {
+      if (item.outcome === 'skipped') continue;
+      try {
+        const data = fitToSchema(resolveWpRefs(item.data, postIds) as Record<string, unknown>, types.get(item.contentType)!.fields);
+        const target = await this.prisma.entry.findUnique({ where: { publicId: item.publicId! }, select: { id: true, data: true } });
+        if (!target) continue;
+        // Only the fields holding relations change; the rest stays as just written.
+        const linked: Record<string, unknown> = {};
+        for (const key of Object.keys(item.data)) if (hasWpRef(item.data[key]) && key in data) linked[key] = data[key];
+        await this.entries.update(target.id, { data: { ...(target.data as object), ...linked } } as any,
+          payload.actor.id, payload.actor.role ?? 'admin', 'import');
+      } catch (err: any) {
+        const detail = Array.isArray(err?.response?.errors) ? `: ${err.response.errors.join('; ')}` : '';
+        addError(`${item.contentType}/${item.slug} (${label}, relations): ${err?.message ?? err}${detail}`);
+      }
     }
 
     for (const c of plan.comments) {
@@ -378,13 +413,8 @@ export class ImporterService implements OnModuleInit {
     locale: string,
     payload: ImportJobPayload,
   ): Promise<{ outcome: 'created' | 'updated' | 'skipped'; publicId?: string }> {
-    const data: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(entry.data)) {
-      const type = ct.fields.get(key)?.type;
-      if (!type || value === undefined) continue; // existing type without this field
-      const coerced = coerceForField(value, type);
-      if (coerced !== undefined) data[key] = coerced;
-    }
+    // Fitted to the type as it is — one created earlier, or edited since, may differ from the plan.
+    const data = fitToSchema(entry.data, ct.fields);
     // Relations the import resolved itself — only into a forward relation field to the right type.
     for (const [key, [target, id]] of Object.entries(entry.relations ?? {})) {
       const field = ct.fields.get(key) as any;
@@ -431,7 +461,7 @@ export class ImporterService implements OnModuleInit {
     const mimetype = sniffMime(tmp);
     if (!mimetype) {
       try { unlinkSync(tmp); } catch { /* ignore */ }
-      throw new DownloadError('file type not allowed (images, PDF and MP4 only)');
+      throw new DownloadError('file type not allowed (images, SVG, PDF and MP4 only)');
     }
     const filename = `${stem}${MIME_EXT[mimetype]}`;
     const path = join(this.uploadsDir, filename);
@@ -488,7 +518,105 @@ function planWrites(plan: ImportPlan): { contentType: string; slug: string; stat
 /** The WordPress side of a content type: its post type, or "author" / "comment". */
 function postTypeOf(plan: ImportPlan, name: string): string {
   if (plan.contentTypes[name]) return plan.contentTypes[name];
+  if (plan.optionsPages[name]) return `options page ${plan.optionsPages[name].slug}`;
   return name === AUTHOR_TYPE ? 'author' : name === COMMENT_TYPE ? 'comment' : name;
+}
+
+/** Apply `fn` to every string in a value (data is plain JSON). */
+function mapStrings(value: unknown, fn: (s: string) => string): unknown {
+  if (typeof value === 'string') return fn(value);
+  if (Array.isArray(value)) return value.map((v) => mapStrings(v, fn));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, mapStrings(v, fn)]));
+  }
+  return value;
+}
+
+/** Does the value hold an ACF relation placeholder ({ __wp_ref: [WordPress IDs] })? */
+function hasWpRef(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(hasWpRef);
+  if (!value || typeof value !== 'object') return false;
+  if (WP_REF in value) return true;
+  return Object.values(value).some(hasWpRef);
+}
+
+/** Replace placeholders with the publicIds of the imported posts (missing ones are left out). */
+function resolveWpRefs(value: unknown, postIds: Map<number, string>): unknown {
+  if (Array.isArray(value)) return value.map((v) => resolveWpRefs(v, postIds));
+  if (!value || typeof value !== 'object') return value;
+  const ref = (value as Record<string, unknown>)[WP_REF];
+  if (Array.isArray(ref)) {
+    const ids = ref.map((id) => postIds.get(Number(id))).filter((id): id is string => !!id);
+    return ids.length ? ids : undefined;
+  }
+  return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, resolveWpRefs(v, postIds)]));
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+
+/**
+ * Fit imported data to a content type's fields, at every level, so the write
+ * never fails validation: values that can't fit are left out (the rest of the
+ * entry still imports). Fields the type doesn't have are dropped.
+ */
+export function fitToSchema(data: Record<string, unknown>, fields: Map<string, FieldDef> | FieldDef[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const field of fields instanceof Map ? fields.values() : fields) {
+    const value = data[field.name];
+    if (value === undefined || value === null) continue;
+    const fitted = fitValue(value, field);
+    if (fitted !== undefined) out[field.name] = fitted;
+  }
+  return out;
+}
+
+function fitValue(value: unknown, field: FieldDef): unknown {
+  const options = (field as any).options ?? {};
+  switch (field.type) {
+    case 'group':
+      return isRecord(value) ? fitToSchema(value, options.subFields ?? []) : undefined;
+    case 'repeater':
+      return Array.isArray(value)
+        ? value.filter(isRecord).map((row) => fitToSchema(row, options.subFields ?? []))
+        : undefined;
+    case 'flexible': {
+      if (!Array.isArray(value)) return undefined;
+      const layouts = new Map<string, any>((options.layouts ?? []).map((l: any) => [l.name, l]));
+      // A layout used more than once needs a key per section (common/section-keys.ts): name them.
+      return autoSectionKeys(value.filter(isRecord).flatMap((block) => {
+        const layout = typeof block._layout === 'string' ? layouts.get(block._layout) : undefined;
+        return layout ? [{ _layout: layout.name, ...fitToSchema(block, layout.fields ?? []) }] : [];
+      }));
+    }
+    case 'select': {
+      const choices: string[] = options.choices ?? [];
+      const valid = (Array.isArray(value) ? value : [value]).map(String).filter((v) => choices.includes(v));
+      if (options.multiple) return valid;
+      return valid[0];
+    }
+    case 'boolean':
+      if (typeof value === 'boolean') return value;
+      if (value === 1 || value === '1' || value === 'true') return true;
+      if (value === 0 || value === '0' || value === 'false' || value === '') return false;
+      return undefined;
+    case 'number': {
+      const n = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+      return typeof n === 'number' && isFinite(n) && (!options.integer || Number.isInteger(n)) ? n : undefined;
+    }
+    case 'color':
+      return typeof value === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : undefined;
+    case 'relation': {
+      if (isReverseRelation(field)) return undefined;
+      const ids = (Array.isArray(value) ? value : [value]).filter((v): v is string => typeof v === 'string' && UUID_RE.test(v));
+      if (!ids.length) return undefined;
+      return options.cardinality === 'many' ? ids : ids[0];
+    }
+    case 'json':
+      return value && typeof value === 'object' ? value : { value };
+    default:
+      return coerceForField(value, field.type);
+  }
 }
 
 function displayNameFor(postType: string): string {

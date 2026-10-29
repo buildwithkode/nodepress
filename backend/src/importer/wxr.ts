@@ -1,12 +1,13 @@
 import { XmlElement, XmlParseError, XmlParseOptions, childElements, childText, decodeEntities, firstChild, parseXml, textContent } from './xml';
+import { AcfNode, ReadContext, buildNodes, finalizeNodes, groupsForPostType, nodeSchema, readAcfDefinitions, readNode, structureMeta } from './acf';
 
 /**
  * WordPress eXtended RSS (WXR, Tools → Export) → a plain description of what
  * to import. Pure functions: no database, no network.
  */
 
-export interface WxrAuthor { login: string; email: string; displayName: string; firstName: string; lastName: string }
-export interface WxrTerm { slug: string; name: string; parent?: string }
+export interface WxrAuthor { id: number; login: string; email: string; displayName: string; firstName: string; lastName: string }
+export interface WxrTerm { id: number; slug: string; name: string; parent?: string }
 /** A <wp:term> — custom taxonomies, nav menus, post formats. */
 export interface WxrCustomTerm extends WxrTerm { taxonomy: string }
 
@@ -32,6 +33,8 @@ export interface WxrItem {
   postName: string;
   status: string;
   postType: string;
+  postParent: number;           // 0 = none (ACF: the field group or parent field)
+  menuOrder: number;
   postDate: string;             // site-local "YYYY-MM-DD HH:MM:SS"
   postDateGmt: string;
   attachmentUrl: string;
@@ -69,6 +72,7 @@ export function parseWxr(xml: string, options?: XmlParseOptions): WxrDocument {
     language: childText(channel, 'language'),
     version,
     authors: childElements(channel, 'wp:author').map((a) => ({
+      id: parseInt(childText(a, 'wp:author_id'), 10) || 0,
       login: childText(a, 'wp:author_login'),
       email: childText(a, 'wp:author_email'),
       displayName: childText(a, 'wp:author_display_name') || childText(a, 'wp:author_login'),
@@ -76,15 +80,18 @@ export function parseWxr(xml: string, options?: XmlParseOptions): WxrDocument {
       lastName: childText(a, 'wp:author_last_name'),
     })),
     categories: childElements(channel, 'wp:category').map((c) => ({
+      id: parseInt(childText(c, 'wp:term_id'), 10) || 0,
       slug: childText(c, 'wp:category_nicename'),
       name: childText(c, 'wp:cat_name'),
       parent: childText(c, 'wp:category_parent') || undefined,
     })),
     tags: childElements(channel, 'wp:tag').map((t) => ({
+      id: parseInt(childText(t, 'wp:term_id'), 10) || 0,
       slug: childText(t, 'wp:tag_slug'),
       name: childText(t, 'wp:tag_name'),
     })),
     terms: childElements(channel, 'wp:term').map((t) => ({
+      id: parseInt(childText(t, 'wp:term_id'), 10) || 0,
       taxonomy: childText(t, 'wp:term_taxonomy'),
       slug: childText(t, 'wp:term_slug'),
       name: childText(t, 'wp:term_name'),
@@ -122,6 +129,8 @@ function parseItem(el: XmlElement): WxrItem {
     postName: childText(el, 'wp:post_name'),
     status: childText(el, 'wp:status'),
     postType: childText(el, 'wp:post_type') || 'post',
+    postParent: parseInt(childText(el, 'wp:post_parent'), 10) || 0,
+    menuOrder: parseInt(childText(el, 'wp:menu_order'), 10) || 0,
     postDate: childText(el, 'wp:post_date'),
     postDateGmt: childText(el, 'wp:post_date_gmt'),
     attachmentUrl: childText(el, 'wp:attachment_url'),
@@ -169,7 +178,7 @@ export const WP_FIELDS = [
   { name: 'tags', type: 'json', label: 'Tags', description: 'Tag names from WordPress' },
   { name: 'author', type: 'text', label: 'Author' },
   { name: 'wp_id', type: 'number', label: 'WordPress ID', options: { integer: true } },
-  { name: 'meta', type: 'json', label: 'Custom fields', description: 'WordPress post meta (ACF values included); keys starting with "_" are left out' },
+  { name: 'meta', type: 'json', label: 'Custom fields', description: 'WordPress post meta not covered by ACF field definitions, as nested data; keys starting with "_" are left out' },
 ] as const;
 
 /** Content types for the optional author and comment imports. */
@@ -253,9 +262,11 @@ export interface PlannedEntry {
     tags: string[];
     author: string;
     wp_id: number;
-    meta: Record<string, string>;
+    meta: Record<string, unknown>;
     category_paths?: string[];
     taxonomies?: Record<string, string[]>;
+    /** ACF fields, by their NodePress names. */
+    [field: string]: unknown;
   };
   /** The attachment the featured image comes from (rewritten after a media import). */
   featuredAttachmentId?: number;
@@ -293,6 +304,8 @@ export interface PlanStats {
   nestedCategories: number;
   /** Custom taxonomy → number of imported entries using it. */
   taxonomies: Record<string, number>;
+  /** ACF: field groups in the export, and content type → number of ACF fields it gets. */
+  acf: { groups: number; fields: Record<string, number> };
   authors: number;
   comments: { approved: number; pending: number; spam: number; trash: number; other: number };
 }
@@ -312,6 +325,8 @@ export interface ImportPlan {
   authors: PlannedAuthor[];
   comments: PlannedComment[];
   options: Required<PlanOptions>;
+  /** Content types made from ACF options pages: fields only — WordPress doesn't export their values. */
+  optionsPages: Record<string, { title: string; slug: string }>;
   stats: PlanStats;
   skipped: Record<string, number>;
   warnings: string[];
@@ -422,6 +437,7 @@ export function buildImportPlan(doc: WxrDocument, planOptions: PlanOptions = {})
     taxonomies: {},
     authors: doc.authors.length,
     comments: { approved: 0, pending: 0, spam: 0, trash: 0, other: 0 },
+    acf: { groups: 0, fields: {} },
   };
   const attachments = new Map<number, PlannedAttachment>();
   for (const item of doc.items) {
@@ -574,6 +590,8 @@ export function buildImportPlan(doc: WxrDocument, planOptions: PlanOptions = {})
     if (missingAuthors.size) warnings.push(`Authors not in the export's author list (author_ref left empty): ${[...missingAuthors].sort().join(', ')}`);
   }
 
+  const acf = planAcf(doc, entries, contentTypes, attachments, stats, warnings);
+
   const schemas: ImportPlan['schemas'] = {};
   if (options.authors) schemas[AUTHOR_TYPE] = AUTHOR_FIELDS.map((f) => ({ ...f }));
   for (const name of Object.keys(contentTypes)) {
@@ -582,8 +600,10 @@ export function buildImportPlan(doc: WxrDocument, planOptions: PlanOptions = {})
       ...(options.categoryPaths ? [{ ...CATEGORY_PATHS_FIELD }] : []),
       ...(options.taxonomies && usedTaxonomyBy.has(name) ? [{ ...TAXONOMIES_FIELD }] : []),
       ...(options.authors ? [{ ...AUTHOR_REF_FIELD, options: { ...AUTHOR_REF_FIELD.options } }] : []),
+      ...(acf.schemas[name] ?? []),
     ];
   }
+  for (const [name, schema] of Object.entries(acf.optionsSchemas)) schemas[name] = schema;
   if (options.comments) {
     const targets = [...new Set(comments.map((c) => c.postContentType))].sort();
     schemas[COMMENT_TYPE] = commentFields(targets.length === 1 ? targets[0] : undefined);
@@ -608,31 +628,158 @@ export function buildImportPlan(doc: WxrDocument, planOptions: PlanOptions = {})
     authors: plannedAuthors,
     comments,
     options,
+    optionsPages: acf.optionsPages,
     stats,
     skipped,
     warnings,
   };
 }
 
+/** Field names the import itself uses on post types — an ACF field with one gets "acf_". */
+const IMPORT_FIELD_NAMES = [...WP_FIELDS.map((f) => f.name), CATEGORY_PATHS_FIELD.name, TAXONOMIES_FIELD.name, AUTHOR_REF_FIELD.name];
+
+/**
+ * ACF fields for every planned entry (see acf.ts): adds them to the entries'
+ * data, leaves the rest of the meta in `meta` (nested), and returns the extra
+ * schema per content type plus content types for ACF options pages.
+ */
+function planAcf(
+  doc: WxrDocument,
+  entries: PlannedEntry[],
+  contentTypes: Record<string, string>,
+  attachments: Map<number, PlannedAttachment>,
+  stats: PlanStats,
+  warnings: string[],
+): { schemas: Record<string, Record<string, unknown>[]>; optionsSchemas: Record<string, Record<string, unknown>[]>; optionsPages: ImportPlan['optionsPages'] } {
+  const defs = readAcfDefinitions(doc.items);
+  stats.acf.groups = defs.groups.length;
+  const itemsById = new Map(doc.items.map((i) => [i.postId, i]));
+  const imported = new Map(entries.map((e) => [e.wpId, e]));
+  const importedTypeFor = (postType: string) => Object.keys(contentTypes).find((n) => contentTypes[n] === postType);
+
+  const posts: ReadContext['posts'] = new Map();
+  for (const item of doc.items) {
+    const e = imported.get(item.postId);
+    posts.set(item.postId, { postType: item.postType, title: item.title, slug: e?.slug ?? item.postName, contentType: e?.contentType });
+  }
+  const terms: ReadContext['terms'] = new Map();
+  for (const c of doc.categories) if (c.id) terms.set(c.id, { name: c.name, slug: c.slug, taxonomy: 'category' });
+  for (const t of doc.tags) if (t.id) terms.set(t.id, { name: t.name, slug: t.slug, taxonomy: 'post_tag' });
+  for (const t of doc.terms) if (t.id) terms.set(t.id, { name: t.name, slug: t.slug, taxonomy: t.taxonomy });
+  const users: ReadContext['users'] = new Map(doc.authors.filter((a) => a.id).map((a) => [a.id, { login: a.login, displayName: a.displayName }]));
+  const attachmentsById: ReadContext['attachments'] = new Map([...attachments].map(([id, a]) => [id, { url: a.url, alt: a.alt }]));
+  const issues: ReadContext['issues'] = { missingAttachments: new Set(), unknownLayouts: new Set() };
+  const context = (meta: Record<string, string>, observe: boolean): ReadContext =>
+    ({ meta, consumed: new Set(), containers: new Set(), attachments: attachmentsById, posts, terms, users, observe, issues });
+  let leftovers = 0;
+
+  const schemas: Record<string, Record<string, unknown>[]> = {};
+  const usedGroups = new Set<string>();
+  for (const name of Object.keys(contentTypes)) {
+    const typeEntries = entries.filter((e) => e.contentType === name);
+    const items = typeEntries.map((e) => itemsById.get(e.wpId)!).filter(Boolean);
+    const groups = groupsForPostType(defs, contentTypes[name], items);
+    groups.forEach((g) => usedGroups.add(g.key));
+    const nodes: AcfNode[] = buildNodes(groups.flatMap((g) => g.fields), defs, 0, new Set(IMPORT_FIELD_NAMES));
+
+    if (nodes.length) {
+      for (const item of items) { const ctx = context(item.meta, true); for (const n of nodes) readNode(n, n.acf, ctx); }
+      finalizeNodes(nodes, importedTypeFor);
+      schemas[name] = nodeSchema(nodes);
+      stats.acf.fields[name] = nodes.length;
+    }
+    for (const entry of typeEntries) {
+      const item = itemsById.get(entry.wpId);
+      if (!item) continue;
+      const ctx = context(item.meta, false);
+      for (const n of nodes) {
+        const v = readNode(n, n.acf, ctx);
+        if (v !== undefined) entry.data[n.name] = v;
+      }
+      // Keys in a repeater or flexible row that no field reads are values of deleted fields — ACF ignores them too.
+      const inRow = (k: string) => [...ctx.containers].some((c) => k.startsWith(`${c}_`) && /^\d+_/.test(k.slice(c.length + 1)));
+      const rest: Record<string, string> = {};
+      for (const [k, v] of Object.entries(item.meta)) {
+        if (ctx.consumed.has(k)) continue;
+        if (inRow(k.replace(/^_/, ''))) { if (!k.startsWith('_')) leftovers++; continue; }
+        rest[k] = v;
+      }
+      entry.data.meta = structureMeta(rest);
+    }
+  }
+
+  // Options pages: global settings whose values live in wp_options, which exports leave out.
+  const optionsSchemas: Record<string, Record<string, unknown>[]> = {};
+  const optionsPages: ImportPlan['optionsPages'] = {};
+  const taken = new Set([...Object.keys(contentTypes), AUTHOR_TYPE, COMMENT_TYPE]);
+  const bySlug = new Map<string, typeof defs.groups>();
+  for (const g of defs.groups) {
+    if (usedGroups.has(g.key)) continue;
+    for (const slug of g.optionsPages) bySlug.set(slug, [...(bySlug.get(slug) ?? []), g]);
+  }
+  for (const [slug, groups] of bySlug) {
+    const nodes = buildNodes(groups.flatMap((g) => g.fields), defs, 0, new Set());
+    if (!nodes.length) continue;
+    finalizeNodes(nodes, importedTypeFor);
+    let name = contentTypeNameFor(slug);
+    if (taken.has(name)) name = `${name}_options`;
+    for (let i = 2; taken.has(name); i++) name = `${contentTypeNameFor(slug)}_options_${i}`;
+    taken.add(name);
+    optionsSchemas[name] = nodeSchema(nodes);
+    const title = groups.map((g) => g.title).join(' + ');
+    optionsPages[name] = { title, slug };
+    stats.acf.fields[name] = nodes.length;
+    warnings.push(
+      `ACF options page "${title}": WordPress exports don't include options page values — ` +
+      `the content type "${name}" is created with its fields, ready to fill in`,
+    );
+  }
+
+  if (leftovers) {
+    warnings.push(`${leftovers} value(s) of ACF fields that were deleted from their field group are left out (ACF doesn't show them either)`);
+  }
+  if (issues.missingAttachments.size) {
+    warnings.push(`ACF fields point at ${issues.missingAttachments.size} attachment(s) that are not in this export — those values are left empty`);
+  }
+  if (issues.unknownLayouts.size) {
+    warnings.push(`Flexible content rows use layouts that no longer exist in the field group (${[...issues.unknownLayouts].sort().join(', ')}) — those rows are skipped`);
+  }
+  return { schemas, optionsSchemas, optionsPages };
+}
+
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** Pattern for an attachment URL and its resized copies ("photo-300x200.jpg" for "photo.jpg"), http or https. */
-function attachmentUrlPattern(url: string): RegExp {
+function attachmentUrlSource(url: string): string {
   const bare = url.replace(/^https?:\/\//, '');
   const dot = bare.lastIndexOf('.');
   const body = dot > bare.lastIndexOf('/')
     ? `${escapeRe(bare.slice(0, dot))}(?:-\\d+x\\d+)?${escapeRe(bare.slice(dot))}`
     : escapeRe(bare);
-  return new RegExp(`https?://${body}`, 'g');
+  return `https?://${body}`;
 }
 
 /**
- * Replace attachment URLs in HTML with their new URLs — including the resized
- * copies WordPress links to, which all point at the one imported original.
+ * A function that replaces attachment URLs in text with their new URLs —
+ * including the resized copies WordPress links to, which all point at the one
+ * imported original. One combined pattern, so a large site stays fast.
  */
+export function mediaUrlRewriter(urlMap: Map<string, string>): (text: string) => string {
+  if (urlMap.size === 0) return (text) => text;
+  const byBare = new Map([...urlMap].map(([oldUrl, newUrl]) => [oldUrl.replace(/^https?:\/\//, ''), newUrl]));
+  // Longest first, so "a/photo.jpg" doesn't stop short of "a/photo.jpg.webp".
+  const sources = [...urlMap.keys()].sort((x, y) => y.length - x.length).map(attachmentUrlSource);
+  const re = new RegExp(sources.join('|'), 'g');
+  return (text) => {
+    if (!text || !text.includes('://')) return text;
+    return text.replace(re, (match) => {
+      const bare = match.replace(/^https?:\/\//, '');
+      return byBare.get(bare) ?? byBare.get(bare.replace(/-\d+x\d+(\.[^./]+)$/, '$1')) ?? match;
+    });
+  };
+}
+
+/** Replace attachment URLs in HTML with their new URLs (see mediaUrlRewriter). */
 export function rewriteMediaUrls(html: string, urlMap: Map<string, string>): string {
-  if (!html || urlMap.size === 0) return html;
-  let out = html;
-  for (const [oldUrl, newUrl] of urlMap) out = out.replace(attachmentUrlPattern(oldUrl), () => newUrl);
-  return out;
+  return mediaUrlRewriter(urlMap)(html);
 }

@@ -26,7 +26,7 @@ import { optionsForEditor, optionsForSave } from '@/lib/field-options';
 import { SelectChoicesSource } from '@/components/ChoiceListField';
 import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
 import { AddComponentButton, AddComponentLayoutButton, ComponentFieldCard, ComponentsSection, InlineComponentBlock, continuesInlineRun, inlineEditorField, removeInlineRun } from '@/components/ComponentFieldControls';
-import { duplicateKeys, editorFieldKey, isComponentField, takenKeys } from '@/lib/field-keys';
+import { duplicateKeys, editorFieldKey, isComponentField, nestedDuplicates, takenKeys, toFieldKey } from '@/lib/field-keys';
 import { AiContentModelButton } from '@/components/AiAssist';
 import { PreviewUrlSetting } from '@/components/LivePreviewPane';
 import { FieldConditionEditor } from '@/components/FieldConditionEditor';
@@ -208,6 +208,8 @@ export default function NewContentTypePage() {
     if (!name.trim()) { setNameError(t('editor.nameRequired')); return; }
     setNameError('');
     if (dupes.size) { toast.error(t('editor.duplicateKeys', { keys: [...dupes].join(', ') })); return; }
+    const nested = nestedDuplicates(fields);
+    if (nested.length) { toast.error(t('editor.duplicateKeys', { keys: nested.join(', ') })); return; }
     // Keep the user's exact wording as the human label; the backend derives the
     // snake_case field key from `name`.
     const validFields = fields
@@ -258,7 +260,8 @@ export default function NewContentTypePage() {
           </div>
         </CardHeader>
 
-        <div ref={containerRef} className="flex items-start border-t border-border">
+        {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
+        <div ref={containerRef} className="flex border-t border-border">
           {/* Left pane: form */}
           <div style={{ width: jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
           <form id="ct-form" onSubmit={onSubmit} className="space-y-6">
@@ -409,6 +412,7 @@ export default function NewContentTypePage() {
                           onChange={(layouts) => updateField(fi, 'options', { ...field.options, layouts })}
                           actions={
                             <AddComponentLayoutButton
+                              taken={new Set(field.options.layouts.map((l) => toFieldKey(l.name)).filter(Boolean))}
                               onAdd={(l) => updateField(fi, 'options', { ...field.options, layouts: [...field.options!.layouts!, l] })}
                             />
                           }
@@ -481,7 +485,8 @@ export default function NewContentTypePage() {
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (
               <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
-                <div className="sticky top-4 px-4 py-4 space-y-2">
+                {/* Stays in view just below the sticky top bar (h-14); the JSON scrolls inside. */}
+                <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] flex flex-col gap-2 px-4 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />
@@ -513,7 +518,7 @@ export default function NewContentTypePage() {
                       </button>
                     </div>
                   </div>
-                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
+                  <pre className={`flex-1 min-h-0 overflow-auto p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
                 </div>
               </div>
             );

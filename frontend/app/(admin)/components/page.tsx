@@ -40,7 +40,7 @@ const FIELD_TYPES = ['text', 'textarea', 'richtext', 'number', 'boolean', 'selec
 // inline: `field` is the first inserted field and `fields` all of them; layout: `field` is the flexible field.
 interface Usage {
   contentTypeId: number; contentType: string; displayName: string | null;
-  field: string; type: 'group' | 'repeater' | 'inline' | 'layout'; layout?: string; fields?: string[];
+  field: string; type: 'group' | 'repeater' | 'inline' | 'layout'; layout?: string; subField?: string; fields?: string[];
 }
 type Component = ReusableComponent & { usage: Usage[] };
 
@@ -231,13 +231,13 @@ export default function ComponentsPage() {
                     ) : (
                       <ul className="space-y-0.5">
                         {c.usage.map((u) => (
-                          <li key={`${u.contentTypeId}.${u.type}.${u.field}.${u.layout ?? ''}`}>
+                          <li key={`${u.contentTypeId}.${u.type}.${u.field}.${u.layout ?? ''}.${u.subField ?? ''}`}>
                             <Link href={`/content-types/${u.contentTypeId}/edit`} className="hover:underline">
                               {ctLabel({ name: u.contentType, displayName: u.displayName })}
                             </Link>
                             <span className="text-muted-foreground">
                               {' · '}
-                              {u.type === 'inline' ? (u.fields ?? [u.field]).join(', ') : u.type === 'layout' ? `${u.field} › ${u.layout}` : u.field}
+                              {u.type === 'inline' ? (u.fields ?? [u.field]).join(', ') : u.type === 'layout' ? `${u.field} › ${u.layout}` : u.subField ? `${u.field} › ${u.layout} › ${u.subField}` : u.field}
                               {' ('}
                               {u.type === 'group' ? t('kind.one') : u.type === 'repeater' ? t('kind.many') : u.type === 'inline' ? t('kind.inline') : t('kind.layout')}
                               {')'}

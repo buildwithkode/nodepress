@@ -19,6 +19,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { ImageCropModal } from '@/components/ImageCropModal';
 import { useTranslations } from 'use-intl';
+import { useUploadLimitMb } from '@/lib/use-upload-limit';
 
 interface MediaFile {
   filename: string;
@@ -39,6 +40,7 @@ interface Props {
 
 export function MediaPickerModal({ value, onChange }: Props) {
   const t = useTranslations('media');
+  const uploadMb = useUploadLimitMb();
   const tc = useTranslations('common');
   const [open, setOpen]               = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -319,7 +321,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
                   <>
                     <Upload className="h-8 w-8 text-muted-foreground mb-3" />
                     <p className="text-sm font-medium">{t('picker.dropPrompt')}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t('upload.limits', { formats: 'JPG, PNG, GIF, WebP', size: '10 MB' })}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('upload.limits', { formats: 'JPG, PNG, GIF, WebP, SVG', size: `${uploadMb} MB` })}</p>
                   </>
                 )}
               </div>

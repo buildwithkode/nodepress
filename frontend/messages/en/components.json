@@ -83,7 +83,12 @@
   "layout": {
     "button": "Add layout from component",
     "title": "Add a layout from a component",
-    "description": "The layout's fields come from the component and stay in sync with it."
+    "description": "Use the component's fields in this layout as a group, as a repeatable list, or as the layout's own fields. They stay in sync with the component.",
+    "groupHint": "The layout holds one group",
+    "repeaterHint": "The layout holds a list",
+    "inlineHint": "Its fields form the layout",
+    "name": "Layout name",
+    "nameTaken": "This flexible field already has a layout named {key}."
   },
   "inline": {
     "from": "From component",

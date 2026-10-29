@@ -114,6 +114,36 @@ A flexible field is a page builder: a list of blocks where each block picks a **
 
 Flexible fields also take `minItems` and `maxItems`.
 
+When a block's layout is changed in the entry editor, the values of the old layout's fields are dropped on save — a block only ever holds its own layout's fields (plus `_id`, `_layout` and `_key`).
+
+### Section keys
+
+Public REST reads also return each top-level flexible field **by name**, as `<field>_by_key`, so site code can reach one section without counting positions:
+
+```json title="GET /api/pages/home"
+"sections": [
+  { "_id": "a1b2c3", "_layout": "hero", "heading": "Welcome" },
+  { "_id": "d4e5f6", "_layout": "quote", "_key": "intro_quote", "text": "…" },
+  { "_id": "g7h8i9", "_layout": "quote", "_key": "closing_quote", "text": "…" }
+],
+"sections_by_key": {
+  "hero": { "_id": "a1b2c3", "_layout": "hero", "heading": "Welcome" },
+  "intro_quote": { "…": "…" },
+  "closing_quote": { "…": "…" }
+}
+```
+
+```ts
+page.data.sections_by_key.hero.heading;
+page.data.sections_by_key.closing_quote.text;
+```
+
+- A layout used **once** in the field is listed under its layout name — no key needed.
+- A layout used **more than once** needs a **section key** on each of its sections. The entry editor marks the **Section key** box as required and won't save without it; the API refuses the entry with `422`.
+- Keys use lowercase letters, digits and underscores, start with a letter, and are unique within the field. They're stored as `_key` and stay with their section when sections are reordered.
+- A key wins over a layout name of the same spelling. `sections` itself keeps the editor's order, for rendering the page.
+- `<field>_by_key` is only added by REST reads, and never when the content type has a real field of that name. GraphQL exposes `_key` on each section; OpenAPI and [generated types](/cli/generate-types/) describe both.
+
 ## Nesting
 
 Containers can hold containers. This flexible layout holds a repeater of buttons, and each button has a group:

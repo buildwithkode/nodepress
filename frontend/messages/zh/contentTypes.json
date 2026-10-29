@@ -129,7 +129,8 @@
     "imported": "已导入“{name}”——请检查后保存",
     "parseFailed": "解析 JSON 文件失败",
     "duplicateKey": "另一个字段已在使用键 {key}。请重命名其中一个。",
-    "duplicateKeys": "两个字段不能使用同一个键。请重命名重复项：{keys}"
+    "duplicateKeys": "两个字段不能使用同一个键。请重命名重复项：{keys}",
+    "duplicateLayout": "另一个布局已使用名称 {name}。请重命名其中一个。"
   },
   "relation": {
     "relatedType": "关联的内容类型",

@@ -129,7 +129,8 @@
     "imported": "«{name}» importado — revisa y guarda",
     "parseFailed": "No se pudo analizar el archivo JSON",
     "duplicateKey": "Otro campo ya usa la clave {key}. Cambia el nombre de uno de ellos.",
-    "duplicateKeys": "Dos campos no pueden compartir clave. Cambia el nombre de los duplicados: {keys}"
+    "duplicateKeys": "Dos campos no pueden compartir clave. Cambia el nombre de los duplicados: {keys}",
+    "duplicateLayout": "Otro diseño ya usa el nombre {name}. Cambia el nombre de uno de ellos."
   },
   "relation": {
     "relatedType": "Tipo de contenido relacionado",

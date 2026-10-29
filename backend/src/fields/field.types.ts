@@ -233,6 +233,8 @@ export type RepeaterItem = Record<string, unknown>;
 /** Value for a single flexible content block; _layout identifies the layout */
 export interface FlexibleItem extends Record<string, unknown> {
   _layout: string;
+  /** Optional name for this section, unique within the field (common/section-keys.ts) */
+  _key?: string;
 }
 
 /** Union of all possible field values stored in Entry.data */

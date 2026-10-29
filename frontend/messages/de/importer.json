@@ -21,7 +21,7 @@
   "skippedList": "Übersprungen: {list}",
   "sample": "Erste Elemente",
   "importMedia": "Medien importieren",
-  "importMediaHint": "Anhänge (Bilder, PDF, MP4 bis je 10 MB) in die Mediathek herunterladen und Beitragsbilder sowie Inhalte auf die neuen Kopien verweisen lassen.",
+  "importMediaHint": "Anhänge (Bilder, SVG, PDF, MP4 bis je {size} MB) in die Mediathek herunterladen und Beitragsbilder sowie Inhalte auf die neuen Kopien verweisen lassen.",
   "overwrite": "Vorhandene Einträge überschreiben",
   "overwriteHint": "Einträge, deren Slug bereits existiert, werden aktualisiert (die alte Version bleibt in ihrem Verlauf). Andernfalls werden sie übersprungen.",
   "run": "Import starten ({total, plural, one {# Element} other {# Elemente}})",

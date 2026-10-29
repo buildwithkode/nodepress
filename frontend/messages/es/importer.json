@@ -21,7 +21,7 @@
   "skippedList": "Omitidos: {list}",
   "sample": "Primeros elementos",
   "importMedia": "Importar medios",
-  "importMediaHint": "Descargar los adjuntos (imágenes, PDF, MP4 de hasta 10 MB cada uno) a la biblioteca de medios y hacer que las imágenes destacadas y el contenido apunten a las nuevas copias.",
+  "importMediaHint": "Descargar los adjuntos (imágenes, SVG, PDF, MP4 de hasta {size} MB cada uno) a la biblioteca de medios y hacer que las imágenes destacadas y el contenido apunten a las nuevas copias.",
   "overwrite": "Sobrescribir entradas existentes",
   "overwriteHint": "Las entradas cuyo slug ya existe se actualizan (la versión anterior queda en su historial). Si no, se omiten.",
   "run": "Iniciar importación ({total, plural, one {# elemento} other {# elementos}})",

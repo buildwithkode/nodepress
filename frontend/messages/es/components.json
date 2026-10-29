@@ -83,7 +83,12 @@
   "layout": {
     "button": "Añadir diseño desde componente",
     "title": "Añadir un diseño desde un componente",
-    "description": "Los campos del diseño vienen del componente y se mantienen sincronizados con él."
+    "description": "Usa los campos del componente en este diseño como un grupo, como una lista repetible o como los campos propios del diseño. Se mantienen sincronizados con el componente.",
+    "groupHint": "El diseño contiene un grupo",
+    "repeaterHint": "El diseño contiene una lista",
+    "inlineHint": "Sus campos forman el diseño",
+    "name": "Nombre del diseño",
+    "nameTaken": "Este campo flexible ya tiene un diseño llamado {key}."
   },
   "inline": {
     "from": "Del componente",

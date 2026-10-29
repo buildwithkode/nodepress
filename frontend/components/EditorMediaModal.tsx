@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
+import { useUploadLimitMb } from '@/lib/use-upload-limit';
 import Cookies from 'js-cookie';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ interface Props {
 
 export function EditorMediaModal({ open, onClose, onInsert }: Props) {
   const t = useTranslations('entryEditor');
+  const uploadMb = useUploadLimitMb();
   const tc = useTranslations('common');
   const [tab, setTab] = useState<'library' | 'upload' | 'url'>('library');
   const [files, setFiles] = useState<MediaFile[]>([]);
@@ -311,7 +313,7 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
                       {t('mediaModal.dropzone')}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {t('mediaModal.dropzoneHint')}
+                      {t('mediaModal.dropzoneHint', { size: uploadMb })}
                     </p>
                     <Button size="sm" variant="secondary" className="mt-4 text-xs">
                       {t('mediaModal.selectFile')}

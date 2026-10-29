@@ -167,7 +167,15 @@
     "sectionType": "Tipo de seção",
     "chooseLayout": "Escolha o layout da seção…",
     "addBlock": "+ Adicionar bloco…",
-    "enterValue": "Digite {field}"
+    "enterValue": "Digite {field}",
+    "sectionKey": "Chave da seção (opcional)",
+    "sectionKeyPlaceholder": "ex.: hero_section",
+    "sectionKeyHint": "Leia esta seção como {field}_by_key.[chave] na API.",
+    "sectionKeyInvalid": "Use letras minúsculas, dígitos e sublinhados, começando por uma letra.",
+    "sectionKeyDuplicate": "Outra seção já usa a chave {key}.",
+    "sectionKeyRequiredLabel": "Chave da seção",
+    "sectionKeyRequired": "Obrigatória: {layout} é usado mais de uma vez aqui, então cada um precisa da própria chave.",
+    "sectionKeyLayoutHint": "Opcional. Sem chave, leia como {field}_by_key.{layout} na API."
   },
   "richText": {
     "visual": "Editor visual",
@@ -231,7 +239,7 @@
     "emptyHint": "Envie sua primeira imagem na aba Enviar",
     "uploading": "Enviando a imagem para o servidor…",
     "dropzone": "Clique para enviar ou arraste e solte",
-    "dropzoneHint": "PNG, JPG, WebP, GIF ou SVG (até 10 MB)",
+    "dropzoneHint": "PNG, JPG, WebP, GIF ou SVG (até {size} MB)",
     "selectFile": "Selecionar arquivo",
     "directUrl": "URL direta da imagem",
     "directUrlPlaceholder": "https://images.unsplash.com/... ou link de CDN",

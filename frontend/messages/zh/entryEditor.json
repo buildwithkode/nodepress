@@ -167,7 +167,15 @@
     "sectionType": "区块类型",
     "chooseLayout": "选择区块布局…",
     "addBlock": "+ 添加区块…",
-    "enterValue": "输入 {field}"
+    "enterValue": "输入 {field}",
+    "sectionKey": "分区键（可选）",
+    "sectionKeyPlaceholder": "例如 hero_section",
+    "sectionKeyHint": "可在 API 中通过 {field}_by_key.[键] 读取此分区。",
+    "sectionKeyInvalid": "请使用小写字母、数字和下划线，并以字母开头。",
+    "sectionKeyDuplicate": "另一个分区已使用键 {key}。",
+    "sectionKeyRequiredLabel": "分区键",
+    "sectionKeyRequired": "必填：{layout} 在此使用了多次，因此每个都需要自己的键。",
+    "sectionKeyLayoutHint": "可选。没有键时，可在 API 中通过 {field}_by_key.{layout} 读取。"
   },
   "richText": {
     "visual": "可视化编辑器",
@@ -231,7 +239,7 @@
     "emptyHint": "在“上传”标签页中上传您的第一张图片",
     "uploading": "正在将图片上传到服务器…",
     "dropzone": "点击上传或拖放文件",
-    "dropzoneHint": "PNG、JPG、WebP、GIF 或 SVG（最大 10 MB）",
+    "dropzoneHint": "PNG、JPG、WebP、GIF 或 SVG（最大 {size} MB）",
     "selectFile": "选择文件",
     "directUrl": "图片直链 URL",
     "directUrlPlaceholder": "https://images.unsplash.com/... 或 CDN 链接",

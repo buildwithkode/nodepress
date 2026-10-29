@@ -40,8 +40,10 @@ export interface ComponentUse {
   type: ComponentUseType;
   /** group/repeater: the field; inline: the first inserted field; layout: the flexible field */
   field: string;
-  /** layout: the layout's name */
+  /** layout: the layout's name; group/repeater inside a layout: the layout holding it */
   layout?: string;
+  /** group/repeater inside a flexible layout: the field (then `field` is the flexible field) */
+  subField?: string;
   /** inline: the inserted fields */
   fields?: string[];
 }
@@ -64,7 +66,15 @@ export function componentUses(schema: unknown): ComponentUse[] {
     if (f?.type === 'flexible' && Array.isArray(f.options?.layouts)) {
       for (const l of f.options.layouts) {
         const lc = layoutComponentOf(l);
-        if (lc) out.push({ component: lc, type: 'layout', field: f.name, layout: l.name || lc });
+        if (lc) {
+          out.push({ component: lc, type: 'layout', field: f.name, layout: l.name || lc });
+          continue;
+        }
+        // A layout holding a group (one) or repeater (many) that uses a component.
+        for (const lf of Array.isArray(l?.fields) ? l.fields : []) {
+          const fc = componentOf(lf);
+          if (fc) out.push({ component: fc, type: lf.type, field: f.name, layout: l.name, subField: lf.name });
+        }
       }
     }
   });
@@ -73,7 +83,10 @@ export function componentUses(schema: unknown): ComponentUse[] {
 
 /** Where a component's field `name` lives in entry data for one use (a field-migration path). */
 const pathIn = (use: ComponentUse, name: string): string =>
-  use.type === 'inline' ? name : use.type === 'layout' ? `${use.field}.${use.layout}.${name}` : `${use.field}.${name}`;
+  use.type === 'inline' ? name
+    : use.type === 'layout' ? `${use.field}.${use.layout}.${name}`
+      : use.subField ? `${use.field}.${use.layout}.${use.subField}.${name}`
+        : `${use.field}.${name}`;
 
 /** Point every use of component `from` at `to` (a component rename). */
 function renameUses(schema: any[], from: string, to: string): any[] {
@@ -81,7 +94,11 @@ function renameUses(schema: any[], from: string, to: string): any[] {
     if (inlineComponentOf(f) === from) return { ...f, component: to };
     if (componentOf(f) === from) return { ...f, options: { ...f.options, component: to } };
     if (f?.type === 'flexible' && Array.isArray(f.options?.layouts)) {
-      const layouts = f.options.layouts.map((l: any) => (layoutComponentOf(l) === from ? { ...l, component: to } : l));
+      const layouts = f.options.layouts.map((l: any) => {
+        if (layoutComponentOf(l) === from) return { ...l, component: to };
+        if (!Array.isArray(l?.fields) || !l.fields.some((lf: any) => componentOf(lf) === from)) return l;
+        return { ...l, fields: l.fields.map((lf: any) => (componentOf(lf) === from ? { ...lf, options: { ...lf.options, component: to } } : lf)) };
+      });
       return { ...f, options: { ...f.options, layouts } };
     }
     return f;
@@ -288,10 +305,17 @@ export class ComponentsService {
         out.push({ ...f, options: { ...f.options, component: n, subFields: fieldsOf(n) } });
         return;
       }
-      if (f?.type === 'flexible' && Array.isArray(f.options?.layouts) && f.options.layouts.some(layoutComponentOf)) {
+      if (f?.type === 'flexible' && Array.isArray(f.options?.layouts)) {
         const layouts = f.options.layouts.map((l: any) => {
           const ln = layoutComponentOf(l);
-          if (!ln) return l;
+          if (!ln) {
+            if (!Array.isArray(l?.fields)) return l;
+            // Groups/repeaters in the layout that use a component get its fields.
+            return { ...l, fields: l.fields.map((lf: any) => {
+              const n = componentOf(lf);
+              return n ? { ...lf, options: { ...lf.options, component: n, subFields: fieldsOf(n) } } : lf;
+            }) };
+          }
           const label = l.label || found.get(ln)!.displayName;
           return { ...l, name: l.name || ln, ...(label ? { label } : {}), component: ln, fields: fieldsOf(ln) };
         });

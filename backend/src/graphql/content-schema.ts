@@ -240,6 +240,7 @@ export function buildContentSchema(
         for (const layout of layouts) {
           blockTypes.set(layout.name, subObject(`${typeName}${pascal(layout.name)}`, layout.fields, {
             _layout: { type: new GraphQLNonNull(GraphQLString) },
+            _key: { type: GraphQLString, description: 'Optional name an editor gave this section, unique within the field' },
           })!);
         }
         if (blockTypes.size === 0) return json;

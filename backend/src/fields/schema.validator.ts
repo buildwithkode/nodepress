@@ -25,6 +25,8 @@ export const MAX_NESTING = 3;
 export class SchemaValidator {
   /** Field name: must start with letter/underscore, contain only [a-z0-9_] */
   private static readonly NAME_RE = /^[a-z_][a-z0-9_]*$/;
+  /** A field directly inside a layout of a top-level flexible field — may use a component. */
+  private static readonly LAYOUT_FIELD_PATH = /^schema\[\d+\]\.options\.layouts\[\d+\]\.fields\[\d+\]$/;
 
   // ─── Public entry point ────────────────────────────────────────────────────
 
@@ -312,12 +314,13 @@ export class SchemaValidator {
 
   /**
    * `options.component` (or a layout's `component`) names a reusable component;
-   * its fields are copied in. Only a content type's top-level fields resolve
-   * components — nested containers (and components themselves) list their fields.
+   * its fields are copied in. Components resolve in a content type's top-level
+   * fields and in the fields of a top-level flexible field's layouts — deeper
+   * containers (and components themselves) list their fields.
    */
   private validateComponentOption(options: any, path: string, errors: string[], depth: number, at = '.options'): void {
     if (options.component === undefined) return;
-    if (depth > 0) {
+    if (depth > 0 && !(depth === 1 && SchemaValidator.LAYOUT_FIELD_PATH.test(path))) {
       errors.push(`${path}${at}.component: components can only be used by top-level fields`);
     } else if (typeof options.component !== 'string' || !SchemaValidator.NAME_RE.test(options.component)) {
       errors.push(`${path}${at}.component: must be the name of a component`);

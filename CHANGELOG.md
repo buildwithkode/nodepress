@@ -12,6 +12,19 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Added
+- **WordPress import brings Advanced Custom Fields over as real fields.** ACF field groups in the export become NodePress fields on the post types their location rules name — flexible content, repeaters, groups, images, links, selects, dates, colors, relations — and the flat post meta becomes nested values (`sections[0].cards[1].image`). Options pages become their own content types. Relationship and post object fields link the imported entries; values are fitted to existing schemas so no entry is refused; every link to an imported file (WordPress's resized copies included) points at the new copy. Sites whose ACF fields live in theme code are still structured from the meta key names. `test/wordpress-file.e2e-spec.ts` checks a real export (`WXR_FILE=…`, opt-in).
+- **SVG uploads.** SVGs are rebuilt from an allowlist on upload (no script, event handlers, outside references or entity declarations), served with a script-blocking Content-Security-Policy, and never rasterized — `/transform` returns the file.
+- **`MEDIA_MAX_MB`** sets the largest upload and WordPress-imported file (default 10 MB); the admin shows the limit.
+- **Components as a group or list inside a flexible layout.** **Add layout from component** now asks One / Many / Inline, like **Add component**: One and Many put a group or repeater using the component in the layout, kept in sync with it (renaming a component field migrates the stored values there too). The same component can become several layouts; the suggested layout name avoids taken ones.
+- **Section keys.** A flexible section can be named (`_key`); public REST reads add `<field>_by_key` with each section by key, or by layout name for a layout used once — `page.data.sections_by_key.hero.heading`. A key is required on every section of a layout used more than once in the field (the editor asks for it; the API answers `422`). The WordPress importer names repeated layouts `layout`, `layout_2`… GraphQL exposes `_key`; OpenAPI and `generate:types` describe both.
+
+### Fixed
+- **Entry data no longer keeps fields of another layout.** Switching a section's layout (or removing fields from a layout or component) left the old values in the saved JSON; the editor now saves each section, group and repeater row with only its schema's fields.
+- **Duplicate layout names and nested field keys are flagged as you type** in the content type editor, and Save lists them instead of failing on the server.
+- **The JSON preview stays in view** beside long entry and content type forms (it scrolled away with the page).
+
+
 ## [1.8.0] — 2026-10-28
 
 ### Added

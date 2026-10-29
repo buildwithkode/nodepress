@@ -21,7 +21,7 @@
   "skippedList": "已跳过：{list}",
   "sample": "前几项",
   "importMedia": "导入媒体",
-  "importMediaHint": "将附件（图片、PDF、MP4，每个最大 10 MB）下载到媒体库，并将特色图片和内容指向新的副本。",
+  "importMediaHint": "将附件（图片、SVG、PDF、MP4，每个最大 {size} MB）下载到媒体库，并将特色图片和内容指向新的副本。",
   "overwrite": "覆盖已有条目",
   "overwriteHint": "别名已存在的条目将被更新（旧版本保留在其历史记录中）。否则将被跳过。",
   "run": "开始导入（{total, plural, other {# 项}}）",

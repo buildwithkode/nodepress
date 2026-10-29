@@ -261,6 +261,79 @@ describe('ComponentsService', () => {
       await expect(service.remove(1)).rejects.toThrow(ConflictException);
     });
 
+    describe('a group or repeater using a component inside a flexible layout', () => {
+      const ct = (fields: any[]) => ({
+        id: 4, name: 'page', displayName: 'Page',
+        schema: [{ name: 'sections', type: 'flexible', options: { layouts: [
+          { name: 'hero', fields: [{ name: 'heading', type: 'text' }] },
+          { name: 'reviews', label: 'Reviews', fields: [
+            { name: 'title', type: 'text' },
+            { name: 'items', type: 'repeater', options: { component: 'gender', subFields: fields } },
+          ] },
+          { name: 'person', fields: [{ name: 'who', type: 'group', options: { component: 'gender', subFields: fields } }] },
+        ] } }],
+      });
+
+      it('is found, expanded and valid', async () => {
+        expect(componentUses(ct([]).schema)).toEqual([
+          { component: 'gender', type: 'repeater', field: 'sections', layout: 'reviews', subField: 'items' },
+          { component: 'gender', type: 'group', field: 'sections', layout: 'person', subField: 'who' },
+        ]);
+        mockPrisma.component.findMany.mockResolvedValue([{ name: 'gender', fields: genderFields }]);
+        const out: any[] = await service.expand(ct([]).schema);
+        const [hero, reviews, person] = out[0].options.layouts;
+        expect(hero).toEqual({ name: 'hero', fields: [{ name: 'heading', type: 'text' }] });
+        expect(reviews.fields[1]).toEqual({ name: 'items', type: 'repeater', options: { component: 'gender', subFields: genderFields } });
+        expect(person.fields[0].options.subFields).toEqual(genderFields);
+        expect(() => new SchemaValidator().validate(out)).not.toThrow();
+      });
+
+      it('is allowed only directly in a top-level flexible field\'s layout', () => {
+        const ref = { name: 'x', type: 'group', options: { component: 'gender', subFields: [{ name: 'a', type: 'text' }] } };
+        try {
+          new SchemaValidator().validate([
+            { name: 'g', type: 'group', options: { subFields: [ref] } },
+            { name: 'f', type: 'flexible', options: { layouts: [{ name: 'l', fields: [{ name: 'r', type: 'repeater', options: { subFields: [ref] } }] }] } },
+          ]);
+          fail('expected a BadRequestException');
+        } catch (err: any) {
+          expect(err.response.errors).toEqual([
+            'schema[0].options.subFields[0].options.component: components can only be used by top-level fields',
+            'schema[1].options.layouts[0].fields[0].options.subFields[0].options.component: components can only be used by top-level fields',
+          ]);
+        }
+      });
+
+      it('propagates updates, migrations and renames to it, and lists it as usage', async () => {
+        const renamed = [genderFields[0], { ...genderFields[1], name: 'they' }];
+        mockPrisma.component.findUnique.mockResolvedValue({ id: 1, name: 'gender', fields: genderFields });
+        mockPrisma.component.update.mockResolvedValue({ id: 1, name: 'gender', fields: renamed });
+        mockPrisma.contentType.findMany.mockResolvedValue([ct(genderFields)]);
+        await service.update(1, { fields: renamed as any, fieldMigrations: { renames: [{ from: 'pronouns', to: 'they' }] } });
+        const [, dto] = mockContentTypes.update.mock.calls[0];
+        expect(dto.fieldMigrations.renames).toEqual([
+          { from: 'sections.reviews.items.pronouns', to: 'sections.reviews.items.they' },
+          { from: 'sections.person.who.pronouns', to: 'sections.person.who.they' },
+        ]);
+        expect(dto.schema[0].options.layouts[1].fields[1].options.subFields).toEqual(renamed);
+
+        mockContentTypes.update.mockClear();
+        mockPrisma.component.findUnique.mockReset();
+        mockPrisma.component.findUnique.mockResolvedValueOnce({ id: 1, name: 'gender', fields: genderFields }).mockResolvedValueOnce(null);
+        mockPrisma.component.update.mockResolvedValue({ id: 1, name: 'identity', fields: genderFields });
+        await service.update(1, { name: 'identity' });
+        const schema = mockContentTypes.update.mock.calls[0][1].schema;
+        expect(schema[0].options.layouts[1].fields[1].options.component).toBe('identity');
+        expect(schema[0].options.layouts[2].fields[0].options.component).toBe('identity');
+
+        mockPrisma.component.findUnique.mockResolvedValue({ id: 1, name: 'gender', fields: genderFields });
+        expect((await service.findOne(1)).usage).toEqual([
+          { contentTypeId: 4, contentType: 'page', displayName: 'Page', type: 'repeater', field: 'sections', layout: 'reviews', subField: 'items' },
+          { contentTypeId: 4, contentType: 'page', displayName: 'Page', type: 'group', field: 'sections', layout: 'person', subField: 'who' },
+        ]);
+      });
+    });
+
     it('exportComponents includes inline and layout components', async () => {
       mockPrisma.component.findMany.mockResolvedValue([]);
       await service.exportComponents([[...tagged, { name: 'b', type: 'flexible', options: { layouts: [{ name: 'x', component: 'seo', fields: [] }] } }]]);

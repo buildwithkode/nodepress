@@ -29,6 +29,7 @@ import { DataValidator } from '../fields/data.validator';
 import { SearchService } from '../search/search.service';
 import { populateDeep, populateManyDeep } from '../common/populate.util';
 import { filterUnauthorizedReadFields, validateFieldWritePermissions } from '../common/field-security.util';
+import { withSectionKeys } from '../common/section-keys';
 import { buildAdvancedWhere } from '../common/filter-query.util';
 import { extractRelationFilters } from '../common/relation-filter.util';
 import { contentTypeName } from '../common/content-type-name';
@@ -291,9 +292,10 @@ export class DynamicApiService implements OnModuleInit {
   }
 
   /** Map internal entry row → public-facing shape (UUID as id, no deletedAt) */
-  private toPublicEntry(e: any, data: Record<string, any>) {
+  /** The public shape of an entry; with the schema, flexible fields also get their `<field>_by_key` lookup. */
+  private toPublicEntry(e: any, data: Record<string, any>, schema?: FieldDef[]) {
     const { id: _internal, publicId, deletedAt: _del, status: _st, ...rest } = e;
-    return { id: publicId, ...rest, data };
+    return { id: publicId, ...rest, data: schema ? withSectionKeys(data, schema) : data };
   }
 
   /** Make the cached public responses of some (or all) content types stale. */
@@ -569,7 +571,7 @@ export class DynamicApiService implements OnModuleInit {
 
     const data = populatedDataList.map((resolvedData, index) => {
       const sanitizedData = filterUnauthorizedReadFields(resolvedData, schema, undefined);
-      const entry = this.toPublicEntry(processed[index].e, sanitizedData);
+      const entry = this.toPublicEntry(processed[index].e, sanitizedData, schema);
       return projectFields(entry, query.fields);
     });
 
@@ -665,7 +667,7 @@ export class DynamicApiService implements OnModuleInit {
 
     data = filterUnauthorizedReadFields(data, schema, undefined);
 
-    const result = projectFields(this.toPublicEntry(entry, data), query.fields);
+    const result = projectFields(this.toPublicEntry(entry, data, schema), query.fields);
     // Only cache un-projected, un-populated responses (matches the read guard above)
     if (cacheable) {
       await this.cache.set(cacheKey, result, ENTRY_TTL);
@@ -721,7 +723,7 @@ export class DynamicApiService implements OnModuleInit {
     this.realtime.notifyEntryCreated({ id: created.id, slug: created.slug, contentType: contentType.name, locale: created.locale });
     await this.hookBus?.emit(PluginEvents.ENTRY_AFTER_CREATE, { ...event, data: created.data as Record<string, any> });
 
-    return this.toPublicEntry(created, filterUnauthorizedReadFields(created.data as Record<string, any>, schema, undefined));
+    return this.toPublicEntry(created, filterUnauthorizedReadFields(created.data as Record<string, any>, schema, undefined), schema);
   }
 
   async update(typeName: string, slug: string, data: Record<string, any>, locale = 'en') {
@@ -766,7 +768,7 @@ export class DynamicApiService implements OnModuleInit {
     this.realtime.notifyEntryUpdated({ ...event, locale: updated.locale });
     await this.hookBus?.emit(PluginEvents.ENTRY_AFTER_UPDATE, { ...event, data: updated.data as Record<string, any> });
 
-    return this.toPublicEntry(updated, filterUnauthorizedReadFields(updated.data as Record<string, any>, schema, undefined));
+    return this.toPublicEntry(updated, filterUnauthorizedReadFields(updated.data as Record<string, any>, schema, undefined), schema);
   }
 
   async remove(typeName: string, slug: string, locale = 'en') {
@@ -837,6 +839,6 @@ export class DynamicApiService implements OnModuleInit {
       data = injectRepeaterIds(data);
     }
 
-    return { ...this.toPublicEntry(entry, data), _preview: true, status: entry.status };
+    return { ...this.toPublicEntry(entry, data, contentType.schema as unknown as FieldDef[]), _preview: true, status: entry.status };
   }
 }

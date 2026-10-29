@@ -32,7 +32,7 @@ export function searchableText(value: unknown, out: string[] = []): string[] {
   } else if (Array.isArray(value)) {
     value.forEach((v) => searchableText(v, out));
   } else if (value && typeof value === 'object') {
-    for (const [k, v] of Object.entries(value)) if (k !== '_id' && k !== '_layout') searchableText(v, out);
+    for (const [k, v] of Object.entries(value)) if (k !== '_id' && k !== '_layout' && k !== '_key') searchableText(v, out);
   }
   return out;
 }

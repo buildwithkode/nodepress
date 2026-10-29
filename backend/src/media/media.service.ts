@@ -5,12 +5,14 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { existsSync, statSync } from 'fs';
+import { existsSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'fs';
 import { basename, resolve, join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { STORAGE_ADAPTER, StorageAdapter } from './adapters/storage.adapter';
 import { optimizeImage, isOptimizableImage } from './image-optimizer';
 import { normalizeFocal } from './image-transform';
+import { SvgRejectedError, sanitizeSvg, svgSize } from './svg-sanitize';
+import { maxUploadBytes } from './upload-limits';
 import { AuditService } from '../audit/audit.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
@@ -27,6 +29,12 @@ export class MediaService {
     private webhooks: WebhooksService,
     private realtime: RealtimeGateway,
   ) {}
+
+  /** The stored URL of a file, or null. */
+  async urlOf(filename: string): Promise<string | null> {
+    const media = await this.prisma.media.findUnique({ where: { filename: basename(filename) }, select: { url: true } });
+    return media?.url ?? null;
+  }
 
   /**
    * Process an upload from Multer:
@@ -45,6 +53,21 @@ export class MediaService {
     let finalSize = file.size;
     let webpFilename: string | undefined;
     let webpUrl: string | undefined;
+
+    // ── SVG: rebuilt from an allowlist (no script), never rasterized ─────
+    if (file.mimetype === 'image/svg+xml') {
+      let clean: string;
+      try {
+        clean = sanitizeSvg(readFileSync(file.path, 'utf8'));
+      } catch (err) {
+        try { unlinkSync(file.path); } catch { /* ignore */ }
+        if (err instanceof SvgRejectedError) throw new BadRequestException(err.message);
+        throw err;
+      }
+      writeFileSync(file.path, clean);
+      finalSize = Buffer.byteLength(clean);
+      ({ width, height } = svgSize(clean));
+    }
 
     // ── Image optimization ────────────────────────────────────────────────
     if (isOptimizableImage(file.mimetype)) {
@@ -127,7 +150,7 @@ export class MediaService {
         take: limit,
       }),
     ]);
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit), maxUploadBytes: maxUploadBytes() } };
   }
 
   // ── Media Folders ─────────────────────────────────────────────────────────

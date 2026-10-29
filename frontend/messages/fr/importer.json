@@ -21,7 +21,7 @@
   "skippedList": "Ignorés : {list}",
   "sample": "Premiers éléments",
   "importMedia": "Importer les médias",
-  "importMediaHint": "Télécharger les fichiers joints (images, PDF, MP4 jusqu’à 10 Mo chacun) dans la médiathèque et faire pointer les images mises en avant et le contenu vers les nouvelles copies.",
+  "importMediaHint": "Télécharger les fichiers joints (images, SVG, PDF, MP4 jusqu’à {size} Mo chacun) dans la médiathèque et faire pointer les images mises en avant et le contenu vers les nouvelles copies.",
   "overwrite": "Écraser les entrées existantes",
   "overwriteHint": "Les entrées dont le slug existe déjà sont mises à jour (l’ancienne version reste dans leur historique). Sinon, elles sont ignorées.",
   "run": "Lancer l’import ({total, plural, one {# élément} other {# éléments}})",

@@ -66,7 +66,7 @@ function mapFieldType(field: FieldDef, typePrefix: string, indent = '  '): strin
       const layouts: any[] = (field as any).options?.layouts ?? [];
       if (layouts.length === 0) return 'Array<Record<string, any>>';
       const blocks = layouts.map((layout) =>
-        `${inner}| {\n${inner}  _layout: ${JSON.stringify(layout.name)};\n${props(layout.fields, `${inner}  `)}\n${inner}}`);
+        `${inner}| {\n${inner}  _layout: ${JSON.stringify(layout.name)};\n${inner}  _key?: string;\n${inner}  _id?: string;\n${props(layout.fields, `${inner}  `)}\n${inner}}`);
       return `Array<\n${blocks.join('\n')}\n${indent}>`;
     }
     default:
@@ -144,6 +144,11 @@ export function generateTypeScriptDefinitions(contentTypes: ContentTypeSchemaInp
       const optional = field.required && !(field as any).options?.mappedBy ? '' : '?';
       const comment = field.description ? `  /** ${field.description} */\n` : '';
       lines.push(`${comment}  ${field.name}${optional}: ${tsType};`);
+      // Public reads add a lookup of the sections editors gave a key (common/section-keys.ts).
+      if (field.type === 'flexible' && !rawSchema.some((f) => f?.name === `${field.name}_by_key`)) {
+        lines.push(`  /** Sections of ${field.name} that have a _key, by key (public REST reads) */`);
+        lines.push(`  ${field.name}_by_key?: Record<string, ${dataInterfaceName}[${JSON.stringify(field.name)}] extends Array<infer S> | undefined ? S : never>;`);
+      }
     }
 
     lines.push('}');

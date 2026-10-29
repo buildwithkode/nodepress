@@ -1,5 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { createTestApp, cleanDatabase, registerAdmin } from './helpers';
 
 // Minimal valid 1×1 PNG (67 bytes) — passes magic-bytes MIME validation
@@ -25,6 +27,35 @@ describe('Media (e2e)', () => {
   });
 
   // ── Upload ────────────────────────────────────────────────────────────────────
+
+  it('POST /api/media/upload → stores SVGs without script, and transforms send the file itself', async () => {
+    const svg = '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16" onload="alert(1)">'
+      + '<script>alert(1)</script><a href="javascript:alert(1)"><rect width="32" height="16" fill="#0af"/></a></svg>';
+    const res = await request(app.getHttpServer())
+      .post('/api/media/upload')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', Buffer.from(svg), { filename: 'logo.svg', contentType: 'image/svg+xml' })
+      .expect(201);
+    expect(res.body).toMatchObject({ mimetype: 'image/svg+xml', width: 32, height: 16, webpUrl: null });
+    const stored = readFileSync(join(process.cwd(), 'uploads', res.body.filename), 'utf8');
+    expect(stored).toBe('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16"><rect width="32" height="16" fill="#0af"></rect></svg>');
+
+    const t = await request(app.getHttpServer()).get(`/api/media/${res.body.filename}/transform?w=64`).expect(302);
+    expect(t.headers.location).toBe(res.body.url);
+
+    // Text that only claims to be an SVG, and SVGs that declare entities, are refused.
+    for (const body of ['<html><script>alert(1)</script></html>', '<!DOCTYPE svg [<!ENTITY a "b">]><svg>&a;</svg>']) {
+      await request(app.getHttpServer())
+        .post('/api/media/upload')
+        .set('Authorization', `Bearer ${token}`)
+        .attach('file', Buffer.from(body), { filename: 'x.svg', contentType: 'image/svg+xml' })
+        .expect(400);
+    }
+    await request(app.getHttpServer())
+      .delete(`/api/media/${res.body.filename}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
 
   it('POST /api/media/upload → uploads an image and returns metadata', async () => {
     const res = await request(app.getHttpServer())

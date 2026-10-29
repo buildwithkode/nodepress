@@ -161,7 +161,7 @@ export function LivePreviewPane({ template, contentType, entryId, slug, liveSlug
   const width = DEVICES[device].width;
 
   return (
-    <div className="sticky top-4 px-4 py-4 space-y-2">
+    <div className="sticky top-14 px-4 py-4 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <MonitorPlay className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

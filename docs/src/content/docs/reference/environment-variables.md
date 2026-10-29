@@ -70,6 +70,7 @@ See [Scaling](/deployment/scaling/).
 | `STORAGE_S3_ENDPOINT` | none | Custom endpoint, for R2, MinIO, Backblaze B2 or DigitalOcean Spaces. |
 | `STORAGE_S3_PUBLIC_URL` | none | Base URL for public file links, e.g. a CDN domain. |
 | `MEDIA_MAX_DIMENSION` | `2400` | Uploaded images are scaled down to fit inside this many pixels on each side. Smaller images are never enlarged. |
+| `MEDIA_MAX_MB` | `10` | Largest media file accepted, by upload or WordPress import, in MB (up to 1024). Behind nginx, raise `client_max_body_size` to match. |
 | `IMAGE_TRANSFORM_CONCURRENCY` | `2` | How many on-the-fly image transforms (`/api/media/:file/transform`) encode at once. |
 | `IMAGE_VARIANT_CACHE_MB` | `2048` | Size cap of the transformed-image cache. Pruned nightly. |
 

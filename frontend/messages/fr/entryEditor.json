@@ -167,7 +167,15 @@
     "sectionType": "Type de section",
     "chooseLayout": "Choisissez la mise en page de la section…",
     "addBlock": "+ Ajouter un bloc…",
-    "enterValue": "Saisir {field}"
+    "enterValue": "Saisir {field}",
+    "sectionKey": "Clé de section (facultative)",
+    "sectionKeyPlaceholder": "ex. hero_section",
+    "sectionKeyHint": "Lisez cette section via {field}_by_key.[clé] dans l’API.",
+    "sectionKeyInvalid": "Utilisez des minuscules, des chiffres et des tirets bas, en commençant par une lettre.",
+    "sectionKeyDuplicate": "Une autre section utilise déjà la clé {key}.",
+    "sectionKeyRequiredLabel": "Clé de section",
+    "sectionKeyRequired": "Obligatoire : {layout} est utilisé plusieurs fois ici, chacun doit donc avoir sa propre clé.",
+    "sectionKeyLayoutHint": "Facultative. Sans clé, lisez-la via {field}_by_key.{layout} dans l’API."
   },
   "richText": {
     "visual": "Éditeur visuel",
@@ -231,7 +239,7 @@
     "emptyHint": "Importez votre première image dans l’onglet Importer",
     "uploading": "Envoi de l’image au serveur…",
     "dropzone": "Cliquez pour importer ou glissez-déposez",
-    "dropzoneHint": "PNG, JPG, WebP, GIF ou SVG (10 Mo max.)",
+    "dropzoneHint": "PNG, JPG, WebP, GIF ou SVG ({size} Mo max.)",
     "selectFile": "Choisir un fichier",
     "directUrl": "URL directe de l’image",
     "directUrlPlaceholder": "https://images.unsplash.com/... ou lien CDN",

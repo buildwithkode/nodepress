@@ -167,7 +167,15 @@
     "sectionType": "Abschnittstyp",
     "chooseLayout": "Abschnittslayout wählen…",
     "addBlock": "+ Block hinzufügen…",
-    "enterValue": "{field} eingeben"
+    "enterValue": "{field} eingeben",
+    "sectionKey": "Abschnittsschlüssel (optional)",
+    "sectionKeyPlaceholder": "z. B. hero_section",
+    "sectionKeyHint": "Lesen Sie diesen Abschnitt in der API als {field}_by_key.[schlüssel].",
+    "sectionKeyInvalid": "Verwenden Sie Kleinbuchstaben, Ziffern und Unterstriche, beginnend mit einem Buchstaben.",
+    "sectionKeyDuplicate": "Ein anderer Abschnitt verwendet bereits den Schlüssel {key}.",
+    "sectionKeyRequiredLabel": "Abschnittsschlüssel",
+    "sectionKeyRequired": "Erforderlich: {layout} wird hier mehrmals verwendet, daher braucht jeder einen eigenen Schlüssel.",
+    "sectionKeyLayoutHint": "Optional. Ohne Schlüssel lesen Sie ihn in der API als {field}_by_key.{layout}."
   },
   "richText": {
     "visual": "Visueller Editor",
@@ -231,7 +239,7 @@
     "emptyHint": "Laden Sie Ihr erstes Bild im Tab „Bild hochladen“ hoch",
     "uploading": "Bild wird auf den Server hochgeladen…",
     "dropzone": "Zum Hochladen klicken oder per Drag & Drop",
-    "dropzoneHint": "PNG, JPG, WebP, GIF oder SVG (bis 10 MB)",
+    "dropzoneHint": "PNG, JPG, WebP, GIF oder SVG (bis {size} MB)",
     "selectFile": "Datei auswählen",
     "directUrl": "Direkte Bild-URL",
     "directUrlPlaceholder": "https://images.unsplash.com/... oder CDN-Link",

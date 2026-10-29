@@ -21,7 +21,7 @@
   "skippedList": "Skipped: {list}",
   "sample": "First items",
   "importMedia": "Import media",
-  "importMediaHint": "Download attachments (images, PDF, MP4 up to 10 MB each) into the media library and point featured images and content at the new copies.",
+  "importMediaHint": "Download attachments (images, SVG, PDF, MP4 up to {size} MB each) into the media library and point featured images and content at the new copies.",
   "overwrite": "Overwrite existing entries",
   "overwriteHint": "Entries whose slug already exists are updated (the old version is kept in their history). Otherwise they are skipped.",
   "run": "Start import ({total, plural, one {# item} other {# items}})",

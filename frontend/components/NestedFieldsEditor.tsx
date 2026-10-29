@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SubFieldChoiceList } from '@/components/ChoiceListField';
 import { ComponentSubFields } from '@/components/ComponentFieldControls';
 import { cn } from '@/lib/utils';
+import { toFieldKey } from '@/lib/field-keys';
 
 /** Mirrors MAX_NESTING in backend/src/fields/schema.validator.ts. */
 export const MAX_NESTING = 3;
@@ -30,6 +31,17 @@ export function defaultOptionsFor(type: string): any {
   if (type === 'flexible') return { layouts: [{ name: 'section', label: 'Section', fields: [blankField()] }] };
   if (type === 'relation') return { relatedContentType: '', cardinality: 'one' };
   return undefined;
+}
+
+/** Keys used by more than one named item — the server refuses them, so the editor flags them as they happen. */
+function repeatedKeys(names: string[]): Set<string> {
+  const seen = new Set<string>();
+  const dupes = new Set<string>();
+  for (const key of names.map(toFieldKey).filter(Boolean)) {
+    if (seen.has(key)) dupes.add(key);
+    seen.add(key);
+  }
+  return dupes;
 }
 
 const BORDER: Record<string, string> = { repeater: 'border-orange-400', group: 'border-violet-400', flexible: 'border-pink-400' };
@@ -67,6 +79,7 @@ export function NestedFields({ fields, onChange, depth, kind = 'group', bordered
     const options = defaultOptionsFor(type);
     onChange(fields.map((f, idx) => (idx === i ? { ...rest, type, ...(options ? { options } : {}) } : f)));
   };
+  const dupes = repeatedKeys(fields.map((f) => f.name));
 
   return (
     <div className={cn(bordered && 'border-l-2 pl-3', bordered && BORDER[kind === 'layout' ? 'flexible' : kind], 'space-y-2')}>
@@ -80,9 +93,12 @@ export function NestedFields({ fields, onChange, depth, kind = 'group', bordered
               placeholder={kind === 'repeater' ? t('editor.subFieldPlaceholder') : t('editor.nestedFieldPlaceholder')}
               value={sf.name}
               onChange={(e) => set(i, { name: e.target.value })}
+              aria-invalid={dupes.has(toFieldKey(sf.name))}
               className="flex-1"
             />
-            <TypeSelect value={sf.type} onChange={(v) => setType(i, v)} depth={depth} />
+            {sf.options?.component
+              ? <span className="w-32 text-xs text-muted-foreground">{t(`fieldTypes.${sf.type}`)}</span>
+              : <TypeSelect value={sf.type} onChange={(v) => setType(i, v)} depth={depth} />}
             {sf.type === 'select' && <SubFieldChoiceList options={sf.options} onChange={(o) => set(i, { options: o })} />}
             <Button
               variant="ghost"
@@ -94,7 +110,13 @@ export function NestedFields({ fields, onChange, depth, kind = 'group', bordered
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
-          {(sf.type === 'repeater' || sf.type === 'group') && (
+          {dupes.has(toFieldKey(sf.name)) && (
+            <p className="text-xs text-destructive px-0.5">{t('editor.duplicateKey', { key: toFieldKey(sf.name) })}</p>
+          )}
+          {(sf.type === 'repeater' || sf.type === 'group') && sf.options?.component && (
+            <ComponentSubFields component={sf.options.component} subFields={sf.options.subFields ?? []} className="pl-4" />
+          )}
+          {(sf.type === 'repeater' || sf.type === 'group') && !sf.options?.component && (
             <div className="pl-4">
               <NestedFields
                 kind={sf.type}
@@ -137,6 +159,7 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
   const t = useTranslations('contentTypes');
   const [open, setOpen] = useState<Record<number, boolean>>({});
   const set = (i: number, patch: Partial<NestedLayout>) => onChange(layouts.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+  const dupes = repeatedKeys(layouts.map((l) => l.name));
 
   return (
     <div className="border-l-2 border-pink-400 pl-3 space-y-2">
@@ -153,6 +176,7 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
                 placeholder={t('editor.layoutNamePlaceholder')}
                 value={layout.name}
                 onChange={(e) => set(li, { name: e.target.value })}
+                aria-invalid={dupes.has(toFieldKey(layout.name))}
                 className="w-32"
               />
               <Input
@@ -171,6 +195,9 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
+            {dupes.has(toFieldKey(layout.name)) && (
+              <p className="px-3 py-1.5 border-t text-xs text-destructive">{t('editor.duplicateLayout', { name: toFieldKey(layout.name) })}</p>
+            )}
             {isOpen && layout.component && (
               <ComponentSubFields component={layout.component} subFields={layout.fields} className="px-3 py-2 border-t" />
             )}

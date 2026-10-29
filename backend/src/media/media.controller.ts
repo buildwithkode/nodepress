@@ -1,6 +1,6 @@
 import {
   Controller, Post, Get, Put, Delete, Param, Query, Body,
-  UseInterceptors, UploadedFile, UseGuards, BadRequestException, ParseIntPipe, Request, Res, Headers,
+  UseInterceptors, UploadedFile, UseGuards, BadRequestException, NotFoundException, ParseIntPipe, Request, Res, Headers,
 } from '@nestjs/common';
 import {
   ApiTags, ApiOperation, ApiResponse, ApiBearerAuth,
@@ -14,6 +14,8 @@ import { randomBytes } from 'crypto';
 import { readFileSync, unlinkSync, createReadStream } from 'fs';
 import { MediaService } from './media.service';
 import { ImageTransformService } from './image-transform.service';
+import { looksLikeSvg } from './svg-sanitize';
+import { maxUploadBytes } from './upload-limits';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Access } from '../auth/decorators/access.decorator';
@@ -28,7 +30,7 @@ const storage = diskStorage({
 });
 
 const fileFilter = (_req, file, cb) => {
-  const allowed = /image\/(jpeg|png|gif|webp)|application\/(pdf)|video\/(mp4)/;
+  const allowed = /^(image\/(jpeg|png|gif|webp|svg\+xml)|application\/pdf|video\/mp4)$/;
   if (allowed.test(file.mimetype)) {
     cb(null, true);
   } else {
@@ -47,6 +49,7 @@ function detectMimeFromBytes(filePath: string): string | null {
       buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50) return 'image/webp';
   if (buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46) return 'application/pdf';
   if (buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) return 'video/mp4';
+  if (looksLikeSvg(buf.subarray(0, 4096))) return 'image/svg+xml'; // sanitized in MediaService.processUpload
   return null;
 }
 
@@ -54,6 +57,7 @@ const MIME_MAP: Record<string, string> = {
   'image/jpeg': 'image/jpeg', 'image/png': 'image/png',
   'image/gif': 'image/gif',   'image/webp': 'image/webp',
   'application/pdf': 'application/pdf', 'video/mp4': 'video/mp4',
+  'image/svg+xml': 'image/svg+xml',
 };
 
 @ApiTags('Media')
@@ -72,7 +76,7 @@ export class MediaController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
   @ApiResponse({ status: 201, description: 'File uploaded — returns URL, webpUrl, width, height, size' })
-  @UseInterceptors(FileInterceptor('file', { storage, fileFilter, limits: { fileSize: 10 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('file', { storage, fileFilter, limits: { fileSize: maxUploadBytes() } }))
   async upload(@UploadedFile() file: any, @Request() req: any) {
     if (!file) throw new BadRequestException('No file provided');
 
@@ -201,6 +205,13 @@ export class MediaController {
     @Headers('accept') accept: string | undefined,
     @Res() res: any,
   ) {
+    // SVGs scale on their own and are never rasterized: send the file itself.
+    if (extname(filename).toLowerCase() === '.svg') {
+      const url = await this.mediaService.urlOf(filename);
+      if (!url) throw new NotFoundException('File not found');
+      res.set('Cache-Control', 'public, max-age=86400');
+      return res.redirect(302, url);
+    }
     const result = await this.imageTransform.transform(
       filename,
       { w: query.w, h: query.h, q: query.q, format: query.format, fit: query.fit, fp: query.fp },

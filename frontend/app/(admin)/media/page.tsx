@@ -56,6 +56,7 @@ import { canEdit as canEditModule } from '@/lib/access';
 import { transformUrl } from '@/lib/media-url';
 import { FocalPointDialog } from './_components/FocalPointDialog';
 import { useTranslations } from 'use-intl';
+import { useUploadLimitMb } from '@/lib/use-upload-limit';
 
 interface MediaFile {
   filename: string;
@@ -88,6 +89,7 @@ const formatSize = (bytes: number) => {
 
 export default function MediaPage() {
   const t = useTranslations('media');
+  const uploadMb = useUploadLimitMb();
   const tc = useTranslations('common');
   const { user } = useAuth();
   const canEdit = canEditModule(user, 'media');
@@ -424,14 +426,14 @@ export default function MediaPage() {
                                 'border-border bg-card hover:border-blue-500/50 hover:bg-blue-500/5',
             )}
           >
-            <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.mp4"
+            <input ref={fileInputRef} type="file" multiple accept="image/*,.svg,.pdf,.mp4"
               className="hidden" onChange={handleFileChange} disabled={uploading} />
             {uploading
               ? <Loader2 className="h-8 w-8 text-blue-400 animate-spin mb-2" />
               : <Upload className="h-8 w-8 text-muted-foreground mb-2" />
             }
             <p className="text-sm font-medium">{uploading ? t('upload.uploading') : t('upload.prompt')}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{t('upload.limits', { formats: 'JPG, PNG, GIF, WebP, PDF, MP4', size: '10 MB' })}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('upload.limits', { formats: 'JPG, PNG, GIF, WebP, SVG, PDF, MP4', size: `${uploadMb} MB` })}</p>
           </div>
         )}
 

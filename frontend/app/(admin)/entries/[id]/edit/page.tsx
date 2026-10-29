@@ -77,6 +77,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { withCondition } from '@/components/ConditionalField';
+import { pruneEntryData } from '@/lib/prune-entry-data';
 import { autosaveSnapshot } from '@/lib/autosave-snapshot';
 
 interface Field { name: string; type: string; options?: any; label?: string }
@@ -291,7 +292,7 @@ export default function EditEntryPage() {
       await api.put(`/entries/${entry.id}`, {
         slug: cleanFinalSlug,
         status,
-        data: rest,
+        data: pruneEntryData(rest, contentType?.schema ?? []),
         seo: hasSeo ? seo : null,
         publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
@@ -761,7 +762,8 @@ export default function EditEntryPage() {
           </div>
         </CardHeader>
 
-        <div ref={containerRef} className="flex items-start border-t border-border">
+        {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
+        <div ref={containerRef} className="flex border-t border-border">
           {/* Left pane: form */}
           <div style={{ width: sidePanel !== 'none' ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
           <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -1011,7 +1013,7 @@ export default function EditEntryPage() {
             if (sidePanel === 'reference') {
               return (
                 <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border bg-muted/10">
-                  <div className="sticky top-4 px-4 py-4 space-y-3">
+                  <div className="sticky top-14 px-4 py-4 space-y-3">
                     <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
                       <div className="flex items-center gap-1.5">
                         <Languages className="h-4 w-4 text-blue-400" />
@@ -1135,14 +1137,15 @@ export default function EditEntryPage() {
               status,
               locale,
               contentTypeId: entry?.contentTypeId,
-              data: fieldData,
+              data: pruneEntryData(fieldData, contentType?.schema ?? []),
               seo: hasSeo ? seo : null,
               publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (
               <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
-                <div className="sticky top-4 px-4 py-4 space-y-2">
+                {/* Stays in view just below the sticky top bar (h-14); the JSON scrolls inside. */}
+                <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] flex flex-col gap-2 px-4 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1184,7 +1187,7 @@ export default function EditEntryPage() {
                       </Button>
                     </div>
                   </div>
-                  <pre className={`overflow-auto max-h-[75vh] p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
+                  <pre className={`flex-1 min-h-0 overflow-auto p-3 rounded-md border border-border bg-muted/20 text-[11px] leading-relaxed text-foreground font-mono ${jsonWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}><code dangerouslySetInnerHTML={{ __html: highlightCode(jsonStr, 'json') }} /></pre>
                 </div>
               </div>
             );

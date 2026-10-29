@@ -167,7 +167,15 @@
     "sectionType": "Tipo di sezione",
     "chooseLayout": "Scegli il layout della sezione…",
     "addBlock": "+ Aggiungi blocco…",
-    "enterValue": "Inserisci {field}"
+    "enterValue": "Inserisci {field}",
+    "sectionKey": "Chiave della sezione (facoltativa)",
+    "sectionKeyPlaceholder": "es. hero_section",
+    "sectionKeyHint": "Leggi questa sezione come {field}_by_key.[chiave] nell’API.",
+    "sectionKeyInvalid": "Usa lettere minuscole, cifre e trattini bassi, iniziando con una lettera.",
+    "sectionKeyDuplicate": "Un’altra sezione usa già la chiave {key}.",
+    "sectionKeyRequiredLabel": "Chiave della sezione",
+    "sectionKeyRequired": "Obbligatoria: {layout} è usato più di una volta qui, quindi ognuno ha bisogno della propria chiave.",
+    "sectionKeyLayoutHint": "Facoltativa. Senza chiave, leggila come {field}_by_key.{layout} nell’API."
   },
   "richText": {
     "visual": "Editor visuale",
@@ -231,7 +239,7 @@
     "emptyHint": "Carica la tua prima immagine nella scheda Carica",
     "uploading": "Caricamento dell'immagine sul server…",
     "dropzone": "Fai clic per caricare o trascina qui",
-    "dropzoneHint": "PNG, JPG, WebP, GIF o SVG (fino a 10 MB)",
+    "dropzoneHint": "PNG, JPG, WebP, GIF o SVG (fino a {size} MB)",
     "selectFile": "Seleziona file",
     "directUrl": "URL diretto dell'immagine",
     "directUrlPlaceholder": "https://images.unsplash.com/... o link CDN",
