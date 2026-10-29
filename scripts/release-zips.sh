@@ -21,7 +21,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-REPO="${NODEPRESS_REPO:-buildwithkode/nodepress}"
+# The GitHub repo of this checkout's origin remote, unless NODEPRESS_REPO says otherwise.
+REPO="${NODEPRESS_REPO:-$(git remote get-url origin | sed -E 's#^(git@github.com:|https://([^@/]+@)?github.com/)##; s#\.git$##')}"
 
 say()  { printf '\033[1;36m▸\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31m✖ %s\033[0m\n' "$*" >&2; exit 1; }
