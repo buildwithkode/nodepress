@@ -12,6 +12,8 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+## [1.9.0] — 2026-10-29
+
 ### Added
 - **WordPress import brings Advanced Custom Fields over as real fields.** ACF field groups in the export become NodePress fields on the post types their location rules name — flexible content, repeaters, groups, images, links, selects, dates, colors, relations — and the flat post meta becomes nested values (`sections[0].cards[1].image`). Options pages become their own content types. Relationship and post object fields link the imported entries; values are fitted to existing schemas so no entry is refused; every link to an imported file (WordPress's resized copies included) points at the new copy. Sites whose ACF fields live in theme code are still structured from the meta key names. `test/wordpress-file.e2e-spec.ts` checks a real export (`WXR_FILE=…`, opt-in).
 - **SVG uploads.** SVGs are rebuilt from an allowlist on upload (no script, event handlers, outside references or entity declarations), served with a script-blocking Content-Security-Policy, and never rasterized — `/transform` returns the file.

@@ -70,6 +70,38 @@ before npm. If you add a dependency with an install script, decide it with
 `allowScripts`) — the pre-push check fails until you do. Keep the list in the
 root `package.json`; npm ignores it in `backend/` and `frontend/`.
 
+## 1.9.0 (from 1.8.x)
+
+No database migrations. `bcrypt` is replaced by `bcryptjs`, so run
+`npm install` after the new code (existing passwords keep working; nobody has
+to sign in again).
+
+**Action required**
+
+- **Flexible fields that use a layout more than once.** Each section of such a
+  layout now needs a section key (`_key`), and a save without them is refused
+  (`422`). Existing entries are not changed: the next time one is edited, the
+  editor marks the sections that need a key. Entries imported from WordPress
+  from 1.9.0 on get keys automatically (`layout`, `layout_2`…). API clients
+  writing such fields must send `_key` on those sections.
+
+**Behaviour changes**
+
+- The entry editor saves each section, group and repeater row with only the
+  fields of its schema: values left over from a switched layout or a removed
+  field are dropped on the next save.
+- Public REST reads add `<field>_by_key` beside each top-level flexible field
+  (never replacing a real field of that name).
+- SVG uploads are accepted (sanitized, served with a script-blocking CSP), and
+  `MEDIA_MAX_MB` (default 10) sets the largest upload.
+
+**Without Docker**
+
+- New: the server zip (`nodepress-linux-x64.zip` / `-arm64.zip` on the
+  release) — NodePress already built, started with `node server.js`, set up in
+  the browser. See *Install from the server zip* in the docs. Existing installs
+  can keep upgrading as before.
+
 ## 1.8.0 (from 1.7.x)
 
 One migration (`20261027090000_add_role_access`, a new `role_access` table),
