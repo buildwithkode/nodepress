@@ -70,6 +70,16 @@ before npm. If you add a dependency with an install script, decide it with
 `allowScripts`) — the pre-push check fails until you do. Keep the list in the
 root `package.json`; npm ignores it in `backend/` and `frontend/`.
 
+## Unreleased
+
+**Action required**
+
+- **Site code reading `<field>_by_key`.** Public REST reads leave the lookup
+  out unless the request has `?byKey=true` (`{ byKey: true }` in
+  `@nodepress-cms/client`). Add it to those requests, or read the field's
+  ordered list and switch on `_layout`. The section keys themselves (`_key`)
+  are unchanged.
+
 ## 1.9.1 (from 1.9.0)
 
 No database migrations, no new dependencies and nothing to change. An admin

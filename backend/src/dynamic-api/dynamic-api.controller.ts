@@ -39,6 +39,7 @@ export class DynamicApiController {
   @ApiQuery({ name: 'fallback', required: false, type: Boolean, description: 'With locale: also list default-language entries that have no translation in it (each entry\'s locale says which was served)' })
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiQuery({ name: 'fields', required: false, type: String, description: 'Comma-separated data field names to include (projection). Omit for all fields.' })
+  @ApiQuery({ name: 'byKey', required: false, type: Boolean, description: 'true = add <field>_by_key beside each flexible field: its sections by _key (or by layout name when used once). Off by default.' })
   @ApiHeader({ name: 'x-nodepress-environment', required: false, description: 'Target environment: "staging" or "production"' })
   @ApiResponse({ status: 200, description: '{ data: Entry[], meta: { total, page, limit, totalPages, nextCursor } } — with ?cursor=, meta is { limit, nextCursor }' })
   @ApiResponse({ status: 404, description: 'Content type not found or method disabled' })
@@ -59,6 +60,7 @@ export class DynamicApiController {
     @Query('populate') populate?: string,
     @Query('fields') fields?: string,
     @Query('fallback') fallback?: string,
+    @Query('byKey') byKey?: string,
     @Headers('x-nodepress-environment') envHeader?: string,
   ) {
     const effectiveStage = stage || (envHeader === 'staging' ? 'staging' : undefined);
@@ -75,6 +77,7 @@ export class DynamicApiController {
       locale: locale?.trim() || undefined,
       populate: populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
       fields: fields ? fields.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
+      byKey: byKey === 'true' || byKey === '1',
     });
     await this.tagForCdn(req, res, type);
     return result;
@@ -91,6 +94,7 @@ export class DynamicApiController {
   @ApiQuery({ name: 'stage', required: false, enum: ['published', 'staging', 'draft', 'all'], description: 'Environment stage targeting.' })
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to populate inline' })
   @ApiQuery({ name: 'fields', required: false, type: String, description: 'Comma-separated data field names to include (projection). Omit for all fields.' })
+  @ApiQuery({ name: 'byKey', required: false, type: Boolean, description: 'true = add <field>_by_key beside each flexible field: its sections by _key (or by layout name when used once). Off by default.' })
   @ApiHeader({ name: 'x-nodepress-environment', required: false, description: 'Target environment: "staging" or "production"' })
   @ApiResponse({ status: 200, description: 'Entry found' })
   @ApiResponse({ status: 404, description: 'Entry not found or not published' })
@@ -104,6 +108,7 @@ export class DynamicApiController {
     @Query('populate') populate?: string,
     @Query('fields') fields?: string,
     @Query('fallback') fallback?: string,
+    @Query('byKey') byKey?: string,
     @Headers('x-nodepress-environment') envHeader?: string,
   ) {
     const effectiveStage = stage || (envHeader === 'staging' ? 'staging' : undefined);
@@ -113,6 +118,7 @@ export class DynamicApiController {
       stage: effectiveStage,
       populate: populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
       fields: fields ? fields.split(',').map((f) => f.trim()).filter(Boolean) : undefined,
+      byKey: byKey === 'true' || byKey === '1',
     });
     await this.tagForCdn(req, res, type);
     // Which translation was served (differs from ?locale= when it fell back).

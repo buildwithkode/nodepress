@@ -294,13 +294,13 @@ export function buildOpenApiDocument(contentTypes: OpenApiContentType[], opts: O
         properties[f.name] = s;
         required.push(f.name);
       }
-      // Public reads add the keyed sections of a top-level flexible field (common/section-keys.ts).
+      // With ?byKey=true, public reads add the keyed sections of a top-level flexible field (common/section-keys.ts).
       const byKey = `${f.name}_by_key`;
       if (mode === 'read' && owner === '' && f.type === 'flexible' && !fields.some((x) => x?.name === byKey)) {
         properties[byKey] = {
           type: 'object',
           additionalProperties: (s as Schema).items ?? {},
-          description: `The sections of ${f.name} that have a _key, by key. Read-only; ${f.name} keeps the order.`,
+          description: `Only with ?byKey=true: the sections of ${f.name} by _key (or layout name when used once). Read-only; ${f.name} keeps the order.`,
         };
       }
     }
@@ -432,6 +432,7 @@ export function buildOpenApiDocument(contentTypes: OpenApiContentType[], opts: O
           { name: 'fallback', in: 'query', schema: { type: 'boolean' }, description: 'Serve the default-language version when this locale has no translation.' },
           stageParam(),
           { name: 'populate', in: 'query', schema: { type: 'string' }, description: 'Comma-separated relation fields to inline; dot paths for nesting (author,author.company), up to 3 levels.' },
+          { name: 'byKey', in: 'query', schema: { type: 'boolean' }, description: 'Add <field>_by_key beside each flexible field (sections by _key). Off by default.' },
           { name: 'fields', in: 'query', schema: { type: 'string' }, description: 'Comma-separated data fields to return.' },
           envHeader(),
         ],
@@ -557,6 +558,7 @@ function listParameters() {
     { name: 'sort', in: 'query', schema: { type: 'string', default: 'createdAt:desc' }, description: 'field:direction — createdAt, updatedAt or slug; asc or desc.' },
     { name: 'fields', in: 'query', schema: { type: 'string' }, description: 'Comma-separated data fields to return.' },
     { name: 'populate', in: 'query', schema: { type: 'string' }, description: 'Comma-separated relation fields to inline; dot paths for nesting (author,author.company), up to 3 levels.' },
+    { name: 'byKey', in: 'query', schema: { type: 'boolean' }, description: 'Add <field>_by_key beside each flexible field (sections by _key). Off by default.' },
     { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Full-text search over the slug and all data.' },
     { name: 'locale', in: 'query', schema: { type: 'string' }, description: 'Only entries in this locale. Default: all locales.' },
     { name: 'fallback', in: 'query', schema: { type: 'boolean' }, description: 'With locale: also list default-language entries that have no translation in it.' },

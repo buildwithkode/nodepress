@@ -144,9 +144,9 @@ export function generateTypeScriptDefinitions(contentTypes: ContentTypeSchemaInp
       const optional = field.required && !(field as any).options?.mappedBy ? '' : '?';
       const comment = field.description ? `  /** ${field.description} */\n` : '';
       lines.push(`${comment}  ${field.name}${optional}: ${tsType};`);
-      // Public reads add a lookup of the sections editors gave a key (common/section-keys.ts).
+      // Public reads with ?byKey=true add a lookup of the sections editors gave a key (common/section-keys.ts).
       if (field.type === 'flexible' && !rawSchema.some((f) => f?.name === `${field.name}_by_key`)) {
-        lines.push(`  /** Sections of ${field.name} that have a _key, by key (public REST reads) */`);
+        lines.push(`  /** Sections of ${field.name} by _key — only on public REST reads with ?byKey=true */`);
         lines.push(`  ${field.name}_by_key?: Record<string, ${dataInterfaceName}[${JSON.stringify(field.name)}] extends Array<infer S> | undefined ? S : never>;`);
       }
     }

@@ -4,8 +4,8 @@ import { FieldDef } from '../fields/field.types';
  * Section keys: an editor names a flexible section (`_key`, stored next to
  * `_id` and `_layout`) so site code can reach it by name instead of position.
  * Unique within the field; optional for a layout used once, required for every
- * section of a layout used more than once. Public REST reads add
- * `<field>_by_key: { <name>: section }` for each top-level flexible field —
+ * section of a layout used more than once. Public REST reads with `?byKey=true`
+ * add `<field>_by_key: { <name>: section }` for each top-level flexible field —
  * a section's key, or its layout name when the layout is used once (explicit
  * keys win a clash). `<field>` itself stays the ordered list.
  */

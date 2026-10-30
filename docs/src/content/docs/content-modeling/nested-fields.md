@@ -118,9 +118,9 @@ When a block's layout is changed in the entry editor, the values of the old layo
 
 ### Section keys
 
-Public REST reads also return each top-level flexible field **by name**, as `<field>_by_key`, so site code can reach one section without counting positions:
+A flexible field comes back as an ordered list, the way ACF returns flexible content. To reach one section without counting positions, add `?byKey=true` to a REST read: each top-level flexible field then also comes **by name**, as `<field>_by_key`:
 
-```json title="GET /api/pages/home"
+```json title="GET /api/pages/home?byKey=true"
 "sections": [
   { "_id": "a1b2c3", "_layout": "hero", "heading": "Welcome" },
   { "_id": "d4e5f6", "_layout": "quote", "_key": "intro_quote", "text": "…" },
@@ -142,7 +142,7 @@ page.data.sections_by_key.closing_quote.text;
 - A layout used **more than once** needs a **section key** on each of its sections. The entry editor marks the **Section key** box as required and won't save without it; the API refuses the entry with `422`.
 - Keys use lowercase letters, digits and underscores, start with a letter, and are unique within the field. They're stored as `_key` and stay with their section when sections are reordered.
 - A key wins over a layout name of the same spelling. `sections` itself keeps the editor's order, for rendering the page.
-- `<field>_by_key` is only added by REST reads, and never when the content type has a real field of that name. GraphQL exposes `_key` on each section; OpenAPI and [generated types](/cli/generate-types/) describe both.
+- `<field>_by_key` is only added by REST reads with `?byKey=true` (`{ byKey: true }` in `@nodepress-cms/client`), and never when the content type has a real field of that name. GraphQL exposes `_key` on each section; OpenAPI and [generated types](/cli/generate-types/) describe both.
 
 ## Nesting
 

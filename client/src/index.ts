@@ -93,6 +93,8 @@ export interface ReadOptions {
   fields?: string[];
   /** Unpublished stages need an API key or token. */
   stage?: Stage;
+  /** Add `<field>_by_key` beside each flexible field: its sections by `_key`. */
+  byKey?: boolean;
 }
 
 export interface ListQuery<TData = Record<string, any>> extends ReadOptions {

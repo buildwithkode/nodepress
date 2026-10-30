@@ -53,6 +53,8 @@ export interface PublicListQuery {
   stage?: 'published' | 'staging' | 'draft' | 'all'; // Environment stage targeting
   populate?: string[];              // relation field names to inline-populate
   fields?: string[];                // field projection — only return listed data keys
+  /** Add `<field>_by_key` beside each top-level flexible field (off by default: the list alone, like ACF). */
+  byKey?: boolean;
 }
 
 export interface PublicSingleQuery {
@@ -62,6 +64,8 @@ export interface PublicSingleQuery {
   stage?: 'published' | 'staging' | 'draft' | 'all';
   populate?: string[];
   fields?: string[];                // field projection — only return listed data keys
+  /** Add `<field>_by_key` beside each top-level flexible field. */
+  byKey?: boolean;
 }
 
 export interface PaginatedResult<T> {
@@ -292,10 +296,10 @@ export class DynamicApiService implements OnModuleInit {
   }
 
   /** Map internal entry row → public-facing shape (UUID as id, no deletedAt) */
-  /** The public shape of an entry; with the schema, flexible fields also get their `<field>_by_key` lookup. */
-  private toPublicEntry(e: any, data: Record<string, any>, schema?: FieldDef[]) {
+  /** The public shape of an entry; with `byKey`, flexible fields also get their `<field>_by_key` lookup. */
+  private toPublicEntry(e: any, data: Record<string, any>, schema?: FieldDef[], byKey = false) {
     const { id: _internal, publicId, deletedAt: _del, status: _st, ...rest } = e;
-    return { id: publicId, ...rest, data: schema ? withSectionKeys(data, schema) : data };
+    return { id: publicId, ...rest, data: schema && byKey ? withSectionKeys(data, schema) : data };
   }
 
   /** Make the cached public responses of some (or all) content types stale. */
@@ -372,7 +376,7 @@ export class DynamicApiService implements OnModuleInit {
     // populated list could be served raw, or vice versa.
     const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
     const state = await this.cacheState(contentType.id);
-    const cacheKey = `${state.prefix}list:${JSON.stringify({ page, limit, cursor: query.cursor, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale, fallback: fallbackLocale, stage: query.stage })}`;
+    const cacheKey = `${state.prefix}list:${JSON.stringify({ page, limit, cursor: query.cursor, sort: query.sort, search: query.search, filter: query.filter, where: query.where, locale: query.locale, fallback: fallbackLocale, stage: query.stage, byKey: !!query.byKey })}`;
     if (cacheable) {
       const cached = await this.cache.get<PaginatedResult<any>>(cacheKey);
       if (cached) return cached;
@@ -571,7 +575,7 @@ export class DynamicApiService implements OnModuleInit {
 
     const data = populatedDataList.map((resolvedData, index) => {
       const sanitizedData = filterUnauthorizedReadFields(resolvedData, schema, undefined);
-      const entry = this.toPublicEntry(processed[index].e, sanitizedData, schema);
+      const entry = this.toPublicEntry(processed[index].e, sanitizedData, schema, query.byKey);
       return projectFields(entry, query.fields);
     });
 
@@ -619,7 +623,7 @@ export class DynamicApiService implements OnModuleInit {
     // return a previously-cached raw (un-populated) entry under the same key.
     const cacheable = (!query.fields || query.fields.length === 0) && (!query.populate || query.populate.length === 0);
     const state = await this.cacheState(contentType.id);
-    const cacheKey = `${state.prefix}slug:${slug}:${locale}:${query.stage || 'published'}`;
+    const cacheKey = `${state.prefix}slug:${slug}:${locale}:${query.stage || 'published'}${query.byKey ? ':bykey' : ''}`;
     if (cacheable) {
       const cached = await this.cache.get<any>(cacheKey);
       if (cached) return cached;
@@ -667,7 +671,7 @@ export class DynamicApiService implements OnModuleInit {
 
     data = filterUnauthorizedReadFields(data, schema, undefined);
 
-    const result = projectFields(this.toPublicEntry(entry, data, schema), query.fields);
+    const result = projectFields(this.toPublicEntry(entry, data, schema, query.byKey), query.fields);
     // Only cache un-projected, un-populated responses (matches the read guard above)
     if (cacheable) {
       await this.cache.set(cacheKey, result, ENTRY_TTL);

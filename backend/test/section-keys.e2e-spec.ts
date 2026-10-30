@@ -4,7 +4,7 @@ import { createTestApp, cleanDatabase, registerAdmin } from './helpers';
 
 /**
  * Section keys: an optional `_key` on a flexible section, unique within the
- * field, so site code reads `data.sections_by_key.<key>` instead of a position.
+ * field with `?byKey=true`, so site code reads `data.sections_by_key.<key>` instead of a position.
  */
 describe('Flexible section keys (e2e)', () => {
   let app: INestApplication;
@@ -46,20 +46,29 @@ describe('Flexible section keys (e2e)', () => {
     expect(JSON.stringify(dup.body)).toMatch(/same key/);
   });
 
-  it('public reads add sections_by_key — keys, and a layout used once by its name; the list keeps its order', async () => {
+  it('?byKey=true adds sections_by_key — keys, and a layout used once by its name; the list keeps its order', async () => {
     entryId = (await http().post('/api/entries').set(auth).send({
       contentTypeId: ctId, slug: 'home', status: 'published',
       data: { title: 'Home', sections: [magic('intro_magic', 'first'), { _layout: 'cta', heading: 'Go' }, magic('middle_magic', 'middle'), magic('footer_magic', 'last')] },
     }).expect(201)).body.id;
 
-    const { data } = (await http().get('/api/landing-page/home').expect(200)).body;
+    // By default only the ordered list, like ACF's flexible content — no copy of the sections.
+    const plain = (await http().get('/api/landing-page/home').expect(200)).body.data;
+    expect(plain.sections).toHaveLength(4);
+    expect(plain.sections_by_key).toBeUndefined();
+
+    // Cached separately: the plain read above must not be served to ?byKey=true, or the reverse.
+    const { data } = (await http().get('/api/landing-page/home?byKey=true').expect(200)).body;
     expect(data.sections.map((s: any) => s._layout)).toEqual(['real_magic', 'cta', 'real_magic', 'real_magic']);
     expect(Object.keys(data.sections_by_key)).toEqual(['intro_magic', 'cta', 'middle_magic', 'footer_magic']);
     expect(data.sections_by_key.cta.heading).toBe('Go');
     expect(data.sections_by_key.footer_magic.title_right).toBe('last');
     expect(data.sections_by_key.intro_magic._id).toBe(data.sections[0]._id);
 
-    const list = (await http().get('/api/landing-page').expect(200)).body.data;
+    expect((await http().get('/api/landing-page/home').expect(200)).body.data.sections_by_key).toBeUndefined();
+
+    expect((await http().get('/api/landing-page').expect(200)).body.data[0].data.sections_by_key).toBeUndefined();
+    const list = (await http().get('/api/landing-page?byKey=true').expect(200)).body.data;
     expect(list[0].data.sections_by_key.intro_magic.title_right).toBe('first');
   });
 
@@ -67,7 +76,7 @@ describe('Flexible section keys (e2e)', () => {
     const entry = (await http().get(`/api/entries/${entryId}`).set(auth).expect(200)).body;
     await http().put(`/api/entries/${entryId}`).set(auth)
       .send({ data: { ...entry.data, sections: [...entry.data.sections].reverse() } }).expect(200);
-    const { data } = (await http().get('/api/landing-page/home').expect(200)).body;
+    const { data } = (await http().get('/api/landing-page/home?byKey=true').expect(200)).body;
     expect(data.sections[0]._key).toBe('footer_magic');
     expect(data.sections_by_key.footer_magic.title_right).toBe('last');
     expect(data.sections_by_key.intro_magic.title_right).toBe('first');
