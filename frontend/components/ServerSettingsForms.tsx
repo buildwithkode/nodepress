@@ -128,8 +128,11 @@ export function EmailSettingsForm({
 
   const items = { starttls: t('server.mail.starttls'), ssl: t('server.mail.ssl') };
 
+  // The setup wizard shows this form in a narrow card: one column there.
+  const wide = !compact;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {readOnly && <EnvNotice what="SMTP_*" />}
       {!compact && !readOnly && (
         <label className="flex items-center gap-2 text-sm">
@@ -138,11 +141,13 @@ export function EmailSettingsForm({
         </label>
       )}
       {enabled && (
-        <fieldset disabled={readOnly} className="grid gap-3 sm:grid-cols-2">
-          <Field label={t('server.mail.host')}>
-            <Input value={host} onChange={(e) => setHost(e.target.value)} placeholder="smtp.example.com" />
-          </Field>
-          <div className="grid grid-cols-2 gap-2">
+        <fieldset disabled={readOnly} className={cn('m-0 grid min-w-0 gap-x-3 gap-y-4 border-0 p-0', wide && 'sm:grid-cols-4')}>
+          <div className={cn(wide && 'sm:col-span-2')}>
+            <Field label={t('server.mail.host')}>
+              <Input value={host} onChange={(e) => setHost(e.target.value)} placeholder="smtp.example.com" />
+            </Field>
+          </div>
+          <div className={cn('grid grid-cols-2 gap-3', wide && 'sm:col-span-2')}>
             <Field label={t('server.mail.port')}>
               <Input value={port} onChange={(e) => setPort(e.target.value.replace(/\D/g, ''))} inputMode="numeric" />
             </Field>
@@ -163,38 +168,43 @@ export function EmailSettingsForm({
               </Select>
             </Field>
           </div>
-          <Field label={t('server.mail.user')}>
-            <Input value={user} onChange={(e) => setUser(e.target.value)} autoComplete="off" />
-          </Field>
-          <Field label={t('server.mail.password')} hint={settings.hasPassword ? t('server.keepSecret') : undefined}>
-            <Input type="password" value={pass} onChange={(e) => setPass(e.target.value)} autoComplete="new-password" placeholder={settings.hasPassword ? '••••••••' : ''} />
-          </Field>
-          <div className="sm:col-span-2">
+          <div className={cn(wide && 'sm:col-span-2')}>
+            <Field label={t('server.mail.user')}>
+              <Input value={user} onChange={(e) => setUser(e.target.value)} autoComplete="off" />
+            </Field>
+          </div>
+          <div className={cn(wide && 'sm:col-span-2')}>
+            <Field label={t('server.mail.password')} hint={settings.hasPassword ? t('server.keepSecret') : undefined}>
+              <Input type="password" value={pass} onChange={(e) => setPass(e.target.value)} autoComplete="new-password" placeholder={settings.hasPassword ? '••••••••' : ''} />
+            </Field>
+          </div>
+          <div className={cn(wide && 'sm:col-span-4')}>
             <Field label={t('server.mail.from')} hint={t('server.mail.fromHint')}>
               <Input value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Acme <noreply@acme.com>" />
             </Field>
           </div>
         </fieldset>
       )}
-      <div className="flex flex-wrap items-end gap-2">
-        {enabled && (
-          <>
-            <Field label={t('server.mail.testTo')}>
-              <Input className="w-56" type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="you@example.com" />
-            </Field>
-            <Button type="button" variant="outline" onClick={test} disabled={!!busy || !testTo || (!readOnly && !host.trim())}>
+      {enabled && (
+        <div className="space-y-1.5 rounded-md border border-border bg-muted/30 p-3">
+          <Label className="text-xs">{t('server.mail.testTo')}</Label>
+          <div className={cn('flex flex-col gap-2', wide && 'sm:flex-row')}>
+            <Input className="min-w-0 flex-1" type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="you@example.com" />
+            <Button type="button" variant="outline" onClick={test} disabled={!!busy || !testTo || (!readOnly && !host.trim())} className="shrink-0">
               {busy === 'test' ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
               {t('server.mail.sendTest')}
             </Button>
-          </>
-        )}
-        {!readOnly && (
-          <Button type="button" onClick={save} disabled={!!busy || (enabled && !host.trim())} className="ml-auto">
+          </div>
+        </div>
+      )}
+      {!readOnly && (
+        <div className="flex justify-end">
+          <Button type="button" onClick={save} disabled={!!busy || (enabled && !host.trim())} className={cn(compact && 'w-full')}>
             {busy === 'save' && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
             {t('server.save')}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -287,12 +297,14 @@ export function StorageSettingsForm({
   const providerItems: Record<Provider, string> = {
     aws: 'Amazon S3', r2: 'Cloudflare R2', spaces: 'DigitalOcean Spaces', other: t('server.storage.otherProvider'),
   };
-  const canSave = driver === 'local' || (bucket.trim() && accessKey.trim() && (secretKey || settings.hasSecret));
+  // R2, Spaces and others need their endpoint, filled in (not the <account-id> example).
+  const endpointOk = provider === 'aws' || (!!endpoint.trim() && !/[<>]/.test(endpoint));
+  const canSave = driver === 'local' || (bucket.trim() && accessKey.trim() && (secretKey || settings.hasSecret) && endpointOk);
 
   return (
     <div className="space-y-4">
       {readOnly && <EnvNotice what="STORAGE_*" />}
-      <fieldset disabled={readOnly} className="space-y-3">
+      <fieldset disabled={readOnly} className="m-0 min-w-0 space-y-3 border-0 p-0">
         <Field label={t('server.storage.where')}>
           <Select value={driver} items={driverItems} onValueChange={(v) => setDriver((v as 'local' | 's3') ?? 'local')}>
             <SelectTrigger className="w-full sm:w-72"><SelectValue /></SelectTrigger>
@@ -308,7 +320,7 @@ export function StorageSettingsForm({
           </p>
         )}
         {driver === 's3' && (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-x-3 gap-y-4 pt-1 sm:grid-cols-2">
             <Field label={t('server.storage.provider')}>
               <Select
                 value={provider}
@@ -317,7 +329,8 @@ export function StorageSettingsForm({
                   const p = (v as Provider) ?? 'aws';
                   setProvider(p);
                   setRegion(PROVIDERS[p].region);
-                  if (!endpoint || Object.values(PROVIDERS).some((x) => x.endpoint === endpoint)) setEndpoint(PROVIDERS[p].endpoint);
+                  // The provider's endpoint is only an example (placeholder): it has the account or region to fill in.
+                  if (Object.values(PROVIDERS).some((x) => x.endpoint === endpoint)) setEndpoint('');
                 }}
               >
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -328,33 +341,33 @@ export function StorageSettingsForm({
                 </SelectContent>
               </Select>
             </Field>
-            <Field label={t('server.storage.bucket')}>
-              <Input value={bucket} onChange={(e) => setBucket(e.target.value)} placeholder="my-site-media" />
-            </Field>
-            {provider !== 'aws' && (
-              <Field label={t('server.storage.endpoint')}>
-                <Input value={endpoint} onChange={(e) => setEndpoint(e.target.value)} placeholder={PROVIDERS[provider].endpoint} />
-              </Field>
-            )}
             <Field label={t('server.storage.region')}>
               <Input value={region} onChange={(e) => setRegion(e.target.value)} placeholder={PROVIDERS[provider].region} />
             </Field>
+            {provider !== 'aws' && (
+              <div className="sm:col-span-2">
+                <Field label={t('server.storage.endpoint')}>
+                  <Input value={endpoint} onChange={(e) => setEndpoint(e.target.value)} placeholder={PROVIDERS[provider].endpoint} />
+                </Field>
+              </div>
+            )}
             <Field label={t('server.storage.accessKey')}>
               <Input value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" />
             </Field>
             <Field label={t('server.storage.secretKey')} hint={settings.hasSecret ? t('server.keepSecret') : undefined}>
               <Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={settings.hasSecret ? '••••••••' : ''} />
             </Field>
-            <div className="sm:col-span-2">
-              <Field label={t('server.storage.publicUrl')} hint={t('server.storage.publicUrlHint')}>
-                <Input value={publicUrl} onChange={(e) => setPublicUrl(e.target.value)} placeholder="https://media.example.com" />
-              </Field>
-            </div>
+            <Field label={t('server.storage.bucket')}>
+              <Input value={bucket} onChange={(e) => setBucket(e.target.value)} placeholder="my-site-media" />
+            </Field>
+            <Field label={t('server.storage.publicUrl')} hint={t('server.storage.publicUrlHint')}>
+              <Input value={publicUrl} onChange={(e) => setPublicUrl(e.target.value)} placeholder="https://media.example.com" />
+            </Field>
           </div>
         )}
       </fieldset>
       {!readOnly && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 pt-1">
           {driver === 's3' && (
             <Button type="button" variant="outline" onClick={() => run('test')} disabled={!!busy || !canSave}>
               {busy === 'test' ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : tested ? <CheckCircle2 className="h-4 w-4 mr-1.5 text-emerald-500" /> : <HardDrive className="h-4 w-4 mr-1.5" />}
