@@ -70,6 +70,11 @@ before npm. If you add a dependency with an install script, decide it with
 `allowScripts`) — the pre-push check fails until you do. Keep the list in the
 root `package.json`; npm ignores it in `backend/` and `frontend/`.
 
+## 1.9.1 (from 1.9.0)
+
+No database migrations, no new dependencies and nothing to change. An admin
+fix only: the *Settings → Email & storage* forms. Rebuild the frontend.
+
 ## 1.9.0 (from 1.8.x)
 
 No database migrations. `bcrypt` is replaced by `bcryptjs`, so run

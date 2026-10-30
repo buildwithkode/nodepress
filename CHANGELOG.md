@@ -12,6 +12,8 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+## [1.9.1] — 2026-10-30
+
 ### Fixed
 
 - **Settings → Email & storage**: the Email card's fields line up in even rows, with the test email in its own box and Save on its own line; the S3 fields pair up (access key with secret key) for every provider. Choosing Cloudflare R2, DigitalOcean Spaces or another provider no longer fills in an endpoint with `<account-id>` / `<region>` in it — the example is a placeholder, and Save waits for a real endpoint.
