@@ -70,7 +70,9 @@ before npm. If you add a dependency with an install script, decide it with
 `allowScripts`) — the pre-push check fails until you do. Keep the list in the
 root `package.json`; npm ignores it in `backend/` and `frontend/`.
 
-## Unreleased
+## 1.9.2 (from 1.9.1)
+
+No database migrations and no new dependencies.
 
 **Action required**
 

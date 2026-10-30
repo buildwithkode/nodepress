@@ -12,6 +12,8 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+## [1.9.2] — 2026-10-30
+
 ### Changed
 
 - **Flexible fields come back once.** Public REST reads returned every top-level flexible field twice — the ordered list and `<field>_by_key` with the same sections. A read now returns the list alone, like ACF's flexible content; add `?byKey=true` (`{ byKey: true }` in `@nodepress-cms/client`) for the lookup. OpenAPI documents the parameter and generated types say when the lookup is there.
