@@ -85,6 +85,11 @@
     "optionalHint": "（可选）",
     "altPlaceholder": "为无障碍访问描述此图片…",
     "dropPrompt": "拖放文件或点击浏览",
-    "useImage": "使用图片"
+    "useImage": "使用图片",
+    "link": "链接",
+    "linkLabel": "图片链接",
+    "linkHint": "粘贴来自 ImageKit 或其他图片服务的完整链接。图片保留在原处，不会复制到媒体库。",
+    "linkInvalid": "请输入以 http:// 或 https:// 开头的完整链接。",
+    "linkBroken": "无法加载此图片。请检查链接。"
   }
 }

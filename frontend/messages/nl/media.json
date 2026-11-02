@@ -85,6 +85,11 @@
     "optionalHint": "(optioneel)",
     "altPlaceholder": "Beschrijf de afbeelding voor toegankelijkheid…",
     "dropPrompt": "Sleep een bestand hierheen of klik om te bladeren",
-    "useImage": "Afbeelding gebruiken"
+    "useImage": "Afbeelding gebruiken",
+    "link": "Link",
+    "linkLabel": "Afbeeldingslink",
+    "linkHint": "Plak een volledige link van ImageKit of een andere afbeeldingsdienst. De afbeelding blijft daar staan en wordt niet naar Media gekopieerd.",
+    "linkInvalid": "Voer een volledige link in die begint met http:// of https://.",
+    "linkBroken": "Deze afbeelding kon niet worden geladen. Controleer de link."
   }
 }

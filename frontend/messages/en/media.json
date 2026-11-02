@@ -85,6 +85,11 @@
     "optionalHint": "(optional)",
     "altPlaceholder": "Describe the image for accessibility…",
     "dropPrompt": "Drop a file or click to browse",
-    "useImage": "Use Image"
+    "useImage": "Use Image",
+    "link": "Link",
+    "linkLabel": "Image link",
+    "linkHint": "Paste a full link from ImageKit or another image service. The image stays there and is not copied to Media.",
+    "linkInvalid": "Enter a full link starting with http:// or https://.",
+    "linkBroken": "This image couldn't be loaded. Check the link."
   }
 }

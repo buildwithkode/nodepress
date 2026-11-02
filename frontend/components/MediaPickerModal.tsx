@@ -38,6 +38,15 @@ interface Props {
   onChange: (val: ImageValue | null) => void;
 }
 
+/** A link pasted from a CDN (ImageKit and the like) — web addresses only. */
+function isWebUrl(value: string) {
+  try {
+    return ['http:', 'https:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
+}
+
 export function MediaPickerModal({ value, onChange }: Props) {
   const t = useTranslations('media');
   const uploadMb = useUploadLimitMb();
@@ -51,6 +60,8 @@ export function MediaPickerModal({ value, onChange }: Props) {
   const [uploading, setUploading]     = useState(false);
   const [dragOver, setDragOver]       = useState(false);
   const [tab, setTab]                 = useState('browse');
+  const [linkUrl, setLinkUrl]         = useState('');
+  const [linkBroken, setLinkBroken]   = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFiles = async () => {
@@ -73,6 +84,22 @@ export function MediaPickerModal({ value, onChange }: Props) {
       fetchFiles();
     }
   }, [open]);
+
+  const changeTab = (next: string) => {
+    // The link tab shows whatever is selected, so it can be read or edited there.
+    if (next === 'link') {
+      setLinkUrl(selectedUrl);
+      setLinkBroken(false);
+    }
+    setTab(next);
+  };
+
+  const changeLink = (next: string) => {
+    const url = next.trim();
+    setLinkUrl(next);
+    setLinkBroken(false);
+    setSelectedUrl(isWebUrl(url) ? url : '');
+  };
 
   const confirm = () => {
     if (selectedUrl) onChange({ url: selectedUrl, alt });
@@ -226,10 +253,11 @@ export function MediaPickerModal({ value, onChange }: Props) {
             <DialogTitle>{t('picker.title')}</DialogTitle>
           </DialogHeader>
 
-          <Tabs value={tab} onValueChange={setTab}>
+          <Tabs value={tab} onValueChange={changeTab}>
             <TabsList>
               <TabsTrigger value="browse">{t('picker.browse')}</TabsTrigger>
               <TabsTrigger value="upload">{t('picker.upload')}</TabsTrigger>
+              <TabsTrigger value="link">{t('picker.link')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="browse">
@@ -282,20 +310,6 @@ export function MediaPickerModal({ value, onChange }: Props) {
                 </div>
               )}
 
-              {/* Alt text input — shown once an image is selected */}
-              {selectedUrl && (
-                <div className="mt-4 space-y-1.5">
-                  <Label htmlFor="media-alt" className="text-sm">
-                    {t('picker.altText')} <span className="text-muted-foreground font-normal">{t('picker.optionalHint')}</span>
-                  </Label>
-                  <Input
-                    id="media-alt"
-                    placeholder={t('picker.altPlaceholder')}
-                    value={alt}
-                    onChange={(e) => setAlt(e.target.value)}
-                  />
-                </div>
-              )}
             </TabsContent>
 
             <TabsContent value="upload">
@@ -337,7 +351,53 @@ export function MediaPickerModal({ value, onChange }: Props) {
                 }}
               />
             </TabsContent>
+
+            <TabsContent value="link">
+              <div className="mt-3 space-y-1.5">
+                <Label htmlFor="media-link" className="text-sm">{t('picker.linkLabel')}</Label>
+                <Input
+                  id="media-link"
+                  type="url"
+                  placeholder="https://ik.imagekit.io/your-id/photo.jpg"
+                  value={linkUrl}
+                  onChange={(e) => changeLink(e.target.value)}
+                />
+                <p className={cn('text-xs', linkUrl.trim() && !selectedUrl ? 'text-destructive' : 'text-muted-foreground')}>
+                  {linkUrl.trim() && !selectedUrl ? t('picker.linkInvalid') : t('picker.linkHint')}
+                </p>
+              </div>
+              {selectedUrl && (
+                <div className="mt-3">
+                  {linkBroken ? (
+                    <p className="text-xs text-destructive">{t('picker.linkBroken')}</p>
+                  ) : (
+                    <img
+                      key={selectedUrl}
+                      src={selectedUrl}
+                      alt=""
+                      onError={() => setLinkBroken(true)}
+                      className="h-32 max-w-full rounded-md border border-border object-contain bg-muted"
+                    />
+                  )}
+                </div>
+              )}
+            </TabsContent>
           </Tabs>
+
+            {/* Alt text input — shown once an image is selected */}
+            {selectedUrl && tab !== 'upload' && (
+              <div className="mt-4 space-y-1.5">
+                <Label htmlFor="media-alt" className="text-sm">
+                  {t('picker.altText')} <span className="text-muted-foreground font-normal">{t('picker.optionalHint')}</span>
+                </Label>
+                <Input
+                  id="media-alt"
+                  placeholder={t('picker.altPlaceholder')}
+                  value={alt}
+                  onChange={(e) => setAlt(e.target.value)}
+                />
+              </div>
+            )}
 
           <DialogFooter className="flex items-center justify-between sm:justify-between w-full">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -352,7 +412,7 @@ export function MediaPickerModal({ value, onChange }: Props) {
                     setCropModalOpen(true);
                   }
                 }}
-                disabled={!selectedUrl}
+                disabled={!selectedUrl || tab === 'link'}
                 className="gap-1.5 text-indigo-400 hover:text-indigo-300"
               >
                 <Crop className="h-3.5 w-3.5" />
