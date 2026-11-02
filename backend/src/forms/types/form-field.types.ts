@@ -10,6 +10,8 @@ export type FieldType =
   // nested
   | 'group'     // object — uses `fields`
   | 'repeater'  // array of objects — uses `fields`
+  // an uploaded file, top level only — `options` lists the allowed extensions
+  | 'file'
   // legacy alias kept for back-compat (existing forms) — coerced like `boolean`
   | 'checkbox';
 
@@ -39,7 +41,7 @@ export interface FormField {
   type: FieldType;
   label?: string;
   required?: boolean;        // legacy — normalized into validation.required
-  options?: string[];        // for select | radio | multiselect
+  options?: string[];        // for select | radio | multiselect; allowed extensions for file
   placeholder?: string;
   fields?: FormField[];      // for group | repeater (recursive)
   validation?: FieldValidation;

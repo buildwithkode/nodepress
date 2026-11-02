@@ -32,7 +32,8 @@
     "countMatching": "{count, plural, one {# Einsendung} other {# Einsendungen}} für „{search}“",
     "noneTitle": "Noch keine Einsendungen",
     "noneDescription": "Teilen Sie das Formular – Antworten erscheinen dann hier.",
-    "date": "Datum"
+    "date": "Datum",
+    "fileDownloadFailed": "Diese Datei konnte nicht heruntergeladen werden"
   },
   "fieldEditor": {
     "labelPlaceholder": "Für Nutzer angezeigte Bezeichnung",
@@ -60,7 +61,9 @@
     "messagePlaceholder": "Wird angezeigt, wenn dieses Feld ungültig ist",
     "itemFields": "Eintragsfelder (wiederholt)",
     "subFields": "Unterfelder",
-    "addSubField": "Unterfeld hinzufügen"
+    "addSubField": "Unterfeld hinzufügen",
+    "fileTypes": "Erlaubte Dateitypen",
+    "fileTypesHint": "durch Kommas getrennt; leer erlaubt pdf, doc, docx"
   },
   "fieldTypes": {
     "text": "Text",
@@ -77,7 +80,8 @@
     "multiselect": "Mehrfachauswahl",
     "tags": "Tags (frei)",
     "group": "Gruppe (Objekt)",
-    "repeater": "Wiederholung (Liste)"
+    "repeater": "Wiederholung (Liste)",
+    "file": "Datei-Upload"
   },
   "builder": {
     "created": "Formular erstellt",

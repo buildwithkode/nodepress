@@ -32,7 +32,8 @@
     "countMatching": "{count, plural, one {# submission} other {# submissions}} matching \"{search}\"",
     "noneTitle": "No submissions yet",
     "noneDescription": "Share the form and responses will appear here.",
-    "date": "Date"
+    "date": "Date",
+    "fileDownloadFailed": "This file couldn't be downloaded"
   },
   "fieldEditor": {
     "labelPlaceholder": "Label shown to user",
@@ -60,7 +61,9 @@
     "messagePlaceholder": "Shown when this field fails",
     "itemFields": "Item fields (repeats)",
     "subFields": "Sub-fields",
-    "addSubField": "Add sub-field"
+    "addSubField": "Add sub-field",
+    "fileTypes": "Allowed file types",
+    "fileTypesHint": "comma separated; blank allows pdf, doc, docx"
   },
   "fieldTypes": {
     "text": "Text",
@@ -77,7 +80,8 @@
     "multiselect": "Multi-select",
     "tags": "Tags (freeform)",
     "group": "Group (object)",
-    "repeater": "Repeater (list)"
+    "repeater": "Repeater (list)",
+    "file": "File upload"
   },
   "builder": {
     "created": "Form created",

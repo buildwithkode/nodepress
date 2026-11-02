@@ -32,7 +32,8 @@
     "countMatching": "{count, plural, one {# soumission correspond} other {# soumissions correspondent}} à « {search} »",
     "noneTitle": "Aucune soumission pour l’instant",
     "noneDescription": "Partagez le formulaire : les réponses apparaîtront ici.",
-    "date": "Date"
+    "date": "Date",
+    "fileDownloadFailed": "Impossible de télécharger ce fichier"
   },
   "fieldEditor": {
     "labelPlaceholder": "Libellé affiché à l’utilisateur",
@@ -60,7 +61,9 @@
     "messagePlaceholder": "Affiché quand ce champ est invalide",
     "itemFields": "Champs de l’élément (répétés)",
     "subFields": "Sous-champs",
-    "addSubField": "Ajouter un sous-champ"
+    "addSubField": "Ajouter un sous-champ",
+    "fileTypes": "Types de fichiers autorisés",
+    "fileTypesHint": "séparés par des virgules ; vide autorise pdf, doc, docx"
   },
   "fieldTypes": {
     "text": "Texte",
@@ -77,7 +80,8 @@
     "multiselect": "Sélection multiple",
     "tags": "Étiquettes (libres)",
     "group": "Groupe (objet)",
-    "repeater": "Répéteur (liste)"
+    "repeater": "Répéteur (liste)",
+    "file": "Envoi de fichier"
   },
   "builder": {
     "created": "Formulaire créé",

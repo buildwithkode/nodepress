@@ -359,10 +359,29 @@ model FormSubmission {
   data      Json // validated key→value pairs
   ip        String? // submitter IP (optional, for spam detection)
   createdAt DateTime @default(now())
+  files     FormFile[]
 
   @@index([formId])
   @@index([formId, createdAt(sort: Desc)])
   @@map("form_submissions")
+}
+
+// A file sent with a form submission (a CV, say). Kept in the database, not in
+// uploads/, because /uploads is public and these can hold personal data. Only
+// GET /api/forms/:id/submissions/:submissionId/files/:fileId serves them.
+model FormFile {
+  id           String         @id
+  submission   FormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId Int
+  field        String
+  filename     String
+  mimetype     String
+  size         Int
+  data         Bytes
+  createdAt    DateTime       @default(now())
+
+  @@index([submissionId])
+  @@map("form_files")
 }
 
 // Singleton (always row id=1) holding the install's brand identity.

@@ -67,13 +67,16 @@ export function validateSubmission(
   const errors: ValidationError[] = [];
   const counter: Counter = { fields: 0, aborted: false };
 
-  const clean = walkGroup(fields, data, '', 1, limits, errors, counter);
+  const clean = walkGroup(fields, data, '', TOP_LEVEL_DEPTH, limits, errors, counter);
 
   if (errors.length > 0) {
     throw new BadRequestException({ message: 'Validation failed', errors });
   }
   return clean;
 }
+
+/** The depth validateSubmission() starts walking at. */
+const TOP_LEVEL_DEPTH = 1;
 
 /** Validate an object's worth of fields, returning the cleaned object. */
 function walkGroup(
@@ -143,6 +146,15 @@ function validateField(
   }
 
   switch (field.type) {
+    case 'file': {
+      // Set by attachUploads() from the bytes actually received, never by the client.
+      if (depth > TOP_LEVEL_DEPTH) {
+        err('file', `"${label(field)}" can't be inside a group or repeater`);
+        return null;
+      }
+      return value;
+    }
+
     case 'group': {
       if (typeof value !== 'object' || Array.isArray(value)) {
         err('type', `"${label(field)}" must be an object`);

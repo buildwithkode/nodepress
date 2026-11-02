@@ -32,7 +32,8 @@
     "countMatching": "{count, plural, one {# inzending} other {# inzendingen}} voor \"{search}\"",
     "noneTitle": "Nog geen inzendingen",
     "noneDescription": "Deel het formulier en reacties verschijnen hier.",
-    "date": "Datum"
+    "date": "Datum",
+    "fileDownloadFailed": "Dit bestand kon niet worden gedownload"
   },
   "fieldEditor": {
     "labelPlaceholder": "Label dat de gebruiker ziet",
@@ -60,7 +61,9 @@
     "messagePlaceholder": "Getoond als dit veld niet klopt",
     "itemFields": "Itemvelden (herhalen)",
     "subFields": "Subvelden",
-    "addSubField": "Subveld toevoegen"
+    "addSubField": "Subveld toevoegen",
+    "fileTypes": "Toegestane bestandstypen",
+    "fileTypesHint": "gescheiden door komma's; leeg staat pdf, doc, docx toe"
   },
   "fieldTypes": {
     "text": "Tekst",
@@ -77,7 +80,8 @@
     "multiselect": "Meerkeuze",
     "tags": "Tags (vrije invoer)",
     "group": "Groep (object)",
-    "repeater": "Repeater (lijst)"
+    "repeater": "Repeater (lijst)",
+    "file": "Bestand uploaden"
   },
   "builder": {
     "created": "Formulier aangemaakt",

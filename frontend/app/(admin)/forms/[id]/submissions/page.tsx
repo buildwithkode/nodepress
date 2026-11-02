@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { SearchInput } from '@/components/ui/search-input';
 import { Pagination } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
-import { summarize, toCsv, downloadCsv, CsvField } from '../../_components/submission-format';
+import { isSubmittedFile, summarize, toCsv, downloadCsv, CsvField, SubmittedFile } from '../../_components/submission-format';
 import { useTranslations } from 'use-intl';
 
 interface Submission {
@@ -70,6 +70,30 @@ function SubmissionValue({ value }: { value: unknown }) {
     );
   }
   return <span className="text-sm break-words">{String(value)}</span>;
+}
+
+/** Files need the admin's token, so they're fetched here rather than linked. */
+function FileDownload({ formId, submissionId, file }: { formId: string; submissionId: number; file: SubmittedFile }) {
+  const t = useTranslations('forms');
+  const download = async () => {
+    try {
+      const res = await api.get(`/forms/${formId}/submissions/${submissionId}/files/${file.fileId}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(t('submissions.fileDownloadFailed'));
+    }
+  };
+  return (
+    <Button type="button" variant="outline" size="sm" className="gap-1.5 max-w-full" onClick={download}>
+      <Download className="h-3.5 w-3.5 shrink-0" />
+      <span className="truncate">{file.filename}</span>
+    </Button>
+  );
 }
 
 const PAGE_SIZE = 15;
@@ -234,7 +258,9 @@ export default function SubmissionsPage() {
                             {labelFor(key)}
                           </p>
                           <div className="text-sm break-words">
-                            <SubmissionValue value={val} />
+                            {isSubmittedFile(val)
+                              ? <FileDownload formId={String(id)} submissionId={row.id} file={val} />
+                              : <SubmissionValue value={val} />}
                           </div>
                         </div>
                       ))}

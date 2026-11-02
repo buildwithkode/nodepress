@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FormsService } from './forms.service';
 import { ActionsService } from './actions/actions.service';
@@ -6,6 +6,8 @@ import { CaptchaService } from './captcha.service';
 import { FormField, ActionDef } from './types/form-field.types';
 import { validateSubmission, FormLimits } from './submission-validator';
 import { env } from '../config/env';
+import { attachUploads } from './form-files';
+import { maxUploadBytes } from '../media/upload-limits';
 
 const FORM_LIMITS: FormLimits = {
   maxDepth:        env.FORM_MAX_DEPTH,
@@ -30,6 +32,7 @@ export class SubmissionService {
     rawData: Record<string, unknown>,
     captchaToken?: string,
     ip?: string,
+    uploaded: Express.Multer.File[] = [],
   ) {
     // 1. Load the form (throws 404/400 if not found or inactive)
     const form = await this.forms.findBySlug(slug);
@@ -60,11 +63,17 @@ export class SubmissionService {
     // 4. Validate + coerce submission data against the form schema
     //    (recursive engine: typed scalars, arrays, nested groups/repeaters,
     //     declarative rules, and public-endpoint guardrails)
-    const data = validateSubmission(fields, rawData, FORM_LIMITS);
+    const { values, files } = attachUploads(fields, rawData, uploaded, maxUploadBytes());
+    const data = validateSubmission(fields, values, FORM_LIMITS);
 
-    // 5. Persist submission
+    // 5. Persist submission and its files together
     const submission = await this.prisma.formSubmission.create({
-      data: { formId: form.id, data: data as any, ip: ip ?? null },
+      data: {
+        formId: form.id,
+        data: data as any,
+        ip: ip ?? null,
+        ...(files.length ? { files: { create: files } } : {}),
+      },
     });
 
     // 6. Queue actions (email/webhook) as background jobs. The submission is
@@ -80,5 +89,14 @@ export class SubmissionService {
       submissionId: submission.id,
       message: 'Your submission has been received.',
     };
+  }
+
+  /** One submission's file, for the admin. The form id must match, so a link can't reach another form's file. */
+  async findFile(formId: number, submissionId: number, fileId: string) {
+    const file = await this.prisma.formFile.findFirst({
+      where: { id: fileId, submissionId, submission: { formId } },
+    });
+    if (!file) throw new NotFoundException('File not found');
+    return file;
   }
 }
