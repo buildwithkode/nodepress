@@ -64,9 +64,15 @@ import { LocalesModule } from './locales/locales.module';
           res.setHeader('X-Request-Id', id);
           return id;
         },
-        // Strip verbose/noisy fields from logs
+        // Keep credentials out of logs: anyone reading them could sign in with these.
+        // np_token and np_refresh travel in Cookie; login sends np_refresh in Set-Cookie.
         redact: {
-          paths: ['req.headers.authorization', 'req.headers["x-api-key"]'],
+          paths: [
+            'req.headers.authorization',
+            'req.headers["x-api-key"]',
+            'req.headers.cookie',
+            'res.headers["set-cookie"]',
+          ],
           remove: true,
         },
         // In development: pretty-print with colours. In production: raw JSON.
