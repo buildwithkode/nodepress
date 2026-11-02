@@ -207,7 +207,7 @@ function backup(args) {
 
     const storage = (setting('STORAGE_DRIVER') || 'local').toLowerCase();
     let uploads = 0;
-    if (storage !== 's3' && fs.existsSync(UPLOADS_DIR)) {
+    if (!['s3', 'r2', 'imagekit'].includes(storage) && fs.existsSync(UPLOADS_DIR)) {
       uploads = countFiles(UPLOADS_DIR);
       if (uploads > 0) {
         console.log(`• Copying ${uploads} uploaded file(s)…`);

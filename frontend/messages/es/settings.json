@@ -123,7 +123,16 @@
       "saved": "Ajustes de almacenamiento guardados",
       "restartRequired": "Los cambios de almacenamiento se aplican tras reiniciar el servidor. Los archivos existentes no se mueven.",
       "restart": "Reiniciar ahora",
-      "restarting": "Reiniciando — la administración se reconectará en un momento"
+      "restarting": "Reiniciando — la administración se reconectará en un momento",
+      "accountId": "ID de cuenta de Cloudflare",
+      "accountIdHint": "32 caracteres, se muestra en el panel de Cloudflare. Las claves se crean en R2 → Tokens de API.",
+      "r2PublicUrl": "URL pública",
+      "r2PublicUrlHint": "La dirección pública del bucket o tu dominio personalizado. Activa el acceso público del bucket en Cloudflare.",
+      "urlEndpoint": "Endpoint de URL",
+      "urlEndpointHint": "Se muestra en ImageKit en Opciones de desarrollador, o tu dominio personalizado.",
+      "privateKey": "Clave privada",
+      "folder": "Carpeta (opcional)",
+      "folderHint": "Mantiene juntos los archivos de este sitio en ImageKit."
     },
     "search": {
       "title": "Búsqueda",

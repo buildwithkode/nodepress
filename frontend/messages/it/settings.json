@@ -123,7 +123,16 @@
       "saved": "Impostazioni di archiviazione salvate",
       "restartRequired": "Le modifiche all'archiviazione hanno effetto dopo il riavvio del server. I file esistenti non vengono spostati.",
       "restart": "Riavvia ora",
-      "restarting": "Riavvio in corso: l'amministrazione si riconnetterà tra un momento"
+      "restarting": "Riavvio in corso: l'amministrazione si riconnetterà tra un momento",
+      "accountId": "ID account Cloudflare",
+      "accountIdHint": "32 caratteri, visibile nella dashboard di Cloudflare. Le chiavi si creano in R2 → Token API.",
+      "r2PublicUrl": "URL pubblico",
+      "r2PublicUrlHint": "L'indirizzo pubblico del bucket o il tuo dominio personalizzato. Attiva l'accesso pubblico del bucket in Cloudflare.",
+      "urlEndpoint": "Endpoint URL",
+      "urlEndpointHint": "Visibile in ImageKit in Opzioni sviluppatore, oppure il tuo dominio personalizzato.",
+      "privateKey": "Chiave privata",
+      "folder": "Cartella (facoltativa)",
+      "folderHint": "Tiene insieme i file di questo sito in ImageKit."
     },
     "search": {
       "title": "Ricerca",

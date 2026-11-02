@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 
 /** GET /api/server-settings */
+type StorageDriver = 'local' | 's3' | 'r2' | 'imagekit';
+
 export interface ServerSettings {
   mail: {
     source: 'env' | 'database' | null;
@@ -26,14 +28,17 @@ export interface ServerSettings {
   };
   storage: {
     source: 'env' | 'database' | null;
-    driver: 'local' | 's3';
+    driver: StorageDriver;
     bucket: string | null;
     region: string | null;
     endpoint: string | null;
     publicUrl: string | null;
     accessKey: string | null;
+    accountId?: string | null;
+    urlEndpoint?: string | null;
+    folder?: string | null;
     hasSecret: boolean;
-    active: 'local' | 's3' | null;
+    active: StorageDriver | null;
     restartRequired: boolean;
     production?: boolean;
   };
@@ -211,9 +216,13 @@ export function EmailSettingsForm({
 
 // ── Storage ────────────────────────────────────────────────────────────────
 
+const R2_ENDPOINT = /^https:\/\/([a-f0-9]{32})\.r2\.cloudflarestorage\.com\/?$/i;
+// S3 and R2 share one kind of key. Keep in step with sameStorageSecret in the backend.
+const sameSecret = (a: StorageDriver, b: StorageDriver) =>
+  a === b || ((a === 's3' || a === 'r2') && (b === 's3' || b === 'r2'));
+
 const PROVIDERS = {
   aws: { endpoint: '', region: 'us-east-1' },
-  r2: { endpoint: 'https://<account-id>.r2.cloudflarestorage.com', region: 'auto' },
   spaces: { endpoint: 'https://<region>.digitaloceanspaces.com', region: 'nyc3' },
   other: { endpoint: 'https://minio.example.com', region: 'us-east-1' },
 } as const;
@@ -230,12 +239,16 @@ export function StorageSettingsForm({
 }) {
   const t = useTranslations('settings');
   const readOnly = settings.source === 'env';
-  const [driver, setDriver] = useState<'local' | 's3'>(settings.driver);
+  // R2 set up earlier as S3-compatible storage opens as R2.
+  const legacyR2 = settings.driver === 's3' ? settings.endpoint?.match(R2_ENDPOINT)?.[1] : undefined;
+  const [driver, setDriver] = useState<StorageDriver>(legacyR2 ? 'r2' : settings.driver);
   const [provider, setProvider] = useState<Provider>(
-    settings.endpoint?.includes('r2.cloudflarestorage') ? 'r2'
-      : settings.endpoint?.includes('digitaloceanspaces') ? 'spaces'
-        : settings.endpoint ? 'other' : 'aws',
+    settings.endpoint?.includes('digitaloceanspaces') ? 'spaces'
+      : settings.endpoint ? 'other' : 'aws',
   );
+  const [accountId, setAccountId] = useState(settings.accountId ?? legacyR2 ?? '');
+  const [urlEndpoint, setUrlEndpoint] = useState(settings.urlEndpoint ?? '');
+  const [folder, setFolder] = useState(settings.folder ?? '');
   const [bucket, setBucket] = useState(settings.bucket ?? '');
   const [region, setRegion] = useState(settings.region ?? '');
   const [endpoint, setEndpoint] = useState(settings.endpoint ?? '');
@@ -245,21 +258,32 @@ export function StorageSettingsForm({
   const [busy, setBusy] = useState<'save' | 'test' | 'restart' | null>(null);
   const [tested, setTested] = useState(false);
 
-  useEffect(() => setTested(false), [driver, bucket, region, endpoint, accessKey, secretKey]);
+  useEffect(() => setTested(false), [driver, bucket, region, endpoint, accessKey, secretKey, accountId, publicUrl, urlEndpoint, folder]);
 
-  const body = () => ({
-    driver,
-    ...(driver === 's3'
-      ? {
-          bucket: bucket.trim(),
-          region: region.trim() || undefined,
-          endpoint: endpoint.trim() || undefined,
-          accessKey: accessKey.trim(),
-          secretKey: secretKey || undefined,
-          publicUrl: publicUrl.trim() || undefined,
-        }
-      : {}),
-  });
+  // A saved secret only stands in for one of the same kind.
+  const secretSaved = settings.hasSecret && sameSecret(settings.driver, driver);
+
+  const body = () => {
+    const secret = { secretKey: secretKey || undefined };
+    if (driver === 's3') {
+      return {
+        driver,
+        ...secret,
+        bucket: bucket.trim(),
+        region: region.trim() || undefined,
+        endpoint: endpoint.trim() || undefined,
+        accessKey: accessKey.trim(),
+        publicUrl: publicUrl.trim() || undefined,
+      };
+    }
+    if (driver === 'r2') {
+      return { driver, ...secret, accountId: accountId.trim(), bucket: bucket.trim(), accessKey: accessKey.trim(), publicUrl: publicUrl.trim() };
+    }
+    if (driver === 'imagekit') {
+      return { driver, ...secret, urlEndpoint: urlEndpoint.trim(), folder: folder.trim() || undefined };
+    }
+    return { driver };
+  };
 
   const run = async (kind: 'save' | 'test') => {
     setBusy(kind);
@@ -293,24 +317,35 @@ export function StorageSettingsForm({
     }
   };
 
-  const driverItems = { local: t('server.storage.local'), s3: t('server.storage.s3') };
-  const providerItems: Record<Provider, string> = {
-    aws: 'Amazon S3', r2: 'Cloudflare R2', spaces: 'DigitalOcean Spaces', other: t('server.storage.otherProvider'),
+  const driverItems: Record<StorageDriver, string> = {
+    local: t('server.storage.local'), s3: t('server.storage.s3'), r2: 'Cloudflare R2', imagekit: 'ImageKit',
   };
-  // R2, Spaces and others need their endpoint, filled in (not the <account-id> example).
+  const providerItems: Record<Provider, string> = {
+    aws: 'Amazon S3', spaces: 'DigitalOcean Spaces', other: t('server.storage.otherProvider'),
+  };
+  // Spaces and others need their endpoint, filled in (not the <region> example).
   const endpointOk = provider === 'aws' || (!!endpoint.trim() && !/[<>]/.test(endpoint));
-  const canSave = driver === 'local' || (bucket.trim() && accessKey.trim() && (secretKey || settings.hasSecret) && endpointOk);
+  const hasSecret = !!secretKey || secretSaved;
+  const canSave =
+    driver === 'local'
+    || (driver === 'imagekit' && !!urlEndpoint.trim() && hasSecret)
+    || (driver === 'r2' && /^[a-f0-9]{32}$/i.test(accountId.trim()) && !!bucket.trim() && !!accessKey.trim() && !!publicUrl.trim() && hasSecret)
+    || (driver === 's3' && !!bucket.trim() && !!accessKey.trim() && endpointOk && hasSecret);
+  const secretHint = secretSaved ? t('server.keepSecret') : undefined;
+  const secretPlaceholder = secretSaved ? '••••••••' : '';
 
   return (
     <div className="space-y-4">
       {readOnly && <EnvNotice what="STORAGE_*" />}
       <fieldset disabled={readOnly} className="m-0 min-w-0 space-y-3 border-0 p-0">
         <Field label={t('server.storage.where')}>
-          <Select value={driver} items={driverItems} onValueChange={(v) => setDriver((v as 'local' | 's3') ?? 'local')}>
+          <Select value={driver} items={driverItems} onValueChange={(v) => setDriver((v as StorageDriver) ?? 'local')}>
             <SelectTrigger className="w-full sm:w-72"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="local">{driverItems.local}</SelectItem>
               <SelectItem value="s3">{driverItems.s3}</SelectItem>
+              <SelectItem value="r2">{driverItems.r2}</SelectItem>
+              <SelectItem value="imagekit">{driverItems.imagekit}</SelectItem>
             </SelectContent>
           </Select>
         </Field>
@@ -354,8 +389,8 @@ export function StorageSettingsForm({
             <Field label={t('server.storage.accessKey')}>
               <Input value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" />
             </Field>
-            <Field label={t('server.storage.secretKey')} hint={settings.hasSecret ? t('server.keepSecret') : undefined}>
-              <Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={settings.hasSecret ? '••••••••' : ''} />
+            <Field label={t('server.storage.secretKey')} hint={secretHint}>
+              <Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
             </Field>
             <Field label={t('server.storage.bucket')}>
               <Input value={bucket} onChange={(e) => setBucket(e.target.value)} placeholder="my-site-media" />
@@ -365,10 +400,46 @@ export function StorageSettingsForm({
             </Field>
           </div>
         )}
+        {driver === 'r2' && (
+          <div className="grid gap-x-3 gap-y-4 pt-1 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Field label={t('server.storage.accountId')} hint={t('server.storage.accountIdHint')}>
+                <Input value={accountId} onChange={(e) => setAccountId(e.target.value)} autoComplete="off" />
+              </Field>
+            </div>
+            <Field label={t('server.storage.accessKey')}>
+              <Input value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" />
+            </Field>
+            <Field label={t('server.storage.secretKey')} hint={secretHint}>
+              <Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
+            </Field>
+            <Field label={t('server.storage.bucket')}>
+              <Input value={bucket} onChange={(e) => setBucket(e.target.value)} placeholder="my-site-media" />
+            </Field>
+            <Field label={t('server.storage.r2PublicUrl')} hint={t('server.storage.r2PublicUrlHint')}>
+              <Input value={publicUrl} onChange={(e) => setPublicUrl(e.target.value)} placeholder="https://media.example.com" />
+            </Field>
+          </div>
+        )}
+        {driver === 'imagekit' && (
+          <div className="grid gap-x-3 gap-y-4 pt-1 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Field label={t('server.storage.urlEndpoint')} hint={t('server.storage.urlEndpointHint')}>
+                <Input value={urlEndpoint} onChange={(e) => setUrlEndpoint(e.target.value)} placeholder="https://ik.imagekit.io/your_id" />
+              </Field>
+            </div>
+            <Field label={t('server.storage.privateKey')} hint={secretHint}>
+              <Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
+            </Field>
+            <Field label={t('server.storage.folder')} hint={t('server.storage.folderHint')}>
+              <Input value={folder} onChange={(e) => setFolder(e.target.value)} placeholder="my-site" />
+            </Field>
+          </div>
+        )}
       </fieldset>
       {!readOnly && (
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          {driver === 's3' && (
+          {driver !== 'local' && (
             <Button type="button" variant="outline" onClick={() => run('test')} disabled={!!busy || !canSave}>
               {busy === 'test' ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : tested ? <CheckCircle2 className="h-4 w-4 mr-1.5 text-emerald-500" /> : <HardDrive className="h-4 w-4 mr-1.5" />}
               {t('server.storage.test')}

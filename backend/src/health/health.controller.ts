@@ -52,8 +52,9 @@ export class HealthController {
 
       // ── File storage ──────────────────────────────────────────────────────
       async (): Promise<HealthIndicatorResult> => {
-        if (process.env.STORAGE_DRIVER === 's3') {
-          return { storage: { status: 'up', driver: 's3' } };
+        const remote = process.env.STORAGE_DRIVER;
+        if (remote === 's3' || remote === 'r2' || remote === 'imagekit') {
+          return { storage: { status: 'up', driver: remote } };
         }
         try {
           statSync(join(process.cwd(), 'uploads'));

@@ -123,7 +123,16 @@
       "saved": "ストレージ設定を保存しました",
       "restartRequired": "ストレージの変更はサーバーの再起動後に反映されます。既存のファイルは移動されません。",
       "restart": "今すぐ再起動",
-      "restarting": "再起動中です。管理画面はまもなく再接続されます"
+      "restarting": "再起動中です。管理画面はまもなく再接続されます",
+      "accountId": "Cloudflare アカウント ID",
+      "accountIdHint": "32 文字で、Cloudflare のダッシュボードに表示されます。キーは R2 → API トークンで作成します。",
+      "r2PublicUrl": "公開 URL",
+      "r2PublicUrlHint": "バケットの公開アドレスまたはカスタムドメインです。Cloudflare でバケットの公開アクセスを有効にしてください。",
+      "urlEndpoint": "URL エンドポイント",
+      "urlEndpointHint": "ImageKit の開発者オプションに表示されます。カスタムドメインも使えます。",
+      "privateKey": "秘密鍵",
+      "folder": "フォルダ（任意）",
+      "folderHint": "このサイトのファイルを ImageKit 内でまとめます。"
     },
     "search": {
       "title": "検索",

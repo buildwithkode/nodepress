@@ -45,7 +45,7 @@ export class ServerSettingsController {
   @ApiOperation({ summary: 'Save storage settings — takes effect after a restart' })
   async saveStorage(@Body() dto: StorageSettingsDto, @Request() req: any) {
     const res = await this.settings.saveStorage(dto);
-    await this.log(req, { storage: dto.driver === 's3' ? dto.bucket : 'local' });
+    await this.log(req, { storage: dto.driver === 'local' ? 'local' : `${dto.driver}: ${dto.driver === 'imagekit' ? dto.urlEndpoint : dto.bucket}` });
     return res;
   }
 
@@ -53,9 +53,9 @@ export class ServerSettingsController {
   @Access('server_settings', 'edit')
   @Post('storage/test')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Write and delete a test object in the bucket' })
+  @ApiOperation({ summary: 'Write and delete a test file in the chosen storage' })
   testStorage(@Body() dto: StorageSettingsDto) {
-    return this.settings.testStorage(dto.driver === 's3' ? dto : undefined);
+    return this.settings.testStorage(dto.driver === 'local' ? undefined : dto);
   }
 
   private log(req: any, metadata: Record<string, any>) {

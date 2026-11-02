@@ -123,7 +123,16 @@
       "saved": "Opslaginstellingen opgeslagen",
       "restartRequired": "Wijzigingen in de opslag worden actief na een herstart van de server. Bestaande bestanden worden niet verplaatst.",
       "restart": "Nu herstarten",
-      "restarting": "Herstarten — de admin maakt zo opnieuw verbinding"
+      "restarting": "Herstarten — de admin maakt zo opnieuw verbinding",
+      "accountId": "Cloudflare-account-ID",
+      "accountIdHint": "32 tekens, te zien in het Cloudflare-dashboard. Sleutels maak je aan onder R2 → API-tokens.",
+      "r2PublicUrl": "Openbare URL",
+      "r2PublicUrlHint": "Het openbare adres van de bucket of je eigen domein. Zet openbare toegang voor de bucket aan in Cloudflare.",
+      "urlEndpoint": "URL-eindpunt",
+      "urlEndpointHint": "Te zien in ImageKit onder Ontwikkelaarsopties, of je eigen domein.",
+      "privateKey": "Privésleutel",
+      "folder": "Map (optioneel)",
+      "folderHint": "Houdt de bestanden van deze site bij elkaar in ImageKit."
     },
     "search": {
       "title": "Zoeken",
