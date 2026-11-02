@@ -2,7 +2,9 @@ import { BadRequestException, ConflictException, Injectable } from '@nestjs/comm
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService, SmtpConfig, smtpFromSaved } from '../mail/mail.service';
+import { ImageKitStorageAdapter } from '../media/adapters/imagekit.adapter';
 import { S3StorageAdapter } from '../media/adapters/s3.adapter';
+import { isStorageDriver, r2Config, sameStorageSecret } from '../media/adapters/storage-config';
 import { activeStorageDriver } from '../media/media.module';
 import { open, seal } from '../common/secret-box';
 import { env } from '../config/env';
@@ -64,15 +66,21 @@ export class ServerSettingsService {
     return this.get();
   }
 
-  /** Write and delete a test object with these (or the saved) S3 settings. */
+  /** Write and delete a test file with these (or the saved) settings. */
   async testStorage(dto?: StorageSettingsDto) {
     const row = await this.row();
-    const st = dto?.bucket ? this.storageToSave({ ...dto, driver: 's3' }, row.storage as Saved) : (row.storage as Saved);
-    if (!st || st.driver !== 's3') throw new BadRequestException('Local disk needs no test');
+    const st = dto ? this.storageToSave(dto, row.storage as Saved) : (row.storage as Saved);
+    if (!st || !isStorageDriver(st.driver) || st.driver === 'local') throw new BadRequestException('Local disk needs no test');
     const secretKey = open(st.secretKey);
-    if (!secretKey) throw new BadRequestException('Enter the secret access key');
+    if (!secretKey) throw new BadRequestException(st.driver === 'imagekit' ? 'Enter the private key' : 'Enter the secret access key');
     try {
-      await S3StorageAdapter.test({ ...st, secretKey });
+      if (st.driver === 'imagekit') {
+        await ImageKitStorageAdapter.test({ privateKey: secretKey, urlEndpoint: st.urlEndpoint, folder: st.folder });
+      } else if (st.driver === 'r2') {
+        await S3StorageAdapter.test(r2Config({ accountId: st.accountId, bucket: st.bucket, accessKey: st.accessKey, secretKey, publicUrl: st.publicUrl }));
+      } else {
+        await S3StorageAdapter.test({ ...st, secretKey });
+      }
     } catch (err: any) {
       throw new BadRequestException(`Storage test failed: ${err?.name ? `${err.name}: ` : ''}${err?.message ?? err}`);
     }
@@ -100,12 +108,34 @@ export class ServerSettingsService {
 
   private storageToSave(dto: StorageSettingsDto, current: Saved) {
     if (dto.driver === 'local') return { driver: 'local' };
+    // A blank secret keeps the saved one, unless that belongs to another kind of storage.
+    const secretKey = dto.secretKey
+      ? seal(dto.secretKey)
+      : (sameStorageSecret(current?.driver, dto.driver) ? current?.secretKey ?? null : null);
+    if (dto.driver === 'imagekit') {
+      return {
+        driver: 'imagekit',
+        urlEndpoint: dto.urlEndpoint!.trim().replace(/\/+$/, ''),
+        folder: dto.folder?.trim().replace(/^\/+|\/+$/g, '') || null,
+        secretKey,
+      };
+    }
+    if (dto.driver === 'r2') {
+      return {
+        driver: 'r2',
+        accountId: dto.accountId!.trim().toLowerCase(),
+        bucket: dto.bucket!.trim(),
+        accessKey: dto.accessKey!.trim(),
+        secretKey,
+        publicUrl: dto.publicUrl!.trim(),
+      };
+    }
     return {
       driver: 's3',
       bucket: dto.bucket!.trim(),
       region: dto.region?.trim() || 'us-east-1',
       accessKey: dto.accessKey!.trim(),
-      secretKey: dto.secretKey ? seal(dto.secretKey) : (current?.secretKey ?? null),
+      secretKey,
       endpoint: dto.endpoint?.trim() || null,
       publicUrl: dto.publicUrl?.trim() || null,
     };
@@ -143,12 +173,15 @@ export class ServerSettingsService {
         endpoint: process.env.STORAGE_S3_ENDPOINT ?? null,
         publicUrl: process.env.STORAGE_S3_PUBLIC_URL ?? null,
         accessKey: process.env.STORAGE_S3_ACCESS_KEY ?? null,
-        hasSecret: !!process.env.STORAGE_S3_SECRET_KEY,
+        accountId: process.env.STORAGE_R2_ACCOUNT_ID ?? null,
+        urlEndpoint: process.env.STORAGE_IMAGEKIT_URL_ENDPOINT ?? null,
+        folder: process.env.STORAGE_IMAGEKIT_FOLDER ?? null,
+        hasSecret: !!(process.env.STORAGE_DRIVER === 'imagekit' ? process.env.STORAGE_IMAGEKIT_PRIVATE_KEY : process.env.STORAGE_S3_SECRET_KEY),
         active,
         restartRequired: false,
       };
     }
-    const driver = saved?.driver === 's3' ? 's3' : 'local';
+    const driver = isStorageDriver(saved?.driver) ? saved.driver : 'local';
     return {
       source: saved ? ('database' as const) : null,
       driver,
@@ -157,6 +190,9 @@ export class ServerSettingsService {
       endpoint: saved?.endpoint ?? null,
       publicUrl: saved?.publicUrl ?? null,
       accessKey: saved?.accessKey ?? null,
+      accountId: saved?.accountId ?? null,
+      urlEndpoint: saved?.urlEndpoint ?? null,
+      folder: saved?.folder ?? null,
       hasSecret: !!open(saved?.secretKey),
       active,
       // Storage is picked at boot (MediaModule).

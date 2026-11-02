@@ -5,14 +5,14 @@ sidebar:
   order: 8
 ---
 
-A NodePress site is its PostgreSQL database plus its uploaded files. Content types, entries, versions, users, settings, API keys and uploaded plugins all live in the database; uploads live on disk or in an S3 bucket. Back up both, and keep a copy of your secrets.
+A NodePress site is its PostgreSQL database plus its uploaded files. Content types, entries, versions, users, settings, API keys and uploaded plugins all live in the database; uploads live on disk or with your storage provider (S3, R2 or ImageKit). Back up both, and keep a copy of your secrets.
 
 ## What to back up
 
 | What | Where | Notes |
 |---|---|---|
 | Database | PostgreSQL | Everything except uploaded files. |
-| Uploads | `backend/uploads/` (`nodepress-data/uploads/` for the [server zip](/deployment/deploy-zip/)), or your S3 bucket | Skip `uploads/.cache`: it only holds resized variants and temporary files. |
+| Uploads | `backend/uploads/` (`nodepress-data/uploads/` for the [server zip](/deployment/deploy-zip/)), or your storage provider | Skip `uploads/.cache`: it only holds resized variants and temporary files. |
 | `JWT_SECRET` (or `SETTINGS_SECRET`) | `backend/.env` (`nodepress-data/.env` for the server zip), or the `secrets_data` Docker volume | Email and storage passwords saved in the admin are encrypted with it. Restoring the database under a different secret makes them unreadable. |
 
 Backups contain password hashes, API keys and webhook secrets. Store them somewhere private.
@@ -37,7 +37,7 @@ The archive holds:
 | File | Content |
 |---|---|
 | `db.dump` | A `pg_dump` in custom format: schema and data, without owners or privileges. |
-| `uploads/` | `backend/uploads/`, when storage is local. Files on S3 are not copied; back the bucket up with your provider's tools. |
+| `uploads/` | `backend/uploads/`, when storage is local, whether that comes from `STORAGE_DRIVER` or **Settings → Email & storage**. Files on S3, R2 or ImageKit are not copied; back them up with your provider's tools. If you switched storage and older media rows still point at `/uploads/`, the local folder is copied too, because those are the only copies. |
 | `manifest.json` | The NodePress version, the time, the applied migrations and what's included. |
 
 The archive is created readable by you only (mode `0600`).

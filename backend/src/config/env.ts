@@ -13,7 +13,7 @@ const EnvSchema = z.object({
   CORS_ORIGIN: z.string().min(1, 'CORS_ORIGIN is required'),
 
   LOG_LEVEL:      z.enum(['debug', 'info', 'warn', 'error']).optional(),
-  STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
+  STORAGE_DRIVER: z.enum(['local', 's3', 'r2', 'imagekit']).default('local'),
   APP_URL:        z.string().url().optional(),
   SITE_URL:       z.string().url().optional(),
 
@@ -38,6 +38,14 @@ const EnvSchema = z.object({
   STORAGE_S3_SECRET_KEY:  z.string().optional(),
   STORAGE_S3_ENDPOINT:    z.string().optional(),
   STORAGE_S3_PUBLIC_URL:  z.string().optional(),
+
+  // R2 — STORAGE_DRIVER=r2 uses the keys above, plus its account id (or STORAGE_S3_ENDPOINT)
+  STORAGE_R2_ACCOUNT_ID:  z.string().optional(),
+
+  // ImageKit — required when STORAGE_DRIVER=imagekit (must match what imagekit.adapter.ts reads)
+  STORAGE_IMAGEKIT_PRIVATE_KEY:  z.string().optional(),
+  STORAGE_IMAGEKIT_URL_ENDPOINT: z.string().optional(),
+  STORAGE_IMAGEKIT_FOLDER:       z.string().optional(),
 
   // Sentry — optional
   SENTRY_DSN: z.string().url().optional(),
@@ -205,6 +213,28 @@ function validateEnv(raw: NodeJS.ProcessEnv) {
     );
     if (missing.length > 0) {
       console.error(`\n❌  STORAGE_DRIVER=s3 requires: ${missing.join(', ')}\n`);
+      process.exit(1);
+    }
+  }
+
+  // R2 needs the same keys, somewhere to reach it, and a public URL: its API address doesn't serve files.
+  if (data.STORAGE_DRIVER === 'r2') {
+    const missing = ['STORAGE_S3_BUCKET', 'STORAGE_S3_ACCESS_KEY', 'STORAGE_S3_SECRET_KEY', 'STORAGE_S3_PUBLIC_URL'].filter(
+      (k) => !data[k as keyof typeof data],
+    );
+    if (!data.STORAGE_R2_ACCOUNT_ID && !data.STORAGE_S3_ENDPOINT) missing.push('STORAGE_R2_ACCOUNT_ID');
+    if (missing.length > 0) {
+      console.error(`\n❌  STORAGE_DRIVER=r2 requires: ${missing.join(', ')}\n`);
+      process.exit(1);
+    }
+  }
+
+  if (data.STORAGE_DRIVER === 'imagekit') {
+    const missing = ['STORAGE_IMAGEKIT_PRIVATE_KEY', 'STORAGE_IMAGEKIT_URL_ENDPOINT'].filter(
+      (k) => !data[k as keyof typeof data],
+    );
+    if (missing.length > 0) {
+      console.error(`\n❌  STORAGE_DRIVER=imagekit requires: ${missing.join(', ')}\n`);
       process.exit(1);
     }
   }

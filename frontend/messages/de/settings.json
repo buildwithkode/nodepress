@@ -123,7 +123,16 @@
       "saved": "Speichereinstellungen gespeichert",
       "restartRequired": "Speicheränderungen gelten nach einem Neustart des Servers. Vorhandene Dateien werden nicht verschoben.",
       "restart": "Jetzt neu starten",
-      "restarting": "Neustart — die Verwaltung verbindet sich gleich wieder"
+      "restarting": "Neustart — die Verwaltung verbindet sich gleich wieder",
+      "accountId": "Cloudflare-Konto-ID",
+      "accountIdHint": "32 Zeichen, im Cloudflare-Dashboard angezeigt. Schlüssel gibt es unter R2 → API-Tokens.",
+      "r2PublicUrl": "Öffentliche URL",
+      "r2PublicUrlHint": "Die öffentliche Adresse des Buckets oder Ihre eigene Domain. Aktivieren Sie den öffentlichen Zugriff für den Bucket in Cloudflare.",
+      "urlEndpoint": "URL-Endpunkt",
+      "urlEndpointHint": "In ImageKit unter Entwickleroptionen angezeigt, oder Ihre eigene Domain.",
+      "privateKey": "Privater Schlüssel",
+      "folder": "Ordner (optional)",
+      "folderHint": "Hält die Dateien dieser Website in ImageKit zusammen."
     },
     "search": {
       "title": "Suche",

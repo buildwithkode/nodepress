@@ -123,7 +123,16 @@
       "saved": "Storage settings saved",
       "restartRequired": "Storage changes take effect after the server restarts. Existing files aren't moved.",
       "restart": "Restart now",
-      "restarting": "Restarting — the admin will reconnect in a moment"
+      "restarting": "Restarting — the admin will reconnect in a moment",
+      "accountId": "Cloudflare account ID",
+      "accountIdHint": "32 characters, shown in the Cloudflare dashboard. Keys come from R2 → API tokens.",
+      "r2PublicUrl": "Public URL",
+      "r2PublicUrlHint": "The bucket's public address or custom domain. Turn on public access for the bucket in Cloudflare.",
+      "urlEndpoint": "URL endpoint",
+      "urlEndpointHint": "Shown in ImageKit under Developer options, or your custom domain.",
+      "privateKey": "Private key",
+      "folder": "Folder (optional)",
+      "folderHint": "Keeps this site's files together in ImageKit."
     },
     "search": {
       "title": "Search",

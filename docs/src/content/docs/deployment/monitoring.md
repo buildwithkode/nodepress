@@ -106,7 +106,7 @@ The backend logs with [pino](https://getpino.io/). With `NODE_ENV=production`, e
 |---|---|---|
 | `LOG_LEVEL` | `info` in production, `debug` otherwise | `debug`, `info`, `warn` or `error`. |
 
-Every HTTP request is logged with its method, URL, status and response time. Each request gets an id, returned in the `X-Request-Id` response header; send your own `X-Request-Id` to carry an id through from your proxy. `Authorization` and `X-API-Key` headers are removed from the logs.
+Every HTTP request is logged with its method, URL, status and response time. Each request gets an id, returned in the `X-Request-Id` response header; send your own `X-Request-Id` to carry an id through from your proxy. `Authorization`, `X-API-Key` and `Cookie` request headers and `Set-Cookie` response headers are removed from the logs, so login cookies don't end up there.
 
 The backend also logs at startup what it's using: storage, Redis, the realtime adapter, email, a read replica. Read the first lines after a deploy to check the configuration.
 

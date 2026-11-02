@@ -17,6 +17,8 @@ export interface S3Config {
   secretKey?: string;
   endpoint?: string;
   publicUrl?: string;
+  /** Cloudflare R2: no object ACLs, and only the checksums a request must have. */
+  r2?: boolean;
 }
 
 export function s3ConfigFromEnv(): S3Config {
@@ -27,6 +29,20 @@ export function s3ConfigFromEnv(): S3Config {
     secretKey: process.env.STORAGE_S3_SECRET_KEY,
     endpoint: process.env.STORAGE_S3_ENDPOINT,
     publicUrl: process.env.STORAGE_S3_PUBLIC_URL,
+  };
+}
+
+/**
+ * STORAGE_DRIVER=r2 uses the STORAGE_S3_* keys. The endpoint comes from
+ * STORAGE_R2_ACCOUNT_ID, or from STORAGE_S3_ENDPOINT when that's set instead.
+ */
+export function r2ConfigFromEnv(): S3Config {
+  const accountId = process.env.STORAGE_R2_ACCOUNT_ID;
+  return {
+    ...s3ConfigFromEnv(),
+    region: 'auto',
+    endpoint: process.env.STORAGE_S3_ENDPOINT || (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : undefined),
+    r2: true,
   };
 }
 
@@ -51,6 +67,7 @@ export class S3StorageAdapter implements StorageAdapter {
   private readonly client: S3Client;
   private readonly bucket: string;
   private readonly publicUrl: string;
+  private readonly acl: boolean;
 
   constructor(config: S3Config = s3ConfigFromEnv()) {
     const { bucket, accessKey, secretKey, endpoint } = config;
@@ -62,11 +79,20 @@ export class S3StorageAdapter implements StorageAdapter {
       );
     }
 
+    // R2's API address doesn't serve files, so a link built from it would never load.
+    if (config.r2 && (!endpoint || !config.publicUrl)) {
+      throw new InternalServerErrorException(
+        'Cloudflare R2 storage needs an account id (or endpoint) and a public URL for the bucket',
+      );
+    }
+
     this.bucket = bucket;
+    this.acl = !config.r2;
     this.client = new S3Client({
       region,
       credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
       ...(endpoint ? { endpoint, forcePathStyle: true } : {}),
+      ...(config.r2 ? { requestChecksumCalculation: 'WHEN_REQUIRED', responseChecksumValidation: 'WHEN_REQUIRED' } as const : {}),
     });
 
     // Public URL: use custom CDN domain or build from endpoint/bucket
@@ -95,8 +121,9 @@ export class S3StorageAdapter implements StorageAdapter {
           Key: filename,
           Body: createReadStream(localPath),
           ContentType: mimetype,
-          // Public read — remove if using signed URLs
-          ACL: 'public-read' as any,
+          // Public read — remove if using signed URLs. R2 has no object ACLs:
+          // its bucket is made public in Cloudflare.
+          ...(this.acl ? { ACL: 'public-read' as any } : {}),
         },
       });
 

@@ -1,11 +1,11 @@
 ---
 title: File storage
-description: Keep uploads on the server's disk or in S3-compatible storage (AWS S3, Cloudflare R2, DigitalOcean Spaces, MinIO, Backblaze B2).
+description: Keep uploads on the server's disk, in S3-compatible storage (AWS S3, DigitalOcean Spaces, MinIO, Backblaze B2), in Cloudflare R2 or in ImageKit.
 sidebar:
   order: 3
 ---
 
-Uploaded images and files go either to the server's disk (the default) or to an S3-compatible bucket. Set it up with environment variables, or in the admin under **Settings → Email & storage**. The [Media library](/content/media/) works the same either way.
+Uploaded images and files go to the server's disk (the default), an S3-compatible bucket, Cloudflare R2 or ImageKit. One storage is active at a time. Set it up with environment variables, or in the admin under **Settings → Email & storage**. The [Media library](/content/media/) works the same either way.
 
 ## Local disk
 
@@ -19,7 +19,7 @@ Local disk also doesn't work with more than one backend instance: each instance 
 
 ## S3-compatible storage
 
-With S3 storage, each upload is streamed to the bucket, the temporary copy on the server is deleted, and the media library stores the bucket's public URL. Any service that speaks the S3 API works: AWS S3, Cloudflare R2, DigitalOcean Spaces, MinIO, Backblaze B2.
+With S3 storage, each upload is streamed to the bucket, the temporary copy on the server is deleted, and the media library stores the bucket's public URL. Any service that speaks the S3 API works: AWS S3, DigitalOcean Spaces, MinIO, Backblaze B2. Cloudflare R2 also has [its own option](#cloudflare-r2).
 
 ### With environment variables
 
@@ -29,7 +29,7 @@ STORAGE_S3_BUCKET=my-bucket
 STORAGE_S3_REGION=us-east-1
 STORAGE_S3_ACCESS_KEY=AKIA...
 STORAGE_S3_SECRET_KEY=...
-# STORAGE_S3_ENDPOINT=        # not for AWS; required for R2, Spaces, MinIO, B2
+# STORAGE_S3_ENDPOINT=        # not for AWS; required for Spaces, MinIO, B2
 # STORAGE_S3_PUBLIC_URL=      # CDN or custom domain for file URLs
 ```
 
@@ -39,7 +39,7 @@ STORAGE_S3_SECRET_KEY=...
 | `STORAGE_S3_BUCKET` | yes | Bucket name. |
 | `STORAGE_S3_ACCESS_KEY` | yes | Access key ID. |
 | `STORAGE_S3_SECRET_KEY` | yes | Secret access key. |
-| `STORAGE_S3_REGION` | no | Region. Default `us-east-1`. Use `auto` for R2. |
+| `STORAGE_S3_REGION` | no | Region. Default `us-east-1`. |
 | `STORAGE_S3_ENDPOINT` | no | The provider's S3 endpoint. Leave it empty for AWS. |
 | `STORAGE_S3_PUBLIC_URL` | no | Base URL for file links, such as `https://assets.example.com`. |
 
@@ -47,13 +47,51 @@ With `STORAGE_DRIVER=s3` and a missing bucket, access key or secret key, the bac
 
 ### In the admin
 
-Admins can set storage up without touching the server: in **Settings → Email & storage**, under **File storage**, choose **S3-compatible storage** in **Keep uploads on**. Pick a **Provider** (**Amazon S3**, **Cloudflare R2**, **DigitalOcean Spaces**, or **Other (MinIO, Backblaze B2…)**), which fills in the endpoint and region pattern, then enter the **Bucket**, **Access key ID**, **Secret access key** and, optionally, the **Public URL**. **Test connection** writes a small file to the bucket and deletes it again. The setup wizard offers the same form as its last step.
+Admins can set storage up without touching the server: in **Settings → Email & storage**, under **File storage**, choose **S3-compatible storage** in **Keep uploads on**. Pick a **Provider** (**Amazon S3**, **DigitalOcean Spaces**, or **Other (MinIO, Backblaze B2…)**), which fills in the endpoint and region pattern, then enter the **Bucket**, **Access key ID**, **Secret access key** and, optionally, the **Public URL**. **Test connection** writes a small file to the bucket and deletes it again. The setup wizard offers the same form as its last step.
 
 ![The File storage card with S3-compatible storage selected and the provider, bucket, region and key fields](../../../assets/screenshots/storage-settings.png)
 
 The secret key is stored encrypted, with a key derived from `SETTINGS_SECRET` (or `JWT_SECRET` when that isn't set). If that secret later changes, the saved key can't be read and the backend falls back to local disk, with an error in its log. Keep the secret with your backups.
 
-### Which settings win
+## Cloudflare R2
+
+R2 speaks the S3 API, so uploads work the same way, but you only enter what R2 needs: the endpoint comes from your account ID and the region is always `auto`.
+
+1. In Cloudflare, create a bucket and turn on public access for it, with an `r2.dev` address or a custom domain. NodePress can't do this for you, because R2 has no per-file public setting.
+2. Create an API token with read and write access to the bucket. It gives you an access key ID and a secret access key.
+3. In **Settings → Email & storage**, choose **Cloudflare R2**, enter the **Cloudflare account ID**, the keys, the **Bucket** and the **Public URL**, then use **Test connection**.
+
+The public URL is required, because R2's API address doesn't serve files.
+
+```bash title="backend/.env"
+STORAGE_DRIVER=r2
+STORAGE_R2_ACCOUNT_ID=...      # 32 characters
+STORAGE_S3_BUCKET=my-bucket
+STORAGE_S3_ACCESS_KEY=...
+STORAGE_S3_SECRET_KEY=...
+STORAGE_S3_PUBLIC_URL=https://media.example.com
+```
+
+An install already using R2 through `STORAGE_DRIVER=s3` or the S3-compatible option keeps working. In the admin it opens as **Cloudflare R2**, and saving it there asks for the public URL if it has none.
+
+## ImageKit
+
+Uploads go to your ImageKit media library, and the media library stores their ImageKit links.
+
+In **Settings → Email & storage**, choose **ImageKit** and enter the **URL endpoint** (such as `https://ik.imagekit.io/your_id`), the **Private key** and, optionally, a **Folder**. **Test connection** uploads a tiny image and deletes it again.
+
+```bash title="backend/.env"
+STORAGE_DRIVER=imagekit
+STORAGE_IMAGEKIT_PRIVATE_KEY=...
+STORAGE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_id
+# STORAGE_IMAGEKIT_FOLDER=my-site
+```
+
+Deleting a file in NodePress deletes it from ImageKit, but doesn't purge ImageKit's CDN, so its link can keep working until the cached copy expires.
+
+To keep R2 as your main storage and use ImageKit only for some files, choose R2 here and paste those ImageKit links through the **Link** tab of the media picker.
+
+## Which settings win
 
 Storage is chosen once, when the backend starts:
 
@@ -138,4 +176,4 @@ Even with S3, the backend writes to `backend/uploads/`: each upload is staged th
 
 ## Backups
 
-The [backup script](/deployment/backups/) includes local uploads but not S3 buckets. Back a bucket up with your provider's tools, such as versioning or replication.
+The [backup script](/deployment/backups/) includes local uploads but not files on S3, R2 or ImageKit. Back those up with your provider's tools, such as versioning or replication. Media still on local disk after a switch is included until it's moved.

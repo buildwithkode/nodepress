@@ -10,6 +10,8 @@ The backend reads its settings from `backend/.env`, the admin from `frontend/.en
 The backend checks its variables at startup. When one is missing or invalid, it prints the problem and exits instead of starting with a broken setup. These combinations are also refused:
 
 - `STORAGE_DRIVER=s3` without `STORAGE_S3_BUCKET`, `STORAGE_S3_ACCESS_KEY` and `STORAGE_S3_SECRET_KEY`
+- `STORAGE_DRIVER=r2` without those, `STORAGE_S3_PUBLIC_URL`, and `STORAGE_R2_ACCOUNT_ID` or `STORAGE_S3_ENDPOINT`
+- `STORAGE_DRIVER=imagekit` without `STORAGE_IMAGEKIT_PRIVATE_KEY` and `STORAGE_IMAGEKIT_URL_ENDPOINT`
 - `SEARCH_DRIVER=meilisearch` without `MEILISEARCH_URL`
 - `CAPTCHA_PROVIDER` without `CAPTCHA_SECRET_KEY`
 - `OIDC_ISSUER` without `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET`
@@ -62,13 +64,17 @@ See [Scaling](/deployment/scaling/).
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `STORAGE_DRIVER` | unset | `local` (files in `backend/uploads/`) or `s3`. When unset, the storage chosen in **Settings → Email & storage** applies, else `local`. Read once at startup. |
-| `STORAGE_S3_BUCKET` | none | Bucket name. Required with `s3`. |
-| `STORAGE_S3_REGION` | none | Region, e.g. `us-east-1`. Use `auto` for Cloudflare R2. |
-| `STORAGE_S3_ACCESS_KEY` | none | Access key ID. Required with `s3`. |
-| `STORAGE_S3_SECRET_KEY` | none | Secret access key. Required with `s3`. |
+| `STORAGE_DRIVER` | unset | `local` (files in `backend/uploads/`), `s3`, `r2` or `imagekit`. When unset, the storage chosen in **Settings → Email & storage** applies, else `local`. Read once at startup. |
+| `STORAGE_S3_BUCKET` | none | Bucket name. Required with `s3` and `r2`. |
+| `STORAGE_S3_REGION` | none | Region, e.g. `us-east-1`. Not used with `r2`, where it's always `auto`. |
+| `STORAGE_S3_ACCESS_KEY` | none | Access key ID. Required with `s3` and `r2`. |
+| `STORAGE_S3_SECRET_KEY` | none | Secret access key. Required with `s3` and `r2`. |
 | `STORAGE_S3_ENDPOINT` | none | Custom endpoint, for R2, MinIO, Backblaze B2 or DigitalOcean Spaces. |
-| `STORAGE_S3_PUBLIC_URL` | none | Base URL for public file links, e.g. a CDN domain. |
+| `STORAGE_S3_PUBLIC_URL` | none | Base URL for public file links, e.g. a CDN domain. Required with `r2`. |
+| `STORAGE_R2_ACCOUNT_ID` | none | Cloudflare account ID. Required with `r2` unless `STORAGE_S3_ENDPOINT` is set. |
+| `STORAGE_IMAGEKIT_PRIVATE_KEY` | none | Private key. Required with `imagekit`. |
+| `STORAGE_IMAGEKIT_URL_ENDPOINT` | none | URL endpoint, e.g. `https://ik.imagekit.io/your_id`. Required with `imagekit`. |
+| `STORAGE_IMAGEKIT_FOLDER` | none | Folder in the ImageKit media library. |
 | `MEDIA_MAX_DIMENSION` | `2400` | Uploaded images are scaled down to fit inside this many pixels on each side. Smaller images are never enlarged. |
 | `MEDIA_MAX_MB` | `10` | Largest media file accepted, by upload or WordPress import, in MB (up to 1024). Behind nginx, raise `client_max_body_size` to match. |
 | `IMAGE_TRANSFORM_CONCURRENCY` | `2` | How many on-the-fly image transforms (`/api/media/:file/transform`) encode at once. |

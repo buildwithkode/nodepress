@@ -123,7 +123,16 @@
       "saved": "Réglages de stockage enregistrés",
       "restartRequired": "Les changements de stockage prennent effet après le redémarrage du serveur. Les fichiers existants ne sont pas déplacés.",
       "restart": "Redémarrer",
-      "restarting": "Redémarrage — l’administration se reconnectera dans un instant"
+      "restarting": "Redémarrage — l’administration se reconnectera dans un instant",
+      "accountId": "ID de compte Cloudflare",
+      "accountIdHint": "32 caractères, affiché dans le tableau de bord Cloudflare. Les clés se créent dans R2 → Jetons d'API.",
+      "r2PublicUrl": "URL publique",
+      "r2PublicUrlHint": "L'adresse publique du bucket ou votre domaine personnalisé. Activez l'accès public du bucket dans Cloudflare.",
+      "urlEndpoint": "Point de terminaison URL",
+      "urlEndpointHint": "Affiché dans ImageKit sous Options développeur, ou votre domaine personnalisé.",
+      "privateKey": "Clé privée",
+      "folder": "Dossier (facultatif)",
+      "folderHint": "Regroupe les fichiers de ce site dans ImageKit."
     },
     "search": {
       "title": "Recherche",

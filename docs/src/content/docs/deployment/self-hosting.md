@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-NodePress is two Node.js programs: the API (`backend/`, NestJS) and the admin panel (`frontend/`, Next.js). In production you build both, run them under a process manager and put a reverse proxy in front. You also need PostgreSQL 14 or newer and, on most hosts, S3-compatible storage for uploads.
+NodePress is two Node.js programs: the API (`backend/`, NestJS) and the admin panel (`frontend/`, Next.js). In production you build both, run them under a process manager and put a reverse proxy in front. You also need PostgreSQL 14 or newer and, on most hosts, [outside storage](/deployment/storage/) for uploads.
 
 ## Ways to deploy
 
@@ -253,7 +253,7 @@ Render asks for five values on create. Fill them in after the first deploy, when
 | `nodepress-web` | `BACKEND_URL`, `NEXT_PUBLIC_API_URL` | The backend's URL. Both are read at build time, so redeploy the admin after setting them. |
 
 :::caution[Uploads on Render]
-Render's disk is wiped on every deploy. Use [S3-compatible storage](/deployment/storage/), or attach a disk at `/app/uploads` (paid plans).
+Render's disk is wiped on every deploy. Use [S3-compatible storage, R2 or ImageKit](/deployment/storage/), or attach a disk at `/app/uploads` (paid plans).
 :::
 
 ## Other managed hosts
@@ -272,7 +272,7 @@ The backend reads `PORT`, which these hosts set for you. Deploy the backend firs
 
 - `JWT_SECRET` is a random value of at least 32 characters, and you keep a copy: saved email and storage passwords are encrypted with it (or with `SETTINGS_SECRET`).
 - `NODE_ENV=production`, and no `localhost` left in `APP_URL`, `SITE_URL`, `CORS_ORIGIN` or `BACKEND_URL`.
-- Uploads are on [S3-compatible storage](/deployment/storage/) or a persistent disk.
+- Uploads are on [S3-compatible storage, R2 or ImageKit](/deployment/storage/) or a persistent disk.
 - [Email](/deployment/email/) is set up, so password resets and invitations arrive.
 - `/api/metrics` is blocked at the proxy or protected with `METRICS_TOKEN`. See [Monitoring](/deployment/monitoring/).
 - [Backups](/deployment/backups/) run on a schedule.

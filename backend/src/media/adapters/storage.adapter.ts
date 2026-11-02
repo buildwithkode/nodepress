@@ -3,7 +3,9 @@
  *
  * Switch drivers via env var:
  *   STORAGE_DRIVER=local   (default) — saves to backend/uploads/
- *   STORAGE_DRIVER=s3      — uploads to any S3-compatible endpoint (AWS, R2, MinIO, B2)
+ *   STORAGE_DRIVER=s3      — uploads to any S3-compatible endpoint (AWS, Spaces, MinIO, B2)
+ *   STORAGE_DRIVER=r2      — uploads to Cloudflare R2 (the S3 adapter with R2's settings)
+ *   STORAGE_DRIVER=imagekit — uploads to ImageKit's media library
  */
 export const STORAGE_ADAPTER = 'STORAGE_ADAPTER';
 

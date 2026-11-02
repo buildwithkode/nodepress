@@ -12,6 +12,18 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Added
+
+- **Cloudflare R2 and ImageKit storage.** Both are new options next to local disk and S3-compatible storage, set under **Settings → Email & storage** or with `STORAGE_DRIVER=r2|imagekit`. See [File storage](https://nodepress-docs.vercel.app/deployment/storage/).
+- **File upload fields in forms.** A `file` field takes one uploaded file (PDF, Word or image; allowed extensions set per field). Files are private: they're kept in the database and downloaded from the submissions page; emails show the file's name. Needs the new `form_files` table (`npx prisma migrate deploy`).
+- **Link tab in the media picker.** Image fields can point at an image hosted elsewhere, such as on ImageKit, by pasting its address. The picker previews it and warns if it can't load.
+
+### Fixed
+
+- **Backups** now read the storage saved in the admin, not only `STORAGE_DRIVER`. A site on S3, R2 or ImageKit set up in the admin had leftover local files copied and the wrong storage in its manifest. Local files are still copied while media rows point at them, so a backup taken after switching storage doesn't lose older files.
+- **Login cookies stay out of the logs.** Request logs recorded `Cookie` and `Set-Cookie` headers, including the refresh token.
+- **Security:** `follow-redirects` patched to 1.16.2 (GHSA-mrwp-f3q8-3g9p).
+
 ## [1.9.2] — 2026-10-30
 
 ### Changed

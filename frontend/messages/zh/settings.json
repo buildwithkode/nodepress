@@ -123,7 +123,16 @@
       "saved": "存储设置已保存",
       "restartRequired": "存储更改将在服务器重启后生效。现有文件不会被移动。",
       "restart": "立即重启",
-      "restarting": "正在重启——管理后台稍后将重新连接"
+      "restarting": "正在重启——管理后台稍后将重新连接",
+      "accountId": "Cloudflare 账户 ID",
+      "accountIdHint": "32 个字符，显示在 Cloudflare 控制台中。密钥在 R2 → API 令牌中创建。",
+      "r2PublicUrl": "公开 URL",
+      "r2PublicUrlHint": "存储桶的公开地址或自定义域名。请在 Cloudflare 中为存储桶开启公开访问。",
+      "urlEndpoint": "URL 端点",
+      "urlEndpointHint": "显示在 ImageKit 的开发者选项中，也可以是你的自定义域名。",
+      "privateKey": "私钥",
+      "folder": "文件夹（可选）",
+      "folderHint": "将此网站的文件集中保存在 ImageKit 中。"
     },
     "search": {
       "title": "搜索",
