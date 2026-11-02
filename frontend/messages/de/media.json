@@ -85,6 +85,11 @@
     "optionalHint": "(optional)",
     "altPlaceholder": "Beschreiben Sie das Bild für die Barrierefreiheit…",
     "dropPrompt": "Datei ablegen oder zum Durchsuchen klicken",
-    "useImage": "Bild verwenden"
+    "useImage": "Bild verwenden",
+    "link": "Link",
+    "linkLabel": "Bildlink",
+    "linkHint": "Füge einen vollständigen Link von ImageKit oder einem anderen Bilddienst ein. Das Bild bleibt dort und wird nicht in die Medien kopiert.",
+    "linkInvalid": "Gib einen vollständigen Link ein, der mit http:// oder https:// beginnt.",
+    "linkBroken": "Dieses Bild konnte nicht geladen werden. Prüfe den Link."
   }
 }
