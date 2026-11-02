@@ -32,7 +32,8 @@
     "countMatching": "{count, plural, one {# envio} other {# envios}} correspondente(s) a \"{search}\"",
     "noneTitle": "Nenhum envio ainda",
     "noneDescription": "Compartilhe o formulário e as respostas aparecerão aqui.",
-    "date": "Data"
+    "date": "Data",
+    "fileDownloadFailed": "Não foi possível transferir este ficheiro"
   },
   "fieldEditor": {
     "labelPlaceholder": "Rótulo exibido ao usuário",
@@ -60,7 +61,9 @@
     "messagePlaceholder": "Exibida quando este campo falhar",
     "itemFields": "Campos do item (repetidos)",
     "subFields": "Subcampos",
-    "addSubField": "Adicionar subcampo"
+    "addSubField": "Adicionar subcampo",
+    "fileTypes": "Tipos de ficheiro permitidos",
+    "fileTypesHint": "separados por vírgulas; vazio permite pdf, doc, docx"
   },
   "fieldTypes": {
     "text": "Texto",
@@ -77,7 +80,8 @@
     "multiselect": "Seleção múltipla",
     "tags": "Tags (livres)",
     "group": "Grupo (objeto)",
-    "repeater": "Repetidor (lista)"
+    "repeater": "Repetidor (lista)",
+    "file": "Envio de ficheiro"
   },
   "builder": {
     "created": "Formulário criado",

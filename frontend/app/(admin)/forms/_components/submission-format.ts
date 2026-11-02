@@ -12,9 +12,21 @@ const humanize = (k: string) =>
   k.replace(/[_-]+/g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2').trim()
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
+export interface SubmittedFile {
+  fileId: string;
+  filename: string;
+  size: number;
+}
+
+/** A value saved by a file field. */
+export function isSubmittedFile(v: unknown): v is SubmittedFile {
+  return typeof v === 'object' && v !== null && typeof (v as SubmittedFile).fileId === 'string';
+}
+
 /** Compact one-line string for a value — used in table summary cells. */
 export function summarize(v: unknown): string {
   if (v === null || v === undefined || v === '') return '';
+  if (isSubmittedFile(v)) return v.filename;
   if (Array.isArray(v)) {
     const allScalar = v.every((x) => x === null || typeof x !== 'object');
     return allScalar ? v.map((x) => String(x ?? '')).join(', ') : `${v.length} item${v.length === 1 ? '' : 's'}`;
@@ -26,6 +38,7 @@ export function summarize(v: unknown): string {
 /** Scalar/array → plain string for a CSV cell (objects/arrays-of-objects → JSON). */
 function cell(v: unknown): string {
   if (v === null || v === undefined) return '';
+  if (isSubmittedFile(v)) return v.filename;
   if (Array.isArray(v)) {
     const allScalar = v.every((x) => x === null || typeof x !== 'object');
     return allScalar ? v.map((x) => String(x ?? '')).join('; ') : JSON.stringify(v);

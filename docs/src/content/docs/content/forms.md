@@ -45,8 +45,11 @@ Open **Forms** and click **New Form**.
 | `tags` | Tags (freeform) | a list of strings |
 | `group` | Group (object) | an object with the group's sub-fields |
 | `repeater` | Repeater (list) | a list of objects with the repeater's sub-fields |
+| `file` | File upload | the file's name, type and size; the file itself is sent separately |
 
 Options for `select`, `radio` and `multiselect` are entered comma-separated.
+
+`file` takes one uploaded file and can't go inside a group or repeater. List the allowed extensions comma-separated (`pdf`, `doc`, `docx`, `jpg`, `jpeg`, `png`); blank allows `pdf`, `doc` and `docx`.
 
 ### Validation rules
 
@@ -106,6 +109,20 @@ A validation failure lists every problem:
 ```
 
 Nested fields have paths like `address.city` or `guests[1].name`.
+
+### Sending a file
+
+A form with a `file` field takes `multipart/form-data`: the other values as a JSON string in `data`, and the file under the field's name.
+
+```js
+const body = new FormData();
+body.append('data', JSON.stringify({ name: 'Asha' }));
+body.append('resume', fileInput.files[0]);
+
+await fetch('https://your-api.com/api/submit/career-application', { method: 'POST', body });
+```
+
+The file's first bytes must match its extension, and it can be at most `MEDIA_MAX_MB` (default 10 MB). Files are stored privately in the database, never under `/uploads`. Admins download them from the submission; email and webhook actions get the file's name and details, not the file.
 
 ### Limits
 

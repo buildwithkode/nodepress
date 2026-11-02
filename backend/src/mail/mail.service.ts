@@ -63,6 +63,12 @@ function getByPath(obj: unknown, path: string): unknown {
 }
 
 /** Flatten any value to a readable single string (for plain-text email + interpolation). */
+/** A form's uploaded file: its name is all an email needs. */
+function isUploadedFile(v: unknown): v is { fileId: string; filename: string } {
+  const file = v as { fileId?: unknown; filename?: unknown } | null;
+  return typeof file === 'object' && file !== null && typeof file.fileId === 'string' && typeof file.filename === 'string';
+}
+
 function formatValuePlain(v: unknown): string {
   if (v === null || v === undefined) return '';
   if (Array.isArray(v)) {
@@ -72,6 +78,7 @@ function formatValuePlain(v: unknown): string {
       : v.map((x, i) => `#${i + 1} { ${formatValuePlain(x)} }`).join('; ');
   }
   if (typeof v === 'object') {
+    if (isUploadedFile(v)) return v.filename;
     return Object.entries(v as Record<string, unknown>)
       .map(([k, val]) => `${humanizeKey(k)}: ${formatValuePlain(val)}`)
       .join(', ');
@@ -89,6 +96,7 @@ function renderValueHtml(v: unknown): string {
       .map((x) => `<div style="margin:3px 0;padding-left:8px;border-left:2px solid #eee">${renderValueHtml(x)}</div>`)
       .join('');
   }
+  if (isUploadedFile(v)) return escapeHtml(v.filename);
   if (typeof v === 'object') {
     return Object.entries(v as Record<string, unknown>)
       .map(([k, val]) => `<div><span style="color:#888">${escapeHtml(humanizeKey(k))}:</span> ${renderValueHtml(val)}</div>`)

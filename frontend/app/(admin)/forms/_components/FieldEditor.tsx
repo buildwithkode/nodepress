@@ -12,7 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 import {
   FormField, FieldType, FieldValidation,
-  FIELD_TYPES, NESTED_TYPES, OPTION_TYPES, MAX_BUILDER_DEPTH,
+  FIELD_TYPES, HAS_OPTIONS, NESTED_TYPES, OPTION_TYPES, MAX_BUILDER_DEPTH,
   toFieldKey, blankField, validationRulesFor,
 } from './field-types';
 import { useTranslations } from 'use-intl';
@@ -55,7 +55,7 @@ export default function FieldEditor({ field, depth, canRemove, onChange, onRemov
 
   const onType = (type: FieldType) => {
     const patch: Partial<FormField> = { type };
-    if (!OPTION_TYPES.includes(type)) patch.options = undefined;
+    if (!HAS_OPTIONS.includes(type)) patch.options = undefined;
     if (!NESTED_TYPES.includes(type)) patch.fields = undefined;
     if (NESTED_TYPES.includes(type) && !field.fields) patch.fields = [blankField()];
     set(patch);
@@ -162,6 +162,21 @@ export default function FieldEditor({ field, depth, canRemove, onChange, onRemov
           </Label>
           <Input
             placeholder={t('fieldEditor.optionsPlaceholder')}
+            value={field.options ?? ''}
+            onChange={(e) => set({ options: e.target.value })}
+          />
+        </div>
+      )}
+
+      {/* Allowed file types */}
+      {field.type === 'file' && (
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">
+            {t('fieldEditor.fileTypes')}
+            <span className="ml-1 text-muted-foreground/50">— {t('fieldEditor.fileTypesHint')}</span>
+          </Label>
+          <Input
+            placeholder="pdf, doc, docx"
             value={field.options ?? ''}
             onChange={(e) => set({ options: e.target.value })}
           />

@@ -5,7 +5,8 @@ export type FieldType =
   | 'text' | 'textarea' | 'number' | 'email' | 'url' | 'phone'
   | 'date' | 'datetime' | 'boolean'
   | 'select' | 'radio' | 'multiselect' | 'tags'
-  | 'group' | 'repeater';
+  | 'group' | 'repeater'
+  | 'file';
 
 export interface FieldValidation {
   min?: number | string;   // number for numeric fields, ISO string for date/datetime
@@ -24,7 +25,7 @@ export interface FormField {
   type: FieldType;
   label: string;
   required?: boolean;
-  options?: string;          // comma-separated in the builder (select | radio | multiselect)
+  options?: string;          // comma-separated in the builder (select | radio | multiselect; extensions for file)
   placeholder?: string;
   fields?: FormField[];      // group | repeater (recursive)
   validation?: FieldValidation;
@@ -47,12 +48,15 @@ export const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'tags',        label: 'Tags (freeform)' },
   { value: 'group',       label: 'Group (object)' },
   { value: 'repeater',    label: 'Repeater (list)' },
+  { value: 'file',        label: 'File upload' },
 ];
 
 /** Max nesting the builder offers — matches the backend FORM_MAX_DEPTH default. */
 export const MAX_BUILDER_DEPTH = 3;
 
 export const OPTION_TYPES: FieldType[] = ['select', 'radio', 'multiselect'];
+/** Types whose `options` list is kept: the choices, or a file field's allowed extensions. */
+export const HAS_OPTIONS: FieldType[] = [...OPTION_TYPES, 'file'];
 export const NESTED_TYPES: FieldType[] = ['group', 'repeater'];
 
 /** Types that support the declarative validation panel (and which rules apply). */
@@ -142,6 +146,7 @@ export function exampleValue(field: FormField): unknown {
     case 'tags':        return ['tag-1', 'tag-2'];
     case 'group':       return buildExampleObject(field.fields ?? []);
     case 'repeater':    return [buildExampleObject(field.fields ?? [])];
+    case 'file':        return undefined; // sent as multipart, not in the JSON
     default:            return 'Sample text';
   }
 }
@@ -170,7 +175,7 @@ export function normalizeField(f: FormField): Record<string, unknown> {
   };
   if (f.placeholder) out.placeholder = f.placeholder;
 
-  if (OPTION_TYPES.includes(f.type) && f.options) {
+  if (HAS_OPTIONS.includes(f.type) && f.options) {
     out.options = f.options.split(',').map((o) => o.trim()).filter(Boolean);
   }
   if (NESTED_TYPES.includes(f.type) && f.fields) {

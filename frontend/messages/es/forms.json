@@ -32,7 +32,8 @@
     "countMatching": "{count, plural, one {# envío coincide} other {# envíos coinciden}} con «{search}»",
     "noneTitle": "Aún no hay envíos",
     "noneDescription": "Comparte el formulario y las respuestas aparecerán aquí.",
-    "date": "Fecha"
+    "date": "Fecha",
+    "fileDownloadFailed": "No se pudo descargar este archivo"
   },
   "fieldEditor": {
     "labelPlaceholder": "Etiqueta visible para el usuario",
@@ -60,7 +61,9 @@
     "messagePlaceholder": "Se muestra cuando este campo no es válido",
     "itemFields": "Campos del elemento (se repiten)",
     "subFields": "Subcampos",
-    "addSubField": "Añadir subcampo"
+    "addSubField": "Añadir subcampo",
+    "fileTypes": "Tipos de archivo permitidos",
+    "fileTypesHint": "separados por comas; vacío permite pdf, doc, docx"
   },
   "fieldTypes": {
     "text": "Texto",
@@ -77,7 +80,8 @@
     "multiselect": "Selección múltiple",
     "tags": "Etiquetas (libres)",
     "group": "Grupo (objeto)",
-    "repeater": "Repetidor (lista)"
+    "repeater": "Repetidor (lista)",
+    "file": "Subida de archivo"
   },
   "builder": {
     "created": "Formulario creado",

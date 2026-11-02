@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Param, Body, Query, ParseIntPipe, UseGuards,
+  Param, Body, Query, ParseIntPipe, StreamableFile, UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags,
@@ -9,6 +9,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Access } from '../auth/decorators/access.decorator';
 import { FormsService } from './forms.service';
+import { SubmissionService } from './submission.service';
+import { contentDisposition } from './form-files';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
 
@@ -19,7 +21,10 @@ import { UpdateFormDto } from './dto/update-form.dto';
 @Access('forms', 'view')
 @Controller('forms')
 export class FormsController {
-  constructor(private readonly forms: FormsService) {}
+  constructor(
+    private readonly forms: FormsService,
+    private readonly submissionService: SubmissionService,
+  ) {}
 
   // ── Recent submissions across all forms (dashboard) ─────────────────────
 
@@ -100,5 +105,22 @@ export class FormsController {
       page  ? Math.max(1, parseInt(page, 10))                 : 1,
       limit ? Math.min(200, Math.max(1, parseInt(limit, 10))) : 50,
     );
+  }
+
+  /** A submission's uploaded file. Always a download, never shown inline, so a crafted file can't run on this origin. */
+  @Get(':id/submissions/:submissionId/files/:fileId')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Download a file sent with a submission' })
+  async submissionFile(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('submissionId', ParseIntPipe) submissionId: number,
+    @Param('fileId') fileId: string,
+  ) {
+    const file = await this.submissionService.findFile(id, submissionId, fileId);
+    return new StreamableFile(Buffer.from(file.data), {
+      type: file.mimetype,
+      length: file.size,
+      disposition: contentDisposition(file.filename),
+    });
   }
 }

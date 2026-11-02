@@ -32,7 +32,8 @@
     "countMatching": "{count, plural, one {# invio corrisponde} other {# invii corrispondono}} a \"{search}\"",
     "noneTitle": "Ancora nessun invio",
     "noneDescription": "Condividi il modulo e le risposte appariranno qui.",
-    "date": "Data"
+    "date": "Data",
+    "fileDownloadFailed": "Impossibile scaricare questo file"
   },
   "fieldEditor": {
     "labelPlaceholder": "Etichetta mostrata all'utente",
@@ -60,7 +61,9 @@
     "messagePlaceholder": "Mostrato quando questo campo non è valido",
     "itemFields": "Campi dell'elemento (ripetuti)",
     "subFields": "Sottocampi",
-    "addSubField": "Aggiungi sottocampo"
+    "addSubField": "Aggiungi sottocampo",
+    "fileTypes": "Tipi di file consentiti",
+    "fileTypesHint": "separati da virgole; vuoto consente pdf, doc, docx"
   },
   "fieldTypes": {
     "text": "Testo",
@@ -77,7 +80,8 @@
     "multiselect": "Selezione multipla",
     "tags": "Tag (liberi)",
     "group": "Gruppo (oggetto)",
-    "repeater": "Ripetitore (elenco)"
+    "repeater": "Ripetitore (elenco)",
+    "file": "Caricamento file"
   },
   "builder": {
     "created": "Modulo creato",
