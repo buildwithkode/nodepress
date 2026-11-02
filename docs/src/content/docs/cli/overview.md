@@ -31,6 +31,8 @@ The built-in help and some generated files say `npx nodepress …`. The package 
 | `schema:pull [--out <file>]` | Saves a site's content model to `nodepress.schema.json` | [Schema sync](/cli/schema/) |
 | `schema:diff [--file <file>]` | Shows what a push would change | [Schema sync](/cli/schema/) |
 | `schema:push [--file <file>] [--yes]` | Applies the file's content model to a site | [Schema sync](/cli/schema/) |
+| `site:export [--out <file>]` | Saves the content model and every entry to `nodepress-site.json` | [Site export and import](/content/site-export/) |
+| `site:import <file> [--dry-run] [--keep-existing] [--yes]` | Imports a site export, after a preview | [Site export and import](/content/site-export/) |
 | `mcp` | Runs an MCP server so AI assistants can read and draft content | [MCP server](/cli/mcp/) |
 | `plugin keygen [--out <key.pem>]` | Creates an Ed25519 key for signing plugin packages | [Publishing plugins](/extending/publishing-plugins/) |
 | `plugin pack [dir] [--key <key.pem>] [--out <file.zip>]` | Zips (and signs) a built plugin for upload | [Publishing plugins](/extending/publishing-plugins/) |
@@ -46,16 +48,16 @@ The built-in help and some generated files say `npx nodepress …`. The package 
 | Create | The folder that will contain the new project |
 | `upgrade` | The project's root folder (the git repository with `backend/` and `frontend/`) |
 | `generate:types` | The project's root folder, with `backend/.env` pointing at the database |
-| `schema:*`, `mcp` | Anywhere: they talk to a running site over HTTP |
+| `schema:*`, `site:*`, `mcp` | Anywhere: they talk to a running site over HTTP |
 | `plugin pack` | Your plugin's folder, or pass the folder as `dir` |
 
 ## Environment variables
 
 | Variable | Used by | Meaning |
 |---|---|---|
-| `NODEPRESS_URL` | `schema:*`, `mcp` | The site's backend URL, e.g. `https://cms.example.com` |
-| `NODEPRESS_TOKEN` | `schema:*` | An API key with `all` access to every content type, or an admin JWT |
+| `NODEPRESS_URL` | `schema:*`, `site:*`, `mcp` | The site's backend URL, e.g. `https://cms.example.com` |
+| `NODEPRESS_TOKEN` | `schema:*`, `site:*` | An API key with `all` access to every content type, or an admin JWT |
 | `NODEPRESS_API_KEY` | `mcp`, `schema:*` | API key for the MCP server's writes. `schema:*` uses it when `NODEPRESS_TOKEN` is unset |
 | `NODEPRESS_PLUGIN_KEY` | `plugin pack` | Path to the signing key, instead of `--key` |
 | `NODEPRESS_REPO` | create | Git URL (or local path) of the NodePress repository to clone instead of `https://github.com/buildwithkode/nodepress.git`, for a fork or for testing. The project records it, so later upgrades use it too |
-| `NO_COLOR` | `schema:*` | Turns off colored output |
+| `NO_COLOR` | `schema:*`, `site:*` | Turns off colored output |

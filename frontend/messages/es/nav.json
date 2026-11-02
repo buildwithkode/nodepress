@@ -30,7 +30,8 @@
     "docs": "Documentación",
     "serverSettings": "Correo y almacenamiento",
     "choiceLists": "Listas de opciones",
-    "importer": "Importar"
+    "importer": "Importar de WordPress",
+    "siteTransfer": "Exportar e importar"
   },
   "signOut": "Cerrar sesión",
   "user": "Usuario",

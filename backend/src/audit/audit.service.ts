@@ -7,7 +7,7 @@ export interface AuditActor {
   ip?: string;
 }
 
-export type AuditAction = 'created' | 'updated' | 'deleted' | 'restored' | 'login' | 'role_changed' | 'password_changed' | 'invited' | 'enabled' | 'disabled' | 'installed' | 'restarted' | 'published';
+export type AuditAction = 'created' | 'updated' | 'deleted' | 'restored' | 'login' | 'role_changed' | 'password_changed' | 'invited' | 'enabled' | 'disabled' | 'installed' | 'restarted' | 'published' | 'exported';
 export type AuditResource = 'entry' | 'content_type' | 'user' | 'api_key' | 'form' | 'media' | 'plugin' | 'settings' | 'release' | 'role' | 'redirect' | 'component' | 'import' | 'choice_list';
 
 

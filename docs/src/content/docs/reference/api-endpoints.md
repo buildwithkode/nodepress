@@ -71,6 +71,8 @@ See [Authentication](/access-control/authentication/) and [Single sign-on](/acce
 | POST | `/api/content-types` | Admin | Create a content type |
 | GET | `/api/content-types/export` | admin, editor, or an API key with `all` access to `*` | Export content types, components and choice lists as JSON |
 | POST | `/api/content-types/import` | Admin, or an API key with `all` access to `*` | Import an export bundle (`dryRun` only reports) |
+| GET | `/api/site/export` | Admin, or an API key with `all` access to `*` | Export the content model and every entry as one JSON file ([site export](/content/site-export/)) |
+| POST | `/api/site/import` | Admin, or an API key with `all` access to `*` | Import a site export (`?dryRun=true` only reports, `?overwrite=false` keeps existing content) |
 | GET | `/api/content-types/:id` | Public view, or signed in for all | One content type (anonymous: 404 for a type closed to the public API) |
 | GET | `/api/content-types/:id/form` | Signed in | The form structure generated from its fields |
 | PUT | `/api/content-types/:id` | Admin | Update a content type, optionally with field data migrations |

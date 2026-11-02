@@ -100,7 +100,7 @@ const TOPICS: { title: string; pages: [string, string][] }[] = [
     ['Entries', 'content/entries'], ['Versions', 'content/versions'], ['Releases', 'content/releases'],
     ['Languages', 'content/languages'], ['Media', 'content/media'], ['Live preview', 'content/live-preview'],
     ['SEO', 'content/seo'], ['Redirects', 'content/redirects'], ['Forms', 'content/forms'],
-    ['Starter templates', 'content/templates'], ['WordPress import', 'content/wordpress-import'], ['AI assistance', 'content/ai'],
+    ['Starter templates', 'content/templates'], ['WordPress import', 'content/wordpress-import'], ['Site export and import', 'content/site-export'], ['AI assistance', 'content/ai'],
   ] },
   { title: 'APIs', pages: [
     ['REST API', 'apis/rest'], ['Querying', 'apis/querying'], ['GraphQL', 'apis/graphql'], ['OpenAPI', 'apis/openapi'],

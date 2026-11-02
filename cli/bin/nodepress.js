@@ -9,6 +9,7 @@ const outFlagIndex = argv.findIndex((a) => a === '--out' || a === '-o');
 const outValue = outFlagIndex !== -1 ? argv[outFlagIndex + 1] : undefined;
 
 const schemaCommand = argv.find((a) => /^schema:(pull|diff|push)$/.test(a));
+const siteCommand = argv.find((a) => /^site:(export|import)$/.test(a));
 
 const opts = {
   docker: flags.includes('--docker'),
@@ -34,6 +35,9 @@ const HELP = `
     npx nodepress schema:pull [--out <file>]          Save the site's content types to nodepress.schema.json
     npx nodepress schema:diff [--file <file>]         Show what a push would change (exit 1 when it would)
     npx nodepress schema:push [--file <file>] [--yes] Apply the file's content types to the site (asks first)
+    npx nodepress site:export [--out <file>]          Save content types and every entry to nodepress-site.json
+    npx nodepress site:import <file> [--dry-run] [--keep-existing] [--yes]
+                                                      Import a site export (previews, then asks first)
     npx nodepress --version                           Show version
     npx nodepress --help                              Show this help
 
@@ -43,7 +47,7 @@ const HELP = `
     npx nodepress generate:types
     NODEPRESS_URL=https://cms.example.com NODEPRESS_TOKEN=np_… npx nodepress schema:diff
 
-  schema:* connect with NODEPRESS_URL and NODEPRESS_TOKEN (or --url / --token): an API key
+  schema:* and site:* connect with NODEPRESS_URL and NODEPRESS_TOKEN (or --url / --token): an API key
   with "all" access to every content type (np_…) or an admin JWT.
 `;
 
@@ -57,6 +61,8 @@ if (flags.includes('--version') || flags.includes('-v')) {
 } else if (schemaCommand) {
   // Flags may come before or after the command: --url/--token/--file/--out/--yes.
   require('../src/schema')(schemaCommand, argv.filter((a, i) => i !== argv.indexOf(schemaCommand)));
+} else if (siteCommand) {
+  require('../src/site')(siteCommand, argv.filter((a, i) => i !== argv.indexOf(siteCommand)));
 } else if (positionals[0] === 'upgrade') {
   require('../src/upgrade')(argv.slice(argv.indexOf('upgrade') + 1));
 } else if (positionals[0] === 'plugin') {

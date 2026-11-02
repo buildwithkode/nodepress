@@ -25,6 +25,7 @@ import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import helmet from 'helmet';
 import * as express from 'express';
+import { siteImportBodyParser } from './site-transfer/site-import-body';
 import cookieParser from 'cookie-parser';
 import { parseQueryString } from './common/query-parser';
 import { AppModule } from './app.module';
@@ -82,6 +83,8 @@ async function bootstrap() {
   // Prevents memory exhaustion via large JSON payloads.
   // Multer enforces its own limit on file uploads separately (MEDIA_MAX_MB, default 10).
   // `rawBody` keeps the exact bytes for webhook signature checks (HMAC over the body as sent).
+  // Site imports (POST /api/site/import) are parsed first with their own, larger limit.
+  app.use(...siteImportBodyParser());
   app.use(express.json({ limit: '1mb', verify: keepRawBody }));
   app.use(express.urlencoded({ extended: true, limit: '500kb' }));
 

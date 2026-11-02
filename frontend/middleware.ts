@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { decodeAccessCookie, levelAllows, levelForPath, moduleForPath, ADMIN_ONLY } from './lib/access';
 
 // Paths that require any authenticated user
-const ADMIN_PATHS = ['/', '/content-types', '/components', '/entries', '/media', '/api-keys', '/forms', '/users', '/webhooks', '/jobs', '/audit-log', '/brand', '/plugins', '/languages', '/releases', '/server-settings', '/import', '/redirects', '/choice-lists'];
+const ADMIN_PATHS = ['/', '/content-types', '/components', '/entries', '/media', '/api-keys', '/forms', '/users', '/webhooks', '/jobs', '/audit-log', '/brand', '/plugins', '/languages', '/releases', '/server-settings', '/import', '/redirects', '/choice-lists', '/site-transfer'];
 
 function isAdminPath(pathname: string): boolean {
   return ADMIN_PATHS.some(

@@ -359,3 +359,8 @@ module.exports.run = run;
 module.exports.normalizeBundle = normalizeBundle;
 module.exports.serialize = serialize;
 module.exports.COMMANDS = Object.keys(COMMANDS);
+// Shared with site.js (same connection rules and error handling).
+module.exports.CliError = CliError;
+module.exports.connection = connection;
+module.exports.createClient = createClient;
+module.exports.confirm = confirm;

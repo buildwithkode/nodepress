@@ -1,0 +1,205 @@
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { spawn } from 'child_process';
+import { AddressInfo } from 'net';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { createTestApp, cleanDatabase, registerAdmin } from './helpers';
+import { PrismaService } from '../src/prisma/prisma.service';
+
+const CLI = path.join(__dirname, '../../cli/bin/nodepress.js');
+
+function cli(args: string[], env: Record<string, string>, cwd: string) {
+  return new Promise<{ code: number; out: string; err: string }>((resolve) => {
+    const proc = spawn(process.execPath, [CLI, ...args], { cwd, env: { ...process.env, NO_COLOR: '1', ...env } });
+    let out = '';
+    let err = '';
+    proc.stdout.on('data', (c) => (out += c));
+    proc.stderr.on('data', (c) => (err += c));
+    proc.on('close', (code) => resolve({ code: code ?? -1, out, err }));
+  });
+}
+
+/** Whole-site export / import: GET /api/site/export, POST /api/site/import, `nodepress site:*`. */
+describe('Site export / import (e2e)', () => {
+  let app: INestApplication;
+  let server: any;
+  let prisma: PrismaService;
+  let auth: { Authorization: string };
+  let keys: Record<string, string> = {};
+  let env: Record<string, string>;
+  let dir: string;
+  let bundle: any;
+  let authorId: string;
+  let postId: string;
+
+  /** Leave only users, API keys and settings behind — like a fresh install. */
+  async function wipeContent() {
+    await prisma.entry.deleteMany({});
+    await prisma.contentType.deleteMany({});
+    await prisma.choiceList.deleteMany({});
+    await request(server).put('/api/locales').set(auth).send({ locales: ['en'], defaultLocale: 'en' }).expect(200);
+  }
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    await cleanDatabase(app);
+    prisma = app.get(PrismaService);
+    auth = { Authorization: `Bearer ${await registerAdmin(app)}` };
+    await app.listen(0, '127.0.0.1');
+    server = app.getHttpServer();
+    const { port } = server.address() as AddressInfo;
+
+    await request(server).put('/api/locales').set(auth).send({ locales: ['en', 'fr'], defaultLocale: 'en' }).expect(200);
+    await request(server).post('/api/choice-lists').set(auth)
+      .send({ name: 'mood', label: 'Mood', choices: ['calm', 'busy'] }).expect(201);
+    const author = await request(server).post('/api/content-types').set(auth)
+      .send({ name: 'author', schema: [{ name: 'name', type: 'text' }] }).expect(201);
+    const post = await request(server).post('/api/content-types').set(auth)
+      .send({
+        name: 'post',
+        schema: [
+          { name: 'title', type: 'text' },
+          { name: 'mood', type: 'select', options: { choiceList: 'mood' } },
+          { name: 'author', type: 'relation', options: { relatedContentType: 'author', cardinality: 'one' } },
+          { name: 'credits', type: 'repeater', options: { subFields: [
+            { name: 'who', type: 'relation', options: { relatedContentType: 'author', cardinality: 'one' } },
+          ] } },
+        ],
+      }).expect(201);
+
+    const a = await request(server).post('/api/entries').set(auth)
+      .send({ contentTypeId: author.body.id, slug: 'asha', status: 'published', data: { name: 'Asha' } }).expect(201);
+    authorId = a.body.publicId;
+    const p = await request(server).post('/api/entries').set(auth)
+      .send({ contentTypeId: post.body.id, slug: 'hello', status: 'published', data: { title: 'Hello', mood: 'calm', author: authorId, credits: [{ who: authorId }] } })
+      .expect(201);
+    postId = p.body.publicId;
+    await request(server).post('/api/entries').set(auth)
+      .send({ contentTypeId: post.body.id, slug: 'hello', locale: 'fr', status: 'draft', data: { title: 'Bonjour', author: authorId } }).expect(201);
+
+    for (const [name, permissions] of [['full', { access: 'all', contentTypes: ['*'] }], ['write', { access: 'write', contentTypes: ['*'] }]] as const) {
+      const res = await request(server).post('/api/api-keys').set(auth).send({ name, permissions }).expect(201);
+      keys[name] = res.body.key;
+    }
+    env = { NODEPRESS_URL: `http://127.0.0.1:${port}`, NODEPRESS_TOKEN: keys.full };
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'np-site-'));
+  });
+
+  afterAll(async () => {
+    fs.rmSync(dir, { recursive: true, force: true });
+    await cleanDatabase(app);
+    await app.close();
+  });
+
+  it('exports the content model and every entry in one file', async () => {
+    const res = await request(server).get('/api/site/export').set(auth).expect(200);
+    expect(res.headers['content-disposition']).toMatch(/attachment; filename="nodepress-site-/);
+    bundle = res.body;
+    expect(bundle).toMatchObject({ format: 'nodepress-site', version: 1, locales: { defaultLocale: 'en', locales: ['en', 'fr'] } });
+    expect(bundle.contentTypes.map((t: any) => t.name)).toEqual(['author', 'post']);
+    expect(bundle.choiceLists.map((l: any) => l.name)).toEqual(['mood']);
+    expect(bundle.entries.author).toEqual([expect.objectContaining({ publicId: authorId, slug: 'asha', locale: 'en', status: 'published' })]);
+    expect(bundle.entries.post.map((e: any) => `${e.slug}/${e.locale}/${e.status}`)).toEqual(['hello/en/published', 'hello/fr/draft']);
+  });
+
+  it('previews a re-import on the same site as updates', async () => {
+    const res = await request(server).post('/api/site/import?dryRun=true').set(auth).send(bundle).expect(201);
+    expect(res.body).toMatchObject({
+      dryRun: true, valid: true, errors: [], localesToAdd: [],
+      schemas: { toCreate: 0, toUpdate: 2 },
+      entries: { total: 3, toCreate: 0, toUpdate: 3, toRestore: 0, toSkip: 0, relinked: 0 },
+    });
+  });
+
+  it('rebuilds an empty site with the same ids, so relations still resolve', async () => {
+    await wipeContent();
+    const res = await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+    expect(res.body).toMatchObject({ entries: { created: 3, updated: 0 }, localesAdded: ['fr'], errors: [] });
+    expect(res.body.schemas).toMatchObject({ created: 2 });
+
+    const post = await request(server).get('/api/post/hello').query({ populate: 'author' }).expect(200);
+    expect(post.body.id ?? post.body.publicId).toBe(postId);
+    expect(post.body.data.author).toMatchObject({ slug: 'asha' });
+    const fr = await prisma.entry.findFirst({ where: { slug: 'hello', locale: 'fr' } });
+    expect(fr).toMatchObject({ status: 'draft', publicId: bundle.entries.post[1].publicId });
+    expect(await prisma.choiceList.count()).toBe(1);
+    const locales = await request(server).get('/api/locales').expect(200);
+    expect(locales.body.locales).toEqual(['en', 'fr']);
+  });
+
+  it('relinks relations to an entry that has another id on this site', async () => {
+    await prisma.entry.deleteMany({});
+    const authorType = await prisma.contentType.findFirstOrThrow({ where: { name: 'author' } });
+    const other = await request(server).post('/api/entries').set(auth)
+      .send({ contentTypeId: authorType.id, slug: 'asha', status: 'published', data: { name: 'Asha here' } }).expect(201);
+
+    const dry = await request(server).post('/api/site/import?dryRun=true').set(auth).send(bundle).expect(201);
+    expect(dry.body.entries).toMatchObject({ toCreate: 2, toUpdate: 1, relinked: 1 });
+    await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+
+    const post = await prisma.entry.findFirstOrThrow({ where: { slug: 'hello', locale: 'en' } });
+    expect(post.data).toMatchObject({ author: other.body.publicId, credits: [expect.objectContaining({ who: other.body.publicId })] });
+    const author = await prisma.entry.findFirstOrThrow({ where: { slug: 'asha' } });
+    expect(author).toMatchObject({ publicId: other.body.publicId, data: { name: 'Asha' } });
+  });
+
+  it('keeps existing entries with overwrite=false and restores ones in the trash', async () => {
+    const hello = await prisma.entry.findFirstOrThrow({ where: { slug: 'hello', locale: 'en' } });
+    await prisma.entry.update({ where: { id: hello.id }, data: { data: { title: 'Changed here' } } });
+    const fr = await prisma.entry.findFirstOrThrow({ where: { slug: 'hello', locale: 'fr' } });
+    await prisma.entry.update({ where: { id: fr.id }, data: { deletedAt: new Date() } });
+
+    const res = await request(server).post('/api/site/import?overwrite=false').set(auth).send(bundle).expect(201);
+    expect(res.body.entries).toMatchObject({ created: 0, updated: 1, skipped: 2 });
+    expect((await prisma.entry.findUniqueOrThrow({ where: { id: hello.id } })).data).toEqual({ title: 'Changed here' });
+    expect((await prisma.entry.findUniqueOrThrow({ where: { id: fr.id } })).deletedAt).toBeNull();
+  });
+
+  it('refuses a broken file without changing anything', async () => {
+    await request(server).post('/api/site/import').set(auth).send({ contentTypes: [] }).expect(400);
+    const broken = { ...bundle, entries: { ...bundle.entries, post: [...bundle.entries.post, { slug: 'Not Valid', status: 'draft' }] } };
+    const dry = await request(server).post('/api/site/import?dryRun=true').set(auth).send(broken).expect(201);
+    expect(dry.body.valid).toBe(false);
+    expect(dry.body.errors).toEqual([expect.stringContaining('Invalid slug')]);
+    const before = await prisma.entry.count();
+    const res = await request(server).post('/api/site/import').set(auth).send(broken).expect(400);
+    expect(res.body.errors).toHaveLength(1);
+    expect(await prisma.entry.count()).toBe(before);
+  });
+
+  it('accepts files over the global 1 MB body limit', async () => {
+    const big = { ...bundle, entries: { author: [{ ...bundle.entries.author[0], data: { name: 'x'.repeat(1_500_000) } }] } };
+    const res = await request(server).post('/api/site/import?dryRun=true').set(auth).send(big).expect(201);
+    expect(res.body.valid).toBe(true);
+  });
+
+  it('needs an admin or a full-access key', async () => {
+    await request(server).get('/api/site/export').expect(401);
+    await request(server).get('/api/site/export').set('X-API-Key', keys.write).expect(403);
+    await request(server).get('/api/site/export').set('X-API-Key', keys.full).expect(200);
+  });
+
+  it('nodepress site:export and site:import', async () => {
+    const exp = await cli(['site:export', '--out', 'site.json'], env, dir);
+    expect(exp.code).toBe(0);
+    expect(exp.out).toMatch(/2 content types, 0 components, 1 choice list, 3 entries/);
+    const file = JSON.parse(fs.readFileSync(path.join(dir, 'site.json'), 'utf8'));
+    expect(file.format).toBe('nodepress-site');
+
+    await wipeContent();
+    const dry = await cli(['site:import', 'site.json', '--dry-run'], env, dir);
+    expect(dry.code).toBe(0);
+    expect(dry.out).toMatch(/Entries: 3 new/);
+    expect(dry.out).toMatch(/Languages to add: fr/);
+    expect(await prisma.entry.count()).toBe(0);
+
+    const noTty = await cli(['site:import', 'site.json'], env, dir);
+    expect(noTty.code).toBe(1);
+    const run = await cli(['site:import', 'site.json', '--yes'], env, dir);
+    expect(run.code).toBe(0);
+    expect(run.out).toMatch(/entries 3 created/);
+    expect(await prisma.entry.count()).toBe(3);
+  });
+});

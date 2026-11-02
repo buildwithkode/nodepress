@@ -19,5 +19,6 @@ import importer from './importer.json';
 import redirects from './redirects.json';
 import preview from './preview.json';
 import choiceLists from './choiceLists.json';
+import siteTransfer from './siteTransfer.json';
 
-export default { common, nav, auth, dashboard, contentTypes, entries, entryEditor, releases, media, forms, users, developer, settings, errors, roles, components, importer, redirects, preview, choiceLists };
+export default { common, nav, auth, dashboard, contentTypes, entries, entryEditor, releases, media, forms, users, developer, settings, errors, roles, components, importer, redirects, preview, choiceLists, siteTransfer };

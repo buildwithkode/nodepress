@@ -54,6 +54,18 @@ export interface PaginatedResult<T> {
 }
 
 import { assertValidSlug, canonicalLocale } from '../common/slug-locale.util';
+/** One entry for `writeSiteEntries`. */
+export interface SiteEntryWrite {
+  existingId?: number;
+  publicId: string;
+  slug: string;
+  locale: string;
+  status: string;
+  data: Record<string, any>;
+  seo?: any;
+  publishAt?: string | null;
+}
+
 @Injectable()
 export class EntriesService {
   constructor(
@@ -875,6 +887,55 @@ export class EntriesService {
     }
 
     return entries;
+  }
+
+  /**
+   * Site import (`SiteTransferService`): write prepared entries of one content type.
+   * Each row carries its final publicId and, when it replaces an existing entry
+   * (restoring it if it was in the trash), that entry's id. Relation values in
+   * `data` already point at this install's publicIds.
+   */
+  async writeSiteEntries(
+    contentTypeId: number,
+    rows: SiteEntryWrite[],
+  ): Promise<{ created: number; updated: number; errors: string[] }> {
+    const contentType = await this.prisma.contentType.findUnique({ where: { id: contentTypeId } });
+    if (!contentType) throw new BadRequestException(`Content type #${contentTypeId} not found`);
+    const schema = (contentType.schema as unknown as FieldDef[]) ?? [];
+    let created = 0;
+    let updated = 0;
+    const errors: string[] = [];
+
+    for (const row of rows) {
+      const data = normalizeDataKeys(sanitizeEntryData(injectRepeaterIds(row.data ?? {}), schema));
+      const fields = {
+        status: row.status,
+        data,
+        seo: row.seo ?? Prisma.DbNull,
+        publishAt: row.publishAt ? new Date(row.publishAt) : null,
+      };
+      try {
+        if (row.existingId) {
+          const entry = await this.prisma.entry.update({
+            include: { contentType: true },
+            where: { id: row.existingId },
+            data: { ...fields, deletedAt: null },
+          });
+          await this.emitForEntries(PluginEvents.ENTRY_AFTER_UPDATE, [entry], 'import');
+          updated++;
+        } else {
+          const entry = await this.prisma.entry.create({
+            include: { contentType: true },
+            data: { ...fields, publicId: row.publicId, slug: row.slug, locale: row.locale, contentTypeId },
+          });
+          await this.emitForEntries(PluginEvents.ENTRY_AFTER_CREATE, [entry], 'import');
+          created++;
+        }
+      } catch (err: any) {
+        errors.push(`${contentType.name}/${row.slug} (${row.locale}): ${err?.message ?? 'unknown error'}`);
+      }
+    }
+    return { created, updated, errors };
   }
 
   /**

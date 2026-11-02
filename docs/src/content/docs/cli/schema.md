@@ -16,7 +16,7 @@ npx create-nodepress-app schema:diff     # what would a push change?
 npx create-nodepress-app schema:push     # nodepress.schema.json → site
 ```
 
-They move the model only, never entries.
+They move the model only, never entries. To move entries too, use a [site export](/content/site-export/).
 
 ## Connecting
 

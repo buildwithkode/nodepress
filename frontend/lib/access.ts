@@ -43,6 +43,7 @@ const PATH_MODULES: Array<[string, string]> = [
   ['/languages', 'languages'],
   ['/server-settings', 'server_settings'],
   ['/import', 'import'],
+  ['/site-transfer', ADMIN_ONLY],
 ];
 
 /** Pages that change things — they need edit, not just view. */

@@ -162,7 +162,7 @@ Editors and admins can export a content type's entries (everything except the tr
 - Rows are matched to existing entries by slug and language. With **Update duplicate entries** on (the default), matching entries are updated; otherwise they're skipped.
 - Imported rows without a status become drafts.
 
-To bring content over from WordPress, use the [WordPress import](/content/wordpress-import/).
+To move every content type and entry to another NodePress site at once, use a [site export](/content/site-export/). To bring content over from WordPress, use the [WordPress import](/content/wordpress-import/).
 
 ## Admin API
 

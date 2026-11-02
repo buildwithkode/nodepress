@@ -31,6 +31,7 @@ import { ServerSettingsModule } from './server-settings/server-settings.module';
 import { SeoModule } from './seo/seo.module';
 import { ImporterModule } from './importer/importer.module';
 import { RedirectsModule } from './redirects/redirects.module';
+import { SiteTransferModule } from './site-transfer/site-transfer.module';
 import { OpenApiModule } from './openapi/openapi.module';
 import { AppCacheModule } from './cache/cache.module';
 import { MetricsModule } from './metrics/metrics.module';
@@ -133,6 +134,7 @@ import { LocalesModule } from './locales/locales.module';
     SeoModule,          // GET /sitemap.xml and GET /robots.txt
     ImporterModule,     // WordPress (WXR) import — POST /api/import/wordpress
     RedirectsModule,    // Global — redirects manager + GET /redirects/resolve (auto 301 on slug change)
+    SiteTransferModule, // Whole-site export / import — GET /api/site/export, POST /api/site/import
     OpenApiModule,      // GET /openapi.json — the content API as OpenAPI 3.1
 
     // DynamicApiModule MUST be last — wildcard /:type routes shadow static routes

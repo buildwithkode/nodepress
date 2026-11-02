@@ -30,7 +30,8 @@
     "docs": "ドキュメント",
     "serverSettings": "メールとストレージ",
     "choiceLists": "選択肢リスト",
-    "importer": "インポート"
+    "importer": "WordPress インポート",
+    "siteTransfer": "エクスポートとインポート"
   },
   "signOut": "サインアウト",
   "user": "ユーザー",
