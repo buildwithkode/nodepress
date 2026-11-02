@@ -16,7 +16,7 @@ It takes ideas from WordPress with ACF (flexible content, repeaters, plugins) an
 |---|---|
 | API server | NestJS, Prisma and PostgreSQL |
 | Admin panel | Next.js 15 (App Router), Tailwind and Radix UI |
-| Optional | Redis (cache and multi-instance), S3-compatible storage, Meilisearch, SMTP |
+| Optional | Redis (cache and multi-instance), S3-compatible storage, Cloudflare R2 or ImageKit, Meilisearch, SMTP |
 
 ## Headless, in one minute
 
@@ -41,7 +41,7 @@ Create a content type called `blog`, and `GET /api/blog` serves its published po
 - **APIs for every content type**: REST with filtering, sorting, cursor pagination, full-text search and relation population, plus a typed GraphQL schema and OpenAPI docs that rebuild when you change a schema.
 - **Editorial workflow**: drafts, staging, scheduled publishing, version history, content releases, multiple languages and live preview of your own site.
 - **Access control**: roles and custom roles, per-content-type and field-level permissions, scoped API keys, single sign-on (OIDC) and two-factor authentication.
-- **Media**: uploads with WebP versions, focal points, on-the-fly image transforms, and local or S3-compatible storage.
+- **Media**: uploads with WebP versions, focal points, on-the-fly image transforms, and storage on local disk, S3-compatible services, Cloudflare R2 or ImageKit.
 - **Extending**: plugins with lifecycle hooks, signed webhooks, forms with email and webhook actions, and a JavaScript client.
 - **Production basics**: Redis caching, CDN purging, read replicas, Prometheus metrics, audit logs, backups and Docker setups.
 

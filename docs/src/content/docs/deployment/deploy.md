@@ -15,7 +15,7 @@ NodePress runs anywhere that can run **Node.js and PostgreSQL** around the clock
 | Setup | One command on the server | Clicks in a dashboard, plus a few settings |
 | Monthly cost | Lowest — one small server runs everything | Higher — you pay for two services and a database |
 | You look after | Server updates and backups (both are a few commands) | Almost nothing; the platform runs it |
-| Uploaded files | Stay on the server | Need [S3-compatible storage](/deployment/storage/) or a paid disk |
+| Uploaded files | Stay on the server | Need [outside storage](/deployment/storage/) (S3-compatible, R2 or ImageKit) or a paid disk |
 | Guide | [With Docker](/deployment/deploy-vps/) (one command), [from the server zip](/deployment/deploy-zip/) (no Docker, no build) or [without Docker, step by step](/deployment/deploy-vps-node/) | [Deploy on a platform](/deployment/deploy-platforms/) |
 
 **Not sure? Use a server with Docker.** A VPS with 2 GB of memory runs the whole stack — database, API, admin and automatic HTTPS — and the installer sets it all up in one command. Docker here is just the tool the installer uses; you don't need to know it.
@@ -34,7 +34,7 @@ Before you start, have these ready:
 - **An account** with the host you picked.
 - **An email sending service**, so NodePress can send invitations and password-reset emails. Any SMTP service works: Resend, Brevo, Postmark, Amazon SES, Mailgun, or a Gmail app password for small teams. See [Email](/deployment/email/). You can add this after the install.
 - **For platforms only:** your NodePress project on GitHub. If you created it with `npx create-nodepress-app`, push it to a GitHub repository; otherwise fork [buildwithkode/nodepress](https://github.com/buildwithkode/nodepress).
-- **For platforms only:** S3-compatible storage for uploads (Cloudflare R2, DigitalOcean Spaces, AWS S3, Backblaze B2), unless your plan includes a persistent disk.
+- **For platforms only:** [outside storage](/deployment/storage/) for uploads (Cloudflare R2, ImageKit, DigitalOcean Spaces, AWS S3, Backblaze B2), unless your plan includes a persistent disk.
 
 ## How NodePress is put together
 
@@ -45,7 +45,7 @@ Knowing the parts makes the guides easier to follow:
 | **Database** | PostgreSQL 14 or newer. Holds all content, users and settings. |
 | **API** (`backend/`) | Serves your content (REST, GraphQL) and does the work. Listens on port 3000. |
 | **Admin** (`frontend/`) | The admin panel you sign in to. Listens on port 3001 and passes `/api` calls on to the API. |
-| **Uploads** | Images and files: on the server's disk, or in S3-compatible storage. |
+| **Uploads** | Images and files: on the server's disk, or in S3-compatible storage, R2 or ImageKit. |
 
 On a server, the installer runs all of these together with Docker, behind one domain; without Docker, each runs as a service on the server. On a platform, the API and the admin are two services with two addresses, and the database is the platform's own.
 

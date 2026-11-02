@@ -12,7 +12,7 @@ One backend instance handles a lot: public reads are cached, and the database do
 | Need | Why | How |
 |---|---|---|
 | Redis | The cache, rate limits and live updates must be shared. | Set `REDIS_URL` on every instance. |
-| Shared file storage | Each instance would otherwise see only its own uploads. | [S3-compatible storage](/deployment/storage/). |
+| Shared file storage | Each instance would otherwise see only its own uploads. | [S3-compatible storage, R2 or ImageKit](/deployment/storage/). |
 | The same environment | Every instance must sign and check logins with the same key. | Same `JWT_SECRET`, `DATABASE_URL` and the rest on every instance. |
 | Sticky sessions for `/api/realtime` | Live updates fall back to long-polling when WebSockets are blocked, and all of a client's polling requests must reach the same instance. | The bundled nginx pins each client IP to one instance (`ip_hash`). |
 

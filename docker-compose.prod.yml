@@ -98,7 +98,7 @@ services:
 
   # Scale horizontally with: docker compose -f docker-compose.prod.yml up -d --scale backend=3
   # (no container_name, so replicas can coexist; Redis keeps cache, rate limits
-  # and realtime in sync across them — use STORAGE_DRIVER=s3 for uploads).
+  # and realtime in sync across them — use S3, R2 or ImageKit for uploads).
   backend:
     build:
       context: ./backend
@@ -127,7 +127,7 @@ services:
       APP_URL:       ${APP_URL:-http://localhost:3000}
       SITE_URL:      ${SITE_URL:-http://localhost}
       REDIS_URL:     redis://redis:6379
-      # Storage (uncomment for S3):
+      # Storage (uncomment for S3, R2 or ImageKit, or set it up in the admin):
       # STORAGE_DRIVER:         s3
       # STORAGE_S3_BUCKET:      ${STORAGE_S3_BUCKET}
       # STORAGE_S3_REGION:      ${STORAGE_S3_REGION}
@@ -135,6 +135,12 @@ services:
       # STORAGE_S3_SECRET_KEY:  ${STORAGE_S3_SECRET_KEY}
       # STORAGE_S3_ENDPOINT:    ${STORAGE_S3_ENDPOINT}
       # STORAGE_S3_PUBLIC_URL:  ${STORAGE_S3_PUBLIC_URL}
+      # For Cloudflare R2: STORAGE_DRIVER r2, the bucket, keys and public URL above, plus:
+      # STORAGE_R2_ACCOUNT_ID:  ${STORAGE_R2_ACCOUNT_ID}
+      # For ImageKit: STORAGE_DRIVER imagekit, plus:
+      # STORAGE_IMAGEKIT_PRIVATE_KEY:  ${STORAGE_IMAGEKIT_PRIVATE_KEY}
+      # STORAGE_IMAGEKIT_URL_ENDPOINT: ${STORAGE_IMAGEKIT_URL_ENDPOINT}
+      # STORAGE_IMAGEKIT_FOLDER:       ${STORAGE_IMAGEKIT_FOLDER:-}
       # Email — required in production for password reset and team invitations.
       # Pick a provider: Gmail, Resend (resend.com), or SendGrid (sendgrid.com).
       # SMTP_HOST: ${SMTP_HOST}

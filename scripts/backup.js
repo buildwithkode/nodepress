@@ -9,8 +9,8 @@
  *
  * A backup archive holds:
  *   db.dump        pg_dump custom-format dump (schema + data, no owners/grants)
- *   uploads/       the data folder's uploads/ when STORAGE_DRIVER is local (S3 media is not
- *                  copied — back the bucket up with your provider's tooling)
+ *   uploads/       the data folder's uploads/ when files are stored there. Media on S3, R2 or
+ *                  ImageKit is not copied — back it up with your provider's tooling
  *   manifest.json  NodePress version, time, applied migrations, what's included
  *
  * The data folder is backend/ in a source checkout, ../nodepress-data for the
@@ -139,6 +139,27 @@ function appliedMigrations(target) {
   return out === null ? null : out.split('\n').filter(Boolean);
 }
 
+/** STORAGE_DRIVER wins, as in the backend; otherwise what was saved in Settings → Email & storage. */
+function storageDriver(target) {
+  const fromEnv = setting('STORAGE_DRIVER');
+  if (fromEnv) return fromEnv.toLowerCase();
+  const saved = psql(target, `SELECT storage->>'driver' FROM ${tableName(target, 'settings')} WHERE id = 1`);
+  return (saved || 'local').toLowerCase();
+}
+
+/**
+ * Media rows still on the local disk. Switching to a bucket leaves older files where they are
+ * until they're moved, and those are the only copies. Unknown (query failed) counts as yes.
+ */
+function hasLocalMedia(target) {
+  const count = psql(target, `SELECT count(*) FROM ${tableName(target, 'media')} WHERE url LIKE '%/uploads/%'`);
+  return count === null || Number(count) > 0;
+}
+
+function tableName(target, table) {
+  return target.schema ? `"${target.schema.replace(/"/g, '""')}".${table}` : table;
+}
+
 function codeMigrations() {
   if (!fs.existsSync(MIGRATIONS_DIR)) return [];
   return fs
@@ -205,9 +226,10 @@ function backup(args) {
       '--dbname', target.url,
     ], 'pg_dump');
 
-    const storage = (setting('STORAGE_DRIVER') || 'local').toLowerCase();
+    const storage = storageDriver(target);
+    const remote = ['s3', 'r2', 'imagekit'].includes(storage);
     let uploads = 0;
-    if (!['s3', 'r2', 'imagekit'].includes(storage) && fs.existsSync(UPLOADS_DIR)) {
+    if ((!remote || hasLocalMedia(target)) && fs.existsSync(UPLOADS_DIR)) {
       uploads = countFiles(UPLOADS_DIR);
       if (uploads > 0) {
         console.log(`• Copying ${uploads} uploaded file(s)…`);
@@ -235,7 +257,7 @@ function backup(args) {
     fs.chmodSync(file, 0o600);
 
     console.log(`✓ Backup written: ${path.relative(process.cwd(), file) || file} (${humanSize(fs.statSync(file).size)})`);
-    if (storage === 's3') console.log('  Media is on S3 and is not included — back up the bucket separately.');
+    if (remote) console.log(`  New media is stored on ${storage} and is not included — back it up with your provider's tools.`);
     console.log('  It contains password hashes, API keys and webhook secrets — keep it private.');
   } finally {
     fs.rmSync(stage, { recursive: true, force: true });

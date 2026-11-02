@@ -177,7 +177,7 @@ nginx looks up the backend replicas when it starts, so restart it after changing
 
 ### Extra settings
 
-S3, SMTP and `METRICS_TOKEN` lines are already in the `backend` service's `environment`, commented out. Uncomment the ones you need and set their values in `.env`.
+S3, R2, ImageKit, SMTP and `METRICS_TOKEN` lines are already in the `backend` service's `environment`, commented out. Uncomment the ones you need and set their values in `.env`.
 
 ## nginx
 

@@ -139,7 +139,7 @@ Click **Send test**, and save once it arrives. See [Email](/deployment/email/) f
 
 ## 8. Uploads
 
-Nothing to do. On a server, uploads are kept in a Docker volume that survives restarts and updates. If you'd rather keep them in S3-compatible storage (for a CDN, or to keep the server small), set it up under **Settings → Email & storage**; see [File storage](/deployment/storage/).
+Nothing to do. On a server, uploads are kept in a Docker volume that survives restarts and updates. If you'd rather keep them in S3-compatible storage, R2 or ImageKit (for a CDN, or to keep the server small), set it up under **Settings → Email & storage**; see [File storage](/deployment/storage/).
 
 ## 9. Backups
 

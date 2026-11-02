@@ -7,7 +7,7 @@ sidebar:
 
 On a platform you don't manage a server: you connect your GitHub repository and the platform builds and runs NodePress for you. Every platform follows the same shape, so read [the shape](#the-shape-every-platform-uses) once, then follow the steps for yours.
 
-**Before you start** you need your NodePress project in a GitHub repository (push the one `npx create-nodepress-app` made, or fork [buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)), and S3-compatible storage for uploads unless your plan has a persistent disk. See [what you need](/deployment/deploy/#what-you-need).
+**Before you start** you need your NodePress project in a GitHub repository (push the one `npx create-nodepress-app` made, or fork [buildwithkode/nodepress](https://github.com/buildwithkode/nodepress)), and [outside storage](/deployment/storage/) for uploads unless your plan has a persistent disk. See [what you need](/deployment/deploy/#what-you-need).
 
 ## The shape every platform uses
 
@@ -48,7 +48,7 @@ The two services need each other's address, which you only know after the first 
 
 Addresses have no trailing slash and no `/api`.
 
-**Uploads.** A platform's disk is wiped on every deploy. Either attach a persistent volume at `/app/uploads` (where the platform offers one), or use S3-compatible storage: set it up under **Settings → Email & storage** after setup, or with the `STORAGE_*` variables on the API service. See [File storage](/deployment/storage/).
+**Uploads.** A platform's disk is wiped on every deploy. Either attach a persistent volume at `/app/uploads` (where the platform offers one), or use S3-compatible storage, R2 or ImageKit: set it up under **Settings → Email & storage** after setup, or with the `STORAGE_*` variables on the API service. See [File storage](/deployment/storage/).
 
 ## Railway
 
@@ -60,7 +60,7 @@ Addresses have no trailing slash and no `/api`.
    - **Settings → Deploy:** set **Custom Start Command** to `sh -c "npx prisma migrate deploy && node dist/main.js"` and **Healthcheck Path** to `/api/health`.
    - **Settings → Networking:** click **Generate Domain** (port `3000`). Copy the address — that's the API's address.
 5. **Add the admin.** Click **+ New → GitHub Repo**, pick the same repository, and set its **Root Directory** to `/frontend`. Add its variables: `BACKEND_URL` and `NEXT_PUBLIC_API_URL` = the API's address, `PORT` = `3001`. Under **Networking**, **Generate Domain** (port `3001`) — that's the admin's address.
-6. **Uploads.** Add a volume to the API service (right-click it → **Attach Volume**, or **+ New → Volume**) with the mount path `/app/uploads`. Or use S3 storage instead.
+6. **Uploads.** Add a volume to the API service (right-click it → **Attach Volume**, or **+ New → Volume**) with the mount path `/app/uploads`. Or use [outside storage](/deployment/storage/) instead.
 7. **Connect them.** On the API service set `APP_URL` to the API's address and `SITE_URL` and `CORS_ORIGIN` to the admin's address. Redeploy the API, then the admin (from each service's **Deployments** tab, **Redeploy**).
 8. Open the admin's address + `/setup` and create the admin account.
 
@@ -86,7 +86,7 @@ On App Platform, create the API and the admin as **two apps**, so each gets its 
 
 **Connect them:** in the API app's settings set `APP_URL` to the API's address and `SITE_URL` and `CORS_ORIGIN` to the admin's address; it redeploys on save. Then open the admin's address + `/setup`.
 
-**Uploads:** App Platform has no persistent disk, so use **DigitalOcean Spaces** (S3-compatible): see the Spaces example in [File storage](/deployment/storage/#provider-examples).
+**Uploads:** App Platform has no persistent disk, so use **DigitalOcean Spaces** (S3-compatible; see the Spaces example in [File storage](/deployment/storage/#provider-examples)), Cloudflare R2 or ImageKit.
 
 **Your own domain:** in each app's **Settings → Domains**, add the domain and follow the DNS instructions. Then update the address variables and redeploy (the admin needs a rebuild).
 
@@ -99,7 +99,7 @@ The repository's **Deploy to Render** button creates everything from `render.yam
 Fly.io, Koyeb, Northflank, Coolify and similar work the same way: follow [the shape](#the-shape-every-platform-uses) above. Two things trip people up:
 
 - The admin's `BACKEND_URL` and `NEXT_PUBLIC_API_URL` must be available **at build time** (as Docker build arguments). Set at run time only, the admin can't reach the API.
-- Upload folders on most platforms are temporary. Use S3-compatible storage or a persistent volume at `/app/uploads`.
+- Upload folders on most platforms are temporary. Use [outside storage](/deployment/storage/) or a persistent volume at `/app/uploads`.
 
 ## If something goes wrong
 
@@ -108,7 +108,7 @@ Fly.io, Koyeb, Northflank, Coolify and similar work the same way: follow [the sh
 | The API keeps restarting | Open its logs. `JWT_SECRET must be at least 32 characters` or a list of missing variables means a variable is missing or too short. A database error means `DATABASE_URL` is wrong. |
 | The admin loads, but signing in fails or pages show errors instead of data | `BACKEND_URL` is wrong or was added after the build. Fix it and **rebuild** the admin. |
 | Signing in works but live updates don't | `NEXT_PUBLIC_API_URL` is missing (rebuild after adding it), or `CORS_ORIGIN` on the API doesn't match the admin's address exactly. |
-| Images disappear after a deploy | Uploads were on the temporary disk. Attach a volume or switch to S3 storage, and upload them again. |
+| Images disappear after a deploy | Uploads were on the temporary disk. Attach a volume or switch to [outside storage](/deployment/storage/), and upload them again. |
 | Invite and reset links point at the wrong site | `SITE_URL` on the API must be the admin's address. |
 
 When everything works, go through the [go-live checklist](/deployment/deploy/#go-live-checklist).

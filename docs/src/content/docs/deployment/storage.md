@@ -176,4 +176,4 @@ Even with S3, the backend writes to `backend/uploads/`: each upload is staged th
 
 ## Backups
 
-The [backup script](/deployment/backups/) includes local uploads but not S3 buckets. Back a bucket up with your provider's tools, such as versioning or replication.
+The [backup script](/deployment/backups/) includes local uploads but not files on S3, R2 or ImageKit. Back those up with your provider's tools, such as versioning or replication. Media still on local disk after a switch is included until it's moved.

@@ -54,9 +54,11 @@ Admins and editors can manage folders.
 
 ## Images in entries
 
-An `image` field opens the media picker. You can choose an image from the library or upload one, and add **Alt text**. The field stores the URL and the alt text: `{ "url": "https://…/1730000000000-9f86d081884c7d65.jpg", "alt": "A photo" }`. See [Fields](/content-modeling/fields/).
+An `image` field opens the media picker. You can choose an image from the library, upload one, or paste a web address on the **Link** tab, and add **Alt text**. The field stores the URL and the alt text: `{ "url": "https://…/1730000000000-9f86d081884c7d65.jpg", "alt": "A photo" }`. See [Fields](/content-modeling/fields/).
 
 **Crop & Zoom** in the picker crops the image in the browser and uploads the result as a **new file**, so the original stays in the library unchanged.
+
+The **Link** tab is for images hosted elsewhere, such as on ImageKit. It previews the address and warns if the image can't load. The file stays where it is and isn't added to the library, so **Crop & Zoom** isn't available for it.
 
 ## Focal point
 
@@ -87,11 +89,11 @@ In **Media**, open an image's menu and choose **Set focal point**, then click th
 - Images are never enlarged beyond their original size.
 - `format=auto` serves AVIF or WebP when the browser's `Accept` header allows it, otherwise JPEG, and sends `Vary: Accept`.
 - `/api/media/:filename/resize` is the same endpoint under another name.
-- It works with local and S3 storage.
+- It works with every storage option. Files on S3, R2 or ImageKit are downloaded once and cached on the server.
 
 Responses are cached by browsers and CDNs for a year (`immutable`). The one exception is a focal-point crop (`fit=cover` with `w` and `h`): moving the focal point changes the output but not the URL, so those responses are cached for an hour, unless the URL carries `fp=` with the current focal point (`fp=0.3,0.6`, as `focalX,focalY` from the media record). Then the URL changes whenever the focal point does, and the response can be cached for a year.
 
-The [JS client's](/apis/js-client/) `imageUrl()` builds these URLs for files on local storage. It returns other URLs, such as S3 ones, unchanged.
+The [JS client's](/apis/js-client/) `imageUrl()` builds these URLs for files on local storage. It returns other URLs, such as S3, R2 or ImageKit ones, unchanged.
 
 Two variants are generated at a time and up to 50 requests wait for a turn. Beyond that the endpoint answers `503`, and the request can be retried. Variants that haven't been requested for 30 days are deleted nightly, as are the least recently used ones when the cache grows past 2 GB. The environment variables `IMAGE_TRANSFORM_CONCURRENCY` (default `2`) and `IMAGE_VARIANT_CACHE_MB` (default `2048`) change these limits.
 
@@ -101,10 +103,10 @@ Admins and editors can delete a file from its menu in **Media**. The WebP copy i
 
 ## Where files are stored
 
-By default, files are stored on the server's disk in `backend/uploads/` and served from `/uploads/<file>`. NodePress can store them in S3-compatible storage instead (AWS S3, Cloudflare R2, DigitalOcean Spaces, MinIO, Backblaze B2).
+By default, files are stored on the server's disk in `backend/uploads/` and served from `/uploads/<file>`. NodePress can store them elsewhere instead: S3-compatible storage (AWS S3, DigitalOcean Spaces, MinIO, Backblaze B2), Cloudflare R2 or ImageKit.
 
 :::caution
-On most hosting platforms and containers, the local disk is wiped when you redeploy, and every uploaded file is lost while the entries that use them remain. Use S3-compatible storage or a persistent volume in production. See [Storage](/deployment/storage/).
+On most hosting platforms and containers, the local disk is wiped when you redeploy, and every uploaded file is lost while the entries that use them remain. Use S3-compatible storage, R2, ImageKit or a persistent volume in production. See [Storage](/deployment/storage/).
 :::
 
 ## API

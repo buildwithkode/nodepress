@@ -57,7 +57,7 @@ The settings are in `nodepress-data/.env`. It holds `JWT_SECRET`, which signs lo
 
 - **NodePress sleeps when nobody uses it.** The host stops idle apps after a few minutes and starts them again on the next visit, which then takes a few seconds. While it sleeps, nothing runs in the background: entries scheduled to publish, webhook retries and other background jobs wait until the next request wakes it. If you rely on scheduled publishing, a [VPS](/deployment/deploy-zip/#on-your-own-server-vps) suits better.
 - **Restart** in **Setup Node.js App** restarts NodePress. So does **Restart now** in the admin after a plugin or storage change.
-- **Uploads** are kept in `nodepress-data/uploads` and count toward your hosting space. To keep them off the account, use [S3-compatible storage](/deployment/storage/).
+- **Uploads** are kept in `nodepress-data/uploads` and count toward your hosting space. To keep them off the account, use [S3-compatible storage, R2 or ImageKit](/deployment/storage/).
 - **Settings** such as `SMTP_HOST` can be set as environment variables in **Setup Node.js App**, or in `nodepress-data/.env`. Most are easier in the admin.
 
 ## Updating

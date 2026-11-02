@@ -110,7 +110,7 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | **Persistent Variant Cache** | Automatically saves resized WebP/Avif variants to disk for instant subsequent serving |
 | **File uploads** | Images, PDFs, videos — up to 10MB per file with magic bytes validation |
 | **Folder organisation** | Group media into folders in the admin panel |
-| **S3 compatible** | Switch from local disk to any S3-compatible bucket (AWS, Cloudflare R2, MinIO) with one env var |
+| **Storage options** | Switch from local disk to any S3-compatible bucket (AWS, DigitalOcean Spaces, MinIO), Cloudflare R2 or ImageKit, from the admin or with env vars |
 
 ### Security & Access Control
 | Feature | What it does |
@@ -610,7 +610,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for what changed in each version, including u
 | **Auth** | JWT · Passport · bcryptjs |
 | **API** | REST · Apollo GraphQL · Swagger |
 | **Real-time** | Socket.io (Redis adapter for multi-instance) |
-| **Media** | Multer · Sharp (WebP) · S3 compatible |
+| **Media** | Multer · Sharp (WebP) · S3 compatible · R2 · ImageKit |
 | **Frontend** | Next.js 14 App Router · TypeScript · Tailwind CSS |
 | **Proxy** | Nginx (gzip · rate limiting · WebSocket · SSL) |
 | **Monitoring** | Prometheus · Grafana · pino structured logging |

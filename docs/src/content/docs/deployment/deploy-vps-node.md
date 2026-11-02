@@ -204,7 +204,7 @@ Caddy gets the certificate on the first visit, which needs the DNS record from s
 
 Open `https://cms.example.com/setup` and enter the site name and the first admin's email and password. Then set up email under **Settings → Email & storage**, as in [step 7 of the Docker guide](/deployment/deploy-vps/#7-set-up-email).
 
-Uploads are stored in `/srv/nodepress/app/backend/uploads`. To keep them off the server, use [S3-compatible storage](/deployment/storage/).
+Uploads are stored in `/srv/nodepress/app/backend/uploads`. To keep them off the server, use [S3-compatible storage, R2 or ImageKit](/deployment/storage/).
 
 ## Backups
 
