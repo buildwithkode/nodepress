@@ -38,6 +38,29 @@ describe('Components (e2e)', () => {
     expect(res.body.fields).toEqual(seoFields);
   });
 
+  it('PUT /api/components/order → saves the order, new components go last', async () => {
+    const second = (await request(server()).post('/api/components').set(auth)
+      .send({ name: 'second', fields: seoFields }).expect(201)).body;
+    const third = (await request(server()).post('/api/components').set(auth)
+      .send({ name: 'a_third', fields: seoFields }).expect(201)).body;
+    const names = async () => (await request(server()).get('/api/components').set(auth).expect(200)).body.map((c: any) => c.name);
+    expect(await names()).toEqual(['page_seo', 'second', 'a_third']);
+
+    await request(server()).put('/api/components/order').send({ ids: [third.id] }).expect(401);
+    await request(server()).put('/api/components/order').set(editorAuth).send({ ids: [third.id, componentId, second.id] }).expect(403);
+    await request(server()).put('/api/components/order').set(auth).send({ ids: [third.id, componentId] }).expect(400);
+    await request(server()).put('/api/components/order').set(auth).send({ ids: [third.id, componentId, componentId] }).expect(400);
+    await request(server()).put('/api/components/order').set(auth).send({ ids: 'x' }).expect(400);
+
+    const res = await request(server()).put('/api/components/order').set(auth)
+      .send({ ids: [third.id, componentId, second.id] }).expect(200);
+    expect(res.body.map((c: any) => c.name)).toEqual(['a_third', 'page_seo', 'second']);
+    expect(await names()).toEqual(['a_third', 'page_seo', 'second']);
+
+    await request(server()).delete(`/api/components/${second.id}`).set(auth).expect(200);
+    await request(server()).delete(`/api/components/${third.id}`).set(auth).expect(200);
+  });
+
   it('rejects components inside components, duplicates and non-admins', async () => {
     const bad = await request(server()).post('/api/components').set(auth)
       .send({ name: 'nested', fields: [{ name: 'items', type: 'repeater', options: { component: 'page_seo', subFields: [{ name: 'a', type: 'text' }] } }] })

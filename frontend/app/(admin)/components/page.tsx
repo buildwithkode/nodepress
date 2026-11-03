@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, Blocks, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
+import {
+  DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Plus, Pencil, Trash2, Blocks, ArrowUp, ArrowDown, Loader2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
@@ -67,6 +74,49 @@ const fieldForSave = (f: DraftField) => ({
   ...(f.options ? { options: optionsForSave(withoutLoadedKeys(f.options)) } : {}),
 });
 
+/** One link per content type: a type can use the same component more than once. */
+const usedByTypes = (usage: Usage[]) => [...new Map(usage.map((u) => [u.contentTypeId, u])).values()];
+
+/** A table row that can be dragged by the handle in its Sr. No. cell. */
+function SortableRow({ id, number, canDrag, handleLabel, children }: {
+  id: number;
+  number: number;
+  canDrag: boolean;
+  handleLabel: string;
+  children: React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: !canDrag });
+  return (
+    <tr
+      ref={setNodeRef}
+      data-slot="table-row"
+      className={`border-b border-border hover:bg-muted/20 transition-colors ${isDragging ? 'relative z-10 bg-muted' : ''}`}
+      // Up and down only, without stretching the row to the height of the one it passes.
+      style={{ transform: CSS.Translate.toString(transform && { ...transform, x: 0 }), transition }}
+    >
+      <TableCell className="align-top py-3 whitespace-nowrap">
+        <div className="flex items-center gap-1.5">
+          {canDrag && (
+            <button
+              type="button"
+              ref={setActivatorNodeRef}
+              {...attributes}
+              {...listeners}
+              aria-label={handleLabel}
+              title={handleLabel}
+              className="cursor-grab active:cursor-grabbing touch-none text-muted-foreground/60 hover:text-muted-foreground"
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          )}
+          <span className="tabular-nums text-muted-foreground">{number}</span>
+        </div>
+      </TableCell>
+      {children}
+    </tr>
+  );
+}
+
 export default function ComponentsPage() {
   const t = useTranslations('components');
   const tct = useTranslations('contentTypes');
@@ -90,6 +140,27 @@ export default function ComponentsPage() {
       return [];
     } finally {
       setLoading(false);
+    }
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const moved = arrayMove(
+      components,
+      components.findIndex((c) => c.id === active.id),
+      components.findIndex((c) => c.id === over.id),
+    );
+    setComponents(moved);
+    try {
+      await api.put('/components/order', { ids: moved.map((c) => c.id) });
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('reorderFailed'));
+      await load();
     }
   };
 
@@ -186,19 +257,23 @@ export default function ComponentsPage() {
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table>
+          <DndContext id="components-order" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          {/* Fixed layout: Name, Fields and Used by share the width equally. */}
+          <Table className="table-fixed min-w-[900px]">
             <TableHeader>
               <TableRow>
+                <TableHead className="w-20 whitespace-nowrap">{t('columns.number')}</TableHead>
                 <TableHead>{t('columns.name')}</TableHead>
                 <TableHead>{t('columns.fields')}</TableHead>
                 <TableHead>{t('columns.usedBy')}</TableHead>
-                {canEditModel && <TableHead className="text-right">{t('columns.actions')}</TableHead>}
+                {canEditModel && <TableHead className="w-24 text-right">{t('columns.actions')}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
@@ -207,10 +282,12 @@ export default function ComponentsPage() {
                 ))
               ) : components.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canEditModel ? 4 : 3} className="py-12 text-center text-muted-foreground">{t('empty')}</TableCell>
+                  <TableCell colSpan={canEditModel ? 5 : 4} className="py-12 text-center text-muted-foreground">{t('empty')}</TableCell>
                 </TableRow>
-              ) : components.map((c) => (
-                <TableRow key={c.id}>
+              ) : (
+                <SortableContext items={components.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                {components.map((c, index) => (
+                <SortableRow key={c.id} id={c.id} number={index + 1} canDrag={canEditModel} handleLabel={t('dragToReorder')}>
                   <TableCell className="align-top py-3">
                     <div className="font-medium">{c.displayName || humanizeName(c.name)}</div>
                     <code className="text-xs text-muted-foreground font-mono">{c.name}</code>
@@ -229,22 +306,16 @@ export default function ComponentsPage() {
                     {c.usage.length === 0 ? (
                       <span className="text-muted-foreground">{t('unused')}</span>
                     ) : (
-                      <ul className="space-y-0.5">
-                        {c.usage.map((u) => (
-                          <li key={`${u.contentTypeId}.${u.type}.${u.field}.${u.layout ?? ''}.${u.subField ?? ''}`}>
+                      <p className="leading-relaxed">
+                        {usedByTypes(c.usage).map((u, i) => (
+                          <span key={u.contentTypeId}>
+                            {i > 0 && ', '}
                             <Link href={`/content-types/${u.contentTypeId}/edit`} className="hover:underline">
                               {ctLabel({ name: u.contentType, displayName: u.displayName })}
                             </Link>
-                            <span className="text-muted-foreground">
-                              {' · '}
-                              {u.type === 'inline' ? (u.fields ?? [u.field]).join(', ') : u.type === 'layout' ? `${u.field} › ${u.layout}` : u.subField ? `${u.field} › ${u.layout} › ${u.subField}` : u.field}
-                              {' ('}
-                              {u.type === 'group' ? t('kind.one') : u.type === 'repeater' ? t('kind.many') : u.type === 'inline' ? t('kind.inline') : t('kind.layout')}
-                              {')'}
-                            </span>
-                          </li>
+                          </span>
                         ))}
-                      </ul>
+                      </p>
                     )}
                   </TableCell>
                   {canEditModel && (
@@ -263,10 +334,13 @@ export default function ComponentsPage() {
                       </Button>
                     </TableCell>
                   )}
-                </TableRow>
-              ))}
+                </SortableRow>
+                ))}
+                </SortableContext>
+              )}
             </TableBody>
           </Table>
+          </DndContext>
         </CardContent>
       </Card>
 

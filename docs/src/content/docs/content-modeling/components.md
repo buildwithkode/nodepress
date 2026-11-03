@@ -141,3 +141,7 @@ Each field needs its own key, so a component can be used twice only under differ
 | `POST /api/components` | creates one: `{ name, displayName?, description?, fields }` | admin |
 | `PUT /api/components/:id` | updates it and every content type using it; returns `updatedContentTypes` and any `propagationErrors` | admin |
 | `DELETE /api/components/:id` | deletes it (`409` while in use) | admin |
+
+## Order on the Components page
+
+Drag a row by the handle in its **Sr. No.** column to move it up or down, or send every component id in the new order to `PUT /api/components/order`. New components go last. The order only affects this list, and it isn't included in schema or site exports. **Used by** lists the content types that use the component, separated by commas.

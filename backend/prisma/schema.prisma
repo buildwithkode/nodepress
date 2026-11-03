@@ -448,6 +448,8 @@ model Component {
   displayName String?
   description String?
   fields      Json
+  /// Order on the Components page, chosen by dragging rows.
+  position    Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

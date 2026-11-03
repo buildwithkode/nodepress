@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { ComponentsService } from './components.service';
-import { CreateComponentDto, UpdateComponentDto } from './dto/component.dto';
+import { CreateComponentDto, ReorderComponentsDto, UpdateComponentDto } from './dto/component.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Access } from '../auth/decorators/access.decorator';
@@ -49,6 +49,21 @@ export class ComponentsController {
       'created', 'component', component.name,
     );
     return component;
+  }
+
+  // Before PUT :id, which would read "order" as an id.
+  @UseGuards(RolesGuard)
+  @Access('content_model', 'edit')
+  @Put('order')
+  @ApiOperation({ summary: 'Save the order of the Components page (admin only)' })
+  @ApiResponse({ status: 400, description: 'The list must name every component exactly once' })
+  async reorder(@Body() dto: ReorderComponentsDto, @Request() req: any) {
+    const components = await this.components.reorder(dto.ids);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'updated', 'component', 'order',
+    );
+    return components;
   }
 
   @UseGuards(RolesGuard)

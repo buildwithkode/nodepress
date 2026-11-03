@@ -15,6 +15,7 @@
   "deleteTitle": "「{name}」を削除しますか?",
   "deleteDescription": "このコンポーネントを完全に削除します。どのコンテンツタイプでも使用されていないため、エントリーへの影響はありません。",
   "columns": {
+    "number": "番号",
     "name": "名前",
     "fields": "フィールド",
     "usedBy": "使用先",
@@ -22,9 +23,7 @@
   },
   "kind": {
     "one": "単一",
-    "many": "複数",
-    "inline": "インライン",
-    "layout": "レイアウト"
+    "many": "複数"
   },
   "editor": {
     "newTitle": "新規コンポーネント",
@@ -107,5 +106,7 @@
     "duplicate": "別のフィールドがすでにキー {key} を使っています。どちらかの名前を変更してください。",
     "required": "必須",
     "remove": "このコンポーネントを削除"
-  }
+  },
+  "reorderFailed": "順序を保存できませんでした",
+  "dragToReorder": "ドラッグして並べ替え"
 }

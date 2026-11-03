@@ -15,6 +15,7 @@
   "deleteTitle": "Delete \"{name}\"?",
   "deleteDescription": "This permanently removes the component. Content types no longer use it, so no entries are affected.",
   "columns": {
+    "number": "Sr. No.",
     "name": "Name",
     "fields": "Fields",
     "usedBy": "Used by",
@@ -22,9 +23,7 @@
   },
   "kind": {
     "one": "One",
-    "many": "Many",
-    "inline": "Inline",
-    "layout": "Layout"
+    "many": "Many"
   },
   "editor": {
     "newTitle": "New component",
@@ -107,5 +106,7 @@
     "duplicate": "Another field already uses the key {key}. Rename one of them.",
     "required": "Required",
     "remove": "Remove this component"
-  }
+  },
+  "reorderFailed": "Failed to save the order",
+  "dragToReorder": "Drag to reorder"
 }
