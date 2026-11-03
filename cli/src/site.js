@@ -60,8 +60,9 @@ async function exportCmd(api, opts) {
   const file = path.resolve(opts.out || DEFAULT_FILE);
   fs.writeFileSync(file, JSON.stringify(bundle, null, 2) + '\n', { mode: 0o600 });
   const entries = Object.values(bundle.entries || {}).reduce((n, list) => n + list.length, 0);
-  console.log(`  ${green('✓')} Saved ${path.relative(process.cwd(), file) || file}: ${plural((bundle.contentTypes || []).length, 'content type')}, ${plural((bundle.components || []).length, 'component')}, ${plural((bundle.choiceLists || []).length, 'choice list')}, ${plural(entries, 'entry', 'entries')}`);
-  console.log(dim('    Media files are not included; entries keep their media links.'));
+  console.log(`  ${green('✓')} Saved ${path.relative(process.cwd(), file) || file}: ${plural((bundle.contentTypes || []).length, 'content type')}, ${plural((bundle.components || []).length, 'component')}, ${plural((bundle.choiceLists || []).length, 'choice list')}, ${plural(entries, 'entry', 'entries')}, ${plural((bundle.forms || []).length, 'form')}`);
+  console.log(dim('    Media files and form submissions are not included; entries keep their media links.'));
+  if ((bundle.forms || []).length) console.log(dim('    Form settings (email recipients, webhook headers) are in the file: keep it private.'));
   return 0;
 }
 
@@ -77,6 +78,7 @@ function printPreview(p) {
     console.log(`    ${t.name}: ${parts.join(', ') || dim('nothing')}`);
   }
   if (e.relinked) console.log(dim(`    ${plural(e.relinked, 'entry', 'entries')} get this site's ids; relations to them are updated`));
+  if (p.forms?.total) console.log(`\n  ${bold('Forms')}: ${p.forms.toCreate} new, ${p.forms.toUpdate} to update, ${p.forms.toSkip} kept as they are`);
   if (p.localesToAdd?.length) console.log(`\n  ${bold('Languages to add')}: ${p.localesToAdd.join(', ')}`);
   if (p.errors.length) {
     console.log(`\n  ${red(plural(p.errors.length, 'problem'))}:`);
@@ -116,7 +118,7 @@ async function importCmd(api, opts) {
   }
   const r = await api('POST', `/site/import?${query}`, bundle);
   const s = r.schemas;
-  console.log(`\n  ${green('✓')} Imported: ${s ? `content types ${s.created || 0} created, ${s.updated || 0} updated; ` : ''}entries ${r.entries.created} created, ${r.entries.updated} updated`);
+  console.log(`\n  ${green('✓')} Imported: ${s ? `content types ${s.created || 0} created, ${s.updated || 0} updated; ` : ''}entries ${r.entries.created} created, ${r.entries.updated} updated${r.forms ? `; forms ${r.forms.created} created, ${r.forms.updated} updated` : ''}`);
   if (r.localesAdded?.length) console.log(`    Languages added: ${r.localesAdded.join(', ')}`);
   if (r.errors?.length) {
     for (const msg of r.errors) console.log(`    ${red('✗')} ${msg}`);

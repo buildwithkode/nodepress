@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { assertValidSlug, canonicalLocale } from '../common/slug-locale.util';
 import type { SiteEntryWrite } from '../entries/entries.service';
+import { isReservedFormSlug, normalizeFormSlug } from '../forms/form-slug';
 
 /** Marks a file as a site export (`GET /api/site/export`). */
 export const SITE_BUNDLE_FORMAT = 'nodepress-site';
@@ -192,6 +193,100 @@ function toWrite(row: SiteEntryRow, locale: string, status: string, publicId: st
     seo: row.seo ?? null,
     publishAt: row.publishAt ?? null,
   };
+}
+
+/** A form to create or update. Its submissions are never in the file and stay untouched. */
+export interface SiteFormWrite {
+  slug: string;
+  name: string;
+  fields: unknown[];
+  actions: unknown[];
+  isActive: boolean;
+  captchaEnabled: boolean;
+}
+
+export interface FormPlan {
+  total: number;
+  toCreate: number;
+  toUpdate: number;
+  /** Matches an existing form that is kept as it is (overwrite off). */
+  toSkip: number;
+  creates: SiteFormWrite[];
+  updates: SiteFormWrite[];
+  errors: string[];
+}
+
+/** Work out what a site import does with the bundle's forms, matched by slug. Files from before forms were exported have none. */
+export function planForms(bundleForms: unknown, existingSlugs: Set<string>, overwrite: boolean): FormPlan {
+  const plan: FormPlan = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0, creates: [], updates: [], errors: [] };
+  if (bundleForms === undefined || bundleForms === null) return plan;
+  if (!Array.isArray(bundleForms)) {
+    plan.errors.push('"forms" must be a list of forms');
+    return plan;
+  }
+  plan.total = bundleForms.length;
+  const seen = new Set<string>();
+
+  bundleForms.forEach((row: unknown, i) => {
+    const where = `forms[${i}]`;
+    if (!isObject(row)) {
+      plan.errors.push(`${where}: must be an object`);
+      return;
+    }
+    const slug = typeof row.slug === 'string' ? normalizeFormSlug(row.slug) : '';
+    if (!slug) {
+      plan.errors.push(`${where}: missing slug`);
+      return;
+    }
+    const label = `${where} "${slug}"`;
+    if (isReservedFormSlug(slug)) {
+      plan.errors.push(`${label}: "${slug}" is a reserved slug`);
+      return;
+    }
+    if (seen.has(slug)) {
+      plan.errors.push(`${label}: appears twice in the file`);
+      return;
+    }
+    seen.add(slug);
+    if (typeof row.name !== 'string' || !row.name.trim()) {
+      plan.errors.push(`${label}: missing name`);
+      return;
+    }
+    if (!Array.isArray(row.fields) || !row.fields.every(isObject)) {
+      plan.errors.push(`${label}: fields must be a list of objects`);
+      return;
+    }
+    const actions = row.actions ?? [];
+    if (!Array.isArray(actions) || !actions.every(isObject)) {
+      plan.errors.push(`${label}: actions must be a list of objects`);
+      return;
+    }
+    for (const flag of ['isActive', 'captchaEnabled']) {
+      if (row[flag] !== undefined && typeof row[flag] !== 'boolean') {
+        plan.errors.push(`${label}: ${flag} must be true or false`);
+        return;
+      }
+    }
+
+    const write: SiteFormWrite = {
+      slug,
+      name: row.name,
+      fields: row.fields,
+      actions,
+      isActive: (row.isActive as boolean | undefined) ?? true,
+      captchaEnabled: (row.captchaEnabled as boolean | undefined) ?? false,
+    };
+    if (!existingSlugs.has(slug)) {
+      plan.toCreate++;
+      plan.creates.push(write);
+    } else if (overwrite) {
+      plan.toUpdate++;
+      plan.updates.push(write);
+    } else {
+      plan.toSkip++;
+    }
+  });
+  return plan;
 }
 
 /**

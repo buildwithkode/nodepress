@@ -1,22 +1,23 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContentTypeService } from '../content-type/content-type.service';
 import { EntriesService } from '../entries/entries.service';
 import { LocalesService, validateLocales } from '../locales/locales.service';
 import { NODEPRESS_VERSION } from '../plugin/plugin.registry';
 import { contentTypeName } from '../common/content-type-name';
-import { ExistingEntry, planEntries, SITE_BUNDLE_FORMAT, SITE_BUNDLE_VERSION } from './site-bundle';
+import { ExistingEntry, planEntries, planForms, SITE_BUNDLE_FORMAT, SITE_BUNDLE_VERSION, SiteFormWrite } from './site-bundle';
 
 export interface SiteImportOptions {
   dryRun?: boolean;
-  /** Update existing content types and entries (default). Off: keep them as they are. */
+  /** Update existing content types, entries and forms (default). Off: keep them as they are. */
   overwrite?: boolean;
 }
 
 /**
- * Whole-site export and import: choice lists, components, content types and every
- * entry (all locales, all statuses) in one JSON file. Media files are not included;
- * entries keep their media URLs.
+ * Whole-site export and import: choice lists, components, content types, every
+ * entry (all locales, all statuses) and forms in one JSON file. Media files and form
+ * submissions are not included; entries keep their media URLs.
  */
 @Injectable()
 export class SiteTransferService {
@@ -39,6 +40,10 @@ export class SiteTransferService {
     for (const t of types) entries[t.name] = [];
     const nameOf = new Map(types.map((t) => [t.id, t.name]));
     for (const { contentTypeId, ...row } of rows) entries[nameOf.get(contentTypeId)!].push(row);
+    const forms = await this.prisma.form.findMany({
+      orderBy: { slug: 'asc' },
+      select: { name: true, slug: true, fields: true, actions: true, isActive: true, captchaEnabled: true },
+    });
 
     return {
       format: SITE_BUNDLE_FORMAT,
@@ -50,6 +55,7 @@ export class SiteTransferService {
       components: schemas.components,
       contentTypes: schemas.contentTypes,
       entries,
+      forms,
     };
   }
 
@@ -88,6 +94,12 @@ export class SiteTransferService {
     const plan = planEntries(bundle.entries, known, existing, overwrite);
     errors.push(...plan.errors);
 
+    // ── Forms ──
+    const existingForms = await this.prisma.form.findMany({ select: { slug: true } });
+    const formPlan = planForms(bundle.forms, new Set(existingForms.map((f) => f.slug)), overwrite);
+    errors.push(...formPlan.errors);
+    const { total: formTotal, toCreate: formsToCreate, toUpdate: formsToUpdate, toSkip: formsToSkip } = formPlan;
+
     // ── Languages: add the file's languages that this site doesn't have yet ──
     const current = await this.locales.get();
     const fileLocales = Array.isArray(bundle.locales?.locales) ? bundle.locales.locales : [];
@@ -113,7 +125,15 @@ export class SiteTransferService {
     };
 
     if (dryRun) {
-      return { dryRun: true, valid: errors.length === 0, errors, schemas, entries: entrySummary, localesToAdd };
+      return {
+        dryRun: true,
+        valid: errors.length === 0,
+        errors,
+        schemas,
+        entries: entrySummary,
+        forms: { total: formTotal, toCreate: formsToCreate, toUpdate: formsToUpdate, toSkip: formsToSkip },
+        localesToAdd,
+      };
     }
     // All or nothing: nothing is written while the file has a problem.
     if (errors.length) throw new BadRequestException({ message: 'Import aborted — nothing was changed', errors });
@@ -127,18 +147,40 @@ export class SiteTransferService {
     const writeErrors: string[] = [];
     for (const [type, writes] of plan.writes) {
       if (!writes.length) continue;
-      const r = await this.entries.writeSiteEntries(ids.get(type)!, writes);
+      const r = await this.entries.writeSiteEntries(ids.get(type)!, writes, actorId);
       created += r.created;
       updated += r.updated;
       writeErrors.push(...r.errors);
     }
 
+    const formsResult = await this.writeForms(formPlan.creates, formPlan.updates, writeErrors);
+
     return {
       schemas: schemaResult,
       entries: { created, updated, skipped: entrySummary.toSkip, relinked: entrySummary.relinked },
+      forms: { ...formsResult, skipped: formsToSkip },
       localesAdded: nextLocales ? localesToAdd : [],
       errors: writeErrors,
     };
+  }
+
+  /** Updates in place, so a form keeps its id and its submissions. */
+  private async writeForms(creates: SiteFormWrite[], updates: SiteFormWrite[], errors: string[]) {
+    const counts = { created: 0, updated: 0 };
+    const write = async (form: SiteFormWrite, isNew: boolean) => {
+      const { slug, ...values } = form;
+      const data = { ...values, fields: values.fields as Prisma.InputJsonValue, actions: values.actions as Prisma.InputJsonValue };
+      try {
+        if (isNew) await this.prisma.form.create({ data: { slug, ...data } });
+        else await this.prisma.form.update({ where: { slug }, data });
+        counts[isNew ? 'created' : 'updated']++;
+      } catch (err: any) {
+        errors.push(`Form "${slug}": ${err.message}`);
+      }
+    };
+    for (const form of creates) await write(form, true);
+    for (const form of updates) await write(form, false);
+    return counts;
   }
 
   private async existingEntries(types: Array<{ id: number; name: string }>): Promise<ExistingEntry[]> {

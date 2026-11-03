@@ -14,11 +14,13 @@ type Preview = {
   errors: string[];
   schemas: { toCreate: number; toUpdate: number } | null;
   entries: { total: number; toCreate: number; toUpdate: number; toRestore: number; toSkip: number; relinked: number; types: TypePlan[] };
+  forms: { total: number; toCreate: number; toUpdate: number; toSkip: number };
   localesToAdd: string[];
 };
 type Result = {
   schemas: { created?: number; updated?: number } | null;
   entries: { created: number; updated: number };
+  forms: { created: number; updated: number; skipped: number };
   localesAdded: string[];
   errors: string[];
 };
@@ -178,6 +180,9 @@ export default function SiteTransferPage() {
               toSkip: preview.entries.toSkip,
             })}
           </p>
+          {preview.forms.total > 0 && (
+            <p className="text-sm">{t('formsLine', { toCreate: preview.forms.toCreate, toUpdate: preview.forms.toUpdate, toSkip: preview.forms.toSkip })}</p>
+          )}
           {preview.entries.types.length > 0 && (
             <div className="rounded-lg border border-border overflow-x-auto">
               <table className="w-full text-sm">
@@ -236,6 +241,9 @@ export default function SiteTransferPage() {
           </p>
           {result.schemas && (
             <p className="text-muted-foreground">{t('doneTypes', { created: result.schemas.created ?? 0, updated: result.schemas.updated ?? 0 })}</p>
+          )}
+          {result.forms.created + result.forms.updated + result.forms.skipped > 0 && (
+            <p className="text-muted-foreground">{t('doneForms', { created: result.forms.created, updated: result.forms.updated, skipped: result.forms.skipped })}</p>
           )}
           {result.localesAdded.length > 0 && (
             <p className="text-muted-foreground">{t('localesAdded', { list: result.localesAdded.join(', ') })}</p>

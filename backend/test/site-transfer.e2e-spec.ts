@@ -34,11 +34,21 @@ describe('Site export / import (e2e)', () => {
   let authorId: string;
   let postId: string;
 
+  const contactForm = {
+    name: 'Contact',
+    slug: 'contact',
+    fields: [{ name: 'email', type: 'email', required: true }],
+    actions: [{ type: 'webhook', url: 'https://example.test/hook', headers: { 'X-Team': 'a' } }],
+    isActive: true,
+    captchaEnabled: false,
+  };
+
   /** Leave only users, API keys and settings behind — like a fresh install. */
   async function wipeContent() {
     await prisma.entry.deleteMany({});
     await prisma.contentType.deleteMany({});
     await prisma.choiceList.deleteMany({});
+    await prisma.form.deleteMany({});
     await request(server).put('/api/locales').set(auth).send({ locales: ['en'], defaultLocale: 'en' }).expect(200);
   }
 
@@ -79,6 +89,8 @@ describe('Site export / import (e2e)', () => {
     await request(server).post('/api/entries').set(auth)
       .send({ contentTypeId: post.body.id, slug: 'hello', locale: 'fr', status: 'draft', data: { title: 'Bonjour', author: authorId } }).expect(201);
 
+    await request(server).post('/api/forms').set(auth).send(contactForm).expect(201);
+
     for (const [name, permissions] of [['full', { access: 'all', contentTypes: ['*'] }], ['write', { access: 'write', contentTypes: ['*'] }]] as const) {
       const res = await request(server).post('/api/api-keys').set(auth).send({ name, permissions }).expect(201);
       keys[name] = res.body.key;
@@ -102,6 +114,7 @@ describe('Site export / import (e2e)', () => {
     expect(bundle.choiceLists.map((l: any) => l.name)).toEqual(['mood']);
     expect(bundle.entries.author).toEqual([expect.objectContaining({ publicId: authorId, slug: 'asha', locale: 'en', status: 'published' })]);
     expect(bundle.entries.post.map((e: any) => `${e.slug}/${e.locale}/${e.status}`)).toEqual(['hello/en/published', 'hello/fr/draft']);
+    expect(bundle.forms).toEqual([contactForm]);
   });
 
   it('previews a re-import on the same site as updates', async () => {
@@ -110,6 +123,7 @@ describe('Site export / import (e2e)', () => {
       dryRun: true, valid: true, errors: [], localesToAdd: [],
       schemas: { toCreate: 0, toUpdate: 2 },
       entries: { total: 3, toCreate: 0, toUpdate: 3, toRestore: 0, toSkip: 0, relinked: 0 },
+      forms: { total: 1, toCreate: 0, toUpdate: 1, toSkip: 0 },
     });
   });
 
@@ -118,6 +132,12 @@ describe('Site export / import (e2e)', () => {
     const res = await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
     expect(res.body).toMatchObject({ entries: { created: 3, updated: 0 }, localesAdded: ['fr'], errors: [] });
     expect(res.body.schemas).toMatchObject({ created: 2 });
+    expect(res.body.forms).toEqual({ created: 1, updated: 0, skipped: 0 });
+
+    const form = await prisma.form.findUniqueOrThrow({ where: { slug: 'contact' } });
+    expect(form).toMatchObject(contactForm);
+    await request(server).post('/api/submit/contact').send({ data: { email: 'not an email' } }).expect((r) => expect(r.status).toBeGreaterThanOrEqual(400));
+    await request(server).post('/api/submit/contact').send({ data: { email: 'a@example.test' } }).expect(201);
 
     const post = await request(server).get('/api/post/hello').query({ populate: 'author' }).expect(200);
     expect(post.body.id ?? post.body.publicId).toBe(postId);
@@ -155,6 +175,58 @@ describe('Site export / import (e2e)', () => {
     expect(res.body.entries).toMatchObject({ created: 0, updated: 1, skipped: 2 });
     expect((await prisma.entry.findUniqueOrThrow({ where: { id: hello.id } })).data).toEqual({ title: 'Changed here' });
     expect((await prisma.entry.findUniqueOrThrow({ where: { id: fr.id } })).deletedAt).toBeNull();
+  });
+
+  it('updates a form in place, keeping its submissions, unless told to keep it', async () => {
+    const before = await prisma.form.findUniqueOrThrow({ where: { slug: 'contact' } });
+    const kept = await prisma.formSubmission.create({ data: { formId: before.id, data: { email: 'keep@example.test' } } });
+    await prisma.form.update({ where: { id: before.id }, data: { name: 'Edited here' } });
+
+    const keep = await request(server).post('/api/site/import?overwrite=false').set(auth).send(bundle).expect(201);
+    expect(keep.body.forms).toEqual({ created: 0, updated: 0, skipped: 1 });
+    expect((await prisma.form.findUniqueOrThrow({ where: { id: before.id } })).name).toBe('Edited here');
+
+    const update = await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+    expect(update.body.forms).toEqual({ created: 0, updated: 1, skipped: 0 });
+    expect((await prisma.form.findUniqueOrThrow({ where: { id: before.id } })).name).toBe('Contact');
+    expect(await prisma.formSubmission.findUnique({ where: { id: kept.id } })).not.toBeNull();
+  });
+
+  it('saves a version of what it overwrites, which can be restored', async () => {
+    await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+    const entry = await prisma.entry.findFirstOrThrow({ where: { slug: 'hello', locale: 'en' } });
+    const before = await prisma.entryVersion.count({ where: { entryId: entry.id } });
+
+    await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+    expect(await prisma.entryVersion.count({ where: { entryId: entry.id } })).toBe(before);
+
+    await prisma.entry.update({ where: { id: entry.id }, data: { data: { ...(entry.data as object), title: 'Edited here' } } });
+    await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+    expect((await prisma.entry.findUniqueOrThrow({ where: { id: entry.id } })).data).toMatchObject({ title: 'Hello' });
+
+    const version = await prisma.entryVersion.findFirstOrThrow({ where: { entryId: entry.id }, orderBy: { id: 'desc' } });
+    expect(version.data).toMatchObject({ title: 'Edited here' });
+    expect(version.createdBy).toEqual(expect.any(Number));
+    expect(await prisma.entryVersion.count({ where: { entryId: entry.id } })).toBe(before + 1);
+
+    await request(server).post(`/api/entries/${entry.id}/versions/${version.id}/restore`).set(auth).expect(201);
+    expect((await prisma.entry.findUniqueOrThrow({ where: { id: entry.id } })).data).toMatchObject({ title: 'Edited here' });
+    await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+  });
+
+  it('still reads a file from before forms were exported', async () => {
+    const { forms, ...old } = bundle;
+    const res = await request(server).post('/api/site/import?dryRun=true').set(auth).send(old).expect(201);
+    expect(res.body).toMatchObject({ valid: true, forms: { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0 } });
+  });
+
+  it('refuses a file with a broken form without changing anything', async () => {
+    const before = await prisma.entry.count();
+    const bad = { ...bundle, forms: [{ name: 'Bad', slug: 'api', fields: [] }] };
+    const res = await request(server).post('/api/site/import').set(auth).send(bad).expect(400);
+    expect(res.body.errors.join(' ')).toMatch(/reserved slug/);
+    expect(await prisma.form.count({ where: { name: 'Bad' } })).toBe(0);
+    expect(await prisma.entry.count()).toBe(before);
   });
 
   it('refuses a broken file without changing anything', async () => {

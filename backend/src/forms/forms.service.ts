@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
+import { isReservedFormSlug, normalizeFormSlug } from './form-slug';
 
 @Injectable()
 export class FormsService {
@@ -123,12 +124,11 @@ export class FormsService {
   // ── Internals ─────────────────────────────────────────────────────────────
 
   private normalizeSlug(raw: string): string {
-    return raw.trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '');
+    return normalizeFormSlug(raw);
   }
 
   private assertSlugNotReserved(slug: string) {
-    const RESERVED = ['submit', 'forms', 'api', 'auth', 'media', 'entries'];
-    if (RESERVED.includes(slug)) {
+    if (isReservedFormSlug(slug)) {
       throw new BadRequestException(`"${slug}" is a reserved slug`);
     }
   }
