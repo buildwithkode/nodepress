@@ -87,9 +87,12 @@ export class ContentTypeService {
     const validatedSchema = this.schemaValidator.validate(normalizeSchema(await this.expandComponents(dto.schema as any[])));
     await this.assertReverseFields(name, validatedSchema);
 
+    // New content types go to the end of the list.
+    const { _max } = await this.prisma.contentType.aggregate({ _max: { position: true } });
     const created = await this.prisma.contentType.create({
       data: {
         name,
+        position: (_max.position ?? -1) + 1,
         displayName: dto.displayName?.trim() || null,
         schema: validatedSchema as any,
         allowedMethods: dto.allowedMethods ?? null,
@@ -102,12 +105,31 @@ export class ContentTypeService {
     return created;
   }
 
+  /**
+   * Save the order of the Content Types page. `ids` must list every content type exactly once.
+   * Raw SQL on purpose: the order is admin-only display, so it shouldn't touch `updatedAt` or
+   * run the write hooks that flush the public cache and rebuild the GraphQL schema.
+   */
+  async reorder(ids: number[]) {
+    const current = await this.prisma.contentType.findMany({ select: { id: true } });
+    const known = new Set(current.map((c) => c.id));
+    if (ids.length !== known.size || new Set(ids).size !== ids.length || ids.some((id) => !known.has(id))) {
+      throw new BadRequestException('The order must list every content type exactly once. Reload the page and try again.');
+    }
+    await this.prisma.$executeRaw`
+      UPDATE "content_types" c SET "position" = o.ord - 1
+      FROM unnest(${ids}::int[]) WITH ORDINALITY AS o(id, ord)
+      WHERE c."id" = o.id`;
+    await this.cache.invalidatePrefix('ct:meta');
+    return this.findAll();
+  }
+
   async findAll() {
     const cached = await this.cache.get<any[]>(CT_ALL_CACHE_KEY);
     if (cached) return cached;
 
     const result = await this.prisma.contentType.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ position: 'asc' }, { name: 'asc' }],
     });
 
     // Cache for 60 seconds (invalidated instantly on any mutation)

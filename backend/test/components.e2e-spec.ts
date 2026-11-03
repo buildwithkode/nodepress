@@ -61,6 +61,35 @@ describe('Components (e2e)', () => {
     await request(server()).delete(`/api/components/${third.id}`).set(auth).expect(200);
   });
 
+  it('PUT /api/content-types/order → saves the order, new types go last, updatedAt and exports stay put', async () => {
+    const create = async (name: string) => (await request(server()).post('/api/content-types').set(auth)
+      .send({ name, schema: [{ name: 'title', type: 'text' }] }).expect(201)).body;
+    const before = (await request(server()).get('/api/content-types').set(auth).expect(200)).body.map((c: any) => c.id);
+    const first = await create('order_first');
+    const second = await create('order_second');
+    const list = async () => (await request(server()).get('/api/content-types').set(auth).expect(200)).body;
+    expect((await list()).map((c: any) => c.id)).toEqual([...before, first.id, second.id]);
+
+    const ids = [second.id, ...before, first.id];
+    await request(server()).put('/api/content-types/order').send({ ids }).expect(401);
+    await request(server()).put('/api/content-types/order').set(editorAuth).send({ ids }).expect(403);
+    await request(server()).put('/api/content-types/order').set(auth).send({ ids: [second.id] }).expect(400);
+    await request(server()).put('/api/content-types/order').set(auth).send({ ids: [...ids, second.id] }).expect(400);
+    await request(server()).put('/api/content-types/order').set(auth).send({ ids: 'x' }).expect(400);
+
+    const res = await request(server()).put('/api/content-types/order').set(auth).send({ ids }).expect(200);
+    expect(res.body.map((c: any) => c.id)).toEqual(ids);
+    const after = await list();
+    expect(after.map((c: any) => c.id)).toEqual(ids);
+    expect(after.find((c: any) => c.id === first.id).updatedAt).toBe(first.updatedAt);
+
+    const exported = (await request(server()).get('/api/content-types/export').set(auth).expect(200)).body;
+    expect(exported.contentTypes[0]).not.toHaveProperty('position');
+
+    await request(server()).delete(`/api/content-types/${first.id}`).set(auth).expect(200);
+    await request(server()).delete(`/api/content-types/${second.id}`).set(auth).expect(200);
+  });
+
   it('keeps a field width on content types and in component copies, and refuses an unknown one', async () => {
     const fields = [{ name: 'label', type: 'text', width: 'third' }, { name: 'body', type: 'textarea' }];
     const comp = (await request(server()).post('/api/components').set(auth).send({ name: 'width_check', fields }).expect(201)).body;

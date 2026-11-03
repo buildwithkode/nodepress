@@ -29,6 +29,7 @@
     "importSchemas": "Import Schemas",
     "newContentType": "New Content Type",
     "columns": {
+      "number": "Sr. No.",
       "fields": "Fields",
       "endpoints": "Endpoints",
       "count": "Count"
@@ -52,7 +53,9 @@
     "duplicateFailed": "Duplicate failed",
     "tooManyDuplicates": "Too many duplicates — delete some first",
     "deleted": "Content type deleted",
-    "deleteFailed": "Failed to delete content type"
+    "deleteFailed": "Failed to delete content type",
+    "reorderFailed": "Failed to save the order",
+    "dragToReorder": "Drag to reorder"
   },
   "import": {
     "title": "Import Content Type Schemas",

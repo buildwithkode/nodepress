@@ -205,13 +205,13 @@ export function MediaPickerModal({ value, onChange }: Props) {
 
         {/* Thumbnail Preview Card when image is selected */}
         {value?.url && (
-          <div className="relative inline-flex items-center gap-3 p-2 rounded-lg border border-border/80 bg-muted/20">
+          <div className="relative inline-flex max-w-full items-center gap-3 p-2 rounded-lg border border-border/80 bg-muted/20">
             <img
               src={value.url}
               alt={value.alt || ''}
-              className="h-16 w-24 rounded-md border border-border object-cover bg-black/10"
+              className="h-16 w-24 shrink-0 rounded-md border border-border object-cover bg-black/10"
             />
-            <div className="text-xs space-y-1">
+            <div className="min-w-0 text-xs space-y-1">
               <p className="font-medium text-foreground truncate max-w-[240px]">
                 {value.url.split('/').pop()}
               </p>

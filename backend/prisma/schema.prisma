@@ -15,6 +15,8 @@ model ContentType {
   schema         Json
   allowedMethods Json? // null = all enabled. e.g. ["list","read","create","update","delete"]
   previewUrl     String? // live preview page for the editor, e.g. "https://site.com/blog/{slug}" ({slug}, {locale}, {token} filled in)
+  /// Order on the Content Types page, chosen by dragging rows.
+  position       Int                        @default(0)
   createdAt      DateTime                   @default(now())
   updatedAt      DateTime                   @updatedAt
   entries        Entry[]

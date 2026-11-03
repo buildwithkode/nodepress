@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
   Plus,
   Pencil,
   Trash2,
@@ -21,6 +27,7 @@ import {
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
+import { SortableTableRow } from '@/components/SortableTableRow';
 import { useAuth } from '@/context/AuthContext';
 import { canEdit } from '@/lib/access';
 import { TemplatePickerDialog } from '@/components/TemplatePickerDialog';
@@ -152,6 +159,29 @@ export default function ContentTypesPage() {
   };
 
   useEffect(() => { fetchContentTypes(); }, []);
+
+  // ---- order ----
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    // The whole list, including types this page hides: the order must name every one.
+    const moved = arrayMove(
+      contentTypes,
+      contentTypes.findIndex((c) => c.id === active.id),
+      contentTypes.findIndex((c) => c.id === over.id),
+    );
+    setContentTypes(moved);
+    try {
+      await api.put('/content-types/order', { ids: moved.map((c) => c.id) });
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('list.reorderFailed'));
+      await fetchContentTypes();
+    }
+  };
   useEffect(() => { setPage(1); }, [search]);
 
   const handleExportAll = async () => {
@@ -289,7 +319,10 @@ export default function ContentTypesPage() {
     return ct.name.toLowerCase().includes(q) || (ct.displayName ?? '').toLowerCase().includes(q);
   });
 
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // The whole list while there's no search, so any row can be dragged anywhere.
+  const searching = search.trim() !== '';
+  const paginated = searching ? filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : filtered;
+  const firstNumber = searching ? (page - 1) * PAGE_SIZE + 1 : 1;
 
   return (
     <div className="space-y-6 w-full">
@@ -344,38 +377,43 @@ export default function ContentTypesPage() {
       </div>
 
       {/* Table */}
-      <Table className="min-w-[1100px]">
+      <DndContext id="content-types-order" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <Table className="md:min-w-[1100px]">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-64 min-w-[220px]">{tc('name')}</TableHead>
-            <TableHead className="min-w-[420px]">{t('list.columns.fields')}</TableHead>
-            <TableHead className="w-56 min-w-[220px]">{t('list.columns.endpoints')}</TableHead>
-            <TableHead className="w-24 min-w-[90px] text-center">{t('list.columns.count')}</TableHead>
-            <TableHead className="w-32 min-w-[120px]">{tc('createdAt')}</TableHead>
-            <TableHead className="w-36 min-w-[140px] text-right">{tc('actions')}</TableHead>
+            <TableHead className="w-20 whitespace-nowrap">{t('list.columns.number')}</TableHead>
+            <TableHead className="md:w-64 md:min-w-[220px]">{tc('name')}</TableHead>
+            <TableHead className="hidden md:table-cell min-w-[420px]">{t('list.columns.fields')}</TableHead>
+            <TableHead className="hidden md:table-cell w-56 min-w-[220px]">{t('list.columns.endpoints')}</TableHead>
+            <TableHead className="hidden md:table-cell w-24 min-w-[90px] text-center">{t('list.columns.count')}</TableHead>
+            <TableHead className="hidden md:table-cell w-32 min-w-[120px]">{tc('createdAt')}</TableHead>
+            <TableHead className="md:w-36 md:min-w-[140px] text-right">{tc('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
                <TableRow key={i}>
-                <TableCell className="w-64 min-w-[220px] py-4"><Skeleton className="h-4 w-32" /></TableCell>
-                <TableCell className="min-w-[420px] py-4"><Skeleton className="h-4 w-64" /></TableCell>
-                <TableCell className="w-56 min-w-[220px] py-4"><Skeleton className="h-4 w-36" /></TableCell>
-                <TableCell className="w-24 min-w-[90px] text-center py-4"><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                <TableCell className="w-32 min-w-[120px] py-4"><Skeleton className="h-4 w-20" /></TableCell>
-                <TableCell className="w-36 min-w-[140px] text-right py-4"><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
+                <TableCell className="py-4"><Skeleton className="h-4 w-8" /></TableCell>
+                <TableCell className="md:w-64 md:min-w-[220px] py-4"><Skeleton className="h-4 w-32" /></TableCell>
+                <TableCell className="hidden md:table-cell min-w-[420px] py-4"><Skeleton className="h-4 w-64" /></TableCell>
+                <TableCell className="hidden md:table-cell w-56 min-w-[220px] py-4"><Skeleton className="h-4 w-36" /></TableCell>
+                <TableCell className="hidden md:table-cell w-24 min-w-[90px] text-center py-4"><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                <TableCell className="hidden md:table-cell w-32 min-w-[120px] py-4"><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell className="md:w-36 md:min-w-[140px] text-right py-4"><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
               </TableRow>
             ))
           ) : filtered.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
+              <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                 {search ? t('list.noMatch') : t('list.empty')}
               </TableCell>
             </TableRow>
-          ) : paginated.map((ct) => (
-            <TableRow key={ct.id}>
-              <TableCell className="w-64 min-w-[220px] align-top py-4">
+          ) : (
+            <SortableContext items={paginated.map((ct) => ct.id)} strategy={verticalListSortingStrategy}>
+            {paginated.map((ct, index) => (
+            <SortableTableRow key={ct.id} id={ct.id} number={firstNumber + index} canDrag={canEditModel && !searching} handleLabel={t('list.dragToReorder')} numberCellClassName="py-4">
+              <TableCell className="md:w-64 md:min-w-[220px] align-top py-4">
                 <button
                   type="button"
                   onClick={() => router.push(`/entries?ct=${ct.name}`)}
@@ -385,9 +423,9 @@ export default function ContentTypesPage() {
                   <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span>{ctLabel(ct)}</span>
                 </button>
-                <div className="text-xs text-muted-foreground font-mono mt-1">/{ct.name.replace(/_/g, '-')}</div>
+                <div className="text-xs text-muted-foreground font-mono mt-1 break-all">/{ct.name.replace(/_/g, '-')}</div>
               </TableCell>
-              <TableCell className="min-w-[420px] align-top py-4">
+              <TableCell className="hidden md:table-cell min-w-[420px] align-top py-4">
                 <div className="flex flex-wrap gap-1.5">
                   {ct.schema.map((f) => (
                     <span
@@ -403,7 +441,7 @@ export default function ContentTypesPage() {
                   ))}
                 </div>
               </TableCell>
-              <TableCell className="w-56 min-w-[220px] align-top py-4">
+              <TableCell className="hidden md:table-cell w-56 min-w-[220px] align-top py-4">
                 <div className="flex items-center flex-wrap gap-1">
                   {METHOD_BADGES.map(({ key, short, cls }) => {
                     const enabled = ct.allowedMethods === null || ct.allowedMethods.includes(key);
@@ -421,14 +459,14 @@ export default function ContentTypesPage() {
                   })}
                 </div>
               </TableCell>
-              <TableCell className="w-24 min-w-[90px] text-center align-top py-4">
+              <TableCell className="hidden md:table-cell w-24 min-w-[90px] text-center align-top py-4">
                 <Badge variant="secondary" className="font-mono text-xs px-2">{ct.schema.length}</Badge>
               </TableCell>
-              <TableCell className="w-32 min-w-[120px] text-muted-foreground text-xs align-top py-4 whitespace-nowrap">
+              <TableCell className="hidden md:table-cell w-32 min-w-[120px] text-muted-foreground text-xs align-top py-4 whitespace-nowrap">
                 {new Date(ct.createdAt).toLocaleDateString()}
               </TableCell>
-              <TableCell className="w-36 min-w-[140px] text-right align-top py-4">
-                <div className="flex items-center justify-end gap-1">
+              <TableCell className="md:w-36 md:min-w-[140px] text-right align-top py-4">
+                <div className="flex flex-wrap items-center justify-end gap-1 md:flex-nowrap">
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -491,11 +529,14 @@ export default function ContentTypesPage() {
                   )}
                 </div>
               </TableCell>
-            </TableRow>
+            </SortableTableRow>
           ))}
+            </SortableContext>
+          )}
         </TableBody>
       </Table>
-      <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
+      </DndContext>
+      {searching && <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />}
 
       {/* Schema Import Dialog with Dry-Run Preflight */}
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>

@@ -29,6 +29,7 @@
     "importSchemas": "导入架构",
     "newContentType": "新建内容类型",
     "columns": {
+      "number": "序号",
       "fields": "字段",
       "endpoints": "端点",
       "count": "数量"
@@ -52,7 +53,9 @@
     "duplicateFailed": "复制失败",
     "tooManyDuplicates": "副本过多——请先删除一些",
     "deleted": "内容类型已删除",
-    "deleteFailed": "删除内容类型失败"
+    "deleteFailed": "删除内容类型失败",
+    "reorderFailed": "无法保存顺序",
+    "dragToReorder": "拖动以重新排序"
   },
   "import": {
     "title": "导入内容类型架构",

@@ -31,9 +31,11 @@ const mockPrisma = {
     create:      jest.fn(),
     update:      jest.fn(),
     delete:      jest.fn(),
+    aggregate:   jest.fn(),
   },
   contentTypeSchemaVersion: { create: jest.fn() },
   entry: { count: jest.fn() },
+  $executeRaw: jest.fn(),
 };
 
 const mockCache = {
@@ -74,9 +76,11 @@ describe('ContentTypeService', () => {
     it('creates a content type with normalized name', async () => {
       mockPrisma.contentType.findUnique.mockResolvedValue(null);
       mockPrisma.contentType.create.mockResolvedValue(mockCT);
+      mockPrisma.contentType.aggregate.mockResolvedValue({ _max: { position: 4 } });
 
       const result = await service.create({ name: 'Blog Posts', schema: [] } as any);
       // name normalized to snake_case
+      expect(mockPrisma.contentType.create.mock.calls[0][0].data.position).toBe(5);
       expect(mockPrisma.contentType.create.mock.calls[0][0].data.name).toBe('blog_posts');
     });
 
@@ -235,6 +239,29 @@ describe('ContentTypeService', () => {
       ).rejects.toThrow(BadRequestException);
       expect(mockPrisma.contentType.create).not.toHaveBeenCalled();
       expect(mockPrisma.contentType.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reorder', () => {
+    beforeEach(() => {
+      mockPrisma.contentType.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
+      mockPrisma.$executeRaw.mockClear();
+    });
+
+    it.each([
+      ['misses one', [3, 1]],
+      ['repeats one', [3, 1, 1]],
+      ['names an unknown one', [3, 1, 9]],
+    ])('refuses a list that %s', async (_label, ids) => {
+      await expect(service.reorder(ids)).rejects.toThrow(BadRequestException);
+      expect(mockPrisma.$executeRaw).not.toHaveBeenCalled();
+    });
+
+    it('saves a full list and clears the cached list', async () => {
+      mockCache.invalidatePrefix.mockClear();
+      await service.reorder([3, 1, 2]);
+      expect(mockPrisma.$executeRaw).toHaveBeenCalledTimes(1);
+      expect(mockCache.invalidatePrefix).toHaveBeenCalledWith('ct:meta');
     });
   });
 });

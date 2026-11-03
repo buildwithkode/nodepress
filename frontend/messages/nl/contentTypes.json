@@ -29,6 +29,7 @@
     "importSchemas": "Schema's importeren",
     "newContentType": "Nieuw contenttype",
     "columns": {
+      "number": "Nr.",
       "fields": "Velden",
       "endpoints": "Endpoints",
       "count": "Aantal"
@@ -52,7 +53,9 @@
     "duplicateFailed": "Dupliceren mislukt",
     "tooManyDuplicates": "Te veel duplicaten — verwijder er eerst een paar",
     "deleted": "Contenttype verwijderd",
-    "deleteFailed": "Contenttype verwijderen mislukt"
+    "deleteFailed": "Contenttype verwijderen mislukt",
+    "reorderFailed": "De volgorde kon niet worden opgeslagen",
+    "dragToReorder": "Sleep om de volgorde te wijzigen"
   },
   "import": {
     "title": "Schema's van contenttypes importeren",

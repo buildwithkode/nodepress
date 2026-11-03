@@ -1,6 +1,6 @@
-import { IsString, IsArray, IsOptional, ValidateNested, IsIn, ArrayUnique, IsNotEmpty } from 'class-validator';
+import { IsString, IsArray, IsInt, IsOptional, ValidateNested, IsIn, ArrayUnique, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { FieldDto } from './create-content-type.dto';
 import { Matches, MaxLength } from 'class-validator';
 import { PREVIEW_URL_MAX_LENGTH, PREVIEW_URL_PATTERN } from '../preview-url';
@@ -85,4 +85,11 @@ export class UpdateContentTypeDto {
   @ValidateNested()
   @Type(() => FieldMigrationsDto)
   fieldMigrations?: FieldMigrationsDto;
+}
+
+export class ReorderContentTypesDto {
+  @ApiProperty({ example: [3, 1, 2], description: 'Every content type id, in the new order' })
+  @IsArray()
+  @IsInt({ each: true })
+  ids: number[];
 }

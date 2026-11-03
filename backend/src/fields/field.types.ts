@@ -251,4 +251,4 @@ export type FieldValue =
   | FlexibleItem[];
 
 /** How much of a row a field takes in the admin's entry form. No width means full. */
-export const FIELD_WIDTHS = ['full', 'half', 'third'] as const;
+export const FIELD_WIDTHS = ['full', 'two_thirds', 'half', 'third'] as const;

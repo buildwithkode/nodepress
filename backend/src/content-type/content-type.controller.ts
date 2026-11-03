@@ -8,7 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { ContentTypeService } from './content-type.service';
 import { CreateContentTypeDto } from './dto/create-content-type.dto';
-import { UpdateContentTypeDto } from './dto/update-content-type.dto';
+import { ReorderContentTypesDto, UpdateContentTypeDto } from './dto/update-content-type.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Access } from '../auth/decorators/access.decorator';
@@ -105,6 +105,22 @@ export class ContentTypeController {
   @ApiParam({ name: 'id', type: Number })
   getForm(@Param('id', ParseIntPipe) id: number) {
     return this.contentTypeService.getForm(id);
+  }
+
+  // Before PUT :id, which would read "order" as an id.
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Access('content_model', 'edit')
+  @Put('order')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Save the order of the Content Types page (admin only)' })
+  @ApiResponse({ status: 400, description: 'The list must name every content type exactly once' })
+  async reorder(@Body() dto: ReorderContentTypesDto, @Request() req: any) {
+    const types = await this.contentTypeService.reorder(dto.ids);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'updated', 'content_type', 'order',
+    );
+    return types;
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

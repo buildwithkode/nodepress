@@ -29,6 +29,7 @@
     "importSchemas": "スキーマをインポート",
     "newContentType": "新規コンテンツタイプ",
     "columns": {
+      "number": "番号",
       "fields": "フィールド",
       "endpoints": "エンドポイント",
       "count": "件数"
@@ -52,7 +53,9 @@
     "duplicateFailed": "複製に失敗しました",
     "tooManyDuplicates": "複製が多すぎます。先にいくつか削除してください",
     "deleted": "コンテンツタイプを削除しました",
-    "deleteFailed": "コンテンツタイプを削除できませんでした"
+    "deleteFailed": "コンテンツタイプを削除できませんでした",
+    "reorderFailed": "順序を保存できませんでした",
+    "dragToReorder": "ドラッグして並べ替え"
   },
   "import": {
     "title": "コンテンツタイプのスキーマをインポート",

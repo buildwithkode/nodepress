@@ -14,7 +14,8 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Added
 
-- **Field width.** Each field can be Full, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.
+- **Field width.** Each field can be Full, 2/3, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.
+- **Reorder content types.** The **Content Types** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/content-types/order`. The Entries page and `GET /api/content-types` follow the same order. New content types now go last instead of first, and the page lists every type without pages unless you search. Run `npx prisma migrate deploy` (adds `content_types.position`).
 - **Reorder components.** The **Components** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/components/order`. New components go last. *Used by* now lists just the content type names. Run `npx prisma migrate deploy` (adds `components.position`).
 - **Cloudflare R2 and ImageKit storage.** Both are new options next to local disk and S3-compatible storage, set under **Settings → Email & storage** or with `STORAGE_DRIVER=r2|imagekit`. See [File storage](https://nodepress-docs.vercel.app/deployment/storage/).
 - **File upload fields in forms.** A `file` field takes one uploaded file (PDF, Word or image; allowed extensions set per field). Files are private: they're kept in the database and downloaded from the submissions page; emails show the file's name. Needs the new `form_files` table (`npx prisma migrate deploy`).
@@ -24,6 +25,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Fixed
 
+- **Content type, component and entry pages on phones and tablets.** The form no longer shares a phone's width with the JSON panel: below 1024px the panel starts closed and opens above the form. Field rows and header buttons wrap instead of running off the screen, and the Content Types, Entries and Components tables show their main columns on small screens.
 - **Backups** now read the storage saved in the admin, not only `STORAGE_DRIVER`. A site on S3, R2 or ImageKit set up in the admin had leftover local files copied and the wrong storage in its manifest. Local files are still copied while media rows point at them, so a backup taken after switching storage doesn't lose older files.
 - **Login cookies stay out of the logs.** Request logs recorded `Cookie` and `Set-Cookie` headers, including the refresh token.
 - **Security:** `follow-redirects` patched to 1.16.2 (GHSA-mrwp-f3q8-3g9p).

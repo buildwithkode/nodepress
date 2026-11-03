@@ -11,6 +11,7 @@ import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
 import { canEdit } from '@/lib/access';
+import { PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth } from '@/components/SidePane';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -177,7 +178,7 @@ export default function NewEntryPage() {
           <ArrowLeft className="h-4 w-4" /> {t('header.backTo', { name: selectedCT ? ctLabel(selectedCT) : t('header.entries') })}
         </Button>
         {selectedCT && canEditModel && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -210,7 +211,7 @@ export default function NewEntryPage() {
               <CardDescription>{t('new.description')}</CardDescription>
             </div>
             {selectedCT && (
-              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {/* Language Selector */}
                 <Select value={locale} onValueChange={(v) => { if (v) { localeTouched.current = true; setLocale(v); } }}>
                   <SelectTrigger className="h-8 w-36 text-xs font-medium border-border/80 bg-background/80">
@@ -312,9 +313,9 @@ export default function NewEntryPage() {
         </CardHeader>
 
         {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
-        <div ref={containerRef} className="flex border-t border-border">
+        <div ref={containerRef} className={PANE_ROW}>
           {/* Left pane: form */}
-          <div style={{ width: selectedCT && jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
+          <div style={paneWidth(selectedCT && jsonOpen ? leftPct : 100)} className={MAIN_PANE}>
             {/* Content type selector (if not pre-selected) */}
             {!ctId && (
               <div className="mb-5 space-y-1.5">
@@ -562,7 +563,7 @@ export default function NewEntryPage() {
           {selectedCT && jsonOpen && (
             <div
               onMouseDown={onDragStart}
-              className="relative w-px self-stretch shrink-0 cursor-col-resize group select-none bg-border hover:bg-primary/40 transition-colors"
+              className="relative hidden w-px self-stretch shrink-0 cursor-col-resize lg:block group select-none bg-border hover:bg-primary/40 transition-colors"
             >
               <div className="absolute inset-y-0 -left-2 -right-2" />
             </div>
@@ -589,9 +590,9 @@ export default function NewEntryPage() {
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (
-              <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
+              <div style={paneWidth(100 - leftPct)} className={SIDE_PANE}>
                 {/* Stays in view just below the sticky top bar (h-14); the JSON scrolls inside. */}
-                <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] flex flex-col gap-2 px-4 py-4">
+                <div className={`${SIDE_PANE_BODY} flex flex-col gap-2 px-4 py-4`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />

@@ -86,7 +86,7 @@ describe('ComponentsService', () => {
     it('keeps a field width, at any level, and refuses an unknown one', () => {
       const fields = [
         { name: 'kind', type: 'text', width: 'third' },
-        { name: 'rows', type: 'repeater', width: 'half', options: { subFields: [{ name: 'label', type: 'text', width: 'third' }] } },
+        { name: 'rows', type: 'repeater', width: 'two_thirds', options: { subFields: [{ name: 'label', type: 'text', width: 'third' }] } },
       ];
       expect(service.validateFields(fields)).toEqual(fields);
       expect(() => service.validateFields([{ name: 'kind', type: 'text', width: 'quarter' }])).toThrow(BadRequestException);

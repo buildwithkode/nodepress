@@ -29,6 +29,7 @@
     "importSchemas": "Importer des schémas",
     "newContentType": "Nouveau type de contenu",
     "columns": {
+      "number": "N°",
       "fields": "Champs",
       "endpoints": "Endpoints",
       "count": "Nombre"
@@ -52,7 +53,9 @@
     "duplicateFailed": "Échec de la duplication",
     "tooManyDuplicates": "Trop de copies — supprimez-en d’abord quelques-unes",
     "deleted": "Type de contenu supprimé",
-    "deleteFailed": "Impossible de supprimer le type de contenu"
+    "deleteFailed": "Impossible de supprimer le type de contenu",
+    "reorderFailed": "Impossible d’enregistrer l’ordre",
+    "dragToReorder": "Faire glisser pour réorganiser"
   },
   "import": {
     "title": "Importer des schémas de types de contenu",
