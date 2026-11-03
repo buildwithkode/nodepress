@@ -14,6 +14,13 @@ export const SIDE_PANE = 'w-full min-w-0 border-b border-border lg:w-[var(--pane
  */
 export const SIDE_PANE_BODY = 'max-h-[60vh] lg:sticky lg:top-[calc(3.5rem+var(--sticky-header-h,0px))] lg:max-h-[calc(100vh-3.5rem-var(--sticky-header-h,0px))]';
 
+/**
+ * An editor's header (title and Save) stays in view from lg up, just below the top bar (h-14).
+ * Goes on a wrapper around CardHeader, and the row below it takes STICKY_PANE_ROW and useStickyHeader's paneRowStyle.
+ */
+export const STICKY_HEADER = 'rounded-t-xl bg-card lg:sticky lg:top-14 lg:z-20 lg:-mt-6 lg:-mb-6 lg:border-b lg:border-border lg:py-4';
+export const STICKY_PANE_ROW = `${PANE_ROW} lg:border-t-0`;
+
 export const paneWidth = (percent: number) => ({ '--pane-w': `${percent}%` }) as CSSProperties;
 
 /** Below Tailwind's lg, where the panes stack. Browser only: call it from an effect. */

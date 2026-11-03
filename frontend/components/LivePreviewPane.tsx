@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { OPEN_ROW_EVENT } from '@/components/OpenRows';
 
 /**
  * The entry editor's live preview: an iframe of the content type's preview URL
@@ -44,17 +45,34 @@ export function fillPreviewUrl(template: string, values: { slug: string; locale:
 
 /**
  * Scroll to and focus a field of the entry form. Fields are found by their
- * `data-np-field` wrapper (or input id); "blocks.0.heading" falls back to "blocks".
+ * `data-np-field` wrapper (or input id, or name); "blocks.0.heading" falls back to its row, then "blocks".
+ * Closed rows on the way are opened first.
  */
 export function focusEntryField(root: HTMLElement | null, field: string): boolean {
   if (!root || typeof field !== 'string' || !field || field.length > 200) return false;
   const parts = field.split('.');
+  let opened = false;
+  for (let n = 1; n <= parts.length; n++) {
+    const row = root.querySelector<HTMLElement>(`[data-np-row="${CSS.escape(parts.slice(0, n).join('.'))}"]`);
+    if (row) { row.dispatchEvent(new Event(OPEN_ROW_EVENT)); opened = true; }
+  }
   let el: HTMLElement | null = null;
   for (let n = parts.length; n > 0 && !el; n--) {
     const name = CSS.escape(parts.slice(0, n).join('.'));
-    el = root.querySelector<HTMLElement>(`[data-np-field="${name}"]`) ?? root.querySelector<HTMLElement>(`#${name}`);
+    el = root.querySelector<HTMLElement>(`[data-np-field="${name}"]`)
+      ?? root.querySelector<HTMLElement>(`#${name}`)
+      ?? root.querySelector<HTMLElement>(`[name="${name}"]`)
+      ?? root.querySelector<HTMLElement>(`[data-np-row="${name}"]`);
   }
   if (!el) return false;
+  // A row that was just opened has its fields on screen only after the next paint.
+  const found = el;
+  if (opened) requestAnimationFrame(() => requestAnimationFrame(() => showField(found)));
+  else showField(found);
+  return true;
+}
+
+function showField(el: HTMLElement) {
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   const target = el.matches('input, textarea, select, [contenteditable="true"]')
     ? el
@@ -64,7 +82,6 @@ export function focusEntryField(root: HTMLElement | null, field: string): boolea
     [{ boxShadow: '0 0 0 2px hsl(var(--ring))', borderRadius: '6px' }, { boxShadow: '0 0 0 2px transparent', borderRadius: '6px' }],
     { duration: 1400, easing: 'ease-out' },
   );
-  return true;
 }
 
 interface Props {

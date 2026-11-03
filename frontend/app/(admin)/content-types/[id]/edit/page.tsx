@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, Trash2, ArrowLeft, Download, Braces, Copy, Check, PanelRight, WrapText, Shield, FileText, Lock } from 'lucide-react';
+import { Plus, ArrowLeft, Download, Braces, Copy, Check, PanelRight, WrapText, Shield, FileText, Lock } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -19,7 +19,10 @@ import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { cn, humanizeName } from '@/lib/utils';
-import { PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth, isNarrowScreen } from '@/components/SidePane';
+import { STICKY_HEADER, STICKY_PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth, isNarrowScreen } from '@/components/SidePane';
+import { useStickyHeader } from '@/lib/use-sticky-header';
+import { ExpandCollapseAll, useOpenRows } from '@/components/OpenRows';
+import { FieldCardRow } from '@/components/FieldCardRow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -159,10 +162,12 @@ export default function EditContentTypePage() {
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState('');
   const [fields, setFields] = useState<Field[]>([]);
+  const rows = useOpenRows(fields.filter((f) => !isComponentField(f)).map((f) => f._id));
   const [allowedMethods, setAllowedMethods] = useState<string[]>(['list', 'read', 'create', 'update', 'delete']);
   const [previewUrl, setPreviewUrl] = useState('');
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
   const schemaCheck = useSchemaChangeCheck(id);
+  const { stickyHeaderRef, paneRowStyle } = useStickyHeader();
   const [jsonOpen, setJsonOpen] = useState(true);
   // Phones start with the side pane closed: the form comes first.
   useEffect(() => { if (isNarrowScreen()) setJsonOpen(false); }, []);
@@ -218,6 +223,11 @@ export default function EditContentTypePage() {
   fields.reduce((n, f, i) => (isComponentField(f) ? n : ((fieldNumbers[i] = n + 1), n + 1)), 0);
   const componentCount = fields.filter((f, i) => isComponentField(f) && !continuesInlineRun(fields, i)).length;
 
+  // A schema field from the API → editor state, remembering the keys it was saved under.
+  const editorField = (f: any, _id: string): Field => f.component
+    ? { _id, ...inlineEditorField(f), _key: f.name }
+    : { _id, ...f, _key: f.name, name: f.label ?? humanizeName(f.name), required: f.required ?? false, options: withLoadedKeys(optionsForEditor(f.options)) };
+
   useEffect(() => {
     api.get(`/content-types/${id}`)
       .then((res) => {
@@ -228,7 +238,7 @@ export default function EditContentTypePage() {
         setSavedKeys(ct.schema.map((f: any) => f.name));
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => f.component ? { _id: uid(), ...inlineEditorField(f), _key: f.name } : ({ _id: uid(), ...f, _key: f.name, name: f.label ?? humanizeName(f.name), required: f.required ?? false, options: withLoadedKeys(optionsForEditor(f.options)) }))
+            ? ct.schema.map((f: any) => editorField(f, uid()))
             : [{ _id: uid(), name: '', type: 'text', required: false }],
         );
       })
@@ -237,7 +247,7 @@ export default function EditContentTypePage() {
   }, [id]);
 
   /* ── Field mutations ─────────────────────────────────────────────────────── */
-  const addField = () => setFields([...fields, { _id: uid(), name: '', type: 'text', required: false }]);
+  const addField = () => { rows.markAdding(); setFields([...fields, { _id: uid(), name: '', type: 'text', required: false }]); };
   const removeField = (i: number) => setFields(fields.filter((_, idx) => idx !== i));
   const updateField = (i: number, key: keyof Field, val: any) => {
     const u = [...fields];
@@ -254,7 +264,11 @@ export default function EditContentTypePage() {
     setNameError('');
     if (dupes.size) { toast.error(t('editor.duplicateKeys', { keys: [...dupes].join(', ') })); return; }
     const nested = nestedDuplicates(fields);
-    if (nested.length) { toast.error(t('editor.duplicateKeys', { keys: nested.join(', ') })); return; }
+    if (nested.length) {
+      fields.forEach((f) => { if (nestedDuplicates([f]).length) rows.setRowOpen(f._id, true); });
+      toast.error(t('editor.duplicateKeys', { keys: nested.join(', ') }));
+      return;
+    }
     const named = fields.filter((f) => f.name.trim());
     // Inline component fields are renamed on /components, never by hand here.
     const changes = detectFieldChanges(savedKeys, named.map((f) => ({ key: toSnakeCase(f.name), original: f.component ? undefined : f._key })));
@@ -275,9 +289,12 @@ export default function EditContentTypePage() {
         fieldMigrations = await schemaCheck.check(validFields, renames, removed);
         if (fieldMigrations === null) return; // cancelled
       }
-      await api.put(`/content-types/${id}`, { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods, previewUrl: previewUrl.trim() || null, ...(fieldMigrations ? { fieldMigrations } : {}) });
+      const res = await api.put(`/content-types/${id}`, { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods, previewUrl: previewUrl.trim() || null, ...(fieldMigrations ? { fieldMigrations } : {}) });
       toast.success(t('editor.updated'));
-      router.push('/content-types');
+      // Stay here. What was just saved is now the starting point, or the next save would repeat these renames and removals.
+      const cardIds = new Map(named.map((f) => [toSnakeCase(f.name), f._id]));
+      setSavedKeys(res.data.schema.map((f: any) => f.name));
+      setFields(res.data.schema.map((f: any) => editorField(f, cardIds.get(f.name) ?? uid())));
     } catch (err: any) {
       toast.error(err.response?.data?.errors?.join('; ') || err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
@@ -385,6 +402,7 @@ export default function EditContentTypePage() {
       </div>
 
       <Card>
+        <div ref={stickyHeaderRef} className={STICKY_HEADER}>
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
@@ -393,6 +411,7 @@ export default function EditContentTypePage() {
                 {t('editor.editDescription')}
               </CardDescription>
             </div>
+            <div className="flex items-start gap-2">
             <Button
               type="button"
               variant={jsonOpen ? 'secondary' : 'outline'}
@@ -403,11 +422,16 @@ export default function EditContentTypePage() {
               <PanelRight className="h-3.5 w-3.5" />
               {jsonOpen ? t('editor.hideJson') : t('editor.showJson')}
             </Button>
+            <Button type="submit" form="ct-form" size="sm" className="h-7 text-xs shrink-0 mt-1" disabled={submitting || dupes.size > 0}>
+              {submitting ? tc('saving') : t('editor.saveChanges')}
+            </Button>
+            </div>
           </div>
         </CardHeader>
+        </div>
 
         {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
-        <div ref={containerRef} className={PANE_ROW}>
+        <div ref={containerRef} className={STICKY_PANE_ROW} style={paneRowStyle}>
           {/* Left pane: form */}
           <div style={paneWidth(jsonOpen ? leftPct : 100)} className={MAIN_PANE}>
           <form id="ct-form" onSubmit={onSubmit} className="space-y-6">
@@ -460,6 +484,7 @@ export default function EditContentTypePage() {
               <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <Label>{t('editor.fields')}</Label>
                 <div className="flex items-center gap-2">
+                  <ExpandCollapseAll count={fieldNumbers.filter(Boolean).length} onChange={rows.setAllOpen} />
                   <Button variant="outline" onClick={addField}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
@@ -472,13 +497,20 @@ export default function EditContentTypePage() {
               {fields.map((field, fi) => isComponentField(field) ? null : (
                 <SortableItem key={field._id} id={field._id}>
                   {(dragHandle) => (
-                  <div className="rounded-md border bg-muted/30 p-4 space-y-3">
+                  <FieldCardRow
+                    open={rows.isOpen(field._id)}
+                    onOpenChange={(open) => rows.setRowOpen(field._id, open)}
+                    dragHandle={dragHandle}
+                    number={fieldNumbers[fi]}
+                    name={field.name}
+                    fieldKey={editorFieldKey(field)}
+                    type={field.type}
+                    required={field.required}
+                    duplicate={dupes.has(editorFieldKey(field))}
+                    removeDisabled={fields.length === 1}
+                    onRemove={() => removeField(fi)}
+                  >
                   <div className="flex flex-wrap items-start gap-2">
-                    {dragHandle}
-                    {/* Field number */}
-                    <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
-                      {fieldNumbers[fi]}
-                    </span>
                     <div className="min-w-40 flex-1 space-y-1">
                       <Input
                         placeholder={t('editor.fieldNamePlaceholder')}
@@ -537,17 +569,6 @@ export default function EditContentTypePage() {
                           <Shield className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="h-4 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        disabled={fields.length === 1}
-                        onClick={() => removeField(fi)}
-                        title={t('editor.deleteField')}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
 
@@ -613,7 +634,7 @@ export default function EditContentTypePage() {
                       />
                     </div>
                   )}
-                  </div>
+                  </FieldCardRow>
                   )}
                 </SortableItem>
               ))}

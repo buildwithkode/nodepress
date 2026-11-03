@@ -161,6 +161,10 @@
     "removeItem": "Eliminar elemento",
     "addItem": "Añadir elemento"
   },
+  "rows": {
+    "expandAll": "Expandir todo",
+    "collapseAll": "Contraer todo"
+  },
   "flexible": {
     "selectLayout": "Selecciona un diseño",
     "removeBlock": "Eliminar bloque",

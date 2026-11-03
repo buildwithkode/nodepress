@@ -161,6 +161,10 @@
     "removeItem": "移除项目",
     "addItem": "添加项目"
   },
+  "rows": {
+    "expandAll": "全部展开",
+    "collapseAll": "全部折叠"
+  },
   "flexible": {
     "selectLayout": "选择布局",
     "removeBlock": "移除区块",

@@ -4,14 +4,11 @@ import { useId, type ReactNode } from 'react';
 import { useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Trash2 } from 'lucide-react';
 import { useTranslations } from 'use-intl';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { SortableItem, useDragSensors } from '@/components/SortableItem';
-import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -20,6 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SubFields, type SubField } from './SubFields';
+import { ExpandCollapseAll, useOpenRows } from '@/components/OpenRows';
+import { CollapsibleRow, rowPreview } from './CollapsibleRow';
 
 /** Mirrors SECTION_KEY_RE in backend/src/common/section-keys.ts. */
 const SECTION_KEY_RE = /^[a-z][a-z0-9_]{0,63}$/;
@@ -52,6 +51,8 @@ function FlexibleItem({
   watch,
   onRemove,
   dragHandle,
+  open,
+  onOpenChange,
 }: {
   index: number;
   fieldName: string;
@@ -62,6 +63,8 @@ function FlexibleItem({
   watch: any;
   onRemove: () => void;
   dragHandle?: ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations('entryEditor');
   const layoutKey = `${fieldName}.${index}._layout`;
@@ -76,36 +79,22 @@ function FlexibleItem({
   const currentKey: string = items[index]?._key ?? '';
 
   return (
-    <div
-      className={cn(
-        'rounded-md border bg-muted/30 p-3',
-        'border-l-4 border-l-pink-500',
-      )}
+    <CollapsibleRow
+      path={`${fieldName}.${index}`}
+      open={open}
+      onOpenChange={onOpenChange}
+      control={control}
+      errors={errors}
+      className="border-l-pink-500"
+      dragHandle={dragHandle}
+      title={<>
+        <Badge variant="outline" className="border-pink-300 text-xs text-pink-600">{index + 1}</Badge>
+        {layout?.label || layout?.name || t('flexible.selectLayout')}
+      </>}
+      preview={rowPreview(layout?.fields, items[index])}
+      removeLabel={t('flexible.removeBlock')}
+      onRemove={onRemove}
     >
-      {/* Card header */}
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {dragHandle}
-          <Badge variant="outline" className="border-pink-300 text-xs text-pink-600">
-            {index + 1}
-          </Badge>
-          <span className="text-sm font-medium text-muted-foreground">
-            {layout?.label || layout?.name || t('flexible.selectLayout')}
-          </span>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={onRemove}
-          title={t('flexible.removeBlock')}
-          aria-label={t('flexible.removeBlock')}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-
       {/* Section key: site code reads the section as <field>_by_key.<key> (or by its layout name when used once) */}
       <div className="mb-3">
         <Label className="mb-1 block text-xs text-muted-foreground">
@@ -178,7 +167,7 @@ function FlexibleItem({
           <SubFields path={`${fieldName}.${index}`} fields={layout.fields} control={control} register={register} errors={errors} watch={watch} />
         </div>
       )}
-    </div>
+    </CollapsibleRow>
   );
 }
 
@@ -192,6 +181,7 @@ export default function FlexibleField({
 }: Props) {
   const t = useTranslations('entryEditor');
   const { fields, append, remove, move } = useFieldArray({ control, name: fieldName });
+  const rows = useOpenRows(fields.map((f) => f.id));
   const dndId = useId();
   const sensors = useDragSensors();
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
@@ -201,6 +191,7 @@ export default function FlexibleField({
 
   return (
     <div className="space-y-2">
+      <ExpandCollapseAll count={fields.length} onChange={rows.setAllOpen} />
       <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
       <div className="space-y-2">
@@ -217,6 +208,8 @@ export default function FlexibleField({
           watch={watch}
           onRemove={() => remove(index)}
           dragHandle={fields.length > 1 ? dragHandle : undefined}
+          open={rows.isOpen(item.id)}
+          onOpenChange={(open) => rows.setRowOpen(item.id, open)}
         />
         )}
         </SortableItem>
@@ -230,7 +223,7 @@ export default function FlexibleField({
         <Select
           value=""
           onValueChange={(val) => {
-            if (val) append({ _layout: val });
+            if (val) { rows.markAdding(); append({ _layout: val }); }
           }}
         >
           <SelectTrigger className="w-full border-dashed text-muted-foreground">

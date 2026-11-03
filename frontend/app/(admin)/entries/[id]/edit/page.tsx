@@ -47,7 +47,8 @@ import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
 import { useAccess } from '@/lib/use-access';
-import { PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth, isNarrowScreen } from '@/components/SidePane';
+import { STICKY_HEADER, STICKY_PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth, isNarrowScreen } from '@/components/SidePane';
+import { useStickyHeader } from '@/lib/use-sticky-header';
 import { AddToReleaseDialog } from '@/components/AddToReleaseDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -159,9 +160,7 @@ export default function EditEntryPage() {
   const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
   const containerRef = useRef<HTMLDivElement>(null);
-  // The sticky header's height, which changes as its controls wrap: the side pane sticks below it.
-  const stickyHeaderRef = useRef<HTMLDivElement>(null);
-  const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
+  const { stickyHeaderRef, paneRowStyle } = useStickyHeader();
 
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -279,23 +278,6 @@ export default function EditEntryPage() {
       .catch(() => { toast.error(t('toast.loadEntryFailed')); router.push('/entries'); })
       .finally(() => setLoading(false));
   }, [id]);
-
-  useEffect(() => {
-    const header = stickyHeaderRef.current;
-    if (!header) return;
-    const root = document.documentElement;
-    const observer = new ResizeObserver(() => {
-      setStickyHeaderHeight(header.offsetHeight);
-      // Tabbing to a field or jumping to a validation error must not land under the bars (top bar is 56px).
-      const covered = getComputedStyle(header).position === 'sticky' ? header.offsetHeight : 0;
-      root.style.scrollPaddingTop = `${56 + covered + 16}px`;
-    });
-    observer.observe(header);
-    return () => {
-      observer.disconnect();
-      root.style.scrollPaddingTop = '';
-    };
-  }, [loading]);
 
   const onSubmit = async (values: Record<string, any>) => {
     if (!entry) return;
@@ -589,7 +571,7 @@ export default function EditEntryPage() {
       <Card>
         {/* Sticks below the top bar (h-14) from lg up; on small screens its controls wrap too tall to keep in view.
             The negative margins take over the card's top padding and gap, so nothing shows above or below it. */}
-        <div ref={stickyHeaderRef} className="rounded-t-xl bg-card lg:sticky lg:top-14 lg:z-20 lg:-mt-6 lg:-mb-6 lg:border-b lg:border-border lg:py-4">
+        <div ref={stickyHeaderRef} className={STICKY_HEADER}>
         <CardHeader>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -805,8 +787,8 @@ export default function EditEntryPage() {
         {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
         <div
           ref={containerRef}
-          className={`${PANE_ROW} lg:border-t-0`}
-          style={{ '--sticky-header-h': `${stickyHeaderHeight}px` } as React.CSSProperties}
+          className={STICKY_PANE_ROW}
+          style={paneRowStyle}
         >
           {/* Left pane: form */}
           <div style={paneWidth(sidePanel !== 'none' ? leftPct : 100)} className={MAIN_PANE}>

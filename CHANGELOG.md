@@ -14,12 +14,16 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Changed
 
+- **Editors stay open after saving.** A new entry or content type opens its edit page once created, and saving a content type keeps you on the page. A second save doesn't repeat the renames or removals of the first.
 - **WordPress import hidden for now.** It's gone from the admin and the docs; the API routes still work.
 - **New projects are smaller.** `create-nodepress-app` no longer copies `client/`, `starters/`, `SECURITY.md` or the zip release scripts, and only `--docker` projects get `caddy/`, the HTTPS and search compose files and the root `.env.example`. Starters are copied from the NodePress repo.
 
 ### Added
 
 - **Sticky entry header.** The Edit Entry header, with its language, status, **Release** and **Update** controls, stays in view while you scroll, on screens 1024px and wider.
+- **Fold sections and repeater rows.** In the entry form they start closed, each showing its type and a preview of its text, with **Expand all** / **Collapse all** above the list. New rows open, a failed save opens the rows with errors, and closed rows are still validated and saved.
+- **Fold fields in the content type editors.** Each field folds down to its name, key and type, with **Expand all** / **Collapse all** next to **Add Field**. Saved fields start closed; a new field opens.
+- **Sticky header on every editor.** New Entry, New Content Type and Edit Content Type keep their header in view too. The content type editors now have **Create** / **Save Changes** in the header as well as at the bottom.
 - **Field width.** Each field can be Full, 2/3, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.
 - **Drag fields directly in the content type editors.** Every field and component has a handle on both the new and edit pages, so the **Reorder** button is gone.
 - **Reorder sections and repeater rows in entries.** Drag a flexible section or a repeater row by its handle. The new order goes live when you save the entry.

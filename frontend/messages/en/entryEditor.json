@@ -161,6 +161,10 @@
     "removeItem": "Remove item",
     "addItem": "Add Item"
   },
+  "rows": {
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all"
+  },
   "flexible": {
     "selectLayout": "Select a layout",
     "removeBlock": "Remove block",
