@@ -14,6 +14,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Added
 
+- **Field width.** Each field can be Full, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.
 - **Reorder components.** The **Components** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/components/order`. New components go last. *Used by* now lists just the content type names. Run `npx prisma migrate deploy` (adds `components.position`).
 - **Cloudflare R2 and ImageKit storage.** Both are new options next to local disk and S3-compatible storage, set under **Settings → Email & storage** or with `STORAGE_DRIVER=r2|imagekit`. See [File storage](https://nodepress-docs.vercel.app/deployment/storage/).
 - **File upload fields in forms.** A `file` field takes one uploaded file (PDF, Word or image; allowed extensions set per field). Files are private: they're kept in the database and downloaded from the submissions page; emails show the file's name. Needs the new `form_files` table (`npx prisma migrate deploy`).

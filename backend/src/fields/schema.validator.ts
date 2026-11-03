@@ -7,6 +7,7 @@ import {
   FieldDef,
 } from './field.types';
 import { conditionErrors } from './field-condition';
+import { FIELD_WIDTHS } from './field.types';
 
 /**
  * How deep repeaters, groups and flexible fields may nest: a flexible field
@@ -105,6 +106,9 @@ export class SchemaValidator {
     }
     if (field.description !== undefined && typeof field.description !== 'string') {
       errors.push(`${path}.description: must be string`);
+    }
+    if (field.width !== undefined && !FIELD_WIDTHS.includes(field.width)) {
+      errors.push(`${path}.width: must be one of ${FIELD_WIDTHS.join(', ')}`);
     }
     // `component` marks a field inserted inline from a reusable component.
     if (field.component !== undefined) {

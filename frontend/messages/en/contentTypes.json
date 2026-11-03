@@ -100,6 +100,8 @@
     "fieldNamePlaceholder": "Field name",
     "fieldKey": "Field key:",
     "required": "Required",
+    "widthFull": "Full",
+    "widthHint": "Width in the entry form",
     "indexed": "Indexed",
     "indexedHint": "Index this field so API filters on it (?where[field][eq]=…) stay fast with many entries. Adds a little write overhead.",
     "deleteField": "Delete field",

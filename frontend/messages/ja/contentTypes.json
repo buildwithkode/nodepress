@@ -100,6 +100,8 @@
     "fieldNamePlaceholder": "フィールド名",
     "fieldKey": "フィールドキー:",
     "required": "必須",
+    "widthFull": "全幅",
+    "widthHint": "入力フォームでの幅",
     "indexed": "インデックス",
     "indexedHint": "このフィールドにインデックスを作成し、エントリーが多くても API のフィルター (?where[field][eq]=…) を高速に保ちます。書き込みの負荷がわずかに増えます。",
     "deleteField": "フィールドを削除",

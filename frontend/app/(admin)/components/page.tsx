@@ -19,6 +19,7 @@ import { optionsForEditor, optionsForSave } from '@/lib/field-options';
 import { nestedRenames, withLoadedKeys, withoutLoadedKeys } from '@/lib/schema-editor-keys';
 import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
 import { SelectChoicesSource } from '@/components/ChoiceListField';
+import { FieldWidthSelect, type FieldWidth } from '@/components/FieldWidth';
 import { ctLabel, humanizeName } from '@/lib/utils';
 import type { ReusableComponent } from '@/components/ComponentFieldControls';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ interface Usage {
 type Component = ReusableComponent & { usage: Usage[] };
 
 // `_key`: the key a saved field was loaded with — a different key on save is a rename.
-interface DraftField { label: string; type: string; required: boolean; options?: any; _key?: string }
+interface DraftField { label: string; type: string; required: boolean; width?: FieldWidth; options?: any; _key?: string }
 interface Draft { id?: number; displayName: string; name: string; description: string; fields: DraftField[] }
 
 const toSnakeCase = (s: string) => s.trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -63,7 +64,7 @@ const toDraft = (c: Component): Draft => ({
   displayName: c.displayName ?? '',
   name: c.name,
   description: c.description ?? '',
-  fields: c.fields.map((f) => ({ label: f.label ?? humanizeName(f.name), type: f.type, required: !!f.required, options: withLoadedKeys(optionsForEditor(f.options)), _key: f.name })),
+  fields: c.fields.map((f) => ({ label: f.label ?? humanizeName(f.name), type: f.type, required: !!f.required, width: (f as any).width, options: withLoadedKeys(optionsForEditor(f.options)), _key: f.name })),
 });
 
 const fieldForSave = (f: DraftField) => ({
@@ -71,6 +72,7 @@ const fieldForSave = (f: DraftField) => ({
   label: f.label.trim(),
   type: f.type,
   required: f.required,
+  ...(f.width ? { width: f.width } : {}),
   ...(f.options ? { options: optionsForSave(withoutLoadedKeys(f.options)) } : {}),
 });
 
@@ -396,6 +398,7 @@ export default function ComponentsPage() {
                           {FIELD_TYPES.map((ft) => <SelectItem key={ft} value={ft}>{tct(`fieldTypes.${ft}`)}</SelectItem>)}
                         </SelectContent>
                       </Select>
+                      <FieldWidthSelect value={f.width} onChange={(width) => patchField(i, { width })} />
                       <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none pt-2">
                         <Checkbox checked={f.required} onCheckedChange={(c) => patchField(i, { required: c === true })} />
                         {t('editor.required')}

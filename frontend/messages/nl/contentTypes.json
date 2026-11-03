@@ -100,6 +100,8 @@
     "fieldNamePlaceholder": "Veldnaam",
     "fieldKey": "Veldsleutel:",
     "required": "Verplicht",
+    "widthFull": "Volledig",
+    "widthHint": "Breedte in het formulier",
     "indexed": "Geïndexeerd",
     "indexedHint": "Indexeer dit veld zodat API-filters erop (?where[field][eq]=…) snel blijven bij veel items. Geeft iets meer overhead bij schrijven.",
     "deleteField": "Veld verwijderen",

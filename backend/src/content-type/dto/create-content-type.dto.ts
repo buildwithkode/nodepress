@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty, IsArray, ValidateNested, IsIn, IsOptional, IsBoolean, ArrayUnique, Matches, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ALL_FIELD_TYPES } from '../../fields/field.types';
+import { ALL_FIELD_TYPES, FIELD_WIDTHS } from '../../fields/field.types';
 import { PREVIEW_URL_MAX_LENGTH, PREVIEW_URL_PATTERN } from '../preview-url';
 
 export class FieldDto {
@@ -45,6 +45,15 @@ export class FieldDto {
   })
   @IsOptional()
   options?: any;
+
+  @ApiPropertyOptional({
+    example: 'half',
+    enum: FIELD_WIDTHS,
+    description: 'How much of a row the field takes in the admin entry form. Full when left out.',
+  })
+  @IsOptional()
+  @IsIn(FIELD_WIDTHS)
+  width?: string;
 
   @ApiPropertyOptional({
     example: { field: 'kind', op: 'eq', value: 'video' },

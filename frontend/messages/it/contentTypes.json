@@ -100,6 +100,8 @@
     "fieldNamePlaceholder": "Nome del campo",
     "fieldKey": "Chiave del campo:",
     "required": "Obbligatorio",
+    "widthFull": "Intera",
+    "widthHint": "Larghezza nel modulo",
     "indexed": "Indicizzato",
     "indexedHint": "Indicizza questo campo in modo che i filtri API su di esso (?where[field][eq]=…) restino veloci con molte voci. Aggiunge un piccolo costo in scrittura.",
     "deleteField": "Elimina campo",

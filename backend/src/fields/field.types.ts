@@ -249,3 +249,6 @@ export type FieldValue =
   | GroupValue
   | RepeaterItem[]
   | FlexibleItem[];
+
+/** How much of a row a field takes in the admin's entry form. No width means full. */
+export const FIELD_WIDTHS = ['full', 'half', 'third'] as const;

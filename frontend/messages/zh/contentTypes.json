@@ -100,6 +100,8 @@
     "fieldNamePlaceholder": "字段名称",
     "fieldKey": "字段键名：",
     "required": "必填",
+    "widthFull": "全宽",
+    "widthHint": "在条目表单中的宽度",
     "indexed": "索引",
     "indexedHint": "为此字段建立索引，使基于它的 API 过滤（?where[field][eq]=…）在条目很多时依然快速。会略微增加写入开销。",
     "deleteField": "删除字段",
