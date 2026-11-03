@@ -1,12 +1,16 @@
 'use client';
 
+import { useId, type ReactNode } from 'react';
 import { useFieldArray, Controller, useWatch } from 'react-hook-form';
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Trash2 } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { SortableItem, useDragSensors } from '@/components/SortableItem';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -47,6 +51,7 @@ function FlexibleItem({
   errors,
   watch,
   onRemove,
+  dragHandle,
 }: {
   index: number;
   fieldName: string;
@@ -56,6 +61,7 @@ function FlexibleItem({
   errors: any;
   watch: any;
   onRemove: () => void;
+  dragHandle?: ReactNode;
 }) {
   const t = useTranslations('entryEditor');
   const layoutKey = `${fieldName}.${index}._layout`;
@@ -79,6 +85,7 @@ function FlexibleItem({
       {/* Card header */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          {dragHandle}
           <Badge variant="outline" className="border-pink-300 text-xs text-pink-600">
             {index + 1}
           </Badge>
@@ -184,13 +191,23 @@ export default function FlexibleField({
   watch,
 }: Props) {
   const t = useTranslations('entryEditor');
-  const { fields, append, remove } = useFieldArray({ control, name: fieldName });
+  const { fields, append, remove, move } = useFieldArray({ control, name: fieldName });
+  const dndId = useId();
+  const sensors = useDragSensors();
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    move(fields.findIndex((f) => f.id === active.id), fields.findIndex((f) => f.id === over.id));
+  };
 
   return (
     <div className="space-y-2">
+      <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+      <div className="space-y-2">
       {fields.map((item, index) => (
+        <SortableItem key={item.id} id={item.id}>
+        {(dragHandle) => (
         <FlexibleItem
-          key={item.id}
           index={index}
           fieldName={fieldName}
           layouts={layouts}
@@ -199,8 +216,14 @@ export default function FlexibleField({
           errors={errors}
           watch={watch}
           onRemove={() => remove(index)}
+          dragHandle={fields.length > 1 ? dragHandle : undefined}
         />
+        )}
+        </SortableItem>
       ))}
+      </div>
+      </SortableContext>
+      </DndContext>
 
       {/* Add block selector */}
       <div className="mt-1">

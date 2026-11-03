@@ -20,10 +20,10 @@ import { nestedRenames, withLoadedKeys, withoutLoadedKeys } from '@/lib/schema-e
 import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
 import { SelectChoicesSource } from '@/components/ChoiceListField';
 import { FieldWidthSelect, type FieldWidth } from '@/components/FieldWidth';
-import { ctLabel, humanizeName } from '@/lib/utils';
+import { cn, ctLabel, humanizeName } from '@/lib/utils';
 import type { ReusableComponent } from '@/components/ComponentFieldControls';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { FIELD_TYPE_BADGE } from '@/lib/field-type-badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -258,9 +258,15 @@ export default function ComponentsPage() {
                   <TableCell className="hidden lg:table-cell align-top py-3">
                     <div className="flex flex-wrap gap-1">
                       {c.fields.map((f) => (
-                        <Badge key={f.name} variant="outline" className="font-mono text-[11px]">
-                          {f.name}<span className="text-muted-foreground ml-1">{tct(`fieldTypes.${f.type}`)}</span>
-                        </Badge>
+                        <span
+                          key={f.name}
+                          className={cn(
+                            'inline-flex items-center rounded px-2 py-0.5 text-[11px] font-mono font-medium shadow-xs',
+                            FIELD_TYPE_BADGE[f.type] ?? 'bg-muted text-muted-foreground',
+                          )}
+                        >
+                          {f.name}<span className="ml-1 font-normal opacity-70">{tct(`fieldTypes.${f.type}`)}</span>
+                        </span>
                       ))}
                     </div>
                   </TableCell>

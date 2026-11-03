@@ -2,22 +2,18 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, Trash2, ArrowLeft, GripVertical, ArrowUpDown, Download, Braces, Copy, Check, PanelRight, WrapText, Shield, FileText, Lock } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Download, Braces, Copy, Check, PanelRight, WrapText, Shield, FileText, Lock } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  useSortable,
   verticalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { SortableItem, useDragSensors } from '@/components/SortableItem';
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
@@ -136,31 +132,6 @@ function FieldTypeSelect({
   );
 }
 
-function SortableFieldCard({ id, disabled, children }: { id: string; disabled?: boolean; children: (dragHandle: React.ReactNode) => React.ReactNode }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 10 : undefined,
-  };
-  const dragHandle = (
-    <button
-      type="button"
-      {...attributes}
-      {...listeners}
-      className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground shrink-0 touch-none"
-    >
-      <GripVertical className="h-4 w-4" />
-    </button>
-  );
-  return (
-    <div ref={setNodeRef} style={style}>
-      {children(dragHandle)}
-    </div>
-  );
-}
-
 const ALL_METHODS = [
   { key: 'list',   verb: 'GET',    path: '' },
   { key: 'read',   verb: 'GET',    path: '/:slug' },
@@ -192,7 +163,6 @@ export default function EditContentTypePage() {
   const [previewUrl, setPreviewUrl] = useState('');
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
   const schemaCheck = useSchemaChangeCheck(id);
-  const [reorderMode, setReorderMode] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(true);
   // Phones start with the side pane closed: the form comes first.
   useEffect(() => { if (isNarrowScreen()) setJsonOpen(false); }, []);
@@ -225,7 +195,7 @@ export default function EditContentTypePage() {
   const toggleMethod = (key: string) =>
     setAllowedMethods((prev) => prev.includes(key) ? prev.filter((m) => m !== key) : [...prev, key]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const sensors = useDragSensors();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -490,14 +460,7 @@ export default function EditContentTypePage() {
               <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <Label>{t('editor.fields')}</Label>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant={reorderMode ? 'secondary' : 'outline'}
-                    onClick={() => setReorderMode((v) => !v)}
-                  >
-                    <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                    {reorderMode ? t('editor.done') : t('editor.reorder')}
-                  </Button>
-                  <Button variant="outline" onClick={addField} disabled={reorderMode}>
+                  <Button variant="outline" onClick={addField}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
                 </div>
@@ -507,11 +470,11 @@ export default function EditContentTypePage() {
                 <SortableContext items={fields.filter((f) => !isComponentField(f)).map((f) => f._id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-3">
               {fields.map((field, fi) => isComponentField(field) ? null : (
-                <SortableFieldCard key={field._id} id={field._id} disabled={!reorderMode}>
+                <SortableItem key={field._id} id={field._id}>
                   {(dragHandle) => (
                   <div className="rounded-md border bg-muted/30 p-4 space-y-3">
                   <div className="flex flex-wrap items-start gap-2">
-                    {reorderMode && dragHandle}
+                    {dragHandle}
                     {/* Field number */}
                     <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
                       {fieldNumbers[fi]}
@@ -652,7 +615,7 @@ export default function EditContentTypePage() {
                   )}
                   </div>
                   )}
-                </SortableFieldCard>
+                </SortableItem>
               ))}
                   </div>
                 </SortableContext>
@@ -661,14 +624,7 @@ export default function EditContentTypePage() {
                   the list is long enough that the header has scrolled away */}
               {fieldNumbers.filter(Boolean).length >= 4 && (
                 <div className="flex items-center justify-end gap-2 mt-3">
-                  <Button
-                    variant={reorderMode ? 'secondary' : 'outline'}
-                    onClick={() => setReorderMode((v) => !v)}
-                  >
-                    <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                    {reorderMode ? t('editor.done') : t('editor.reorder')}
-                  </Button>
-                  <Button variant="outline" onClick={addField} disabled={reorderMode}>
+                  <Button variant="outline" onClick={addField}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
                 </div>
@@ -683,33 +639,32 @@ export default function EditContentTypePage() {
                       taken={takenKeys(fields)}
                       onAdd={(f) => setFields([...fields, { _id: uid(), ...f }])}
                       onAddInline={(fs) => setFields([...fields, ...fs.map((f) => ({ _id: uid(), ...inlineEditorField(f) }))])}
-                      disabled={reorderMode}
                     />
                   }
                 >
                   <SortableContext items={fields.filter((f, i) => isComponentField(f) && !continuesInlineRun(fields, i)).map((f) => f._id)} strategy={verticalListSortingStrategy}>
                     {fields.map((field, fi) => !isComponentField(field) || continuesInlineRun(fields, fi) ? null : (
-                      <SortableFieldCard key={field._id} id={field._id} disabled={!reorderMode}>
+                      <SortableItem key={field._id} id={field._id}>
                         {(dragHandle) => field.component ? (
                           <InlineComponentBlock
                             fields={fields}
                             index={fi}
                             duplicates={dupes}
-                            dragHandle={reorderMode ? dragHandle : undefined}
+                            dragHandle={dragHandle}
                             onRemove={() => setFields(removeInlineRun(fields, fi))}
                           />
                         ) : (
                           <ComponentFieldCard
                             field={field}
                             duplicate={dupes.has(editorFieldKey(field))}
-                            dragHandle={reorderMode ? dragHandle : undefined}
+                            dragHandle={dragHandle}
                             onName={(v) => updateField(fi, 'name', v)}
                             onRequired={(v) => updateField(fi, 'required', v)}
                             onRemove={() => removeField(fi)}
                             removeDisabled={fields.length === 1}
                           />
                         )}
-                      </SortableFieldCard>
+                      </SortableItem>
                     ))}
                   </SortableContext>
                 </ComponentsSection>

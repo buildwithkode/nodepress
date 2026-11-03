@@ -98,8 +98,6 @@
     "apiEndpointsHint": "Choose which endpoints are publicly accessible for this content type.",
     "fields": "Fields",
     "addField": "Add Field",
-    "reorder": "Reorder",
-    "done": "Done",
     "fieldNamePlaceholder": "Field name",
     "fieldKey": "Field key:",
     "required": "Required",

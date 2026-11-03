@@ -98,8 +98,6 @@
     "apiEndpointsHint": "Escolha quais endpoints ficam acessíveis publicamente para este tipo de conteúdo.",
     "fields": "Campos",
     "addField": "Adicionar campo",
-    "reorder": "Reordenar",
-    "done": "Concluído",
     "fieldNamePlaceholder": "Nome do campo",
     "fieldKey": "Chave do campo:",
     "required": "Obrigatório",
