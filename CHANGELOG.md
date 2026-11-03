@@ -24,6 +24,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Fixed
 
+- **Content type, component and entry pages on phones and tablets.** The form no longer shares a phone's width with the JSON panel: below 1024px the panel starts closed and opens above the form. Field rows and header buttons wrap instead of running off the screen, and the Content Types, Entries and Components tables show their main columns on small screens.
 - **Backups** now read the storage saved in the admin, not only `STORAGE_DRIVER`. A site on S3, R2 or ImageKit set up in the admin had leftover local files copied and the wrong storage in its manifest. Local files are still copied while media rows point at them, so a backup taken after switching storage doesn't lose older files.
 - **Login cookies stay out of the logs.** Request logs recorded `Cookie` and `Set-Cookie` headers, including the refresh token.
 - **Security:** `follow-redirects` patched to 1.16.2 (GHSA-mrwp-f3q8-3g9p).

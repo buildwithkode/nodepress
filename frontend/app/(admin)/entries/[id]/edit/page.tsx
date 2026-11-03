@@ -47,6 +47,7 @@ import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
 import { useAccess } from '@/lib/use-access';
+import { PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth, isNarrowScreen } from '@/components/SidePane';
 import { AddToReleaseDialog } from '@/components/AddToReleaseDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -145,6 +146,8 @@ export default function EditEntryPage() {
   const [translations, setTranslations] = useState<TranslationItem[]>([]);
   const [creatingTranslation, setCreatingTranslation] = useState(false);
   const [sidePanel, setSidePanel] = useState<'none' | 'reference' | 'json' | 'live'>('json');
+  // Phones start with the side pane closed: the form comes first.
+  useEffect(() => { if (isNarrowScreen()) setSidePanel('none'); }, []);
   const tp = useTranslations('preview');
   const focusField = useCallback((field: string) => { focusEntryField(containerRef.current, field); }, []);
   const [baseLocale, setBaseLocale] = useState('en');
@@ -455,7 +458,7 @@ export default function EditEntryPage() {
           <ArrowLeft className="h-4 w-4" /> {t('header.backTo', { name: contentType ? ctLabel(contentType) : t('header.entries') })}
         </Button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Active Presence Avatars */}
           {activeUsers.length > 0 && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-card text-xs">
@@ -509,7 +512,7 @@ export default function EditEntryPage() {
 
       {/* Real-time Conflict Soft-Lock Banner */}
       {isLockedByOther && (
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-amber-200">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-amber-200">
           <div className="flex items-center gap-2.5 text-sm">
             <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
             <span>
@@ -532,7 +535,7 @@ export default function EditEntryPage() {
 
       {/* Pending review approval banner — shown to admins and editors only */}
       {status === 'pending_review' && canApprove && (
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-950/40">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-950/40">
           <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
             <ThumbsUp className="h-4 w-4 shrink-0" />
             <span>{t('review.banner')}</span>
@@ -557,7 +560,7 @@ export default function EditEntryPage() {
               <CardTitle>{contentType ? t('edit.titleWithType', { type: ctLabel(contentType) }) : t('edit.title')}</CardTitle>
               <CardDescription>{t('edit.description')}</CardDescription>
             </div>
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               {autosaveStatus !== 'idle' && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
                   <CloudIcon className="h-3.5 w-3.5" />
@@ -763,9 +766,9 @@ export default function EditEntryPage() {
         </CardHeader>
 
         {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
-        <div ref={containerRef} className="flex border-t border-border">
+        <div ref={containerRef} className={PANE_ROW}>
           {/* Left pane: form */}
-          <div style={{ width: sidePanel !== 'none' ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
+          <div style={paneWidth(sidePanel !== 'none' ? leftPct : 100)} className={MAIN_PANE}>
           <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
             {/* Slug (editable — changing it breaks existing links/SEO) */}
@@ -984,7 +987,7 @@ export default function EditEntryPage() {
           {sidePanel !== 'none' && (
             <div
               onMouseDown={onDragStart}
-              className="relative w-px self-stretch shrink-0 cursor-col-resize group select-none bg-border hover:bg-primary/40 transition-colors"
+              className="relative hidden w-px self-stretch shrink-0 cursor-col-resize lg:block group select-none bg-border hover:bg-primary/40 transition-colors"
             >
               <div className="absolute inset-y-0 -left-2 -right-2" />
             </div>
@@ -995,7 +998,7 @@ export default function EditEntryPage() {
             if (sidePanel === 'live' && contentType?.previewUrl) {
               const { slug: liveSlug, ...liveData } = watchedValues;
               return (
-                <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
+                <div style={paneWidth(100 - leftPct)} className={SIDE_PANE}>
                   <LivePreviewPane
                     template={contentType.previewUrl}
                     contentType={contentType.name}
@@ -1012,8 +1015,8 @@ export default function EditEntryPage() {
             }
             if (sidePanel === 'reference') {
               return (
-                <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border bg-muted/10">
-                  <div className="sticky top-14 px-4 py-4 space-y-3">
+                <div style={paneWidth(100 - leftPct)} className={`${SIDE_PANE} bg-muted/10`}>
+                  <div className={`${SIDE_PANE_BODY} overflow-y-auto px-4 py-4 space-y-3`}>
                     <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
                       <div className="flex items-center gap-1.5">
                         <Languages className="h-4 w-4 text-blue-400" />
@@ -1143,9 +1146,9 @@ export default function EditEntryPage() {
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (
-              <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
+              <div style={paneWidth(100 - leftPct)} className={SIDE_PANE}>
                 {/* Stays in view just below the sticky top bar (h-14); the JSON scrolls inside. */}
-                <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] flex flex-col gap-2 px-4 py-4">
+                <div className={`${SIDE_PANE_BODY} flex flex-col gap-2 px-4 py-4`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1285,7 +1288,7 @@ export default function EditEntryPage() {
               </button>
             </div>
           )}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
             <Button
               type="button"
               variant="outline"

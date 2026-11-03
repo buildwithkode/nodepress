@@ -89,13 +89,13 @@ export function NestedFields({ fields, onChange, depth, kind = 'group', bordered
       )}
       {fields.map((sf, i) => (
         <div key={i} className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Input
               placeholder={kind === 'repeater' ? t('editor.subFieldPlaceholder') : t('editor.nestedFieldPlaceholder')}
               value={sf.name}
               onChange={(e) => set(i, { name: e.target.value })}
               aria-invalid={dupes.has(toFieldKey(sf.name))}
-              className="flex-1"
+              className="min-w-40 flex-1"
             />
             {sf.options?.component
               ? <span className="w-32 text-xs text-muted-foreground">{t(`fieldTypes.${sf.type}`)}</span>

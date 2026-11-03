@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
+import { PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth, isNarrowScreen } from '@/components/SidePane';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -129,6 +130,8 @@ export default function NewContentTypePage() {
   const [allowedMethods, setAllowedMethods] = useState(['list', 'read', 'create', 'update', 'delete']);
   const [previewUrl, setPreviewUrl] = useState('');
   const [jsonOpen, setJsonOpen] = useState(true);
+  // Phones start with the side pane closed: the form comes first.
+  useEffect(() => { if (isNarrowScreen()) setJsonOpen(false); }, []);
   const [jsonCopied, setJsonCopied] = useState(false);
   const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
@@ -245,7 +248,7 @@ export default function NewContentTypePage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <CardTitle>{t('editor.newTitle')}</CardTitle>
               <CardDescription>{t('editor.newDescription')}</CardDescription>
@@ -264,9 +267,9 @@ export default function NewContentTypePage() {
         </CardHeader>
 
         {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
-        <div ref={containerRef} className="flex border-t border-border">
+        <div ref={containerRef} className={PANE_ROW}>
           {/* Left pane: form */}
-          <div style={{ width: jsonOpen ? `${leftPct}%` : '100%' }} className="min-w-0 px-6 py-4">
+          <div style={paneWidth(jsonOpen ? leftPct : 100)} className={MAIN_PANE}>
           <form id="ct-form" onSubmit={onSubmit} className="space-y-6">
             <AiContentModelButton
               onSuggested={(ct) => {
@@ -309,7 +312,7 @@ export default function NewContentTypePage() {
                       onCheckedChange={() => toggleMethod(key)}
                     />
                     <span className={`text-xs font-mono font-semibold w-14 shrink-0 ${VERB_COLOR[verb]}`}>{verb}</span>
-                    <code className="text-xs font-mono text-muted-foreground flex-1">
+                    <code className="min-w-0 flex-1 break-all text-xs font-mono text-muted-foreground">
                       /api/{(computedName || ':type').replace(/_/g, '-')}{path}
                     </code>
                     <span className="text-xs text-foreground shrink-0">{t(`methods.${key}`)}</span>
@@ -320,7 +323,7 @@ export default function NewContentTypePage() {
 
             {/* Fields */}
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <Label>{t('editor.fields')}</Label>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" onClick={addField}>
@@ -332,11 +335,11 @@ export default function NewContentTypePage() {
               <div className="space-y-3">
                 {fields.map((field, fi) => isComponentField(field) ? null : (
                   <div key={fi} className="rounded-md border bg-muted/30 p-4 space-y-3">
-                    <div className="flex items-start gap-2">
+                    <div className="flex flex-wrap items-start gap-2">
                       <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
                         {fieldNumbers[fi]}
                       </span>
-                      <div className="flex-1 space-y-1">
+                      <div className="min-w-40 flex-1 space-y-1">
                         <Input
                           placeholder={t('editor.fieldNamePlaceholder')}
                           value={field.name}
@@ -472,7 +475,7 @@ export default function NewContentTypePage() {
           {jsonOpen && (
             <div
               onMouseDown={onDragStart}
-              className="relative w-px self-stretch shrink-0 cursor-col-resize group select-none bg-border hover:bg-primary/40 transition-colors"
+              className="relative hidden w-px self-stretch shrink-0 cursor-col-resize lg:block group select-none bg-border hover:bg-primary/40 transition-colors"
             >
               <div className="absolute inset-y-0 -left-2 -right-2" />
             </div>
@@ -488,9 +491,9 @@ export default function NewContentTypePage() {
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (
-              <div style={{ width: `${100 - leftPct}%` }} className="min-w-0 border-l border-border">
+              <div style={paneWidth(100 - leftPct)} className={SIDE_PANE}>
                 {/* Stays in view just below the sticky top bar (h-14); the JSON scrolls inside. */}
-                <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] flex flex-col gap-2 px-4 py-4">
+                <div className={`${SIDE_PANE_BODY} flex flex-col gap-2 px-4 py-4`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Braces className="h-3.5 w-3.5 text-muted-foreground" />

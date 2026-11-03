@@ -60,7 +60,7 @@ export function Pagination({ total, page, pageSize, onPage }: PaginationProps) {
   const to = Math.min(page * pageSize, total)
 
   return (
-    <div className="flex items-center justify-between mt-4 pt-4">
+    <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-4">
       <p className="text-sm text-muted-foreground">
         {total === 0 ? tc('noResults') : tc('showingRange', { from, to, total })}
       </p>

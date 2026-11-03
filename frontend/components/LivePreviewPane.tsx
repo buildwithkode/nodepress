@@ -161,7 +161,7 @@ export function LivePreviewPane({ template, contentType, entryId, slug, liveSlug
   const width = DEVICES[device].width;
 
   return (
-    <div className="sticky top-14 px-4 py-4 space-y-2">
+    <div className="px-4 py-4 space-y-2 lg:sticky lg:top-14">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <MonitorPlay className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -226,7 +226,7 @@ export function LivePreviewPane({ template, contentType, entryId, slug, liveSlug
         </div>
       </div>
 
-      <div className="rounded-md border border-border bg-muted/20 overflow-auto h-[calc(100vh-11rem)] min-h-[420px]">
+      <div className="rounded-md border border-border bg-muted/20 overflow-auto h-[60vh] lg:h-[calc(100vh-11rem)] lg:min-h-[420px]">
         {!target ? (
           <p className="p-6 text-center text-xs text-muted-foreground">{tp('pane.invalidUrl')}</p>
         ) : needsToken && !entryId ? (

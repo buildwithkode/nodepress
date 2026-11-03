@@ -870,12 +870,12 @@ export default function EntriesPage() {
 
       {/* Bulk action bar */}
       {canSelect && selected.size > 0 && !showTrash && (
-        <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2.5">
           <CheckSquare className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">
             {t('bulk.selected', { count: selected.size })}
           </span>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center gap-2">
             {canPublish && (
               <>
                 <Button
@@ -974,11 +974,11 @@ export default function EntriesPage() {
             <TableHead>{t('table.slug')}</TableHead>
             <TableHead>{tc('status')}</TableHead>
             {schemaColumns.map((col) => (
-              <TableHead key={col.name}>
+              <TableHead key={col.name} className="hidden md:table-cell">
                 {col.label?.trim() || col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </TableHead>
             ))}
-            <TableHead>{tc('updatedAt')}</TableHead>
+            <TableHead className="hidden md:table-cell">{tc('updatedAt')}</TableHead>
             <TableHead className="text-right">{tc('actions')}</TableHead>
           </TableRow>
         </TableHeader>
@@ -990,9 +990,9 @@ export default function EntriesPage() {
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 {schemaColumns.map((col) => (
-                  <TableCell key={col.name}><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell key={col.name} className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
                 ))}
-                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
               </TableRow>
             ))
@@ -1030,8 +1030,8 @@ export default function EntriesPage() {
                 </TableCell>
               )}
               <TableCell>
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-foreground">{entry.slug}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-medium text-foreground break-all">{entry.slug}</p>
                   {SUPPORTED_LOCALES.length > 1 ? (
                     // One chip per enabled language: this row's own (filled), other
                     // existing translations (outlined) and missing ones (dashed).
@@ -1091,7 +1091,7 @@ export default function EntriesPage() {
                   ? (typeof val === 'object' && val.url ? val.url : typeof val === 'string' ? val : null)
                   : null;
                 return (
-                  <TableCell key={col.name} className="text-muted-foreground">
+                  <TableCell key={col.name} className="hidden md:table-cell text-muted-foreground">
                     {val === undefined || val === null ? (
                       <span className="text-muted-foreground/40">—</span>
                     ) : imgSrc ? (
@@ -1112,9 +1112,9 @@ export default function EntriesPage() {
                   </TableCell>
                 );
               })}
-              <TableCell className="text-muted-foreground">{formatDate(entry.updatedAt)}</TableCell>
+              <TableCell className="hidden md:table-cell text-muted-foreground">{formatDate(entry.updatedAt)}</TableCell>
               <TableCell>
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex flex-wrap items-center justify-end gap-1 md:flex-nowrap">
                   {showTrash ? (
                     <>
                       {canDelete && (
