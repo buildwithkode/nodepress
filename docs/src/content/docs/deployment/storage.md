@@ -172,7 +172,7 @@ STORAGE_S3_SECRET_KEY=<applicationKey>
 
 ## The uploads folder with S3
 
-Even with S3, the backend writes to `backend/uploads/`: each upload is staged there before it goes to the bucket, resized image variants are cached in `uploads/.cache`, and [WordPress imports](/content/wordpress-import/) keep the uploaded export there until the job runs. It needs to be writable, but it doesn't need to survive a redeploy. With several instances, share it if you use the WordPress importer, since the import job can run on another instance.
+Even with S3, the backend writes to `backend/uploads/`: each upload is staged there before it goes to the bucket, and resized image variants are cached in `uploads/.cache`. It needs to be writable, but it doesn't need to survive a redeploy.
 
 ## Backups
 

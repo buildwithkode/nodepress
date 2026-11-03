@@ -16,7 +16,7 @@ Open **Media** and drop files on the upload area, or click it to browse. Admins 
 | Allowed types | JPEG, PNG, GIF, WebP, SVG, PDF, MP4 |
 | Maximum size | 10 MB per file, or what [`MEDIA_MAX_MB`](/reference/environment-variables/) sets |
 
-Behind nginx, `client_max_body_size` (50 MB in the shipped `nginx/proxy.conf`) must be at least `MEDIA_MAX_MB`, or larger uploads are refused before they reach NodePress. The same limit applies to files the [WordPress importer](/content/wordpress-import/) downloads.
+Behind nginx, `client_max_body_size` (50 MB in the shipped `nginx/proxy.conf`) must be at least `MEDIA_MAX_MB`, or larger uploads are refused before they reach NodePress.
 
 NodePress checks each file's first bytes, so a file whose content doesn't match its type is refused. Uploaded files get a new name: the upload time and a random suffix, such as `1730000000000-9f86d081884c7d65.jpg`. The original name is kept in the library.
 

@@ -44,7 +44,6 @@ The other tab, **Field-level (advanced)**, controls single fields. See [Field ac
 | Jobs | Background jobs | | | |
 | Audit log | Who changed what | | | |
 | Plugins | Turn plugins on and off and change their settings | | | |
-| Import | WordPress import | | | |
 | Brand | Name, logo and colours | | | |
 | Server settings | Email, storage and search | | | |
 

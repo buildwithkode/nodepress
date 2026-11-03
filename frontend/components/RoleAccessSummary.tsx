@@ -22,7 +22,7 @@ export function RoleAccessSummary({ labelOf }: { labelOf: (role: string) => stri
 
   useEffect(() => {
     api.get('/roles/access')
-      .then((res) => { setModules(res.data?.modules ?? []); setRoles(res.data?.roles ?? []); })
+      .then((res) => { setModules((res.data?.modules ?? []).filter((m: ModuleDef) => m.key !== 'import')); setRoles(res.data?.roles ?? []); })
       .catch(() => setFailed(true));
   }, []);
 
