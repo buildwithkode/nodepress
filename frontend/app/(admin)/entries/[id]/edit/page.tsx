@@ -159,6 +159,9 @@ export default function EditEntryPage() {
   const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
   const containerRef = useRef<HTMLDivElement>(null);
+  // The sticky header's height, which changes as its controls wrap: the side pane sticks below it.
+  const stickyHeaderRef = useRef<HTMLDivElement>(null);
+  const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
 
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -277,6 +280,23 @@ export default function EditEntryPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    const header = stickyHeaderRef.current;
+    if (!header) return;
+    const root = document.documentElement;
+    const observer = new ResizeObserver(() => {
+      setStickyHeaderHeight(header.offsetHeight);
+      // Tabbing to a field or jumping to a validation error must not land under the bars (top bar is 56px).
+      const covered = getComputedStyle(header).position === 'sticky' ? header.offsetHeight : 0;
+      root.style.scrollPaddingTop = `${56 + covered + 16}px`;
+    });
+    observer.observe(header);
+    return () => {
+      observer.disconnect();
+      root.style.scrollPaddingTop = '';
+    };
+  }, [loading]);
+
   const onSubmit = async (values: Record<string, any>) => {
     if (!entry) return;
     setSubmitting(true);
@@ -292,15 +312,28 @@ export default function EditEntryPage() {
       };
       const hasSeo = Object.values(seo).some((v) => v !== undefined);
 
-      await api.put(`/entries/${entry.id}`, {
+      const publishAtIso = status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null;
+      const res = await api.put(`/entries/${entry.id}`, {
         slug: cleanFinalSlug,
         status,
         data: pruneEntryData(rest, contentType?.schema ?? []),
         seo: hasSeo ? seo : null,
-        publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
+        publishAt: publishAtIso,
       });
+      // Stay on the page. The form keeps its values, so nothing remounts and the scroll position
+      // holds; the snapshot is built the way autosaveFn builds it, so autosave doesn't save again.
+      setEntry((e) => e ? { ...e, ...res.data } : e);
+      setValue('slug', cleanFinalSlug);
+      savedSnapshot.current = autosaveSnapshot({
+        slug: cleanFinalSlug,
+        status,
+        data: rest,
+        seo: hasSeo ? seo : null,
+        publishAt: publishAtIso,
+      });
+      setTranslations((list) => list.map((item) => item.id === entry.id ? { ...item, status } : item));
+      if (versionsOpen) void loadVersions();
       toast.success(t('toast.updated'));
-      router.push('/entries');
     } catch (err: any) {
       toast.error(err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
@@ -554,6 +587,9 @@ export default function EditEntryPage() {
       )}
 
       <Card>
+        {/* Sticks below the top bar (h-14) from lg up; on small screens its controls wrap too tall to keep in view.
+            The negative margins take over the card's top padding and gap, so nothing shows above or below it. */}
+        <div ref={stickyHeaderRef} className="rounded-t-xl bg-card lg:sticky lg:top-14 lg:z-20 lg:-mt-6 lg:-mb-6 lg:border-b lg:border-border lg:py-4">
         <CardHeader>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -764,9 +800,14 @@ export default function EditEntryPage() {
             </div>
           </div>
         </CardHeader>
+        </div>
 
         {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
-        <div ref={containerRef} className={PANE_ROW}>
+        <div
+          ref={containerRef}
+          className={`${PANE_ROW} lg:border-t-0`}
+          style={{ '--sticky-header-h': `${stickyHeaderHeight}px` } as React.CSSProperties}
+        >
           {/* Left pane: form */}
           <div style={paneWidth(sidePanel !== 'none' ? leftPct : 100)} className={MAIN_PANE}>
           <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
