@@ -52,7 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 
 **Putting it live for a client?** The [deploy guides](https://nodepress-docs.vercel.app/deployment/deploy/) walk through it step by step: your own server (DigitalOcean, Hetzner, Lightsail…) [with Docker](https://nodepress-docs.vercel.app/deployment/deploy-vps/) or [without Docker](https://nodepress-docs.vercel.app/deployment/deploy-vps-node/), [Railway or DigitalOcean App Platform](https://nodepress-docs.vercel.app/deployment/deploy-platforms/), and a go-live checklist. Shared hosting (cPanel) can't run NodePress.
 
-**From your frontend:** `npm install @nodepress-cms/client` — see [client/README.md](client/README.md). **From AI assistants:** `npx create-nodepress-app mcp` (MCP server).
+**From your frontend:** `npm install @nodepress-cms/client` — see [the client README](https://github.com/buildwithkode/nodepress/blob/main/client/README.md). **From AI assistants:** `npx create-nodepress-app mcp` (MCP server).
 
 ---
 
@@ -81,14 +81,13 @@ curl -fsSL https://raw.githubusercontent.com/buildwithkode/nodepress/main/script
 | **Content releases** | Publish, unpublish or archive many entries together, now or on a schedule |
 | **Live preview** | Edit an entry and watch your site update beside it; click an element to jump to its field |
 | **Redirects** | 301/302/410 manager with CSV import, plus automatic redirects when a slug changes |
-| **WordPress import** | Bring posts, pages, custom post types, ACF fields and media over from a WordPress export |
 
 ### Developer Experience & Tooling
 | Feature | What it does |
 |---|---|
 | **TypeScript Codegen** | Run `npx nodepress generate:types` to generate 100% type-safe TypeScript interfaces |
 | **`@nodepress-cms/client`** | Typed, dependency-free JS/TS client — lists, entries, GraphQL, forms, image URLs, live preview |
-| **Starter sites** | Next.js, Astro and Nuxt starters in `starters/` |
+| **Starter sites** | Next.js, Astro and Nuxt starters in [the NodePress repo](https://github.com/buildwithkode/nodepress/tree/main/starters) |
 | **OpenAPI 3.1** | `/api/openapi.json` describes your own content types — generate clients with any OpenAPI tool |
 | **Schema as code** | `schema:pull` / `schema:diff` / `schema:push` keep the content model in git and check it in CI |
 | **MCP server** | Let AI assistants read your content and create drafts (`create-nodepress-app mcp`) |
@@ -269,7 +268,7 @@ Everything else — `JWT_SECRET`, `CORS_ORIGIN`, `PORT` — is unchanged. Since 
 
 | Flag | Effect |
 |---|---|
-| `--docker` | Include the Docker setup (`docker-compose*.yml`, `nginx/`, `monitoring/`, `docker:*` scripts). Manages PostgreSQL + Redis for you. |
+| `--docker` | Include the Docker setup (`docker-compose*.yml`, `nginx/`, `caddy/`, `monitoring/`, `docker:*` scripts). Manages PostgreSQL + Redis for you. |
 | `--sentry` | Include [Sentry](https://sentry.io) error tracking (`@sentry/*` packages, ~100 MB). **Off by default** — without it the scaffold is lighter and ships no error-tracking code. Enable later by re-scaffolding with `--sentry`, or set `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` once the packages are installed. |
 
 ```bash
