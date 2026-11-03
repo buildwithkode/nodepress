@@ -7,7 +7,7 @@ sidebar:
 
 NodePress is headless: it stores and serves your content, and your website is a separate app. The starters are three small blogs, one per framework, that read a content type through the [JavaScript client](/apis/js-client/). Copy one to get a working site, then change it to fit your content.
 
-They live in the `starters/` folder of every project you create with `create-nodepress-app`, and in the [NodePress repository](https://github.com/buildwithkode/nodepress/tree/main/starters).
+They live in the `starters/` folder of the [NodePress repository](https://github.com/buildwithkode/nodepress/tree/main/starters).
 
 | Starter | Framework | Rendering | Extras |
 |---|---|---|---|
@@ -24,11 +24,12 @@ Each starter has:
 
 ## Start a site from a starter
 
-Copy the starter out of the project, point it at your NodePress backend and run it:
+Copy the starter out of the repository, point it at your NodePress backend and run it:
 
 ```bash
-cp -R starters/nextjs ../my-site
-cd ../my-site
+git clone --depth 1 https://github.com/buildwithkode/nodepress.git
+cp -R nodepress/starters/nextjs my-site
+cd my-site
 cp .env.example .env        # Next.js: .env.local
 npm install
 npm run dev

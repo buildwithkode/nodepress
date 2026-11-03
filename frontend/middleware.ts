@@ -36,6 +36,11 @@ export function middleware(request: NextRequest) {
   const initialized = request.cookies.get('np_initialized')?.value;
   const { pathname } = request.nextUrl;
 
+  // The WordPress import is hidden for now: no sidebar item, and its page sends you home.
+  if (pathname === '/import' || pathname.startsWith('/import/')) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   const isLoginPage = pathname === '/login';
   const isSetupPage = pathname === '/setup';
 

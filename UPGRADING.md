@@ -3,8 +3,6 @@
 How to move an existing install to a newer NodePress version. Read the notes
 for every version between yours and the target before you start.
 
-> Developers changing NodePress itself: see [UPGRADE_STRATEGY.md](UPGRADE_STRATEGY.md)
-> for the backward-compatibility rules new code must follow.
 
 ## Every upgrade
 

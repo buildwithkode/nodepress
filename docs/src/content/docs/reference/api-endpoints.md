@@ -197,19 +197,17 @@ See [Languages](/content/languages/), [SEO](/content/seo/) and [Redirects](/cont
 
 See [Forms](/content/forms/).
 
-## Templates, import and AI
+## Templates and AI
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/templates` | Admin | Starter templates |
 | POST | `/api/templates/:id/apply` | Admin | Create a template's content types and, by default, its sample entries |
-| POST | `/api/import/wordpress` | Admin | Import a WordPress export (WXR, up to 50 MB). `?dryRun=true` only reports; otherwise queues a job. |
-| GET | `/api/import/wordpress/:jobId` | Admin | Status, progress and result of an import job |
 | GET | `/api/ai/status` | Signed in | Whether AI help is configured |
 | POST | `/api/ai/content-model` | Admin | Suggest a content type from a description (not saved). 10/min. |
 | POST | `/api/ai/draft` | admin, editor, contributor | Draft field values for an entry (not saved). 20/min. |
 
-See [Templates](/content/templates/), [WordPress import](/content/wordpress-import/) and [AI assistance](/content/ai/).
+See [Templates](/content/templates/) and [AI assistance](/content/ai/).
 
 ## Users, roles and permissions
 

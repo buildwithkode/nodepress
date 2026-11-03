@@ -215,6 +215,7 @@ module.exports = async function createProject(name, opts = {}) {
     // this the backend fails to compile (`Prisma.InputJsonValue` missing) until
     // the first `prisma migrate`/`generate`.
     postinstall: 'cd backend && npx prisma generate',
+    predev: 'node scripts/check-db.js',
     dev: 'concurrently "npm run dev:backend" "npm run dev:frontend"',
     'dev:backend': 'cd backend && npm run start:dev',
     'dev:frontend': 'cd frontend && npm run dev',
@@ -231,6 +232,9 @@ module.exports = async function createProject(name, opts = {}) {
     scripts['docker:prod'] = 'docker compose -f docker-compose.prod.yml up -d --build';
     scripts['docker:down'] = 'docker compose down';
   }
+  // npm reads overrides and allowScripts only from the root package.json, so
+  // the release's own values must carry over or a project loses its security pins.
+  const releasePkg = JSON.parse(fs.readFileSync(path.join(projectDir, 'package.json'), 'utf8'));
   const rootPkg = {
     name: safeName,
     version: '1.0.0',
@@ -240,6 +244,8 @@ module.exports = async function createProject(name, opts = {}) {
     devDependencies: {
       concurrently: '^10.0.0',
     },
+    ...(releasePkg.overrides ? { overrides: releasePkg.overrides } : {}),
+    ...(releasePkg.allowScripts ? { allowScripts: releasePkg.allowScripts } : {}),
   };
   fs.writeFileSync(
     path.join(projectDir, 'package.json'),

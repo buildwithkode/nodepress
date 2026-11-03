@@ -54,7 +54,7 @@ How handlers run:
 | Restore from trash, restore a version | | `afterUpdate` | `restore` |
 | Create a translation | | `afterCreate` | `translation` |
 | Entry JSON import | | `afterCreate` or `afterUpdate` | `import` |
-| WordPress import, starter templates | `beforeCreate` | `afterCreate` | `import` for WordPress, absent for templates |
+| Starter templates | `beforeCreate` | `afterCreate` | absent |
 
 Things that follow from the table:
 
@@ -94,7 +94,7 @@ Not every write path fills every field, so read them defensively. What each path
 
 | From | Fields |
 |---|---|
-| Admin, GraphQL, WordPress import | `id`, `contentType`, `data`, `dto` (the full update request), `currentEntry` (the entry as stored now), `actorId`, `role`, `customRole`, `source` |
+| Admin, GraphQL | `id`, `contentType`, `data`, `dto` (the full update request), `currentEntry` (the entry as stored now), `actorId`, `role`, `customRole`, `source` |
 | Public API | `id`, `slug`, `status`, `contentType`, `locale`, `data`, `source: "api"` |
 
 `data` is the data that will replace the stored data. It's absent when the request doesn't change the data, such as a status-only change. On the admin path, compare it with `currentEntry.data` to see what changed.

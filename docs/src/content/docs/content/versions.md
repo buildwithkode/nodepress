@@ -9,7 +9,7 @@ NodePress keeps a copy of an entry each time it changes, so you can see when it 
 
 ## Entry versions
 
-Before an entry is updated, NodePress saves its current state as a version. That happens on every save from the editor (autosaves included), on **Promote to Staging (QA)**, **Publish to Production**, **Approve & Publish** and **Return to Draft**, when a version is restored, and when the WordPress import overwrites an entry.
+Before an entry is updated, NodePress saves its current state as a version. That happens on every save from the editor (autosaves included), on **Promote to Staging (QA)**, **Publish to Production**, **Approve & Publish** and **Return to Draft**, and when a version is restored.
 
 Status changes made in bulk (the bulk action buttons, [releases](/content/releases/) and scheduled publishing) don't add a version, and neither do writes through the public API.
 

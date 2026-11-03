@@ -67,6 +67,10 @@ Frontend dev/prod server runs on **port 5173** (`next dev -p 5173`).
 
 Published as `create-nodepress-app` (currently v1.3.0). It is a zero-dependency Node script (`bin/nodepress.js` → `src/new.js`) that scaffolds a new project by **cloning the newest `vX.Y.Z` tag** (falling back to `main` when there is none), generating `.env` files with random secrets, and running install. It keeps NodePress as the `nodepress` remote, writes `nodepress.json` (release + the `skip` paths the project doesn't carry) and makes the first commit. `src/upgrade.js` (`upgrade [version] [--dry-run] [--from <v>]`) applies `git diff <from-tag> <to-tag>` minus those paths with `git apply --3way`; the removed-path lists live in `src/release.js`, shared by both — add a path there when the scaffold starts removing it. `NODEPRESS_REPO` points both at another clone (testing).
 
+The scaffold's removed-path lists live in `cli/src/release.js`. It writes its own root `package.json` but copies `overrides` and `allowScripts` from the release (npm reads them only at the root). A unit spec that imports `backend/test` must be listed in `DEV_ONLY`, or `tsc` fails in new projects.
+
+**WordPress import is hidden for now**: no sidebar item, `/import` redirects home (`middleware.ts`), `import` filtered out of the role editors, docs page `draft: true`. The API routes and code remain.
+
 ```bash
 node bin/nodepress.js <project-name>            # Scaffold (local Postgres)
 node bin/nodepress.js <project-name> --docker   # Scaffold with Docker (Postgres + Redis + nginx)

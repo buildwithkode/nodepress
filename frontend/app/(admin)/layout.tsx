@@ -31,7 +31,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, Upload, ListOrdered, LogOut, ArrowLeftRight } from 'lucide-react';
+  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, ListOrdered, LogOut, ArrowLeftRight } from 'lucide-react';
 
 interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
 interface NavGroup { label: string; items: NavLink[]; externalLinks?: NavLink[] }
@@ -90,7 +90,6 @@ const ALL_NAV_GROUPS: Array<{
       { href: '/brand', labelKey: 'brand', icon: Palette },
       { href: '/languages', labelKey: 'languages', icon: Languages },
       { href: '/server-settings', labelKey: 'serverSettings', icon: Mail },
-      { href: '/import', labelKey: 'importer', icon: Upload },
       { href: '/site-transfer', labelKey: 'siteTransfer', icon: ArrowLeftRight },
       { href: '/choice-lists', labelKey: 'choiceLists', icon: ListOrdered },
     ],

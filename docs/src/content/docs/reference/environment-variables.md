@@ -76,7 +76,7 @@ See [Scaling](/deployment/scaling/).
 | `STORAGE_IMAGEKIT_URL_ENDPOINT` | none | URL endpoint, e.g. `https://ik.imagekit.io/your_id`. Required with `imagekit`. |
 | `STORAGE_IMAGEKIT_FOLDER` | none | Folder in the ImageKit media library. |
 | `MEDIA_MAX_DIMENSION` | `2400` | Uploaded images are scaled down to fit inside this many pixels on each side. Smaller images are never enlarged. |
-| `MEDIA_MAX_MB` | `10` | Largest media file accepted, by upload or WordPress import, in MB (up to 1024). Behind nginx, raise `client_max_body_size` to match. |
+| `MEDIA_MAX_MB` | `10` | Largest media file accepted by upload, in MB (up to 1024). Behind nginx, raise `client_max_body_size` to match. |
 | `SITE_IMPORT_MAX_MB` | `50` | Largest [site export](/content/site-export/) the import accepts, in MB. Behind nginx, raise `client_max_body_size` to match. |
 | `IMAGE_TRANSFORM_CONCURRENCY` | `2` | How many on-the-fly image transforms (`/api/media/:file/transform`) encode at once. |
 | `IMAGE_VARIANT_CACHE_MB` | `2048` | Size cap of the transformed-image cache. Pruned nightly. |

@@ -21,13 +21,11 @@ my-site/
 │   ├── components/          UI components
 │   ├── messages/            admin translations, one folder per language
 │   └── .env.local           admin settings (not committed)
-├── client/                  source of the @nodepress-cms/client package
-├── starters/                example sites (Next.js, Astro, Nuxt) that read from NodePress
 ├── nodepress.json           the NodePress release this project is on (used by upgrade)
 └── package.json             workspace scripts: dev, build, migrate…
 ```
 
-With `--docker` the project also has `docker-compose.yml`, `docker-compose.prod.yml`, `nginx/` and `monitoring/`.
+With `--docker` the project also has `docker-compose.yml`, `docker-compose.prod.yml`, `docker-compose.https.yml`, `docker-compose.search.yml`, `caddy/`, `nginx/` and `monitoring/`.
 
 ## The two apps
 

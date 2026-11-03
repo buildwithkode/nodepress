@@ -28,7 +28,13 @@ const DEV_ONLY = [
   'scripts/validate.sh',
   'scripts/install.sh',   // One-line server installer (runs from the NodePress repo)
   'scripts/release-images.sh', // Publishes the official release images
+  'scripts/build-bundle.sh', // Builds, tests and publishes the server zips
+  'scripts/release-zips.sh',
+  'scripts/smoke-zip.sh',
   'docs',                 // NodePress GitHub Pages site
+  'client',               // Source of @nodepress-cms/client (sites install it from npm)
+  'starters',             // Example sites, copied from the NodePress repo
+  'SECURITY.md',          // NodePress's own security policy
   'CHANGELOG.md',         // NodePress version history
   'CODE_OF_CONDUCT.md',   // NodePress open source conduct file
   'CONTRIBUTING.md',      // NodePress contributor guide
@@ -36,6 +42,9 @@ const DEV_ONLY = [
   '.github',              // NodePress CI/CD workflows and issue templates
   '.vercelignore',        // Vercel config for the NodePress docs site
   'backend/test',         // Internal E2E integration test suites
+  'backend/src/importer/importer.service.spec.ts', // Unit tests that need backend/test fixtures
+  'backend/src/importer/wxr.spec.ts',
+  'backend/src/plugin/plugin-upload.spec.ts',
   'backend/scripts/brutal-plugin-test.ts',    // Internal plugin & launch test scripts
   'backend/scripts/test-e2e-launch-flow.ts',  // (reset-admin-password.ts stays)
   'backend/scripts/test-plugin-e2e.ts',
@@ -47,6 +56,10 @@ const DEV_ONLY = [
 const DOCKER_ONLY = [
   'docker-compose.yml',
   'docker-compose.prod.yml',
+  'docker-compose.https.yml', // Adds Caddy to the Docker stack
+  'docker-compose.search.yml', // Adds Meilisearch to the Docker stack
+  'caddy',
+  '.env.example',  // Root variables for Docker Compose
   'nginx',         // reverse-proxy config (Docker production only)
   'monitoring',    // Prometheus/Grafana stack (Docker only)
   'scripts/docker-secrets-init.sh',  // mounted by docker-compose.yml

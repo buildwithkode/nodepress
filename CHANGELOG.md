@@ -12,6 +12,11 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Changed
+
+- **WordPress import hidden for now.** It's gone from the admin and the docs; the API routes still work.
+- **New projects are smaller.** `create-nodepress-app` no longer copies `client/`, `starters/`, `SECURITY.md` or the zip release scripts, and only `--docker` projects get `caddy/`, the HTTPS and search compose files and the root `.env.example`. Starters are copied from the NodePress repo.
+
 ### Added
 
 - **Field width.** Each field can be Full, 2/3, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.
@@ -29,6 +34,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Fixed
 
+- **New projects keep their security pins.** The generated root `package.json` now carries the release's `overrides` and `allowScripts`, and `npm run dev` checks the database first. Three unit test files that need `backend/test` fixtures are no longer copied, so `tsc` and `npm test` pass in a new project.
 - **Content type, component and entry pages on phones and tablets.** The form no longer shares a phone's width with the JSON panel: below 1024px the panel starts closed and opens above the form. Field rows and header buttons wrap instead of running off the screen, and the Content Types, Entries and Components tables show their main columns on small screens.
 - **Backups** now read the storage saved in the admin, not only `STORAGE_DRIVER`. A site on S3, R2 or ImageKit set up in the admin had leftover local files copied and the wrong storage in its manifest. Local files are still copied while media rows point at them, so a backup taken after switching storage doesn't lose older files.
 - **Login cookies stay out of the logs.** Request logs recorded `Cookie` and `Set-Cookie` headers, including the refresh token.

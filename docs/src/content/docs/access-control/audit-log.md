@@ -38,7 +38,6 @@ Open **Audit Log**. The newest events come first, 50 per page. Filter by resourc
 | Redirects | created, updated, deleted |
 | Plugins | installed, updated, deleted, enabled, disabled, settings changed, server restarted |
 | Settings | content languages, email and storage settings changed |
-| Imports | WordPress import started |
 
 Each event can carry extra details, such as an entry's content type, a role change's new role, or which plugin settings changed. Secret values, like plugin passwords, are never written to the log.
 

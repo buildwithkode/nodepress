@@ -115,7 +115,7 @@ export function ModuleAccessEditor({ roles, reloadKey }: { roles: RoleInfo[]; re
         api.get('/permissions'),
         api.get('/content-types'),
       ]);
-      setModules(accessRes.data?.modules ?? []);
+      setModules((accessRes.data?.modules ?? []).filter((m: ModuleDef) => m.key !== 'import')); // WordPress import is hidden for now
       setMatrix(accessRes.data?.roles ?? []);
       setPerms(permRes.data ?? []);
       setContentTypes(ctRes.data ?? []);
