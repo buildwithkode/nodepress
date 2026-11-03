@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SubFieldChoiceList } from '@/components/ChoiceListField';
 import { ComponentSubFields } from '@/components/ComponentFieldControls';
+import { FieldWidthSelect } from '@/components/FieldWidth';
 import { cn } from '@/lib/utils';
 import { toFieldKey } from '@/lib/field-keys';
 
@@ -100,6 +101,7 @@ export function NestedFields({ fields, onChange, depth, kind = 'group', bordered
               ? <span className="w-32 text-xs text-muted-foreground">{t(`fieldTypes.${sf.type}`)}</span>
               : <TypeSelect value={sf.type} onChange={(v) => setType(i, v)} depth={depth} />}
             {sf.type === 'select' && <SubFieldChoiceList options={sf.options} onChange={(o) => set(i, { options: o })} />}
+            <FieldWidthSelect value={sf.width} onChange={(width) => set(i, { width })} />
             <Button
               variant="ghost"
               size="icon-xs"

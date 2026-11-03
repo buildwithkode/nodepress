@@ -52,6 +52,7 @@ import { detectFieldChanges, useSchemaChangeCheck, FieldMigrations } from '@/com
 import type { FieldCondition } from '@/lib/field-condition';
 import { nestedRenames, withLoadedKeys, withoutLoadedKeys } from '@/lib/schema-editor-keys';
 import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
+import { FieldWidthSelect, type FieldWidth } from '@/components/FieldWidth';
 
 // Labels come from contentTypes.fieldTypes.<value>.
 const FIELD_TYPES = [
@@ -85,6 +86,7 @@ interface Field {
   writeRoles?: string[];
   options?:    { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string; component?: string };
   condition?:  FieldCondition;
+  width?:      FieldWidth;
   /** The key the field was loaded with — a different key on save is a rename. */
   _key?:       string;
   /** Inline component field: the component's name, and the field as saved (read-only here). */
@@ -100,7 +102,7 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any; condition?: FieldCondition; inline?: any }) => f.inline ?? ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; readRoles?: string[]; writeRoles?: string[]; options?: any; condition?: FieldCondition; width?: string; inline?: any }) => f.inline ?? ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
@@ -110,6 +112,7 @@ const buildSchemaField = (f: { name: string; type: string; required: boolean; in
   ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}),
   ...(f.options ? { options: optionsForSave(withoutLoadedKeys(f.options)) } : {}),
   ...(f.condition ? { condition: f.condition } : {}),
+  ...(f.width ? { width: f.width } : {}),
 });
 
 /** Choices of a select field as typed in the editor (one per line or comma separated). */
@@ -530,6 +533,7 @@ export default function EditContentTypePage() {
                       onChange={(val) => updateField(fi, 'type', val)}
                       className="w-40"
                     />
+                    <FieldWidthSelect value={field.width} onChange={(w) => updateField(fi, 'width', w)} />
                     <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none">
                       <Checkbox
                         checked={!!field.required}

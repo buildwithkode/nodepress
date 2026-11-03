@@ -1,6 +1,7 @@
 'use client';
 
 import { withCondition } from '@/components/ConditionalField';
+import { FIELD_GRID, fieldCell } from '@/components/FieldWidth';
 import type { FieldCondition } from '@/lib/field-condition';
 import DynamicFormField from './DynamicFormField';
 
@@ -9,6 +10,7 @@ export interface SubField {
   type: string;
   label?: string;
   required?: boolean;
+  width?: string;
   options?: any;
   condition?: FieldCondition;
 }
@@ -31,20 +33,22 @@ interface Props {
 export function SubFields({ path, fields, control, register, errors, watch }: Props) {
   const named = fields.filter((f) => f.name);
   return (
-    <>
-      {named.map((sf) =>
-        withCondition(sf, { control, fields: named, path }, (
-          <DynamicFormField
-            key={sf.name}
-            field={sf}
-            name={`${path}.${sf.name}`}
-            control={control}
-            register={register}
-            errors={errors}
-            watch={watch}
-          />
-        )),
-      )}
-    </>
+    <div className={FIELD_GRID}>
+      {named.map((sf) => (
+        <div key={sf.name} className={fieldCell(sf.width)}>
+          {withCondition(sf, { control, fields: named, path }, (
+            <DynamicFormField
+              key={sf.name}
+              field={sf}
+              name={`${path}.${sf.name}`}
+              control={control}
+              register={register}
+              errors={errors}
+              watch={watch}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }

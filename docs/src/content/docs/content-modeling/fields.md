@@ -128,3 +128,9 @@ GET /api/blog?where[category][eq]=news
 ## Field keys must be unique
 
 Two fields at the same level can't share a key. The content type editor marks a duplicate key and won't save until you rename one. Keys are compared after normalization, so `Title` and `title` clash.
+
+## Field width
+
+Each field has a **Width** setting in the content type and component editors: **Full** (the default), **1/2** or **1/3**. It works at every level, including inside groups, repeaters and flexible layouts, and a component's fields keep their widths wherever the component is used.
+
+The entry form puts fields side by side until a row is full, and stacks them on small screens. Width only changes the admin form, not saved content or API responses for entries. In a schema, it's the field's `width` key: `"half"` or `"third"`, or left out for full.

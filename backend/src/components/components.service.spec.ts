@@ -83,6 +83,18 @@ describe('ComponentsService', () => {
       expect(service.validateFields([{ name: 'Meta Title', type: 'text' }])).toEqual([{ name: 'meta_title', type: 'text' }]);
     });
 
+    it('keeps a field width, at any level, and refuses an unknown one', () => {
+      const fields = [
+        { name: 'kind', type: 'text', width: 'third' },
+        { name: 'rows', type: 'repeater', width: 'half', options: { subFields: [{ name: 'label', type: 'text', width: 'third' }] } },
+      ];
+      expect(service.validateFields(fields)).toEqual(fields);
+      expect(() => service.validateFields([{ name: 'kind', type: 'text', width: 'quarter' }])).toThrow(BadRequestException);
+      expect(() => service.validateFields([
+        { name: 'rows', type: 'repeater', options: { subFields: [{ name: 'label', type: 'text', width: 'quarter' }] } },
+      ])).toThrow(BadRequestException);
+    });
+
     it('accepts repeaters, groups and flexible fields inside a component', () => {
       const fields = [
         { name: 'heading', type: 'text' },

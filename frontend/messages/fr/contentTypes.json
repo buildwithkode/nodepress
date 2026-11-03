@@ -100,6 +100,8 @@
     "fieldNamePlaceholder": "Nom du champ",
     "fieldKey": "Clé du champ :",
     "required": "Obligatoire",
+    "widthFull": "Pleine",
+    "widthHint": "Largeur dans le formulaire",
     "indexed": "Indexé",
     "indexedHint": "Indexez ce champ pour que les filtres de l’API (?where[field][eq]=…) restent rapides avec beaucoup d’entrées. Ajoute un léger coût en écriture.",
     "deleteField": "Supprimer le champ",

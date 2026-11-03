@@ -1,10 +1,11 @@
 'use client';
 
-import { Fragment, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Blocks, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'use-intl';
+import { FIELD_GRID, fieldCell } from '@/components/FieldWidth';
 
-interface SchemaField { name: string; label?: string; type: string; component?: string; options?: any }
+interface SchemaField { name: string; label?: string; type: string; component?: string; width?: string; options?: any }
 
 type Part =
   | { field: SchemaField }
@@ -46,7 +47,9 @@ export function SchemaFormFields({ schema, renderField }: {
 
   return (
     <>
-      {fields.map((f) => <Fragment key={f.name}>{renderField(f, false)}</Fragment>)}
+      <div className={FIELD_GRID}>
+        {fields.map((f) => <div key={f.name} className={fieldCell(f.width)}>{renderField(f, false)}</div>)}
+      </div>
       {components.length > 0 && (
         <div className="mt-6 space-y-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -71,7 +74,9 @@ export function SchemaFormFields({ schema, renderField }: {
                 </button>
                 {/* Kept mounted while folded so React Hook Form still validates and submits the fields. */}
                 <div className={open ? 'border-t border-emerald-400/30 px-3 pt-4' : 'hidden'}>
-                  {c.fields.map((f) => <Fragment key={f.name}>{renderField(f, c.bare)}</Fragment>)}
+                  <div className={FIELD_GRID}>
+                    {c.fields.map((f) => <div key={f.name} className={fieldCell(f.width)}>{renderField(f, c.bare)}</div>)}
+                  </div>
                 </div>
               </div>
             );

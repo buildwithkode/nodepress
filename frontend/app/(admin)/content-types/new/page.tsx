@@ -25,6 +25,7 @@ import { RelationFieldOptions } from '@/components/RelationFieldOptions';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
 import { SelectChoicesSource } from '@/components/ChoiceListField';
 import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
+import { FieldWidthSelect, type FieldWidth } from '@/components/FieldWidth';
 import { AddComponentButton, AddComponentLayoutButton, ComponentFieldCard, ComponentsSection, InlineComponentBlock, continuesInlineRun, inlineEditorField, removeInlineRun } from '@/components/ComponentFieldControls';
 import { duplicateKeys, editorFieldKey, isComponentField, nestedDuplicates, takenKeys, toFieldKey } from '@/lib/field-keys';
 import { AiContentModelButton } from '@/components/AiAssist';
@@ -60,6 +61,7 @@ interface Field {
   indexed?: boolean;
   options?: { subFields?: SubField[]; layouts?: Layout[]; choices?: string; relatedContentType?: string; cardinality?: string; mappedBy?: string; component?: string };
   condition?: FieldCondition;
+  width?: FieldWidth;
   /** Inline component field: the component's name, and the field as saved (read-only here). */
   component?: string;
   inline?: any;
@@ -70,7 +72,7 @@ const toSnakeCase = (name: string) =>
 
 // Turn an editor field into the saved schema object: `name` is the snake_case
 // field key, `label` preserves the human wording the user typed.
-const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; options?: any; condition?: FieldCondition; inline?: any }) => f.inline ?? ({
+const buildSchemaField = (f: { name: string; type: string; required: boolean; indexed?: boolean; options?: any; condition?: FieldCondition; width?: string; inline?: any }) => f.inline ?? ({
   name: toSnakeCase(f.name),
   type: f.type,
   label: f.name.trim(),
@@ -78,6 +80,7 @@ const buildSchemaField = (f: { name: string; type: string; required: boolean; in
   ...(f.indexed && INDEXABLE_FIELD_TYPES.has(f.type) ? { indexed: true } : {}),
   ...(f.options ? { options: optionsForSave(f.options) } : {}),
   ...(f.condition ? { condition: f.condition } : {}),
+  ...(f.width ? { width: f.width } : {}),
 });
 
 /** Choices of a select field as typed in the editor (comma separated). */
@@ -178,7 +181,7 @@ export default function NewContentTypePage() {
         setName(ct.displayName || ct.name);
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => f.component ? inlineEditorField(f) : ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, options: optionsForEditor(f.options) }))
+            ? ct.schema.map((f: any) => f.component ? inlineEditorField(f) : ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, width: f.width, options: optionsForEditor(f.options) }))
             : [{ name: '', type: 'text', required: false }],
         );
         if (Array.isArray(ct.allowedMethods)) setAllowedMethods(ct.allowedMethods);
@@ -268,7 +271,7 @@ export default function NewContentTypePage() {
             <AiContentModelButton
               onSuggested={(ct) => {
                 setName(ct.displayName || ct.name);
-                setFields(ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, options: optionsForEditor(f.options) })));
+                setFields(ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, width: f.width, options: optionsForEditor(f.options) })));
               }}
             />
             {/* Name */}
@@ -349,6 +352,7 @@ export default function NewContentTypePage() {
                         ))}
                       </div>
                       <FieldTypeSelect value={field.type} onChange={(val) => updateField(fi, 'type', val)} className="w-40" />
+                      <FieldWidthSelect value={field.width} onChange={(w) => updateField(fi, 'width', w)} />
                       <label className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none">
                         <Checkbox checked={!!field.required} onCheckedChange={(c) => updateField(fi, 'required', c === true)} />
                         {t('editor.required')}

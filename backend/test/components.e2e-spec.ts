@@ -61,6 +61,41 @@ describe('Components (e2e)', () => {
     await request(server()).delete(`/api/components/${third.id}`).set(auth).expect(200);
   });
 
+  it('keeps a field width on content types and in component copies, and refuses an unknown one', async () => {
+    const fields = [{ name: 'label', type: 'text', width: 'third' }, { name: 'body', type: 'textarea' }];
+    const comp = (await request(server()).post('/api/components').set(auth).send({ name: 'width_check', fields }).expect(201)).body;
+    const type = (await request(server()).post('/api/content-types').set(auth).send({
+      name: 'width_check_type',
+      schema: [
+        { name: 'title', type: 'text', width: 'half' },
+        { name: 'one', type: 'group', options: { component: 'width_check' } },
+        { name: 'rows', type: 'repeater', options: { subFields: [{ name: 'label', type: 'text', width: 'half' }] } },
+        { name: 'blocks', type: 'flexible', options: { layouts: [{ name: 'hero', label: 'Hero', component: 'width_check' }] } },
+      ],
+    }).expect(201)).body;
+    const byName = (s: any[], n: string) => s.find((f) => f.name === n);
+    expect(byName(type.schema, 'title').width).toBe('half');
+    expect(byName(type.schema, 'one').options.subFields[0].width).toBe('third');
+    expect(byName(type.schema, 'rows').options.subFields[0].width).toBe('half');
+    expect(byName(type.schema, 'blocks').options.layouts[0].fields[0].width).toBe('third');
+
+    await request(server()).put(`/api/components/${comp.id}`).set(auth)
+      .send({ fields: [{ name: 'label', type: 'text', width: 'half' }, { name: 'body', type: 'textarea' }] }).expect(200);
+    const after = (await request(server()).get(`/api/content-types/${type.id}`).set(auth).expect(200)).body;
+    expect(byName(after.schema, 'one').options.subFields[0].width).toBe('half');
+    expect(byName(after.schema, 'blocks').options.layouts[0].fields[0].width).toBe('half');
+
+    await request(server()).post('/api/content-types').set(auth)
+      .send({ name: 'width_bad', schema: [{ name: 'title', type: 'text', width: 'quarter' }] }).expect(400);
+    await request(server()).post('/api/content-types').set(auth).send({
+      name: 'width_bad',
+      schema: [{ name: 'rows', type: 'repeater', options: { subFields: [{ name: 'a', type: 'text', width: 'quarter' }] } }],
+    }).expect(400);
+
+    await request(server()).delete(`/api/content-types/${type.id}`).set(auth).expect(200);
+    await request(server()).delete(`/api/components/${comp.id}`).set(auth).expect(200);
+  });
+
   it('rejects components inside components, duplicates and non-admins', async () => {
     const bad = await request(server()).post('/api/components').set(auth)
       .send({ name: 'nested', fields: [{ name: 'items', type: 'repeater', options: { component: 'page_seo', subFields: [{ name: 'a', type: 'text' }] } }] })
