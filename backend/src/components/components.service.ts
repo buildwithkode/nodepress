@@ -190,7 +190,7 @@ export class ComponentsService {
 
   async findAll() {
     const [components, contentTypes] = await Promise.all([
-      this.prisma.component.findMany({ orderBy: { name: 'asc' } }),
+      this.prisma.component.findMany({ orderBy: [{ position: 'asc' }, { name: 'asc' }] }),
       this.allContentTypes(),
     ]);
     return components.map((c) => ({ ...c, usage: usageIn(contentTypes, c.name) }));
@@ -208,14 +208,30 @@ export class ComponentsService {
     if (await this.prisma.component.findUnique({ where: { name } })) {
       throw new ConflictException(`Component "${name}" already exists`);
     }
+    // New components go to the end of the list.
+    const { _max } = await this.prisma.component.aggregate({ _max: { position: true } });
     return this.prisma.component.create({
       data: {
         name,
         displayName: dto.displayName?.trim() || null,
         description: dto.description?.trim() || null,
         fields: fields as any,
+        position: (_max.position ?? -1) + 1,
       },
     });
+  }
+
+  /** Save the order of the Components page. `ids` must list every component exactly once. */
+  async reorder(ids: number[]) {
+    const current = await this.prisma.component.findMany({ select: { id: true } });
+    const known = new Set(current.map((c) => c.id));
+    if (ids.length !== known.size || new Set(ids).size !== ids.length || ids.some((id) => !known.has(id))) {
+      throw new BadRequestException('The order must list every component exactly once. Reload the page and try again.');
+    }
+    await this.prisma.$transaction(
+      ids.map((id, position) => this.prisma.component.update({ where: { id }, data: { position } })),
+    );
+    return this.findAll();
   }
 
   /**

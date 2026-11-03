@@ -14,6 +14,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Added
 
+- **Reorder components.** The **Components** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/components/order`. New components go last. *Used by* now lists just the content type names. Run `npx prisma migrate deploy` (adds `components.position`).
 - **Cloudflare R2 and ImageKit storage.** Both are new options next to local disk and S3-compatible storage, set under **Settings → Email & storage** or with `STORAGE_DRIVER=r2|imagekit`. See [File storage](https://nodepress-docs.vercel.app/deployment/storage/).
 - **File upload fields in forms.** A `file` field takes one uploaded file (PDF, Word or image; allowed extensions set per field). Files are private: they're kept in the database and downloaded from the submissions page; emails show the file's name. Needs the new `form_files` table (`npx prisma migrate deploy`).
 - **Export and import forms** from the **Forms** page, or `GET /api/forms/export` / `POST /api/forms/import`: one JSON file, a preview before anything is written, forms matched by slug and updated in place, so they keep their submissions.

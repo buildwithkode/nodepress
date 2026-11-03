@@ -15,6 +15,7 @@
   "deleteTitle": "Supprimer « {name} » ?",
   "deleteDescription": "Le composant est définitivement supprimé. Aucun type de contenu ne l'utilise, donc aucune entrée n'est affectée.",
   "columns": {
+    "number": "N°",
     "name": "Nom",
     "fields": "Champs",
     "usedBy": "Utilisé par",
@@ -22,9 +23,7 @@
   },
   "kind": {
     "one": "Un",
-    "many": "Plusieurs",
-    "inline": "Intégré",
-    "layout": "Disposition"
+    "many": "Plusieurs"
   },
   "editor": {
     "newTitle": "Nouveau composant",
@@ -107,5 +106,7 @@
     "duplicate": "Un autre champ utilise déjà la clé {key}. Renommez l'un des deux.",
     "required": "Obligatoire",
     "remove": "Retirer ce composant"
-  }
+  },
+  "reorderFailed": "Impossible d’enregistrer l’ordre",
+  "dragToReorder": "Faire glisser pour réorganiser"
 }

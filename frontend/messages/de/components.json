@@ -15,6 +15,7 @@
   "deleteTitle": "„{name}“ löschen?",
   "deleteDescription": "Die Komponente wird endgültig entfernt. Kein Inhaltstyp verwendet sie, daher sind keine Einträge betroffen.",
   "columns": {
+    "number": "Nr.",
     "name": "Name",
     "fields": "Felder",
     "usedBy": "Verwendet von",
@@ -22,9 +23,7 @@
   },
   "kind": {
     "one": "Eins",
-    "many": "Mehrere",
-    "inline": "Eingebettet",
-    "layout": "Layout"
+    "many": "Mehrere"
   },
   "editor": {
     "newTitle": "Neue Komponente",
@@ -107,5 +106,7 @@
     "duplicate": "Ein anderes Feld verwendet bereits den Schlüssel {key}. Benenne eines davon um.",
     "required": "Pflichtfeld",
     "remove": "Diese Komponente entfernen"
-  }
+  },
+  "reorderFailed": "Reihenfolge konnte nicht gespeichert werden",
+  "dragToReorder": "Zum Sortieren ziehen"
 }

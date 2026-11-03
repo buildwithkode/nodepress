@@ -15,6 +15,7 @@
   "deleteTitle": "\"{name}\" verwijderen?",
   "deleteDescription": "Hiermee wordt het component definitief verwijderd. Geen enkel contenttype gebruikt het nog, dus er worden geen items geraakt.",
   "columns": {
+    "number": "Nr.",
     "name": "Naam",
     "fields": "Velden",
     "usedBy": "Gebruikt door",
@@ -22,9 +23,7 @@
   },
   "kind": {
     "one": "Eén",
-    "many": "Meerdere",
-    "inline": "Ingevoegd",
-    "layout": "Layout"
+    "many": "Meerdere"
   },
   "editor": {
     "newTitle": "Nieuw component",
@@ -107,5 +106,7 @@
     "duplicate": "Een ander veld gebruikt de sleutel {key} al. Hernoem een van beide.",
     "required": "Verplicht",
     "remove": "Dit component verwijderen"
-  }
+  },
+  "reorderFailed": "De volgorde kon niet worden opgeslagen",
+  "dragToReorder": "Sleep om de volgorde te wijzigen"
 }

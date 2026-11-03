@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsArray, IsOptional, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, IsInt, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { FieldDto } from '../../content-type/dto/create-content-type.dto';
@@ -63,4 +63,11 @@ export class UpdateComponentDto {
   @ValidateNested()
   @Type(() => FieldMigrationsDto)
   fieldMigrations?: FieldMigrationsDto;
+}
+
+export class ReorderComponentsDto {
+  @ApiProperty({ example: [3, 1, 2], description: 'Every component id, in the new order' })
+  @IsArray()
+  @IsInt({ each: true })
+  ids: number[];
 }

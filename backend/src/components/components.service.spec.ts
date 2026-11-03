@@ -14,8 +14,10 @@ const mockPrisma = {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    aggregate: jest.fn(),
   },
   contentType: { findMany: jest.fn() },
+  $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
 };
 const mockContentTypes = { update: jest.fn() };
 const mockModuleRef = { get: jest.fn(() => mockContentTypes) };
@@ -26,7 +28,45 @@ describe('ComponentsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPrisma.contentType.findMany.mockResolvedValue([]);
+    mockPrisma.component.aggregate.mockResolvedValue({ _max: { position: null } });
     service = new ComponentsService(mockPrisma as any, new SchemaValidator(), mockModuleRef as any);
+  });
+
+  describe('order', () => {
+    it('lists components by position, then name', async () => {
+      mockPrisma.component.findMany.mockResolvedValue([]);
+      await service.findAll();
+      expect(mockPrisma.component.findMany).toHaveBeenCalledWith({ orderBy: [{ position: 'asc' }, { name: 'asc' }] });
+    });
+
+    it('puts a new component at the end', async () => {
+      mockPrisma.component.findUnique.mockResolvedValue(null);
+      mockPrisma.component.aggregate.mockResolvedValue({ _max: { position: 4 } });
+      await service.create({ name: 'seo', fields: seoFields } as any);
+      expect(mockPrisma.component.create.mock.calls[0][0].data.position).toBe(5);
+    });
+
+    it('starts at 0 when there are no components', async () => {
+      mockPrisma.component.findUnique.mockResolvedValue(null);
+      await service.create({ name: 'seo', fields: seoFields } as any);
+      expect(mockPrisma.component.create.mock.calls[0][0].data.position).toBe(0);
+    });
+
+    it('saves each position from the list order', async () => {
+      mockPrisma.component.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
+      await service.reorder([3, 1, 2]);
+      expect(mockPrisma.component.update.mock.calls.map(([a]) => [a.where.id, a.data.position])).toEqual([[3, 0], [1, 1], [2, 2]]);
+    });
+
+    it.each([
+      ['a missing component', [1, 2]],
+      ['an unknown component', [1, 2, 9]],
+      ['a repeated component', [1, 2, 2]],
+    ])('refuses a list with %s', async (_label, ids) => {
+      mockPrisma.component.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
+      await expect(service.reorder(ids)).rejects.toThrow(BadRequestException);
+      expect(mockPrisma.component.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('componentOf', () => {

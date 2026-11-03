@@ -15,6 +15,7 @@
   "deleteTitle": "Excluir \"{name}\"?",
   "deleteDescription": "Isso remove o componente permanentemente. Nenhum tipo de conteúdo o usa mais, então nenhuma entrada é afetada.",
   "columns": {
+    "number": "N.º",
     "name": "Nome",
     "fields": "Campos",
     "usedBy": "Usado por",
@@ -22,9 +23,7 @@
   },
   "kind": {
     "one": "Um",
-    "many": "Vários",
-    "inline": "Integrado",
-    "layout": "Layout"
+    "many": "Vários"
   },
   "editor": {
     "newTitle": "Novo componente",
@@ -107,5 +106,7 @@
     "duplicate": "Outro campo já usa a chave {key}. Renomeie um deles.",
     "required": "Obrigatório",
     "remove": "Remover este componente"
-  }
+  },
+  "reorderFailed": "Não foi possível guardar a ordem",
+  "dragToReorder": "Arraste para reordenar"
 }

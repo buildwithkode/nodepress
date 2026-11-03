@@ -15,6 +15,7 @@
   "deleteTitle": "删除“{name}”？",
   "deleteDescription": "这将永久删除该组件。已没有内容类型使用它，因此不会影响任何条目。",
   "columns": {
+    "number": "序号",
     "name": "名称",
     "fields": "字段",
     "usedBy": "使用者",
@@ -22,9 +23,7 @@
   },
   "kind": {
     "one": "单个",
-    "many": "多个",
-    "inline": "内联",
-    "layout": "布局"
+    "many": "多个"
   },
   "editor": {
     "newTitle": "新建组件",
@@ -107,5 +106,7 @@
     "duplicate": "另一个字段已在使用键 {key}。请重命名其中一个。",
     "required": "必填",
     "remove": "移除此组件"
-  }
+  },
+  "reorderFailed": "无法保存顺序",
+  "dragToReorder": "拖动以重新排序"
 }
