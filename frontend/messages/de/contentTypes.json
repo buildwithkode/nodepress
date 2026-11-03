@@ -29,6 +29,7 @@
     "importSchemas": "Schemas importieren",
     "newContentType": "Neuer Inhaltstyp",
     "columns": {
+      "number": "Nr.",
       "fields": "Felder",
       "endpoints": "Endpunkte",
       "count": "Anzahl"
@@ -52,7 +53,9 @@
     "duplicateFailed": "Duplizieren fehlgeschlagen",
     "tooManyDuplicates": "Zu viele Kopien — löschen Sie zuerst einige",
     "deleted": "Inhaltstyp gelöscht",
-    "deleteFailed": "Inhaltstyp konnte nicht gelöscht werden"
+    "deleteFailed": "Inhaltstyp konnte nicht gelöscht werden",
+    "reorderFailed": "Reihenfolge konnte nicht gespeichert werden",
+    "dragToReorder": "Zum Sortieren ziehen"
   },
   "import": {
     "title": "Inhaltstyp-Schemas importieren",

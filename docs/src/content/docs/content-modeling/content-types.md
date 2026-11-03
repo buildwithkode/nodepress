@@ -58,6 +58,12 @@ You can rename a content type, and add, remove, reorder or retype fields at any 
 
 Entries store their values as JSON, so a schema change doesn't move data by itself. When a change affects fields that already hold data, the editor shows what will happen and offers to rename, convert or delete the stored values with it. See [Schema changes](/content-modeling/schema-changes/).
 
+## Order on the Content Types page
+
+Drag a row by the handle in its **Sr. No.** column to move it up or down, or send every content type id in the new order to `PUT /api/content-types/order`. New content types go last. The Entries page and `GET /api/content-types` use the same order. It isn't part of schema or site exports.
+
+The page lists every content type at once. Search results come in pages and can't be dragged, so clear the search box to reorder.
+
 ## Other actions
 
 | Action | What it does |

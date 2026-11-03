@@ -29,6 +29,7 @@
     "importSchemas": "Importar esquemas",
     "newContentType": "Novo tipo de conteúdo",
     "columns": {
+      "number": "N.º",
       "fields": "Campos",
       "endpoints": "Endpoints",
       "count": "Quantidade"
@@ -52,7 +53,9 @@
     "duplicateFailed": "Falha ao duplicar",
     "tooManyDuplicates": "Cópias demais — exclua algumas primeiro",
     "deleted": "Tipo de conteúdo excluído",
-    "deleteFailed": "Falha ao excluir o tipo de conteúdo"
+    "deleteFailed": "Falha ao excluir o tipo de conteúdo",
+    "reorderFailed": "Não foi possível guardar a ordem",
+    "dragToReorder": "Arraste para reordenar"
   },
   "import": {
     "title": "Importar esquemas de tipos de conteúdo",

@@ -6,13 +6,13 @@ import {
   DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy,
+  SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Plus, Pencil, Trash2, Blocks, ArrowUp, ArrowDown, Loader2, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, Blocks, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
+import { SortableTableRow } from '@/components/SortableTableRow';
 import { useAuth } from '@/context/AuthContext';
 import { canEdit } from '@/lib/access';
 import { optionsForEditor, optionsForSave } from '@/lib/field-options';
@@ -78,46 +78,6 @@ const fieldForSave = (f: DraftField) => ({
 
 /** One link per content type: a type can use the same component more than once. */
 const usedByTypes = (usage: Usage[]) => [...new Map(usage.map((u) => [u.contentTypeId, u])).values()];
-
-/** A table row that can be dragged by the handle in its Sr. No. cell. */
-function SortableRow({ id, number, canDrag, handleLabel, children }: {
-  id: number;
-  number: number;
-  canDrag: boolean;
-  handleLabel: string;
-  children: React.ReactNode;
-}) {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: !canDrag });
-  return (
-    <tr
-      ref={setNodeRef}
-      data-slot="table-row"
-      className={`border-b border-border hover:bg-muted/20 transition-colors ${isDragging ? 'relative z-10 bg-muted' : ''}`}
-      // Up and down only, without stretching the row to the height of the one it passes.
-      style={{ transform: CSS.Translate.toString(transform && { ...transform, x: 0 }), transition }}
-    >
-      <TableCell className="align-top py-3 whitespace-nowrap">
-        <div className="flex items-center gap-1.5">
-          {canDrag && (
-            <button
-              type="button"
-              ref={setActivatorNodeRef}
-              {...attributes}
-              {...listeners}
-              aria-label={handleLabel}
-              title={handleLabel}
-              className="cursor-grab active:cursor-grabbing touch-none text-muted-foreground/60 hover:text-muted-foreground"
-            >
-              <GripVertical className="h-4 w-4" />
-            </button>
-          )}
-          <span className="tabular-nums text-muted-foreground">{number}</span>
-        </div>
-      </TableCell>
-      {children}
-    </tr>
-  );
-}
 
 export default function ComponentsPage() {
   const t = useTranslations('components');
@@ -289,7 +249,7 @@ export default function ComponentsPage() {
               ) : (
                 <SortableContext items={components.map((c) => c.id)} strategy={verticalListSortingStrategy}>
                 {components.map((c, index) => (
-                <SortableRow key={c.id} id={c.id} number={index + 1} canDrag={canEditModel} handleLabel={t('dragToReorder')}>
+                <SortableTableRow key={c.id} id={c.id} number={index + 1} canDrag={canEditModel} handleLabel={t('dragToReorder')}>
                   <TableCell className="align-top py-3">
                     <div className="font-medium">{c.displayName || humanizeName(c.name)}</div>
                     <code className="block text-xs text-muted-foreground font-mono break-all">{c.name}</code>
@@ -336,7 +296,7 @@ export default function ComponentsPage() {
                       </Button>
                     </TableCell>
                   )}
-                </SortableRow>
+                </SortableTableRow>
                 ))}
                 </SortableContext>
               )}

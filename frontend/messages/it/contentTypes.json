@@ -29,6 +29,7 @@
     "importSchemas": "Importa schemi",
     "newContentType": "Nuovo tipo di contenuto",
     "columns": {
+      "number": "N.",
       "fields": "Campi",
       "endpoints": "Endpoint",
       "count": "Totale"
@@ -52,7 +53,9 @@
     "duplicateFailed": "Duplicazione non riuscita",
     "tooManyDuplicates": "Troppi duplicati: eliminane prima qualcuno",
     "deleted": "Tipo di contenuto eliminato",
-    "deleteFailed": "Impossibile eliminare il tipo di contenuto"
+    "deleteFailed": "Impossibile eliminare il tipo di contenuto",
+    "reorderFailed": "Impossibile salvare l'ordine",
+    "dragToReorder": "Trascina per riordinare"
   },
   "import": {
     "title": "Importa schemi dei tipi di contenuto",
