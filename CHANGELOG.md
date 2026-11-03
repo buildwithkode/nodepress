@@ -15,6 +15,9 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 ### Added
 
 - **Field width.** Each field can be Full, 2/3, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.
+- **Drag fields directly in the content type editors.** Every field and component has a handle on both the new and edit pages, so the **Reorder** button is gone.
+- **Reorder sections and repeater rows in entries.** Drag a flexible section or a repeater row by its handle. The new order goes live when you save the entry.
+- **Reorder flexible layouts.** Drag a layout by its handle in the content type and component editors. The entry form's **Add Block** menu follows the order, and saved content isn't affected.
 - **Reorder content types.** The **Content Types** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/content-types/order`. The Entries page and `GET /api/content-types` follow the same order. New content types now go last instead of first, and the page lists every type without pages unless you search. Run `npx prisma migrate deploy` (adds `content_types.position`).
 - **Reorder components.** The **Components** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/components/order`. New components go last. *Used by* now lists just the content type names. Run `npx prisma migrate deploy` (adds `components.position`).
 - **Cloudflare R2 and ImageKit storage.** Both are new options next to local disk and S3-compatible storage, set under **Settings → Email & storage** or with `STORAGE_DRIVER=r2|imagekit`. See [File storage](https://nodepress-docs.vercel.app/deployment/storage/).

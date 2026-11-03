@@ -1,9 +1,13 @@
 'use client';
 
+import { useId } from 'react';
 import { useFieldArray } from 'react-hook-form';
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Trash2, Plus } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
+import { SortableItem, useDragSensors } from '@/components/SortableItem';
 import { cn } from '@/lib/utils';
 import { SubFields, type SubField } from './SubFields';
 
@@ -24,13 +28,23 @@ export default function RepeaterField({
   watch,
 }: Props) {
   const t = useTranslations('entryEditor');
-  const { fields, append, remove } = useFieldArray({ control, name: fieldName });
+  const { fields, append, remove, move } = useFieldArray({ control, name: fieldName });
+  const dndId = useId();
+  const sensors = useDragSensors();
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    move(fields.findIndex((f) => f.id === active.id), fields.findIndex((f) => f.id === over.id));
+  };
 
   return (
     <div className="space-y-2">
+      <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+      <div className="space-y-2">
       {fields.map((item, index) => (
+        <SortableItem key={item.id} id={item.id}>
+        {(dragHandle) => (
         <div
-          key={item.id}
           className={cn(
             'rounded-md border bg-muted/30 p-3',
             'border-l-4 border-l-orange-400',
@@ -38,9 +52,12 @@ export default function RepeaterField({
         >
           {/* Card header */}
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">
-              {t('repeater.item', { number: index + 1 })}
-            </span>
+            <div className="flex items-center gap-2">
+              {fields.length > 1 && dragHandle}
+              <span className="text-xs font-medium text-muted-foreground">
+                {t('repeater.item', { number: index + 1 })}
+              </span>
+            </div>
             <Button
               type="button"
               variant="ghost"
@@ -57,7 +74,12 @@ export default function RepeaterField({
           {/* Sub-fields */}
           <SubFields path={`${fieldName}.${index}`} fields={subFields} control={control} register={register} errors={errors} watch={watch} />
         </div>
+        )}
+        </SortableItem>
       ))}
+      </div>
+      </SortableContext>
+      </DndContext>
 
       <Button
         type="button"

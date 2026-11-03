@@ -98,8 +98,6 @@
     "apiEndpointsHint": "Kies welke endpoints publiek toegankelijk zijn voor dit contenttype.",
     "fields": "Velden",
     "addField": "Veld toevoegen",
-    "reorder": "Volgorde wijzigen",
-    "done": "Klaar",
     "fieldNamePlaceholder": "Veldnaam",
     "fieldKey": "Veldsleutel:",
     "required": "Verplicht",

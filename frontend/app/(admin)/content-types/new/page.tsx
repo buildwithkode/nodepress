@@ -27,7 +27,10 @@ import { optionsForEditor, optionsForSave } from '@/lib/field-options';
 import { SelectChoicesSource } from '@/components/ChoiceListField';
 import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
 import { FieldWidthSelect, type FieldWidth } from '@/components/FieldWidth';
-import { AddComponentButton, AddComponentLayoutButton, ComponentFieldCard, ComponentsSection, InlineComponentBlock, continuesInlineRun, inlineEditorField, removeInlineRun } from '@/components/ComponentFieldControls';
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableItem, useDragSensors } from '@/components/SortableItem';
+import { AddComponentButton, AddComponentLayoutButton, ComponentFieldCard, ComponentsSection, InlineComponentBlock, continuesInlineRun, inlineEditorField, moveWithInlineRuns, removeInlineRun } from '@/components/ComponentFieldControls';
 import { duplicateKeys, editorFieldKey, isComponentField, nestedDuplicates, takenKeys, toFieldKey } from '@/lib/field-keys';
 import { AiContentModelButton } from '@/components/AiAssist';
 import { PreviewUrlSetting } from '@/components/LivePreviewPane';
@@ -56,6 +59,8 @@ const FIELD_TYPES = [
 interface SubField { name: string; type: string }
 interface Layout   { name: string; label: string; fields: SubField[]; component?: string }
 interface Field {
+  /** The editor's own row id, never saved. */
+  _id:      string;
   name:     string;
   type:     string;
   required: boolean;
@@ -67,6 +72,9 @@ interface Field {
   component?: string;
   inline?: any;
 }
+
+let _counter = 0;
+const uid = () => `f-${Date.now()}-${_counter++}`;
 
 const toSnakeCase = (name: string) =>
   name.trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -126,7 +134,7 @@ export default function NewContentTypePage() {
   const [submitting, setSubmitting] = useState(false);
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState('');
-  const [fields, setFields] = useState<Field[]>([{ name: '', type: 'text', required: false }]);
+  const [fields, setFields] = useState<Field[]>([{ _id: uid(), name: '', type: 'text', required: false }]);
   const [allowedMethods, setAllowedMethods] = useState(['list', 'read', 'create', 'update', 'delete']);
   const [previewUrl, setPreviewUrl] = useState('');
   const [jsonOpen, setJsonOpen] = useState(true);
@@ -184,8 +192,8 @@ export default function NewContentTypePage() {
         setName(ct.displayName || ct.name);
         setFields(
           ct.schema.length > 0
-            ? ct.schema.map((f: any) => f.component ? inlineEditorField(f) : ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, width: f.width, options: optionsForEditor(f.options) }))
-            : [{ name: '', type: 'text', required: false }],
+            ? ct.schema.map((f: any) => f.component ? { _id: uid(), ...inlineEditorField(f) } : ({ _id: uid(), name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, width: f.width, options: optionsForEditor(f.options) }))
+            : [{ _id: uid(), name: '', type: 'text', required: false }],
         );
         if (Array.isArray(ct.allowedMethods)) setAllowedMethods(ct.allowedMethods);
         if (typeof ct.previewUrl === 'string') setPreviewUrl(ct.previewUrl);
@@ -199,7 +207,19 @@ export default function NewContentTypePage() {
     reader.readAsText(file);
   };
 
-  const addField = () => setFields([...fields, { name: '', type: 'text', required: false }]);
+  const addField = () => setFields([...fields, { _id: uid(), name: '', type: 'text', required: false }]);
+  const sensors = useDragSensors();
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    setFields((prev) => {
+      const from = prev.findIndex((f) => f._id === active.id);
+      const to = prev.findIndex((f) => f._id === over.id);
+      // Fields and components are reordered within their own section.
+      if (isComponentField(prev[from]) !== isComponentField(prev[to])) return prev;
+      // An inline component's fields move together.
+      return prev.some((f) => f.component) ? moveWithInlineRuns(prev, from, to) : arrayMove(prev, from, to);
+    });
+  };
   const removeField = (i: number) => setFields(fields.filter((_, idx) => idx !== i));
   const updateField = (i: number, key: keyof Field, val: any) => {
     const u = [...fields];
@@ -274,7 +294,7 @@ export default function NewContentTypePage() {
             <AiContentModelButton
               onSuggested={(ct) => {
                 setName(ct.displayName || ct.name);
-                setFields(ct.schema.map((f: any) => ({ name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, width: f.width, options: optionsForEditor(f.options) })));
+                setFields(ct.schema.map((f: any) => ({ _id: uid(), name: f.label ?? f.name ?? '', type: f.type ?? 'text', required: f.required ?? false, indexed: f.indexed ?? false, width: f.width, options: optionsForEditor(f.options) })));
               }}
             />
             {/* Name */}
@@ -332,10 +352,15 @@ export default function NewContentTypePage() {
                 </div>
               </div>
 
+              <DndContext id="new-content-type-fields" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={fields.filter((f) => !isComponentField(f)).map((f) => f._id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-3">
                 {fields.map((field, fi) => isComponentField(field) ? null : (
-                  <div key={fi} className="rounded-md border bg-muted/30 p-4 space-y-3">
+                  <SortableItem key={field._id} id={field._id}>
+                  {(dragHandle) => (
+                  <div className="rounded-md border bg-muted/30 p-4 space-y-3">
                     <div className="flex flex-wrap items-start gap-2">
+                      {dragHandle}
                       <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
                         {fieldNumbers[fi]}
                       </span>
@@ -427,8 +452,11 @@ export default function NewContentTypePage() {
                       </div>
                     )}
                   </div>
+                  )}
+                  </SortableItem>
                 ))}
               </div>
+              </SortableContext>
 
               {/* Bottom control — duplicate of the header button, only once
                   the list is long enough that the header has scrolled away */}
@@ -447,26 +475,33 @@ export default function NewContentTypePage() {
                   addButton={
                     <AddComponentButton
                       taken={takenKeys(fields)}
-                      onAdd={(f) => setFields([...fields, f])}
-                      onAddInline={(fs) => setFields([...fields, ...fs.map(inlineEditorField)])}
+                      onAdd={(f) => setFields([...fields, { _id: uid(), ...f }])}
+                      onAddInline={(fs) => setFields([...fields, ...fs.map((f) => ({ _id: uid(), ...inlineEditorField(f) }))])}
                     />
                   }
                 >
-                  {fields.map((field, fi) => !isComponentField(field) || continuesInlineRun(fields, fi) ? null : field.component ? (
-                    <InlineComponentBlock key={fi} fields={fields} index={fi} duplicates={dupes} onRemove={() => setFields(removeInlineRun(fields, fi))} />
-                  ) : (
-                    <ComponentFieldCard
-                      key={fi}
-                      field={field}
-                      duplicate={dupes.has(editorFieldKey(field))}
-                      onName={(v) => updateField(fi, 'name', v)}
-                      onRequired={(v) => updateField(fi, 'required', v)}
-                      onRemove={() => removeField(fi)}
-                      removeDisabled={fields.length === 1}
-                    />
-                  ))}
+                  <SortableContext items={fields.filter((f, i) => isComponentField(f) && !continuesInlineRun(fields, i)).map((f) => f._id)} strategy={verticalListSortingStrategy}>
+                    {fields.map((field, fi) => !isComponentField(field) || continuesInlineRun(fields, fi) ? null : (
+                      <SortableItem key={field._id} id={field._id}>
+                        {(dragHandle) => field.component ? (
+                          <InlineComponentBlock fields={fields} index={fi} duplicates={dupes} dragHandle={dragHandle} onRemove={() => setFields(removeInlineRun(fields, fi))} />
+                        ) : (
+                          <ComponentFieldCard
+                            field={field}
+                            duplicate={dupes.has(editorFieldKey(field))}
+                            dragHandle={dragHandle}
+                            onName={(v) => updateField(fi, 'name', v)}
+                            onRequired={(v) => updateField(fi, 'required', v)}
+                            onRemove={() => removeField(fi)}
+                            removeDisabled={fields.length === 1}
+                          />
+                        )}
+                      </SortableItem>
+                    ))}
+                  </SortableContext>
                 </ComponentsSection>
               </div>
+              </DndContext>
             </div>
           </form>
           </div>

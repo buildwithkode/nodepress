@@ -98,8 +98,6 @@
     "apiEndpointsHint": "このコンテンツタイプで公開するエンドポイントを選択してください。",
     "fields": "フィールド",
     "addField": "フィールドを追加",
-    "reorder": "並べ替え",
-    "done": "完了",
     "fieldNamePlaceholder": "フィールド名",
     "fieldKey": "フィールドキー:",
     "required": "必須",

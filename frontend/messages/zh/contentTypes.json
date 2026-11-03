@@ -98,8 +98,6 @@
     "apiEndpointsHint": "选择此内容类型的哪些端点可公开访问。",
     "fields": "字段",
     "addField": "添加字段",
-    "reorder": "排序",
-    "done": "完成",
     "fieldNamePlaceholder": "字段名称",
     "fieldKey": "字段键名：",
     "required": "必填",

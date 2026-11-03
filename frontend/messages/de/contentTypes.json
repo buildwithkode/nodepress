@@ -98,8 +98,6 @@
     "apiEndpointsHint": "Wählen Sie, welche Endpunkte für diesen Inhaltstyp öffentlich zugänglich sind.",
     "fields": "Felder",
     "addField": "Feld hinzufügen",
-    "reorder": "Neu anordnen",
-    "done": "Fertig",
     "fieldNamePlaceholder": "Feldname",
     "fieldKey": "Feldschlüssel:",
     "required": "Pflichtfeld",

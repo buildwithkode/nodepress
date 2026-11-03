@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useId, useRef, useState, type ReactNode } from 'react';
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useTranslations } from 'use-intl';
 import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SubFieldChoiceList } from '@/components/ChoiceListField';
 import { ComponentSubFields } from '@/components/ComponentFieldControls';
 import { FieldWidthSelect } from '@/components/FieldWidth';
+import { SortableItem, useDragSensors } from '@/components/SortableItem';
 import { cn } from '@/lib/utils';
 import { toFieldKey } from '@/lib/field-keys';
 
@@ -159,19 +162,45 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
   actions?: ReactNode;
 }) {
   const t = useTranslations('contentTypes');
-  const [open, setOpen] = useState<Record<number, boolean>>({});
+  const [open, setOpen] = useState<Record<string, boolean>>({});
   const set = (i: number, patch: Partial<NestedLayout>) => onChange(layouts.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
   const dupes = repeatedKeys(layouts.map((l) => l.name));
+
+  // Row ids for this editor only, so a moved row keeps its state; they never reach the schema.
+  const dndId = useId();
+  const nextId = useRef(0);
+  const ids = useRef<string[]>([]);
+  while (ids.current.length < layouts.length) ids.current.push(`layout-${nextId.current++}`);
+  ids.current.length = layouts.length;
+
+  const sensors = useDragSensors();
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const from = ids.current.indexOf(String(active.id));
+    const to = ids.current.indexOf(String(over.id));
+    ids.current = arrayMove(ids.current, from, to);
+    onChange(arrayMove(layouts, from, to));
+  };
+  const removeLayout = (i: number) => {
+    ids.current = ids.current.filter((_, idx) => idx !== i);
+    onChange(layouts.filter((_, idx) => idx !== i));
+  };
 
   return (
     <div className="border-l-2 border-pink-400 pl-3 space-y-2">
       <p className="text-xs font-medium text-muted-foreground">{t('editor.layouts')}</p>
+      <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={[...ids.current]} strategy={verticalListSortingStrategy}>
       {layouts.map((layout, li) => {
-        const isOpen = open[li] ?? false;
+        const id = ids.current[li];
+        const isOpen = open[id] ?? false;
         return (
-          <div key={li} className="rounded border bg-background overflow-hidden">
-            <div className="flex items-center gap-2 px-2 py-1.5 bg-muted/50">
-              <Button type="button" variant="ghost" size="icon-sm" onClick={() => setOpen((p) => ({ ...p, [li]: !isOpen }))} className="shrink-0 h-6 w-6">
+          <SortableItem key={id} id={id}>
+          {(handle) => (
+          <div className="rounded border bg-background overflow-hidden">
+            <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-muted/50">
+              {layouts.length > 1 && handle}
+              <Button type="button" variant="ghost" size="icon-sm" onClick={() => setOpen((p) => ({ ...p, [id]: !isOpen }))} className="shrink-0 h-6 w-6">
                 {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
               </Button>
               <Input
@@ -185,14 +214,14 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
                 placeholder={t('editor.layoutLabelPlaceholder')}
                 value={layout.label}
                 onChange={(e) => set(li, { label: e.target.value })}
-                className="flex-1"
+                className="min-w-32 flex-1"
               />
               <Button
                 variant="ghost"
                 size="icon-xs"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
                 disabled={layouts.length === 1}
-                onClick={() => onChange(layouts.filter((_, idx) => idx !== li))}
+                onClick={() => removeLayout(li)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
@@ -209,8 +238,12 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
               </div>
             )}
           </div>
+          )}
+          </SortableItem>
         );
       })}
+      </SortableContext>
+      </DndContext>
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" onClick={() => onChange([...layouts, { name: '', label: '', fields: [blankField()] }])}>
           <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addLayout')}
