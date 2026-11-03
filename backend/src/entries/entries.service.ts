@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'util';
 import {
   Injectable,
   NotFoundException,
@@ -898,6 +899,7 @@ export class EntriesService {
   async writeSiteEntries(
     contentTypeId: number,
     rows: SiteEntryWrite[],
+    actorId?: number,
   ): Promise<{ created: number; updated: number; errors: string[] }> {
     const contentType = await this.prisma.contentType.findUnique({ where: { id: contentTypeId } });
     if (!contentType) throw new BadRequestException(`Content type #${contentTypeId} not found`);
@@ -916,6 +918,20 @@ export class EntriesService {
       };
       try {
         if (row.existingId) {
+          // Keep what the import replaces, so it can be restored. An unchanged entry
+          // adds nothing, or re-importing a file would bury the real history.
+          const current = await this.prisma.entry.findUnique({ where: { id: row.existingId } });
+          if (current && (current.status !== row.status || !isDeepStrictEqual(current.data, data))) {
+            await this.prisma.entryVersion.create({
+              data: {
+                entryId: current.id,
+                slug: current.slug,
+                data: current.data as Prisma.InputJsonValue,
+                status: current.status,
+                createdBy: actorId ?? null,
+              },
+            });
+          }
           const entry = await this.prisma.entry.update({
             include: { contentType: true },
             where: { id: row.existingId },

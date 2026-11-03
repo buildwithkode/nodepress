@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Param, Body, Query, ParseIntPipe, StreamableFile, UseGuards,
+  Param, Body, Query, ParseIntPipe, Res, StreamableFile, UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags,
 } from '@nestjs/swagger';
@@ -33,6 +34,28 @@ export class FormsController {
   @ApiOperation({ summary: 'Get 6 most recent submissions across all forms (dashboard)' })
   recentSubmissions() {
     return this.forms.findRecentSubmissions(6);
+  }
+
+  // ── Export / import (before :id) ─────────────────────────────────────
+
+  @Get('export')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Export every form (settings and actions, no submissions) as one JSON file' })
+  async exportForms(@Res({ passthrough: true }) res: Response) {
+    const file = await this.forms.exportFile();
+    res.setHeader('Content-Disposition', `attachment; filename="nodepress-forms-${file.exportedAt.slice(0, 10)}.json"`);
+    res.setHeader('Cache-Control', 'private, no-store');
+    return file;
+  }
+
+  @Access('forms', 'edit')
+  @Post('import')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Import a forms export. ?dryRun=true previews; ?overwrite=false keeps existing forms' })
+  @ApiQuery({ name: 'dryRun', required: false, type: Boolean })
+  @ApiQuery({ name: 'overwrite', required: false, type: Boolean })
+  importForms(@Body() file: any, @Query('dryRun') dryRun?: string, @Query('overwrite') overwrite?: string) {
+    return this.forms.importFile(file, { dryRun: dryRun === 'true', overwrite: overwrite !== 'false' });
   }
 
   // ── CRUD ──────────────────────────────────────────────────

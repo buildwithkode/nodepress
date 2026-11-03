@@ -21,5 +21,6 @@ import { CaptchaService } from './captcha.service';
     WebhookActionHandler,
     CaptchaService,
   ],
+  exports: [FormsService], // SiteTransferModule: forms in the site export
 })
 export class FormsModule {}

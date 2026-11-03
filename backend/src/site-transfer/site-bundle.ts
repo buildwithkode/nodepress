@@ -194,6 +194,116 @@ function toWrite(row: SiteEntryRow, locale: string, status: string, publicId: st
   };
 }
 
+/** A webhook to create or, with `id`, update. */
+export interface SiteWebhookWrite {
+  id?: number;
+  name: string;
+  url: string;
+  secret: string | null;
+  events: string[];
+  enabled: boolean;
+}
+
+export interface WebhookPlan {
+  total: number;
+  toCreate: number;
+  toUpdate: number;
+  /** Matches an existing webhook that is kept as it is (overwrite off). */
+  toSkip: number;
+  /** Addresses that receive events once the import has run. */
+  active: string[];
+  writes: SiteWebhookWrite[];
+  errors: string[];
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Work out what a site import does with the bundle's webhooks. They have no unique
+ * key, so they are matched by name + URL. Any http(s) URL is accepted here, because
+ * a site's own webhook may point at localhost; every delivery still goes through
+ * the private-address check in `outboundPost`.
+ */
+export function planWebhooks(
+  bundleWebhooks: unknown,
+  existing: Array<{ id: number; name: string; url: string }>,
+  overwrite: boolean,
+): WebhookPlan {
+  const plan: WebhookPlan = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0, active: [], writes: [], errors: [] };
+  if (bundleWebhooks === undefined || bundleWebhooks === null) return plan;
+  if (!Array.isArray(bundleWebhooks)) {
+    plan.errors.push('"webhooks" must be a list of webhooks');
+    return plan;
+  }
+  plan.total = bundleWebhooks.length;
+  const keyOf = (name: string, url: string) => `${name}\u0000${url}`;
+  const byKey = new Map<string, number>();
+  // Oldest first wins when a site has two webhooks with the same name and URL.
+  for (const e of [...existing].reverse()) byKey.set(keyOf(e.name, e.url), e.id);
+  const seen = new Set<string>();
+
+  bundleWebhooks.forEach((row: unknown, i) => {
+    const where = `webhooks[${i}]`;
+    if (!isObject(row)) {
+      plan.errors.push(`${where}: must be an object`);
+      return;
+    }
+    if (typeof row.name !== 'string' || !row.name.trim()) {
+      plan.errors.push(`${where}: missing name`);
+      return;
+    }
+    const label = `${where} "${row.name}"`;
+    if (typeof row.url !== 'string' || !isHttpUrl(row.url)) {
+      plan.errors.push(`${label}: url must be an http(s) URL`);
+      return;
+    }
+    if (!Array.isArray(row.events) || !row.events.length || !row.events.every((e) => typeof e === 'string')) {
+      plan.errors.push(`${label}: events must be a list of event names`);
+      return;
+    }
+    if (row.secret !== undefined && row.secret !== null && typeof row.secret !== 'string') {
+      plan.errors.push(`${label}: secret must be text`);
+      return;
+    }
+    if (row.enabled !== undefined && typeof row.enabled !== 'boolean') {
+      plan.errors.push(`${label}: enabled must be true or false`);
+      return;
+    }
+    const key = keyOf(row.name, row.url);
+    if (seen.has(key)) {
+      plan.errors.push(`${label}: appears twice in the file with the same URL`);
+      return;
+    }
+    seen.add(key);
+
+    const id = byKey.get(key);
+    if (id !== undefined && !overwrite) {
+      plan.toSkip++;
+      return;
+    }
+    const write: SiteWebhookWrite = {
+      id,
+      name: row.name,
+      url: row.url,
+      secret: (row.secret as string | null | undefined) ?? null,
+      events: row.events as string[],
+      enabled: (row.enabled as boolean | undefined) ?? true,
+    };
+    if (id === undefined) plan.toCreate++;
+    else plan.toUpdate++;
+    plan.writes.push(write);
+    if (write.enabled && !plan.active.includes(write.url)) plan.active.push(write.url);
+  });
+  return plan;
+}
+
 /**
  * Replace every string that is exactly an old publicId with the new one, at any depth
  * (relation fields inside groups, repeaters and flexible sections included). UUIDs

@@ -1,4 +1,4 @@
-import { planEntries, remapIds, ExistingEntry } from './site-bundle';
+import { planEntries, planWebhooks, remapIds, ExistingEntry } from './site-bundle';
 
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
@@ -85,5 +85,51 @@ describe('planEntries', () => {
     const plan = planEntries({ post: [{ slug: 'a', locale: 'pt-br', status: 'draft' }] }, known, [], true);
     expect([...plan.locales]).toEqual(['pt-BR']);
     expect(plan.writes.get('post')![0].locale).toBe('pt-BR');
+  });
+});
+
+describe('planWebhooks', () => {
+  const hook = (over: Record<string, unknown> = {}) => ({ name: 'Rebuild', url: 'https://example.test/hook', secret: 'shh', events: ['*'], enabled: true, ...over });
+  const existing = [{ id: 7, name: 'Rebuild', url: 'https://example.test/hook' }];
+
+  it('treats a file without webhooks as nothing to do', () => {
+    expect(planWebhooks(undefined, existing, true)).toMatchObject({ total: 0, writes: [], active: [], errors: [] });
+  });
+
+  it('matches by name and URL, so another address is a new webhook', () => {
+    const plan = planWebhooks([hook(), hook({ url: 'https://other.test/hook' })], existing, true);
+    expect(plan).toMatchObject({ total: 2, toCreate: 1, toUpdate: 1, errors: [] });
+    expect(plan.writes.map((w) => w.id)).toEqual([7, undefined]);
+  });
+
+  it('keeps existing webhooks with overwrite off', () => {
+    const plan = planWebhooks([hook()], existing, false);
+    expect(plan).toMatchObject({ toSkip: 1, toUpdate: 0, writes: [], active: [] });
+  });
+
+  it('lists only the addresses that will receive events', () => {
+    const plan = planWebhooks([hook(), hook({ name: 'Off', url: 'https://off.test/', enabled: false })], [], true);
+    expect(plan.active).toEqual(['https://example.test/hook']);
+  });
+
+  it('accepts a localhost URL, as a site may have one', () => {
+    expect(planWebhooks([hook({ url: 'http://localhost:3000/api/revalidate' })], [], true).errors).toEqual([]);
+  });
+
+  it.each([
+    ['a row that is not an object', 'x', /must be an object/],
+    ['a missing name', hook({ name: '' }), /missing name/],
+    ['a URL that is not http(s)', hook({ url: 'ftp://example.test' }), /http\(s\) URL/],
+    ['no events', hook({ events: [] }), /events must be a list/],
+    ['a secret that is not text', hook({ secret: 1 }), /secret must be text/],
+    ['a flag that is not a boolean', hook({ enabled: 'yes' }), /enabled must be true or false/],
+  ])('refuses %s', (_label, row, message) => {
+    const plan = planWebhooks([row], [], true);
+    expect(plan.errors[0]).toMatch(message);
+    expect(plan.writes).toEqual([]);
+  });
+
+  it('refuses the same name and URL twice in the file', () => {
+    expect(planWebhooks([hook(), hook()], [], true).errors[0]).toMatch(/appears twice/);
   });
 });

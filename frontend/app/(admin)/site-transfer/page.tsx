@@ -9,16 +9,24 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 
 type TypePlan = { name: string; total: number; toCreate: number; toUpdate: number; toRestore: number; toSkip: number };
+type Counts = { total: number; toCreate: number; toUpdate: number; toSkip: number };
+type Written = { created: number; updated: number; skipped: number };
 type Preview = {
   valid: boolean;
   errors: string[];
   schemas: { toCreate: number; toUpdate: number } | null;
   entries: { total: number; toCreate: number; toUpdate: number; toRestore: number; toSkip: number; relinked: number; types: TypePlan[] };
+  forms: Counts;
+  webhooks: Counts & { active: string[] };
+  redirects: Counts;
   localesToAdd: string[];
 };
 type Result = {
   schemas: { created?: number; updated?: number } | null;
   entries: { created: number; updated: number };
+  forms: Written;
+  webhooks: Written;
+  redirects: Written;
   localesAdded: string[];
   errors: string[];
 };
@@ -178,6 +186,26 @@ export default function SiteTransferPage() {
               toSkip: preview.entries.toSkip,
             })}
           </p>
+          {preview.forms.total > 0 && (
+            <p className="text-sm">{t('formsLine', { toCreate: preview.forms.toCreate, toUpdate: preview.forms.toUpdate, toSkip: preview.forms.toSkip })}</p>
+          )}
+          {preview.webhooks.total > 0 && (
+            <p className="text-sm">{t('webhooksLine', { toCreate: preview.webhooks.toCreate, toUpdate: preview.webhooks.toUpdate, toSkip: preview.webhooks.toSkip })}</p>
+          )}
+          {preview.redirects.total > 0 && (
+            <p className="text-sm">{t('redirectsLine', { toCreate: preview.redirects.toCreate, toUpdate: preview.redirects.toUpdate, toSkip: preview.redirects.toSkip })}</p>
+          )}
+          {preview.webhooks.active.length > 0 && (
+            <div className="flex gap-2 text-sm">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
+              <div className="min-w-0">
+                <p>{t('webhooksActive')}</p>
+                <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
+                  {preview.webhooks.active.map((url) => <li key={url} className="break-all">{url}</li>)}
+                </ul>
+              </div>
+            </div>
+          )}
           {preview.entries.types.length > 0 && (
             <div className="rounded-lg border border-border overflow-x-auto">
               <table className="w-full text-sm">
@@ -236,6 +264,15 @@ export default function SiteTransferPage() {
           </p>
           {result.schemas && (
             <p className="text-muted-foreground">{t('doneTypes', { created: result.schemas.created ?? 0, updated: result.schemas.updated ?? 0 })}</p>
+          )}
+          {result.forms.created + result.forms.updated + result.forms.skipped > 0 && (
+            <p className="text-muted-foreground">{t('doneForms', { created: result.forms.created, updated: result.forms.updated, skipped: result.forms.skipped })}</p>
+          )}
+          {result.webhooks.created + result.webhooks.updated + result.webhooks.skipped > 0 && (
+            <p className="text-muted-foreground">{t('doneWebhooks', { created: result.webhooks.created, updated: result.webhooks.updated, skipped: result.webhooks.skipped })}</p>
+          )}
+          {result.redirects.created + result.redirects.updated + result.redirects.skipped > 0 && (
+            <p className="text-muted-foreground">{t('doneRedirects', { created: result.redirects.created, updated: result.redirects.updated, skipped: result.redirects.skipped })}</p>
           )}
           {result.localesAdded.length > 0 && (
             <p className="text-muted-foreground">{t('localesAdded', { list: result.localesAdded.join(', ') })}</p>
