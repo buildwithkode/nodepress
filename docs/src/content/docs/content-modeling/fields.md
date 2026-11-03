@@ -131,6 +131,6 @@ Two fields at the same level can't share a key. The content type editor marks a 
 
 ## Field width
 
-Each field has a **Width** setting in the content type and component editors: **Full** (the default), **1/2** or **1/3**. It works at every level, including inside groups, repeaters and flexible layouts, and a component's fields keep their widths wherever the component is used.
+Each field has a **Width** setting in the content type and component editors: **Full** (the default), **2/3**, **1/2** or **1/3**. It works at every level, including inside groups, repeaters and flexible layouts, and a component's fields keep their widths wherever the component is used.
 
-The entry form puts fields side by side until a row is full, and stacks them on small screens. Width only changes the admin form, not saved content or API responses for entries. In a schema, it's the field's `width` key: `"half"` or `"third"`, or left out for full.
+The entry form puts fields side by side until a row is full, and stacks them on small screens. Width only changes the admin form, not saved content or API responses for entries. In a schema, it's the field's `width` key: `"two_thirds"`, `"half"` or `"third"`, or left out for full.
