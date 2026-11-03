@@ -161,6 +161,10 @@
     "removeItem": "項目を削除",
     "addItem": "項目を追加"
   },
+  "rows": {
+    "expandAll": "すべて展開",
+    "collapseAll": "すべて折りたたむ"
+  },
   "flexible": {
     "selectLayout": "レイアウトを選択",
     "removeBlock": "ブロックを削除",

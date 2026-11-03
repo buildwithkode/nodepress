@@ -161,6 +161,10 @@
     "removeItem": "Item verwijderen",
     "addItem": "Item toevoegen"
   },
+  "rows": {
+    "expandAll": "Alles uitklappen",
+    "collapseAll": "Alles inklappen"
+  },
   "flexible": {
     "selectLayout": "Kies een lay-out",
     "removeBlock": "Blok verwijderen",

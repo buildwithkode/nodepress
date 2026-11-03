@@ -2,12 +2,15 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ArrowLeft, Upload, Braces, Copy, Check, PanelRight, WrapText } from 'lucide-react';
+import { Plus, ArrowLeft, Upload, Braces, Copy, Check, PanelRight, WrapText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
-import { PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth, isNarrowScreen } from '@/components/SidePane';
+import { STICKY_HEADER, STICKY_PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth, isNarrowScreen } from '@/components/SidePane';
+import { useStickyHeader } from '@/lib/use-sticky-header';
+import { ExpandCollapseAll, useOpenRows } from '@/components/OpenRows';
+import { FieldCardRow } from '@/components/FieldCardRow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -135,6 +138,7 @@ export default function NewContentTypePage() {
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState('');
   const [fields, setFields] = useState<Field[]>([{ _id: uid(), name: '', type: 'text', required: false }]);
+  const rows = useOpenRows(fields.filter((f) => !isComponentField(f)).map((f) => f._id), true);
   const [allowedMethods, setAllowedMethods] = useState(['list', 'read', 'create', 'update', 'delete']);
   const [previewUrl, setPreviewUrl] = useState('');
   const [jsonOpen, setJsonOpen] = useState(true);
@@ -144,6 +148,7 @@ export default function NewContentTypePage() {
   const [jsonWrap, setJsonWrap] = useState(true);
   const [leftPct, setLeftPct] = useState(58);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { stickyHeaderRef, paneRowStyle } = useStickyHeader();
 
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -207,7 +212,7 @@ export default function NewContentTypePage() {
     reader.readAsText(file);
   };
 
-  const addField = () => setFields([...fields, { _id: uid(), name: '', type: 'text', required: false }]);
+  const addField = () => { rows.markAdding(); setFields([...fields, { _id: uid(), name: '', type: 'text', required: false }]); };
   const sensors = useDragSensors();
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
@@ -235,7 +240,11 @@ export default function NewContentTypePage() {
     setNameError('');
     if (dupes.size) { toast.error(t('editor.duplicateKeys', { keys: [...dupes].join(', ') })); return; }
     const nested = nestedDuplicates(fields);
-    if (nested.length) { toast.error(t('editor.duplicateKeys', { keys: nested.join(', ') })); return; }
+    if (nested.length) {
+      fields.forEach((f) => { if (nestedDuplicates([f]).length) rows.setRowOpen(f._id, true); });
+      toast.error(t('editor.duplicateKeys', { keys: nested.join(', ') }));
+      return;
+    }
     // Keep the user's exact wording as the human label; the backend derives the
     // snake_case field key from `name`.
     const validFields = fields
@@ -244,9 +253,9 @@ export default function NewContentTypePage() {
     if (validFields.length === 0) { toast.error(t('editor.atLeastOneField')); return; }
     setSubmitting(true);
     try {
-      await api.post('/content-types', { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods, previewUrl: previewUrl.trim() || null });
+      const res = await api.post('/content-types', { name: computedName, displayName: name.trim(), schema: validFields, allowedMethods, previewUrl: previewUrl.trim() || null });
       toast.success(t('editor.created'));
-      router.push('/content-types');
+      router.push(`/content-types/${res.data.id}/edit`);
     } catch (err: any) {
       toast.error(err.response?.data?.errors?.join('; ') || err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
@@ -267,12 +276,14 @@ export default function NewContentTypePage() {
       </div>
 
       <Card>
+        <div ref={stickyHeaderRef} className={STICKY_HEADER}>
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <CardTitle>{t('editor.newTitle')}</CardTitle>
               <CardDescription>{t('editor.newDescription')}</CardDescription>
             </div>
+            <div className="flex items-start gap-2">
             <Button
               type="button"
               variant={jsonOpen ? 'secondary' : 'outline'}
@@ -283,11 +294,16 @@ export default function NewContentTypePage() {
               <PanelRight className="h-3.5 w-3.5" />
               {jsonOpen ? t('editor.hideJson') : t('editor.showJson')}
             </Button>
+            <Button type="submit" form="ct-form" size="sm" className="h-7 text-xs shrink-0 mt-1" disabled={submitting || dupes.size > 0}>
+              {submitting ? t('editor.creating') : tc('create')}
+            </Button>
+            </div>
           </div>
         </CardHeader>
+        </div>
 
         {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
-        <div ref={containerRef} className={PANE_ROW}>
+        <div ref={containerRef} className={STICKY_PANE_ROW} style={paneRowStyle}>
           {/* Left pane: form */}
           <div style={paneWidth(jsonOpen ? leftPct : 100)} className={MAIN_PANE}>
           <form id="ct-form" onSubmit={onSubmit} className="space-y-6">
@@ -346,6 +362,7 @@ export default function NewContentTypePage() {
               <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <Label>{t('editor.fields')}</Label>
                 <div className="flex items-center gap-2">
+                  <ExpandCollapseAll count={fieldNumbers.filter(Boolean).length} onChange={rows.setAllOpen} />
                   <Button variant="outline" onClick={addField}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('editor.addField')}
                   </Button>
@@ -358,12 +375,20 @@ export default function NewContentTypePage() {
                 {fields.map((field, fi) => isComponentField(field) ? null : (
                   <SortableItem key={field._id} id={field._id}>
                   {(dragHandle) => (
-                  <div className="rounded-md border bg-muted/30 p-4 space-y-3">
+                  <FieldCardRow
+                      open={rows.isOpen(field._id)}
+                      onOpenChange={(open) => rows.setRowOpen(field._id, open)}
+                      dragHandle={dragHandle}
+                      number={fieldNumbers[fi]}
+                      name={field.name}
+                      fieldKey={editorFieldKey(field)}
+                      type={field.type}
+                      required={field.required}
+                      duplicate={dupes.has(editorFieldKey(field))}
+                      removeDisabled={fields.length === 1}
+                      onRemove={() => removeField(fi)}
+                    >
                     <div className="flex flex-wrap items-start gap-2">
-                      {dragHandle}
-                      <span className="text-sm font-semibold text-foreground w-5 shrink-0 text-right select-none">
-                        {fieldNumbers[fi]}
-                      </span>
                       <div className="min-w-40 flex-1 space-y-1">
                         <Input
                           placeholder={t('editor.fieldNamePlaceholder')}
@@ -391,9 +416,6 @@ export default function NewContentTypePage() {
                           {t('editor.indexed')}
                         </label>
                       )}
-                      <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={fields.length === 1} onClick={() => removeField(fi)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
                     </div>
 
                     <div className="pl-7">
@@ -451,7 +473,7 @@ export default function NewContentTypePage() {
                         />
                       </div>
                     )}
-                  </div>
+                  </FieldCardRow>
                   )}
                   </SortableItem>
                 ))}

@@ -11,7 +11,8 @@ import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
 import { useAuth } from '@/context/AuthContext';
 import { canEdit } from '@/lib/access';
-import { PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth } from '@/components/SidePane';
+import { STICKY_HEADER, STICKY_PANE_ROW, MAIN_PANE, SIDE_PANE, SIDE_PANE_BODY, paneWidth } from '@/components/SidePane';
+import { useStickyHeader } from '@/lib/use-sticky-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,7 @@ export default function NewEntryPage() {
   // Enabled content languages (Settings → Languages); new entries start in the default.
   const localesConfig = useLocales();
   const SUPPORTED_LOCALES = (localesConfig?.locales ?? [locale]).map((code) => ({ code, label: localeLabel(code) }));
+  const { stickyHeaderRef, paneRowStyle } = useStickyHeader();
   const localeTouched = useRef(false);
   useEffect(() => {
     if (localesConfig && !localeTouched.current) setLocale(localesConfig.defaultLocale);
@@ -151,7 +153,7 @@ export default function NewEntryPage() {
         publishAt: saveStatus === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
       toast.success(t('toast.created'));
-      router.push(preview ? `/entries/${res.data.id}/edit?live=1` : '/entries');
+      router.push(`/entries/${res.data.id}/edit${preview ? '?live=1' : ''}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
@@ -204,6 +206,7 @@ export default function NewEntryPage() {
       </div>
 
       <Card>
+        <div ref={stickyHeaderRef} className={STICKY_HEADER}>
         <CardHeader>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -311,9 +314,10 @@ export default function NewEntryPage() {
             )}
           </div>
         </CardHeader>
+        </div>
 
         {/* Columns stretch to the form's height, so the side pane has room to stay in view (sticky). */}
-        <div ref={containerRef} className={PANE_ROW}>
+        <div ref={containerRef} className={STICKY_PANE_ROW} style={paneRowStyle}>
           {/* Left pane: form */}
           <div style={paneWidth(selectedCT && jsonOpen ? leftPct : 100)} className={MAIN_PANE}>
             {/* Content type selector (if not pre-selected) */}
