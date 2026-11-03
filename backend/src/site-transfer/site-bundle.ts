@@ -1,7 +1,6 @@
 import { randomUUID } from 'crypto';
 import { assertValidSlug, canonicalLocale } from '../common/slug-locale.util';
 import type { SiteEntryWrite } from '../entries/entries.service';
-import { isReservedFormSlug, normalizeFormSlug } from '../forms/form-slug';
 
 /** Marks a file as a site export (`GET /api/site/export`). */
 export const SITE_BUNDLE_FORMAT = 'nodepress-site';
@@ -195,96 +194,112 @@ function toWrite(row: SiteEntryRow, locale: string, status: string, publicId: st
   };
 }
 
-/** A form to create or update. Its submissions are never in the file and stay untouched. */
-export interface SiteFormWrite {
-  slug: string;
+/** A webhook to create or, with `id`, update. */
+export interface SiteWebhookWrite {
+  id?: number;
   name: string;
-  fields: unknown[];
-  actions: unknown[];
-  isActive: boolean;
-  captchaEnabled: boolean;
+  url: string;
+  secret: string | null;
+  events: string[];
+  enabled: boolean;
 }
 
-export interface FormPlan {
+export interface WebhookPlan {
   total: number;
   toCreate: number;
   toUpdate: number;
-  /** Matches an existing form that is kept as it is (overwrite off). */
+  /** Matches an existing webhook that is kept as it is (overwrite off). */
   toSkip: number;
-  creates: SiteFormWrite[];
-  updates: SiteFormWrite[];
+  /** Addresses that receive events once the import has run. */
+  active: string[];
+  writes: SiteWebhookWrite[];
   errors: string[];
 }
 
-/** Work out what a site import does with the bundle's forms, matched by slug. Files from before forms were exported have none. */
-export function planForms(bundleForms: unknown, existingSlugs: Set<string>, overwrite: boolean): FormPlan {
-  const plan: FormPlan = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0, creates: [], updates: [], errors: [] };
-  if (bundleForms === undefined || bundleForms === null) return plan;
-  if (!Array.isArray(bundleForms)) {
-    plan.errors.push('"forms" must be a list of forms');
+function isHttpUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Work out what a site import does with the bundle's webhooks. They have no unique
+ * key, so they are matched by name + URL. Any http(s) URL is accepted here, because
+ * a site's own webhook may point at localhost; every delivery still goes through
+ * the private-address check in `outboundPost`.
+ */
+export function planWebhooks(
+  bundleWebhooks: unknown,
+  existing: Array<{ id: number; name: string; url: string }>,
+  overwrite: boolean,
+): WebhookPlan {
+  const plan: WebhookPlan = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0, active: [], writes: [], errors: [] };
+  if (bundleWebhooks === undefined || bundleWebhooks === null) return plan;
+  if (!Array.isArray(bundleWebhooks)) {
+    plan.errors.push('"webhooks" must be a list of webhooks');
     return plan;
   }
-  plan.total = bundleForms.length;
+  plan.total = bundleWebhooks.length;
+  const keyOf = (name: string, url: string) => `${name}\u0000${url}`;
+  const byKey = new Map<string, number>();
+  // Oldest first wins when a site has two webhooks with the same name and URL.
+  for (const e of [...existing].reverse()) byKey.set(keyOf(e.name, e.url), e.id);
   const seen = new Set<string>();
 
-  bundleForms.forEach((row: unknown, i) => {
-    const where = `forms[${i}]`;
+  bundleWebhooks.forEach((row: unknown, i) => {
+    const where = `webhooks[${i}]`;
     if (!isObject(row)) {
       plan.errors.push(`${where}: must be an object`);
       return;
     }
-    const slug = typeof row.slug === 'string' ? normalizeFormSlug(row.slug) : '';
-    if (!slug) {
-      plan.errors.push(`${where}: missing slug`);
-      return;
-    }
-    const label = `${where} "${slug}"`;
-    if (isReservedFormSlug(slug)) {
-      plan.errors.push(`${label}: "${slug}" is a reserved slug`);
-      return;
-    }
-    if (seen.has(slug)) {
-      plan.errors.push(`${label}: appears twice in the file`);
-      return;
-    }
-    seen.add(slug);
     if (typeof row.name !== 'string' || !row.name.trim()) {
-      plan.errors.push(`${label}: missing name`);
+      plan.errors.push(`${where}: missing name`);
       return;
     }
-    if (!Array.isArray(row.fields) || !row.fields.every(isObject)) {
-      plan.errors.push(`${label}: fields must be a list of objects`);
+    const label = `${where} "${row.name}"`;
+    if (typeof row.url !== 'string' || !isHttpUrl(row.url)) {
+      plan.errors.push(`${label}: url must be an http(s) URL`);
       return;
     }
-    const actions = row.actions ?? [];
-    if (!Array.isArray(actions) || !actions.every(isObject)) {
-      plan.errors.push(`${label}: actions must be a list of objects`);
+    if (!Array.isArray(row.events) || !row.events.length || !row.events.every((e) => typeof e === 'string')) {
+      plan.errors.push(`${label}: events must be a list of event names`);
       return;
     }
-    for (const flag of ['isActive', 'captchaEnabled']) {
-      if (row[flag] !== undefined && typeof row[flag] !== 'boolean') {
-        plan.errors.push(`${label}: ${flag} must be true or false`);
-        return;
-      }
+    if (row.secret !== undefined && row.secret !== null && typeof row.secret !== 'string') {
+      plan.errors.push(`${label}: secret must be text`);
+      return;
     }
+    if (row.enabled !== undefined && typeof row.enabled !== 'boolean') {
+      plan.errors.push(`${label}: enabled must be true or false`);
+      return;
+    }
+    const key = keyOf(row.name, row.url);
+    if (seen.has(key)) {
+      plan.errors.push(`${label}: appears twice in the file with the same URL`);
+      return;
+    }
+    seen.add(key);
 
-    const write: SiteFormWrite = {
-      slug,
-      name: row.name,
-      fields: row.fields,
-      actions,
-      isActive: (row.isActive as boolean | undefined) ?? true,
-      captchaEnabled: (row.captchaEnabled as boolean | undefined) ?? false,
-    };
-    if (!existingSlugs.has(slug)) {
-      plan.toCreate++;
-      plan.creates.push(write);
-    } else if (overwrite) {
-      plan.toUpdate++;
-      plan.updates.push(write);
-    } else {
+    const id = byKey.get(key);
+    if (id !== undefined && !overwrite) {
       plan.toSkip++;
+      return;
     }
+    const write: SiteWebhookWrite = {
+      id,
+      name: row.name,
+      url: row.url,
+      secret: (row.secret as string | null | undefined) ?? null,
+      events: row.events as string[],
+      enabled: (row.enabled as boolean | undefined) ?? true,
+    };
+    if (id === undefined) plan.toCreate++;
+    else plan.toUpdate++;
+    plan.writes.push(write);
+    if (write.enabled && !plan.active.includes(write.url)) plan.active.push(write.url);
   });
   return plan;
 }

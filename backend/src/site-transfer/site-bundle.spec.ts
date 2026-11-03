@@ -1,4 +1,4 @@
-import { planEntries, planForms, remapIds, ExistingEntry } from './site-bundle';
+import { planEntries, planWebhooks, remapIds, ExistingEntry } from './site-bundle';
 
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
@@ -88,52 +88,48 @@ describe('planEntries', () => {
   });
 });
 
-describe('planForms', () => {
-  const form = (over: Record<string, unknown> = {}) => ({ name: 'Contact', slug: 'contact', fields: [{ name: 'email', type: 'email' }], actions: [], ...over });
+describe('planWebhooks', () => {
+  const hook = (over: Record<string, unknown> = {}) => ({ name: 'Rebuild', url: 'https://example.test/hook', secret: 'shh', events: ['*'], enabled: true, ...over });
+  const existing = [{ id: 7, name: 'Rebuild', url: 'https://example.test/hook' }];
 
-  it('treats a file without forms as nothing to do', () => {
-    expect(planForms(undefined, new Set(['contact']), true)).toMatchObject({ total: 0, toCreate: 0, toUpdate: 0, toSkip: 0, errors: [] });
+  it('treats a file without webhooks as nothing to do', () => {
+    expect(planWebhooks(undefined, existing, true)).toMatchObject({ total: 0, writes: [], active: [], errors: [] });
   });
 
-  it('matches by slug: new forms are created, existing ones updated', () => {
-    const plan = planForms([form(), form({ slug: 'newsletter' })], new Set(['contact']), true);
-    expect(plan).toMatchObject({ total: 2, toCreate: 1, toUpdate: 1, toSkip: 0, errors: [] });
-    expect(plan.creates.map((f) => f.slug)).toEqual(['newsletter']);
-    expect(plan.updates.map((f) => f.slug)).toEqual(['contact']);
+  it('matches by name and URL, so another address is a new webhook', () => {
+    const plan = planWebhooks([hook(), hook({ url: 'https://other.test/hook' })], existing, true);
+    expect(plan).toMatchObject({ total: 2, toCreate: 1, toUpdate: 1, errors: [] });
+    expect(plan.writes.map((w) => w.id)).toEqual([7, undefined]);
   });
 
-  it('keeps existing forms with overwrite off and still adds missing ones', () => {
-    const plan = planForms([form(), form({ slug: 'newsletter' })], new Set(['contact']), false);
-    expect(plan).toMatchObject({ toCreate: 1, toUpdate: 0, toSkip: 1 });
-    expect(plan.updates).toEqual([]);
+  it('keeps existing webhooks with overwrite off', () => {
+    const plan = planWebhooks([hook()], existing, false);
+    expect(plan).toMatchObject({ toSkip: 1, toUpdate: 0, writes: [], active: [] });
   });
 
-  it('applies the same defaults and slug rules as the forms API', () => {
-    const { actions, ...noActions } = form({ slug: 'Contact Us' });
-    const plan = planForms([noActions], new Set(), true);
-    expect(plan.creates[0]).toEqual(expect.objectContaining({ slug: 'contact-us', actions: [], isActive: true, captchaEnabled: false }));
-    expect(planForms([form({ isActive: false })], new Set(), true).creates[0].isActive).toBe(false);
+  it('lists only the addresses that will receive events', () => {
+    const plan = planWebhooks([hook(), hook({ name: 'Off', url: 'https://off.test/', enabled: false })], [], true);
+    expect(plan.active).toEqual(['https://example.test/hook']);
   });
 
-  it('refuses forms that are not a list', () => {
-    expect(planForms('nope', new Set(), true).errors[0]).toMatch(/must be a list/);
+  it('accepts a localhost URL, as a site may have one', () => {
+    expect(planWebhooks([hook({ url: 'http://localhost:3000/api/revalidate' })], [], true).errors).toEqual([]);
   });
 
   it.each([
     ['a row that is not an object', 'x', /must be an object/],
-    ['a missing slug', form({ slug: undefined }), /missing slug/],
-    ['a reserved slug', form({ slug: 'api' }), /reserved slug/],
-    ['a missing name', form({ name: ' ' }), /missing name/],
-    ['fields that are not a list', form({ fields: {} }), /fields must be a list/],
-    ['actions that are not a list', form({ actions: 'email' }), /actions must be a list/],
-    ['a flag that is not a boolean', form({ captchaEnabled: 'yes' }), /captchaEnabled must be true or false/],
+    ['a missing name', hook({ name: '' }), /missing name/],
+    ['a URL that is not http(s)', hook({ url: 'ftp://example.test' }), /http\(s\) URL/],
+    ['no events', hook({ events: [] }), /events must be a list/],
+    ['a secret that is not text', hook({ secret: 1 }), /secret must be text/],
+    ['a flag that is not a boolean', hook({ enabled: 'yes' }), /enabled must be true or false/],
   ])('refuses %s', (_label, row, message) => {
-    const plan = planForms([row], new Set(), true);
+    const plan = planWebhooks([row], [], true);
     expect(plan.errors[0]).toMatch(message);
-    expect(plan.creates).toEqual([]);
+    expect(plan.writes).toEqual([]);
   });
 
-  it('refuses a slug twice in the file, also after normalizing', () => {
-    expect(planForms([form(), form({ slug: 'CONTACT' })], new Set(), true).errors[0]).toMatch(/appears twice/);
+  it('refuses the same name and URL twice in the file', () => {
+    expect(planWebhooks([hook(), hook()], [], true).errors[0]).toMatch(/appears twice/);
   });
 });

@@ -1,23 +1,27 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContentTypeService } from '../content-type/content-type.service';
 import { EntriesService } from '../entries/entries.service';
 import { LocalesService, validateLocales } from '../locales/locales.service';
 import { NODEPRESS_VERSION } from '../plugin/plugin.registry';
 import { contentTypeName } from '../common/content-type-name';
-import { ExistingEntry, planEntries, planForms, SITE_BUNDLE_FORMAT, SITE_BUNDLE_VERSION, SiteFormWrite } from './site-bundle';
+import { RedirectsService } from '../redirects/redirects.service';
+import { WebhooksService } from '../webhooks/webhooks.service';
+import { ExistingEntry, planEntries, planWebhooks, SITE_BUNDLE_FORMAT, SITE_BUNDLE_VERSION } from './site-bundle';
+import { FormsService } from '../forms/forms.service';
+import { planForms } from '../forms/form-import';
 
 export interface SiteImportOptions {
   dryRun?: boolean;
-  /** Update existing content types, entries and forms (default). Off: keep them as they are. */
+  /** Update existing content types, entries, forms, webhooks and redirects (default). Off: keep them as they are. */
   overwrite?: boolean;
 }
 
 /**
  * Whole-site export and import: choice lists, components, content types, every
- * entry (all locales, all statuses) and forms in one JSON file. Media files and form
- * submissions are not included; entries keep their media URLs.
+ * entry (all locales, all statuses), forms, webhooks and redirects in one JSON file.
+ * Media files, form submissions, webhook deliveries and redirect hit counts are not
+ * included; entries keep their media URLs.
  */
 @Injectable()
 export class SiteTransferService {
@@ -26,6 +30,9 @@ export class SiteTransferService {
     private readonly contentTypes: ContentTypeService,
     private readonly entries: EntriesService,
     private readonly locales: LocalesService,
+    private readonly forms: FormsService,
+    private readonly webhooks: WebhooksService,
+    private readonly redirects: RedirectsService,
   ) {}
 
   async export() {
@@ -40,9 +47,14 @@ export class SiteTransferService {
     for (const t of types) entries[t.name] = [];
     const nameOf = new Map(types.map((t) => [t.id, t.name]));
     for (const { contentTypeId, ...row } of rows) entries[nameOf.get(contentTypeId)!].push(row);
-    const forms = await this.prisma.form.findMany({
-      orderBy: { slug: 'asc' },
-      select: { name: true, slug: true, fields: true, actions: true, isActive: true, captchaEnabled: true },
+    const forms = await this.forms.exportRows();
+    const webhooks = await this.prisma.webhook.findMany({
+      orderBy: { id: 'asc' },
+      select: { name: true, url: true, secret: true, events: true, enabled: true },
+    });
+    const redirects = await this.prisma.redirect.findMany({
+      orderBy: { from: 'asc' },
+      select: { from: true, to: true, statusCode: true },
     });
 
     return {
@@ -56,6 +68,8 @@ export class SiteTransferService {
       contentTypes: schemas.contentTypes,
       entries,
       forms,
+      webhooks,
+      redirects,
     };
   }
 
@@ -100,6 +114,15 @@ export class SiteTransferService {
     errors.push(...formPlan.errors);
     const { total: formTotal, toCreate: formsToCreate, toUpdate: formsToUpdate, toSkip: formsToSkip } = formPlan;
 
+    // ── Webhooks ──
+    const existingWebhooks = await this.prisma.webhook.findMany({ orderBy: { id: 'asc' }, select: { id: true, name: true, url: true } });
+    const webhookPlan = planWebhooks(bundle.webhooks, existingWebhooks, overwrite);
+    errors.push(...webhookPlan.errors);
+
+    // ── Redirects ──
+    const redirectPlan = await this.redirects.planSiteRedirects(bundle.redirects, overwrite);
+    errors.push(...redirectPlan.errors);
+
     // ── Languages: add the file's languages that this site doesn't have yet ──
     const current = await this.locales.get();
     const fileLocales = Array.isArray(bundle.locales?.locales) ? bundle.locales.locales : [];
@@ -132,6 +155,19 @@ export class SiteTransferService {
         schemas,
         entries: entrySummary,
         forms: { total: formTotal, toCreate: formsToCreate, toUpdate: formsToUpdate, toSkip: formsToSkip },
+        webhooks: {
+          total: webhookPlan.total,
+          toCreate: webhookPlan.toCreate,
+          toUpdate: webhookPlan.toUpdate,
+          toSkip: webhookPlan.toSkip,
+          active: webhookPlan.active,
+        },
+        redirects: {
+          total: redirectPlan.total,
+          toCreate: redirectPlan.toCreate,
+          toUpdate: redirectPlan.toUpdate,
+          toSkip: redirectPlan.toSkip,
+        },
         localesToAdd,
       };
     }
@@ -153,34 +189,27 @@ export class SiteTransferService {
       writeErrors.push(...r.errors);
     }
 
-    const formsResult = await this.writeForms(formPlan.creates, formPlan.updates, writeErrors);
+    const { errors: formErrors, ...formsResult } = await this.forms.writeImported(formPlan.creates, formPlan.updates);
+    writeErrors.push(...formErrors);
+    try {
+      await this.redirects.writeSiteRedirects(redirectPlan.writes);
+    } catch (err: any) {
+      redirectPlan.toCreate = redirectPlan.toUpdate = 0;
+      writeErrors.push(`Redirects: ${err.message}`);
+    }
+    // Last, once everything else is in place.
+    const { errors: webhookErrors, ...webhooksResult } = await this.webhooks.writeSiteWebhooks(webhookPlan.writes);
+    writeErrors.push(...webhookErrors);
 
     return {
       schemas: schemaResult,
       entries: { created, updated, skipped: entrySummary.toSkip, relinked: entrySummary.relinked },
       forms: { ...formsResult, skipped: formsToSkip },
+      webhooks: { ...webhooksResult, skipped: webhookPlan.toSkip },
+      redirects: { created: redirectPlan.toCreate, updated: redirectPlan.toUpdate, skipped: redirectPlan.toSkip },
       localesAdded: nextLocales ? localesToAdd : [],
       errors: writeErrors,
     };
-  }
-
-  /** Updates in place, so a form keeps its id and its submissions. */
-  private async writeForms(creates: SiteFormWrite[], updates: SiteFormWrite[], errors: string[]) {
-    const counts = { created: 0, updated: 0 };
-    const write = async (form: SiteFormWrite, isNew: boolean) => {
-      const { slug, ...values } = form;
-      const data = { ...values, fields: values.fields as Prisma.InputJsonValue, actions: values.actions as Prisma.InputJsonValue };
-      try {
-        if (isNew) await this.prisma.form.create({ data: { slug, ...data } });
-        else await this.prisma.form.update({ where: { slug }, data });
-        counts[isNew ? 'created' : 'updated']++;
-      } catch (err: any) {
-        errors.push(`Form "${slug}": ${err.message}`);
-      }
-    };
-    for (const form of creates) await write(form, true);
-    for (const form of updates) await write(form, false);
-    return counts;
   }
 
   private async existingEntries(types: Array<{ id: number; name: string }>): Promise<ExistingEntry[]> {

@@ -31,7 +31,7 @@ The built-in help and some generated files say `npx nodepress …`. The package 
 | `schema:pull [--out <file>]` | Saves a site's content model to `nodepress.schema.json` | [Schema sync](/cli/schema/) |
 | `schema:diff [--file <file>]` | Shows what a push would change | [Schema sync](/cli/schema/) |
 | `schema:push [--file <file>] [--yes]` | Applies the file's content model to a site | [Schema sync](/cli/schema/) |
-| `site:export [--out <file>]` | Saves the content model, every entry and forms to `nodepress-site.json` | [Site export and import](/content/site-export/) |
+| `site:export [--out <file>]` | Saves the content model, every entry, forms, webhooks and redirects to `nodepress-site.json` | [Site export and import](/content/site-export/) |
 | `site:import <file> [--dry-run] [--keep-existing] [--yes]` | Imports a site export, after a preview | [Site export and import](/content/site-export/) |
 | `mcp` | Runs an MCP server so AI assistants can read and draft content | [MCP server](/cli/mcp/) |
 | `plugin keygen [--out <key.pem>]` | Creates an Ed25519 key for signing plugin packages | [Publishing plugins](/extending/publishing-plugins/) |

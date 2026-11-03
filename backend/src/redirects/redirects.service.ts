@@ -35,6 +35,9 @@ export interface ImportReport {
   applied: boolean;
 }
 
+/** A normalized redirect to write. */
+type RedirectEdgeRow = RedirectEdge & { statusCode: number };
+
 /** An entry as EntriesService.update sees it before and after the save. */
 interface SlugChangeEntry {
   id: number;
@@ -209,6 +212,67 @@ export class RedirectsService implements OnModuleInit, OnModuleDestroy {
       lines.push([r.from, r.to, r.statusCode, r.hits, r.lastHitAt?.toISOString() ?? ''].map(csvCell).join(','));
     }
     return lines.join('\r\n') + '\r\n';
+  }
+
+  // ─── Site import ───────────────────────────────────────────────────────────
+
+  /**
+   * Work out what a site import does with the bundle's redirects, matched by
+   * `from`, with the same rules as the CSV import. A file from before redirects
+   * were exported has none. Hit counts belong to the site that counted them.
+   */
+  async planSiteRedirects(bundleRedirects: unknown, overwrite: boolean) {
+    const plan = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0, writes: [] as RedirectEdgeRow[], errors: [] as string[] };
+    if (bundleRedirects === undefined || bundleRedirects === null) return plan;
+    if (!Array.isArray(bundleRedirects)) {
+      plan.errors.push('"redirects" must be a list of redirects');
+      return plan;
+    }
+    plan.total = bundleRedirects.length;
+
+    const valid = new Map<string, RedirectEdgeRow>();
+    const labels = new Map<string, string>();
+    bundleRedirects.forEach((raw: any, i) => {
+      const where = `redirects[${i}]`;
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        plan.errors.push(`${where}: must be an object`);
+        return;
+      }
+      try {
+        const row = this.normalize({ from: raw.from, to: raw.to, statusCode: raw.statusCode });
+        if (valid.has(row.from)) throw new BadRequestException(`${row.from} appears twice in the file`);
+        valid.set(row.from, row);
+        labels.set(row.from, where);
+      } catch (err: any) {
+        plan.errors.push(`${where}: ${errorMessage(err)}`);
+      }
+    });
+
+    const incoming = [...valid.values()];
+    const existing = new Set(
+      (await this.prisma.redirect.findMany({ where: { from: { in: incoming.map((r) => r.from) } }, select: { from: true } })).map((r) => r.from),
+    );
+    for (const row of incoming) {
+      if (!existing.has(row.from)) plan.toCreate++;
+      else if (overwrite) plan.toUpdate++;
+      else {
+        plan.toSkip++;
+        continue;
+      }
+      plan.writes.push(row);
+    }
+    const problems = findChainProblems(await this.edgesWith(plan.writes), plan.writes.map((r) => r.from));
+    for (const [from, message] of problems) plan.errors.push(`${labels.get(from)}: ${message}`);
+    return plan;
+  }
+
+  /** Updates in place, so an existing redirect keeps its hit count. */
+  async writeSiteRedirects(rows: RedirectEdgeRow[]) {
+    if (!rows.length) return;
+    await this.prisma.$transaction(
+      rows.map((r) => this.prisma.redirect.upsert({ where: { from: r.from }, create: r, update: { to: r.to, statusCode: r.statusCode } })),
+    );
+    await this.clearCache();
   }
 
   // ─── Public resolve ────────────────────────────────────────────────────────

@@ -43,12 +43,17 @@ describe('Site export / import (e2e)', () => {
     captchaEnabled: false,
   };
 
+  const signHook = { name: 'Rebuild', url: 'https://example.test/rebuild', secret: 'shh', events: ['entry.published'], enabled: false };
+  const moved = { from: '/old', to: '/new', statusCode: 301 };
+
   /** Leave only users, API keys and settings behind — like a fresh install. */
   async function wipeContent() {
     await prisma.entry.deleteMany({});
     await prisma.contentType.deleteMany({});
     await prisma.choiceList.deleteMany({});
     await prisma.form.deleteMany({});
+    await prisma.webhook.deleteMany({});
+    await prisma.redirect.deleteMany({});
     await request(server).put('/api/locales').set(auth).send({ locales: ['en'], defaultLocale: 'en' }).expect(200);
   }
 
@@ -90,6 +95,8 @@ describe('Site export / import (e2e)', () => {
       .send({ contentTypeId: post.body.id, slug: 'hello', locale: 'fr', status: 'draft', data: { title: 'Bonjour', author: authorId } }).expect(201);
 
     await request(server).post('/api/forms').set(auth).send(contactForm).expect(201);
+    await request(server).post('/api/webhooks').set(auth).send(signHook).expect(201);
+    await request(server).post('/api/redirects').set(auth).send(moved).expect(201);
 
     for (const [name, permissions] of [['full', { access: 'all', contentTypes: ['*'] }], ['write', { access: 'write', contentTypes: ['*'] }]] as const) {
       const res = await request(server).post('/api/api-keys').set(auth).send({ name, permissions }).expect(201);
@@ -115,6 +122,8 @@ describe('Site export / import (e2e)', () => {
     expect(bundle.entries.author).toEqual([expect.objectContaining({ publicId: authorId, slug: 'asha', locale: 'en', status: 'published' })]);
     expect(bundle.entries.post.map((e: any) => `${e.slug}/${e.locale}/${e.status}`)).toEqual(['hello/en/published', 'hello/fr/draft']);
     expect(bundle.forms).toEqual([contactForm]);
+    expect(bundle.webhooks).toEqual([signHook]);
+    expect(bundle.redirects).toEqual([moved]);
   });
 
   it('previews a re-import on the same site as updates', async () => {
@@ -124,6 +133,8 @@ describe('Site export / import (e2e)', () => {
       schemas: { toCreate: 0, toUpdate: 2 },
       entries: { total: 3, toCreate: 0, toUpdate: 3, toRestore: 0, toSkip: 0, relinked: 0 },
       forms: { total: 1, toCreate: 0, toUpdate: 1, toSkip: 0 },
+      webhooks: { total: 1, toCreate: 0, toUpdate: 1, toSkip: 0, active: [] },
+      redirects: { total: 1, toCreate: 0, toUpdate: 1, toSkip: 0 },
     });
   });
 
@@ -133,6 +144,11 @@ describe('Site export / import (e2e)', () => {
     expect(res.body).toMatchObject({ entries: { created: 3, updated: 0 }, localesAdded: ['fr'], errors: [] });
     expect(res.body.schemas).toMatchObject({ created: 2 });
     expect(res.body.forms).toEqual({ created: 1, updated: 0, skipped: 0 });
+    expect(res.body.webhooks).toEqual({ created: 1, updated: 0, skipped: 0 });
+    expect(res.body.redirects).toEqual({ created: 1, updated: 0, skipped: 0 });
+    expect(await prisma.webhook.findFirstOrThrow({ where: { name: 'Rebuild' } })).toMatchObject(signHook);
+    const resolved = await request(server).get('/api/redirects/resolve').query({ path: '/old' }).expect(200);
+    expect(resolved.body).toMatchObject({ to: '/new', statusCode: 301 });
 
     const form = await prisma.form.findUniqueOrThrow({ where: { slug: 'contact' } });
     expect(form).toMatchObject(contactForm);
@@ -192,6 +208,41 @@ describe('Site export / import (e2e)', () => {
     expect(await prisma.formSubmission.findUnique({ where: { id: kept.id } })).not.toBeNull();
   });
 
+  it('updates webhooks and redirects in place, unless told to keep them', async () => {
+    const hook = await prisma.webhook.findFirstOrThrow({ where: { name: 'Rebuild' } });
+    await prisma.webhook.update({ where: { id: hook.id }, data: { secret: 'changed here' } });
+    await prisma.redirect.update({ where: { from: '/old' }, data: { to: '/elsewhere', hits: 9 } });
+
+    const keep = await request(server).post('/api/site/import?overwrite=false').set(auth).send(bundle).expect(201);
+    expect(keep.body.webhooks).toEqual({ created: 0, updated: 0, skipped: 1 });
+    expect(keep.body.redirects).toEqual({ created: 0, updated: 0, skipped: 1 });
+    expect((await prisma.webhook.findUniqueOrThrow({ where: { id: hook.id } })).secret).toBe('changed here');
+    expect((await prisma.redirect.findUniqueOrThrow({ where: { from: '/old' } })).to).toBe('/elsewhere');
+
+    await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+    expect(await prisma.webhook.count()).toBe(1);
+    expect((await prisma.webhook.findUniqueOrThrow({ where: { id: hook.id } })).secret).toBe('shh');
+    expect(await prisma.redirect.findUniqueOrThrow({ where: { from: '/old' } })).toMatchObject({ to: '/new', hits: 9 });
+    const resolved = await request(server).get('/api/redirects/resolve').query({ path: '/old' }).expect(200);
+    expect(resolved.body.to).toBe('/new');
+  });
+
+  it('warns where an imported webhook will send events', async () => {
+    const on = { ...bundle, webhooks: [{ ...signHook, enabled: true }] };
+    const res = await request(server).post('/api/site/import?dryRun=true').set(auth).send(on).expect(201);
+    expect(res.body.webhooks.active).toEqual([signHook.url]);
+  });
+
+  it('refuses redirect loops and bad rows without changing anything', async () => {
+    const before = await prisma.redirect.count();
+    const loop = { ...bundle, redirects: [{ from: '/a', to: '/b', statusCode: 301 }, { from: '/b', to: '/a', statusCode: 301 }] };
+    const res = await request(server).post('/api/site/import').set(auth).send(loop).expect(400);
+    expect(res.body.errors.join(' ')).toMatch(/loop/);
+    const bad = { ...bundle, redirects: [{ from: '/c', to: 'javascript:alert(1)', statusCode: 301 }] };
+    await request(server).post('/api/site/import').set(auth).send(bad).expect(400);
+    expect(await prisma.redirect.count()).toBe(before);
+  });
+
   it('saves a version of what it overwrites, which can be restored', async () => {
     await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
     const entry = await prisma.entry.findFirstOrThrow({ where: { slug: 'hello', locale: 'en' } });
@@ -215,7 +266,7 @@ describe('Site export / import (e2e)', () => {
   });
 
   it('still reads a file from before forms were exported', async () => {
-    const { forms, ...old } = bundle;
+    const { forms, webhooks, redirects, ...old } = bundle;
     const res = await request(server).post('/api/site/import?dryRun=true').set(auth).send(old).expect(201);
     expect(res.body).toMatchObject({ valid: true, forms: { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0 } });
   });

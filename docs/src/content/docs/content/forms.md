@@ -210,6 +210,14 @@ Form webhooks are separate from the site-wide [webhooks](/apis/webhooks/), which
 
 Deleting a form deletes all its submissions.
 
+## Export and import
+
+**Export** on the **Forms** page downloads every form as one JSON file, `nodepress-forms-<date>.json`: name, slug, fields, actions, on/off and the captcha setting. Submissions aren't included. The file holds email recipients and webhook settings, so keep it private.
+
+**Import** takes that file and shows what it will do before anything is written. Forms are matched by slug. A match is updated in place and keeps its submissions, or is left alone if you turn off **Update existing forms**. Anything else is created. One invalid form, and nothing is imported. Imported forms use the file's email recipients and webhooks, so check them when moving forms to another site.
+
+To move a whole site, forms included, use [site export and import](/content/site-export/).
+
 ## API
 
 The form management endpoints need a login token. Your site only needs `POST /api/submit/:slug`.

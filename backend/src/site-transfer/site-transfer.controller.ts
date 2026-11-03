@@ -28,7 +28,7 @@ export class SiteTransferController {
 
   @Get('export')
   @SkipThrottle()
-  @ApiOperation({ summary: 'Export choice lists, components, content types, every entry and forms as one JSON file' })
+  @ApiOperation({ summary: 'Export choice lists, components, content types, every entry, forms, webhooks and redirects as one JSON file' })
   async export(@Request() req: any, @Res({ passthrough: true }) res: Response) {
     const bundle = await this.service.export();
     const stamp = bundle.exportedAt.slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
@@ -39,7 +39,7 @@ export class SiteTransferController {
   }
 
   @Post('import')
-  @ApiOperation({ summary: 'Import a site export. ?dryRun=true previews; ?overwrite=false keeps existing types, entries and forms' })
+  @ApiOperation({ summary: 'Import a site export. ?dryRun=true previews; ?overwrite=false keeps existing types, entries, forms, webhooks and redirects' })
   @ApiQuery({ name: 'dryRun', required: false, type: Boolean })
   @ApiQuery({ name: 'overwrite', required: false, type: Boolean })
   async import(
@@ -55,7 +55,7 @@ export class SiteTransferController {
     );
     if (!result.dryRun) {
       const e = result.entries;
-      await this.audit.log(this.actor(req), 'created', 'import', `Site import: ${e.created} entries created, ${e.updated} updated; ${result.forms.created} forms created, ${result.forms.updated} updated`);
+      await this.audit.log(this.actor(req), 'created', 'import', `Site import: ${e.created} entries created, ${e.updated} updated; ${result.forms.created} forms, ${result.webhooks.created} webhooks and ${result.redirects.created} redirects created`);
     }
     return result;
   }

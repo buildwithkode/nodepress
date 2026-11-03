@@ -6,6 +6,7 @@ import { outboundPost } from '../common/outbound-post';
 import { AppCacheService } from '../cache/app-cache.service';
 import { CreateWebhookDto } from './dto/create-webhook.dto';
 import { UpdateWebhookDto } from './dto/update-webhook.dto';
+import type { SiteWebhookWrite } from '../site-transfer/site-bundle';
 
 export type WebhookEvent =
   | 'entry.created'
@@ -47,6 +48,23 @@ export class WebhooksService {
     const hook = await this.prisma.webhook.create({ data: dto });
     await this.forgetHooks();
     return hook;
+  }
+
+  /** Webhooks from a site import: a row with an `id` updates that webhook. Returns what failed. */
+  async writeSiteWebhooks(rows: SiteWebhookWrite[]) {
+    const counts = { created: 0, updated: 0 };
+    const errors: string[] = [];
+    for (const { id, ...data } of rows) {
+      try {
+        if (id === undefined) await this.prisma.webhook.create({ data });
+        else await this.prisma.webhook.update({ where: { id }, data });
+        counts[id === undefined ? 'created' : 'updated']++;
+      } catch (err: any) {
+        errors.push(`Webhook "${data.name}": ${err.message}`);
+      }
+    }
+    await this.forgetHooks();
+    return { ...counts, errors };
   }
 
   async findAll(page = 1, limit = 50) {
