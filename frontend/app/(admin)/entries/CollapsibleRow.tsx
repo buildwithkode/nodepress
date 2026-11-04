@@ -6,6 +6,7 @@ import { ChevronDown, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OPEN_ROW_EVENT } from '@/components/OpenRows';
 import { FoldPanel, FOLD_MS } from '@/components/FoldPanel';
+import { AnimatedRow } from '@/components/AnimatedRow';
 import { cn } from '@/lib/utils';
 
 /** The value shown on a closed row: its title-like text field, or else its first text field. */
@@ -32,6 +33,8 @@ interface Props {
   preview?: string;
   removeLabel: string;
   onRemove: () => void;
+  /** Just added by the editor: slide in. */
+  appear?: boolean;
   children: ReactNode;
 }
 
@@ -40,7 +43,7 @@ interface Props {
  * mounted (only hidden), because React Hook Form skips validation of unmounted inputs, so they
  * are still validated and saved. A failed save opens the rows it failed in.
  */
-export function CollapsibleRow({ path, open, onOpenChange, control, errors, className, dragHandle, title, preview, removeLabel, onRemove, children }: Props) {
+export function CollapsibleRow({ path, open, onOpenChange, control, errors, className, dragHandle, title, preview, removeLabel, onRemove, appear, children }: Props) {
   const rowRef = useRef<HTMLDivElement>(null);
   const hasError = !!get(errors, path);
   const { submitCount } = useFormState({ control });
@@ -68,7 +71,13 @@ export function CollapsibleRow({ path, open, onOpenChange, control, errors, clas
     return () => row.removeEventListener(OPEN_ROW_EVENT, openRow);
   }, []);
 
+  // The latest onRemove: a row slides out first, and its index may have changed by then.
+  const onRemoveRef = useRef(onRemove);
+  onRemoveRef.current = onRemove;
+
   return (
+    <AnimatedRow appear={appear}>
+    {(leave) => (
     <div ref={rowRef} data-np-row={path} className={cn('rounded-md border border-l-4 bg-muted/30 p-3', className)}>
       <div className="flex items-center gap-2">
         {dragHandle}
@@ -87,7 +96,7 @@ export function CollapsibleRow({ path, open, onOpenChange, control, errors, clas
           variant="ghost"
           size="icon-xs"
           className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={onRemove}
+          onClick={() => leave(() => onRemoveRef.current())}
           title={removeLabel}
           aria-label={removeLabel}
         >
@@ -96,5 +105,7 @@ export function CollapsibleRow({ path, open, onOpenChange, control, errors, clas
       </div>
       <FoldPanel open={open} className="pt-3">{children}</FoldPanel>
     </div>
+    )}
+    </AnimatedRow>
   );
 }

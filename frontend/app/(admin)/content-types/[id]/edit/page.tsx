@@ -509,6 +509,7 @@ export default function EditContentTypePage() {
                     duplicate={dupes.has(editorFieldKey(field))}
                     removeDisabled={fields.length === 1}
                     onRemove={() => removeField(fi)}
+                    appear={rows.isNew(field._id)}
                   >
                   <div className="flex flex-wrap items-start gap-2">
                     <div className="min-w-40 flex-1 space-y-1">

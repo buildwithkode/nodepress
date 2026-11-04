@@ -1,10 +1,11 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
 import { FoldPanel } from '@/components/FoldPanel';
+import { AnimatedRow } from '@/components/AnimatedRow';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -20,6 +21,8 @@ interface Props {
   duplicate?: boolean;
   removeDisabled?: boolean;
   onRemove: () => void;
+  /** Just added by the editor: slide in. */
+  appear?: boolean;
   children: ReactNode;
 }
 
@@ -27,9 +30,14 @@ interface Props {
  * One field of a content type, folding down to its name, key and type. The controls stay mounted
  * when closed (only hidden), so a nested editor keeps its open layouts and row ids.
  */
-export function FieldCardRow({ open, onOpenChange, dragHandle, number, name, fieldKey, type, required, duplicate, removeDisabled, onRemove, children }: Props) {
+export function FieldCardRow({ open, onOpenChange, dragHandle, number, name, fieldKey, type, required, duplicate, removeDisabled, onRemove, appear, children }: Props) {
   const t = useTranslations('contentTypes');
+  // The latest onRemove: a field slides out first, and its index may have changed by then.
+  const onRemoveRef = useRef(onRemove);
+  onRemoveRef.current = onRemove;
   return (
+    <AnimatedRow appear={appear}>
+    {(leave) => (
     <div className="rounded-md border bg-muted/30 p-3">
       <div className="flex items-center gap-2">
         {dragHandle}
@@ -58,7 +66,7 @@ export function FieldCardRow({ open, onOpenChange, dragHandle, number, name, fie
           size="icon-xs"
           className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
           disabled={removeDisabled}
-          onClick={onRemove}
+          onClick={() => leave(() => onRemoveRef.current())}
           title={t('editor.deleteField')}
           aria-label={t('editor.deleteField')}
         >
@@ -67,5 +75,7 @@ export function FieldCardRow({ open, onOpenChange, dragHandle, number, name, fie
       </div>
       <FoldPanel open={open} className="space-y-3 pt-3">{children}</FoldPanel>
     </div>
+    )}
+    </AnimatedRow>
   );
 }

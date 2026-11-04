@@ -9,12 +9,13 @@ export const OPEN_ROW_EVENT = 'nodepress:open-row';
 
 /**
  * Which rows of a list that folds are open. They start closed (or open, with `initiallyOpen`), and a
- * row the editor has just added starts open: call `markAdding()` in the same event that adds it.
+ * row the editor has just added starts open (and `isNew`): call `markAdding()` in the same event that adds it.
  */
 export function useOpenRows(ids: string[], initiallyOpen = false) {
   const [open, setOpen] = useState<ReadonlySet<string>>(() => new Set(initiallyOpen ? ids : []));
   const [seen, setSeen] = useState<ReadonlySet<string>>(() => new Set(ids));
   const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState<ReadonlySet<string>>(() => new Set());
 
   const fresh = ids.filter((id) => !seen.has(id));
   if (fresh.length > 0) {
@@ -22,6 +23,7 @@ export function useOpenRows(ids: string[], initiallyOpen = false) {
     if (adding) {
       setAdding(false);
       setOpen(new Set([...open, ...fresh]));
+      setAdded(new Set([...added, ...fresh]));
     }
   }
 
@@ -34,6 +36,8 @@ export function useOpenRows(ids: string[], initiallyOpen = false) {
     }),
     setAllOpen: (value: boolean) => setOpen(new Set(value ? ids : [])),
     markAdding: () => setAdding(true),
+    /** Added by the editor (via `markAdding`) rather than loaded: such a row slides in. */
+    isNew: (id: string) => added.has(id) || (adding && fresh.includes(id)),
   };
 }
 

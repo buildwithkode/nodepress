@@ -50,6 +50,7 @@ function FlexibleItem({
   errors,
   watch,
   onRemove,
+  appear,
   dragHandle,
   open,
   onOpenChange,
@@ -62,6 +63,7 @@ function FlexibleItem({
   errors: any;
   watch: any;
   onRemove: () => void;
+  appear?: boolean;
   dragHandle?: ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -94,6 +96,7 @@ function FlexibleItem({
       preview={rowPreview(layout?.fields, items[index])}
       removeLabel={t('flexible.removeBlock')}
       onRemove={onRemove}
+      appear={appear}
     >
       {/* Section key: site code reads the section as <field>_by_key.<key> (or by its layout name when used once) */}
       <div className="mb-3">
@@ -207,6 +210,7 @@ export default function FlexibleField({
           errors={errors}
           watch={watch}
           onRemove={() => remove(index)}
+          appear={rows.isNew(item.id)}
           dragHandle={fields.length > 1 ? dragHandle : undefined}
           open={rows.isOpen(item.id)}
           onOpenChange={(open) => rows.setRowOpen(item.id, open)}
