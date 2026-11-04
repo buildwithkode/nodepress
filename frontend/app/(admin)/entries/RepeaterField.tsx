@@ -21,7 +21,7 @@ interface Props {
   watch?: any;
 }
 
-function RepeaterRow({ path, index, subFields, control, register, errors, watch, open, onOpenChange, onRemove, dragHandle }: {
+function RepeaterRow({ path, index, subFields, control, register, errors, watch, open, onOpenChange, onRemove, appear, dragHandle }: {
   path: string;
   index: number;
   subFields: SubField[];
@@ -32,6 +32,7 @@ function RepeaterRow({ path, index, subFields, control, register, errors, watch,
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onRemove: () => void;
+  appear?: boolean;
   dragHandle?: ReactNode;
 }) {
   const t = useTranslations('entryEditor');
@@ -49,6 +50,7 @@ function RepeaterRow({ path, index, subFields, control, register, errors, watch,
       preview={rowPreview(subFields, row)}
       removeLabel={t('repeater.removeItem')}
       onRemove={onRemove}
+      appear={appear}
     >
       <SubFields path={path} fields={subFields} control={control} register={register} errors={errors} watch={watch} />
     </CollapsibleRow>
@@ -93,6 +95,7 @@ export default function RepeaterField({
           open={rows.isOpen(item.id)}
           onOpenChange={(open) => rows.setRowOpen(item.id, open)}
           onRemove={() => remove(index)}
+          appear={rows.isNew(item.id)}
           dragHandle={fields.length > 1 ? dragHandle : undefined}
         />
         )}

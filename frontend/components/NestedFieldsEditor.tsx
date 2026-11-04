@@ -6,6 +6,7 @@ import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-ki
 import { useTranslations } from 'use-intl';
 import { ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { FoldPanel } from '@/components/FoldPanel';
+import { AnimatedRow } from '@/components/AnimatedRow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -173,6 +174,9 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
   const ids = useRef<string[]>([]);
   while (ids.current.length < layouts.length) ids.current.push(`layout-${nextId.current++}`);
   ids.current.length = layouts.length;
+  // Layouts the editor adds after this point slide in; those it loaded with don't.
+  const loaded = useRef(nextId.current);
+  const isNew = (id: string) => Number(id.slice('layout-'.length)) >= loaded.current;
 
   const sensors = useDragSensors();
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
@@ -182,9 +186,14 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
     ids.current = arrayMove(ids.current, from, to);
     onChange(arrayMove(layouts, from, to));
   };
-  const removeLayout = (i: number) => {
+  // By id once it has slid out: its index may have changed by then.
+  const layoutsRef = useRef(layouts);
+  layoutsRef.current = layouts;
+  const removeLayoutId = (id: string) => {
+    const i = ids.current.indexOf(id);
+    if (i < 0) return;
     ids.current = ids.current.filter((_, idx) => idx !== i);
-    onChange(layouts.filter((_, idx) => idx !== i));
+    onChange(layoutsRef.current.filter((_, idx) => idx !== i));
   };
 
   return (
@@ -198,6 +207,8 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
         return (
           <SortableItem key={id} id={id}>
           {(handle) => (
+          <AnimatedRow appear={isNew(id)}>
+          {(leave) => (
           <div className="rounded border bg-background overflow-hidden">
             <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-muted/50">
               {layouts.length > 1 && handle}
@@ -222,7 +233,7 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
                 size="icon-xs"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
                 disabled={layouts.length === 1}
-                onClick={() => removeLayout(li)}
+                onClick={() => leave(() => removeLayoutId(id))}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
@@ -240,6 +251,8 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
               )}
             </FoldPanel>
           </div>
+          )}
+          </AnimatedRow>
           )}
           </SortableItem>
         );
