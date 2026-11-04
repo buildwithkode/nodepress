@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
-import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronDown, ChevronRight, WrapText, Rocket, Globe, Shield, Settings, X, Clock } from 'lucide-react';
+import { ArrowLeft, Braces, Copy, Check, PanelRight, Search, ChevronRight, WrapText, Rocket, Globe, Shield, Settings, X, Clock } from 'lucide-react';
 import { useLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { withCondition } from '@/components/ConditionalField';
 import { pruneEntryData } from '@/lib/prune-entry-data';
+import { FoldPanel } from '@/components/FoldPanel';
 
 interface Field { name: string; type: string; options?: any }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[]; previewUrl?: string | null }
@@ -499,13 +500,10 @@ export default function NewEntryPage() {
                     {(seoTitle || seoDescription || seoImage || seoNoIndex) && (
                       <span className="ml-auto text-[10px] bg-blue-500/15 text-blue-400 rounded px-1.5 py-0.5">{t('seo.customized')}</span>
                     )}
-                    {seoOpen
-                      ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
-                      : <ChevronRight className="h-3.5 w-3.5 ml-auto" />
-                    }
+                    <ChevronRight className={cn('h-3.5 w-3.5 ml-auto transition-transform duration-200', seoOpen && 'rotate-90')} />
                   </button>
 
-                  {seoOpen && (
+                  <FoldPanel open={seoOpen} lazy>
                     <div className="rounded-md border border-border bg-muted/20 p-4 space-y-3 mt-1">
                       <div className="space-y-1.5">
                         <Label htmlFor="seo-title" className="text-xs">{t('seo.title')}</Label>
@@ -553,7 +551,7 @@ export default function NewEntryPage() {
                         <span className="text-xs text-foreground">{t('seo.noIndex')}</span>
                       </label>
                     </div>
-                  )}
+                  </FoldPanel>
                 </div>
               </form>
             )}

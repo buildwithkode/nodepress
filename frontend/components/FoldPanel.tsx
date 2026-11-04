@@ -10,6 +10,8 @@ interface Props {
   open: boolean;
   /** Classes for the content box (spacing between the header and the content goes here, so it folds too). */
   className?: string;
+  /** Don't render the content until it's first opened (it stays mounted after that). */
+  lazy?: boolean;
   children: ReactNode;
 }
 
@@ -19,8 +21,11 @@ interface Props {
  * but is `inert` and invisible, so it can't be tabbed into or read out. While fully open the
  * content isn't clipped, so menus and toolbars inside it can overflow the row.
  */
-export function FoldPanel({ open, className, children }: Props) {
+export function FoldPanel({ open, className, lazy, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const [opened, setOpened] = useState(open);
+  if (open && !opened) setOpened(true);
+  const render = !lazy || opened;
   // Fully open and done animating: only then is overflow let out.
   const [settled, setSettled] = useState(open);
 
@@ -44,7 +49,7 @@ export function FoldPanel({ open, className, children }: Props) {
       )}
     >
       <div className={cn('min-h-0', !settled && 'overflow-hidden')}>
-        <div className={className}>{children}</div>
+        {render && <div className={className}>{children}</div>}
       </div>
     </div>
   );

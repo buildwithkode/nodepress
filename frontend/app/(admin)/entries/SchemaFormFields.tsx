@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { Blocks, ChevronDown, ChevronRight } from 'lucide-react';
+import { Blocks, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { FIELD_GRID, fieldCell } from '@/components/FieldWidth';
 import { FoldPanel } from '@/components/FoldPanel';
+import { cn } from '@/lib/utils';
 
 interface SchemaField { name: string; label?: string; type: string; component?: string; width?: string; options?: any }
 
@@ -66,7 +67,7 @@ export function SchemaFormFields({ schema, renderField }: {
                   onClick={() => setClosed((p) => ({ ...p, [c.key]: open }))}
                   aria-expanded={open}
                 >
-                  {open ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
+                  <ChevronRight className={cn('h-4 w-4 shrink-0 transition-transform duration-200', open && 'rotate-90')} />
                   <span className="flex-1 text-sm font-medium">{c.title}</span>
                   <code className="text-[11px] text-muted-foreground font-mono">{c.component}</code>
                   {c.kind === 'repeater' && (

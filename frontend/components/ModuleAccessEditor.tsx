@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronRight, Loader2, ShieldAlert } from 'lucide-react';
+import { ChevronRight, Loader2, ShieldAlert } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { roleBadgeColor, roleLabel, type RoleInfo } from '@/lib/custom-roles';
 import type { AccessLevel } from '@/lib/access';
+import { FoldPanel } from '@/components/FoldPanel';
 
 /**
  * Users → Permissions → Module access: per role, none / view / edit for each
@@ -290,11 +291,11 @@ export function ModuleAccessEditor({ roles, reloadKey }: { roles: RoleInfo[]; re
                             aria-expanded={showTypes}
                             onClick={() => setShowTypes((v) => !v)}
                           >
-                            {showTypes ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                            <ChevronRight className={cn('h-3.5 w-3.5 transition-transform duration-200', showTypes && 'rotate-90')} />
                             {t('modules.perType')}
                             {overrides > 0 && <Badge variant="secondary" className="text-[10px]">{t('modules.overrides', { count: overrides })}</Badge>}
                           </button>
-                          {showTypes && (
+                          <FoldPanel open={showTypes} lazy>
                             <div className="mt-2 divide-y divide-border rounded-md border border-border bg-muted/20">
                               {contentTypes.map((ct) => {
                                 const overridden = !!ownRow(ct.name);
@@ -321,7 +322,7 @@ export function ModuleAccessEditor({ roles, reloadKey }: { roles: RoleInfo[]; re
                                 );
                               })}
                             </div>
-                          )}
+                          </FoldPanel>
                         </div>
                       )}
                     </div>
