@@ -91,12 +91,12 @@ See [Content types](/content-modeling/content-types/) and [Schema changes](/cont
 | POST | `/api/components` | Admin | Create a component |
 | PUT | `/api/components/:id` | Admin | Update a component and every content type that uses it |
 | DELETE | `/api/components/:id` | Admin | Delete a component (409 while it's used) |
-| GET | `/api/choice-lists?names=a,b` | Public | The named lists |
-| GET | `/api/choice-lists` | Admin | Every list with its usage |
-| GET | `/api/choice-lists/:name` | Public | One list |
-| POST | `/api/choice-lists` | Admin | Create a list |
-| PUT | `/api/choice-lists/:id` | Admin | Update a list and every field that uses it |
-| DELETE | `/api/choice-lists/:id` | Admin | Delete a list (409 while it's used) |
+| GET | `/api/option-lists?names=a,b` | Public | The named lists |
+| GET | `/api/option-lists` | Admin | Every list with its usage |
+| GET | `/api/option-lists/:name` | Public | One list |
+| POST | `/api/option-lists` | Admin | Create a list |
+| PUT | `/api/option-lists/:id` | Admin | Update a list and every field that uses it |
+| DELETE | `/api/option-lists/:id` | Admin | Delete a list (409 while it's used) |
 
 See [Components](/content-modeling/components/) and [Option lists](/content-modeling/choice-lists/).
 
