@@ -5,6 +5,7 @@ import { get, useFormState } from 'react-hook-form';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OPEN_ROW_EVENT } from '@/components/OpenRows';
+import { FoldPanel, FOLD_MS } from '@/components/FoldPanel';
 import { cn } from '@/lib/utils';
 
 /** The value shown on a closed row: its title-like text field, or else its first text field. */
@@ -47,11 +48,12 @@ export function CollapsibleRow({ path, open, onOpenChange, control, errors, clas
   useEffect(() => {
     if (!hasError || open) return;
     onOpenChange(true);
-    // React Hook Form tried to focus the error while it was hidden, so bring the first one into view now.
-    requestAnimationFrame(() => {
+    // React Hook Form tried to focus the error while it was hidden, so bring the first one into view
+    // once the row has slid open (rows above it may be opening too, which moves it).
+    setTimeout(() => {
       const shown = [...(rowRef.current?.closest('form')?.querySelectorAll<HTMLElement>('p.text-destructive, [aria-invalid="true"]') ?? [])];
-      shown.find((el) => el.offsetParent !== null)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
+      shown.find((el) => el.offsetParent !== null && !el.closest('[inert]'))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, FOLD_MS);
     // Only when a save fails or an error appears: a row closed by hand while typing stays closed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasError, submitCount]);
@@ -92,7 +94,7 @@ export function CollapsibleRow({ path, open, onOpenChange, control, errors, clas
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
-      <div className={cn('mt-3', !open && 'hidden')}>{children}</div>
+      <FoldPanel open={open} className="pt-3">{children}</FoldPanel>
     </div>
   );
 }

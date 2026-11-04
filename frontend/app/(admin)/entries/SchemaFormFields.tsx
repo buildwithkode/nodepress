@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { Blocks, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { FIELD_GRID, fieldCell } from '@/components/FieldWidth';
+import { FoldPanel } from '@/components/FoldPanel';
 
 interface SchemaField { name: string; label?: string; type: string; component?: string; width?: string; options?: any }
 
@@ -73,11 +74,11 @@ export function SchemaFormFields({ schema, renderField }: {
                   )}
                 </button>
                 {/* Kept mounted while folded so React Hook Form still validates and submits the fields. */}
-                <div className={open ? 'border-t border-emerald-400/30 px-3 pt-4' : 'hidden'}>
+                <FoldPanel open={open} className="border-t border-emerald-400/30 px-3 pt-4">
                   <div className={FIELD_GRID}>
                     {c.fields.map((f) => <div key={f.name} className={fieldCell(f.width)}>{renderField(f, c.bare)}</div>)}
                   </div>
-                </div>
+                </FoldPanel>
               </div>
             );
           })}
