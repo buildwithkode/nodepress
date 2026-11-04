@@ -1,6 +1,6 @@
 {
   "title": "Exporteren en importeren",
-  "intro": "Verhuis een hele site tussen NodePress-installaties: keuzelijsten, componenten, contenttypes, alle items, in elke taal en status, formulieren, webhooks en doorverwijzingen, in één JSON-bestand.",
+  "intro": "Verhuis een hele site tussen NodePress-installaties: optielijsten, componenten, contenttypes, alle items, in elke taal en status, formulieren, webhooks en doorverwijzingen, in één JSON-bestand.",
   "mediaNote": "Mediabestanden zitten er niet in. Items houden hun afbeeldingslinks, die blijven werken zolang de bestanden op R2, S3, ImageKit of de oude server staan.",
   "exportTitle": "Exporteren",
   "exportText": "Download de hele site als één JSON-bestand. Er zitten ook concepten, formulierinstellingen zoals e-mailontvangers en webhook-secrets in, dus houd het privé.",

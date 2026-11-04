@@ -36,7 +36,8 @@ The other tab, **Field-level (advanced)**, controls single fields. See [Field ac
 | Forms | Forms and their submissions | edit | | |
 | Releases | Batches of scheduled publishing | edit | view | view |
 | Redirects | URL redirects | edit | | |
-| Content model | Content types, components, choice lists and templates | view | view | view |
+| Option lists | Shared lists of options, such as blog categories | edit | view | view |
+| Content model | Content types, components and templates | view | view | view |
 | Languages | Content languages | | | |
 | Users | Invite people and change their roles | | | |
 | API keys | Keys for the public API | | | |

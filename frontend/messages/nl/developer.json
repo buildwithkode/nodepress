@@ -191,7 +191,7 @@
       "redirect": "Doorverwijzingen",
       "component": "Componenten",
       "import": "Imports",
-      "choice_list": "Keuzelijsten"
+      "choice_list": "Optielijsten"
     },
     "colTime": "Tijd",
     "colUser": "Gebruiker",

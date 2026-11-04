@@ -1,6 +1,6 @@
 {
   "title": "Export & import",
-  "intro": "Move a whole site between NodePress installs: choice lists, components, content types, every entry, in every language and status, forms, webhooks and redirects, in one JSON file.",
+  "intro": "Move a whole site between NodePress installs: option lists, components, content types, every entry, in every language and status, forms, webhooks and redirects, in one JSON file.",
   "mediaNote": "Media files aren't included. Entries keep their image links, which keep working while the files stay on R2, S3, ImageKit or the old server.",
   "exportTitle": "Export",
   "exportText": "Download the whole site as one JSON file. It includes drafts, form settings such as email recipients, and webhook secrets, so keep it private.",

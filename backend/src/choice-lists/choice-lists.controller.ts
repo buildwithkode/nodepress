@@ -7,15 +7,17 @@ import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Access } from '../auth/decorators/access.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { AuditService } from '../audit/audit.service';
 import { AccessService } from '../roles/access.service';
+import { normalizeChoiceListName } from './choice-list.util';
 import { ChoiceListsService } from './choice-lists.service';
 import { CreateChoiceListDto, UpdateChoiceListDto } from './dto/choice-list.dto';
 
 /** Short public cache: a CDN or the site's fetch cache absorbs repeat reads. */
 const PUBLIC_CACHE_CONTROL = 'public, max-age=60';
 
-/** `GET /choice-lists?names=…` is public; the plain list (with usage) needs content model access. */
+/** `GET /choice-lists?names=…` is public; the plain list (with usage) needs option list or content model access. */
 @Injectable()
 class PublicNamesOrModelGuard extends JwtAuthGuard {
   constructor(private readonly access: AccessService) {
@@ -26,8 +28,12 @@ class PublicNamesOrModelGuard extends JwtAuthGuard {
     const req = ctx.switchToHttp().getRequest();
     if (typeof req.query?.names === 'string') return true;
     await super.canActivate(ctx); // throws 401 without a valid token
-    if (!(await this.access.allows(req.user, 'content_model', 'view'))) {
-      throw new ForbiddenException('Your role has no access to content model');
+    // Content model too: its editors pick lists for select fields.
+    if (
+      !(await this.access.allows(req.user, 'option_lists', 'view'))
+      && !(await this.access.allows(req.user, 'content_model', 'view'))
+    ) {
+      throw new ForbiddenException('Your role has no access to option lists');
     }
     return true;
   }
@@ -45,7 +51,7 @@ export class ChoiceListsController {
   @Get()
   @ApiBearerAuth('JWT')
   @ApiOperation({
-    summary: 'With ?names=a,b: the named lists (public — name, label, choices). Without: every list with its usage (content model access)',
+    summary: 'With ?names=a,b: the named lists (public — name, label, choices). Without: every list with its usage (option list access)',
   })
   @ApiQuery({ name: 'names', required: false, example: 'gender,country' })
   findAll(@Query('names') names: string | undefined, @Res({ passthrough: true }) res: Response) {
@@ -66,10 +72,10 @@ export class ChoiceListsController {
     return this.lists.publicOne(name);
   }
 
-  // ─── Write routes — content model edit ─────────────────────────────────────────────
+  // ─── Write routes — option list edit; deleting a list is admin only ────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Access('content_model', 'edit')
+  @Access('option_lists', 'edit')
   @ApiBearerAuth('JWT')
   @Post()
   @ApiOperation({ summary: 'Create a choice list' })
@@ -84,7 +90,7 @@ export class ChoiceListsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Access('content_model', 'edit')
+  @Access('option_lists', 'edit')
   @ApiBearerAuth('JWT')
   @Put(':id')
   @ApiOperation({
@@ -93,6 +99,13 @@ export class ChoiceListsController {
   })
   @ApiParam({ name: 'id', type: Number })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateChoiceListDto, @Request() req: any) {
+    // Websites read a list by its name, so renaming one is an admin's call.
+    if (req.user.role !== 'admin' && dto.name !== undefined) {
+      const current = await this.lists.findOne(id);
+      if (normalizeChoiceListName(dto.name) !== current.name) {
+        throw new ForbiddenException('Only admins can rename a list');
+      }
+    }
     const list = await this.lists.update(id, dto, req.user.id);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
@@ -106,7 +119,7 @@ export class ChoiceListsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Access('content_model', 'edit')
+  @Roles('admin')
   @ApiBearerAuth('JWT')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a choice list — 409 while a field uses it' })

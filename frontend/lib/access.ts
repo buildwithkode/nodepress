@@ -26,7 +26,7 @@ const PATH_MODULES: Array<[string, string]> = [
   ['/entries', 'content'],
   ['/content-types', 'content_model'],
   ['/components', 'content_model'],
-  ['/choice-lists', 'content_model'],
+  ['/choice-lists', 'option_lists'],
   ['/releases', 'releases'],
   ['/forms', 'forms'],
   ['/redirects', 'redirects'],

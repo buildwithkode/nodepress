@@ -1,12 +1,12 @@
 {
-  "title": "Elenchi di scelte",
+  "title": "Elenchi di opzioni",
   "description": "Opzioni condivise per i campi di selezione. Ogni campo che usa un elenco segue le tue modifiche e i siti web possono leggere lo stesso elenco dall’API pubblica.",
   "new": "Nuovo elenco",
-  "loadFailed": "Impossibile caricare gli elenchi di scelte",
+  "loadFailed": "Impossibile caricare gli elenchi di opzioni",
   "saveFailed": "Impossibile salvare l’elenco",
   "deleteFailed": "Impossibile eliminare l’elenco",
-  "deleted": "Elenco di scelte eliminato",
-  "empty": "Nessun elenco di scelte. Creane uno per riutilizzare le stesse opzioni in più campi di selezione.",
+  "deleted": "Elenco di opzioni eliminato",
+  "empty": "Nessun elenco di opzioni. Creane uno per riutilizzare le stesse opzioni in più campi di selezione.",
   "more": "+{count} altri",
   "unused": "Non usato",
   "componentUsage": "Componente {name}",
@@ -23,8 +23,8 @@
     "actions": "Azioni"
   },
   "editor": {
-    "newTitle": "Nuovo elenco di scelte",
-    "editTitle": "Modifica elenco di scelte",
+    "newTitle": "Nuovo elenco di opzioni",
+    "editTitle": "Modifica elenco di opzioni",
     "hint": "Le voci salvano il valore; l’editor e i siti mostrano l’etichetta. Se cambi un valore in seguito, le voci mantengono quello vecchio.",
     "label": "Etichetta",
     "labelPlaceholder": "es. Paese",
@@ -41,8 +41,8 @@
     "moveDown": "Sposta giù",
     "remove": "Rimuovi",
     "addChoice": "Aggiungi scelta",
-    "bulkTitle": "Incollane diverse",
-    "bulkHint": "Una per riga: un’etichetta (il valore viene suggerito) oppure valore | etichetta.",
+    "bulkTitle": "Aggiungine diverse insieme",
+    "bulkHint": "Scrivi o incolla un’opzione per riga.",
     "bulkPlaceholder": "Rosso\nBlu scuro\nxl | Extra large",
     "bulkAdd": "Aggiungi all’elenco",
     "bulkAdded": "{count, plural, =0 {Niente di nuovo da aggiungere} one {# scelta aggiunta} other {# scelte aggiunte}}",
@@ -53,22 +53,25 @@
     "nameRequired": "Dai un nome all’elenco",
     "atLeastOne": "Aggiungi almeno una scelta",
     "duplicates": "Ogni valore può comparire una sola volta",
-    "created": "Elenco di scelte creato",
-    "updated": "{count, plural, =0 {Elenco di scelte salvato} one {Elenco di scelte salvato — # tipo di contenuto aggiornato} other {Elenco di scelte salvato — # tipi di contenuto aggiornati}}",
+    "created": "Elenco di opzioni creato",
+    "updated": "{count, plural, =0 {Elenco di opzioni salvato} one {Elenco di opzioni salvato — # tipo di contenuto aggiornato} other {Elenco di opzioni salvato — # tipi di contenuto aggiornati}}",
     "removedInUse": "{count, plural, one {# voce contiene ancora} other {# voci contengono ancora}} un valore rimosso e non supereranno la convalida al prossimo salvataggio: {where}"
   },
   "picker": {
     "source": "Origine delle scelte",
     "typeThem": "Scriverle",
-    "useList": "Usa un elenco di scelte",
-    "list": "Elenco di scelte",
-    "none": "Non ci sono ancora elenchi di scelte.",
+    "useList": "Usa un elenco di opzioni",
+    "list": "Elenco di opzioni",
+    "none": "Non ci sono ancora elenchi di opzioni.",
     "create": "Creane uno",
     "choose": "Scegli un elenco",
     "more": "+{count} altri",
     "editList": "Modifica questo elenco",
     "missing": "L’elenco “{name}” non esiste più — scegline un altro o scrivi le scelte.",
-    "subFieldHint": "Le scelte di questo sottocampo provengono da un elenco di scelte",
-    "typedChoices": "{count, plural, one {# scelta propria} other {# scelte proprie}}"
-  }
+    "subFieldHint": "Le scelte di questo sottocampo provengono da un elenco di opzioni",
+    "typedChoices": "{count, plural, one {# scelta propria} other {# scelte proprie}}",
+    "multiple": "Selezione multipla",
+    "multipleHint": "Le voci possono spuntare più opzioni. Attivalo prima che le voci usino il campo: quelle già salvate dovranno scegliere di nuovo il valore."
+  },
+  "adminOnlyDelete": "Solo gli amministratori possono eliminare un elenco"
 }

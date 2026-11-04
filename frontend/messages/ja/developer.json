@@ -191,7 +191,7 @@
       "redirect": "リダイレクト",
       "component": "コンポーネント",
       "import": "インポート",
-      "choice_list": "選択肢リスト"
+      "choice_list": "オプションリスト"
     },
     "colTime": "日時",
     "colUser": "ユーザー",

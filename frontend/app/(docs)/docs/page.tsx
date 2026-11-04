@@ -93,7 +93,7 @@ const TOPICS: { title: string; pages: [string, string][] }[] = [
   { title: 'Content modeling', pages: [
     ['Content types', 'content-modeling/content-types'], ['Fields', 'content-modeling/fields'],
     ['Repeaters, groups and flexible fields', 'content-modeling/nested-fields'], ['Relations', 'content-modeling/relations'],
-    ['Components', 'content-modeling/components'], ['Choice lists', 'content-modeling/choice-lists'],
+    ['Components', 'content-modeling/components'], ['Option lists', 'content-modeling/choice-lists'],
     ['Conditional fields', 'content-modeling/conditional-fields'], ['Schema changes', 'content-modeling/schema-changes'],
   ] },
   { title: 'Managing content', pages: [

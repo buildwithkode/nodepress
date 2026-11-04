@@ -1,12 +1,12 @@
 {
-  "title": "Keuzelijsten",
+  "title": "Optielijsten",
   "description": "Gedeelde opties voor keuzevelden. Elk veld dat een lijst gebruikt, volgt je wijzigingen, en websites kunnen dezelfde lijst via de openbare API lezen.",
   "new": "Nieuwe lijst",
-  "loadFailed": "De keuzelijsten konden niet worden geladen",
+  "loadFailed": "De optielijsten konden niet worden geladen",
   "saveFailed": "De lijst kon niet worden opgeslagen",
   "deleteFailed": "De lijst kon niet worden verwijderd",
-  "deleted": "Keuzelijst verwijderd",
-  "empty": "Nog geen keuzelijsten. Maak er een om dezelfde opties in meerdere keuzevelden te gebruiken.",
+  "deleted": "Optielijst verwijderd",
+  "empty": "Nog geen optielijsten. Maak er een om dezelfde opties in meerdere keuzevelden te gebruiken.",
   "more": "+{count} meer",
   "unused": "Niet gebruikt",
   "componentUsage": "Component {name}",
@@ -23,8 +23,8 @@
     "actions": "Acties"
   },
   "editor": {
-    "newTitle": "Nieuwe keuzelijst",
-    "editTitle": "Keuzelijst bewerken",
+    "newTitle": "Nieuwe optielijst",
+    "editTitle": "Optielijst bewerken",
     "hint": "Items slaan de waarde op; de editor en websites tonen het label. Als je een waarde later wijzigt, houden items de oude.",
     "label": "Label",
     "labelPlaceholder": "bijv. Land",
@@ -41,8 +41,8 @@
     "moveDown": "Omlaag",
     "remove": "Verwijderen",
     "addChoice": "Keuze toevoegen",
-    "bulkTitle": "Meerdere plakken",
-    "bulkHint": "Eén per regel: een label (de waarde wordt voorgesteld) of waarde | label.",
+    "bulkTitle": "Meerdere tegelijk toevoegen",
+    "bulkHint": "Typ of plak één optie per regel.",
     "bulkPlaceholder": "Rood\nDonkerblauw\nxl | Extra groot",
     "bulkAdd": "Aan de lijst toevoegen",
     "bulkAdded": "{count, plural, =0 {Niets nieuws om toe te voegen} one {# keuze toegevoegd} other {# keuzes toegevoegd}}",
@@ -53,22 +53,25 @@
     "nameRequired": "Geef de lijst een naam",
     "atLeastOne": "Voeg minstens één keuze toe",
     "duplicates": "Elke waarde mag maar één keer voorkomen",
-    "created": "Keuzelijst gemaakt",
-    "updated": "{count, plural, =0 {Keuzelijst opgeslagen} one {Keuzelijst opgeslagen — # contenttype bijgewerkt} other {Keuzelijst opgeslagen — # contenttypes bijgewerkt}}",
+    "created": "Optielijst gemaakt",
+    "updated": "{count, plural, =0 {Optielijst opgeslagen} one {Optielijst opgeslagen — # contenttype bijgewerkt} other {Optielijst opgeslagen — # contenttypes bijgewerkt}}",
     "removedInUse": "{count, plural, one {# item bevat nog} other {# items bevatten nog}} een verwijderde waarde en faalt bij de volgende keer opslaan op de validatie: {where}"
   },
   "picker": {
     "source": "Herkomst van de keuzes",
     "typeThem": "Zelf typen",
-    "useList": "Keuzelijst gebruiken",
-    "list": "Keuzelijst",
-    "none": "Er zijn nog geen keuzelijsten.",
+    "useList": "Optielijst gebruiken",
+    "list": "Optielijst",
+    "none": "Er zijn nog geen optielijsten.",
     "create": "Maak er een",
     "choose": "Kies een lijst",
     "more": "+{count} meer",
     "editList": "Deze lijst bewerken",
     "missing": "De lijst “{name}” bestaat niet meer — kies een andere of typ de keuzes.",
-    "subFieldHint": "De keuzes van dit subveld komen uit een keuzelijst",
-    "typedChoices": "{count, plural, one {# eigen keuze} other {# eigen keuzes}}"
-  }
+    "subFieldHint": "De keuzes van dit subveld komen uit een optielijst",
+    "typedChoices": "{count, plural, one {# eigen keuze} other {# eigen keuzes}}",
+    "multiple": "Meerdere selecteren",
+    "multipleHint": "Items kunnen meerdere opties aanvinken. Zet dit aan voordat items het veld gebruiken: al opgeslagen items moeten hun waarde opnieuw kiezen."
+  },
+  "adminOnlyDelete": "Alleen beheerders kunnen een lijst verwijderen"
 }

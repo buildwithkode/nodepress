@@ -53,6 +53,7 @@ const ALL_NAV_GROUPS: Array<{
       { href: '/content-types', labelKey: 'contentTypes', icon: Layers },
       { href: '/components',    labelKey: 'components',   icon: Blocks },
       { href: '/entries',       labelKey: 'entries',        icon: FileText },
+      { href: '/choice-lists',  labelKey: 'choiceLists',    icon: ListOrdered },
       { href: '/releases',      labelKey: 'releases',       icon: Package },
       { href: '/forms',         labelKey: 'forms',          icon: ClipboardList },
       { href: '/redirects',     labelKey: 'redirects',      icon: Signpost },
@@ -91,7 +92,6 @@ const ALL_NAV_GROUPS: Array<{
       { href: '/languages', labelKey: 'languages', icon: Languages },
       { href: '/server-settings', labelKey: 'serverSettings', icon: Mail },
       { href: '/site-transfer', labelKey: 'siteTransfer', icon: ArrowLeftRight },
-      { href: '/choice-lists', labelKey: 'choiceLists', icon: ListOrdered },
     ],
   },
   {

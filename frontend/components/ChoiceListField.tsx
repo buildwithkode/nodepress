@@ -6,6 +6,7 @@ import { ExternalLink, ListChecks } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -47,6 +48,23 @@ function withList(options: any, list: ChoiceListRow, asText: boolean) {
     choices: asText ? values.join(', ') : values,
     ...(Object.keys(labels).length ? { choiceLabels: labels } : {}),
   };
+}
+
+/** `multiple` on or off: an array of values in entries instead of one value. */
+function SelectSeveral({ options, onChange }: { options: any; onChange: (options: any) => void }) {
+  const t = useTranslations('choiceLists');
+  return (
+    <label className="inline-flex w-fit cursor-pointer items-center gap-2 text-xs text-muted-foreground" title={t('picker.multipleHint')}>
+      <Checkbox
+        checked={!!options?.multiple}
+        onCheckedChange={(on) => {
+          const { multiple: _m, ...rest } = options ?? {};
+          onChange(on ? { ...rest, multiple: true } : rest);
+        }}
+      />
+      {t('picker.multiple')}
+    </label>
+  );
 }
 
 function ListPreview({ list }: { list: ChoiceListRow }) {
@@ -145,6 +163,7 @@ export function SelectChoicesSource({
           )}
         </div>
       )}
+      <div><SelectSeveral options={options} onChange={onChange} /></div>
     </div>
   );
 }
@@ -160,6 +179,7 @@ export function SubFieldChoiceList({ options, onChange }: { options: any; onChan
   const value = options?.choiceList ?? '';
   const typed = !value && Array.isArray(options?.choices) && options.choices.length > 0;
   return (
+    <>
     <Select
       value={value}
       onValueChange={(name) => {
@@ -180,5 +200,7 @@ export function SubFieldChoiceList({ options, onChange }: { options: any; onChan
         )}
       </SelectContent>
     </Select>
+    <SelectSeveral options={options} onChange={onChange} />
+    </>
   );
 }

@@ -167,6 +167,10 @@
           "label": "Inhoud",
           "description": "Items van elk contenttype"
         },
+        "option_lists": {
+          "label": "Optielijsten",
+          "description": "Gedeelde optielijsten, zoals blogcategorieën"
+        },
         "media": {
           "label": "Mediabibliotheek",
           "description": "Bestanden uploaden, ordenen en verwijderen"
@@ -185,7 +189,7 @@
         },
         "content_model": {
           "label": "Contentmodel",
-          "description": "Contenttypes, componenten, keuzelijsten en sjablonen"
+          "description": "Contenttypes, componenten en sjablonen"
         },
         "languages": {
           "label": "Talen",

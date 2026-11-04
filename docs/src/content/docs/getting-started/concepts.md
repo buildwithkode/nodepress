@@ -24,7 +24,7 @@ A **field** is one value an entry holds: a title, a price, an image, a list of F
 
 Fields can contain fields: a **group** holds one fixed set, a **repeater** holds a list of rows, and a **flexible** field holds a list of blocks that can each use a different layout. They nest up to three levels deep. See [Nested fields](/content-modeling/nested-fields/).
 
-Sets of fields you use in several content types can be defined once as a [component](/content-modeling/components/). Option lists you reuse (countries, departments) can be defined once as a [choice list](/content-modeling/choice-lists/).
+Sets of fields you use in several content types can be defined once as a [component](/content-modeling/components/). Option lists you reuse (countries, departments) can be defined once as a [option list](/content-modeling/choice-lists/).
 
 ## Entries
 

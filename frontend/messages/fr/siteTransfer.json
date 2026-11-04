@@ -1,6 +1,6 @@
 {
   "title": "Exporter et importer",
-  "intro": "Déplacez un site entier d'une installation NodePress à une autre : listes de choix, composants, types de contenu, toutes les entrées, dans toutes les langues et tous les statuts, formulaires, webhooks et redirections, en un seul fichier JSON.",
+  "intro": "Déplacez un site entier d'une installation NodePress à une autre : listes d’options, composants, types de contenu, toutes les entrées, dans toutes les langues et tous les statuts, formulaires, webhooks et redirections, en un seul fichier JSON.",
   "mediaNote": "Les fichiers médias ne sont pas inclus. Les entrées gardent leurs liens d'images, qui fonctionnent tant que les fichiers restent sur R2, S3, ImageKit ou l'ancien serveur.",
   "exportTitle": "Exporter",
   "exportText": "Téléchargez tout le site en un seul fichier JSON. Il contient aussi les brouillons, les réglages des formulaires comme les destinataires d'e-mail, et les secrets des webhooks : gardez-le privé.",

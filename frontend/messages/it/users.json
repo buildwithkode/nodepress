@@ -167,6 +167,10 @@
           "label": "Contenuti",
           "description": "Le voci di tutti i tipi di contenuto"
         },
+        "option_lists": {
+          "label": "Elenchi di opzioni",
+          "description": "Elenchi di opzioni condivisi, come le categorie del blog"
+        },
         "media": {
           "label": "Libreria media",
           "description": "Caricare, organizzare ed eliminare file"
@@ -185,7 +189,7 @@
         },
         "content_model": {
           "label": "Modello dei contenuti",
-          "description": "Tipi di contenuto, componenti, liste di scelte e modelli"
+          "description": "Tipi di contenuto, componenti e modelli"
         },
         "languages": {
           "label": "Lingue",

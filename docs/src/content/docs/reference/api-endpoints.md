@@ -69,7 +69,7 @@ See [Authentication](/access-control/authentication/) and [Single sign-on](/acce
 |---|---|---|---|
 | GET | `/api/content-types` | Public view, or signed in for all | List content types. Anonymous callers get only types open to the public API, without `readRoles` fields or `previewUrl` |
 | POST | `/api/content-types` | Admin | Create a content type |
-| GET | `/api/content-types/export` | admin, editor, or an API key with `all` access to `*` | Export content types, components and choice lists as JSON |
+| GET | `/api/content-types/export` | admin, editor, or an API key with `all` access to `*` | Export content types, components and option lists as JSON |
 | POST | `/api/content-types/import` | Admin, or an API key with `all` access to `*` | Import an export bundle (`dryRun` only reports) |
 | GET | `/api/site/export` | Admin, or an API key with `all` access to `*` | Export the content model and every entry as one JSON file ([site export](/content/site-export/)) |
 | POST | `/api/site/import` | Admin, or an API key with `all` access to `*` | Import a site export (`?dryRun=true` only reports, `?overwrite=false` keeps existing content) |
@@ -82,7 +82,7 @@ See [Authentication](/access-control/authentication/) and [Single sign-on](/acce
 
 See [Content types](/content-modeling/content-types/) and [Schema changes](/content-modeling/schema-changes/). The CLI's [schema sync](/cli/schema/) uses export and import.
 
-## Components and choice lists
+## Components and option lists
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
@@ -98,7 +98,7 @@ See [Content types](/content-modeling/content-types/) and [Schema changes](/cont
 | PUT | `/api/choice-lists/:id` | Admin | Update a list and every field that uses it |
 | DELETE | `/api/choice-lists/:id` | Admin | Delete a list (409 while it's used) |
 
-See [Components](/content-modeling/components/) and [Choice lists](/content-modeling/choice-lists/).
+See [Components](/content-modeling/components/) and [Option lists](/content-modeling/choice-lists/).
 
 ## Entries
 

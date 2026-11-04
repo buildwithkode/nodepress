@@ -1,12 +1,12 @@
 {
-  "title": "Listes de choix",
+  "title": "Listes d’options",
   "description": "Des options partagées pour les champs de sélection. Chaque champ qui utilise une liste suit vos modifications, et les sites peuvent lire la même liste depuis l’API publique.",
   "new": "Nouvelle liste",
-  "loadFailed": "Impossible de charger les listes de choix",
+  "loadFailed": "Impossible de charger les listes d’options",
   "saveFailed": "Impossible d’enregistrer la liste",
   "deleteFailed": "Impossible de supprimer la liste",
-  "deleted": "Liste de choix supprimée",
-  "empty": "Aucune liste de choix pour l’instant. Créez-en une pour réutiliser les mêmes options dans plusieurs champs de sélection.",
+  "deleted": "Liste d’options supprimée",
+  "empty": "Aucune liste d’options pour l’instant. Créez-en une pour réutiliser les mêmes options dans plusieurs champs de sélection.",
   "more": "+{count} de plus",
   "unused": "Non utilisée",
   "componentUsage": "Composant {name}",
@@ -23,8 +23,8 @@
     "actions": "Actions"
   },
   "editor": {
-    "newTitle": "Nouvelle liste de choix",
-    "editTitle": "Modifier la liste de choix",
+    "newTitle": "Nouvelle liste d’options",
+    "editTitle": "Modifier la liste d’options",
     "hint": "Les entrées stockent la valeur ; l’éditeur et les sites affichent le libellé. Modifier une valeur plus tard laisse l’ancienne dans les entrées.",
     "label": "Libellé",
     "labelPlaceholder": "ex. Pays",
@@ -41,8 +41,8 @@
     "moveDown": "Descendre",
     "remove": "Retirer",
     "addChoice": "Ajouter un choix",
-    "bulkTitle": "En coller plusieurs",
-    "bulkHint": "Un par ligne : un libellé (sa valeur est proposée), ou valeur | libellé.",
+    "bulkTitle": "En ajouter plusieurs à la fois",
+    "bulkHint": "Saisissez ou collez une option par ligne.",
     "bulkPlaceholder": "Rouge\nBleu foncé\nxl | Très grand",
     "bulkAdd": "Ajouter à la liste",
     "bulkAdded": "{count, plural, =0 {Rien de nouveau à ajouter} one {# choix ajouté} other {# choix ajoutés}}",
@@ -53,22 +53,25 @@
     "nameRequired": "Donnez un nom à la liste",
     "atLeastOne": "Ajoutez au moins un choix",
     "duplicates": "Chaque valeur ne peut apparaître qu’une fois",
-    "created": "Liste de choix créée",
-    "updated": "{count, plural, =0 {Liste de choix enregistrée} one {Liste de choix enregistrée — # type de contenu mis à jour} other {Liste de choix enregistrée — # types de contenu mis à jour}}",
+    "created": "Liste d’options créée",
+    "updated": "{count, plural, =0 {Liste d’options enregistrée} one {Liste d’options enregistrée — # type de contenu mis à jour} other {Liste d’options enregistrée — # types de contenu mis à jour}}",
     "removedInUse": "{count, plural, one {# entrée contient encore} other {# entrées contiennent encore}} une valeur retirée et échoueront à la validation au prochain enregistrement : {where}"
   },
   "picker": {
     "source": "Origine des choix",
     "typeThem": "Les saisir",
-    "useList": "Utiliser une liste de choix",
-    "list": "Liste de choix",
-    "none": "Il n’y a pas encore de liste de choix.",
+    "useList": "Utiliser une liste d’options",
+    "list": "Liste d’options",
+    "none": "Il n’y a pas encore de liste d’options.",
     "create": "En créer une",
     "choose": "Choisir une liste",
     "more": "+{count} de plus",
     "editList": "Modifier cette liste",
     "missing": "La liste « {name} » n’existe plus — choisissez-en une autre ou saisissez les choix.",
-    "subFieldHint": "Les choix de ce sous-champ viennent d’une liste de choix",
-    "typedChoices": "{count, plural, one {# choix saisi} other {# choix saisis}}"
-  }
+    "subFieldHint": "Les choix de ce sous-champ viennent d’une liste d’options",
+    "typedChoices": "{count, plural, one {# choix saisi} other {# choix saisis}}",
+    "multiple": "Sélection multiple",
+    "multipleHint": "Les entrées peuvent cocher plusieurs options. Activez ceci avant que des entrées utilisent le champ : celles déjà enregistrées devront choisir à nouveau leur valeur."
+  },
+  "adminOnlyDelete": "Seuls les administrateurs peuvent supprimer une liste"
 }

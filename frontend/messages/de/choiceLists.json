@@ -1,12 +1,12 @@
 {
-  "title": "Auswahllisten",
+  "title": "Optionslisten",
   "description": "Gemeinsame Optionen für Auswahlfelder. Jedes Feld, das eine Liste nutzt, folgt Ihren Änderungen, und Websites können dieselbe Liste über die öffentliche API lesen.",
   "new": "Neue Liste",
-  "loadFailed": "Die Auswahllisten konnten nicht geladen werden",
+  "loadFailed": "Die Optionslisten konnten nicht geladen werden",
   "saveFailed": "Die Liste konnte nicht gespeichert werden",
   "deleteFailed": "Die Liste konnte nicht gelöscht werden",
-  "deleted": "Auswahlliste gelöscht",
-  "empty": "Noch keine Auswahllisten. Legen Sie eine an, um dieselben Optionen in vielen Auswahlfeldern zu nutzen.",
+  "deleted": "Optionsliste gelöscht",
+  "empty": "Noch keine Optionslisten. Legen Sie eine an, um dieselben Optionen in vielen Auswahlfeldern zu nutzen.",
   "more": "+{count} weitere",
   "unused": "Nicht verwendet",
   "componentUsage": "Komponente {name}",
@@ -23,8 +23,8 @@
     "actions": "Aktionen"
   },
   "editor": {
-    "newTitle": "Neue Auswahlliste",
-    "editTitle": "Auswahlliste bearbeiten",
+    "newTitle": "Neue Optionsliste",
+    "editTitle": "Optionsliste bearbeiten",
     "hint": "Einträge speichern den Wert; Editor und Websites zeigen die Bezeichnung. Wird ein Wert später geändert, behalten Einträge den alten.",
     "label": "Bezeichnung",
     "labelPlaceholder": "z. B. Land",
@@ -41,8 +41,8 @@
     "moveDown": "Nach unten",
     "remove": "Entfernen",
     "addChoice": "Option hinzufügen",
-    "bulkTitle": "Mehrere einfügen",
-    "bulkHint": "Eine pro Zeile: eine Bezeichnung (der Wert wird vorgeschlagen) oder Wert | Bezeichnung.",
+    "bulkTitle": "Mehrere auf einmal hinzufügen",
+    "bulkHint": "Eine Option pro Zeile eingeben oder einfügen.",
     "bulkPlaceholder": "Rot\nDunkelblau\nxl | Extra groß",
     "bulkAdd": "Zur Liste hinzufügen",
     "bulkAdded": "{count, plural, =0 {Nichts Neues hinzuzufügen} one {# Option hinzugefügt} other {# Optionen hinzugefügt}}",
@@ -53,22 +53,25 @@
     "nameRequired": "Geben Sie der Liste einen Namen",
     "atLeastOne": "Fügen Sie mindestens eine Option hinzu",
     "duplicates": "Jeder Wert darf nur einmal vorkommen",
-    "created": "Auswahlliste angelegt",
-    "updated": "{count, plural, =0 {Auswahlliste gespeichert} one {Auswahlliste gespeichert — # Inhaltstyp aktualisiert} other {Auswahlliste gespeichert — # Inhaltstypen aktualisiert}}",
+    "created": "Optionsliste angelegt",
+    "updated": "{count, plural, =0 {Optionsliste gespeichert} one {Optionsliste gespeichert — # Inhaltstyp aktualisiert} other {Optionsliste gespeichert — # Inhaltstypen aktualisiert}}",
     "removedInUse": "{count, plural, one {# Eintrag enthält noch} other {# Einträge enthalten noch}} einen entfernten Wert und schlagen beim nächsten Speichern bei der Validierung fehl: {where}"
   },
   "picker": {
     "source": "Herkunft der Optionen",
     "typeThem": "Eintippen",
-    "useList": "Auswahlliste verwenden",
-    "list": "Auswahlliste",
-    "none": "Es gibt noch keine Auswahllisten.",
+    "useList": "Optionsliste verwenden",
+    "list": "Optionsliste",
+    "none": "Es gibt noch keine Optionslisten.",
     "create": "Eine anlegen",
     "choose": "Liste wählen",
     "more": "+{count} weitere",
     "editList": "Diese Liste bearbeiten",
     "missing": "Die Liste „{name}“ existiert nicht mehr — wählen Sie eine andere oder tippen Sie die Optionen ein.",
-    "subFieldHint": "Die Optionen dieses Unterfelds stammen aus einer Auswahlliste",
-    "typedChoices": "{count, plural, one {# eigene Option} other {# eigene Optionen}}"
-  }
+    "subFieldHint": "Die Optionen dieses Unterfelds stammen aus einer Optionsliste",
+    "typedChoices": "{count, plural, one {# eigene Option} other {# eigene Optionen}}",
+    "multiple": "Mehrfachauswahl",
+    "multipleHint": "Einträge können mehrere Optionen ankreuzen. Schalten Sie dies ein, bevor Einträge das Feld nutzen: Bereits gespeicherte müssen ihren Wert neu wählen."
+  },
+  "adminOnlyDelete": "Nur Administratoren können eine Liste löschen"
 }

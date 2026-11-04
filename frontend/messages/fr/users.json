@@ -167,6 +167,10 @@
           "label": "Contenu",
           "description": "Les entrées de tous les types de contenu"
         },
+        "option_lists": {
+          "label": "Listes d’options",
+          "description": "Listes d’options partagées, comme les catégories de blog"
+        },
         "media": {
           "label": "Médiathèque",
           "description": "Importer, classer et supprimer des fichiers"
@@ -185,7 +189,7 @@
         },
         "content_model": {
           "label": "Modèle de contenu",
-          "description": "Types de contenu, composants, listes de choix et modèles"
+          "description": "Types de contenu, composants et modèles"
         },
         "languages": {
           "label": "Langues",

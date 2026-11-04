@@ -41,8 +41,8 @@
     "moveDown": "下移",
     "remove": "移除",
     "addChoice": "添加选项",
-    "bulkTitle": "批量粘贴",
-    "bulkHint": "每行一个：标签（自动建议值），或 值 | 标签。",
+    "bulkTitle": "批量添加",
+    "bulkHint": "每行输入或粘贴一个选项。",
     "bulkPlaceholder": "红色\n深蓝\nxl | 特大",
     "bulkAdd": "添加到列表",
     "bulkAdded": "{count, plural, =0 {没有可添加的新选项} other {已添加 # 个选项}}",
@@ -69,6 +69,9 @@
     "editList": "编辑此列表",
     "missing": "列表“{name}”已不存在 — 请选择其他列表或手动输入选项。",
     "subFieldHint": "此子字段的选项来自选项列表",
-    "typedChoices": "{count, plural, other {# 个自定义选项}}"
-  }
+    "typedChoices": "{count, plural, other {# 个自定义选项}}",
+    "multiple": "允许多选",
+    "multipleHint": "条目可以勾选多个选项。请在条目使用此字段之前开启：已保存的条目需要重新选择值。"
+  },
+  "adminOnlyDelete": "只有管理员可以删除列表"
 }

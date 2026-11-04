@@ -1,6 +1,6 @@
 {
   "title": "Esporta e importa",
-  "intro": "Sposta un intero sito tra installazioni NodePress: liste di scelte, componenti, tipi di contenuto, tutte le voci, in ogni lingua e stato, moduli, webhook e reindirizzamenti, in un unico file JSON.",
+  "intro": "Sposta un intero sito tra installazioni NodePress: elenchi di opzioni, componenti, tipi di contenuto, tutte le voci, in ogni lingua e stato, moduli, webhook e reindirizzamenti, in un unico file JSON.",
   "mediaNote": "I file multimediali non sono inclusi. Le voci mantengono i link alle immagini, che continuano a funzionare finché i file restano su R2, S3, ImageKit o sul vecchio server.",
   "exportTitle": "Esporta",
   "exportText": "Scarica l'intero sito in un unico file JSON. Contiene anche le bozze, le impostazioni dei moduli come i destinatari email e i segreti dei webhook, quindi tienilo privato.",

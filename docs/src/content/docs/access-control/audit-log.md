@@ -29,7 +29,7 @@ Open **Audit Log**. The newest events come first, 50 per page. Filter by resourc
 |---|---|
 | Entries | created (including translations), updated (including status changes and version restores), deleted (moved to trash), restored from trash |
 | Content types | created, updated, deleted; installed from a [starter template](/content/templates/) |
-| Components, choice lists | created, updated, deleted |
+| Components, option lists | created, updated, deleted |
 | Users | invited (created), invitation resent, role changed, deleted, password changed; signed in through SSO |
 | Roles | created, updated, deleted |
 | API keys | created, revoked |

@@ -28,7 +28,7 @@ const LEVELS: AccessLevel[] = ['none', 'view', 'edit'];
 
 /** Sidebar order; plugin modules go last in their own group. */
 const GROUPS: Array<[string, string[]]> = [
-  ['content', ['content', 'media', 'forms', 'releases', 'redirects']],
+  ['content', ['content', 'option_lists', 'media', 'forms', 'releases', 'redirects']],
   ['structure', ['content_model', 'languages']],
   ['team', ['users', 'api_keys', 'webhooks', 'jobs', 'audit_log', 'plugins']],
   ['settings', ['import', 'brand', 'server_settings']],
