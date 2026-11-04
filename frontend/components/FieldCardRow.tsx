@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
+import { FoldPanel } from '@/components/FoldPanel';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -64,7 +65,7 @@ export function FieldCardRow({ open, onOpenChange, dragHandle, number, name, fie
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
-      <div className={cn('mt-3 space-y-3', !open && 'hidden')}>{children}</div>
+      <FoldPanel open={open} className="space-y-3 pt-3">{children}</FoldPanel>
     </div>
   );
 }
