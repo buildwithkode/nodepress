@@ -29,6 +29,7 @@ export interface FormField {
   placeholder?: string;
   fields?: FormField[];      // group | repeater (recursive)
   validation?: FieldValidation;
+  unique?: boolean;          // top level, single-value types
   _keyDirty?: boolean;       // transient UI flag — stripped on submit
 }
 
@@ -89,6 +90,9 @@ export function blankField(): FormField {
   return { name: '', type: 'text', label: '', required: false };
 }
 
+/** The types that hold one value, so "no duplicates" means something. */
+export const UNIQUE_TYPES: FieldType[] = ['text', 'email', 'phone', 'url', 'number'];
+
 /** Stored field (from API) → builder field: options array → string, recurse, set _keyDirty. */
 export function hydrateField(f: any): FormField {
   return {
@@ -99,6 +103,7 @@ export function hydrateField(f: any): FormField {
     options: Array.isArray(f.options) ? f.options.join(', ') : (f.options ?? ''),
     placeholder: f.placeholder,
     validation: f.validation,
+    unique: !!f.unique,
     fields: Array.isArray(f.fields) ? f.fields.map(hydrateField) : undefined,
     _keyDirty: !!(f.name && String(f.name).trim()),
   };
@@ -183,6 +188,7 @@ export function normalizeField(f: FormField): Record<string, unknown> {
   }
   const validation = cleanValidation(f.validation, f.type);
   if (validation) out.validation = validation;
+  if (f.unique && UNIQUE_TYPES.includes(f.type)) out.unique = true;
 
   return out;
 }

@@ -50,6 +50,8 @@
     "fileDownloadFailed": "Dit bestand kon niet worden gedownload"
   },
   "fieldEditor": {
+    "noDuplicates": "Geen duplicaten",
+    "noDuplicatesHint": "Bewaar één inzending per waarde. Een herhaling krijgt het gewone succesantwoord en wordt niet opgeslagen.",
     "labelPlaceholder": "Label dat de gebruiker ziet",
     "keyCustom": "aangepast",
     "keyAuto": "auto",

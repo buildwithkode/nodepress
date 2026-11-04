@@ -50,6 +50,8 @@
     "fileDownloadFailed": "Não foi possível transferir este ficheiro"
   },
   "fieldEditor": {
+    "noDuplicates": "Sem duplicados",
+    "noDuplicatesHint": "Mantém um único envio por valor. Uma repetição recebe a resposta normal de sucesso e não é guardada.",
     "labelPlaceholder": "Rótulo exibido ao usuário",
     "keyCustom": "personalizada",
     "keyAuto": "automática",

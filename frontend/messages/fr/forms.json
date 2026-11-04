@@ -50,6 +50,8 @@
     "fileDownloadFailed": "Impossible de télécharger ce fichier"
   },
   "fieldEditor": {
+    "noDuplicates": "Sans doublons",
+    "noDuplicatesHint": "Conserve une seule soumission par valeur. Une répétition reçoit la réponse de succès habituelle et n’est pas enregistrée.",
     "labelPlaceholder": "Libellé affiché à l’utilisateur",
     "keyCustom": "perso",
     "keyAuto": "auto",

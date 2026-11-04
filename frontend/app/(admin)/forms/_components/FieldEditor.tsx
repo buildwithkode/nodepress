@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import {
   FormField, FieldType, FieldValidation,
   FIELD_TYPES, HAS_OPTIONS, NESTED_TYPES, OPTION_TYPES, MAX_BUILDER_DEPTH,
-  toFieldKey, blankField, validationRulesFor,
+  toFieldKey, blankField, validationRulesFor, UNIQUE_TYPES,
 } from './field-types';
 import { useTranslations } from 'use-intl';
 
@@ -119,6 +119,17 @@ export default function FieldEditor({ field, depth, canRemove, onChange, onRemov
           <Checkbox checked={!!field.required} onCheckedChange={(c) => set({ required: c === true })} />
           {tc('required')}
         </label>
+
+        {/* No duplicates: submissions are only compared at the top level */}
+        {depth === 1 && UNIQUE_TYPES.includes(field.type) && (
+          <label
+            className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer mt-2.5"
+            title={t('fieldEditor.noDuplicatesHint')}
+          >
+            <Checkbox checked={!!field.unique} onCheckedChange={(c) => set({ unique: c === true })} />
+            {t('fieldEditor.noDuplicates')}
+          </label>
+        )}
 
         {/* Validation toggle */}
         {rules.length > 0 && (
