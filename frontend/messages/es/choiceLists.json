@@ -8,7 +8,7 @@
   "deleted": "Lista de opciones eliminada",
   "empty": "Todavía no hay listas de opciones. Crea una para reutilizar las mismas opciones en varios campos de selección.",
   "more": "+{count} más",
-  "unused": "Sin usar",
+  "unused": "Ningún campo la usa. Los sitios aún pueden leerla.",
   "componentUsage": "Componente {name}",
   "copyUrl": "Copiar URL",
   "edit": "Editar",

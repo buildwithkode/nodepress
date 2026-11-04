@@ -8,7 +8,7 @@
   "deleted": "Optionsliste gelöscht",
   "empty": "Noch keine Optionslisten. Legen Sie eine an, um dieselben Optionen in vielen Auswahlfeldern zu nutzen.",
   "more": "+{count} weitere",
-  "unused": "Nicht verwendet",
+  "unused": "Kein Feld nutzt sie. Websites können sie trotzdem lesen.",
   "componentUsage": "Komponente {name}",
   "copyUrl": "URL kopieren",
   "edit": "Bearbeiten",

@@ -8,7 +8,7 @@
   "deleted": "Liste d’options supprimée",
   "empty": "Aucune liste d’options pour l’instant. Créez-en une pour réutiliser les mêmes options dans plusieurs champs de sélection.",
   "more": "+{count} de plus",
-  "unused": "Non utilisée",
+  "unused": "Aucun champ ne l’utilise. Des sites peuvent encore la lire.",
   "componentUsage": "Composant {name}",
   "copyUrl": "Copier l’URL",
   "edit": "Modifier",

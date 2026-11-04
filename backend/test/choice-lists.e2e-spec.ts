@@ -109,6 +109,18 @@ describe('Choice lists (e2e)', () => {
     await request(server()).get('/api/option-lists/nope').expect(404);
   });
 
+  it('a list name with underscores reads with hyphens in the URL; the name itself keeps them', async () => {
+    const made = await request(server()).post('/api/option-lists').set(auth)
+      .send({ name: 'job_type', label: 'Job type', choices: [{ value: 'full_time', label: 'Full-time' }] }).expect(201);
+    const hyphen = await request(server()).get('/api/option-lists/job-type').expect(200);
+    expect(hyphen.body.name).toBe('job_type');
+    expect(hyphen.body.choices).toEqual([{ value: 'full_time', label: 'Full-time' }]);
+    await request(server()).get('/api/option-lists/job_type').expect(200);
+    const many = await request(server()).get('/api/option-lists?names=job-type').expect(200);
+    expect(many.body.map((l: any) => l.name)).toEqual(['job_type']);
+    await request(server()).delete(`/api/option-lists/${made.body.id}`).set(auth).expect(200);
+  });
+
   it('renaming a label and adding a value updates both content types (and the public read)', async () => {
     const res = await request(server()).put(`/api/option-lists/${listId}`).set(auth).send({
       choices: [{ value: 'female', label: 'Woman' }, { value: 'male', label: 'Male' }, { value: 'other' }, { value: 'nonbinary', label: 'Non-binary' }],

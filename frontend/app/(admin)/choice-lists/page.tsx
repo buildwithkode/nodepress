@@ -57,6 +57,9 @@ const toDraft = (l: ChoiceList): Draft => ({
 
 const usageCount = (u: Usage) => u.contentTypes.length + u.components.length;
 
+/** A list's public address. Names keep underscores; URLs use hyphens, like content types. */
+const endpointPath = (name: string) => `/api/option-lists/${name.replace(/_/g, '-')}`;
+
 export default function ChoiceListsPage() {
   const t = useTranslations('choiceLists');
   const editable = useAccess().canEdit('option_lists');
@@ -71,7 +74,7 @@ export default function ChoiceListsPage() {
   const [copiedName, setCopiedName] = useState<string | null>(null);
 
   const copyEndpoint = async (name: string) => {
-    if (!(await copyText(`${window.location.origin}/api/option-lists/${name}`))) return;
+    if (!(await copyText(`${window.location.origin}${endpointPath(name)}`))) return;
     setCopiedName(name);
     setTimeout(() => setCopiedName(null), 2000);
   };
@@ -244,7 +247,7 @@ export default function ChoiceListsPage() {
                     {l.description && <p className="text-xs text-muted-foreground mt-1">{l.description}</p>}
                     <div className="mt-1.5 flex items-center gap-2">
                       <span className="text-xs font-bold font-mono text-emerald-400 shrink-0">GET</span>
-                      <code className="text-xs font-mono truncate">/api/option-lists/{l.name}</code>
+                      <code className="text-xs font-mono truncate">{endpointPath(l.name)}</code>
                       <button
                         type="button"
                         onClick={() => copyEndpoint(l.name)}

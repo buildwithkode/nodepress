@@ -8,7 +8,7 @@
   "deleted": "Optielijst verwijderd",
   "empty": "Nog geen optielijsten. Maak er een om dezelfde opties in meerdere keuzevelden te gebruiken.",
   "more": "+{count} meer",
-  "unused": "Niet gebruikt",
+  "unused": "Geen veld gebruikt hem. Websites kunnen hem nog wel lezen.",
   "componentUsage": "Component {name}",
   "copyUrl": "URL kopiëren",
   "edit": "Bewerken",
