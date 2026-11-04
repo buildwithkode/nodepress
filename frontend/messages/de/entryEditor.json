@@ -205,6 +205,14 @@
     "insertLink": "Link einfügen",
     "editLink": "Link bearbeiten",
     "insertImage": "Bild einfügen (Mediathek, Upload, URL)",
+    "insertTable": "Tabelle einfügen",
+    "table": {
+      "addColumn": "Spalte hinzufügen",
+      "addRow": "Zeile hinzufügen",
+      "deleteColumn": "Spalte löschen",
+      "deleteRow": "Zeile löschen",
+      "deleteTable": "Tabelle löschen"
+    },
     "undo": "Rückgängig (Strg+Z)",
     "redo": "Wiederholen (Strg+Y)",
     "htmlPlaceholder": "HTML-Markup hier eingeben…",

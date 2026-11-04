@@ -5,12 +5,13 @@ import StarterKit from '@tiptap/starter-kit';
 import { Placeholder } from '@tiptap/extensions';
 import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
+import { TableKit } from '@tiptap/extension-table';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, Link2, Undo, Redo,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Quote, Code, Code2, Minus, ImageIcon, Eye, Code as CodeIcon,
-  Maximize2, Minimize2, RemoveFormatting, Clock, FileText,
+  Maximize2, Minimize2, RemoveFormatting, Clock, FileText, Table2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
@@ -106,6 +107,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
       }),
       Placeholder.configure({ placeholder: placeholder || 'Write your editorial story here…' }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TableKit.configure({ table: { resizable: false } }),
       Image.configure({
         inline: false,
         allowBase64: true,
@@ -432,6 +434,12 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
             icon={<ImageIcon className="h-4 w-4" />}
             onClick={() => setMediaModalOpen(true)}
           />
+          <ToolbarButton
+            title={t('richText.insertTable')}
+            icon={<Table2 className="h-4 w-4" />}
+            active={editor.isActive('table')}
+            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+          />
 
           <ToolbarDivider />
 
@@ -448,6 +456,29 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
             disabled={!editor.can().redo()}
             onClick={() => editor.chain().focus().redo().run()}
           />
+        </div>
+      )}
+
+      {/* Table controls, while the cursor is in a table */}
+      {mode === 'visual' && editor.isActive('table') && (
+        <div className="flex flex-wrap items-center gap-1 border-b border-border bg-muted/20 px-2 py-1">
+          {([
+            ['addColumn', () => editor.chain().focus().addColumnAfter().run()],
+            ['addRow', () => editor.chain().focus().addRowAfter().run()],
+            ['deleteColumn', () => editor.chain().focus().deleteColumn().run()],
+            ['deleteRow', () => editor.chain().focus().deleteRow().run()],
+            ['deleteTable', () => editor.chain().focus().deleteTable().run()],
+          ] as const).map(([key, run]) => (
+            <button
+              key={key}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={run}
+              className="rounded px-2 py-0.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              {t(`richText.table.${key}`)}
+            </button>
+          ))}
         </div>
       )}
 

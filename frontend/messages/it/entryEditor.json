@@ -205,6 +205,14 @@
     "insertLink": "Inserisci collegamento",
     "editLink": "Modifica link",
     "insertImage": "Inserisci immagine (libreria, caricamento, URL)",
+    "insertTable": "Inserisci tabella",
+    "table": {
+      "addColumn": "Aggiungi colonna",
+      "addRow": "Aggiungi riga",
+      "deleteColumn": "Elimina colonna",
+      "deleteRow": "Elimina riga",
+      "deleteTable": "Elimina tabella"
+    },
     "undo": "Annulla (Ctrl+Z)",
     "redo": "Ripeti (Ctrl+Y)",
     "htmlPlaceholder": "Inserisci qui il markup HTML…",
