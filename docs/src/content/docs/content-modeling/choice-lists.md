@@ -68,6 +68,8 @@ GET /api/option-lists/department
 GET /api/option-lists?names=department,country   # up to 50 at once
 ```
 
+A name with underscores uses hyphens in the URL: `job_type` is `/api/option-lists/job-type`. The underscore form also works, and the response's `name` stays `job_type`.
+
 ```json
 {
   "name": "department",

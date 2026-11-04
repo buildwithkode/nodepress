@@ -8,7 +8,7 @@
   "deleted": "选项列表已删除",
   "empty": "还没有选项列表。创建一个即可在多个选择字段中复用同一组选项。",
   "more": "另外 {count} 项",
-  "unused": "未使用",
+  "unused": "没有字段使用它。网站可能仍在读取它。",
   "componentUsage": "组件 {name}",
   "copyUrl": "复制 URL",
   "edit": "编辑",

@@ -8,7 +8,7 @@
   "deleted": "Option list deleted",
   "empty": "No option lists yet. Create one to reuse the same options in many select fields.",
   "more": "+{count} more",
-  "unused": "Not used",
+  "unused": "No field uses it. Websites may still read it.",
   "componentUsage": "Component {name}",
   "copyUrl": "Copy URL",
   "edit": "Edit",
