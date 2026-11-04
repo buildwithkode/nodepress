@@ -167,6 +167,10 @@
           "label": "Content",
           "description": "Entries of every content type"
         },
+        "option_lists": {
+          "label": "Option lists",
+          "description": "Shared lists of options, such as blog categories"
+        },
         "media": {
           "label": "Media library",
           "description": "Upload, organise and delete files"
@@ -185,7 +189,7 @@
         },
         "content_model": {
           "label": "Content model",
-          "description": "Content types, components, choice lists and templates"
+          "description": "Content types, components and templates"
         },
         "languages": {
           "label": "Languages",

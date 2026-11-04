@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-The `schema:*` commands save a site's content model (content types, components and choice lists) to a JSON file, show how a site differs from the file, and apply the file to a site. Use them to keep the model in git, review changes in pull requests, and move a model from development to staging to production without rebuilding it by hand.
+The `schema:*` commands save a site's content model (content types, components and option lists) to a JSON file, show how a site differs from the file, and apply the file to a site. Use them to keep the model in git, review changes in pull requests, and move a model from development to staging to production without rebuilding it by hand.
 
 ```bash
 export NODEPRESS_URL=https://cms.example.com
@@ -74,7 +74,7 @@ Writes the site's model to `nodepress.schema.json` in the current folder, or to 
 }
 ```
 
-The file is written for clean git diffs: no export timestamp, content types, components and choice lists sorted by name, and object keys in a fixed order (`name`, `label`, `type` first, then alphabetical). Pulling an unchanged site gives an identical file.
+The file is written for clean git diffs: no export timestamp, content types, components and option lists sorted by name, and object keys in a fixed order (`name`, `label`, `type` first, then alphabetical). Pulling an unchanged site gives an identical file.
 
 :::note
 The file doesn't include a content type's [preview URL](/content-modeling/content-types/#preview-url). Set it on each site.
@@ -107,7 +107,7 @@ Compares the file (default `nodepress.schema.json`, or `--file` / `-f`) with the
 
 | Mark | Meaning |
 |---|---|
-| `+` | New: created on push (a content type, component, choice list or field) |
+| `+` | New: created on push (a content type, component, option list or field) |
 | `~` | Changed: a field's type, required flag or settings, or the content type's display name or allowed methods |
 | `-` | A field the file no longer has |
 | `=` | Unchanged |
@@ -130,8 +130,8 @@ npx create-nodepress-app schema:push [--file <file>] [--yes]
 
 Prints the same diff, asks `Apply these changes to <url>? [y/N]`, then applies the file.
 
-- Only changed content types are sent, so unchanged ones don't get a new [schema version](/content/versions/). New and changed components and choice lists are sent with them.
-- Content types, components and choice lists that are only on the server are **never deleted**.
+- Only changed content types are sent, so unchanged ones don't get a new [schema version](/content/versions/). New and changed components and option lists are sent with them.
+- Content types, components and option lists that are only on the server are **never deleted**.
 - If any content type is invalid, nothing is pushed.
 - Without a terminal (CI), the command refuses to ask: pass `--yes` (`-y`) to push without confirmation.
 

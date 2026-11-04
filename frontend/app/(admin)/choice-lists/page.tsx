@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { useAccess } from '@/lib/use-access';
+import { useAuth } from '@/context/AuthContext';
 
 interface Usage {
   contentTypes: { contentTypeId: number; contentType: string; displayName: string | null; field: string }[];
@@ -57,7 +58,8 @@ const usageCount = (u: Usage) => u.contentTypes.length + u.components.length;
 
 export default function ChoiceListsPage() {
   const t = useTranslations('choiceLists');
-  const editable = useAccess().canEdit('content_model');
+  const editable = useAccess().canEdit('option_lists');
+  const isAdmin = useAuth().user?.role === 'admin';
   const [lists, setLists] = useState<ChoiceList[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -273,8 +275,8 @@ export default function ChoiceListsPage() {
                     <Button
                       variant="ghost" size="icon-sm"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      disabled={!editable || usageCount(l.usage) > 0}
-                      title={usageCount(l.usage) > 0 ? t('inUse') : t('delete')}
+                      disabled={!isAdmin || usageCount(l.usage) > 0}
+                      title={!isAdmin ? t('adminOnlyDelete') : usageCount(l.usage) > 0 ? t('inUse') : t('delete')}
                       onClick={() => setDeleting(l)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -310,6 +312,7 @@ export default function ChoiceListsPage() {
                   <Input
                     value={draft.name}
                     className="font-mono"
+                    disabled={!!draft.id && !isAdmin}
                     onChange={(e) => { setNameTouched(true); patch({ name: e.target.value }); }}
                   />
                   <p className="text-xs text-muted-foreground">{draft.id ? t('editor.renameHint') : t('editor.nameHint')}</p>

@@ -1,6 +1,6 @@
 {
   "title": "Export & Import",
-  "intro": "Eine ganze Website zwischen NodePress-Installationen umziehen: Auswahllisten, Komponenten, Inhaltstypen, alle Einträge, in allen Sprachen und Status, Formulare, Webhooks und Weiterleitungen, in einer JSON-Datei.",
+  "intro": "Eine ganze Website zwischen NodePress-Installationen umziehen: Optionslisten, Komponenten, Inhaltstypen, alle Einträge, in allen Sprachen und Status, Formulare, Webhooks und Weiterleitungen, in einer JSON-Datei.",
   "mediaNote": "Mediendateien sind nicht enthalten. Einträge behalten ihre Bildlinks, die funktionieren, solange die Dateien auf R2, S3, ImageKit oder dem alten Server bleiben.",
   "exportTitle": "Export",
   "exportText": "Die ganze Website als eine JSON-Datei herunterladen. Sie enthält auch Entwürfe, Formulareinstellungen wie E-Mail-Empfänger und Webhook-Secrets, also vertraulich behandeln.",

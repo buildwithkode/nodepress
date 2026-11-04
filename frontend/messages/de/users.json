@@ -167,6 +167,10 @@
           "label": "Inhalte",
           "description": "Einträge aller Inhaltstypen"
         },
+        "option_lists": {
+          "label": "Optionslisten",
+          "description": "Gemeinsame Optionslisten, zum Beispiel Blog-Kategorien"
+        },
         "media": {
           "label": "Medienbibliothek",
           "description": "Dateien hochladen, ordnen und löschen"
@@ -185,7 +189,7 @@
         },
         "content_model": {
           "label": "Inhaltsmodell",
-          "description": "Inhaltstypen, Komponenten, Auswahllisten und Vorlagen"
+          "description": "Inhaltstypen, Komponenten und Vorlagen"
         },
         "languages": {
           "label": "Sprachen",

@@ -60,7 +60,7 @@
     "options": "Opties (kommagescheiden)",
     "optionsPickMany": "meerdere kiezen",
     "optionsRadio": "keuzerondjes",
-    "optionsDropdown": "keuzelijst",
+    "optionsDropdown": "optielijst",
     "optionsPlaceholder": "Optie A, Optie B, Optie C",
     "validation": "Validatie",
     "rules": {
@@ -91,7 +91,7 @@
     "date": "Datum",
     "datetime": "Datum & tijd",
     "boolean": "Boolean (ja/nee)",
-    "select": "Keuzelijst (dropdown)",
+    "select": "Optielijst (dropdown)",
     "radio": "Keuzerondje (één keuze)",
     "multiselect": "Meerkeuze",
     "tags": "Tags (vrije invoer)",

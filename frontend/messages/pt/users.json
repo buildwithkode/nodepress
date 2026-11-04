@@ -167,6 +167,10 @@
           "label": "Conteúdo",
           "description": "Entradas de todos os tipos de conteúdo"
         },
+        "option_lists": {
+          "label": "Listas de opções",
+          "description": "Listas de opções partilhadas, como as categorias do blogue"
+        },
         "media": {
           "label": "Biblioteca de mídia",
           "description": "Enviar, organizar e excluir arquivos"
@@ -185,7 +189,7 @@
         },
         "content_model": {
           "label": "Modelo de conteúdo",
-          "description": "Tipos de conteúdo, componentes, listas de opções e modelos"
+          "description": "Tipos de conteúdo, componentes e modelos"
         },
         "languages": {
           "label": "Idiomas",

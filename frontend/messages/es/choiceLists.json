@@ -41,8 +41,8 @@
     "moveDown": "Bajar",
     "remove": "Quitar",
     "addChoice": "Añadir opción",
-    "bulkTitle": "Pegar varias",
-    "bulkHint": "Una por línea: una etiqueta (se sugiere su valor) o valor | etiqueta.",
+    "bulkTitle": "Añadir varias a la vez",
+    "bulkHint": "Escribe o pega una opción por línea.",
     "bulkPlaceholder": "Rojo\nAzul oscuro\nxl | Extragrande",
     "bulkAdd": "Añadir a la lista",
     "bulkAdded": "{count, plural, =0 {Nada nuevo que añadir} one {# opción añadida} other {# opciones añadidas}}",
@@ -69,6 +69,9 @@
     "editList": "Editar esta lista",
     "missing": "La lista «{name}» ya no existe: elige otra o escribe las opciones.",
     "subFieldHint": "Las opciones de este subcampo vienen de una lista de opciones",
-    "typedChoices": "{count, plural, one {# opción propia} other {# opciones propias}}"
-  }
+    "typedChoices": "{count, plural, one {# opción propia} other {# opciones propias}}",
+    "multiple": "Selección múltiple",
+    "multipleHint": "Las entradas pueden marcar varias opciones. Actívalo antes de que las entradas usen el campo: las ya guardadas tendrán que elegir de nuevo su valor."
+  },
+  "adminOnlyDelete": "Solo los administradores pueden eliminar una lista"
 }

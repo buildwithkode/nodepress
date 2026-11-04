@@ -1,22 +1,24 @@
 ---
-title: Choice lists
+title: Option lists
 description: Shared option lists for select fields — define countries, departments or genders once and use them everywhere.
 sidebar:
   order: 6
 ---
 
-A **choice list** is a set of options for `select` fields kept in one place, so every content type offers the same choices. Edit the list, and every field using it follows.
+A **option list** is a set of options for `select` fields kept in one place, so every content type offers the same choices. Edit the list, and every field using it follows.
 
-Manage them under **Settings → Choice lists** (admins only). Each choice has a **value**, which entries store, and an optional **label**, which editors see.
+Manage them under **Content → Option Lists**. Editors can add and change lists; renaming or deleting a list is for admins, because websites read a list by its name. Each option has a **value**, which entries store, and an optional **label**, which editors and websites show. Change a label freely: entries keep the value. A changed value leaves entries holding the old one.
 
-![The Edit choice list dialog with labels, stored values and the Paste several box](../../../assets/screenshots/choice-list-editor.png)
+Tick **Select several** on a select field to let entries pick more than one option; they then store a list of values.
+
+![The Edit option list dialog with labels, stored values and the Add many at once box](../../../assets/screenshots/choice-list-editor.png)
 
 ## Using a list
 
 A select field takes its choices either typed on the field (`options.choices`) or from a list (`options.choiceList`):
 
 ```jsonc
-// Settings → Choice lists → "Department"
+// Content → Option Lists → "Department"
 {
   "name": "department",
   "label": "Department",
@@ -51,7 +53,7 @@ This works wherever a select field can be: at the top level, inside repeaters, g
 
 ## Editing a list
 
-- Add choices one at a time, or paste several, one per line: `Label`, or `value | Label`. Drag to reorder.
+- Add options one at a time, or use **Add many at once**: one per line, as `Label` or `value | Label`. Drag to reorder.
 - Saving updates every content type and component that uses the list.
 - Removing a value doesn't change existing entries. The response reports how many entries still hold removed values (`removedValuesInUse`), and those entries fail validation on their next save until someone picks a new value.
 - A list that a field uses can't be deleted (`409`). Switch those fields to their own choices first.
@@ -87,4 +89,4 @@ The `?names=` form returns an array of lists.
 | `PUT /api/choice-lists/:id` | updates it and everything using it; returns `updatedContentTypes`, `updatedComponents`, `removedValues`, `removedValuesInUse`, `propagationErrors` | admin |
 | `DELETE /api/choice-lists/:id` | deletes it (`409` while a field uses it) | admin |
 
-Schema exports and the `schema:pull` / `schema:push` CLI include choice lists.
+Schema exports and the `schema:pull` / `schema:push` CLI include option lists.

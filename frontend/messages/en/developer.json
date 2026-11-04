@@ -191,7 +191,7 @@
       "redirect": "Redirects",
       "component": "Components",
       "import": "Imports",
-      "choice_list": "Choice lists"
+      "choice_list": "Option lists"
     },
     "colTime": "Time",
     "colUser": "User",

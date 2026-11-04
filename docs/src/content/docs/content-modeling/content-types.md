@@ -69,8 +69,8 @@ The page lists every content type at once. Search results come in pages and can'
 | Action | What it does |
 |---|---|
 | **Duplicate** | Copies the schema to a new content type. |
-| **Export JSON** | Downloads the schema, the components and choice lists it uses, and its preview URL. |
-| **Import JSON** | On the New Content Type page: creates or updates content types from an export, after a dry run. Components and choice lists are imported first. |
+| **Export JSON** | Downloads the schema, the components and option lists it uses, and its preview URL. |
+| **Import JSON** | On the New Content Type page: creates or updates content types from an export, after a dry run. Components and option lists are imported first. |
 | **Start from a template** | Creates a ready-made blog, agency or docs setup, optionally with sample entries. |
 | **Delete** | Deletes the content type **and all its entries**. |
 

@@ -38,8 +38,7 @@ describe('Choice lists (e2e)', () => {
       .send({ name: 'dupes', label: 'D', choices: ['a', 'a'] }).expect(400);
     expect(bad.body.errors).toEqual(['choices[1].value "a": duplicate value']);
     await request(server()).post('/api/choice-lists').set(auth).send({ name: 'empty', label: 'E', choices: [] }).expect(400);
-    await request(server()).post('/api/choice-lists').set(editorAuth).send({ name: 'x', label: 'X', choices: ['a'] }).expect(403);
-    await request(server()).get('/api/choice-lists').set(editorAuth).expect(200); // Content model: view
+    await request(server()).get('/api/choice-lists').set(editorAuth).expect(200);
     await request(server()).get('/api/choice-lists').expect(401);
   });
 
@@ -202,5 +201,22 @@ describe('Choice lists (e2e)', () => {
     const res = await request(server()).get('/api/audit-log?resource=choice_list').set(auth).expect(200);
     const rows = Array.isArray(res.body) ? res.body : res.body.data;
     expect(rows.map((r: any) => r.action)).toEqual(expect.arrayContaining(['created', 'updated']));
+  });
+
+  it('editors manage options; renaming and deleting a list stay with admins', async () => {
+    const made = await request(server()).post('/api/choice-lists').set(editorAuth)
+      .send({ name: 'sizes', label: 'Sizes', choices: [{ value: 's', label: 'Small' }] }).expect(201);
+    const id = made.body.id;
+
+    const edited = await request(server()).put(`/api/choice-lists/${id}`).set(editorAuth)
+      .send({ name: 'sizes', label: 'Shirt sizes', choices: [{ value: 's', label: 'Little' }, { value: 'm', label: 'Medium' }] }).expect(200);
+    expect(edited.body.label).toBe('Shirt sizes');
+    expect(edited.body.choices).toHaveLength(2);
+
+    await request(server()).put(`/api/choice-lists/${id}`).set(editorAuth).send({ name: 'renamed' }).expect(403);
+    await request(server()).delete(`/api/choice-lists/${id}`).set(editorAuth).expect(403);
+
+    await request(server()).put(`/api/choice-lists/${id}`).set(auth).send({ name: 'renamed' }).expect(200);
+    await request(server()).delete(`/api/choice-lists/${id}`).set(auth).expect(200);
   });
 });

@@ -27,6 +27,8 @@ const none = { editor: 'none', contributor: 'none', viewer: 'none' } as const;
 export const CORE_MODULES: AccessModuleDef[] = [
   { key: 'content', label: 'Content', description: 'Entries of every content type',
     defaults: { editor: 'edit', contributor: 'edit', viewer: 'view' } },
+  { key: 'option_lists', label: 'Option lists', description: 'Shared lists of options, such as blog categories',
+    defaults: { editor: 'edit', contributor: 'view', viewer: 'view' } },
   { key: 'media', label: 'Media library', description: 'Upload, organise and delete files',
     defaults: { editor: 'edit', contributor: 'view', viewer: 'view' } },
   { key: 'forms', label: 'Forms', description: 'Forms and their submissions',
@@ -35,7 +37,7 @@ export const CORE_MODULES: AccessModuleDef[] = [
     defaults: { editor: 'edit', contributor: 'view', viewer: 'view' } },
   { key: 'redirects', label: 'Redirects', description: 'URL redirects',
     defaults: { editor: 'edit', contributor: 'none', viewer: 'none' } },
-  { key: 'content_model', label: 'Content model', description: 'Content types, components, choice lists and templates',
+  { key: 'content_model', label: 'Content model', description: 'Content types, components and templates',
     defaults: { editor: 'view', contributor: 'view', viewer: 'view' } },
   { key: 'languages', label: 'Languages', description: 'Content languages', defaults: none },
   { key: 'users', label: 'Users', description: 'Invite people and change their roles', defaults: none },

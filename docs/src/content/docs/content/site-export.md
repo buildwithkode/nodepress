@@ -1,11 +1,11 @@
 ---
 title: Site export and import
-description: Move a whole site between NodePress installs in one JSON file, with content types, components, choice lists, every entry, forms, webhooks and redirects, without breaking relations.
+description: Move a whole site between NodePress installs in one JSON file, with content types, components, option lists, every entry, forms, webhooks and redirects, without breaking relations.
 sidebar:
   order: 12
 ---
 
-A site export is one JSON file with everything that makes up your content: choice lists, components, content types, every entry, in every language and status (drafts and archived entries included, the trash left out), forms, webhooks and redirects. Importing it into another NodePress install rebuilds the site there, or brings an existing one up to date. Typical uses: setting up a staging site from production, moving to a new server, or keeping a copy of the content outside the database.
+A site export is one JSON file with everything that makes up your content: option lists, components, content types, every entry, in every language and status (drafts and archived entries included, the trash left out), forms, webhooks and redirects. Importing it into another NodePress install rebuilds the site there, or brings an existing one up to date. Typical uses: setting up a staging site from production, moving to a new server, or keeping a copy of the content outside the database.
 
 Admins open **Settings → Export & import**. The [CLI](#from-the-command-line) does the same from a terminal or a script.
 
@@ -13,7 +13,7 @@ Admins open **Settings → Export & import**. The [CLI](#from-the-command-line) 
 
 | Included | Not included |
 |---|---|
-| Choice lists, components and content types, as in a [schema export](/cli/schema/) | Media files: entries keep their image and file links |
+| Option lists, components and content types, as in a [schema export](/cli/schema/) | Media files: entries keep their image and file links |
 | Every entry, with its slug, language, status, data, SEO fields, scheduled publish time and public id | Entries in the trash, versions and history |
 | The site's languages | Users, roles, API keys and settings |
 | [Forms](/content/forms/): name, slug, fields, actions, on/off and captcha setting | Form submissions and uploaded form files |
@@ -36,7 +36,7 @@ Click **Download export**. The file is named `nodepress-site-<date>.json`.
 
 How the import matches things:
 
-- **Content types, components and choice lists** are matched by name, exactly like a [schema push](/cli/schema/).
+- **Content types, components and option lists** are matched by name, exactly like a [schema push](/cli/schema/).
 - **Entries** are matched by content type, slug and language. A match is updated, or restored if it's in the trash. Anything else is created.
 - **Forms** are matched by slug. A match is updated in place, so it keeps its submissions. Anything else is created. Actions are imported as they are, so a staging site built from production emails the same recipients and calls the same webhooks until you change them.
 - **Webhooks** are matched by name and URL, so a webhook with a new address is a new webhook. They start sending as soon as the import finishes, and the preview lists the addresses. On a test copy of a live site, change or switch them off right after importing.

@@ -84,7 +84,7 @@ Options go in an `options` object.
   "options": { "choices": ["news", "guides", "releases"], "multiple": false } }
 ```
 
-Entries store the value. With `multiple: true` they store a list of values. Instead of typing choices on every field, point several fields at one shared list with `"choiceList": "category"`. See [Choice lists](/content-modeling/choice-lists/).
+Entries store the value. With `multiple: true` they store a list of values. Instead of typing choices on every field, point several fields at one shared list with `"choiceList": "category"`. See [Option lists](/content-modeling/choice-lists/).
 
 ### Image
 

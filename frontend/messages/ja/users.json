@@ -167,6 +167,10 @@
           "label": "コンテンツ",
           "description": "すべてのコンテンツタイプのエントリー"
         },
+        "option_lists": {
+          "label": "オプションリスト",
+          "description": "ブログのカテゴリなど、共有のオプションリスト"
+        },
         "media": {
           "label": "メディアライブラリ",
           "description": "ファイルのアップロード、整理、削除"
@@ -185,7 +189,7 @@
         },
         "content_model": {
           "label": "コンテンツモデル",
-          "description": "コンテンツタイプ、コンポーネント、選択肢リスト、テンプレート"
+          "description": "コンテンツタイプ、コンポーネント、テンプレート"
         },
         "languages": {
           "label": "言語",
