@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, ListOrdered, ArrowUp, ArrowDown, Loader2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, ListOrdered, ArrowUp, ArrowDown, Loader2, X, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
+import { copyText } from '@/lib/copy-text';
 import { ctLabel } from '@/lib/utils';
 import { invalidateChoiceLists, type ChoiceListRow } from '@/components/ChoiceListField';
 import { Button } from '@/components/ui/button';
@@ -67,10 +68,17 @@ export default function ChoiceListsPage() {
   const [bulk, setBulk] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<ChoiceList | null>(null);
+  const [copiedName, setCopiedName] = useState<string | null>(null);
+
+  const copyEndpoint = async (name: string) => {
+    if (!(await copyText(`${window.location.origin}/api/option-lists/${name}`))) return;
+    setCopiedName(name);
+    setTimeout(() => setCopiedName(null), 2000);
+  };
 
   const load = async () => {
     try {
-      const res = await api.get('/choice-lists');
+      const res = await api.get('/option-lists');
       setLists(res.data ?? []);
       return res.data as ChoiceList[];
     } catch {
@@ -151,7 +159,7 @@ export default function ChoiceListsPage() {
     setSaving(true);
     try {
       if (draft.id) {
-        const res = await api.put(`/choice-lists/${draft.id}`, body);
+        const res = await api.put(`/option-lists/${draft.id}`, body);
         toast.success(t('editor.updated', { count: res.data.updatedContentTypes?.length ?? 0 }));
         const inUse: { contentType: string; field: string; entries: number }[] = res.data.removedValuesInUse ?? [];
         if (inUse.length) {
@@ -162,12 +170,13 @@ export default function ChoiceListsPage() {
         }
         if (res.data.propagationErrors?.length) toast.error(res.data.propagationErrors.join('; '));
       } else {
-        await api.post('/choice-lists', body);
+        await api.post('/option-lists', body);
         toast.success(t('editor.created'));
       }
       invalidateChoiceLists();
-      setDraft(null);
+      // Closed only once the list is fresh: reopening a stale row and saving would undo this save.
       await load();
+      setDraft(null);
     } catch (err: any) {
       toast.error(err.response?.data?.errors?.join('; ') || err.response?.data?.message || t('saveFailed'));
     } finally {
@@ -178,7 +187,7 @@ export default function ChoiceListsPage() {
   const confirmDelete = async () => {
     if (!deleting) return;
     try {
-      await api.delete(`/choice-lists/${deleting.id}`);
+      await api.delete(`/option-lists/${deleting.id}`);
       toast.success(t('deleted'));
       invalidateChoiceLists();
       await load();
@@ -233,6 +242,21 @@ export default function ChoiceListsPage() {
                     <div className="font-medium">{l.label}</div>
                     <code className="text-xs text-muted-foreground font-mono">{l.name}</code>
                     {l.description && <p className="text-xs text-muted-foreground mt-1">{l.description}</p>}
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <span className="text-xs font-bold font-mono text-emerald-400 shrink-0">GET</span>
+                      <code className="text-xs font-mono truncate">/api/option-lists/{l.name}</code>
+                      <button
+                        type="button"
+                        onClick={() => copyEndpoint(l.name)}
+                        className="p-1 rounded hover:bg-muted shrink-0"
+                        title={t('copyUrl')}
+                        aria-label={t('copyUrl')}
+                      >
+                        {copiedName === l.name
+                          ? <Check className="h-3.5 w-3.5 text-green-400" />
+                          : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                      </button>
+                    </div>
                   </TableCell>
                   <TableCell className="align-top py-3">
                     <div className="flex flex-wrap gap-1 max-w-md">

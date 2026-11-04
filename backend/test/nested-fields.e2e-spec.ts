@@ -124,7 +124,7 @@ describe('Nested repeaters, groups and flexible fields (e2e)', () => {
   });
 
   it('lets a component hold a repeater and be used as a flexible layout', async () => {
-    await http().post('/api/choice-lists').set(auth()).send({ name: 'tone', label: 'Tone', choices: ['primary', 'ghost'] }).expect(201);
+    await http().post('/api/option-lists').set(auth()).send({ name: 'tone', label: 'Tone', choices: ['primary', 'ghost'] }).expect(201);
     await http().post('/api/components').set(auth()).send({
       name: 'cta_row', displayName: 'CTA row',
       fields: [

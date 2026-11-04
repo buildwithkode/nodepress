@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'use-intl';
 import { useFetch } from '../../lib/useFetch';
+import { copyText } from '@/lib/copy-text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -99,8 +100,8 @@ export default function DashboardPage() {
   const activeForms         = forms.filter((f) => f.isActive).length;
   const pendingReviewCount  = pendingResp?.meta?.total ?? 0;
 
-  const copyUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
+  const copyUrl = async (url: string) => {
+    if (!(await copyText(url))) return;
     setCopiedUrl(url);
     setTimeout(() => setCopiedUrl(null), 2000);
   };

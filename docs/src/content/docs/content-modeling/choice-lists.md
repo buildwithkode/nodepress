@@ -64,8 +64,8 @@ This works wherever a select field can be: at the top level, inside repeaters, g
 Building a form or a filter? Read the same choices from the public endpoints. No key is needed, and responses are cached for 60 seconds:
 
 ```bash
-GET /api/choice-lists/department
-GET /api/choice-lists?names=department,country   # up to 50 at once
+GET /api/option-lists/department
+GET /api/option-lists?names=department,country   # up to 50 at once
 ```
 
 ```json
@@ -82,11 +82,11 @@ The `?names=` form returns an array of lists.
 
 | Endpoint | Does | Who |
 |---|---|---|
-| `GET /api/choice-lists/:name` | one list | public |
-| `GET /api/choice-lists?names=a,b` | several lists by name (max 50) | public |
-| `GET /api/choice-lists` | every list, with the content types, components and fields using it | admin |
-| `POST /api/choice-lists` | creates one: `{ name, label, description?, choices: [{ value, label? }] }` | admin |
-| `PUT /api/choice-lists/:id` | updates it and everything using it; returns `updatedContentTypes`, `updatedComponents`, `removedValues`, `removedValuesInUse`, `propagationErrors` | admin |
-| `DELETE /api/choice-lists/:id` | deletes it (`409` while a field uses it) | admin |
+| `GET /api/option-lists/:name` | one list | public |
+| `GET /api/option-lists?names=a,b` | several lists by name (max 50) | public |
+| `GET /api/option-lists` | every list, with the content types, components and fields using it | admin |
+| `POST /api/option-lists` | creates one: `{ name, label, description?, choices: [{ value, label? }] }` | admin |
+| `PUT /api/option-lists/:id` | updates it and everything using it; returns `updatedContentTypes`, `updatedComponents`, `removedValues`, `removedValuesInUse`, `propagationErrors` | admin |
+| `DELETE /api/option-lists/:id` | deletes it (`409` while a field uses it) | admin |
 
 Schema exports and the `schema:pull` / `schema:push` CLI include option lists.

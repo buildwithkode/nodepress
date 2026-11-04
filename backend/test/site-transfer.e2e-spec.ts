@@ -67,7 +67,7 @@ describe('Site export / import (e2e)', () => {
     const { port } = server.address() as AddressInfo;
 
     await request(server).put('/api/locales').set(auth).send({ locales: ['en', 'fr'], defaultLocale: 'en' }).expect(200);
-    await request(server).post('/api/choice-lists').set(auth)
+    await request(server).post('/api/option-lists').set(auth)
       .send({ name: 'mood', label: 'Mood', choices: ['calm', 'busy'] }).expect(201);
     const author = await request(server).post('/api/content-types').set(auth)
       .send({ name: 'author', schema: [{ name: 'name', type: 'text' }] }).expect(201);

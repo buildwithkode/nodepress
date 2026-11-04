@@ -21,7 +21,7 @@ export interface ChoiceListRow {
 // One request per page load, shared by every select field editor on the page.
 let cached: Promise<ChoiceListRow[]> | null = null;
 const fetchLists = () => {
-  cached ??= api.get('/choice-lists').then((r) => r.data as ChoiceListRow[]).catch(() => { cached = null; return []; });
+  cached ??= api.get('/option-lists').then((r) => r.data as ChoiceListRow[]).catch(() => { cached = null; return []; });
   return cached;
 };
 /** Forget the cached lists (after the choice lists page changes them). */

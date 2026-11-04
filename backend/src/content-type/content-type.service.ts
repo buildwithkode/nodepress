@@ -37,8 +37,8 @@ const CT_ALL_CACHE_KEY = 'ct:meta:all_content_types';
 // Static /api routes. A content type is served at /api/<name with hyphens>, so
 // one named like these would be shadowed by the route (compared as stored names).
 const RESERVED_NAMES = [
-  'ai', 'api-keys', 'audit-log', 'auth', 'brand', 'choice-lists', 'components', 'content-types', 'entries',
-  'forms', 'graphql', 'health', 'import', 'jobs', 'locales', 'media', 'metrics', 'permissions', 'plugins',
+  'ai', 'api-keys', 'audit-log', 'auth', 'brand', 'components', 'content-types', 'entries',
+  'forms', 'graphql', 'health', 'import', 'jobs', 'locales', 'media', 'metrics', 'option-lists', 'permissions', 'plugins',
   'redirects', 'releases', 'roles', 'search', 'server-settings', 'site', 'submit', 'templates', 'uploads', 'users', 'webhooks',
 ].map(contentTypeName);
 

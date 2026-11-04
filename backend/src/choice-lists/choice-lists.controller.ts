@@ -17,7 +17,7 @@ import { CreateChoiceListDto, UpdateChoiceListDto } from './dto/choice-list.dto'
 /** Short public cache: a CDN or the site's fetch cache absorbs repeat reads. */
 const PUBLIC_CACHE_CONTROL = 'public, max-age=60';
 
-/** `GET /choice-lists?names=…` is public; the plain list (with usage) needs option list or content model access. */
+/** `GET /option-lists?names=…` is public; the plain list (with usage) needs option list or content model access. */
 @Injectable()
 class PublicNamesOrModelGuard extends JwtAuthGuard {
   constructor(private readonly access: AccessService) {
@@ -40,7 +40,7 @@ class PublicNamesOrModelGuard extends JwtAuthGuard {
 }
 
 @ApiTags('Choice lists')
-@Controller('choice-lists')
+@Controller('option-lists')
 export class ChoiceListsController {
   constructor(
     private readonly lists: ChoiceListsService,

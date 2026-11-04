@@ -119,7 +119,7 @@ import { LocalesModule } from './locales/locales.module';
     RealtimeModule,
     ContentTypeModule,
     ComponentsModule,   // Reusable field sets used by group/repeater fields
-    ChoiceListsModule,  // Shared choice lists for select fields (+ public GET /choice-lists)
+    ChoiceListsModule,  // Shared choice lists for select fields (+ public GET /option-lists)
     EntriesModule,
     MediaModule,
     ApiKeysModule,

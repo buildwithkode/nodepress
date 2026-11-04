@@ -25,25 +25,25 @@ describe('Choice lists (e2e)', () => {
 
   const server = () => app.getHttpServer();
 
-  it('POST /api/choice-lists → creates a list (content model edit), validates choices', async () => {
-    const res = await request(server()).post('/api/choice-lists').set(auth).send({
+  it('POST /api/option-lists → creates a list (content model edit), validates choices', async () => {
+    const res = await request(server()).post('/api/option-lists').set(auth).send({
       name: 'Gender', label: 'Gender',
       choices: [{ value: 'female', label: 'Female' }, { value: 'male', label: 'Male' }, { value: 'other' }],
     }).expect(201);
     listId = res.body.id;
     expect(res.body.name).toBe('gender');
 
-    await request(server()).post('/api/choice-lists').set(auth).send({ name: 'gender', label: 'G', choices: ['a'] }).expect(409);
-    const bad = await request(server()).post('/api/choice-lists').set(auth)
+    await request(server()).post('/api/option-lists').set(auth).send({ name: 'gender', label: 'G', choices: ['a'] }).expect(409);
+    const bad = await request(server()).post('/api/option-lists').set(auth)
       .send({ name: 'dupes', label: 'D', choices: ['a', 'a'] }).expect(400);
     expect(bad.body.errors).toEqual(['choices[1].value "a": duplicate value']);
-    await request(server()).post('/api/choice-lists').set(auth).send({ name: 'empty', label: 'E', choices: [] }).expect(400);
-    await request(server()).get('/api/choice-lists').set(editorAuth).expect(200);
-    await request(server()).get('/api/choice-lists').expect(401);
+    await request(server()).post('/api/option-lists').set(auth).send({ name: 'empty', label: 'E', choices: [] }).expect(400);
+    await request(server()).get('/api/option-lists').set(editorAuth).expect(200);
+    await request(server()).get('/api/option-lists').expect(401);
   });
 
-  it('"choice-lists" is a reserved content type name', async () => {
-    await request(server()).post('/api/content-types').set(auth).send({ name: 'choice-lists', schema: [] }).expect(400);
+  it('"option-lists" is a reserved content type name', async () => {
+    await request(server()).post('/api/content-types').set(auth).send({ name: 'option-lists', schema: [] }).expect(400);
   });
 
   it('content types use the list at the top level and in a repeater; the server copies it in', async () => {
@@ -77,7 +77,7 @@ describe('Choice lists (e2e)', () => {
     }).expect(400);
     expect(unknown.body.message).toBe('Unknown choice list: "missing"');
 
-    const list = await request(server()).get('/api/choice-lists').set(auth).expect(200);
+    const list = await request(server()).get('/api/option-lists').set(auth).expect(200);
     expect(list.body[0].usage.contentTypes.map((u: any) => `${u.contentType}.${u.field}`)).toEqual(['family.kids.gender', 'person.gender']);
   });
 
@@ -98,19 +98,19 @@ describe('Choice lists (e2e)', () => {
   });
 
   it('public GET without auth — one list, or several by ?names=', async () => {
-    const one = await request(server()).get('/api/choice-lists/gender').expect(200);
+    const one = await request(server()).get('/api/option-lists/gender').expect(200);
     expect(one.headers['cache-control']).toBe('public, max-age=60');
     expect(one.body).toEqual({
       name: 'gender', label: 'Gender',
       choices: [{ value: 'female', label: 'Female' }, { value: 'male', label: 'Male' }, { value: 'other' }],
     });
-    const many = await request(server()).get('/api/choice-lists?names=gender,nope').expect(200);
+    const many = await request(server()).get('/api/option-lists?names=gender,nope').expect(200);
     expect(many.body.map((l: any) => l.name)).toEqual(['gender']);
-    await request(server()).get('/api/choice-lists/nope').expect(404);
+    await request(server()).get('/api/option-lists/nope').expect(404);
   });
 
   it('renaming a label and adding a value updates both content types (and the public read)', async () => {
-    const res = await request(server()).put(`/api/choice-lists/${listId}`).set(auth).send({
+    const res = await request(server()).put(`/api/option-lists/${listId}`).set(auth).send({
       choices: [{ value: 'female', label: 'Woman' }, { value: 'male', label: 'Male' }, { value: 'other' }, { value: 'nonbinary', label: 'Non-binary' }],
     }).expect(200);
     expect(res.body.updatedContentTypes.map((c: any) => c.name).sort()).toEqual(['family', 'person']);
@@ -125,7 +125,7 @@ describe('Choice lists (e2e)', () => {
     const history = await request(server()).get(`/api/content-types/${ids.person}/schema-history`).set(auth).expect(200);
     expect(history.body.length).toBeGreaterThan(0);
 
-    const pub = await request(server()).get('/api/choice-lists/gender').expect(200);
+    const pub = await request(server()).get('/api/option-lists/gender').expect(200);
     expect(pub.body.choices[0]).toEqual({ value: 'female', label: 'Woman' });
 
     await request(server()).post('/api/entries').set(auth)
@@ -133,7 +133,7 @@ describe('Choice lists (e2e)', () => {
   });
 
   it('removing a value in use reports removedValuesInUse; entries holding it fail on next save', async () => {
-    const res = await request(server()).put(`/api/choice-lists/${listId}`).set(auth).send({
+    const res = await request(server()).put(`/api/option-lists/${listId}`).set(auth).send({
       choices: [{ value: 'female', label: 'Woman' }, { value: 'male', label: 'Male' }, { value: 'nonbinary', label: 'Non-binary' }],
     }).expect(200);
     expect(res.body.removedValues).toEqual(['other']);
@@ -159,7 +159,7 @@ describe('Choice lists (e2e)', () => {
     });
     expect(bad.status).toBe(400);
 
-    await request(server()).put(`/api/choice-lists/${listId}`).set(auth).send({
+    await request(server()).put(`/api/option-lists/${listId}`).set(auth).send({
       choices: [{ value: 'female', label: 'Woman' }, { value: 'male', label: 'Man' }, { value: 'nonbinary', label: 'Non-binary' }],
     }).expect(200).expect((r) => expect(r.body.updatedComponents).toEqual([{ id: comp.body.id, name: 'profile' }]));
     const after = await request(server()).get(`/api/components/${comp.body.id}`).set(auth).expect(200);
@@ -167,7 +167,7 @@ describe('Choice lists (e2e)', () => {
   });
 
   it('DELETE while in use → 409 naming where', async () => {
-    const res = await request(server()).delete(`/api/choice-lists/${listId}`).set(auth).expect(409);
+    const res = await request(server()).delete(`/api/option-lists/${listId}`).set(auth).expect(409);
     expect(res.body.message).toMatch(/family, person, component profile/);
   });
 
@@ -182,7 +182,7 @@ describe('Choice lists (e2e)', () => {
     };
     const dry = await request(server()).post('/api/content-types/import').set(auth).send({ ...bundle, dryRun: true }).expect(201);
     expect(dry.body.valid).toBe(true);
-    await request(server()).get('/api/choice-lists/size').expect(404);
+    await request(server()).get('/api/option-lists/size').expect(404);
     const without = await request(server()).post('/api/content-types/import').set(auth)
       .send({ contentTypes: bundle.contentTypes, dryRun: true }).expect(201);
     expect(without.body.valid).toBe(false);
@@ -204,19 +204,19 @@ describe('Choice lists (e2e)', () => {
   });
 
   it('editors manage options; renaming and deleting a list stay with admins', async () => {
-    const made = await request(server()).post('/api/choice-lists').set(editorAuth)
+    const made = await request(server()).post('/api/option-lists').set(editorAuth)
       .send({ name: 'sizes', label: 'Sizes', choices: [{ value: 's', label: 'Small' }] }).expect(201);
     const id = made.body.id;
 
-    const edited = await request(server()).put(`/api/choice-lists/${id}`).set(editorAuth)
+    const edited = await request(server()).put(`/api/option-lists/${id}`).set(editorAuth)
       .send({ name: 'sizes', label: 'Shirt sizes', choices: [{ value: 's', label: 'Little' }, { value: 'm', label: 'Medium' }] }).expect(200);
     expect(edited.body.label).toBe('Shirt sizes');
     expect(edited.body.choices).toHaveLength(2);
 
-    await request(server()).put(`/api/choice-lists/${id}`).set(editorAuth).send({ name: 'renamed' }).expect(403);
-    await request(server()).delete(`/api/choice-lists/${id}`).set(editorAuth).expect(403);
+    await request(server()).put(`/api/option-lists/${id}`).set(editorAuth).send({ name: 'renamed' }).expect(403);
+    await request(server()).delete(`/api/option-lists/${id}`).set(editorAuth).expect(403);
 
-    await request(server()).put(`/api/choice-lists/${id}`).set(auth).send({ name: 'renamed' }).expect(200);
-    await request(server()).delete(`/api/choice-lists/${id}`).set(auth).expect(200);
+    await request(server()).put(`/api/option-lists/${id}`).set(auth).send({ name: 'renamed' }).expect(200);
+    await request(server()).delete(`/api/option-lists/${id}`).set(auth).expect(200);
   });
 });

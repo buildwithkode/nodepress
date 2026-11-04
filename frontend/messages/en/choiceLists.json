@@ -10,6 +10,7 @@
   "more": "+{count} more",
   "unused": "Not used",
   "componentUsage": "Component {name}",
+  "copyUrl": "Copy URL",
   "edit": "Edit",
   "delete": "Delete",
   "inUse": "In use — switch those fields to their own options first",
