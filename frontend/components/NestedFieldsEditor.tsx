@@ -4,7 +4,8 @@ import { useId, useRef, useState, type ReactNode } from 'react';
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useTranslations } from 'use-intl';
-import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { FoldPanel } from '@/components/FoldPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -201,7 +202,7 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
             <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-muted/50">
               {layouts.length > 1 && handle}
               <Button type="button" variant="ghost" size="icon-sm" onClick={() => setOpen((p) => ({ ...p, [id]: !isOpen }))} className="shrink-0 h-6 w-6">
-                {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                <ChevronRight className={cn('h-3.5 w-3.5 transition-transform duration-200', isOpen && 'rotate-90')} />
               </Button>
               <Input
                 placeholder={t('editor.layoutNamePlaceholder')}
@@ -229,14 +230,15 @@ export function NestedLayouts({ layouts, onChange, depth, actions }: {
             {dupes.has(toFieldKey(layout.name)) && (
               <p className="px-3 py-1.5 border-t text-xs text-destructive">{t('editor.duplicateLayout', { name: toFieldKey(layout.name) })}</p>
             )}
-            {isOpen && layout.component && (
-              <ComponentSubFields component={layout.component} subFields={layout.fields} className="px-3 py-2 border-t" />
-            )}
-            {isOpen && !layout.component && (
-              <div className="px-3 py-2 border-t">
-                <NestedFields kind="layout" bordered={false} fields={layout.fields} depth={depth} onChange={(fields) => set(li, { fields })} />
-              </div>
-            )}
+            <FoldPanel open={isOpen} lazy>
+              {layout.component ? (
+                <ComponentSubFields component={layout.component} subFields={layout.fields} className="px-3 py-2 border-t" />
+              ) : (
+                <div className="px-3 py-2 border-t">
+                  <NestedFields kind="layout" bordered={false} fields={layout.fields} depth={depth} onChange={(fields) => set(li, { fields })} />
+                </div>
+              )}
+            </FoldPanel>
           </div>
           )}
           </SortableItem>

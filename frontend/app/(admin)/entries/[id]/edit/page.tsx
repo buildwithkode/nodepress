@@ -81,6 +81,7 @@ import {
 import { withCondition } from '@/components/ConditionalField';
 import { pruneEntryData } from '@/lib/prune-entry-data';
 import { autosaveSnapshot } from '@/lib/autosave-snapshot';
+import { FoldPanel } from '@/components/FoldPanel';
 
 interface Field { name: string; type: string; options?: any; label?: string }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[]; previewUrl?: string | null }
@@ -947,13 +948,10 @@ export default function EditEntryPage() {
                 {(seoTitle || seoDescription || seoImage || seoNoIndex) && (
                   <span className="ml-auto text-[10px] bg-blue-500/15 text-blue-400 rounded px-1.5 py-0.5">{t('seo.customized')}</span>
                 )}
-                {seoOpen
-                  ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
-                  : <ChevronRight className="h-3.5 w-3.5 ml-auto" />
-                }
+                <ChevronRight className={cn('h-3.5 w-3.5 ml-auto transition-transform duration-200', seoOpen && 'rotate-90')} />
               </button>
 
-              {seoOpen && (
+              <FoldPanel open={seoOpen} lazy>
                 <div className="rounded-md border border-border bg-muted/20 p-4 space-y-3 mt-1">
                   <div className="space-y-1.5">
                     <Label htmlFor="seo-title" className="text-xs">{t('seo.title')}</Label>
@@ -1001,7 +999,7 @@ export default function EditEntryPage() {
                     <span className="text-xs text-foreground">{t('seo.noIndex')}</span>
                   </label>
                 </div>
-              )}
+              </FoldPanel>
             </div>
           </form>
           </div>
@@ -1233,13 +1231,10 @@ export default function EditEntryPage() {
           >
             <History className="h-3.5 w-3.5" />
             <span>{t('versions.title')}</span>
-            {versionsOpen
-              ? <ChevronDown className="h-3.5 w-3.5 ml-auto" />
-              : <ChevronRight className="h-3.5 w-3.5 ml-auto" />
-            }
+            <ChevronRight className={cn('h-3.5 w-3.5 ml-auto transition-transform duration-200', versionsOpen && 'rotate-90')} />
           </button>
 
-          {versionsOpen && (
+          <FoldPanel open={versionsOpen} lazy>
             <div className="mt-3 space-y-1">
               {versionsLoading && (
                 <p className="text-xs text-muted-foreground py-2">{tc('loading')}</p>
@@ -1276,7 +1271,7 @@ export default function EditEntryPage() {
                 </div>
               ))}
             </div>
-          )}
+          </FoldPanel>
         </div>
 
         <CardFooter className="justify-between gap-2 flex-wrap">

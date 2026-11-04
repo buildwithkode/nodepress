@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronDown, ChevronRight, Inbox, Download } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Inbox, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,8 @@ import { Pagination } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
 import { isSubmittedFile, summarize, toCsv, downloadCsv, CsvField, SubmittedFile } from '../../_components/submission-format';
 import { useTranslations } from 'use-intl';
+import { FoldPanel } from '@/components/FoldPanel';
+import { cn } from '@/lib/utils';
 
 interface Submission {
   id: number;
@@ -243,13 +245,11 @@ export default function SubmissionsPage() {
                   <span className="text-xs text-muted-foreground">
                     {new Date(row.createdAt).toLocaleString()}
                   </span>
-                  {isOpen
-                    ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                  <ChevronRight className={cn('h-4 w-4 text-muted-foreground transition-transform duration-200', isOpen && 'rotate-90')} />
                 </div>
 
                 {/* Expanded detail */}
-                {isOpen && (
+                <FoldPanel open={isOpen} lazy>
                   <div className="px-4 pb-4 bg-muted/10 border-t">
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {Object.entries(row.data).map(([key, val]) => (
@@ -272,7 +272,7 @@ export default function SubmissionsPage() {
                       )}
                     </div>
                   </div>
-                )}
+                </FoldPanel>
               </div>
             );
           })}
