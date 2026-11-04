@@ -205,6 +205,14 @@
     "insertLink": "Insert hyperlink",
     "editLink": "Edit link",
     "insertImage": "Insert media image (Library, Upload, URL)",
+    "insertTable": "Insert table",
+    "table": {
+      "addColumn": "Add column",
+      "addRow": "Add row",
+      "deleteColumn": "Delete column",
+      "deleteRow": "Delete row",
+      "deleteTable": "Delete table"
+    },
     "undo": "Undo (Ctrl+Z)",
     "redo": "Redo (Ctrl+Y)",
     "htmlPlaceholder": "Enter HTML markup here…",

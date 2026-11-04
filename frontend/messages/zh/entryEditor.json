@@ -205,6 +205,14 @@
     "insertLink": "插入超链接",
     "editLink": "编辑链接",
     "insertImage": "插入媒体图片（媒体库、上传、URL）",
+    "insertTable": "插入表格",
+    "table": {
+      "addColumn": "添加列",
+      "addRow": "添加行",
+      "deleteColumn": "删除列",
+      "deleteRow": "删除行",
+      "deleteTable": "删除表格"
+    },
     "undo": "撤销（Ctrl+Z）",
     "redo": "重做（Ctrl+Y）",
     "htmlPlaceholder": "在此输入 HTML 标记…",

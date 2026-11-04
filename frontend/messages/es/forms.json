@@ -50,6 +50,8 @@
     "fileDownloadFailed": "No se pudo descargar este archivo"
   },
   "fieldEditor": {
+    "noDuplicates": "Sin duplicados",
+    "noDuplicatesHint": "Guarda un solo envío por valor. Una repetición recibe la respuesta de éxito habitual y no se guarda.",
     "labelPlaceholder": "Etiqueta visible para el usuario",
     "keyCustom": "personalizada",
     "keyAuto": "auto",

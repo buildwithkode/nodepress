@@ -45,6 +45,7 @@ export interface FormField {
   placeholder?: string;
   fields?: FormField[];      // for group | repeater (recursive)
   validation?: FieldValidation;
+  unique?: boolean;          // top level only: a repeat value (ignoring case) is not saved again
 }
 
 // ---------------------------------------------------------------------------

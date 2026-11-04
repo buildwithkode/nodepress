@@ -22,6 +22,8 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 - **Sticky entry header.** The Edit Entry header, with its language, status, **Release** and **Update** controls, stays in view while you scroll, on screens 1024px and wider.
 - **Fold sections and repeater rows.** In the entry form they start closed, each showing its type and a preview of its text, with **Expand all** / **Collapse all** above the list. New rows open, a failed save opens the rows with errors, and closed rows are still validated and saved.
+- **No duplicates on form fields.** A top-level text, email, phone, URL or number field can be set to keep one submission per value, ignoring case. A repeat gets the normal success reply, isn't saved and fires no actions.
+- **Tables in the rich text editor.** A toolbar button inserts a table with a header row; while the cursor is in one, you can add or delete columns and rows.
 - **Fold fields in the content type editors.** Each field folds down to its name, key and type, with **Expand all** / **Collapse all** next to **Add Field**. Saved fields start closed; a new field opens.
 - **Sticky header on every editor.** New Entry, New Content Type and Edit Content Type keep their header in view too. The content type editors now have **Create** / **Save Changes** in the header as well as at the bottom.
 - **Field width.** Each field can be Full, 2/3, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.

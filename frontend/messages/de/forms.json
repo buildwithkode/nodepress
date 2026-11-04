@@ -50,6 +50,8 @@
     "fileDownloadFailed": "Diese Datei konnte nicht heruntergeladen werden"
   },
   "fieldEditor": {
+    "noDuplicates": "Keine Duplikate",
+    "noDuplicatesHint": "Nur eine Einsendung pro Wert behalten. Eine Wiederholung erhält die normale Erfolgsantwort und wird nicht gespeichert.",
     "labelPlaceholder": "Für Nutzer angezeigte Bezeichnung",
     "keyCustom": "eigen",
     "keyAuto": "auto",

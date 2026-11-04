@@ -50,6 +50,8 @@
     "fileDownloadFailed": "This file couldn't be downloaded"
   },
   "fieldEditor": {
+    "noDuplicates": "No duplicates",
+    "noDuplicatesHint": "Keep one submission per value. A repeat gets the normal success reply and is not saved.",
     "labelPlaceholder": "Label shown to user",
     "keyCustom": "custom",
     "keyAuto": "auto",

@@ -66,6 +66,12 @@ export class SubmissionService {
     const { values, files } = attachUploads(fields, rawData, uploaded, maxUploadBytes());
     const data = validateSubmission(fields, values, FORM_LIMITS);
 
+    // A repeat of a `unique` field gets the normal reply and fires no actions, so nobody can use
+    // this endpoint to find out whether an address is already in the list.
+    if (await this.isRepeat(form.id, fields, data)) {
+      return { success: true, submissionId: null, message: 'Your submission has been received.' };
+    }
+
     // 5. Persist submission and its files together
     const submission = await this.prisma.formSubmission.create({
       data: {
@@ -89,6 +95,19 @@ export class SubmissionService {
       submissionId: submission.id,
       message: 'Your submission has been received.',
     };
+  }
+
+  private async isRepeat(formId: number, fields: FormField[], data: Record<string, unknown>) {
+    for (const field of fields) {
+      const value = data[field.name];
+      if (!field.unique || (typeof value !== 'string' && typeof value !== 'number') || value === '') continue;
+      const found = await this.prisma.$queryRaw<unknown[]>`
+        SELECT 1 FROM form_submissions
+        WHERE "formId" = ${formId} AND lower(data->>${field.name}) = lower(${String(value)})
+        LIMIT 1`;
+      if (found.length > 0) return true;
+    }
+    return false;
   }
 
   /** One submission's file, for the admin. The form id must match, so a link can't reach another form's file. */

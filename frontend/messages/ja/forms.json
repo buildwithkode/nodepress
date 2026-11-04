@@ -50,6 +50,8 @@
     "fileDownloadFailed": "このファイルをダウンロードできませんでした"
   },
   "fieldEditor": {
+    "noDuplicates": "重複なし",
+    "noDuplicatesHint": "値ごとに送信を1件だけ保持します。重複した送信には通常の成功応答を返し、保存しません。",
     "labelPlaceholder": "ユーザーに表示するラベル",
     "keyCustom": "カスタム",
     "keyAuto": "自動",

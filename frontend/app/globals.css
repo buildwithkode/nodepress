@@ -101,6 +101,15 @@
    break the page layout (no horizontal overflow). */
 .tiptap-content { overflow-wrap: anywhere; }
 
+/* Tables */
+.tiptap-content table { @apply my-4 border-collapse; }
+/* The table box itself is display: block (below), so it scrolls when wide: the rows fill it. */
+.tiptap-content table tbody { display: table; width: 100%; table-layout: fixed; }
+.tiptap-content th, .tiptap-content td { @apply border border-border px-2 py-1.5 text-left align-top; min-width: 3rem; }
+.tiptap-content th { @apply bg-muted/40 font-semibold; }
+.tiptap-content th p, .tiptap-content td p { @apply mb-0; }
+.tiptap-content .selectedCell { @apply bg-primary/10; }
+
 /* Blockquote */
 .tiptap-content blockquote {
   @apply border-l-4 border-primary/70 pl-4 py-2 my-4 italic bg-muted/20 rounded-r-lg text-foreground/90;

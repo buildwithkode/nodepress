@@ -50,6 +50,8 @@
     "fileDownloadFailed": "无法下载此文件"
   },
   "fieldEditor": {
+    "noDuplicates": "不允许重复",
+    "noDuplicatesHint": "每个值只保留一条提交。重复提交会收到正常的成功响应，但不会被保存。",
     "labelPlaceholder": "向用户显示的标签",
     "keyCustom": "自定义",
     "keyAuto": "自动",

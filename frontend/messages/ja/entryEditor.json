@@ -205,6 +205,14 @@
     "insertLink": "ハイパーリンクを挿入",
     "editLink": "リンクを編集",
     "insertImage": "メディア画像を挿入 (ライブラリ、アップロード、URL)",
+    "insertTable": "表を挿入",
+    "table": {
+      "addColumn": "列を追加",
+      "addRow": "行を追加",
+      "deleteColumn": "列を削除",
+      "deleteRow": "行を削除",
+      "deleteTable": "表を削除"
+    },
     "undo": "元に戻す (Ctrl+Z)",
     "redo": "やり直す (Ctrl+Y)",
     "htmlPlaceholder": "ここに HTML を入力…",

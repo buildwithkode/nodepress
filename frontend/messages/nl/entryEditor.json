@@ -205,6 +205,14 @@
     "insertLink": "Hyperlink invoegen",
     "editLink": "Link bewerken",
     "insertImage": "Media-afbeelding invoegen (bibliotheek, upload, URL)",
+    "insertTable": "Tabel invoegen",
+    "table": {
+      "addColumn": "Kolom toevoegen",
+      "addRow": "Rij toevoegen",
+      "deleteColumn": "Kolom verwijderen",
+      "deleteRow": "Rij verwijderen",
+      "deleteTable": "Tabel verwijderen"
+    },
     "undo": "Ongedaan maken (Ctrl+Z)",
     "redo": "Opnieuw (Ctrl+Y)",
     "htmlPlaceholder": "Voer hier HTML-opmaak in…",
