@@ -176,6 +176,60 @@ describe('Schema as code (e2e)', () => {
       expect(list[0].fields.map((f: any) => f.name)).toEqual(['label', 'href']);
     });
 
+    it('a pulled file rebuilds an empty install, lists included, by push and by the import route', async () => {
+      const server = app.getHttpServer();
+      const prisma = app.get(PrismaService);
+      await request(server).post('/api/option-lists').set(auth)
+        .send({ name: 'qa_tone', label: 'Tone', choices: [{ value: 'calm', label: 'Calm' }] }).expect(201);
+      await request(server).post('/api/components').set(auth)
+        .send({ name: 'qa_card', fields: [{ name: 'tone', type: 'select', options: { choiceList: 'qa_tone' } }] }).expect(201);
+      await request(server).post('/api/content-types').set(auth).send({ name: 'qa_page', schema: [
+        { name: 'tone', type: 'select', options: { choiceList: 'qa_tone' } },
+        { name: 'card', type: 'group', options: { component: 'qa_card' } },
+      ] }).expect(201);
+      expect((await cli(['schema:pull'], env, dir)).code).toBe(0);
+      const bundle = JSON.parse(fs.readFileSync(file(), 'utf8'));
+      expect(bundle.choiceLists.map((l: any) => l.name)).toContain('qa_tone');
+
+      const wipe = async () => {
+        await prisma.entry.deleteMany({});
+        await prisma.contentType.deleteMany({});
+        await prisma.component.deleteMany({});
+        await prisma.choiceList.deleteMany({});
+      };
+      const check = async () => {
+        await request(server).get('/api/option-lists/qa-tone').expect(200);
+        const types = (await request(server).get('/api/content-types').set(auth)).body;
+        const page = types.find((t: any) => t.name === 'qa_page');
+        expect(page.schema[0].options.choices).toEqual(['calm']);
+        expect(page.schema[1].options.subFields[0].options.choices).toEqual(['calm']);
+      };
+
+      // What the Content Types page sends.
+      await wipe();
+      const { contentTypes, components, choiceLists } = bundle;
+      const dry = await request(server).post('/api/content-types/import').set(auth)
+        .send({ contentTypes, components, choiceLists, dryRun: true }).expect(201);
+      expect(dry.body.valid).toBe(true);
+      expect(dry.body.choiceLists.toCreate).toBe(choiceLists.length);
+      expect(dry.body.components.toCreate).toBe(components.length);
+      const real = await request(server).post('/api/content-types/import').set(auth)
+        .send({ contentTypes, components, choiceLists, dryRun: false, overwrite: true }).expect(201);
+      expect(real.body.choiceLists.created).toBe(choiceLists.length);
+      await check();
+
+      // The CLI, from the same file.
+      await wipe();
+      const pushed = await cli(['schema:push', '--yes'], env, dir);
+      expect(pushed.code).toBe(0);
+      await check();
+
+      await prisma.contentType.deleteMany({ where: { name: 'qa_page' } });
+      await prisma.component.deleteMany({ where: { name: 'qa_card' } });
+      await prisma.choiceList.deleteMany({ where: { name: 'qa_tone' } });
+      expect((await cli(['schema:pull'], env, dir)).code).toBe(0);
+    });
+
     it('accepts an admin JWT and --url/--token flags; reports invalid files with exit 2', async () => {
       const viaJwt = await cli(['schema:diff', '--url', env.NODEPRESS_URL, '--token', adminToken], {}, dir);
       expect(viaJwt.code).toBe(0);

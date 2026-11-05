@@ -65,6 +65,9 @@ export interface SiteEntryWrite {
   data: Record<string, any>;
   seo?: any;
   publishAt?: string | null;
+  createdAt?: string;
+  /** Stay in the trash: only for a new entry. */
+  deletedAt?: string | null;
 }
 
 @Injectable()
@@ -942,9 +945,17 @@ export class EntriesService {
         } else {
           const entry = await this.prisma.entry.create({
             include: { contentType: true },
-            data: { ...fields, publicId: row.publicId, slug: row.slug, locale: row.locale, contentTypeId },
+            data: {
+              ...fields,
+              publicId: row.publicId,
+              slug: row.slug,
+              locale: row.locale,
+              contentTypeId,
+              deletedAt: row.deletedAt ? new Date(row.deletedAt) : null,
+              ...(row.createdAt ? { createdAt: new Date(row.createdAt) } : {}),
+            },
           });
-          await this.emitForEntries(PluginEvents.ENTRY_AFTER_CREATE, [entry], 'import');
+          if (!row.deletedAt) await this.emitForEntries(PluginEvents.ENTRY_AFTER_CREATE, [entry], 'import');
           created++;
         }
       } catch (err: any) {

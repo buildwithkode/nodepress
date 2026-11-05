@@ -453,6 +453,21 @@ export class ComponentsService {
     return map;
   }
 
+  /** What importing a bundle's components would do, for a dry run. */
+  async previewImport(raw: unknown, overwrite = true) {
+    const result = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0 };
+    if (!Array.isArray(raw)) return result;
+    const existing = new Set((await this.prisma.component.findMany({ select: { name: true } })).map((row) => row.name));
+    for (const item of raw as any[]) {
+      if (typeof item?.name !== 'string') continue;
+      result.total++;
+      if (!existing.has(normalizeComponentName(item.name))) result.toCreate++;
+      else if (overwrite) result.toUpdate++;
+      else result.toSkip++;
+    }
+    return result;
+  }
+
   /** Write an import bundle's components (call prepareImport first). */
   async applyImport(raw: unknown, overwrite = true, actorId?: number) {
     const result = { created: 0, updated: 0, skipped: 0 };

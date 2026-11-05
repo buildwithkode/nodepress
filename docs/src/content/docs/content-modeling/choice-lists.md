@@ -5,11 +5,15 @@ sidebar:
   order: 6
 ---
 
-A **option list** is a set of options for `select` fields kept in one place, so every content type offers the same choices. Edit the list, and every field using it follows.
+An **option list** is a set of options for `select` fields kept in one place, so every content type offers the same choices. Edit the list, and every field using it follows.
 
 Manage them under **Content → Option Lists**. Editors can add and change lists; renaming or deleting a list is for admins, because websites read a list by its name. Each option has a **value**, which entries store, and an optional **label**, which editors and websites show. Change a label freely: entries keep the value. A changed value leaves entries holding the old one.
 
 Tick **Select several** on a select field to let entries pick more than one option; they then store a list of values.
+
+The page lists each list's options, the fields that use it, and its public address, such as `GET /api/option-lists/blog-categories`, with a button to copy it. A list no field uses is marked **No field uses it**: a website may still read it, so check before deleting.
+
+![The Option Lists page with each list's options, the fields using it and its public address with a copy button](../../../assets/screenshots/option-lists.png)
 
 ![The Edit option list dialog with labels, stored values and the Add many at once box](../../../assets/screenshots/choice-list-editor.png)
 

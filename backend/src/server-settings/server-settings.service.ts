@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'util';
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -85,6 +86,50 @@ export class ServerSettingsService {
       throw new BadRequestException(`Storage test failed: ${err?.name ? `${err.name}: ` : ''}${err?.message ?? err}`);
     }
     return { ok: true };
+  }
+
+  // ── Site export / import: everything except passwords ─────────────────────
+
+  /** The saved settings without their secrets. */
+  async exportSettings() {
+    const row = await this.row();
+    const { pass: _pass, ...mail } = (row.mail ?? {}) as Record<string, any>;
+    const { secretKey: _secret, ...storage } = (row.storage ?? {}) as Record<string, any>;
+    return { mail: row.mail ? mail : null, storage: row.storage ? storage : null };
+  }
+
+  /**
+   * What importing these settings does. A password saved here stays. With `overwrite`
+   * off only what isn't set yet is filled in; env-set sections are never touched.
+   */
+  async planImport(file: any, overwrite: boolean) {
+    const row = await this.row();
+    const total = (file?.mail ? 1 : 0) + (file?.storage ? 1 : 0);
+    const apply: Array<'mail' | 'storage'> = [];
+    const needsSecret: string[] = [];
+    let mail: Record<string, any> | undefined;
+    let storage: Record<string, any> | undefined;
+    if (file?.mail && !env.SMTP_HOST && (overwrite || !row.mail)) {
+      mail = this.mailToSave(file.mail, row.mail as Saved);
+      apply.push('mail');
+      if (mail.user && !mail.pass) needsSecret.push('email');
+    }
+    if (file?.storage && !process.env.STORAGE_DRIVER && (overwrite || !row.storage)) {
+      if (!isStorageDriver(file.storage.driver)) throw new BadRequestException('Unknown storage driver');
+      storage = this.storageToSave(file.storage, row.storage as Saved);
+      apply.push('storage');
+      if (storage.driver !== 'local' && !storage.secretKey) needsSecret.push('storage');
+    }
+    const storageChanged = !!storage && !isDeepStrictEqual(storage, row.storage);
+    return { total, apply, needsSecret, mail, storage, storageChanged };
+  }
+
+  async applyImport(plan: { mail?: Record<string, any>; storage?: Record<string, any> }) {
+    const data: Prisma.SettingUpdateInput = {};
+    if (plan.mail) data.mail = plan.mail;
+    if (plan.storage) data.storage = plan.storage;
+    await this.prisma.setting.update({ where: { id: 1 }, data });
+    if (plan.mail) this.mail.configure(smtpFromSaved(plan.mail));
   }
 
   // ── helpers ────────────────────────────────────────────────────────────────

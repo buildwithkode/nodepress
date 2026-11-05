@@ -11,24 +11,34 @@ import { Checkbox } from '@/components/ui/checkbox';
 type TypePlan = { name: string; total: number; toCreate: number; toUpdate: number; toRestore: number; toSkip: number };
 type Counts = { total: number; toCreate: number; toUpdate: number; toSkip: number };
 type Written = { created: number; updated: number; skipped: number };
+type Note = { code: string; count?: number; list?: string; message: string };
+/** The order the extra sections are listed in. */
+const EXTRA_SECTIONS = [
+  'brand', 'settings', 'roles', 'permissions', 'roleAccess', 'users', 'mediaFolders', 'media',
+  'plugins', 'pluginPackages', 'releases', 'formSubmissions', 'entryVersions', 'schemaVersions', 'auditLog',
+] as const;
 type Preview = {
   valid: boolean;
   errors: string[];
-  schemas: { toCreate: number; toUpdate: number } | null;
+  schemas: { toCreate: number; toUpdate: number; choiceLists?: Counts; components?: Counts } | null;
   entries: { total: number; toCreate: number; toUpdate: number; toRestore: number; toSkip: number; relinked: number; types: TypePlan[] };
   forms: Counts;
   webhooks: Counts & { active: string[] };
   redirects: Counts;
   localesToAdd: string[];
+  extras?: Record<string, Counts>;
+  notes?: Note[];
 };
 type Result = {
-  schemas: { created?: number; updated?: number } | null;
+  schemas: { created?: number; updated?: number; choiceLists?: Written; components?: Written } | null;
   entries: { created: number; updated: number };
   forms: Written;
   webhooks: Written;
   redirects: Written;
   localesAdded: string[];
   errors: string[];
+  extras?: Record<string, Written>;
+  notes?: Note[];
 };
 
 const fileSize = (bytes: number) =>
@@ -178,6 +188,12 @@ export default function SiteTransferPage() {
           {preview.schemas && (
             <p className="text-sm">{t('typesLine', { toCreate: preview.schemas.toCreate, toUpdate: preview.schemas.toUpdate })}</p>
           )}
+          {preview.schemas?.choiceLists && preview.schemas.choiceLists.total > 0 && (
+            <p className="text-sm">{t('listsLine', { toCreate: preview.schemas.choiceLists.toCreate, toUpdate: preview.schemas.choiceLists.toUpdate, toSkip: preview.schemas.choiceLists.toSkip })}</p>
+          )}
+          {preview.schemas?.components && preview.schemas.components.total > 0 && (
+            <p className="text-sm">{t('componentsLine', { toCreate: preview.schemas.components.toCreate, toUpdate: preview.schemas.components.toUpdate, toSkip: preview.schemas.components.toSkip })}</p>
+          )}
           <p className="text-sm">
             {t('entriesLine', {
               toCreate: preview.entries.toCreate,
@@ -194,6 +210,19 @@ export default function SiteTransferPage() {
           )}
           {preview.redirects.total > 0 && (
             <p className="text-sm">{t('redirectsLine', { toCreate: preview.redirects.toCreate, toUpdate: preview.redirects.toUpdate, toSkip: preview.redirects.toSkip })}</p>
+          )}
+          {EXTRA_SECTIONS.map((name) => {
+            const c = preview.extras?.[name];
+            if (!c || c.total === 0) return null;
+            return <p key={name} className="text-sm">{t('extraLine', { name: t(`section.${name}`), toCreate: c.toCreate, toUpdate: c.toUpdate, toSkip: c.toSkip })}</p>;
+          })}
+          {(preview.notes ?? []).length > 0 && (
+            <div className="flex gap-2 text-sm">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
+              <ul className="min-w-0 space-y-1">
+                {preview.notes!.map((n) => <li key={n.code} className="break-words">{t(`note.${n.code}`, { count: n.count ?? 0, list: n.list ?? '' })}</li>)}
+              </ul>
+            </div>
           )}
           {preview.webhooks.active.length > 0 && (
             <div className="flex gap-2 text-sm">
@@ -265,6 +294,12 @@ export default function SiteTransferPage() {
           {result.schemas && (
             <p className="text-muted-foreground">{t('doneTypes', { created: result.schemas.created ?? 0, updated: result.schemas.updated ?? 0 })}</p>
           )}
+          {result.schemas?.choiceLists && result.schemas.choiceLists.created + result.schemas.choiceLists.updated + result.schemas.choiceLists.skipped > 0 && (
+            <p className="text-muted-foreground">{t('doneLists', { created: result.schemas.choiceLists.created, updated: result.schemas.choiceLists.updated, skipped: result.schemas.choiceLists.skipped })}</p>
+          )}
+          {result.schemas?.components && result.schemas.components.created + result.schemas.components.updated + result.schemas.components.skipped > 0 && (
+            <p className="text-muted-foreground">{t('doneComponents', { created: result.schemas.components.created, updated: result.schemas.components.updated, skipped: result.schemas.components.skipped })}</p>
+          )}
           {result.forms.created + result.forms.updated + result.forms.skipped > 0 && (
             <p className="text-muted-foreground">{t('doneForms', { created: result.forms.created, updated: result.forms.updated, skipped: result.forms.skipped })}</p>
           )}
@@ -274,8 +309,23 @@ export default function SiteTransferPage() {
           {result.redirects.created + result.redirects.updated + result.redirects.skipped > 0 && (
             <p className="text-muted-foreground">{t('doneRedirects', { created: result.redirects.created, updated: result.redirects.updated, skipped: result.redirects.skipped })}</p>
           )}
+          {EXTRA_SECTIONS.map((name) => {
+            const c = result.extras?.[name];
+            if (!c || c.created + c.updated + c.skipped === 0) return null;
+            return <p key={name} className="text-muted-foreground">{t('extraDone', { name: t(`section.${name}`), created: c.created, updated: c.updated, skipped: c.skipped })}</p>;
+          })}
           {result.localesAdded.length > 0 && (
             <p className="text-muted-foreground">{t('localesAdded', { list: result.localesAdded.join(', ') })}</p>
+          )}
+          {(result.notes ?? []).length > 0 && (
+            <ul className="space-y-1 pt-1">
+              {result.notes!.map((n) => (
+                <li key={n.code} className="flex gap-2 break-words">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
+                  <span>{t(`note.${n.code}`, { count: n.count ?? 0, list: n.list ?? '' })}</span>
+                </li>
+              ))}
+            </ul>
           )}
           {result.errors.length > 0 && (
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-1">

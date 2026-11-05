@@ -208,6 +208,7 @@ export default function ContentTypesPage() {
       const res = await api.post('/content-types/import', {
         contentTypes: list,
         components: Array.isArray(parsed) ? undefined : parsed.components,
+        choiceLists: Array.isArray(parsed) ? undefined : parsed.choiceLists,
         dryRun: true,
       });
       setImportPreflight(res.data);
@@ -246,6 +247,7 @@ export default function ContentTypesPage() {
       const res = await api.post('/content-types/import', {
         contentTypes: list,
         components: Array.isArray(parsed) ? undefined : parsed.components,
+        choiceLists: Array.isArray(parsed) ? undefined : parsed.choiceLists,
         dryRun: false,
         overwrite: true,
       });
