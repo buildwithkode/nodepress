@@ -61,8 +61,9 @@ async function exportCmd(api, opts) {
   fs.writeFileSync(file, JSON.stringify(bundle, null, 2) + '\n', { mode: 0o600 });
   const entries = Object.values(bundle.entries || {}).reduce((n, list) => n + list.length, 0);
   console.log(`  ${green('✓')} Saved ${path.relative(process.cwd(), file) || file}: ${plural((bundle.contentTypes || []).length, 'content type')}, ${plural((bundle.components || []).length, 'component')}, ${plural((bundle.choiceLists || []).length, 'choice list')}, ${plural(entries, 'entry', 'entries')}, ${plural((bundle.forms || []).length, 'form')}, ${plural((bundle.webhooks || []).length, 'webhook')}, ${plural((bundle.redirects || []).length, 'redirect')}`);
-  console.log(dim('    Media files, form submissions and redirect hit counts are not included; entries keep their media links.'));
-  if ((bundle.forms || []).length || (bundle.webhooks || []).length) console.log(dim('    Form settings and webhook secrets are in the file: keep it private.'));
+  console.log(dim('    Media files are not included: copy the uploads folder by hand. Passwords, API keys, webhook secrets and form webhook headers are never in the file.'));
+  if (bundle.partial) console.log(dim('    An API key exports content only. Sign in as an admin (a JWT in NODEPRESS_TOKEN) to include users, roles, media records, settings, plugins, submissions and history.'));
+  else console.log(dim('    The file holds user emails and form submissions: keep it private.'));
   return 0;
 }
 
@@ -81,6 +82,8 @@ function printPreview(p) {
   if (p.forms?.total) console.log(`\n  ${bold('Forms')}: ${p.forms.toCreate} new, ${p.forms.toUpdate} to update, ${p.forms.toSkip} kept as they are`);
   if (p.webhooks?.total) console.log(`\n  ${bold('Webhooks')}: ${p.webhooks.toCreate} new, ${p.webhooks.toUpdate} to update, ${p.webhooks.toSkip} kept as they are`);
   if (p.redirects?.total) console.log(`\n  ${bold('Redirects')}: ${p.redirects.toCreate} new, ${p.redirects.toUpdate} to update, ${p.redirects.toSkip} kept as they are`);
+  for (const [name, c] of Object.entries(p.extras || {})) console.log(`  ${bold(name)}: ${c.toCreate} new, ${c.toUpdate} to update, ${c.toSkip} kept`);
+  for (const note of p.notes || []) console.log(`  ${note.message}`);
   if (p.webhooks?.active?.length) {
     console.log(`\n  ${yellow('After the import, this site sends events to:')}`);
     for (const url of p.webhooks.active) console.log(`    ${url}`);
@@ -126,6 +129,8 @@ async function importCmd(api, opts) {
   const s = r.schemas;
   console.log(`\n  ${green('✓')} Imported: ${s ? `content types ${s.created || 0} created, ${s.updated || 0} updated; ` : ''}entries ${r.entries.created} created, ${r.entries.updated} updated${r.forms ? `; forms ${r.forms.created} created, ${r.forms.updated} updated` : ''}${r.webhooks ? `; webhooks ${r.webhooks.created} created, ${r.webhooks.updated} updated` : ''}${r.redirects ? `; redirects ${r.redirects.created} created, ${r.redirects.updated} updated` : ''}`);
   if (r.localesAdded?.length) console.log(`    Languages added: ${r.localesAdded.join(', ')}`);
+  for (const [name, c] of Object.entries(r.extras || {})) console.log(`    ${name}: ${c.created} created, ${c.updated} updated, ${c.skipped} kept`);
+  for (const note of r.notes || []) console.log(`    ${note.message}`);
   if (r.errors?.length) {
     for (const msg of r.errors) console.log(`    ${red('✗')} ${msg}`);
     return 1;

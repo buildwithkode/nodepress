@@ -1,4 +1,4 @@
-import { planEntries, planWebhooks, remapIds, ExistingEntry } from './site-bundle';
+import { planEntries, planWebhooks, remapIds, ExistingEntry, rewriteBaseUrl } from './site-bundle';
 
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
@@ -131,5 +131,22 @@ describe('planWebhooks', () => {
 
   it('refuses the same name and URL twice in the file', () => {
     expect(planWebhooks([hook(), hook()], [], true).errors[0]).toMatch(/appears twice/);
+  });
+});
+
+describe('rewriteBaseUrl', () => {
+  const from = 'http://old.test';
+  const to = 'https://new.test/';
+  it('moves uploads links at any depth, rich text included', () => {
+    expect(rewriteBaseUrl({ a: 'http://old.test/uploads/x.png', b: [{ c: '<img src="http://old.test/uploads/y.png">' }], n: 1 }, from, to))
+      .toEqual({ a: 'https://new.test/uploads/x.png', b: [{ c: '<img src="https://new.test/uploads/y.png">' }], n: 1 });
+  });
+  it('leaves other addresses and object keys alone', () => {
+    const value = { 'http://old.test/uploads/k': 'http://old.test/page', cdn: 'https://cdn.test/uploads/x.png' };
+    expect(rewriteBaseUrl(value, from, to)).toEqual(value);
+  });
+  it('does nothing without two different addresses', () => {
+    expect(rewriteBaseUrl('http://old.test/uploads/x', from, undefined)).toBe('http://old.test/uploads/x');
+    expect(rewriteBaseUrl('http://old.test/uploads/x', from, 'http://old.test/')).toBe('http://old.test/uploads/x');
   });
 });

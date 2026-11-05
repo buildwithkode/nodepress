@@ -30,7 +30,7 @@ export class SiteTransferController {
   @SkipThrottle()
   @ApiOperation({ summary: 'Export choice lists, components, content types, every entry, forms, webhooks and redirects as one JSON file' })
   async export(@Request() req: any, @Res({ passthrough: true }) res: Response) {
-    const bundle = await this.service.export();
+    const bundle = await this.service.export({ admin: !!req.user });
     const stamp = bundle.exportedAt.slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
     res.setHeader('Content-Disposition', `attachment; filename="nodepress-site-${stamp}.json"`);
     res.setHeader('Cache-Control', 'private, no-store');
@@ -50,7 +50,7 @@ export class SiteTransferController {
   ) {
     const result: any = await this.service.import(
       bundle,
-      { dryRun: flag(dryRun), overwrite: overwrite === undefined ? true : flag(overwrite) },
+      { dryRun: flag(dryRun), overwrite: overwrite === undefined ? true : flag(overwrite), admin: !!req.user },
       req.user?.id,
     );
     if (!result.dryRun) {

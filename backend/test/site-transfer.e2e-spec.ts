@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { spawn } from 'child_process';
@@ -116,18 +117,22 @@ describe('Site export / import (e2e)', () => {
     const res = await request(server).get('/api/site/export').set(auth).expect(200);
     expect(res.headers['content-disposition']).toMatch(/attachment; filename="nodepress-site-/);
     bundle = res.body;
-    expect(bundle).toMatchObject({ format: 'nodepress-site', version: 1, locales: { defaultLocale: 'en', locales: ['en', 'fr'] } });
+    expect(bundle).toMatchObject({ format: 'nodepress-site', version: 2, locales: { defaultLocale: 'en', locales: ['en', 'fr'] } });
     expect(bundle.contentTypes.map((t: any) => t.name)).toEqual(['author', 'post']);
     expect(bundle.choiceLists.map((l: any) => l.name)).toEqual(['mood']);
     expect(bundle.entries.author).toEqual([expect.objectContaining({ publicId: authorId, slug: 'asha', locale: 'en', status: 'published' })]);
     expect(bundle.entries.post.map((e: any) => `${e.slug}/${e.locale}/${e.status}`)).toEqual(['hello/en/published', 'hello/fr/draft']);
-    expect(bundle.forms).toEqual([contactForm]);
-    expect(bundle.webhooks).toEqual([signHook]);
+    // No credentials in the file: form webhook headers and webhook secrets stay behind.
+    expect(bundle.forms).toEqual([{ ...contactForm, actions: [{ type: 'webhook', url: 'https://example.test/hook', headersRemoved: true }] }]);
+    expect(bundle.webhooks[0]).not.toHaveProperty('secret');
+    const { secret: _secret, ...hookInFile } = signHook;
+    expect(bundle.webhooks).toEqual([hookInFile]);
     expect(bundle.redirects).toEqual([moved]);
   });
 
   it('previews a re-import on the same site as updates', async () => {
     const res = await request(server).post('/api/site/import?dryRun=true').set(auth).send(bundle).expect(201);
+    expect(res.body.schemas.choiceLists).toEqual({ total: 1, toCreate: 0, toUpdate: 1, toSkip: 0 });
     expect(res.body).toMatchObject({
       dryRun: true, valid: true, errors: [], localesToAdd: [],
       schemas: { toCreate: 0, toUpdate: 2 },
@@ -141,17 +146,19 @@ describe('Site export / import (e2e)', () => {
   it('rebuilds an empty site with the same ids, so relations still resolve', async () => {
     await wipeContent();
     const res = await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
+    expect(res.body.schemas.choiceLists).toEqual({ created: 1, updated: 0, skipped: 0 });
     expect(res.body).toMatchObject({ entries: { created: 3, updated: 0 }, localesAdded: ['fr'], errors: [] });
     expect(res.body.schemas).toMatchObject({ created: 2 });
     expect(res.body.forms).toEqual({ created: 1, updated: 0, skipped: 0 });
     expect(res.body.webhooks).toEqual({ created: 1, updated: 0, skipped: 0 });
     expect(res.body.redirects).toEqual({ created: 1, updated: 0, skipped: 0 });
-    expect(await prisma.webhook.findFirstOrThrow({ where: { name: 'Rebuild' } })).toMatchObject(signHook);
+    // The file has no signing secret, so a new webhook waits, switched off, for one.
+    expect(await prisma.webhook.findFirstOrThrow({ where: { name: 'Rebuild' } })).toMatchObject({ ...signHook, secret: null, enabled: false });
     const resolved = await request(server).get('/api/redirects/resolve').query({ path: '/old' }).expect(200);
     expect(resolved.body).toMatchObject({ to: '/new', statusCode: 301 });
 
     const form = await prisma.form.findUniqueOrThrow({ where: { slug: 'contact' } });
-    expect(form).toMatchObject(contactForm);
+    expect(form).toMatchObject({ ...contactForm, actions: [{ type: 'webhook', url: 'https://example.test/hook' }] });
     await request(server).post('/api/submit/contact').send({ data: { email: 'not an email' } }).expect((r) => expect(r.status).toBeGreaterThanOrEqual(400));
     await request(server).post('/api/submit/contact').send({ data: { email: 'a@example.test' } }).expect(201);
 
@@ -221,7 +228,8 @@ describe('Site export / import (e2e)', () => {
 
     await request(server).post('/api/site/import').set(auth).send(bundle).expect(201);
     expect(await prisma.webhook.count()).toBe(1);
-    expect((await prisma.webhook.findUniqueOrThrow({ where: { id: hook.id } })).secret).toBe('shh');
+    // The file has no secret, so the one saved here stays.
+    expect((await prisma.webhook.findUniqueOrThrow({ where: { id: hook.id } })).secret).toBe('changed here');
     expect(await prisma.redirect.findUniqueOrThrow({ where: { from: '/old' } })).toMatchObject({ to: '/new', hits: 9 });
     const resolved = await request(server).get('/api/redirects/resolve').query({ path: '/old' }).expect(200);
     expect(resolved.body.to).toBe('/new');
@@ -324,5 +332,153 @@ describe('Site export / import (e2e)', () => {
     expect(run.code).toBe(0);
     expect(run.out).toMatch(/entries 3 created/);
     expect(await prisma.entry.count()).toBe(3);
+  });
+
+  describe('everything except media files and credentials', () => {
+    const png = Buffer.from('fake').toString('base64');
+    let full: any;
+
+    it('exports users, roles, media records, settings, history and the trash, with no credential in the file', async () => {
+      await prisma.media.deleteMany({});
+      await prisma.mediaFolder.deleteMany({});
+      await prisma.setting.update({ where: { id: 1 }, data: {
+        brandName: 'Moved Site',
+        mail: { host: 'smtp.example.test', port: 587, secure: false, user: 'mailer', pass: 'SEALED-MAIL-PASS', from: null },
+      } });
+      await prisma.role.create({ data: { name: 'reviewer', label: 'Reviewer', baseRole: 'editor' } });
+      await prisma.roleAccess.create({ data: { role: 'reviewer', module: 'media', level: 'view' } });
+      await prisma.permission.create({ data: { role: 'reviewer', contentType: 'post', actions: ['read'] } });
+      await prisma.user.create({ data: { email: 'writer@example.test', password: 'HASHED-PASSWORD-VALUE', role: 'reviewer', twoFactorSecret: 'TWO-FACTOR-VALUE' } });
+      await prisma.apiKey.create({ data: { name: 'site', key: 'np_LIVE-KEY-VALUE', permissions: { access: 'read', contentTypes: ['*'] } } });
+      await prisma.webhook.updateMany({ data: { secret: 'WEBHOOK-SECRET-VALUE' } });
+      const folder = await prisma.mediaFolder.create({ data: { name: 'photos' } });
+      const sub = await prisma.mediaFolder.create({ data: { name: '2026', parentId: folder.id } });
+      await prisma.media.create({ data: {
+        filename: 'a.png', url: `${process.env.APP_URL ?? 'http://old.example.test'}/uploads/a.png`, originalName: 'a.png', mimetype: 'image/png', size: 4, folderId: sub.id,
+      } });
+      const form = await prisma.form.findFirstOrThrow();
+      await prisma.formSubmission.create({ data: { formId: form.id, data: { email: 'visitor@example.test' }, ip: '1.2.3.4', files: { create: [
+        { id: 'file-1', field: 'cv', filename: 'cv.pdf', mimetype: 'application/pdf', size: 4, data: new Uint8Array(Buffer.from('fake')) },
+      ] } } });
+      const entry = await prisma.entry.findFirstOrThrow({ where: { deletedAt: null } });
+      await prisma.entryVersion.create({ data: { entryId: entry.id, slug: entry.slug, data: { title: 'old' }, status: 'draft' } });
+      const trashed = await prisma.entry.create({ data: { slug: 'binned', status: 'draft', data: {}, contentTypeId: entry.contentTypeId, deletedAt: new Date() } });
+      await prisma.release.create({ data: { name: 'Launch', items: { create: [{ entryId: entry.id }] } } });
+
+      const res = await request(server).get('/api/site/export').set(auth).expect(200);
+      full = res.body;
+      const text = JSON.stringify(full);
+      for (const secret of ['HASHED-PASSWORD-VALUE', 'TWO-FACTOR-VALUE', 'np_LIVE-KEY-VALUE', 'WEBHOOK-SECRET-VALUE', 'SEALED-MAIL-PASS']) expect(text).not.toContain(secret);
+      expect(full.users.find((u: any) => u.email === 'writer@example.test')).toEqual({ email: 'writer@example.test', role: 'reviewer', createdAt: expect.any(String) });
+      expect(full.settings.mail).toEqual({ host: 'smtp.example.test', port: 587, secure: false, user: 'mailer', from: null });
+      expect(full.brand.brandName).toBe('Moved Site');
+      expect(full.mediaFolders).toEqual([['photos'], ['photos', '2026']]);
+      expect(full.media[0]).toMatchObject({ filename: 'a.png', folder: ['photos', '2026'] });
+      expect(full.formSubmissions[0].files[0]).toMatchObject({ id: 'file-1', data: png });
+      expect(full.entries[Object.keys(full.entries).find((t) => full.entries[t].some((e: any) => e.slug === 'binned'))!].find((e: any) => e.slug === 'binned').deletedAt).toEqual(trashed.deletedAt!.toISOString());
+      expect(full.entryVersions.length).toBeGreaterThan(0);
+      expect(full.releases[0].items[0].entry).toBe(entry.publicId);
+      expect(full.auditLog.length).toBeGreaterThan(0);
+      expect(full).not.toHaveProperty('apiKeys');
+    });
+
+    it('keeps form webhook headers saved here, and says when a new form needs them', async () => {
+      const headers = { Authorization: 'Bearer FORM-TOKEN-VALUE' };
+      const action = { type: 'webhook', url: 'https://example.test/hook', headers };
+      const saved = await prisma.form.create({ data: { name: 'Temp', slug: 'temp-form', fields: [{ name: 'email', type: 'email' }], actions: [action] } });
+      const out = (await request(server).get('/api/site/export').set(auth).expect(200)).body;
+      expect(JSON.stringify(out)).not.toContain('FORM-TOKEN-VALUE');
+      const small = { format: out.format, version: out.version, forms: out.forms.filter((f: any) => f.slug === 'temp-form') };
+
+      const update = await request(server).post('/api/site/import').set(auth).send(small).expect(201);
+      expect(update.body.notes.map((n: any) => n.code)).not.toContain('formHeaders');
+      expect((await prisma.form.findUniqueOrThrow({ where: { id: saved.id } })).actions).toEqual([action]);
+
+      await prisma.form.delete({ where: { id: saved.id } });
+      const fresh = await request(server).post('/api/site/import').set(auth).send(small).expect(201);
+      expect(fresh.body.notes).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'formHeaders', count: 1 })]));
+      const made = await prisma.form.findUniqueOrThrow({ where: { slug: 'temp-form' } });
+      expect(made.actions).toEqual([{ type: 'webhook', url: 'https://example.test/hook' }]);
+      await prisma.form.delete({ where: { id: made.id } });
+    });
+
+    it('an API key gets the content only, and cannot bring in users', async () => {
+      const made = await request(server).post('/api/api-keys').set(auth).send({ name: 'ci', permissions: { access: 'all', contentTypes: ['*'] } }).expect(201);
+      const key = { 'X-API-Key': made.body.key };
+      const out = await request(server).get('/api/site/export').set(key).expect(200);
+      expect(out.body.partial).toBe(true);
+      for (const k of ['users', 'roles', 'media', 'formSubmissions', 'auditLog', 'settings']) expect(out.body).not.toHaveProperty(k);
+      const evil = { ...out.body, users: [{ email: 'attacker@example.test', role: 'admin' }] };
+      const res = await request(server).post('/api/site/import').set(key).send(evil).expect(201);
+      expect(res.body.notes.map((n: any) => n.code)).toContain('adminOnly');
+      expect(await prisma.user.findUnique({ where: { email: 'attacker@example.test' } })).toBeNull();
+      await prisma.apiKey.deleteMany({ where: { name: 'ci' } });
+    });
+
+    it('rebuilds an emptied site, without passwords, and a second import adds nothing', async () => {
+      const me = await prisma.user.findFirstOrThrow({ where: { role: 'admin' } });
+      await prisma.user.deleteMany({ where: { id: { not: me.id } } });
+      await prisma.apiKey.deleteMany({});
+      await prisma.release.deleteMany({});
+      await prisma.media.deleteMany({});
+      await prisma.mediaFolder.deleteMany({});
+      await prisma.auditLog.deleteMany({});
+      await prisma.role.deleteMany({});
+      await prisma.roleAccess.deleteMany({});
+      await prisma.permission.deleteMany({ where: { role: 'reviewer' } });
+      await prisma.webhook.deleteMany({});
+      await wipeContent();
+      await prisma.setting.update({ where: { id: 1 }, data: { brandName: 'NodePress', mail: Prisma.DbNull } });
+      const file = { ...full, siteUrl: 'http://old.example.test', media: full.media.map((m: any) => ({ ...m, url: 'http://old.example.test/uploads/a.png' })) };
+
+      const dry = await request(server).post('/api/site/import?dryRun=true').set(auth).send(file).expect(201);
+      expect(dry.body.errors).toEqual([]);
+      expect(dry.body.extras.users.toCreate).toBe(1);
+      expect(dry.body.extras.media.toCreate).toBe(1);
+      const codes = dry.body.notes.map((n: any) => n.code);
+      expect(codes).toEqual(expect.arrayContaining(['usersSetPassword', 'secretsLeftOut', 'webhooksOff', 'mediaLinks', 'mediaMissing']));
+      expect(await prisma.user.count()).toBe(1);
+
+      const res = await request(server).post('/api/site/import').set(auth).send(file).expect(201);
+      expect(res.body.errors).toEqual([]);
+      expect(res.body.extras.formSubmissions).toEqual({ created: 1, updated: 0, skipped: 0 });
+
+      const writer = await prisma.user.findUniqueOrThrow({ where: { email: 'writer@example.test' } });
+      expect(writer.role).toBe('reviewer');
+      expect(writer.twoFactorSecret).toBeNull();
+      await request(server).post('/api/auth/login').send({ email: writer.email, password: 'HASHED-PASSWORD-VALUE' }).expect(401);
+      expect((await prisma.user.findUniqueOrThrow({ where: { id: me.id } })).password).toBe(me.password);
+
+      const media = await prisma.media.findUniqueOrThrow({ where: { filename: 'a.png' }, include: { folder: { include: { parent: true } } } });
+      expect(media.url).toBe(`${process.env.APP_URL}/uploads/a.png`);
+      expect(media.folder?.name).toBe('2026');
+      expect(media.folder?.parent?.name).toBe('photos');
+      const setting = await prisma.setting.findUniqueOrThrow({ where: { id: 1 } });
+      expect(setting.brandName).toBe('Moved Site');
+      expect((setting.mail as any).pass).toBeNull();
+      const hook = await prisma.webhook.findFirstOrThrow();
+      expect(hook).toMatchObject({ enabled: false, secret: null });
+      expect(await prisma.entry.findFirst({ where: { slug: 'binned', deletedAt: { not: null } } })).not.toBeNull();
+      const sub = await prisma.formSubmission.findFirstOrThrow({ include: { files: true } });
+      expect(Buffer.from(sub.files[0].data).toString()).toBe('fake');
+      expect(await prisma.release.count()).toBe(1);
+      expect((await prisma.release.findFirstOrThrow({ include: { items: true } })).items).toHaveLength(1);
+      expect(await prisma.roleAccess.count({ where: { role: 'reviewer' } })).toBe(1);
+      const versions = await prisma.entryVersion.count();
+      const subs = await prisma.formSubmission.count();
+
+      const again = await request(server).post('/api/site/import').set(auth).send(file).expect(201);
+      expect(again.body.errors).toEqual([]);
+      expect(await prisma.formSubmission.count()).toBe(subs);
+      // Re-importing the same data adds no history.
+      expect(await prisma.entryVersion.count()).toBe(versions);
+      const first = full.auditLog[0];
+      expect(await prisma.auditLog.count({ where: { createdAt: new Date(first.createdAt), action: first.action, resourceId: first.resourceId } })).toBe(1);
+      expect(await prisma.user.count()).toBe(2);
+      // The site's own secret set here survives another import.
+      await prisma.webhook.update({ where: { id: hook.id }, data: { secret: 'set here', enabled: true } });
+      await request(server).post('/api/site/import').set(auth).send(file).expect(201);
+      expect(await prisma.webhook.findUniqueOrThrow({ where: { id: hook.id } })).toMatchObject({ secret: 'set here', enabled: true });
+    });
   });
 });

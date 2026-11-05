@@ -121,6 +121,43 @@ describe('Choice lists (e2e)', () => {
     await request(server()).delete(`/api/option-lists/${made.body.id}`).set(auth).expect(200);
   });
 
+  it('a schema import brings the lists its fields need; without them it fails and writes nothing', async () => {
+    const list = { name: 'qa_import', label: 'QA import', choices: [{ value: 'a', label: 'A' }] };
+    const component = { name: 'qa_card', displayName: 'QA card', fields: [
+      { name: 'kinds', type: 'select', options: { choiceList: 'qa_import', multiple: true } },
+    ] };
+    const contentTypes = [{ name: 'qa_page', schema: [
+      { name: 'kind', type: 'select', options: { choiceList: 'qa_import' } },
+      { name: 'card', type: 'group', options: { component: 'qa_card' } },
+    ] }];
+    const missing = await request(server()).post('/api/content-types/import').set(auth)
+      .send({ contentTypes, components: [component], dryRun: true }).expect(201);
+    expect(missing.body.valid).toBe(false);
+
+    const dry = await request(server()).post('/api/content-types/import').set(auth)
+      .send({ contentTypes, components: [component], choiceLists: [list], dryRun: true }).expect(201);
+    expect(dry.body.valid).toBe(true);
+    expect(dry.body.choiceLists).toEqual({ total: 1, toCreate: 1, toUpdate: 0, toSkip: 0 });
+    expect(dry.body.components).toEqual({ total: 1, toCreate: 1, toUpdate: 0, toSkip: 0 });
+    await request(server()).get('/api/option-lists/qa-import').expect(404);
+
+    const real = await request(server()).post('/api/content-types/import').set(auth)
+      .send({ contentTypes, components: [component], choiceLists: [list], overwrite: true }).expect(201);
+    expect(real.body.choiceLists).toMatchObject({ created: 1 });
+    expect(real.body.created).toBe(1);
+    const stored = await request(server()).get('/api/option-lists/qa-import').expect(200);
+    expect(stored.body.choices).toEqual([{ value: 'a', label: 'A' }]);
+
+    // Leave the shared database as the later tests expect it.
+    const types = (await request(server()).get('/api/content-types').set(auth)).body;
+    await request(server()).delete(`/api/content-types/${types.find((c: any) => c.name === 'qa_page').id}`).set(auth).expect(200);
+    const comps = (await request(server()).get('/api/components').set(auth)).body;
+    await request(server()).delete(`/api/components/${comps.find((c: any) => c.name === 'qa_card').id}`).set(auth).expect(200);
+    const lists = (await request(server()).get('/api/option-lists').set(auth)).body;
+    const del = await request(server()).delete(`/api/option-lists/${lists.find((l: any) => l.name === 'qa_import').id}`).set(auth);
+    expect(del.status).toBe(200);
+  });
+
   it('renaming a label and adding a value updates both content types (and the public read)', async () => {
     const res = await request(server()).put(`/api/option-lists/${listId}`).set(auth).send({
       choices: [{ value: 'female', label: 'Woman' }, { value: 'male', label: 'Male' }, { value: 'other' }, { value: 'nonbinary', label: 'Non-binary' }],

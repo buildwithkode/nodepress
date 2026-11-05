@@ -14,6 +14,9 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Changed
 
+- **Export & import now moves everything except media files.** The file also carries brand, email and storage settings, roles, permissions, users, media records and folders, plugins, releases, form submissions, the trash and all history. Image links change to the new site's address on import. A signed-in admin is needed for these parts; an API key gets content only.
+- **Site exports no longer hold any credentials.** Passwords, API keys, webhook secrets and form webhook headers stay behind. Imported users set a new password through an invite or "Forgot password", and a new webhook stays off until it has a signing secret. **This changes the file format to version 2**, which older installs can't read; they still export files this version reads.
+- **Import previews count Option Lists and components.** Export & import now shows how many of each will be created, updated or kept, before and after the import.
 - **Editors stay open after saving.** A new entry or content type opens its edit page once created, and saving a content type keeps you on the page. A second save doesn't repeat the renames or removals of the first.
 - **WordPress import hidden for now.** It's gone from the admin and the docs; the API routes still work.
 - **New projects are smaller.** `create-nodepress-app` no longer copies `client/`, `starters/`, `SECURITY.md` or the zip release scripts, and only `--docker` projects get `caddy/`, the HTTPS and search compose files and the root `.env.example`. Starters are copied from the NodePress repo.
@@ -44,6 +47,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Fixed
 
+- **Content Types page import brings its Option Lists.** It sent only content types and components, so a file with fields using a list failed on a site that didn't have that list.
 - **Saving an entry stays on the page.** Update no longer sends you back to the entries list.
 - **New projects keep their security pins.** The generated root `package.json` now carries the release's `overrides` and `allowScripts`, and `npm run dev` checks the database first. Three unit test files that need `backend/test` fixtures are no longer copied, so `tsc` and `npm test` pass in a new project.
 - **Content type, component and entry pages on phones and tablets.** The form no longer shares a phone's width with the JSON panel: below 1024px the panel starts closed and opens above the form. Field rows and header buttons wrap instead of running off the screen, and the Content Types, Entries and Components tables show their main columns on small screens.

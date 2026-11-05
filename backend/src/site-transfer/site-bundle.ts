@@ -4,7 +4,8 @@ import type { SiteEntryWrite } from '../entries/entries.service';
 
 /** Marks a file as a site export (`GET /api/site/export`). */
 export const SITE_BUNDLE_FORMAT = 'nodepress-site';
-export const SITE_BUNDLE_VERSION = 1;
+/** 2 adds users, roles, media records, settings, plugins, releases, submissions and history. */
+export const SITE_BUNDLE_VERSION = 2;
 
 const STATUSES = ['draft', 'published', 'archived'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,6 +18,9 @@ export interface SiteEntryRow {
   data?: Record<string, unknown>;
   seo?: unknown;
   publishAt?: string | null;
+  createdAt?: string;
+  /** Set on an entry in the trash. */
+  deletedAt?: string | null;
 }
 
 /** An entry already on this install. */
@@ -124,6 +128,10 @@ export function planEntries(
         plan.errors.push(`${label}: publishAt is not a date`);
         return;
       }
+      if ((row.createdAt && Number.isNaN(Date.parse(row.createdAt))) || (row.deletedAt && Number.isNaN(Date.parse(row.deletedAt)))) {
+        plan.errors.push(`${label}: createdAt and deletedAt must be dates`);
+        return;
+      }
       if (row.publicId !== undefined && (typeof row.publicId !== 'string' || !UUID.test(row.publicId))) {
         plan.errors.push(`${label}: publicId must be a UUID`);
         return;
@@ -146,6 +154,11 @@ export function planEntries(
       const match = byKey.get(key);
       if (match) {
         if (row.publicId && row.publicId !== match.publicId) finalIds.set(row.publicId, match.publicId);
+        // Something in the file's trash never removes or replaces what's on this site.
+        if (row.deletedAt) {
+          tp.toSkip++;
+          return;
+        }
         if (!overwrite && !match.deleted) {
           tp.toSkip++;
           return;
@@ -191,6 +204,8 @@ function toWrite(row: SiteEntryRow, locale: string, status: string, publicId: st
     data: (row.data ?? {}) as Record<string, any>,
     seo: row.seo ?? null,
     publishAt: row.publishAt ?? null,
+    createdAt: row.createdAt,
+    deletedAt: row.deletedAt ?? null,
   };
 }
 
@@ -199,9 +214,10 @@ export interface SiteWebhookWrite {
   id?: number;
   name: string;
   url: string;
-  secret: string | null;
+  /** Left undefined on an update when the file carries no secret: the one here stays. */
+  secret?: string | null;
   events: string[];
-  enabled: boolean;
+  enabled?: boolean;
 }
 
 export interface WebhookPlan {
@@ -212,6 +228,8 @@ export interface WebhookPlan {
   toSkip: number;
   /** Addresses that receive events once the import has run. */
   active: string[];
+  /** New webhooks left switched off: the file has no secret for them. */
+  switchedOff: number;
   writes: SiteWebhookWrite[];
   errors: string[];
 }
@@ -236,7 +254,7 @@ export function planWebhooks(
   existing: Array<{ id: number; name: string; url: string }>,
   overwrite: boolean,
 ): WebhookPlan {
-  const plan: WebhookPlan = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0, active: [], writes: [], errors: [] };
+  const plan: WebhookPlan = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0, active: [], switchedOff: 0, writes: [], errors: [] };
   if (bundleWebhooks === undefined || bundleWebhooks === null) return plan;
   if (!Array.isArray(bundleWebhooks)) {
     plan.errors.push('"webhooks" must be a list of webhooks');
@@ -288,16 +306,20 @@ export function planWebhooks(
       plan.toSkip++;
       return;
     }
+    // Exports no longer carry signing secrets. Without one a new webhook stays off until
+    // someone sets it, and an existing one keeps its own secret and on/off state.
+    const hasSecret = row.secret !== undefined;
     const write: SiteWebhookWrite = {
       id,
       name: row.name,
       url: row.url,
-      secret: (row.secret as string | null | undefined) ?? null,
+      secret: hasSecret ? (row.secret as string | null) : id === undefined ? null : undefined,
       events: row.events as string[],
-      enabled: (row.enabled as boolean | undefined) ?? true,
+      enabled: hasSecret ? ((row.enabled as boolean | undefined) ?? true) : id === undefined ? false : undefined,
     };
     if (id === undefined) plan.toCreate++;
     else plan.toUpdate++;
+    if (!hasSecret && id === undefined) plan.switchedOff++;
     plan.writes.push(write);
     if (write.enabled && !plan.active.includes(write.url)) plan.active.push(write.url);
   });
@@ -318,4 +340,23 @@ export function remapIds(value: unknown, ids: Map<string, string>): unknown {
     return out;
   }
   return value;
+}
+
+/**
+ * Point media links at this site: every `<old site>/uploads/` in any string becomes
+ * `<this site>/uploads/`, at any depth, rich text included. Files on R2, S3 or ImageKit
+ * have their own addresses and are left alone, as are object keys.
+ */
+export function rewriteBaseUrl(value: unknown, from: unknown, to: unknown): unknown {
+  if (typeof from !== 'string' || typeof to !== 'string' || !from || !to) return value;
+  const oldBase = `${from.replace(/\/+$/, '')}/uploads/`;
+  const newBase = `${to.replace(/\/+$/, '')}/uploads/`;
+  if (oldBase === newBase) return value;
+  const walk = (v: unknown): unknown => {
+    if (typeof v === 'string') return v.split(oldBase).join(newBase);
+    if (Array.isArray(v)) return v.map(walk);
+    if (isObject(v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return walk(value);
 }

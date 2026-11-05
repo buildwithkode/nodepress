@@ -541,6 +541,8 @@ export class ContentTypeService {
         total: list.length,
         toCreate,
         toUpdate,
+        choiceLists: await this.choiceLists?.previewImport(dto.choiceLists, overwrite),
+        components: await this.components?.previewImport(dto.components, overwrite),
         errors,
         preview,
       };

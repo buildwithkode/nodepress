@@ -348,6 +348,21 @@ export class ChoiceListsService implements OnModuleInit {
     return map;
   }
 
+  /** What importing a bundle's lists would do, for a dry run. */
+  async previewImport(raw: unknown, overwrite = true) {
+    const result = { total: 0, toCreate: 0, toUpdate: 0, toSkip: 0 };
+    if (!Array.isArray(raw)) return result;
+    const existing = new Set((await this.prisma.choiceList.findMany({ select: { name: true } })).map((row) => row.name));
+    for (const item of raw as any[]) {
+      if (typeof item?.name !== 'string') continue;
+      result.total++;
+      if (!existing.has(normalizeChoiceListName(item.name))) result.toCreate++;
+      else if (overwrite) result.toUpdate++;
+      else result.toSkip++;
+    }
+    return result;
+  }
+
   /**
    * Write an import bundle's lists (call prepareImport first). An updated list
    * propagates like any edit, so types outside the bundle stay in step.
