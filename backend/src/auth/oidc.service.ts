@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
+import { unusablePasswordHash } from './password';
 import { createHash, createPublicKey, randomBytes, KeyObject } from 'crypto';
 import { env } from '../config/env';
 import { PrismaService } from '../prisma/prisma.service';
@@ -316,7 +316,7 @@ export class OidcService {
         throw new ForbiddenException('No account exists for this email — ask an admin to invite you');
       }
       // Random unusable password: SSO users sign in through the provider.
-      const password = await bcrypt.hash(randomBytes(32).toString('hex'), 10);
+      const password = await unusablePasswordHash();
       user = await this.prisma.user.create({
         data: { email, password, role: mapped ?? env.OIDC_DEFAULT_ROLE },
       });

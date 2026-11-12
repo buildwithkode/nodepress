@@ -25,7 +25,10 @@
     "secretCopyFailed": "复制密钥失败",
     "resetLinkSent": "重置链接已发送至 {email}",
     "resetLinkCopied": "重置链接已复制到剪贴板（开发环境）",
-    "resetLinkFailed": "无法发送重置链接"
+    "resetLinkFailed": "无法发送重置链接",
+    "signedOutAll": "已在所有设备上退出",
+    "signOutAllFailed": "无法在所有设备上退出",
+    "otherDevicesSignedOut": "你的其他设备已退出登录。"
   },
   "list": {
     "title": "团队成员",
@@ -97,7 +100,11 @@
     "submit": "更新密码",
     "forgot": "忘记了？",
     "sendingReset": "发送中…",
-    "resetHint": "15 分钟内有效。如果没有收到，请让管理员重新发送邀请链接。"
+    "resetHint": "15 分钟内有效。如果没有收到，请让管理员重新发送邀请链接。",
+    "signOutAllTitle": "有不认识的登录？",
+    "signOutAllHint": "在所有设备上退出登录，包括这台设备。之后需要重新登录。",
+    "signOutAll": "在所有设备上退出",
+    "signingOutAll": "正在退出…"
   },
   "permissions": {
     "loading": "正在加载权限…",

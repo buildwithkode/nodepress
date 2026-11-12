@@ -108,8 +108,9 @@ model User {
   password          String
   role              String   @default("editor")
   twoFactorEnabled  Boolean  @default(false)
-  twoFactorSecret   String?
+  twoFactorSecret   String? // encrypted (enc:v1:…, common/secret-box.ts)
   twoFactorRecovery Json? // Array of SHA-256 hashed recovery codes
+  sessionVersion    Int      @default(0) // in every access token (sv); raising it signs the user out everywhere
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -119,7 +120,8 @@ model User {
 model ApiKey {
   id          Int       @id @default(autoincrement())
   name        String
-  key         String    @unique
+  key         String    @unique // sha256:<hex> of the key (auth/token-hash.ts); the key itself is shown once
+  prefix      String    @default("") // np_1a2b…9f0e, to recognise the key in the list
   permissions Json // { access: "read"|"write"|"all", contentTypes: string[]|"*" }
   createdAt   DateTime  @default(now())
   lastUsedAt  DateTime?
@@ -266,7 +268,7 @@ model RoleAccess {
 model RefreshToken {
   id        Int      @id @default(autoincrement())
   userId    Int
-  token     String   @unique // 64 hex chars (32 random bytes)
+  token     String   @unique // sha256:<hex> of the cookie value (auth/token-hash.ts)
   expiresAt DateTime // 30 days from creation
   createdAt DateTime @default(now())
 
@@ -279,7 +281,7 @@ model RefreshToken {
 model PasswordResetToken {
   id        Int      @id @default(autoincrement())
   userId    Int
-  token     String   @unique // 64 hex chars (32 random bytes)
+  token     String   @unique // sha256:<hex> of the emailed token (auth/token-hash.ts)
   expiresAt DateTime // 15 minutes from creation
   used      Boolean  @default(false)
   createdAt DateTime @default(now())

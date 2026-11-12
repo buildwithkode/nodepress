@@ -25,7 +25,10 @@
     "secretCopyFailed": "Geheime sleutel kopiëren mislukt",
     "resetLinkSent": "Resetlink verstuurd naar {email}",
     "resetLinkCopied": "Resetlink naar het klembord gekopieerd (ontwikkeling)",
-    "resetLinkFailed": "Resetlink kon niet worden verstuurd"
+    "resetLinkFailed": "Resetlink kon niet worden verstuurd",
+    "signedOutAll": "Op alle apparaten afgemeld",
+    "signOutAllFailed": "Overal afmelden is mislukt",
+    "otherDevicesSignedOut": "Je andere apparaten zijn afgemeld."
   },
   "list": {
     "title": "Teamleden",
@@ -97,7 +100,11 @@
     "submit": "Wachtwoord bijwerken",
     "forgot": "Vergeten?",
     "sendingReset": "Versturen…",
-    "resetHint": "15 minuten geldig. Komt hij niet aan, vraag dan een beheerder om een nieuwe uitnodigingslink."
+    "resetHint": "15 minuten geldig. Komt hij niet aan, vraag dan een beheerder om een nieuwe uitnodigingslink.",
+    "signOutAllTitle": "Een aanmelding die je niet herkent?",
+    "signOutAllHint": "Meld je af op alle apparaten, ook dit apparaat. Daarna moet je opnieuw inloggen.",
+    "signOutAll": "Overal afmelden",
+    "signingOutAll": "Afmelden…"
   },
   "permissions": {
     "loading": "Rechten laden…",

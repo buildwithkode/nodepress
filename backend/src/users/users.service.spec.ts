@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { hashToken } from '../auth/token-hash';
 import { ConflictException, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from './users.service';
@@ -71,6 +72,9 @@ describe('UsersService', () => {
       // An invitation link is issued + emailed.
       expect(mockPrisma.passwordResetToken.create).toHaveBeenCalledTimes(1);
       expect(mockMail.sendInvitation).toHaveBeenCalledTimes(1);
+      // The link carries the token; only its hash is stored
+      const linkToken = new URL(mockMail.sendInvitation.mock.calls[0][1]).searchParams.get('token')!;
+      expect(mockPrisma.passwordResetToken.create.mock.calls[0][0].data.token).toBe(hashToken(linkToken));
     });
 
     it('throws ConflictException when email already exists', async () => {
@@ -205,7 +209,12 @@ describe('UsersService', () => {
       mockPrisma.user.update.mockResolvedValue(mockAdmin);
 
       await service.changePassword(1, { currentPassword: 'Password123!', newPassword: 'NewPassword456!' }, 'mine');
-      expect(mockPrisma.refreshToken.deleteMany).toHaveBeenCalledWith({ where: { userId: 1, token: { not: 'mine' } } });
+      // The kept cookie is matched by its stored hash
+      expect(mockPrisma.refreshToken.deleteMany).toHaveBeenCalledWith({ where: { userId: 1, token: { not: hashToken('mine') } } });
+      // Every access token signed before stops working
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ sessionVersion: { increment: 1 } }),
+      }));
       expect(mockPrisma.passwordResetToken.updateMany).toHaveBeenCalledWith({ where: { userId: 1, used: false }, data: { used: true } });
 
       await service.changePassword(1, { currentPassword: 'Password123!', newPassword: 'NewPassword456!' });
@@ -218,6 +227,23 @@ describe('UsersService', () => {
       await expect(
         service.changePassword(1, { currentPassword: 'wrongpassword', newPassword: 'NewPassword456!' }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('refuses a common new password and keeps the old one', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockAdmin);
+      mockPrisma.user.update.mockClear();
+      await expect(
+        service.changePassword(1, { currentPassword: 'Password123!', newPassword: 'password123' }),
+      ).rejects.toThrow(/too common/);
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('stores the new password at the current bcrypt cost', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockAdmin);
+      mockPrisma.user.update.mockClear();
+      await service.changePassword(1, { currentPassword: 'Password123!', newPassword: 'NewPassword456!' });
+      const saved = mockPrisma.user.update.mock.calls[0][0].data.password;
+      expect(bcrypt.getRounds(saved)).toBe(12);
     });
   });
 

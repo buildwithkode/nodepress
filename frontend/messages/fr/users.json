@@ -25,7 +25,10 @@
     "secretCopyFailed": "Impossible de copier la clé secrète",
     "resetLinkSent": "Lien de réinitialisation envoyé à {email}",
     "resetLinkCopied": "Lien de réinitialisation copié dans le presse-papiers (développement)",
-    "resetLinkFailed": "Impossible d'envoyer le lien de réinitialisation"
+    "resetLinkFailed": "Impossible d'envoyer le lien de réinitialisation",
+    "signedOutAll": "Déconnecté de tous les appareils",
+    "signOutAllFailed": "Impossible de se déconnecter partout",
+    "otherDevicesSignedOut": "Vos autres appareils ont été déconnectés."
   },
   "list": {
     "title": "Membres de l’équipe",
@@ -97,7 +100,11 @@
     "submit": "Mettre à jour le mot de passe",
     "forgot": "Oublié ?",
     "sendingReset": "Envoi…",
-    "resetHint": "Valable 15 minutes. S'il n'arrive pas, demandez à un administrateur de vous renvoyer un lien d'invitation."
+    "resetHint": "Valable 15 minutes. S'il n'arrive pas, demandez à un administrateur de vous renvoyer un lien d'invitation.",
+    "signOutAllTitle": "Une connexion que vous ne reconnaissez pas ?",
+    "signOutAllHint": "Déconnectez-vous sur tous les appareils, y compris celui-ci. Vous devrez vous reconnecter.",
+    "signOutAll": "Se déconnecter partout",
+    "signingOutAll": "Déconnexion…"
   },
   "permissions": {
     "loading": "Chargement des permissions…",

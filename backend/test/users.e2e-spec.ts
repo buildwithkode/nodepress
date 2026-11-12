@@ -177,6 +177,13 @@ describe('Users (e2e)', () => {
       .expect(201);
 
     expect(res.body.access_token).toBeDefined();
+
+    // The change cancelled the login token issued before it
+    await request(app.getHttpServer())
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(401);
+    adminToken = res.body.access_token;
   });
 
   it('PUT /api/users/me/password → 400 on wrong current password', async () => {

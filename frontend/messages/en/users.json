@@ -25,7 +25,10 @@
     "secretCopyFailed": "Failed to copy secret",
     "resetLinkSent": "Reset link sent to {email}",
     "resetLinkCopied": "Reset link copied to your clipboard (development)",
-    "resetLinkFailed": "Couldn't send the reset link"
+    "resetLinkFailed": "Couldn't send the reset link",
+    "signedOutAll": "Signed out on all devices",
+    "signOutAllFailed": "Couldn't sign out on all devices",
+    "otherDevicesSignedOut": "Your other devices have been signed out."
   },
   "list": {
     "title": "Team Members",
@@ -97,7 +100,11 @@
     "submit": "Update Password",
     "forgot": "Forgot it?",
     "sendingReset": "Sending…",
-    "resetHint": "Valid for 15 minutes. If it doesn't arrive, ask an admin to send you a new invite link."
+    "resetHint": "Valid for 15 minutes. If it doesn't arrive, ask an admin to send you a new invite link.",
+    "signOutAllTitle": "Signed in somewhere you don't recognise?",
+    "signOutAllHint": "Sign out on every device, including this one. You'll need to sign in again.",
+    "signOutAll": "Sign out on all devices",
+    "signingOutAll": "Signing out…"
   },
   "permissions": {
     "loading": "Loading permissions…",

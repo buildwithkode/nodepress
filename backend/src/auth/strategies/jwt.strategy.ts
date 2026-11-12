@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { env } from '../../config/env';
 import { RolesService } from '../../roles/roles.service';
-import { AccessTokenPayload, isAccessTokenPayload } from '../access-token';
+import { AccessTokenPayload, isAccessTokenPayload, isCurrentSession } from '../access-token';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -27,6 +27,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) throw new UnauthorizedException();
+    // Cancelled by a password change, 2FA change or sign out everywhere
+    if (!isCurrentSession(payload, user)) throw new UnauthorizedException();
 
     // A custom role runs as its base role (so @Roles() checks keep working);
     // customRole is what content permission checks use.

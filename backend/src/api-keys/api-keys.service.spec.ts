@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { hashToken } from '../auth/token-hash';
 import { NotFoundException } from '@nestjs/common';
 import { ApiKeysService } from './api-keys.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -47,15 +48,14 @@ describe('ApiKeysService', () => {
 
       const result = await service.create(dto as any);
 
-      expect(mockPrisma.apiKey.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            name: 'My Key',
-            key: expect.stringMatching(/^np_/),
-          }),
-        }),
-      );
+      // Only the hash and a short prefix are stored; the key itself is returned once
+      const stored = mockPrisma.apiKey.create.mock.calls[0][0].data;
+      expect(stored.name).toBe('My Key');
+      expect(stored.key).toMatch(/^sha256:[0-9a-f]{64}$/);
       expect(result.id).toBe(1);
+      expect(result.key).toMatch(/^np_[0-9a-f]{48}$/);
+      expect(stored.key).toBe(hashToken(result.key));
+      expect(stored.prefix).toBe(`${result.key.slice(0, 7)}…${result.key.slice(-4)}`);
     });
   });
 
@@ -112,7 +112,7 @@ describe('ApiKeysService', () => {
       const result = await service.validate('np_unknown');
 
       expect(result).toBeNull();
-      expect(mockCache.set).toHaveBeenCalledWith('apikey:np_unknown', null, expect.any(Number));
+      expect(mockCache.set).toHaveBeenCalledWith(`apikey:${hashToken('np_unknown')}`, null, expect.any(Number));
     });
 
     it('caches and returns a valid key from DB', async () => {
@@ -123,7 +123,21 @@ describe('ApiKeysService', () => {
       const result = await service.validate('np_valid');
 
       expect(result).toEqual(dbKey);
-      expect(mockCache.set).toHaveBeenCalledWith('apikey:np_valid', dbKey, expect.any(Number));
+      expect(mockPrisma.apiKey.findUnique).toHaveBeenCalledWith({ where: { key: hashToken('np_valid') } });
+      expect(mockCache.set).toHaveBeenCalledWith(`apikey:${hashToken('np_valid')}`, dbKey, expect.any(Number));
     });
+  });
+
+  it('refuses an empty key without a lookup', async () => {
+    expect(await service.validate('')).toBeNull();
+    expect(mockPrisma.apiKey.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('lists keys by prefix, never the stored hash', async () => {
+    mockPrisma.apiKey.findMany.mockResolvedValue([]);
+    await service.findAll();
+    const select = mockPrisma.apiKey.findMany.mock.calls[0][0].select;
+    expect(select.prefix).toBe(true);
+    expect(select.key).toBeUndefined();
   });
 });

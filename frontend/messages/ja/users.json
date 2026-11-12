@@ -25,7 +25,10 @@
     "secretCopyFailed": "シークレットをコピーできませんでした",
     "resetLinkSent": "リセットリンクを {email} に送信しました",
     "resetLinkCopied": "リセットリンクをクリップボードにコピーしました（開発環境）",
-    "resetLinkFailed": "リセットリンクを送信できませんでした"
+    "resetLinkFailed": "リセットリンクを送信できませんでした",
+    "signedOutAll": "すべてのデバイスからログアウトしました",
+    "signOutAllFailed": "すべてのデバイスからログアウトできませんでした",
+    "otherDevicesSignedOut": "ほかのデバイスはログアウトされました。"
   },
   "list": {
     "title": "チームメンバー",
@@ -97,7 +100,11 @@
     "submit": "パスワードを更新",
     "forgot": "お忘れですか？",
     "sendingReset": "送信中…",
-    "resetHint": "有効期限は15分です。届かない場合は、管理者に招待リンクの再送を依頼してください。"
+    "resetHint": "有効期限は15分です。届かない場合は、管理者に招待リンクの再送を依頼してください。",
+    "signOutAllTitle": "心当たりのないログインがありますか？",
+    "signOutAllHint": "このデバイスを含むすべてのデバイスからログアウトします。もう一度ログインが必要です。",
+    "signOutAll": "すべてのデバイスからログアウト",
+    "signingOutAll": "ログアウト中…"
   },
   "permissions": {
     "loading": "権限を読み込み中…",

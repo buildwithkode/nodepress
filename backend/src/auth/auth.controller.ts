@@ -67,6 +67,15 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('logout-all')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Sign out on every device: all access and refresh tokens of this user stop working' })
+  @ApiResponse({ status: 200, description: 'Signed out everywhere' })
+  logoutEverywhere(@Request() req, @Res({ passthrough: true }) res: ExpressResponse) {
+    return this.authService.logoutEverywhere(req.user.id, res);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get current authenticated user' })
@@ -112,7 +121,7 @@ export class AuthController {
     @Request() req,
     @Body() body: { secret: string; code: string; recoveryCodes: string[] },
   ) {
-    return this.authService.enable2fa(req.user.id, body.secret, body.code, body.recoveryCodes);
+    return this.authService.enable2fa(req.user.id, body.secret, body.code, body.recoveryCodes, req.cookies?.['np_refresh']);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -120,7 +129,7 @@ export class AuthController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Disable 2FA on user account using TOTP verification code' })
   disable2fa(@Request() req, @Body() body: { code: string }) {
-    return this.authService.disable2fa(req.user.id, body.code);
+    return this.authService.disable2fa(req.user.id, body.code, req.cookies?.['np_refresh']);
   }
 
   @Throttle({ default: { ttl: 60_000, limit: process.env.NODE_ENV === 'production' ? 5 : 50 } })

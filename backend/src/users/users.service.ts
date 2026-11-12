@@ -5,13 +5,14 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto, ChangePasswordDto } from './dto/update-user.dto';
 import { isBuiltInRole } from '../roles/roles.constants';
+import { assertAcceptablePassword, hashPassword, unusablePasswordHash, verifyPassword } from '../auth/password';
+import { hashToken } from '../auth/token-hash';
 
 const USER_SELECT = { id: true, email: true, role: true, createdAt: true, updatedAt: true } as const;
 
@@ -37,8 +38,7 @@ export class UsersService {
 
     // No admin-set password — random hash the user can never know until they
     // set their own via the invitation link.
-    const randomPassword = randomBytes(32).toString('hex');
-    const hashed = await bcrypt.hash(randomPassword, 10);
+    const hashed = await unusablePasswordHash();
     const user = await this.prisma.user.create({
       data: { email: dto.email, password: hashed, role: dto.role ?? 'editor' },
       select: USER_SELECT,
@@ -67,8 +67,9 @@ export class UsersService {
     });
     const token = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    // Only the hash is stored; the invitation link carries the token itself
     await this.prisma.passwordResetToken.create({
-      data: { userId, token, expiresAt },
+      data: { userId, token: hashToken(token), expiresAt },
     });
     const baseUrl = process.env.SITE_URL || process.env.APP_URL || 'http://localhost:5173';
     return `${baseUrl}/reset-password?token=${token}`;
@@ -175,14 +176,17 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const valid = await bcrypt.compare(dto.currentPassword, user.password);
+    const valid = await verifyPassword(dto.currentPassword, user.password);
     if (!valid) throw new BadRequestException('Current password is incorrect');
+    await assertAcceptablePassword(dto.newPassword, user.email);
 
-    const hashed = await bcrypt.hash(dto.newPassword, 10);
+    const hashed = await hashPassword(dto.newPassword);
     await this.prisma.$transaction([
-      this.prisma.user.update({ where: { id: userId }, data: { password: hashed } }),
+      // A new session version cancels every access token signed before, this
+      // browser's too: it gets a new one from its kept refresh cookie
+      this.prisma.user.update({ where: { id: userId }, data: { password: hashed, sessionVersion: { increment: 1 } } }),
       this.prisma.refreshToken.deleteMany({
-        where: { userId, ...(keepRefreshToken ? { token: { not: keepRefreshToken } } : {}) },
+        where: { userId, ...(keepRefreshToken ? { token: { not: hashToken(keepRefreshToken) } } : {}) },
       }),
       this.prisma.passwordResetToken.updateMany({ where: { userId, used: false }, data: { used: true } }),
     ]);

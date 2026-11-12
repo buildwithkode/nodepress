@@ -4,9 +4,9 @@ import {
   UnauthorizedException,
   BadRequestException,
   Logger,
+  OnModuleInit,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
@@ -14,12 +14,24 @@ import { MailService } from '../mail/mail.service';
 import { RolesService } from '../roles/roles.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import {
+  assertAcceptablePassword, hashPassword, needsRehash, verifyAgainstDummy, verifyPassword,
+} from './password';
+import { hashToken } from './token-hash';
+import { isSealedTotpSecret, readTotpSecret, sealTotpSecret } from './totp-secret';
 
 const REFRESH_TOKEN_TTL_DAYS = 30;
 const REFRESH_COOKIE = 'np_refresh';
 
+/** What an access token is signed from: `sv` ties it to the user's current session version. */
+interface SessionSubject {
+  id: number;
+  email: string;
+  sessionVersion?: number;
+}
+
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
@@ -28,6 +40,29 @@ export class AuthService {
     private mail: MailService,
     private roles: RolesService,
   ) {}
+
+  /** Encrypt 2FA secrets saved before they were stored encrypted. Never blocks startup. */
+  async onModuleInit() {
+    try {
+      const users = await this.prisma.user.findMany({
+        where: { twoFactorSecret: { not: null } },
+        select: { id: true, twoFactorSecret: true },
+      });
+      let sealed = 0;
+      for (const u of users) {
+        if (!u.twoFactorSecret || isSealedTotpSecret(u.twoFactorSecret)) continue;
+        // Conditional on the old value, so instances starting together don't double-encrypt
+        const { count } = await this.prisma.user.updateMany({
+          where: { id: u.id, twoFactorSecret: u.twoFactorSecret },
+          data: { twoFactorSecret: sealTotpSecret(u.twoFactorSecret) },
+        });
+        sealed += count;
+      }
+      if (sealed) this.logger.log(`Encrypted ${sealed} stored 2FA secret(s)`);
+    } catch (err: any) {
+      this.logger.warn(`Could not encrypt stored 2FA secrets: ${err?.message}`);
+    }
+  }
 
   /** Returns true if no admin account exists yet */
   async isSetupRequired(): Promise<boolean> {
@@ -42,13 +77,14 @@ export class AuthService {
     }
 
     const normalizedEmail = dto.email.trim().toLowerCase();
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    await assertAcceptablePassword(dto.password, normalizedEmail);
+    const hashedPassword = await hashPassword(dto.password);
     const user = await this.prisma.user.create({
       data: { email: normalizedEmail, password: hashedPassword, role: 'admin' },
-      select: { id: true, email: true, role: true, createdAt: true },
+      select: { id: true, email: true, role: true, createdAt: true, sessionVersion: true },
     });
 
-    const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+    const access_token = await this.signAccessToken(user);
     return { access_token, user: await this.sessionUser(user) };
   }
 
@@ -61,14 +97,27 @@ export class AuthService {
       });
     }
 
-    // Always run bcrypt to prevent timing-based email enumeration
-    const dummyHash = '$2b$10$invalidhashfortimingprotectiononly000000000000000000000';
+    // Always run bcrypt (at the same cost) so timing doesn't reveal which emails exist
     const passwordMatch = user
-      ? await bcrypt.compare(dto.password, user.password)
-      : await bcrypt.compare(dto.password, dummyHash).then(() => false);
+      ? await verifyPassword(dto.password, user.password)
+      : await verifyAgainstDummy(dto.password);
 
     if (!user || !passwordMatch) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Upgrade a hash made with an older, cheaper cost while we have the password
+    if (needsRehash(user.password)) {
+      try {
+        const upgraded = await hashPassword(dto.password);
+        await this.prisma.user.updateMany({
+          where: { id: user.id, password: user.password },
+          data: { password: upgraded },
+        });
+      } catch (err: any) {
+        // Signing in matters more than the upgrade; it is tried again next time
+        this.logger.warn(`Could not upgrade password hash: ${err?.message}`);
+      }
     }
 
     // If Two-Factor Authentication is enabled, return a 5-minute temporary token
@@ -80,7 +129,7 @@ export class AuthService {
       return { requires2fa: true, tempToken };
     }
 
-    const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+    const access_token = await this.signAccessToken(user);
     await this.issueRefreshCookie(user.id, res);
 
     return { access_token, user: await this.sessionUser(user) };
@@ -106,10 +155,11 @@ export class AuthService {
     }
 
     const { verifyTotp, verifyAndConsumeRecoveryCode } = require('./totp.util');
-    const isTotpValid = verifyTotp(code, user.twoFactorSecret);
+    const secret = readTotpSecret(user.twoFactorSecret);
+    const isTotpValid = !!secret && verifyTotp(code, secret);
 
     if (isTotpValid) {
-      const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+      const access_token = await this.signAccessToken(user);
       await this.issueRefreshCookie(user.id, res);
       return { access_token, user: await this.sessionUser(user) };
     }
@@ -124,7 +174,7 @@ export class AuthService {
         data: { twoFactorRecovery: recoveryResult.remainingHashes },
       });
 
-      const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+      const access_token = await this.signAccessToken(user);
       await this.issueRefreshCookie(user.id, res);
       return {
         access_token,
@@ -153,32 +203,46 @@ export class AuthService {
     };
   }
 
-  async enable2fa(userId: number, secret: string, code: string, hashedRecoveryCodes: string[]) {
+  /**
+   * Turn 2FA on. Every other session is signed out (they started without the
+   * second factor); `keepRefreshToken`, the caller's own cookie, survives and
+   * a new access token for this browser is returned.
+   */
+  async enable2fa(
+    userId: number, secret: string, code: string, hashedRecoveryCodes: string[], keepRefreshToken?: string,
+  ) {
     const { verifyTotp } = require('./totp.util');
     if (!verifyTotp(code, secret)) {
       throw new BadRequestException('Invalid verification code. Please check your authenticator app.');
     }
 
-    await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
         twoFactorEnabled: true,
-        twoFactorSecret: secret,
+        twoFactorSecret: sealTotpSecret(secret),
         twoFactorRecovery: hashedRecoveryCodes,
+        sessionVersion: { increment: 1 },
       },
     });
+    await this.endOtherRefreshSessions(userId, keepRefreshToken);
 
-    return { success: true, message: 'Two-Factor Authentication enabled successfully' };
+    return {
+      success: true,
+      message: 'Two-Factor Authentication enabled successfully',
+      access_token: await this.signAccessToken(user),
+    };
   }
 
-  async disable2fa(userId: number, code: string) {
+  async disable2fa(userId: number, code: string, keepRefreshToken?: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || !user.twoFactorEnabled) {
       return { success: true, message: '2FA is already disabled' };
     }
 
     const { verifyTotp, verifyAndConsumeRecoveryCode } = require('./totp.util');
-    const isTotpValid = user.twoFactorSecret && verifyTotp(code, user.twoFactorSecret);
+    const secret = readTotpSecret(user.twoFactorSecret);
+    const isTotpValid = !!secret && verifyTotp(code, secret);
     const recoveryList = Array.isArray(user.twoFactorRecovery) ? (user.twoFactorRecovery as string[]) : [];
     const isRecoveryValid = verifyAndConsumeRecoveryCode(code, recoveryList).valid;
 
@@ -186,16 +250,22 @@ export class AuthService {
       throw new BadRequestException('Invalid 2FA code or recovery code');
     }
 
-    await this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { id: userId },
       data: {
         twoFactorEnabled: false,
         twoFactorSecret: null,
         twoFactorRecovery: null,
+        sessionVersion: { increment: 1 },
       },
     });
+    await this.endOtherRefreshSessions(userId, keepRefreshToken);
 
-    return { success: true, message: 'Two-Factor Authentication disabled successfully' };
+    return {
+      success: true,
+      message: 'Two-Factor Authentication disabled successfully',
+      access_token: await this.signAccessToken(updated),
+    };
   }
 
   async get2faStatus(userId: number) {
@@ -209,9 +279,9 @@ export class AuthService {
    * a new refresh token and invalidates the old one.
    */
   async refresh(refreshToken: string, res: Response): Promise<{ access_token: string }> {
-    const record = await this.prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-    });
+    const record = refreshToken
+      ? await this.prisma.refreshToken.findUnique({ where: { token: hashToken(refreshToken) } })
+      : null;
 
     if (!record || new Date(record.expiresAt) < new Date()) {
       this.clearRefreshCookie(res);
@@ -228,16 +298,30 @@ export class AuthService {
     await this.prisma.refreshToken.delete({ where: { id: record.id } });
     await this.issueRefreshCookie(user.id, res);
 
-    const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+    const access_token = await this.signAccessToken(user);
     return { access_token };
   }
 
   async logout(refreshToken: string | undefined, res: Response): Promise<{ message: string }> {
     if (refreshToken) {
-      await this.prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
+      await this.prisma.refreshToken.deleteMany({ where: { token: hashToken(refreshToken) } });
     }
     this.clearRefreshCookie(res);
     return { message: 'Logged out' };
+  }
+
+  /**
+   * Sign out everywhere: every access token issued so far stops working at
+   * once (the session version moves on) and every refresh token is deleted,
+   * this browser's included.
+   */
+  async logoutEverywhere(userId: number, res: Response): Promise<{ message: string }> {
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } }),
+      this.prisma.refreshToken.deleteMany({ where: { userId } }),
+    ]);
+    this.clearRefreshCookie(res);
+    return { message: 'Signed out on all devices' };
   }
 
   // ── Password reset ──────────────────────────────────────────────────────────
@@ -260,12 +344,13 @@ export class AuthService {
       const token = randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
+      // Only the hash is stored; the link in the email carries the token itself
       await this.prisma.passwordResetToken.create({
-        data: { userId: user.id, token, expiresAt },
+        data: { userId: user.id, token: hashToken(token), expiresAt },
       });
 
       const resetUrl = `${process.env.SITE_URL || process.env.APP_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
-      
+
       // Send email in background so slow SMTP never blocks or hangs the user's HTTP request
       this.mail.sendPasswordReset(user.email, resetUrl).catch((err: any) => {
         this.logger.warn(`Failed to dispatch password reset email: ${err?.message}`);
@@ -285,18 +370,28 @@ export class AuthService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
-    const record = await this.prisma.passwordResetToken.findUnique({ where: { token } });
+    const record = token
+      ? await this.prisma.passwordResetToken.findUnique({ where: { token: hashToken(token) } })
+      : null;
 
     if (!record || record.used || new Date(record.expiresAt) < new Date()) {
       throw new BadRequestException('Invalid or expired reset token');
     }
 
-    const hashed = await bcrypt.hash(newPassword, 10);
-    await this.prisma.user.update({ where: { id: record.userId }, data: { password: hashed } });
-    await this.prisma.passwordResetToken.update({ where: { id: record.id }, data: { used: true } });
+    const owner = await this.prisma.user.findUnique({ where: { id: record.userId }, select: { email: true } });
+    await assertAcceptablePassword(newPassword, owner?.email);
 
-    // Revoke all active sessions — stolen refresh tokens are no longer valid after a password reset
-    await this.prisma.refreshToken.deleteMany({ where: { userId: record.userId } });
+    const hashed = await hashPassword(newPassword);
+    // Revoke every session: access tokens stop working (new session version)
+    // and stolen refresh tokens are deleted
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: record.userId },
+        data: { password: hashed, sessionVersion: { increment: 1 } },
+      }),
+      this.prisma.passwordResetToken.update({ where: { id: record.id }, data: { used: true } }),
+      this.prisma.refreshToken.deleteMany({ where: { userId: record.userId } }),
+    ]);
 
     return { message: 'Password updated successfully' };
   }
@@ -312,10 +407,24 @@ export class AuthService {
    * Start a session for an already-authenticated user (e.g. after SSO): the
    * same access token + rotating refresh cookie as a password login.
    */
-  async createSession(user: { id: number; email: string; role: string }, res: Response) {
-    const access_token = this.jwtService.sign({ sub: user.id, email: user.email });
+  async createSession(user: SessionSubject & { role: string }, res: Response) {
+    const access_token = await this.signAccessToken(user);
     await this.issueRefreshCookie(user.id, res);
     return { access_token, user: await this.sessionUser(user) };
+  }
+
+  /**
+   * An access token carries the user's session version (`sv`); the JWT checks
+   * refuse it once the version moves on (password change or reset, 2FA change,
+   * sign out everywhere). Reads the version when the caller doesn't have it.
+   */
+  async signAccessToken(user: SessionSubject): Promise<string> {
+    let sv = user.sessionVersion;
+    if (sv === undefined) {
+      const row = await this.prisma.user.findUnique({ where: { id: user.id }, select: { sessionVersion: true } });
+      sv = row?.sessionVersion ?? 0;
+    }
+    return this.jwtService.sign({ sub: user.id, email: user.email, sv });
   }
 
   // ── Private helpers ─────────────────────────────────────────────────────────
@@ -326,11 +435,19 @@ export class AuthService {
     return { id: user.id, email: user.email, role, ...(customRole && { customRole }) };
   }
 
+  /** Delete the user's refresh tokens except the caller's own (`keep`, the raw cookie value). */
+  private async endOtherRefreshSessions(userId: number, keep?: string) {
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId, ...(keep ? { token: { not: hashToken(keep) } } : {}) },
+    });
+  }
+
   private async issueRefreshCookie(userId: number, res: Response): Promise<void> {
     const token = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
 
-    await this.prisma.refreshToken.create({ data: { userId, token, expiresAt } });
+    // Only the hash is stored; the browser keeps the token in the HttpOnly cookie
+    await this.prisma.refreshToken.create({ data: { userId, token: hashToken(token), expiresAt } });
 
     res.cookie(REFRESH_COOKIE, token, {
       httpOnly: true,

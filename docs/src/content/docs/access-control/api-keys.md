@@ -16,11 +16,11 @@ Only admins can create and revoke keys.
 1. Open **API Keys** and click **New API Key**.
 2. Enter a **Key Name**, such as "Next.js Frontend".
 3. Pick an **Access Level** and the **Allowed Content Types**.
-4. Click **Create Key** and copy the key.
+4. Click **Create Key** and copy the key. **It's shown only this once**: NodePress stores only a hash of it, so nobody can see it again, admins included. If it's lost, revoke it and create a new one.
 
 ![The New API Key form with key name, access level and allowed content types](../../../assets/screenshots/api-key-new.png)
 
-Keys look like `np_` followed by 48 hex characters. The list shows each key shortened with its access, content types and **Last Used** time, and admins can copy the full key from there.
+Keys look like `np_` followed by 48 hex characters. The list shows each key by its first and last characters (`np_1a2b…9f0e`) with its access, content types and **Last Used** time.
 
 ```bash
 curl -X POST https://cms.example.com/api/api-keys \

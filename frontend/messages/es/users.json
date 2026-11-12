@@ -25,7 +25,10 @@
     "secretCopyFailed": "No se pudo copiar la clave secreta",
     "resetLinkSent": "Enlace de restablecimiento enviado a {email}",
     "resetLinkCopied": "Enlace de restablecimiento copiado al portapapeles (desarrollo)",
-    "resetLinkFailed": "No se pudo enviar el enlace de restablecimiento"
+    "resetLinkFailed": "No se pudo enviar el enlace de restablecimiento",
+    "signedOutAll": "Sesión cerrada en todos los dispositivos",
+    "signOutAllFailed": "No se pudo cerrar la sesión en todos los dispositivos",
+    "otherDevicesSignedOut": "Se ha cerrado la sesión en tus otros dispositivos."
   },
   "list": {
     "title": "Miembros del equipo",
@@ -97,7 +100,11 @@
     "submit": "Actualizar contraseña",
     "forgot": "¿La olvidaste?",
     "sendingReset": "Enviando…",
-    "resetHint": "Válido durante 15 minutos. Si no llega, pide a un administrador que te envíe un nuevo enlace de invitación."
+    "resetHint": "Válido durante 15 minutos. Si no llega, pide a un administrador que te envíe un nuevo enlace de invitación.",
+    "signOutAllTitle": "¿Una sesión que no reconoces?",
+    "signOutAllHint": "Cierra la sesión en todos los dispositivos, incluido este. Tendrás que volver a iniciar sesión.",
+    "signOutAll": "Cerrar sesión en todos los dispositivos",
+    "signingOutAll": "Cerrando sesión…"
   },
   "permissions": {
     "loading": "Cargando permisos…",

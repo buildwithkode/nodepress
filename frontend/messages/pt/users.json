@@ -25,7 +25,10 @@
     "secretCopyFailed": "Falha ao copiar a chave secreta",
     "resetLinkSent": "Link de redefinição enviado para {email}",
     "resetLinkCopied": "Link de redefinição copiado para a área de transferência (desenvolvimento)",
-    "resetLinkFailed": "Não foi possível enviar o link de redefinição"
+    "resetLinkFailed": "Não foi possível enviar o link de redefinição",
+    "signedOutAll": "Sessão encerrada em todos os dispositivos",
+    "signOutAllFailed": "Não foi possível sair em todos os dispositivos",
+    "otherDevicesSignedOut": "Sua sessão foi encerrada nos outros dispositivos."
   },
   "list": {
     "title": "Membros da equipe",
@@ -97,7 +100,11 @@
     "submit": "Atualizar senha",
     "forgot": "Esqueceu?",
     "sendingReset": "Enviando…",
-    "resetHint": "Válido por 15 minutos. Se não chegar, peça a um administrador para enviar um novo link de convite."
+    "resetHint": "Válido por 15 minutos. Se não chegar, peça a um administrador para enviar um novo link de convite.",
+    "signOutAllTitle": "Uma sessão que você não reconhece?",
+    "signOutAllHint": "Saia em todos os dispositivos, incluindo este. Você precisará entrar novamente.",
+    "signOutAll": "Sair em todos os dispositivos",
+    "signingOutAll": "Saindo…"
   },
   "permissions": {
     "loading": "Carregando permissões…",

@@ -13,7 +13,7 @@ A NodePress site is its PostgreSQL database plus its uploaded files. Content typ
 |---|---|---|
 | Database | PostgreSQL | Everything except uploaded files. |
 | Uploads | `backend/uploads/` (`nodepress-data/uploads/` for the [server zip](/deployment/deploy-zip/)), or your storage provider | Skip `uploads/.cache`: it only holds resized variants and temporary files. |
-| `JWT_SECRET` (or `SETTINGS_SECRET`) | `backend/.env` (`nodepress-data/.env` for the server zip), or the `secrets_data` Docker volume | Email and storage passwords saved in the admin are encrypted with it. Restoring the database under a different secret makes them unreadable. |
+| `JWT_SECRET` (or `SETTINGS_SECRET`) | `backend/.env` (`nodepress-data/.env` for the server zip), or the `secrets_data` Docker volume | Email and storage passwords saved in the admin, and users' 2FA secrets, are encrypted with it. Restoring the database under a different secret makes them unreadable (2FA users then sign in with a recovery code). |
 
 Backups contain password hashes, API keys and webhook secrets. Store them somewhere private.
 

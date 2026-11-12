@@ -25,7 +25,10 @@
     "secretCopyFailed": "Impossibile copiare la chiave segreta",
     "resetLinkSent": "Link di reimpostazione inviato a {email}",
     "resetLinkCopied": "Link di reimpostazione copiato negli appunti (sviluppo)",
-    "resetLinkFailed": "Impossibile inviare il link di reimpostazione"
+    "resetLinkFailed": "Impossibile inviare il link di reimpostazione",
+    "signedOutAll": "Disconnesso da tutti i dispositivi",
+    "signOutAllFailed": "Impossibile uscire da tutti i dispositivi",
+    "otherDevicesSignedOut": "I tuoi altri dispositivi sono stati disconnessi."
   },
   "list": {
     "title": "Membri del team",
@@ -97,7 +100,11 @@
     "submit": "Aggiorna password",
     "forgot": "Dimenticata?",
     "sendingReset": "Invio…",
-    "resetHint": "Valido per 15 minuti. Se non arriva, chiedi a un amministratore di inviarti un nuovo link di invito."
+    "resetHint": "Valido per 15 minuti. Se non arriva, chiedi a un amministratore di inviarti un nuovo link di invito.",
+    "signOutAllTitle": "Un accesso che non riconosci?",
+    "signOutAllHint": "Esci da tutti i dispositivi, compreso questo. Dovrai accedere di nuovo.",
+    "signOutAll": "Esci da tutti i dispositivi",
+    "signingOutAll": "Uscita in corso…"
   },
   "permissions": {
     "loading": "Caricamento dei permessi…",
