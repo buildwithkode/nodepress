@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanDatabase } from './helpers';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { hashToken } from '../src/auth/token-hash';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
@@ -132,22 +133,24 @@ describe('Auth (e2e)', () => {
   });
 
   it('POST /api/auth/reset-password → updates password with valid token', async () => {
-    // Request a reset so the token is written to the DB
-    await request(app.getHttpServer())
+    // Outside production the link comes back in the response (SMTP is a no-op in tests)
+    const forgot = await request(app.getHttpServer())
       .post('/api/auth/forgot-password')
       .send({ email: 'admin@nodepress.test' });
+    const token = new URL(forgot.body.devResetUrl).searchParams.get('token')!;
 
-    // Read token directly from DB (SMTP is a no-op in test env)
+    // The database holds only the token's hash
     const prisma = app.get(PrismaService);
     const record = await prisma.passwordResetToken.findFirst({
       where: { used: false },
       orderBy: { createdAt: 'desc' },
     });
-    expect(record).not.toBeNull();
+    expect(record!.token).toBe(hashToken(token));
+    expect(record!.token).not.toContain(token);
 
     const res = await request(app.getHttpServer())
       .post('/api/auth/reset-password')
-      .send({ token: record!.token, password: 'NewSecure456!' })
+      .send({ token, password: 'NewSecure456!' })
       .expect(201);
 
     expect(res.body.message).toBeDefined();
@@ -167,26 +170,21 @@ describe('Auth (e2e)', () => {
   });
 
   it('POST /api/auth/reset-password → 400 when token is already used', async () => {
-    await request(app.getHttpServer())
+    const forgot = await request(app.getHttpServer())
       .post('/api/auth/forgot-password')
       .send({ email: 'admin@nodepress.test' });
-
-    const prisma = app.get(PrismaService);
-    const record = await prisma.passwordResetToken.findFirst({
-      where: { used: false },
-      orderBy: { createdAt: 'desc' },
-    });
+    const token = new URL(forgot.body.devResetUrl).searchParams.get('token')!;
 
     // Use it once
     await request(app.getHttpServer())
       .post('/api/auth/reset-password')
-      .send({ token: record!.token, password: 'AnotherPass789!' })
+      .send({ token, password: 'AnotherPass789!' })
       .expect(201);
 
     // Use it again — must be rejected
     await request(app.getHttpServer())
       .post('/api/auth/reset-password')
-      .send({ token: record!.token, password: 'AnotherPass789!' })
+      .send({ token, password: 'AnotherPass789!' })
       .expect(400);
   });
 
@@ -195,5 +193,83 @@ describe('Auth (e2e)', () => {
       .post('/api/auth/reset-password')
       .send({ token: 'not-a-real-token', password: 'SomePass123!' })
       .expect(400);
+  });
+
+  // ── Ending sessions early ────────────────────────────────────────────────────
+
+  const signIn = async (password: string) => {
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: 'admin@nodepress.test', password })
+      .expect(201);
+    const cookies = (res.headers['set-cookie'] as unknown as string[]).map((c) => c.split(';')[0]).join('; ');
+    return { token: res.body.access_token as string, cookies };
+  };
+  const me = (token: string) => request(app.getHttpServer()).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
+
+  it('stores refresh tokens only as hashes', async () => {
+    const { cookies } = await signIn('AnotherPass789!');
+    const raw = cookies.split('np_refresh=')[1].split(';')[0];
+    const rows = await app.get(PrismaService).refreshToken.findMany();
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.token.startsWith('sha256:'))).toBe(true);
+    expect(rows.some((r) => r.token === hashToken(raw))).toBe(true);
+  });
+
+  it('a password change cancels every other login at once; this browser refreshes back in', async () => {
+    const here = await signIn('AnotherPass789!');
+    const elsewhere = await signIn('AnotherPass789!');
+    await me(elsewhere.token).expect(200);
+
+    const changed = await request(app.getHttpServer())
+      .put('/api/users/me/password')
+      .set('Authorization', `Bearer ${here.token}`)
+      .set('Cookie', here.cookies)
+      .send({ currentPassword: 'AnotherPass789!', newPassword: 'Blue-Mango-Kite-42' })
+      .expect(200);
+
+    // Both access tokens were signed before the change
+    await me(elsewhere.token).expect(401);
+    await me(here.token).expect(401);
+
+    // The response starts a new session for this browser: a working token and a new refresh cookie
+    await me(changed.body.access_token).expect(200);
+    const fresh = (changed.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith('np_refresh='))!;
+    const viaNewCookie = await request(app.getHttpServer()).post('/api/auth/refresh').set('Cookie', fresh.split(';')[0]).expect(201);
+    await me(viaNewCookie.body.access_token).expect(200);
+
+    // This browser kept its refresh cookie and gets a new token; the other one didn't
+    const refreshed = await request(app.getHttpServer()).post('/api/auth/refresh').set('Cookie', here.cookies).expect(201);
+    await me(refreshed.body.access_token).expect(200);
+    await request(app.getHttpServer()).post('/api/auth/refresh').set('Cookie', elsewhere.cookies).expect(401);
+  });
+
+  it('refuses a common new password', async () => {
+    const { token } = await signIn('Blue-Mango-Kite-42');
+    const res = await request(app.getHttpServer())
+      .put('/api/users/me/password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currentPassword: 'Blue-Mango-Kite-42', newPassword: 'password123' })
+      .expect(400);
+    expect(res.body.message).toMatch(/too common/);
+  });
+
+  it('sign out everywhere cancels access and refresh tokens', async () => {
+    const one = await signIn('Blue-Mango-Kite-42');
+    const two = await signIn('Blue-Mango-Kite-42');
+
+    await request(app.getHttpServer())
+      .post('/api/auth/logout-all')
+      .set('Authorization', `Bearer ${one.token}`)
+      .set('Cookie', one.cookies)
+      .expect(201);
+
+    await me(one.token).expect(401);
+    await me(two.token).expect(401);
+    await request(app.getHttpServer()).post('/api/auth/refresh').set('Cookie', two.cookies).expect(401);
+    expect(await app.get(PrismaService).refreshToken.count()).toBe(0);
+
+    // Signing in again works as normal
+    await me((await signIn('Blue-Mango-Kite-42')).token).expect(200);
   });
 });

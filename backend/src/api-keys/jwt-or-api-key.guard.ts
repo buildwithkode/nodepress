@@ -8,7 +8,7 @@ import { RolesService } from '../roles/roles.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { Request } from 'express';
 import { contentTypeName, keyCoversType } from '../common/content-type-name';
-import { isAccessTokenPayload } from '../auth/access-token';
+import { isAccessTokenPayload, isCurrentSession } from '../auth/access-token';
 
 /**
  * Allows through if the request carries EITHER:
@@ -62,6 +62,7 @@ export class JwtOrApiKeyGuard implements CanActivate {
       });
       if (!isAccessTokenPayload(payload)) throw new Error('not an access token');
       user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+      if (user && !isCurrentSession(payload, user)) throw new Error('session ended');
     } catch {
       throw new UnauthorizedException('Invalid or expired JWT');
     }

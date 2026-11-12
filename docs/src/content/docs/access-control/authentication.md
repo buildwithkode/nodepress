@@ -55,9 +55,18 @@ curl -H "Authorization: Bearer eyJhbGciOi…" https://cms.example.com/api/auth/m
 
 The user's role is looked up on every request, so a role change takes effect on their next call, and a deleted user's tokens stop working.
 
-:::caution
-A token can't be revoked before it expires. Signing out or resetting a password ends the refresh session, but an access token that was already issued keeps working until `JWT_EXPIRES_IN` runs out. Keep the lifetime short if that matters to you, and change `JWT_SECRET` to invalidate every token at once.
-:::
+### Ending sessions early
+
+Every access token carries the user's session version. These end **all** of the user's sessions at once, so tokens already handed out stop working on their next request:
+
+- changing or resetting the password;
+- turning two-factor authentication on or off;
+- **Sign out on all devices**, in the **Change password** panel on the **Users** page (`POST /api/auth/logout-all`);
+- `npm run reset-password` on the server.
+
+![The Change password panel with the Sign out on all devices button](../../../assets/screenshots/sign-out-everywhere.png)
+
+Signing out with the normal button ends only the current browser's session. Changing `JWT_SECRET` still invalidates every token for everyone.
 
 ## Refresh cookie
 
@@ -67,6 +76,7 @@ Sign-in also sets an HttpOnly cookie, `np_refresh`, valid for 30 days. It's only
 |---|---|
 | `POST /api/auth/refresh` | Exchanges the cookie for a new access token. The refresh token is **rotated**: the old one stops working and a new cookie is set. |
 | `POST /api/auth/logout` | Deletes the refresh token and clears the cookie |
+| `POST /api/auth/logout-all` | With an access token: ends every session of the user, on every device |
 
 The admin calls `/api/auth/refresh` by itself when an API call returns `401`, so people stay signed in for up to 30 days of inactivity. After that, or after signing out, they sign in again.
 
@@ -74,20 +84,51 @@ The admin calls `/api/auth/refresh` by itself when an API call returns `401`, so
 
 1. On the login page, the user clicks **Forgot password?** and enters their email.
 2. NodePress emails a reset link to `/reset-password?token=…`, valid for 15 minutes.
-3. The user sets a new password (at least 8 characters).
+3. The user sets a new password.
 
 | Endpoint | Body | What it does |
 |---|---|---|
 | `POST /api/auth/forgot-password` | `{ email }` | Sends the reset email. Always answers with the same message, so it doesn't reveal which emails exist. |
 | `POST /api/auth/reset-password` | `{ token, password }` | Sets the new password, or `400` for an invalid, used or expired token |
 
-A reset signs the user out everywhere: all their refresh tokens are deleted. Requesting a new link makes earlier ones stop working. Both endpoints allow 5 requests per minute per IP in production.
+A reset signs the user out everywhere: their access tokens stop working and all their refresh tokens are deleted. Requesting a new link makes earlier ones stop working. Both endpoints allow 5 requests per minute per IP in production.
 
 :::note[Without email]
-Outside production, `forgot-password` also returns the link as `devResetUrl`, and the admin shows it on screen, so you can reset a password locally without SMTP. In production the link is only emailed. If you lose access to a production install without email, run `npm run reset-password` in the project folder on the server.
+Outside production, `forgot-password` also returns the link as `devResetUrl`, and the admin shows it on screen, so you can reset a password locally without SMTP. In production the link is only emailed. If you lose access to a production install without email, run this in the project folder on the server:
+
+```bash
+npm run reset-password -- you@example.com
+```
+
+It prints a new random password once (or pass your own as a second argument), makes the account an admin, turns its 2FA off and signs it out everywhere.
 :::
 
-Signed-in users change their own password with `PUT /api/users/me/password` (`{ currentPassword, newPassword }`).
+Signed-in users change their own password with `PUT /api/users/me/password` (`{ currentPassword, newPassword }`). Every session of the user ends; the response carries a new `access_token` and sets a new refresh cookie, so the browser that made the change stays signed in.
+
+## Password rules and storage
+
+A new password, at setup, through a reset or invite link, or when changing it, must:
+
+- be 8 to 128 characters;
+- not be a very common password (`password123`, `qwerty123`…) or the user's email address;
+- not appear in a known data breach.
+
+The breach check asks [Have I Been Pwned](https://haveibeenpwned.com/Passwords) using its range API: only the first 5 characters of the password's SHA-1 hash leave the server, never the password. If the service can't be reached within 3 seconds, the password is allowed. On a server without internet access, turn the check off with `PASSWORD_BREACH_CHECK=false`.
+
+What's stored in the database:
+
+| | Stored as |
+|---|---|
+| Passwords | bcrypt hash, cost 12. Passwords saved with the older cost 10 are upgraded when the user next signs in. |
+| Refresh tokens, reset and invite links | SHA-256 hash only |
+| API keys | SHA-256 hash only, plus a short prefix to recognise the key |
+| 2FA secrets | Encrypted (AES-256-GCM, with a key from `SETTINGS_SECRET` or `JWT_SECRET`) |
+
+So someone who gets a copy of the database can't sign in with what's in it. Upgrading from an earlier version converts the existing tokens, keys and 2FA secrets in place: nobody is signed out and keys keep working.
+
+:::caution
+Changing `SETTINGS_SECRET` (or `JWT_SECRET`, when `SETTINGS_SECRET` isn't set) makes saved 2FA secrets unreadable. Users with 2FA then sign in with one of their recovery codes and set 2FA up again.
+:::
 
 ## Two-factor authentication
 
@@ -153,6 +194,7 @@ People who sign in through [SSO](/access-control/sso/) aren't asked for a NodePr
 | `POST` | `/api/auth/login` | none |
 | `POST` | `/api/auth/refresh` | refresh cookie |
 | `POST` | `/api/auth/logout` | refresh cookie |
+| `POST` | `/api/auth/logout-all` | access token |
 | `GET` | `/api/auth/me` | access token |
 | `POST` | `/api/auth/forgot-password` | none |
 | `POST` | `/api/auth/reset-password` | reset token in the body |

@@ -18,16 +18,22 @@ api.interceptors.request.use((config) => {
 // Track whether a refresh is already in-flight to avoid parallel refresh storms
 let refreshing: Promise<string | null> | null = null;
 
+/** Keep a new access token (login, refresh, or after a password or 2FA change). */
+export function saveAccessToken(token: string) {
+  Cookies.set('np_token', token, { expires: 7, sameSite: 'lax', path: '/' }); // 7 days — matches JWT expiry
+}
+
 async function tryRefresh(): Promise<string | null> {
   try {
     const res = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
     const { access_token } = res.data;
-    Cookies.set('np_token', access_token, { expires: 7, sameSite: 'lax', path: '/' }); // 7 days — matches JWT expiry
+    saveAccessToken(access_token);
     return access_token;
   } catch {
     return null;
   }
 }
+
 
 // On 401 → try refresh once, retry original request, then redirect to login
 api.interceptors.response.use(

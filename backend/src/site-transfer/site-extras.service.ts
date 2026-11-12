@@ -1,9 +1,8 @@
-import { randomBytes } from 'crypto';
 import { existsSync } from 'fs';
 import { basename, join } from 'path';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
+import { unusablePasswordHash } from '../auth/password';
 import { env } from '../config/env';
 import { BrandService } from '../brand/brand.service';
 import { AppCacheService } from '../cache/app-cache.service';
@@ -280,7 +279,7 @@ export class SiteExtrasService {
       steps.push(['users', async () => {
         for (const u of newUsers) {
           // Random and unknown to anyone, as for an invited user.
-          const password = await bcrypt.hash(randomBytes(32).toString('hex'), 10);
+          const password = await unusablePasswordHash();
           await this.prisma.user.create({ data: { email: u.email, role: u.role, password, ...(validDate(u.createdAt) ? { createdAt: new Date(u.createdAt) } : {}) } });
         }
       }]);

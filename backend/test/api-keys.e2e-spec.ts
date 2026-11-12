@@ -1,6 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanDatabase, registerAdmin } from './helpers';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { hashToken } from '../src/auth/token-hash';
 
 describe('API Keys (e2e)', () => {
   let app: INestApplication;
@@ -61,6 +63,16 @@ describe('API Keys (e2e)', () => {
     expect(found).toBeDefined();
     expect(found.name).toBe('Test Key');
     expect(found.permissions.access).toBe('all');
+    // The list shows a short prefix; the full key is never sent again
+    expect(found.prefix).toBe(`${keyValue.slice(0, 7)}…${keyValue.slice(-4)}`);
+    expect(found.key).toBeUndefined();
+    expect(JSON.stringify(res.body)).not.toContain(keyValue);
+  });
+
+  it('stores only the key hash in the database', async () => {
+    const row = await app.get(PrismaService).apiKey.findUnique({ where: { id: keyId } });
+    expect(row!.key).toBe(hashToken(keyValue));
+    expect(row!.key).not.toContain(keyValue.slice(3));
   });
 
   it('GET /api/api-keys → 401 without auth', async () => {

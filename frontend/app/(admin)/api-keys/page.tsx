@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Copy, Key } from 'lucide-react';
+import { Plus, Trash2, Key } from 'lucide-react';
 import AdminGuard from '@/components/AdminGuard';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
@@ -28,12 +28,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { SearchInput } from '@/components/ui/search-input';
 import { Pagination } from '@/components/ui/data-table';
 import { useTranslations } from 'use-intl';
@@ -45,7 +40,8 @@ import { useAccess } from '@/lib/use-access';
 interface ApiKey {
   id: number;
   name: string;
-  key: string;
+  /** e.g. np_1a2b…9f0e — the full key is shown only once, when it's created */
+  prefix: string;
   permissions: { access: 'read' | 'write' | 'all'; contentTypes: string[] };
   createdAt: string;
   lastUsedAt: string | null;
@@ -87,12 +83,6 @@ export default function ApiKeysPage() {
   };
 
   useEffect(() => { load(); }, []);
-
-  // ---- helpers ----
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(t('apiKeys.copiedToClipboard'));
-  };
 
   // ---- revoke ----
   const handleDelete = async (id: number) => {
@@ -194,14 +184,8 @@ export default function ApiKeysPage() {
                 <TableCell>
                   <span className="flex items-center gap-2">
                     <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
-                      {k.key.slice(0, 14)}…{k.key.slice(-6)}
+                      {k.prefix || 'np_…'}
                     </code>
-                    <Tooltip>
-                      <TooltipTrigger render={<Button variant="ghost" size="icon-xs" onClick={() => copyToClipboard(k.key)} />}>
-                        <Copy className="h-3 w-3" />
-                      </TooltipTrigger>
-                      <TooltipContent>{t('apiKeys.copyFullKey')}</TooltipContent>
-                    </Tooltip>
                   </span>
                 </TableCell>
 

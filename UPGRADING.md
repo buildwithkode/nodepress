@@ -68,6 +68,24 @@ before npm. If you add a dependency with an install script, decide it with
 `allowScripts`) — the pre-push check fails until you do. Keep the list in the
 root `package.json`; npm ignores it in `backend/` and `frontend/`.
 
+## Unreleased (sign-in hardening)
+
+One database migration (`20261112090000_auth_hardening`). It hashes the stored
+API keys, refresh tokens and reset links in place, so nobody is signed out and
+keys keep working. 2FA secrets are encrypted by the server on its first start.
+
+**Action required**
+
+- **Copy your API keys before relying on the list.** The admin can't show a
+  full key any more, only `np_1a2b…9f0e`. Keys already in use keep working; if
+  one is lost, revoke it and create a new one, which is shown once.
+- **Servers without internet access**: set `PASSWORD_BREACH_CHECK=false`, or
+  a new password can wait up to 3 seconds for the breach check before it's allowed.
+- **Scripts calling `npm run reset-password`** must pass the email
+  (`npm run reset-password -- you@example.com [password]`).
+- **Keep `SETTINGS_SECRET` / `JWT_SECRET` with your backups.** 2FA secrets are
+  now encrypted with it, like the saved email and storage passwords.
+
 ## 1.9.2 (from 1.9.1)
 
 No database migrations and no new dependencies.

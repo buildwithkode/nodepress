@@ -12,6 +12,14 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Security
+
+- **Stronger password storage.** Passwords are hashed with bcrypt cost 12 (was 10); older hashes are upgraded when each user next signs in.
+- **Password rules.** New passwords must be 8–128 characters (the first admin's minimum was 6), not a very common password or the user's email, and not in a known data breach. The breach check sends only the first 5 characters of the password's SHA-1 hash to Have I Been Pwned and allows the password if the service can't be reached; `PASSWORD_BREACH_CHECK=false` turns it off.
+- **No usable secrets in the database.** Refresh tokens, password reset and invite links and API keys are stored as SHA-256 hashes, and 2FA secrets are encrypted. A migration converts existing ones, so nobody is signed out and keys keep working. **A new API key is shown in full only once**; the list shows `np_1a2b…9f0e`.
+- **Sessions can be ended at once.** Changing or resetting a password, turning 2FA on or off and the new **Sign out on all devices** button (`POST /api/auth/logout-all`) cancel every access token already issued, not only refresh tokens. Changing your password keeps the browser you changed it in signed in.
+- **Safer emergency reset.** `npm run reset-password` now needs an email, prints a random password when none is given, refuses weak ones and signs the account out everywhere. It no longer falls back to a built-in email and `admin123`.
+
 ### Changed
 
 - **Export & import now moves everything except media files.** The file also carries brand, email and storage settings, roles, permissions, users, media records and folders, plugins, releases, form submissions, the trash and all history. Image links change to the new site's address on import. A signed-in admin is needed for these parts; an API key gets content only.

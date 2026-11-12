@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Body, Param, ParseIntPipe, UseGuards, Request,
+  Body, Param, ParseIntPipe, UseGuards, Request, Res,
 } from '@nestjs/common';
+import type { Response as ExpressResponse } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -11,6 +12,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Access } from '../auth/decorators/access.decorator';
 import { AuditService } from '../audit/audit.service';
+import { AuthService } from '../auth/auth.service';
 
 @ApiTags('Users')
 @Controller('users')
@@ -20,6 +22,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly auditService: AuditService,
+    private readonly authService: AuthService,
   ) {}
 
   @UseGuards(RolesGuard)
@@ -100,15 +103,22 @@ export class UsersController {
 
   @Put('me/password')
   @Throttle({ default: { ttl: 60_000, limit: 5 } }) // the current-password check must not be guessable
-  @ApiOperation({ summary: 'Change your own password; signs out your other sessions' })
-  @ApiResponse({ status: 200, description: 'Password updated' })
+  @ApiOperation({ summary: 'Change your own password; signs out every other session' })
+  @ApiResponse({ status: 200, description: 'Password updated; returns a new access_token and sets a new np_refresh cookie for this browser' })
   @ApiResponse({ status: 400, description: 'Current password incorrect' })
-  async changePassword(@Body() dto: ChangePasswordDto, @Request() req: any) {
+  async changePassword(
+    @Body() dto: ChangePasswordDto,
+    @Request() req: any,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    // The np_refresh cookie is scoped to /api/auth, so it never reaches this route:
+    // every session ends, and the caller gets a fresh one here instead.
     const result = await this.usersService.changePassword(req.user.id, dto, req.cookies?.['np_refresh']);
+    const session = await this.authService.createSession(req.user, res);
     await this.auditService.log(
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'password_changed', 'user', String(req.user.id),
     );
-    return result;
+    return { ...result, access_token: session.access_token };
   }
 }

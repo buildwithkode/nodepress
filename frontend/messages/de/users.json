@@ -25,7 +25,10 @@
     "secretCopyFailed": "Geheimschlüssel konnte nicht kopiert werden",
     "resetLinkSent": "Link zum Zurücksetzen an {email} gesendet",
     "resetLinkCopied": "Link zum Zurücksetzen in die Zwischenablage kopiert (Entwicklung)",
-    "resetLinkFailed": "Link zum Zurücksetzen konnte nicht gesendet werden"
+    "resetLinkFailed": "Link zum Zurücksetzen konnte nicht gesendet werden",
+    "signedOutAll": "Auf allen Geräten abgemeldet",
+    "signOutAllFailed": "Abmelden auf allen Geräten fehlgeschlagen",
+    "otherDevicesSignedOut": "Ihre anderen Geräte wurden abgemeldet."
   },
   "list": {
     "title": "Teammitglieder",
@@ -97,7 +100,11 @@
     "submit": "Passwort aktualisieren",
     "forgot": "Vergessen?",
     "sendingReset": "Wird gesendet…",
-    "resetHint": "15 Minuten gültig. Falls er nicht ankommt, bitte einen Admin, dir einen neuen Einladungslink zu senden."
+    "resetHint": "15 Minuten gültig. Falls er nicht ankommt, bitte einen Admin, dir einen neuen Einladungslink zu senden.",
+    "signOutAllTitle": "Eine Anmeldung, die Sie nicht kennen?",
+    "signOutAllHint": "Melden Sie sich auf allen Geräten ab, auch auf diesem. Danach müssen Sie sich neu anmelden.",
+    "signOutAll": "Auf allen Geräten abmelden",
+    "signingOutAll": "Abmelden…"
   },
   "permissions": {
     "loading": "Berechtigungen werden geladen…",

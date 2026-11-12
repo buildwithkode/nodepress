@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
-import api from '@/lib/axios';
+import api, { saveAccessToken } from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,9 @@ export function ChangePasswordSheet({ open, onOpenChange }: { open: boolean; onO
   const [confirmPw, setConfirmPw] = useState('');
   const [saving, setSaving] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
-  const { user } = useAuth();
+  const [signingOutAll, setSigningOutAll] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const mismatch = confirmPw.length > 0 && confirmPw !== newPw;
 
   const reset = () => { setCurrentPw(''); setNewPw(''); setConfirmPw(''); };
@@ -48,14 +51,32 @@ export function ChangePasswordSheet({ open, onOpenChange }: { open: boolean; onO
     if (newPw !== confirmPw) return;
     setSaving(true);
     try {
-      await api.put('/users/me/password', { currentPassword: currentPw, newPassword: newPw });
-      toast.success(t('toasts.passwordUpdated'));
+      const res = await api.put('/users/me/password', { currentPassword: currentPw, newPassword: newPw });
+      // The change ended every session, this one too; the response starts a new one for this browser
+      if (res.data?.access_token) saveAccessToken(res.data.access_token);
+      toast.success(t('toasts.passwordUpdated'), { description: t('toasts.otherDevicesSignedOut') });
       reset();
       onOpenChange(false);
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('toasts.passwordUpdateFailed'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Every login token and refresh cookie of this account stops working, this browser's included.
+  const handleSignOutAll = async () => {
+    setSigningOutAll(true);
+    try {
+      await api.post('/auth/logout-all');
+      toast.success(t('toasts.signedOutAll'));
+      onOpenChange(false);
+      logout();
+      router.push('/login');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('toasts.signOutAllFailed'));
+    } finally {
+      setSigningOutAll(false);
     }
   };
 
@@ -88,6 +109,14 @@ export function ChangePasswordSheet({ open, onOpenChange }: { open: boolean; onO
             <Input id="pw-confirm" type="password" autoComplete="new-password" value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)} required minLength={8} aria-invalid={mismatch || undefined} />
             {mismatch && <p className="text-xs text-destructive">{t('password.mismatch')}</p>}
+          </div>
+          <div className="space-y-2 border-t border-border pt-4">
+            <p className="text-sm font-medium">{t('password.signOutAllTitle')}</p>
+            <p className="text-xs text-muted-foreground">{t('password.signOutAllHint')}</p>
+            <Button type="button" variant="outline" size="sm" onClick={handleSignOutAll} disabled={signingOutAll}
+              className="text-destructive hover:text-destructive">
+              {signingOutAll ? t('password.signingOutAll') : t('password.signOutAll')}
+            </Button>
           </div>
           <SheetFooter>
             <Button type="button" variant="outline" onClick={() => { reset(); onOpenChange(false); }}>{tc('cancel')}</Button>

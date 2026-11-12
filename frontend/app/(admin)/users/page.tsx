@@ -21,7 +21,7 @@ import {
 import QRCode from 'qrcode';
 import { useTranslations } from 'use-intl';
 import AdminGuard from '@/components/AdminGuard';
-import api from '@/lib/axios';
+import api, { saveAccessToken } from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -237,11 +237,13 @@ export default function UsersPage() {
     if (!setupData || !verifyCode.trim()) return;
     setEnabling2fa(true);
     try {
-      await api.post('/auth/2fa/enable', {
+      const res = await api.post('/auth/2fa/enable', {
         secret: setupData.secret,
         code: verifyCode.trim(),
         recoveryCodes: setupData.hashedRecoveryCodes,
       });
+      // Turning 2FA on signs out other sessions and cancels the old token: keep the new one
+      if (res.data?.access_token) saveAccessToken(res.data.access_token);
       toast.success(t('toasts.twoFactorActivated'));
       setTwoFactorEnabled(true);
       setSetupModalOpen(false);
@@ -258,7 +260,8 @@ export default function UsersPage() {
     if (!disableCode.trim()) return;
     setDisabling2fa(true);
     try {
-      await api.post('/auth/2fa/disable', { code: disableCode.trim() });
+      const res = await api.post('/auth/2fa/disable', { code: disableCode.trim() });
+      if (res.data?.access_token) saveAccessToken(res.data.access_token);
       toast.success(t('toasts.twoFactorDisabled'));
       setTwoFactorEnabled(false);
       setDisableModalOpen(false);
