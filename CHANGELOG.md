@@ -12,6 +12,10 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Changed
+
+- **`server.js` takes its settings from environment variables.** When `DATABASE_URL` and `JWT_SECRET` are set (as on Hostinger's Node.js Web App and similar panels), the first-run setup page is skipped.
+
 ### Security
 
 - **Stronger password storage.** Passwords are hashed with bcrypt cost 12 (was 10); older hashes are upgraded when each user next signs in.

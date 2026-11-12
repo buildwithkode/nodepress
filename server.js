@@ -9,7 +9,9 @@
 // Settings, uploads and uploaded plugins live in the data folder (see
 // scripts/data-dir.js): backend/ in a source checkout, ../nodepress-data for
 // the zip, or NODEPRESS_DATA. With no .env there yet, the setup page runs
-// first (scripts/setup-wizard.js).
+// first (scripts/setup-wizard.js) — unless the host already supplies the
+// settings as environment variables (DATABASE_URL and JWT_SECRET), as panels
+// like Hostinger's Node.js Web App do.
 //
 // Outside a source checkout, pending database migrations are applied on every
 // start, so an upgrade is: replace the app folder, start again.
@@ -38,8 +40,11 @@ async function main() {
   console.log(`📦 Data folder   ${data}`);
 
   const envFile = path.join(data, '.env');
+  const fromEnvironment = !!(process.env.DATABASE_URL && process.env.JWT_SECRET);
   let justSetUp = false;
-  if (!fs.existsSync(envFile)) {
+  if (fromEnvironment && !fs.existsSync(envFile)) {
+    console.log('⚙  Settings      from environment variables');
+  } else if (!fs.existsSync(envFile)) {
     await runSetup({ root: __dirname, data, port: Number(process.env.PORT) || 3000 });
     justSetUp = true;
     // Phusion Passenger (cPanel's "Setup Node.js App") allows one listen() per
