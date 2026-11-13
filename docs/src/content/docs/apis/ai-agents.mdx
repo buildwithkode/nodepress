@@ -1,0 +1,231 @@
+---
+title: Use with AI coding agents
+description: Add one file to your Next.js, React or React Native project and your AI coding assistant can connect it to NodePress.
+sidebar:
+  order: 7
+---
+
+import { Steps, Tabs, TabItem, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Add one file to your project, then ask your AI coding assistant to connect it to NodePress. The file teaches the assistant how NodePress works, so it writes the right code the first time.
+
+It works with **Claude Code**, **Cursor**, **Codex**, **GitHub Copilot** and any assistant that reads `CLAUDE.md` or `AGENTS.md`.
+
+Download the guide for your framework:
+
+<LinkCard title="Next.js guide" description="Server rendering, caching, instant updates, images, forms and preview." href="https://nodepress-docs.vercel.app/ai/nodepress-nextjs.md" />
+<LinkCard title="React guide" description="Vite or Create React App: data hooks, images, forms and routing." href="https://nodepress-docs.vercel.app/ai/nodepress-react.md" />
+<LinkCard title="React Native guide" description="Expo or bare React Native: offline caching, lists, rich text and forms." href="https://nodepress-docs.vercel.app/ai/nodepress-react-native.md" />
+
+## Before you start
+
+You need two things:
+
+- **A running NodePress** with some content, and its URL, for example `https://cms.example.com`.
+- **An AI coding assistant** opened in your project's folder.
+
+Check that your CMS answers:
+
+```bash
+curl https://cms.example.com/api/health
+```
+
+You should see `"status":"ok"`.
+
+## Set up your project
+
+Pick your framework:
+
+<Tabs syncKey="framework">
+<TabItem label="Next.js">
+
+<Steps>
+
+1. **Add the guide to your project**
+
+   In your project's root folder (where `package.json` is), run:
+
+   ```bash
+   curl https://nodepress-docs.vercel.app/ai/nodepress-nextjs.md \
+     >> CLAUDE.md
+   ```
+
+   This adds the guide to the end of `CLAUDE.md`, and creates the file if it doesn't exist. Your existing instructions stay.
+
+2. **Ask your assistant to connect the site**
+
+   Copy this prompt, then change the URL and names to match your project:
+
+   ```text title="Prompt" wrap
+   Connect this site to NodePress at https://cms.example.com.
+   - The "page" content type is the site's pages at /[slug].
+   - The "blog_post" content type is the blog at /blog/[slug].
+   - The contact form's slug is "contact-us".
+   Follow CLAUDE.md.
+   ```
+
+   The assistant reads your content types, asks about anything it can't find (like your form's field names), writes the code, and checks that it builds.
+
+3. **Set up the CMS**
+
+   In the NodePress admin and server settings:
+
+   - Add your website's address to `CORS_ORIGIN`, then restart the CMS.
+   - Go to **Developer → Webhooks → New** and create a webhook:
+
+     | Field | Value |
+     |---|---|
+     | URL | `https://your-site.com/api/revalidate` |
+     | Events | `*` |
+     | Secret | the same value as `NODEPRESS_REVALIDATE_SECRET` in your site |
+
+4. **Add the environment variables to your host**
+
+   Copy the variables from your `.env.local` to your host, for example **Vercel → Settings → Environment Variables**. Then redeploy.
+
+5. **Test it**
+
+   - Edit and publish a page in the CMS. The website updates within a few seconds.
+   - Submit your contact form. It appears in the CMS under **Forms → Submissions**.
+
+</Steps>
+
+<Aside type="tip">
+New Next.js projects include their own `AGENTS.md`. Keep it. If you use Cursor, Codex or Copilot, add the guide to `AGENTS.md` as well.
+</Aside>
+
+</TabItem>
+<TabItem label="React">
+
+<Steps>
+
+1. **Add the guide to your project**
+
+   In your project's root folder (where `package.json` is), run:
+
+   ```bash
+   curl https://nodepress-docs.vercel.app/ai/nodepress-react.md \
+     >> CLAUDE.md
+   ```
+
+   This adds the guide to the end of `CLAUDE.md`, and creates the file if it doesn't exist. Your existing instructions stay.
+
+2. **Ask your assistant to connect the app**
+
+   Copy this prompt, then change the URL and names to match your project:
+
+   ```text title="Prompt" wrap
+   Connect this app to NodePress at https://cms.example.com.
+   - Show the "blog_post" entries at /blog and /blog/:slug.
+   - Show the "page" content type at /:slug.
+   Follow CLAUDE.md.
+   ```
+
+   The assistant reads your content types, asks about anything it can't find, writes the code, and checks that it builds.
+
+3. **Allow your website on the CMS**
+
+   The browser talks to the CMS directly, so the CMS must allow your site. Add your website's address to `CORS_ORIGIN` on the CMS, then restart it.
+
+   To test locally against a live CMS, also add `http://localhost:5173`.
+
+4. **Add the environment variable to your host**
+
+   Set `VITE_NODEPRESS_URL` on your host, then rebuild. The value is built into the app, so a redeploy alone isn't enough.
+
+5. **Test it**
+
+   - Open a few pages and check that text and images load.
+   - Submit a form. It appears in the CMS under **Forms → Submissions**.
+
+</Steps>
+
+<Aside type="caution" title="Search engines">
+A React app renders in the browser, which isn't ideal for SEO. If search rankings matter, use Next.js.
+</Aside>
+
+</TabItem>
+<TabItem label="React Native">
+
+<Steps>
+
+1. **Add the guide to your project**
+
+   In your app's root folder (where `package.json` is), run:
+
+   ```bash
+   curl https://nodepress-docs.vercel.app/ai/nodepress-react-native.md \
+     >> CLAUDE.md
+   ```
+
+   This adds the guide to the end of `CLAUDE.md`, and creates the file if it doesn't exist. Your existing instructions stay.
+
+2. **Ask your assistant to connect the app**
+
+   Copy this prompt, then change the URL and names to match your project:
+
+   ```text title="Prompt" wrap
+   Connect this app to NodePress at https://cms.example.com.
+   - Add a Blog tab that lists "blog_post" entries with infinite scroll.
+   - Add a detail screen for each post.
+   - Add a contact screen that submits to the "contact-us" form.
+   Follow CLAUDE.md.
+   ```
+
+   The assistant reads your content types, asks about anything it can't find, writes the code, and checks that it compiles.
+
+3. **Use the right CMS address while developing**
+
+   If the CMS runs on your computer:
+
+   | Where the app runs | CMS address |
+   |---|---|
+   | iOS simulator | `http://localhost:3000` |
+   | Android emulator | `http://10.0.2.2:3000` |
+   | Your phone | `http://<your computer's IP>:3000` |
+
+4. **Use HTTPS for release builds**
+
+   Set `EXPO_PUBLIC_NODEPRESS_URL` to your CMS's `https://` address in your EAS environment variables. Release builds block plain `http://`.
+
+5. **Test it**
+
+   - Open the app on a real phone, on mobile data.
+   - Check that lists and images load.
+   - Submit the contact form. It appears in the CMS under **Forms → Submissions**.
+
+</Steps>
+
+<Aside type="note">
+Mobile apps aren't affected by CORS, so you don't need to change `CORS_ORIGIN` for them.
+</Aside>
+
+</TabItem>
+</Tabs>
+
+## What's in the guide
+
+Each file is complete on its own and covers:
+
+| Topic | What the assistant learns |
+|---|---|
+| **Rules** | Read your real content types first. Never put API keys in client code. Sanitize rich text. |
+| **Content model** | How to list your content types and fields from the API. |
+| **Reading content** | Endpoints, filters, sorting, paging, relations, languages. |
+| **Field values** | The data format of every field type, including flexible sections. |
+| **Framework code** | Caching, pages, images, forms and updates, written for your framework. |
+| **Security** | What must stay on the server and what's safe in the browser. |
+| **Troubleshooting** | Common errors and how to fix them. |
+
+## Keep the guide up to date
+
+- **After upgrading NodePress**, download the guide again and replace the old copy in `CLAUDE.md`. Running the `>>` command again would add a second copy.
+- **When you change content types**, you don't need to change anything. The assistant reads them from your CMS each time.
+- **For typed code**, run [`generate:types`](/cli/generate-types/) in your NodePress project and copy the file into your site.
+
+## Related
+
+- [REST API](/apis/rest/) and [Querying](/apis/querying/)
+- [JavaScript client](/apis/js-client/)
+- [Frontend starters](/apis/starters/)
+- [Webhooks](/apis/webhooks/), [Forms](/content/forms/), [Live preview](/content/live-preview/)
