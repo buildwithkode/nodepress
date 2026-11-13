@@ -12,6 +12,10 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Changed
+
+- **Faster admin in development.** `npm run dev` starts the admin with Turbopack: the first visit to each page compiles about a third faster (0.4–0.7 s instead of 0.5–1.7 s). Production builds are unchanged.
+
 ### Added
 
 - **Guides for AI coding assistants.** One `CLAUDE.md` / `AGENTS.md` file each for Next.js, React and React Native (`docs/public/ai/`), so Claude Code, Cursor or Codex can connect a project to NodePress from the file alone. See *Use with AI coding agents* in the docs.

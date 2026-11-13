@@ -40,7 +40,19 @@ const BACKEND_URL = resolveBackendUrl();
 const isBundle = process.env.NODEPRESS_BUNDLE === '1';
 const isLocalBackend = !isBundle && /localhost|127\.0\.0\.1/.test(BACKEND_URL);
 
+// `next dev --turbopack`: tw-animate-css only exports its stylesheet under the
+// "style" condition, which Turbopack's CSS @import doesn't use. Point it at the
+// file directly, wherever npm installed the package (frontend/ or the root).
+const twAnimateCss = [__dirname, path.join(__dirname, '..')]
+  .map((dir) => path.join(dir, 'node_modules', 'tw-animate-css', 'dist', 'tw-animate.css'))
+  .find((file) => fs.existsSync(file));
+
 const nextConfig = {
+  turbopack: {
+    // npm workspaces hoist packages to the repo root; Turbopack must see it.
+    root: path.join(__dirname, '..'),
+    resolveAlias: twAnimateCss ? { 'tw-animate-css': path.relative(__dirname, twAnimateCss).split(path.sep).join('/').replace(/^(?!\.)/, './') } : {},
+  },
   // The admin never uses next/image, so switch off the /_next/image optimizer
   // endpoint entirely — it is attack surface with nothing to gain (it was the
   // vector for an unauthenticated RCE fixed in Next 15.5.24).
