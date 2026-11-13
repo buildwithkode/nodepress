@@ -60,5 +60,7 @@
     "clear": "Effacer",
     "done": "Terminé"
   },
-  "readOnly": "Vous pouvez consulter cette page, mais votre rôle ne permet pas de la modifier."
+  "readOnly": "Vous pouvez consulter cette page, mais votre rôle ne permet pas de la modifier.",
+  "showPassword": "Afficher le mot de passe",
+  "hidePassword": "Masquer le mot de passe"
 }

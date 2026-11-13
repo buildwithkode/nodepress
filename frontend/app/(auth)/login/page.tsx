@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, KeyRound, ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
+import { PasswordInput } from '@/components/ui/password-input';
 
 function loginErrorMessage(err: any, t: ReturnType<typeof useTranslations>): string {
   if (!err.response) {
@@ -196,9 +197,10 @@ function LoginForm() {
                 <label htmlFor="password" className="block text-sm font-medium text-white/80">
                   {t('login.password')}
                 </label>
-                <input
+                <PasswordInput
+                  plain
+                  toggleClassName="text-white/40 hover:text-white"
                   id="password"
-                  type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

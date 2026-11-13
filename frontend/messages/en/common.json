@@ -60,5 +60,7 @@
     "clear": "Clear",
     "done": "Done"
   },
-  "readOnly": "You can view this page, but your role can't change anything here."
+  "readOnly": "You can view this page, but your role can't change anything here.",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password"
 }

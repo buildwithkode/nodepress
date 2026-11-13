@@ -60,5 +60,7 @@
     "clear": "Löschen",
     "done": "Fertig"
   },
-  "readOnly": "Sie können diese Seite ansehen, aber Ihre Rolle darf hier nichts ändern."
+  "readOnly": "Sie können diese Seite ansehen, aber Ihre Rolle darf hier nichts ändern.",
+  "showPassword": "Passwort anzeigen",
+  "hidePassword": "Passwort verbergen"
 }

@@ -14,6 +14,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Changed
 
+- **Show password button.** Every password field in the admin (sign-in, setup, reset, change password, email and storage settings, plugin settings) has an eye button to show or hide what you typed.
 - **Faster admin in development.** `npm run dev` starts the admin with Turbopack: the first visit to each page compiles about a third faster (0.4–0.7 s instead of 0.5–1.7 s). Production builds are unchanged.
 
 ### Added

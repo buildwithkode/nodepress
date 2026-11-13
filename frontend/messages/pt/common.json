@@ -60,5 +60,7 @@
     "clear": "Limpar",
     "done": "Concluído"
   },
-  "readOnly": "Você pode ver esta página, mas seu papel não pode alterar nada aqui."
+  "readOnly": "Você pode ver esta página, mas seu papel não pode alterar nada aqui.",
+  "showPassword": "Mostrar senha",
+  "hidePassword": "Ocultar senha"
 }

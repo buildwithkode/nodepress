@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '../../../lib/axios';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'use-intl';
+import { PasswordInput } from '@/components/ui/password-input';
 
 function ResetPasswordForm() {
   const t = useTranslations('auth');
@@ -64,9 +65,10 @@ function ResetPasswordForm() {
                 <label htmlFor="password" className="block text-sm font-medium text-white/80">
                   {t('reset.newPassword')}
                 </label>
-                <input
+                <PasswordInput
+                  plain
+                  toggleClassName="text-white/40 hover:text-white"
                   id="password"
-                  type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -80,9 +82,10 @@ function ResetPasswordForm() {
                 <label htmlFor="confirm" className="block text-sm font-medium text-white/80">
                   {t('reset.confirmPassword')}
                 </label>
-                <input
+                <PasswordInput
+                  plain
+                  toggleClassName="text-white/40 hover:text-white"
                   id="confirm"
-                  type="password"
                   placeholder="••••••••"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}

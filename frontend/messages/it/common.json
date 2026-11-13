@@ -60,5 +60,7 @@
     "clear": "Cancella",
     "done": "Fatto"
   },
-  "readOnly": "Puoi vedere questa pagina, ma il tuo ruolo non può modificare nulla qui."
+  "readOnly": "Puoi vedere questa pagina, ma il tuo ruolo non può modificare nulla qui.",
+  "showPassword": "Mostra password",
+  "hidePassword": "Nascondi password"
 }

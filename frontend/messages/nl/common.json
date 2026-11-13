@@ -60,5 +60,7 @@
     "clear": "Wissen",
     "done": "Klaar"
   },
-  "readOnly": "Je kunt deze pagina bekijken, maar je rol mag hier niets wijzigen."
+  "readOnly": "Je kunt deze pagina bekijken, maar je rol mag hier niets wijzigen.",
+  "showPassword": "Wachtwoord tonen",
+  "hidePassword": "Wachtwoord verbergen"
 }

@@ -5,6 +5,7 @@ import { X, Save, Loader2, ShieldCheck, ExternalLink, HelpCircle, Check, AlertCi
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import { useTranslations } from 'use-intl';
+import { PasswordInput } from '@/components/ui/password-input';
 
 export interface PluginConfigField {
   name: string;
@@ -219,8 +220,8 @@ export function PluginSettingsDrawer({ plugin, open, onClose, onSaved }: PluginS
                       const kept = storedSecrets.has(field.name) && !clearedSecrets.has(field.name);
                       return (
                         <div className="flex gap-2">
-                          <input
-                            type="password"
+                          <PasswordInput
+                            plain
                             autoComplete="new-password"
                             value={formData[field.name] ?? ''}
                             onChange={(e) => handleChange(field.name, e.target.value)}

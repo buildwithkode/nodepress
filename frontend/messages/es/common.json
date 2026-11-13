@@ -60,5 +60,7 @@
     "clear": "Borrar",
     "done": "Listo"
   },
-  "readOnly": "Puedes ver esta página, pero tu rol no puede cambiar nada aquí."
+  "readOnly": "Puedes ver esta página, pero tu rol no puede cambiar nada aquí.",
+  "showPassword": "Mostrar contraseña",
+  "hidePassword": "Ocultar contraseña"
 }

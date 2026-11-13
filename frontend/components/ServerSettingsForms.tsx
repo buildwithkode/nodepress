@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { PasswordInput } from '@/components/ui/password-input';
 
 /** GET /api/server-settings */
 type StorageDriver = 'local' | 's3' | 'r2' | 'imagekit';
@@ -180,7 +181,7 @@ export function EmailSettingsForm({
           </div>
           <div className={cn(wide && 'sm:col-span-2')}>
             <Field label={t('server.mail.password')} hint={settings.hasPassword ? t('server.keepSecret') : undefined}>
-              <Input type="password" value={pass} onChange={(e) => setPass(e.target.value)} autoComplete="new-password" placeholder={settings.hasPassword ? '••••••••' : ''} />
+              <PasswordInput value={pass} onChange={(e) => setPass(e.target.value)} autoComplete="new-password" placeholder={settings.hasPassword ? '••••••••' : ''} />
             </Field>
           </div>
           <div className={cn(wide && 'sm:col-span-4')}>
@@ -390,7 +391,7 @@ export function StorageSettingsForm({
               <Input value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" />
             </Field>
             <Field label={t('server.storage.secretKey')} hint={secretHint}>
-              <Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
+              <PasswordInput value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
             </Field>
             <Field label={t('server.storage.bucket')}>
               <Input value={bucket} onChange={(e) => setBucket(e.target.value)} placeholder="my-site-media" />
@@ -411,7 +412,7 @@ export function StorageSettingsForm({
               <Input value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" />
             </Field>
             <Field label={t('server.storage.secretKey')} hint={secretHint}>
-              <Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
+              <PasswordInput value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
             </Field>
             <Field label={t('server.storage.bucket')}>
               <Input value={bucket} onChange={(e) => setBucket(e.target.value)} placeholder="my-site-media" />
@@ -429,7 +430,7 @@ export function StorageSettingsForm({
               </Field>
             </div>
             <Field label={t('server.storage.privateKey')} hint={secretHint}>
-              <Input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
+              <PasswordInput value={secretKey} onChange={(e) => setSecretKey(e.target.value)} autoComplete="new-password" placeholder={secretPlaceholder} />
             </Field>
             <Field label={t('server.storage.folder')} hint={t('server.storage.folderHint')}>
               <Input value={folder} onChange={(e) => setFolder(e.target.value)} placeholder="my-site" />

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { PasswordInput } from '@/components/ui/password-input';
 
 /** Change your own password — opened from the sidebar, so every signed-in user can reach it. */
 export function ChangePasswordSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -96,17 +97,17 @@ export function ChangePasswordSheet({ open, onOpenChange }: { open: boolean; onO
                 {sendingReset ? t('password.sendingReset') : t('password.forgot')}
               </button>
             </div>
-            <Input id="pw-current" type="password" autoComplete="current-password" value={currentPw}
+            <PasswordInput id="pw-current" autoComplete="current-password" value={currentPw}
               onChange={(e) => setCurrentPw(e.target.value)} required autoFocus />
           </div>
           <div className="space-y-1">
             <Label htmlFor="pw-new">{t('password.new')}</Label>
-            <Input id="pw-new" type="password" autoComplete="new-password" placeholder={t('password.newPlaceholder')}
+            <PasswordInput id="pw-new" autoComplete="new-password" placeholder={t('password.newPlaceholder')}
               value={newPw} onChange={(e) => setNewPw(e.target.value)} required minLength={8} />
           </div>
           <div className="space-y-1">
             <Label htmlFor="pw-confirm">{t('password.confirm')}</Label>
-            <Input id="pw-confirm" type="password" autoComplete="new-password" value={confirmPw}
+            <PasswordInput id="pw-confirm" autoComplete="new-password" value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)} required minLength={8} aria-invalid={mismatch || undefined} />
             {mismatch && <p className="text-xs text-destructive">{t('password.mismatch')}</p>}
           </div>

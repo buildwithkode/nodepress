@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'use-intl';
 import { EmailSettingsForm, ServerSettings, StorageSettingsForm } from '@/components/ServerSettingsForms';
+import { PasswordInput } from '@/components/ui/password-input';
 
 /* ─── Password strength ─────────────────────────────────────── */
 function getStrength(pw: string) {
@@ -215,9 +216,10 @@ export default function SetupPage() {
               {/* Password */}
               <div className="space-y-1.5">
                 <label htmlFor="password" className="block text-sm font-medium text-white/80">{t('setup.password')}</label>
-                <input
+                <PasswordInput
+                  plain
+                  toggleClassName="text-white/40 hover:text-white"
                   id="password"
-                  type="password"
                   className={inputCls(!!errors.password)}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -237,9 +239,10 @@ export default function SetupPage() {
               {/* Confirm */}
               <div className="space-y-1.5">
                 <label htmlFor="confirm" className="block text-sm font-medium text-white/80">{t('setup.confirmPassword')}</label>
-                <input
+                <PasswordInput
+                  plain
+                  toggleClassName="text-white/40 hover:text-white"
                   id="confirm"
-                  type="password"
                   className={inputCls(!!errors.confirm)}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
