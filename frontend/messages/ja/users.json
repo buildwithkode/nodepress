@@ -249,5 +249,31 @@
       "powerful": "ここでの編集権限は管理者に近いものです。信頼できる人だけに付与してください。",
       "adminOnlyNote": "ロールと権限、プラグインのインストール、エントリーの完全削除は管理者のみです。管理者は常にすべてにアクセスできます。"
     }
+  },
+  "profile": {
+    "open": "プロフィール",
+    "infoTitle": "基本情報",
+    "infoDescription": "名前はサイドバーとユーザー一覧に表示されます。",
+    "name": "名前",
+    "namePlaceholder": "氏名",
+    "nameHelp": "空欄にするとメールアドレスが表示されます。",
+    "email": "メールアドレス",
+    "emailHelp": "メールアドレスは管理者のみ変更できます。",
+    "role": "ロール",
+    "joined": "登録日",
+    "saved": "プロフィールを保存しました",
+    "saveFailed": "プロフィールを保存できませんでした",
+    "loadFailed": "プロフィールを読み込めませんでした",
+    "passwordTitle": "パスワード",
+    "passwordDescription": "サインインに使うパスワードを変更します。",
+    "sessionsTitle": "セッション",
+    "signOutAllConfirmTitle": "すべてのデバイスでサインアウトしますか？",
+    "preferencesTitle": "表示設定",
+    "preferencesDescription": "このブラウザーに保存されます。",
+    "language": "管理画面の言語",
+    "theme": "テーマ",
+    "themeLight": "ライト",
+    "themeDark": "ダーク",
+    "themeSystem": "システム"
   }
 }

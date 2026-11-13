@@ -20,3 +20,11 @@ export class ChangePasswordDto {
   @MaxLength(128)
   newPassword: string;
 }
+
+export class UpdateProfileDto {
+  @ApiPropertyOptional({ example: 'Priya Sharma', maxLength: 100, description: 'Shown in the admin; empty clears it' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  name?: string;
+}

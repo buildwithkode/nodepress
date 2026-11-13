@@ -249,5 +249,31 @@
       "powerful": "此处的编辑权限接近管理员权限——只授予你信任的人。",
       "adminOnlyNote": "角色与权限、安装插件以及永久删除条目仍仅限管理员。管理员始终拥有全部权限。"
     }
+  },
+  "profile": {
+    "open": "个人资料",
+    "infoTitle": "基本信息",
+    "infoDescription": "你的名字会显示在侧边栏和用户列表中。",
+    "name": "名字",
+    "namePlaceholder": "你的全名",
+    "nameHelp": "留空则显示你的邮箱。",
+    "email": "邮箱",
+    "emailHelp": "只有管理员可以更改你的邮箱。",
+    "role": "角色",
+    "joined": "加入时间",
+    "saved": "个人资料已保存",
+    "saveFailed": "无法保存个人资料",
+    "loadFailed": "无法加载个人资料",
+    "passwordTitle": "密码",
+    "passwordDescription": "更改你用于登录的密码。",
+    "sessionsTitle": "会话",
+    "signOutAllConfirmTitle": "在所有设备上退出登录？",
+    "preferencesTitle": "偏好设置",
+    "preferencesDescription": "保存在此浏览器中。",
+    "language": "管理界面语言",
+    "theme": "主题",
+    "themeLight": "浅色",
+    "themeDark": "深色",
+    "themeSystem": "跟随系统"
   }
 }

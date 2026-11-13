@@ -20,6 +20,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Added
 
+- **Profile page for every user.** Click your name at the bottom of the sidebar. Every role, not only those with access to the Users page, can now set a display name, change their password, turn two-factor authentication on or off, sign out on all devices and pick the admin's language and theme. 2FA and "sign out on all devices" moved there from the Users page. New `GET`/`PUT /api/users/me`; a migration adds the optional `users.name` column, which site exports carry.
 - **Guides for AI coding assistants.** One `CLAUDE.md` / `AGENTS.md` file each for Next.js, React and React Native (`docs/public/ai/`), so Claude Code, Cursor or Codex can connect a project to NodePress from the file alone. See *Use with AI coding agents* in the docs.
 
 ### Changed

@@ -60,8 +60,21 @@ On the **Users** page you can change a user's role from the role dropdown on the
 - You can't delete your own account.
 - You can't delete or demote the **last admin**. Promote someone else first.
 - Deleting a user stops their login tokens from working right away.
-- To change your own password, click the key icon on your row. Forgot the current one? **Forgot it?** in the same panel emails you a reset link (valid 15 minutes); if email isn't set up, another admin can send you a new invite link, or run `npm run reset-password` on the server (on a Docker install, see [Reset the admin password on the server](/deployment/deploy-vps/#reset-the-admin-password-on-the-server)).
 - Someone who isn't an admin can't give the `admin` role, change, delete or re-invite an admin, or change their own role.
+
+## Your profile
+
+Every signed-in user has a **Profile** page, whatever their role. Open it by clicking your name at the bottom of the sidebar (or the person icon on your own row on the **Users** page). It has:
+
+| Section | What you can do |
+|---|---|
+| **Basic info** | Set your **name**, shown in the sidebar and the Users list (empty shows your email). Your email, role and join date are shown read-only; only an admin changes your role, and nobody can change an email yet. |
+| **Password** | Change your password. |
+| **Two-factor authentication** | Turn [2FA](/access-control/authentication/#two-factor-authentication) on or off. |
+| **Sessions** | **Sign out on all devices**, this one included. |
+| **Preferences** | The admin's language and theme (light, dark or your system's), saved in this browser. |
+
+Forgot your current password? **Forgot it?** in the change-password panel emails you a reset link (valid 15 minutes). If email isn't set up, another admin can send you a new invite link, or run `npm run reset-password` on the server (on a Docker install, see [Reset the admin password on the server](/deployment/deploy-vps/#reset-the-admin-password-on-the-server)).
 
 ![The Change password panel with current, new and confirm fields and the Forgot it? link](../../../assets/screenshots/change-password.png)
 
@@ -119,11 +132,13 @@ Admins can call every route; other roles need the level shown.
 
 | Method | Path | Who | What it does |
 |---|---|---|---|
-| `GET` | `/api/users` | Users → View | Lists users (`id`, `email`, `role`, `createdAt`, `updatedAt`) |
+| `GET` | `/api/users` | Users → View | Lists users (`id`, `email`, `name`, `role`, `createdAt`, `updatedAt`) |
 | `POST` | `/api/users` | Users → Edit | Invites a user: `{ email, role? }` |
 | `PUT` | `/api/users/:id/role` | Users → Edit | Changes a user's role: `{ role }` |
 | `POST` | `/api/users/:id/invite` | Users → Edit | Sends a new invite link |
 | `DELETE` | `/api/users/:id` | Users → Edit | Deletes a user |
+| `GET` | `/api/users/me` | any signed-in user | Your own account: `id`, `email`, `name`, `role`, `twoFactorEnabled`, `createdAt`, `updatedAt` |
+| `PUT` | `/api/users/me` | any signed-in user | Changes your own name: `{ name }` (up to 100 characters; empty clears it) |
 | `PUT` | `/api/users/me/password` | any signed-in user | Changes your own password: `{ currentPassword, newPassword }` (at least 8 characters). Signs out your other sessions and voids open reset links; 5 attempts per minute |
 
 ## Single sign-on users

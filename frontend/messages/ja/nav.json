@@ -36,5 +36,6 @@
   "signOut": "サインアウト",
   "user": "ユーザー",
   "openMenu": "ナビゲーションメニューを開く",
-  "closeMenu": "サイドバーを閉じる"
+  "closeMenu": "サイドバーを閉じる",
+  "profile": "プロフィール"
 }

@@ -32,6 +32,6 @@ describe('JwtStrategy.validate', () => {
   });
 
   it('returns the user for an access token', async () => {
-    await expect(strategy.validate({ sub: 1, email: 'a@b.co' })).resolves.toEqual({ id: 1, email: 'a@b.co', role: 'admin' });
+    await expect(strategy.validate({ sub: 1, email: 'a@b.co' })).resolves.toEqual({ id: 1, email: 'a@b.co', name: null, role: 'admin' });
   });
 });

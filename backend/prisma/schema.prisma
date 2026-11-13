@@ -105,6 +105,7 @@ model EntryVersion {
 model User {
   id                Int      @id @default(autoincrement())
   email             String   @unique
+  name              String? // shown in the admin; the email's local part when empty
   password          String
   role              String   @default("editor")
   twoFactorEnabled  Boolean  @default(false)

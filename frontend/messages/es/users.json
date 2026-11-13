@@ -249,5 +249,31 @@
       "powerful": "Editar aquí es casi un acceso de administrador: dalo solo a personas de confianza.",
       "adminOnlyNote": "Los roles y permisos, la instalación de plugins y la eliminación definitiva de entradas siguen siendo solo para administradores. Los administradores siempre tienen acceso total."
     }
+  },
+  "profile": {
+    "open": "Tu perfil",
+    "infoTitle": "Información básica",
+    "infoDescription": "Tu nombre aparece en la barra lateral y en la lista de usuarios.",
+    "name": "Nombre",
+    "namePlaceholder": "Tu nombre completo",
+    "nameHelp": "Déjalo vacío para mostrar tu correo.",
+    "email": "Correo",
+    "emailHelp": "Solo un administrador puede cambiar tu correo.",
+    "role": "Rol",
+    "joined": "Miembro desde",
+    "saved": "Perfil guardado",
+    "saveFailed": "No se pudo guardar tu perfil",
+    "loadFailed": "No se pudo cargar tu perfil",
+    "passwordTitle": "Contraseña",
+    "passwordDescription": "Cambia la contraseña con la que inicias sesión.",
+    "sessionsTitle": "Sesiones",
+    "signOutAllConfirmTitle": "¿Cerrar sesión en todos los dispositivos?",
+    "preferencesTitle": "Preferencias",
+    "preferencesDescription": "Se guardan en este navegador.",
+    "language": "Idioma del panel",
+    "theme": "Tema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "themeSystem": "Sistema"
   }
 }

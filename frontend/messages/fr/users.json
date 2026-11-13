@@ -249,5 +249,31 @@
       "powerful": "La modification ici équivaut presque à un accès administrateur — réservez-la aux personnes de confiance.",
       "adminOnlyNote": "Les rôles et permissions, l'installation d'extensions et la suppression définitive d'entrées restent réservés aux administrateurs. Les administrateurs ont toujours un accès complet."
     }
+  },
+  "profile": {
+    "open": "Votre profil",
+    "infoTitle": "Informations",
+    "infoDescription": "Votre nom s'affiche dans la barre latérale et la liste des utilisateurs.",
+    "name": "Nom",
+    "namePlaceholder": "Votre nom complet",
+    "nameHelp": "Laissez vide pour afficher votre e-mail.",
+    "email": "E-mail",
+    "emailHelp": "Seul un administrateur peut modifier votre e-mail.",
+    "role": "Rôle",
+    "joined": "Membre depuis",
+    "saved": "Profil enregistré",
+    "saveFailed": "Impossible d'enregistrer votre profil",
+    "loadFailed": "Impossible de charger votre profil",
+    "passwordTitle": "Mot de passe",
+    "passwordDescription": "Modifiez le mot de passe de connexion.",
+    "sessionsTitle": "Sessions",
+    "signOutAllConfirmTitle": "Se déconnecter sur tous les appareils ?",
+    "preferencesTitle": "Préférences",
+    "preferencesDescription": "Enregistrées dans ce navigateur.",
+    "language": "Langue de l'administration",
+    "theme": "Thème",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système"
   }
 }

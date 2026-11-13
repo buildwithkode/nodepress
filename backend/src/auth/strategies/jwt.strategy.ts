@@ -33,6 +33,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // A custom role runs as its base role (so @Roles() checks keep working);
     // customRole is what content permission checks use.
     const { role, customRole } = await this.roles.resolve(user.role);
-    return { id: user.id, email: user.email, role, ...(customRole && { customRole }) };
+    return { id: user.id, email: user.email, name: user.name ?? null, role, ...(customRole && { customRole }) };
   }
 }

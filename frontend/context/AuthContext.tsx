@@ -8,6 +8,8 @@ import { encodeAccessCookie, type UserAccess } from '../lib/access';
 interface User {
   id: number;
   email: string;
+  /** Display name from the profile page; null when unset (show the email instead). */
+  name?: string | null;
   /** Built-in role the user runs as (a custom role's base role). */
   role: string;
   /** Custom role name, when the user has one. */
@@ -35,6 +37,8 @@ interface AuthContextType {
   loading: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
+  /** Merge changes to the signed-in user (e.g. a new name from the profile page). */
+  updateUser: (patch: Partial<User>) => void;
   isAuthenticated: boolean;
 }
 
@@ -97,8 +101,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     api.post('/auth/logout').catch(() => {});
   };
 
+  const updateUser = (patch: Partial<User>) => setUser((prev) => (prev ? { ...prev, ...patch } : prev));
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

@@ -36,5 +36,6 @@
   "signOut": "Abmelden",
   "user": "Benutzer",
   "openMenu": "Navigation öffnen",
-  "closeMenu": "Seitenleiste schließen"
+  "closeMenu": "Seitenleiste schließen",
+  "profile": "Profil"
 }

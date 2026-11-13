@@ -36,5 +36,6 @@
   "signOut": "退出登录",
   "user": "用户",
   "openMenu": "打开导航菜单",
-  "closeMenu": "关闭侧边栏"
+  "closeMenu": "关闭侧边栏",
+  "profile": "个人资料"
 }

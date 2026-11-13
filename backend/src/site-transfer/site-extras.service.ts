@@ -81,7 +81,7 @@ export class SiteExtrasService {
   ) {}
 
   async export() {
-    const users = await this.prisma.user.findMany({ orderBy: { id: 'asc' }, select: { id: true, email: true, role: true, createdAt: true } });
+    const users = await this.prisma.user.findMany({ orderBy: { id: 'asc' }, select: { id: true, email: true, name: true, role: true, createdAt: true } });
     const emailOf = new Map(users.map((u) => [u.id, u.email]));
     const by = (id: number | null) => (id == null ? null : emailOf.get(id) ?? null);
 
@@ -119,7 +119,7 @@ export class SiteExtrasService {
       roles: await this.prisma.role.findMany({ orderBy: { name: 'asc' }, select: { name: true, label: true, description: true, baseRole: true } }),
       permissions: await this.prisma.permission.findMany({ orderBy: [{ role: 'asc' }, { contentType: 'asc' }], select: { role: true, contentType: true, actions: true } }),
       roleAccess: await this.prisma.roleAccess.findMany({ orderBy: [{ role: 'asc' }, { module: 'asc' }], select: { role: true, module: true, level: true } }),
-      users: users.map((u) => ({ email: u.email, role: u.role, createdAt: u.createdAt })),
+      users: users.map((u) => ({ email: u.email, ...(u.name && { name: u.name }), role: u.role, createdAt: u.createdAt })),
       mediaFolders: folders.map((f) => pathOf(f.id)).sort((x, y) => x.length - y.length || folderKey(x).localeCompare(folderKey(y))),
       media: media.map(({ id, folderId, uploadedBy, ...row }) => ({ ...row, folder: pathOf(folderId), uploadedBy: by(uploadedBy) })),
       plugins: installed.map((p) => {
@@ -280,7 +280,7 @@ export class SiteExtrasService {
         for (const u of newUsers) {
           // Random and unknown to anyone, as for an invited user.
           const password = await unusablePasswordHash();
-          await this.prisma.user.create({ data: { email: u.email, role: u.role, password, ...(validDate(u.createdAt) ? { createdAt: new Date(u.createdAt) } : {}) } });
+          await this.prisma.user.create({ data: { email: u.email, role: u.role, password, ...(typeof u.name === 'string' && u.name.trim() && { name: u.name.trim().slice(0, 100) }), ...(validDate(u.createdAt) ? { createdAt: new Date(u.createdAt) } : {}) } });
         }
       }]);
     }

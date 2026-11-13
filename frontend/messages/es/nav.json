@@ -36,5 +36,6 @@
   "signOut": "Cerrar sesión",
   "user": "Usuario",
   "openMenu": "Abrir menú de navegación",
-  "closeMenu": "Cerrar barra lateral"
+  "closeMenu": "Cerrar barra lateral",
+  "profile": "Perfil"
 }

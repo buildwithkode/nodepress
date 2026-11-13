@@ -249,5 +249,31 @@
       "powerful": "Modifica qui equivale quasi a un accesso da amministratore: concedila solo a persone fidate.",
       "adminOnlyNote": "Ruoli e permessi, l'installazione di plugin e l'eliminazione definitiva delle voci restano riservati agli amministratori. Gli amministratori hanno sempre accesso completo."
     }
+  },
+  "profile": {
+    "open": "Il tuo profilo",
+    "infoTitle": "Informazioni di base",
+    "infoDescription": "Il tuo nome appare nella barra laterale e nell'elenco utenti.",
+    "name": "Nome",
+    "namePlaceholder": "Il tuo nome completo",
+    "nameHelp": "Lascia vuoto per mostrare la tua email.",
+    "email": "Email",
+    "emailHelp": "Solo un amministratore può cambiare la tua email.",
+    "role": "Ruolo",
+    "joined": "Membro dal",
+    "saved": "Profilo salvato",
+    "saveFailed": "Impossibile salvare il profilo",
+    "loadFailed": "Impossibile caricare il profilo",
+    "passwordTitle": "Password",
+    "passwordDescription": "Cambia la password con cui accedi.",
+    "sessionsTitle": "Sessioni",
+    "signOutAllConfirmTitle": "Disconnettersi da tutti i dispositivi?",
+    "preferencesTitle": "Preferenze",
+    "preferencesDescription": "Salvate in questo browser.",
+    "language": "Lingua del pannello",
+    "theme": "Tema",
+    "themeLight": "Chiaro",
+    "themeDark": "Scuro",
+    "themeSystem": "Sistema"
   }
 }

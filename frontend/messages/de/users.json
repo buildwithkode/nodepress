@@ -249,5 +249,31 @@
       "powerful": "Bearbeiten ist hier fast ein Admin-Zugriff — nur für vertrauenswürdige Personen.",
       "adminOnlyNote": "Rollen und Berechtigungen, das Installieren von Plugins und das endgültige Löschen von Einträgen bleiben Admins vorbehalten. Admins haben immer vollen Zugriff."
     }
+  },
+  "profile": {
+    "open": "Dein Profil",
+    "infoTitle": "Basisdaten",
+    "infoDescription": "Dein Name wird in der Seitenleiste und in der Benutzerliste angezeigt.",
+    "name": "Name",
+    "namePlaceholder": "Dein vollständiger Name",
+    "nameHelp": "Leer lassen, um stattdessen deine E-Mail anzuzeigen.",
+    "email": "E-Mail",
+    "emailHelp": "Nur ein Admin kann deine E-Mail ändern.",
+    "role": "Rolle",
+    "joined": "Mitglied seit",
+    "saved": "Profil gespeichert",
+    "saveFailed": "Profil konnte nicht gespeichert werden",
+    "loadFailed": "Profil konnte nicht geladen werden",
+    "passwordTitle": "Passwort",
+    "passwordDescription": "Ändere das Passwort, mit dem du dich anmeldest.",
+    "sessionsTitle": "Sitzungen",
+    "signOutAllConfirmTitle": "Auf allen Geräten abmelden?",
+    "preferencesTitle": "Einstellungen",
+    "preferencesDescription": "In diesem Browser gespeichert.",
+    "language": "Sprache der Verwaltung",
+    "theme": "Design",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeSystem": "System"
   }
 }

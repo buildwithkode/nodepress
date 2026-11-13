@@ -171,7 +171,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     .slice()
     .sort((a, b) => b.href.length - a.href.length)
     .find((item) => pathname === item.href || (pathname?.startsWith(item.href + '/') ?? false))
-    ?.label ?? t('items.dashboard');
+    ?.label ?? (pathname === '/profile' ? t('profile') : t('items.dashboard'));
 
   return (
     <div className="flex min-h-screen bg-background relative">
@@ -263,9 +263,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* User info + sign out */}
         <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
           <div className="flex items-start justify-between gap-2 px-1">
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-sidebar-foreground truncate">
-                {user?.email?.split('@')[0] ?? t('user')}
+            <Link
+              href="/profile"
+              title={t('profile')}
+              className="group min-w-0 flex-1 rounded-md -m-1 p-1 transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            >
+              <p className="text-sm font-bold text-sidebar-foreground truncate group-hover:underline underline-offset-4">
+                {/* A person's name is data — shown as stored */}
+                {user?.name || user?.email?.split('@')[0] || t('user')}
               </p>
               <p className="text-xs text-muted-foreground truncate mt-0.5">
                 {user?.email ?? '—'}
@@ -280,7 +285,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* A custom role's name is data — shown as stored */}
                 {user?.customRole ?? tc(`roles.${user?.role ?? 'viewer'}`)}
               </span>
-            </div>
+            </Link>
             <Button
               variant="ghost"
               size="icon-sm"

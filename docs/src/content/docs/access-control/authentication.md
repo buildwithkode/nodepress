@@ -61,10 +61,8 @@ Every access token carries the user's session version. These end **all** of the 
 
 - changing or resetting the password;
 - turning two-factor authentication on or off;
-- **Sign out on all devices**, in the **Change password** panel on the **Users** page (`POST /api/auth/logout-all`);
+- **Sign out on all devices**, on your [Profile](/access-control/users-and-roles/#your-profile) page (`POST /api/auth/logout-all`);
 - `npm run reset-password` on the server.
-
-![The Change password panel with the Sign out on all devices button](../../../assets/screenshots/sign-out-everywhere.png)
 
 Signing out with the normal button ends only the current browser's session. Changing `JWT_SECRET` still invalidates every token for everyone.
 
@@ -136,7 +134,7 @@ Two-factor authentication (2FA) adds a 6-digit code from an authenticator app (G
 
 ### Turning it on
 
-In the admin, the **Two-Factor Authentication (2FA)** card is on the **Users** page:
+In the admin, the **Two-Factor Authentication (2FA)** card is on your [Profile](/access-control/users-and-roles/#your-profile) page (click your name at the bottom of the sidebar). Every user can turn it on, whatever their role:
 
 1. Click **Enable 2FA**.
 2. Scan the QR code with your authenticator app, or type the **Manual Entry Key**.
@@ -199,4 +197,5 @@ People who sign in through [SSO](/access-control/sso/) aren't asked for a NodePr
 | `POST` | `/api/auth/forgot-password` | none |
 | `POST` | `/api/auth/reset-password` | reset token in the body |
 | `GET`, `POST` | `/api/auth/2fa/…` | see above |
+| `GET`, `PUT` | `/api/users/me` | access token |
 | `PUT` | `/api/users/me/password` | access token |

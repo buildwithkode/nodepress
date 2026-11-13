@@ -7,7 +7,7 @@ import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto, ChangePasswordDto } from './dto/update-user.dto';
+import { UpdateUserDto, ChangePasswordDto, UpdateProfileDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Access } from '../auth/decorators/access.decorator';
@@ -100,6 +100,24 @@ export class UsersController {
   }
 
   // ─── Self-service ──────────────────────────────────────────────────────────
+  // Every signed-in user, whatever their module access: the profile page.
+
+  @Get('me')
+  @ApiOperation({ summary: 'Your own account: email, name, role, 2FA state, joined date' })
+  getProfile(@Request() req: any) {
+    return this.usersService.getProfile(req.user.id);
+  }
+
+  @Put('me')
+  @ApiOperation({ summary: 'Change your own name' })
+  async updateProfile(@Body() dto: UpdateProfileDto, @Request() req: any) {
+    const profile = await this.usersService.updateProfile(req.user.id, dto);
+    await this.auditService.log(
+      { id: req.user.id, email: req.user.email, ip: req.ip },
+      'updated', 'user', String(req.user.id), { profile: true },
+    );
+    return profile;
+  }
 
   @Put('me/password')
   @Throttle({ default: { ttl: 60_000, limit: 5 } }) // the current-password check must not be guessable

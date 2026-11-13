@@ -218,6 +218,8 @@ See [Templates](/content/templates/) and [AI assistance](/content/ai/).
 | PUT | `/api/users/:id/role` | Admin, or Users → Edit | Change a user's role |
 | DELETE | `/api/users/:id` | Admin, or Users → Edit | Delete a user (not yourself or the last admin) |
 | POST | `/api/users/:id/invite` | Admin, or Users → Edit | Resend the invitation |
+| GET | `/api/users/me` | Signed in | Your own account (name, email, role, 2FA on/off) |
+| PUT | `/api/users/me` | Signed in | Change your own name |
 | PUT | `/api/users/me/password` | Signed in | Change your own password |
 | GET | `/api/roles` | Admin, or Users → View | Built-in and custom roles with user counts |
 | GET | `/api/roles/access` | Admin | Module list and every role's module levels |

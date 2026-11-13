@@ -11,14 +11,14 @@ describe('JwtStrategy.validate()', () => {
   it('passes a built-in role through', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: 1, email: 'a@test.com', role: 'editor' });
     roles.resolve.mockResolvedValue({ role: 'editor' });
-    expect(await strategy.validate({ sub: 1, email: 'a@test.com' })).toEqual({ id: 1, email: 'a@test.com', role: 'editor' });
+    expect(await strategy.validate({ sub: 1, email: 'a@test.com' })).toEqual({ id: 1, email: 'a@test.com', name: null, role: 'editor' });
   });
 
   it('runs a custom role as its base role and exposes customRole', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: 2, email: 'r@test.com', role: 'reviewer' });
     roles.resolve.mockResolvedValue({ role: 'contributor', customRole: 'reviewer' });
     expect(await strategy.validate({ sub: 2, email: 'r@test.com' })).toEqual({
-      id: 2, email: 'r@test.com', role: 'contributor', customRole: 'reviewer',
+      id: 2, email: 'r@test.com', name: null, role: 'contributor', customRole: 'reviewer',
     });
     expect(roles.resolve).toHaveBeenCalledWith('reviewer');
   });

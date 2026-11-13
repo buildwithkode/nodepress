@@ -249,5 +249,31 @@
       "powerful": "Bewerken is hier bijna beheerderstoegang — geef het alleen aan mensen die je vertrouwt.",
       "adminOnlyNote": "Rollen en rechten, plug-ins installeren en items definitief verwijderen blijven voorbehouden aan beheerders. Beheerders hebben altijd volledige toegang."
     }
+  },
+  "profile": {
+    "open": "Je profiel",
+    "infoTitle": "Basisgegevens",
+    "infoDescription": "Je naam staat in de zijbalk en in de gebruikerslijst.",
+    "name": "Naam",
+    "namePlaceholder": "Je volledige naam",
+    "nameHelp": "Laat leeg om je e-mailadres te tonen.",
+    "email": "E-mail",
+    "emailHelp": "Alleen een beheerder kan je e-mailadres wijzigen.",
+    "role": "Rol",
+    "joined": "Lid sinds",
+    "saved": "Profiel opgeslagen",
+    "saveFailed": "Kon je profiel niet opslaan",
+    "loadFailed": "Kon je profiel niet laden",
+    "passwordTitle": "Wachtwoord",
+    "passwordDescription": "Wijzig het wachtwoord waarmee je inlogt.",
+    "sessionsTitle": "Sessies",
+    "signOutAllConfirmTitle": "Op alle apparaten uitloggen?",
+    "preferencesTitle": "Voorkeuren",
+    "preferencesDescription": "Opgeslagen in deze browser.",
+    "language": "Taal van het beheer",
+    "theme": "Thema",
+    "themeLight": "Licht",
+    "themeDark": "Donker",
+    "themeSystem": "Systeem"
   }
 }

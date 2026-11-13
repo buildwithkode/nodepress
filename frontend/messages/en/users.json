@@ -249,5 +249,31 @@
       "powerful": "Edit here is close to admin access — give it only to people you trust.",
       "adminOnlyNote": "Roles and permissions, installing plugins and permanently deleting entries stay admin-only. Admins always have full access."
     }
+  },
+  "profile": {
+    "open": "Your profile",
+    "infoTitle": "Basic info",
+    "infoDescription": "Your name is shown in the sidebar and the Users list.",
+    "name": "Name",
+    "namePlaceholder": "Your full name",
+    "nameHelp": "Leave it empty to show your email instead.",
+    "email": "Email",
+    "emailHelp": "Only an admin can change your email.",
+    "role": "Role",
+    "joined": "Member since",
+    "saved": "Profile saved",
+    "saveFailed": "Couldn't save your profile",
+    "loadFailed": "Couldn't load your profile",
+    "passwordTitle": "Password",
+    "passwordDescription": "Change the password you sign in with.",
+    "sessionsTitle": "Sessions",
+    "signOutAllConfirmTitle": "Sign out on all devices?",
+    "preferencesTitle": "Preferences",
+    "preferencesDescription": "Saved in this browser.",
+    "language": "Admin language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
   }
 }

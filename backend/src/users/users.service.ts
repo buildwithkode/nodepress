@@ -9,12 +9,12 @@ import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto, ChangePasswordDto } from './dto/update-user.dto';
+import { UpdateUserDto, ChangePasswordDto, UpdateProfileDto } from './dto/update-user.dto';
 import { isBuiltInRole } from '../roles/roles.constants';
 import { assertAcceptablePassword, hashPassword, unusablePasswordHash, verifyPassword } from '../auth/password';
 import { hashToken } from '../auth/token-hash';
 
-const USER_SELECT = { id: true, email: true, role: true, createdAt: true, updatedAt: true } as const;
+const USER_SELECT = { id: true, email: true, name: true, role: true, createdAt: true, updatedAt: true } as const;
 
 @Injectable()
 export class UsersService {
@@ -172,6 +172,24 @@ export class UsersService {
    * and unused reset/invite links stop working; `keepRefreshToken` — the caller's
    * own np_refresh cookie — survives so this browser stays signed in.
    */
+  /** Your own account, for the profile page. */
+  async getProfile(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { ...USER_SELECT, twoFactorEnabled: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  /** Change your own name. An empty name clears it (the admin then shows the email). */
+  async updateProfile(userId: number, dto: UpdateProfileDto) {
+    const data: { name?: string | null } = {};
+    if (dto.name !== undefined) data.name = dto.name.trim() || null;
+    await this.prisma.user.update({ where: { id: userId }, data });
+    return this.getProfile(userId);
+  }
+
   async changePassword(userId: number, dto: ChangePasswordDto, keepRefreshToken?: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');

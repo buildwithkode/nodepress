@@ -36,5 +36,6 @@
   "signOut": "Sign out",
   "user": "User",
   "openMenu": "Open navigation menu",
-  "closeMenu": "Close sidebar"
+  "closeMenu": "Close sidebar",
+  "profile": "Profile"
 }

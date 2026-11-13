@@ -191,6 +191,37 @@ describe('UsersService', () => {
 
   // ── changePassword ─────────────────────────────────────────────────────────
 
+  describe('profile', () => {
+    it('getProfile() returns your account without the password', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 2, email: 'editor@test.com', name: null, role: 'editor', twoFactorEnabled: false });
+      const profile = await service.getProfile(2);
+      expect(profile.email).toBe('editor@test.com');
+      const { select } = mockPrisma.user.findUnique.mock.calls[0][0];
+      expect(select.password).toBeUndefined();
+      expect(select.twoFactorSecret).toBeUndefined();
+      expect(select.twoFactorEnabled).toBe(true);
+    });
+
+    it('getProfile() 404s for a deleted account', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      await expect(service.getProfile(99)).rejects.toThrow(NotFoundException);
+    });
+
+    it('updateProfile() trims the name and only touches your own row', async () => {
+      mockPrisma.user.update.mockResolvedValue({});
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 2, email: 'editor@test.com', name: 'Priya', role: 'editor' });
+      await service.updateProfile(2, { name: '  Priya  ' });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({ where: { id: 2 }, data: { name: 'Priya' } });
+    });
+
+    it('updateProfile() clears the name when it is blank', async () => {
+      mockPrisma.user.update.mockResolvedValue({});
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 2, email: 'editor@test.com', name: null, role: 'editor' });
+      await service.updateProfile(2, { name: '   ' });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({ where: { id: 2 }, data: { name: null } });
+    });
+  });
+
   describe('changePassword()', () => {
     it('updates password when current password is correct', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(mockAdmin);
