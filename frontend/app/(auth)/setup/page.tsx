@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'use-intl';
 import { EmailSettingsForm, ServerSettings, StorageSettingsForm } from '@/components/ServerSettingsForms';
-import { PasswordInput } from '@/components/ui/password-input';
+import { PasswordInput, PasswordRules } from '@/components/ui/password-input';
 
 /* ─── Password strength ─────────────────────────────────────── */
 function getStrength(pw: string) {
@@ -224,6 +224,7 @@ export default function SetupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('setup.passwordPlaceholder')}
+                  aria-describedby="password-rules"
                 />
                 {password && (
                   <div className="mt-1">
@@ -233,6 +234,7 @@ export default function SetupPage() {
                     <p className="text-xs text-white/40 mt-0.5">{t(`setup.strength.${strength.label}`)}</p>
                   </div>
                 )}
+                <PasswordRules id="password-rules" className="text-white/45" />
                 {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
               </div>
 

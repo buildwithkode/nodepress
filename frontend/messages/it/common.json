@@ -62,5 +62,6 @@
   },
   "readOnly": "Puoi vedere questa pagina, ma il tuo ruolo non può modificare nulla qui.",
   "showPassword": "Mostra password",
-  "hidePassword": "Nascondi password"
+  "hidePassword": "Nascondi password",
+  "passwordRules": "Almeno 8 caratteri. Evita password comuni, il tuo indirizzo email e password comparse in violazioni di dati. Alcune parole a caso funzionano bene, ad esempio river-lamp-orbit-tea."
 }

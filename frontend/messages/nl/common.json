@@ -62,5 +62,6 @@
   },
   "readOnly": "Je kunt deze pagina bekijken, maar je rol mag hier niets wijzigen.",
   "showPassword": "Wachtwoord tonen",
-  "hidePassword": "Wachtwoord verbergen"
+  "hidePassword": "Wachtwoord verbergen",
+  "passwordRules": "Minstens 8 tekens. Vermijd veelgebruikte wachtwoorden, je e-mailadres en wachtwoorden die in datalekken zijn verschenen. Een paar willekeurige woorden werken goed, bijvoorbeeld river-lamp-orbit-tea."
 }

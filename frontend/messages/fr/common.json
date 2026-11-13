@@ -62,5 +62,6 @@
   },
   "readOnly": "Vous pouvez consulter cette page, mais votre rôle ne permet pas de la modifier.",
   "showPassword": "Afficher le mot de passe",
-  "hidePassword": "Masquer le mot de passe"
+  "hidePassword": "Masquer le mot de passe",
+  "passwordRules": "Au moins 8 caractères. Évitez les mots de passe courants, votre adresse e-mail et les mots de passe apparus dans des fuites de données. Quelques mots au hasard fonctionnent bien, par exemple river-lamp-orbit-tea."
 }

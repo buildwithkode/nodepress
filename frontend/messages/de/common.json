@@ -62,5 +62,6 @@
   },
   "readOnly": "Sie können diese Seite ansehen, aber Ihre Rolle darf hier nichts ändern.",
   "showPassword": "Passwort anzeigen",
-  "hidePassword": "Passwort verbergen"
+  "hidePassword": "Passwort verbergen",
+  "passwordRules": "Mindestens 8 Zeichen. Vermeiden Sie gängige Passwörter, Ihre E-Mail-Adresse und Passwörter aus bekannten Datenlecks. Einige zufällige Wörter eignen sich gut, z. B. river-lamp-orbit-tea."
 }

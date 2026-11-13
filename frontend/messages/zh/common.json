@@ -62,5 +62,6 @@
   },
   "readOnly": "你可以查看此页面，但你的角色无法在这里做任何更改。",
   "showPassword": "显示密码",
-  "hidePassword": "隐藏密码"
+  "hidePassword": "隐藏密码",
+  "passwordRules": "至少 8 个字符。请避免常见密码、你的电子邮件地址以及在数据泄露中出现过的密码。几个随机单词组合效果很好，例如 river-lamp-orbit-tea。"
 }

@@ -50,3 +50,13 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
   },
 );
 PasswordInput.displayName = 'PasswordInput';
+
+/** The password rules, shown under a field where someone picks a new password. */
+export function PasswordRules({ id, className }: { id?: string; className?: string }) {
+  const tc = useTranslations('common');
+  return (
+    <p id={id} className={cn('text-xs leading-relaxed text-muted-foreground', className)}>
+      {tc('passwordRules')}
+    </p>
+  );
+}

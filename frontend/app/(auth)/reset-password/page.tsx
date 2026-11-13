@@ -6,7 +6,7 @@ import Link from 'next/link';
 import api from '../../../lib/axios';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'use-intl';
-import { PasswordInput } from '@/components/ui/password-input';
+import { PasswordInput, PasswordRules } from '@/components/ui/password-input';
 
 function ResetPasswordForm() {
   const t = useTranslations('auth');
@@ -74,8 +74,10 @@ function ResetPasswordForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
                   autoFocus
+                  aria-describedby="password-rules"
                   className="w-full rounded-lg bg-[#2a2a2a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-colors"
                 />
+                <PasswordRules id="password-rules" className="text-white/45" />
               </div>
 
               <div className="space-y-1.5">

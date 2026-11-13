@@ -62,5 +62,6 @@
   },
   "readOnly": "Puedes ver esta página, pero tu rol no puede cambiar nada aquí.",
   "showPassword": "Mostrar contraseña",
-  "hidePassword": "Ocultar contraseña"
+  "hidePassword": "Ocultar contraseña",
+  "passwordRules": "Al menos 8 caracteres. Evita contraseñas comunes, tu correo electrónico y contraseñas que hayan aparecido en filtraciones de datos. Unas cuantas palabras al azar funcionan bien, por ejemplo river-lamp-orbit-tea."
 }

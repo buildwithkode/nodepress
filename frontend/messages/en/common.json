@@ -62,5 +62,6 @@
   },
   "readOnly": "You can view this page, but your role can't change anything here.",
   "showPassword": "Show password",
-  "hidePassword": "Hide password"
+  "hidePassword": "Hide password",
+  "passwordRules": "Use at least 8 characters. Avoid common passwords, your email address and passwords that have appeared in data breaches. A few random words work well, like river-lamp-orbit-tea."
 }

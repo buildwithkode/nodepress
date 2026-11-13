@@ -62,5 +62,6 @@
   },
   "readOnly": "Você pode ver esta página, mas seu papel não pode alterar nada aqui.",
   "showPassword": "Mostrar senha",
-  "hidePassword": "Ocultar senha"
+  "hidePassword": "Ocultar senha",
+  "passwordRules": "Pelo menos 8 caracteres. Evite senhas comuns, seu e-mail e senhas que já apareceram em vazamentos de dados. Algumas palavras aleatórias funcionam bem, por exemplo river-lamp-orbit-tea."
 }
