@@ -80,3 +80,7 @@ The Next.js starter shows drafts and updates the page as an editor types:
 3. Open an entry and click **Live** in the editor toolbar.
 
 See [Live preview](/content/live-preview/) for how the preview token, draft mode and the preview messages work, and what a production site needs (HTTPS, no `frame-ancestors` rule that blocks the admin).
+
+## Building with an AI coding assistant
+
+To connect an existing Next.js, React or React Native project instead of starting from a starter, give your AI coding assistant the framework's integration guide. See [Use with AI coding agents](/apis/ai-agents/).

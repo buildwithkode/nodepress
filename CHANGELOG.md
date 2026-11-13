@@ -12,6 +12,10 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Added
+
+- **Guides for AI coding assistants.** One `CLAUDE.md` / `AGENTS.md` file each for Next.js, React and React Native (`docs/public/ai/`), so Claude Code, Cursor or Codex can connect a project to NodePress from the file alone. See *Use with AI coding agents* in the docs.
+
 ### Changed
 
 - **`server.js` takes its settings from environment variables.** When `DATABASE_URL` and `JWT_SECRET` are set (as on Hostinger's Node.js Web App and similar panels), the first-run setup page is skipped.

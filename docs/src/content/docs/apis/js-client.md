@@ -202,3 +202,7 @@ enableClickToEdit({ adminOrigin: 'https://cms.example.com' });
 ```
 
 They're also exported from the package root, with `isInPreviewFrame()`. See [Live preview](/content/live-preview/) for the setup.
+
+## With an AI coding assistant
+
+The [AI coding agent guides](/apis/ai-agents/) teach Claude Code, Cursor and other assistants to use this client in Next.js, React and React Native projects.

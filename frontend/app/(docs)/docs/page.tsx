@@ -104,7 +104,7 @@ const TOPICS: { title: string; pages: [string, string][] }[] = [
   ] },
   { title: 'APIs', pages: [
     ['REST API', 'apis/rest'], ['Querying', 'apis/querying'], ['GraphQL', 'apis/graphql'], ['OpenAPI', 'apis/openapi'],
-    ['JavaScript client', 'apis/js-client'], ['Frontend starters', 'apis/starters'],
+    ['JavaScript client', 'apis/js-client'], ['Frontend starters', 'apis/starters'], ['AI coding agents', 'apis/ai-agents'],
     ['Real-time events', 'apis/realtime'], ['Webhooks', 'apis/webhooks'],
   ] },
   { title: 'Access control', pages: [
