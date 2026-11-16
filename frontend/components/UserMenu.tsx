@@ -5,6 +5,7 @@ import { LogOut, UserRound } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { useAuth } from '@/context/AuthContext';
 import { displayName, initials } from '@/lib/user-display';
+import { roleBadgeColor } from '@/lib/custom-roles';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -35,10 +36,10 @@ export function UserMenu({ onSignOut }: { onSignOut: () => void }) {
           {/* A person's name is data — shown as stored */}
           <p className="truncate text-sm font-semibold text-foreground">{displayName(user)}</p>
           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <span className={`mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${roleBadgeColor(user.customRole ?? user.role)}`}>
             {/* A custom role's name is data — shown as stored */}
             {user.customRole ?? tc(`roles.${user.role ?? 'viewer'}`)}
-          </p>
+          </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2 text-sm" onSelect={() => router.push('/profile')}>
