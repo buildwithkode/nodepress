@@ -22,7 +22,6 @@ import {
   FileText,
   Image,
   Key,
-  BookOpen,
   ClipboardList,
   Users,
   ScrollText,
@@ -99,9 +98,6 @@ const ALL_NAV_GROUPS: Array<{
     labelKey: 'help',
     items: [
       { href: '/docs', labelKey: 'apiReference', icon: Code2 },
-    ],
-    externalLinks: [
-      { href: 'https://nodepress-docs.vercel.app', labelKey: 'docs', icon: BookOpen },
     ],
   },
 ];
