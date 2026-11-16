@@ -43,7 +43,7 @@ import {
   ChevronDown,
   Check,
   Languages,
-  MoreHorizontal,
+  Settings2,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -831,8 +831,10 @@ export default function EntriesPage() {
 
   return (
     <div className="space-y-4">
-      {/* Row 1: where you are, plus actions (one main button; occasional tasks under ⋯) */}
-      <div className="flex items-center gap-3 flex-wrap">
+      {/* One row from xl: breadcrumb · search + filters · actions. Narrower, the
+          filters wrap under the breadcrumb and actions instead of squeezing. */}
+      <div className="flex items-center gap-x-3 gap-y-3 flex-wrap">
+        <div className="order-1 flex shrink-0 items-center gap-3">
         {showTrash ? (
           <Button
             variant="outline"
@@ -863,7 +865,8 @@ export default function EntriesPage() {
           </>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        </div>
+        <div className="order-2 ml-auto flex shrink-0 items-center gap-2 xl:order-4 xl:ml-0">
           {deletedCount > 0 && !showTrash && (
             <Button
               variant="outline"
@@ -878,8 +881,9 @@ export default function EntriesPage() {
           {!showTrash && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="h-9 w-9" aria-label={t('toolbar.more')} title={t('toolbar.more')}>
-                  {exportingFormat ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                <Button variant="outline" size="sm" className="h-9 gap-1 px-2.5" aria-label={t('toolbar.more')} title={t('toolbar.more')}>
+                  {exportingFormat ? <Loader2 className="h-4 w-4 animate-spin" /> : <Settings2 className="h-4 w-4" />}
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
@@ -912,11 +916,10 @@ export default function EntriesPage() {
             </Button>
           )}
         </div>
-      </div>
 
-      {/* Row 2: finding entries, right above the table it filters */}
-      <div className="flex items-center flex-wrap gap-2">
-        <div className="basis-full sm:basis-auto sm:min-w-48 sm:flex-1 sm:max-w-md">
+        {/* Finding entries: search (widest), then language and status */}
+        <div className="order-3 flex basis-full flex-wrap items-center gap-2 xl:basis-auto xl:flex-1 xl:flex-nowrap xl:justify-end">
+        <div className="basis-full sm:basis-auto sm:min-w-48 sm:flex-1 xl:max-w-sm">
           <SearchInput
             placeholder={t('filters.searchPlaceholder')}
             value={search}
@@ -961,6 +964,7 @@ export default function EntriesPage() {
               </Select>
           </>
         )}
+        </div>
       </div>
 
       {/* Pending Review Notice Banner */}
@@ -1107,9 +1111,9 @@ export default function EntriesPage() {
                 />
               </TableHead>
             )}
-            <TableHead className="hidden md:table-cell w-16 whitespace-nowrap">{t('table.number')}</TableHead>
+            <TableHead className="w-16 whitespace-nowrap">{t('table.number')}</TableHead>
             <TableHead>{t('table.slug')}</TableHead>
-            {multiLanguage && <TableHead className="hidden md:table-cell">{t('table.languages')}</TableHead>}
+            {multiLanguage && <TableHead className="whitespace-nowrap">{t('table.languages')}</TableHead>}
             <TableHead>
               {tc('status')}
               {/* Each language has its own status: say whose this column shows */}
@@ -1120,11 +1124,11 @@ export default function EntriesPage() {
               )}
             </TableHead>
             {schemaColumns.map((col) => (
-              <TableHead key={col.name} className="hidden md:table-cell">
+              <TableHead key={col.name} className="whitespace-nowrap">
                 {col.label?.trim() || col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </TableHead>
             ))}
-            <TableHead className="hidden md:table-cell">{tc('updatedAt')}</TableHead>
+            <TableHead className="whitespace-nowrap">{tc('updatedAt')}</TableHead>
             <TableHead className="text-right">{tc('actions')}</TableHead>
           </TableRow>
         </TableHeader>
@@ -1133,14 +1137,14 @@ export default function EntriesPage() {
             Array.from({ length: 4 }).map((_, i) => (
               <TableRow key={i}>
                 {canSelect && !showTrash && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
-                <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-6" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-6" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                {multiLanguage && <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>}
+                {multiLanguage && <TableCell><Skeleton className="h-4 w-20" /></TableCell>}
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 {schemaColumns.map((col) => (
-                  <TableCell key={col.name} className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell key={col.name}><Skeleton className="h-4 w-24" /></TableCell>
                 ))}
-                <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
               </TableRow>
             ))
@@ -1174,7 +1178,7 @@ export default function EntriesPage() {
               number={(page - 1) * PAGE_SIZE + index + 1}
               canDrag={canReorder}
               handleLabel={t('table.dragToReorder')}
-              numberCellClassName="hidden md:table-cell align-middle py-2"
+              numberCellClassName="align-middle py-2"
               className={selected.has(entry.id) ? 'bg-muted/40' : undefined}
               leading={canSelect && !showTrash ? (
                 <TableCell>
@@ -1189,15 +1193,15 @@ export default function EntriesPage() {
             >
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium text-foreground break-words">{entry.slug}</p>
-                  {/* With several languages they get their own column from md up; below it, here */}
-                  <div className={cn('flex flex-wrap gap-1 shrink-0', multiLanguage && 'md:hidden')}>
-                    {renderLanguageChips(entry)}
-                  </div>
+                  <p className="font-medium text-foreground whitespace-nowrap">{entry.slug}</p>
+                  {/* With several languages they have their own column; with one, its chip sits here */}
+                  {!multiLanguage && (
+                    <div className="flex gap-1 shrink-0">{renderLanguageChips(entry)}</div>
+                  )}
                 </div>
               </TableCell>
               {multiLanguage && (
-                <TableCell className="hidden md:table-cell">
+                <TableCell>
                   <div className="flex items-center gap-1">{renderLanguageChips(entry)}</div>
                 </TableCell>
               )}
@@ -1278,7 +1282,7 @@ export default function EntriesPage() {
                   ? (typeof val === 'object' && val.url ? val.url : typeof val === 'string' ? val : null)
                   : null;
                 return (
-                  <TableCell key={col.name} className="hidden md:table-cell text-muted-foreground">
+                  <TableCell key={col.name} className="max-w-64 truncate whitespace-nowrap text-muted-foreground">
                     {val === undefined || val === null ? (
                       <span className="text-muted-foreground/40">—</span>
                     ) : imgSrc ? (
@@ -1299,9 +1303,9 @@ export default function EntriesPage() {
                   </TableCell>
                 );
               })}
-              <TableCell className="hidden md:table-cell text-muted-foreground">{formatDate(entry.updatedAt)}</TableCell>
+              <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(entry.updatedAt)}</TableCell>
               <TableCell>
-                <div className="flex flex-wrap items-center justify-end gap-1 md:flex-nowrap">
+                <div className="flex flex-nowrap items-center justify-end gap-1">
                   {showTrash ? (
                     <>
                       {canDelete && (

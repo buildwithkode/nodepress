@@ -113,7 +113,7 @@ The API returns them in the entry's `seo` object (or `seo: null`). Your site ren
 
 ## The entries list
 
-The list shows the entries of one content type, 10 per page, numbered (**Sr. No.**, hidden on phones). The bar above it searches the slug and field values and filters by language and status; occasional tasks (export, import, schema, permissions) are in the **⋯** menu beside **New Entry**.
+The list shows the entries of one content type, 10 per page, numbered (**Sr. No.**). The bar above it searches the slug and field values and filters by language and status; occasional tasks (export, import, schema, permissions) are in the tools menu beside **New Entry**. On a narrow screen the table keeps every column and scrolls sideways.
 
 New entries start at the top. To change the order, drag a row by its handle next to the number. The order is saved at once, all languages of a page move together, and dragging on one page of the list leaves the other pages where they were. Your site can use the same order with `?sort=position:asc` (see [Querying](/apis/querying/#sorting)). Reordering doesn't change an entry's **Updated** date.
 
@@ -157,7 +157,7 @@ Through the API: `DELETE /api/entries/:id` moves an entry to the trash, `POST /a
 
 ## Import and export
 
-Editors and admins can export a content type's entries (everything except the trash) as JSON or CSV, and import entries from a JSON or CSV file. Both are in the **⋯** menu next to **New Entry**, with **Edit schema** and **Permissions**:
+Editors and admins can export a content type's entries (everything except the trash) as JSON or CSV, and import entries from a JSON or CSV file. Both are in the tools menu next to **New Entry**, with **Edit schema** and **Permissions**:
 
 - **Import…** runs a dry run first and shows each row as **Create** or **Update**, with any problems.
 - Rows are matched to existing entries by slug and language. With **Update duplicate entries** on (the default), matching entries are updated; otherwise they're skipped.
