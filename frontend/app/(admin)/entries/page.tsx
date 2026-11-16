@@ -1144,7 +1144,15 @@ export default function EntriesPage() {
             <TableHead className="w-16 whitespace-nowrap">{t('table.number')}</TableHead>
             <TableHead>{t('table.slug')}</TableHead>
             {multiLanguage && <TableHead className="hidden md:table-cell">{t('table.languages')}</TableHead>}
-            <TableHead>{tc('status')}</TableHead>
+            <TableHead>
+              {tc('status')}
+              {/* Each language has its own status: say whose this column shows */}
+              {multiLanguage && localeFilter !== 'all' && !showTrash && (
+                <span className="ml-1 font-mono text-[10px] font-normal uppercase text-muted-foreground" title={localeLabel(localeFilter)}>
+                  ({localeFilter})
+                </span>
+              )}
+            </TableHead>
             {schemaColumns.map((col) => (
               <TableHead key={col.name} className="hidden md:table-cell">
                 {col.label?.trim() || col.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
