@@ -78,7 +78,10 @@
     "richText": "富文本",
     "localeOpen": "打开{language}版本",
     "localeAdd": "添加{language}翻译",
-    "languages": "语言"
+    "languages": "语言",
+    "changeStatus": "更改 {slug} 的状态",
+    "statusLanguageOnly": "仅更改{language}版本",
+    "statusCancelsSchedule": "选择状态将取消定时发布"
   },
   "actions": {
     "restore": "恢复",
@@ -146,6 +149,7 @@
     "urlCopied": "API URL 已复制到剪贴板",
     "copyUrlFailed": "无法复制 URL",
     "translationCreated": "已创建{language}翻译草稿",
-    "translationFailed": "无法创建翻译"
+    "translationFailed": "无法创建翻译",
+    "statusChanged": "{slug} 现在为：{status}"
   }
 }

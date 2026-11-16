@@ -78,7 +78,10 @@
     "richText": "Opgemaakte tekst",
     "localeOpen": "De {language} versie openen",
     "localeAdd": "Een {language} vertaling toevoegen",
-    "languages": "Talen"
+    "languages": "Talen",
+    "changeStatus": "Status van {slug} wijzigen",
+    "statusLanguageOnly": "Wijzigt alleen de {language} versie",
+    "statusCancelsSchedule": "Een status kiezen annuleert de geplande publicatie"
   },
   "actions": {
     "restore": "Terugzetten",
@@ -146,6 +149,7 @@
     "urlCopied": "API-URL naar klembord gekopieerd",
     "copyUrlFailed": "Kon URL niet kopiëren",
     "translationCreated": "{language} vertaling als concept aangemaakt",
-    "translationFailed": "Vertaling kon niet worden aangemaakt"
+    "translationFailed": "Vertaling kon niet worden aangemaakt",
+    "statusChanged": "{slug} is nu: {status}"
   }
 }

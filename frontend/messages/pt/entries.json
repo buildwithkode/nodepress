@@ -78,7 +78,10 @@
     "richText": "Rich text",
     "localeOpen": "Abrir a versão em {language}",
     "localeAdd": "Adicionar uma tradução em {language}",
-    "languages": "Idiomas"
+    "languages": "Idiomas",
+    "changeStatus": "Alterar o status de {slug}",
+    "statusLanguageOnly": "Altera apenas a versão em {language}",
+    "statusCancelsSchedule": "Escolher um status cancela a publicação agendada"
   },
   "actions": {
     "restore": "Restaurar",
@@ -146,6 +149,7 @@
     "urlCopied": "URL da API copiada para a área de transferência",
     "copyUrlFailed": "Não foi possível copiar a URL",
     "translationCreated": "Tradução em {language} criada como rascunho",
-    "translationFailed": "Não foi possível criar a tradução"
+    "translationFailed": "Não foi possível criar a tradução",
+    "statusChanged": "{slug} agora está em: {status}"
   }
 }

@@ -277,6 +277,23 @@ describe('EntriesService', () => {
     });
   });
 
+  describe('promote()', () => {
+    it('any status other than draft drops a scheduled publish; draft keeps it', async () => {
+      const scheduled = { ...mockEntry, status: 'draft', publishAt: new Date(Date.now() + 86_400_000) };
+      for (const [target, cleared] of [['staging', true], ['archived', true], ['pending_review', true], ['draft', false]] as const) {
+        mockPrisma.entry.findUnique.mockResolvedValue(scheduled);
+        mockPrisma.entry.findMany.mockResolvedValue([]);
+        mockPrisma.entryVersion.create.mockResolvedValue({});
+        mockPrisma.entry.update.mockClear();
+        mockPrisma.entry.update.mockResolvedValue({ ...scheduled, status: target });
+        await service.promote(10, target as any, 1);
+        const data = mockPrisma.entry.update.mock.calls[0][0].data;
+        expect(data.status).toBe(target);
+        expect('publishAt' in data && data.publishAt === null).toBe(cleared);
+      }
+    });
+  });
+
   // ── remove ────────────────────────────────────────────────────────────────
 
   describe('remove()', () => {

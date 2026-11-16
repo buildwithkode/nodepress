@@ -34,10 +34,15 @@ import {
   ExternalLink,
   FileText,
   Package,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Pagination } from '@/components/ui/data-table';
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
@@ -89,6 +94,15 @@ function truncate(val: any, itemsLabel: (count: number) => string, max = 60): st
 }
 
 // labelKey is in the `entries` namespace; commonKey in `common`.
+/** Status colour in the list's status menu (same as the editor's language tabs). */
+const STATUS_DOT: Record<string, string> = {
+  published: 'bg-emerald-500',
+  staging: 'bg-purple-500',
+  pending_review: 'bg-amber-500',
+  draft: 'bg-zinc-400',
+  archived: 'bg-muted-foreground/50',
+};
+
 const STATUS_LABELS: Record<string, { labelKey?: string; commonKey?: string; className: string }> = {
   published:      { labelKey: 'stages.production',    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' },
   staging:        { labelKey: 'stages.staging',       className: 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800' },
@@ -388,16 +402,24 @@ export default function EntriesPage() {
   };
 
   /* ── Promote Environment Stage ────────────────────────────────────────── */
-  const handlePromote = async (entryId: number, targetStatus: string) => {
+  /* ── Status from the list (the badge is a menu) ────────────────────────── */
+  // Draft and review need edit rights; staging, production and archive need publish (as on the server).
+  const statusOptions = [
+    ...(canEdit ? ['draft', 'pending_review'] : []),
+    ...(canPublish ? ['staging', 'published', 'archived'] : []),
+  ];
+  const [changingStatus, setChangingStatus] = useState<number | null>(null);
+  const handleStatusChange = async (entry: Entry, value: string) => {
+    setChangingStatus(entry.id);
     try {
-      await api.post(`/entries/${entryId}/promote`, { status: targetStatus });
-      const stageName = targetStatus === 'published' ? t('stages.production') : targetStatus === 'staging' ? t('stages.staging') : targetStatus;
-      toast.success(t('toasts.promoted', { stage: stageName }));
-      setEntries((prev) =>
-        prev.map((e) => (e.id === entryId ? { ...e, status: targetStatus } : e)),
-      );
+      await api.post(`/entries/${entry.id}/promote`, { status: value });
+      const meta = STATUS_LABELS[value];
+      toast.success(t('toasts.statusChanged', { slug: entry.slug, status: meta.commonKey ? tc(meta.commonKey) : t(meta.labelKey!) }));
+      await refreshEntries(false);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || t('toasts.promoteFailed'));
+    } finally {
+      setChangingStatus(null);
     }
   };
 
@@ -1126,7 +1148,8 @@ export default function EntriesPage() {
                 </TableCell>
               )}
               <TableCell>
-                {entry.status === 'draft' && entry.publishAt ? (
+                {(() => {
+                  const badge = (entry.status === 'draft' && entry.publishAt ? (
                   <span
                     className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/40"
                     title={t('table.scheduledTitle', { date: new Date(entry.publishAt).toLocaleString() })}
@@ -1145,6 +1168,54 @@ export default function EntriesPage() {
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.className}`}>
                       {s.commonKey ? tc(s.commonKey) : t(s.labelKey!)}
                     </span>
+                  );
+                })());
+                  const options = statusOptions;
+                  if (options.length === 0 || showTrash) return badge;
+                  return (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label={t('table.changeStatus', { slug: entry.slug })}
+                          title={t('table.changeStatus', { slug: entry.slug })}
+                          disabled={changingStatus === entry.id}
+                          className="group inline-flex items-center gap-1 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+                        >
+                          {badge}
+                          {changingStatus === entry.id
+                            ? <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                            : <ChevronDown className="h-3 w-3 text-muted-foreground opacity-60 transition-opacity group-hover:opacity-100" />}
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-52">
+                        {grouped && (entry.translationEntries?.length ?? 0) > 1 && (
+                          <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground">
+                            {t('table.statusLanguageOnly', { language: localeLabel(entry.locale || localesConfig?.defaultLocale || 'en') })}
+                          </DropdownMenuLabel>
+                        )}
+                        {entry.status === 'draft' && entry.publishAt && (
+                          <DropdownMenuLabel className="text-[11px] font-normal text-blue-600 dark:text-blue-400">
+                            {t('table.statusCancelsSchedule')}
+                          </DropdownMenuLabel>
+                        )}
+                        {options.map((value) => {
+                          const meta = STATUS_LABELS[value];
+                          const current = value === entry.status;
+                          return (
+                            <DropdownMenuItem
+                              key={value}
+                              className="gap-2 text-sm"
+                              onSelect={() => { if (!current || entry.publishAt) handleStatusChange(entry, value); }}
+                            >
+                              <span className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT[value])} aria-hidden="true" />
+                              <span className="flex-1">{meta.commonKey ? tc(meta.commonKey) : t(meta.labelKey!)}</span>
+                              {current && <Check className="h-3.5 w-3.5 text-primary" />}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   );
                 })()}
               </TableCell>
@@ -1222,28 +1293,6 @@ export default function EntriesPage() {
                     </>
                   ) : (
                     <>
-                      {canPublish && (entry.status === 'draft' || entry.status === 'pending_review') && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          title={t('actions.promoteStaging')}
-                          className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-950/30"
-                          onClick={() => handlePromote(entry.id, 'staging')}
-                        >
-                          <Rocket className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                      {canPublish && entry.status === 'staging' && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          title={t('actions.publishProduction')}
-                          className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
-                          onClick={() => handlePromote(entry.id, 'published')}
-                        >
-                          <Globe className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
                       {canEdit && (
                         <Button
                           variant="ghost"

@@ -42,7 +42,7 @@ An entry in the trash still holds its slug. To reuse the slug, purge the trashed
 | **Published** (`published`) | Live | Visible to everyone |
 | **Archived** (`archived`) | Retired | Hidden |
 
-Pick the status in the editor's status selector and save. The entries list shows published entries as **Production** and has quick actions **Promote to Staging (QA)** and **Publish to Production**.
+Pick the status in the editor's status selector and save, or click an entry's status badge in the entries list and pick one there: it changes straight away. The list shows published entries as **Production**. Its menu only offers the statuses your role may set, changes only the language shown in that row, and picking any status other than Draft cancels a scheduled publish.
 
 Unpublished stages can be read through the API with `?stage=draft`, `staging` or `all` and a login token or API key. See [REST API](/apis/rest/).
 

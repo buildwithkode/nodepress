@@ -876,7 +876,8 @@ export class EntriesService {
 
     const updated = await this.prisma.entry.update({
       where: { id: entryId },
-      data: { status: targetStatus, ...(targetStatus === 'published' ? { publishAt: null } : {}) },
+      // Only drafts are auto-published, so any other status drops a scheduled publish
+      data: { status: targetStatus, ...(targetStatus !== 'draft' ? { publishAt: null } : {}) },
       include: { contentType: true },
     });
 

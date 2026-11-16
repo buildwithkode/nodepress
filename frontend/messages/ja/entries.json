@@ -78,7 +78,10 @@
     "richText": "リッチテキスト",
     "localeOpen": "{language}版を開く",
     "localeAdd": "{language}の翻訳を追加",
-    "languages": "言語"
+    "languages": "言語",
+    "changeStatus": "{slug} のステータスを変更",
+    "statusLanguageOnly": "{language}版のみ変更されます",
+    "statusCancelsSchedule": "ステータスを選ぶと予約公開は取り消されます"
   },
   "actions": {
     "restore": "復元",
@@ -146,6 +149,7 @@
     "urlCopied": "API の URL をクリップボードにコピーしました",
     "copyUrlFailed": "URL をコピーできませんでした",
     "translationCreated": "{language}の翻訳を下書きとして作成しました",
-    "translationFailed": "翻訳を作成できませんでした"
+    "translationFailed": "翻訳を作成できませんでした",
+    "statusChanged": "{slug} は「{status}」になりました"
   }
 }

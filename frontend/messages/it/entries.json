@@ -78,7 +78,10 @@
     "richText": "Testo formattato",
     "localeOpen": "Apri la versione in {language}",
     "localeAdd": "Aggiungi una traduzione in {language}",
-    "languages": "Lingue"
+    "languages": "Lingue",
+    "changeStatus": "Cambia lo stato di {slug}",
+    "statusLanguageOnly": "Cambia solo la versione in {language}",
+    "statusCancelsSchedule": "Scegliere uno stato annulla la pubblicazione programmata"
   },
   "actions": {
     "restore": "Ripristina",
@@ -146,6 +149,7 @@
     "urlCopied": "URL API copiato negli appunti",
     "copyUrlFailed": "Impossibile copiare l'URL",
     "translationCreated": "Traduzione in {language} creata come bozza",
-    "translationFailed": "Impossibile creare la traduzione"
+    "translationFailed": "Impossibile creare la traduzione",
+    "statusChanged": "{slug} ora è: {status}"
   }
 }
