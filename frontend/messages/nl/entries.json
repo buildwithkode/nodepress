@@ -20,10 +20,12 @@
   "toolbar": {
     "backToEntries": "Terug naar items",
     "allTypes": "Alle types",
-    "editSchemaTitle": "Schema van contenttype bewerken",
     "editSchema": "Schema bewerken",
-    "permissionsTitle": "Rechten per veld instellen",
-    "permissions": "Rechten"
+    "permissions": "Rechten",
+    "more": "Meer acties",
+    "exportJson": "Exporteren als JSON",
+    "exportCsv": "Exporteren als CSV",
+    "importMenu": "Importeren…"
   },
   "filters": {
     "allStatuses": "Alle statussen",
@@ -31,10 +33,7 @@
     "searchPlaceholder": "Items zoeken…",
     "showingLanguage": "Taal in de lijst"
   },
-  "export": {
-    "jsonTitle": "Niet-verwijderde items exporteren als JSON",
-    "csvTitle": "Niet-verwijderde items exporteren als CSV-spreadsheet"
-  },
+  "export": {},
   "trash": {
     "title": "Prullenbak",
     "button": "Prullenbak ({count})",
@@ -99,7 +98,6 @@
     "deleteLanguageOnly": "Alleen de {language} versie wordt verwijderd; andere talen blijven."
   },
   "import": {
-    "button": "Importeren",
     "title": "Items importeren — {name}",
     "description": "Upload een .JSON- of .CSV-bestand, of plak gegevens direct. Een realtime proefvalidatie controleert slugs, locales en velden aan de hand van het schema voordat er iets wordt opgeslagen.",
     "selectFile": "Bestand kiezen (.csv / .json)",

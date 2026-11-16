@@ -20,10 +20,12 @@
   "toolbar": {
     "backToEntries": "エントリーに戻る",
     "allTypes": "すべてのタイプ",
-    "editSchemaTitle": "コンテンツタイプのスキーマを編集",
     "editSchema": "スキーマを編集",
-    "permissionsTitle": "フィールドレベルの権限を設定",
-    "permissions": "権限"
+    "permissions": "権限",
+    "more": "その他の操作",
+    "exportJson": "JSON でエクスポート",
+    "exportCsv": "CSV でエクスポート",
+    "importMenu": "インポート…"
   },
   "filters": {
     "allStatuses": "すべてのステータス",
@@ -31,10 +33,7 @@
     "searchPlaceholder": "エントリーを検索…",
     "showingLanguage": "一覧に表示する言語"
   },
-  "export": {
-    "jsonTitle": "削除されていないエントリーを JSON でエクスポート",
-    "csvTitle": "削除されていないエントリーを CSV スプレッドシートでエクスポート"
-  },
+  "export": {},
   "trash": {
     "title": "ごみ箱",
     "button": "ごみ箱 ({count})",
@@ -99,7 +98,6 @@
     "deleteLanguageOnly": "{language}版のみ削除されます。他の言語は残ります。"
   },
   "import": {
-    "button": "インポート",
     "title": "エントリーのインポート — {name}",
     "description": ".JSON または .CSV ファイルをアップロードするか、データを直接貼り付けてください。保存前に、スラッグ、ロケール、フィールドをスキーマに照らしてリアルタイムでドライラン検証します。",
     "selectFile": "ファイルを選択 (.csv / .json)",

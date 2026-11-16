@@ -20,10 +20,12 @@
   "toolbar": {
     "backToEntries": "Retour aux entrées",
     "allTypes": "Tous les types",
-    "editSchemaTitle": "Modifier le schéma du type de contenu",
     "editSchema": "Modifier le schéma",
-    "permissionsTitle": "Configurer les autorisations par champ",
-    "permissions": "Autorisations"
+    "permissions": "Autorisations",
+    "more": "Plus d'actions",
+    "exportJson": "Exporter en JSON",
+    "exportCsv": "Exporter en CSV",
+    "importMenu": "Importer…"
   },
   "filters": {
     "allStatuses": "Tous les statuts",
@@ -31,10 +33,7 @@
     "searchPlaceholder": "Rechercher des entrées…",
     "showingLanguage": "Langue affichée dans la liste"
   },
-  "export": {
-    "jsonTitle": "Exporter les entrées non supprimées en JSON",
-    "csvTitle": "Exporter les entrées non supprimées en tableur CSV"
-  },
+  "export": {},
   "trash": {
     "title": "Corbeille",
     "button": "Corbeille ({count})",
@@ -99,7 +98,6 @@
     "deleteLanguageOnly": "Seule la version {language} est supprimée ; les autres langues restent."
   },
   "import": {
-    "button": "Importer",
     "title": "Importer des entrées — {name}",
     "description": "Importez un fichier .JSON ou .CSV, ou collez directement les données. Une validation à blanc en temps réel vérifie les slugs, langues et champs par rapport au schéma avant l’enregistrement.",
     "selectFile": "Choisir un fichier (.csv / .json)",

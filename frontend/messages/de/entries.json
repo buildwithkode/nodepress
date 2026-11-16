@@ -20,10 +20,12 @@
   "toolbar": {
     "backToEntries": "Zurück zu den Einträgen",
     "allTypes": "Alle Typen",
-    "editSchemaTitle": "Schema des Inhaltstyps bearbeiten",
     "editSchema": "Schema bearbeiten",
-    "permissionsTitle": "Berechtigungen auf Feldebene konfigurieren",
-    "permissions": "Berechtigungen"
+    "permissions": "Berechtigungen",
+    "more": "Weitere Aktionen",
+    "exportJson": "Als JSON exportieren",
+    "exportCsv": "Als CSV exportieren",
+    "importMenu": "Importieren…"
   },
   "filters": {
     "allStatuses": "Alle Status",
@@ -31,10 +33,7 @@
     "searchPlaceholder": "Einträge suchen…",
     "showingLanguage": "In der Liste angezeigte Sprache"
   },
-  "export": {
-    "jsonTitle": "Nicht gelöschte Einträge als JSON exportieren",
-    "csvTitle": "Nicht gelöschte Einträge als CSV-Tabelle exportieren"
-  },
+  "export": {},
   "trash": {
     "title": "Papierkorb",
     "button": "Papierkorb ({count})",
@@ -99,7 +98,6 @@
     "deleteLanguageOnly": "Nur die {language}-Version wird gelöscht; andere Sprachen bleiben."
   },
   "import": {
-    "button": "Importieren",
     "title": "Einträge importieren — {name}",
     "description": "Laden Sie eine .JSON- oder .CSV-Datei hoch oder fügen Sie Daten direkt ein. Eine Probelauf-Validierung in Echtzeit prüft Slugs, Sprachen und Felder vor dem Speichern gegen das Schema.",
     "selectFile": "Datei auswählen (.csv / .json)",

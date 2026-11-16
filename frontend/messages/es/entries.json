@@ -20,10 +20,12 @@
   "toolbar": {
     "backToEntries": "Volver a las entradas",
     "allTypes": "Todos los tipos",
-    "editSchemaTitle": "Editar el esquema del tipo de contenido",
     "editSchema": "Editar esquema",
-    "permissionsTitle": "Configurar permisos por campo",
-    "permissions": "Permisos"
+    "permissions": "Permisos",
+    "more": "Más acciones",
+    "exportJson": "Exportar como JSON",
+    "exportCsv": "Exportar como CSV",
+    "importMenu": "Importar…"
   },
   "filters": {
     "allStatuses": "Todos los estados",
@@ -31,10 +33,7 @@
     "searchPlaceholder": "Buscar entradas…",
     "showingLanguage": "Idioma mostrado en la lista"
   },
-  "export": {
-    "jsonTitle": "Exportar las entradas no eliminadas como JSON",
-    "csvTitle": "Exportar las entradas no eliminadas como hoja de cálculo CSV"
-  },
+  "export": {},
   "trash": {
     "title": "Papelera",
     "button": "Papelera ({count})",
@@ -99,7 +98,6 @@
     "deleteLanguageOnly": "Solo se elimina la versión en {language}; los demás idiomas se mantienen."
   },
   "import": {
-    "button": "Importar",
     "title": "Importar entradas — {name}",
     "description": "Sube un archivo .JSON o .CSV, o pega los datos directamente. Una validación de prueba en tiempo real comprueba slugs, idiomas y campos con el esquema antes de guardar.",
     "selectFile": "Seleccionar archivo (.csv / .json)",

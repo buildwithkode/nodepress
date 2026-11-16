@@ -20,10 +20,12 @@
   "toolbar": {
     "backToEntries": "返回条目",
     "allTypes": "所有类型",
-    "editSchemaTitle": "编辑内容类型架构",
     "editSchema": "编辑架构",
-    "permissionsTitle": "配置字段级权限",
-    "permissions": "权限"
+    "permissions": "权限",
+    "more": "更多操作",
+    "exportJson": "导出为 JSON",
+    "exportCsv": "导出为 CSV",
+    "importMenu": "导入…"
   },
   "filters": {
     "allStatuses": "所有状态",
@@ -31,10 +33,7 @@
     "searchPlaceholder": "搜索条目…",
     "showingLanguage": "列表中显示的语言"
   },
-  "export": {
-    "jsonTitle": "将未删除的条目导出为 JSON",
-    "csvTitle": "将未删除的条目导出为 CSV 表格"
-  },
+  "export": {},
   "trash": {
     "title": "回收站",
     "button": "回收站（{count}）",
@@ -99,7 +98,6 @@
     "deleteLanguageOnly": "仅删除{language}版本，其他语言保留。"
   },
   "import": {
-    "button": "导入",
     "title": "导入条目——{name}",
     "description": "上传 .JSON 或 .CSV 文件，或直接粘贴数据。保存前会实时进行试运行校验，根据架构检查别名、语言和字段。",
     "selectFile": "选择文件（.csv / .json）",

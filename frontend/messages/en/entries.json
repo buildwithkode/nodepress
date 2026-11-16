@@ -20,10 +20,12 @@
   "toolbar": {
     "backToEntries": "Back to Entries",
     "allTypes": "All Types",
-    "editSchemaTitle": "Edit Content Type Schema",
     "editSchema": "Edit Schema",
-    "permissionsTitle": "Configure Field-Level Permissions",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "more": "More actions",
+    "exportJson": "Export as JSON",
+    "exportCsv": "Export as CSV",
+    "importMenu": "Import…"
   },
   "filters": {
     "allStatuses": "All statuses",
@@ -31,10 +33,7 @@
     "searchPlaceholder": "Search entries…",
     "showingLanguage": "Language shown in the list"
   },
-  "export": {
-    "jsonTitle": "Export non-deleted entries as JSON",
-    "csvTitle": "Export non-deleted entries as CSV spreadsheet"
-  },
+  "export": {},
   "trash": {
     "title": "Recycle Bin",
     "button": "Recycle Bin ({count})",
@@ -99,7 +98,6 @@
     "deleteLanguageOnly": "Only the {language} version is deleted; other languages stay."
   },
   "import": {
-    "button": "Import",
     "title": "Import Entries — {name}",
     "description": "Upload a .JSON or .CSV file, or paste data directly. Real-time dry-run validation checks slugs, locales, and fields against the schema before saving.",
     "selectFile": "Select File (.csv / .json)",

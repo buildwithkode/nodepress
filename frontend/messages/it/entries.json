@@ -20,10 +20,12 @@
   "toolbar": {
     "backToEntries": "Torna alle voci",
     "allTypes": "Tutti i tipi",
-    "editSchemaTitle": "Modifica lo schema del tipo di contenuto",
     "editSchema": "Modifica schema",
-    "permissionsTitle": "Configura i permessi a livello di campo",
-    "permissions": "Permessi"
+    "permissions": "Permessi",
+    "more": "Altre azioni",
+    "exportJson": "Esporta in JSON",
+    "exportCsv": "Esporta in CSV",
+    "importMenu": "Importa…"
   },
   "filters": {
     "allStatuses": "Tutti gli stati",
@@ -31,10 +33,7 @@
     "searchPlaceholder": "Cerca voci…",
     "showingLanguage": "Lingua mostrata nell'elenco"
   },
-  "export": {
-    "jsonTitle": "Esporta le voci non eliminate in JSON",
-    "csvTitle": "Esporta le voci non eliminate come foglio di calcolo CSV"
-  },
+  "export": {},
   "trash": {
     "title": "Cestino",
     "button": "Cestino ({count})",
@@ -99,7 +98,6 @@
     "deleteLanguageOnly": "Viene eliminata solo la versione in {language}; le altre lingue restano."
   },
   "import": {
-    "button": "Importa",
     "title": "Importa voci — {name}",
     "description": "Carica un file .JSON o .CSV, oppure incolla direttamente i dati. Una convalida di prova in tempo reale controlla slug, lingue e campi rispetto allo schema prima del salvataggio.",
     "selectFile": "Seleziona file (.csv / .json)",

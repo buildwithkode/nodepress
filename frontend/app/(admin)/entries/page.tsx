@@ -43,12 +43,13 @@ import {
   ChevronDown,
   Check,
   Languages,
+  MoreHorizontal,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Pagination } from '@/components/ui/data-table';
 import {
@@ -830,7 +831,7 @@ export default function EntriesPage() {
 
   return (
     <div className="space-y-4">
-      {/* Breadcrumb + toolbar */}
+      {/* Row 1: where you are, plus actions (one main button; occasional tasks under ⋯) */}
       <div className="flex items-center gap-3 flex-wrap">
         {showTrash ? (
           <Button
@@ -862,36 +863,71 @@ export default function EntriesPage() {
           </>
         )}
 
-        {selectedCT && access.canEdit('content_model') && !showTrash && (
-          <div className="flex items-center gap-1 ml-1">
+        <div className="ml-auto flex items-center gap-2">
+          {deletedCount > 0 && !showTrash && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
-              onClick={() => router.push(`/content-types/${selectedCT.id}/edit`)}
-              title={t('toolbar.editSchemaTitle')}
+              className="gap-1.5 h-8 text-xs font-semibold text-amber-600 hover:text-amber-500 dark:text-amber-400 border-amber-500/30 hover:border-amber-500/60 shadow-sm"
+              onClick={() => { setShowTrash(true); setSelected(new Set()); }}
             >
-              <Settings className="h-3.5 w-3.5 text-indigo-400" />
-              {t('toolbar.editSchema')}
+              <RotateCcw className="h-3.5 w-3.5" />
+              {t('trash.button', { count: deletedCount })}
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
-              onClick={() => router.push(`/users/permissions?tab=fields&ct=${selectedCT.name}`)}
-              title={t('toolbar.permissionsTitle')}
-            >
-              <Shield className="h-3.5 w-3.5 text-amber-400" />
-              {t('toolbar.permissions')}
-            </Button>
-          </div>
-        )}
-        <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end sm:ml-auto">
+          )}
           {!showTrash && (
-            <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9" aria-label={t('toolbar.more')} title={t('toolbar.more')}>
+                  {exportingFormat ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem className="gap-2 text-sm" disabled={exportingFormat !== null} onSelect={() => handleExport('json')}>
+                  <FileJson className="h-4 w-4 text-amber-400" /> {t('toolbar.exportJson')}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 text-sm" disabled={exportingFormat !== null} onSelect={() => handleExport('csv')}>
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-400" /> {t('toolbar.exportCsv')}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 text-sm" onSelect={() => setImportDialogOpen(true)}>
+                  <Upload className="h-4 w-4" /> {t('toolbar.importMenu')}
+                </DropdownMenuItem>
+                {selectedCT && access.canEdit('content_model') && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="gap-2 text-sm" onSelect={() => router.push(`/content-types/${selectedCT.id}/edit`)}>
+                      <Settings className="h-4 w-4 text-indigo-400" /> {t('toolbar.editSchema')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="gap-2 text-sm" onSelect={() => router.push(`/users/permissions?tab=fields&ct=${selectedCT.name}`)}>
+                      <Shield className="h-4 w-4 text-amber-400" /> {t('toolbar.permissions')}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {canCreate && !showTrash && (
+            <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
+              <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Row 2: finding entries, right above the table it filters */}
+      <div className="flex items-center flex-wrap gap-2">
+        <div className="basis-full sm:basis-auto sm:min-w-48 sm:flex-1 sm:max-w-md">
+          <SearchInput
+            placeholder={t('filters.searchPlaceholder')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        {!showTrash && (
+          <>
               {multiLanguage && (
               <Select value={localeFilter} onValueChange={(v) => { if (v) pickLocale(v); }}>
-                <SelectTrigger className="h-8 w-auto min-w-32 gap-1 text-xs font-medium" aria-label={t('filters.showingLanguage')}>
+                <SelectTrigger className="h-9 flex-1 sm:flex-none sm:w-auto min-w-32 gap-1 text-xs font-medium" aria-label={t('filters.showingLanguage')}>
                   <Languages className="h-3.5 w-3.5 text-muted-foreground mr-0.5 shrink-0" />
                   <SelectValue />
                 </SelectTrigger>
@@ -909,7 +945,7 @@ export default function EntriesPage() {
               )}
 
               <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setPage(1); } }}>
-                <SelectTrigger className="h-8 w-44 text-xs">
+                <SelectTrigger className="h-9 flex-1 sm:flex-none sm:w-44 text-xs">
                   <SelectValue placeholder={t('filters.allStatuses')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -923,78 +959,8 @@ export default function EntriesPage() {
                   <SelectItem value="archived">{tc('statuses.archived')}</SelectItem>
                 </SelectContent>
               </Select>
-            </>
-          )}
-          <SearchInput
-            placeholder={t('filters.searchPlaceholder')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {!showTrash && (
-            <>
-              {/* Export Split / Buttons */}
-              <div className="inline-flex items-center rounded-md border border-input bg-background p-0.5 shadow-sm">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs gap-1"
-                  disabled={exportingFormat !== null}
-                  onClick={() => handleExport('json')}
-                  title={t('export.jsonTitle')}
-                >
-                  {exportingFormat === 'json' ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <FileJson className="h-3.5 w-3.5 text-amber-400" />
-                  )}
-                  JSON
-                </Button>
-                <div className="w-[1px] h-4 bg-border/60" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs gap-1"
-                  disabled={exportingFormat !== null}
-                  onClick={() => handleExport('csv')}
-                  title={t('export.csvTitle')}
-                >
-                  {exportingFormat === 'csv' ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
-                  )}
-                  CSV
-                </Button>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5 h-8 text-xs"
-                onClick={() => setImportDialogOpen(true)}
-              >
-                <Upload className="h-3.5 w-3.5" />
-                {t('import.button')}
-              </Button>
-            </>
-          )}
-          {deletedCount > 0 && !showTrash && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 h-8 text-xs font-semibold text-amber-600 hover:text-amber-500 dark:text-amber-400 border-amber-500/30 hover:border-amber-500/60 shadow-sm"
-              onClick={() => { setShowTrash(true); setSelected(new Set()); }}
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              {t('trash.button', { count: deletedCount })}
-            </Button>
-          )}
-          {canCreate && !showTrash && (
-            <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
-              <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
-            </Button>
-          )}
-        </div>
+          </>
+        )}
       </div>
 
       {/* Pending Review Notice Banner */}
@@ -1141,7 +1107,7 @@ export default function EntriesPage() {
                 />
               </TableHead>
             )}
-            <TableHead className="w-16 whitespace-nowrap">{t('table.number')}</TableHead>
+            <TableHead className="hidden md:table-cell w-16 whitespace-nowrap">{t('table.number')}</TableHead>
             <TableHead>{t('table.slug')}</TableHead>
             {multiLanguage && <TableHead className="hidden md:table-cell">{t('table.languages')}</TableHead>}
             <TableHead>
@@ -1167,7 +1133,7 @@ export default function EntriesPage() {
             Array.from({ length: 4 }).map((_, i) => (
               <TableRow key={i}>
                 {canSelect && !showTrash && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
-                <TableCell><Skeleton className="h-4 w-6" /></TableCell>
+                <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-6" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                 {multiLanguage && <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>}
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
@@ -1208,7 +1174,7 @@ export default function EntriesPage() {
               number={(page - 1) * PAGE_SIZE + index + 1}
               canDrag={canReorder}
               handleLabel={t('table.dragToReorder')}
-              numberCellClassName="align-middle py-2"
+              numberCellClassName="hidden md:table-cell align-middle py-2"
               className={selected.has(entry.id) ? 'bg-muted/40' : undefined}
               leading={canSelect && !showTrash ? (
                 <TableCell>
