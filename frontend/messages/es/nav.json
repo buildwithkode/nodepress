@@ -31,7 +31,8 @@
     "serverSettings": "Correo y almacenamiento",
     "choiceLists": "Listas de opciones",
     "importer": "Importar de WordPress",
-    "siteTransfer": "Exportar e importar"
+    "siteTransfer": "Exportar e importar",
+    "website": "Sitio web de NodePress"
   },
   "signOut": "Cerrar sesión",
   "user": "Usuario",

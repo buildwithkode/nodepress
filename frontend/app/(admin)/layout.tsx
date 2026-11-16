@@ -32,7 +32,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, ListOrdered, ArrowLeftRight } from 'lucide-react';
+  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, ListOrdered, ArrowLeftRight, Globe } from 'lucide-react';
 
 interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
 interface NavGroup { label: string; items: NavLink[]; externalLinks?: NavLink[] }
@@ -99,6 +99,9 @@ const ALL_NAV_GROUPS: Array<{
     labelKey: 'help',
     items: [
       { href: '/docs', labelKey: 'docs', icon: BookOpen },
+    ],
+    externalLinks: [
+      { href: 'https://nodepress.buildwithkode.com', labelKey: 'website', icon: Globe },
     ],
   },
 ];

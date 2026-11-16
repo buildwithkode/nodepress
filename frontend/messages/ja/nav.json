@@ -31,7 +31,8 @@
     "serverSettings": "メールとストレージ",
     "choiceLists": "オプションリスト",
     "importer": "WordPress インポート",
-    "siteTransfer": "エクスポートとインポート"
+    "siteTransfer": "エクスポートとインポート",
+    "website": "NodePress ウェブサイト"
   },
   "signOut": "サインアウト",
   "user": "ユーザー",

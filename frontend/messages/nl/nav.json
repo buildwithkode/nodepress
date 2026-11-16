@@ -31,7 +31,8 @@
     "serverSettings": "E-mail & opslag",
     "choiceLists": "Optielijsten",
     "importer": "WordPress-import",
-    "siteTransfer": "Exporteren en importeren"
+    "siteTransfer": "Exporteren en importeren",
+    "website": "NodePress-website"
   },
   "signOut": "Uitloggen",
   "user": "Gebruiker",

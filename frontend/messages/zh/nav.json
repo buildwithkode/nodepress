@@ -31,7 +31,8 @@
     "serverSettings": "邮件与存储",
     "choiceLists": "选项列表",
     "importer": "WordPress 导入",
-    "siteTransfer": "导出和导入"
+    "siteTransfer": "导出和导入",
+    "website": "NodePress 官网"
   },
   "signOut": "退出登录",
   "user": "用户",
