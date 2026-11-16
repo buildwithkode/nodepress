@@ -98,9 +98,10 @@ const ALL_NAV_GROUPS: Array<{
   {
     labelKey: 'help',
     items: [
-      { href: '/docs', labelKey: 'docs', icon: BookOpen },
+      { href: '/docs', labelKey: 'apiReference', icon: Code2 },
     ],
     externalLinks: [
+      { href: 'https://nodepress-docs.vercel.app', labelKey: 'docs', icon: BookOpen },
       { href: 'https://nodepress.buildwithkode.com', labelKey: 'website', icon: Globe },
     ],
   },

@@ -32,7 +32,8 @@
     "choiceLists": "Option Lists",
     "importer": "WordPress import",
     "siteTransfer": "Export & import",
-    "website": "NodePress website"
+    "website": "NodePress website",
+    "apiReference": "API reference"
   },
   "signOut": "Sign out",
   "user": "User",
