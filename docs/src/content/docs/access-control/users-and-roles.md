@@ -68,11 +68,21 @@ Every signed-in user has a **Profile** page, whatever their role. Open it from t
 
 | Section | What you can do |
 |---|---|
-| **Basic info** | Set your **name**, shown in the sidebar and the Users list (empty shows your email). Your email, role and join date are shown read-only; only an admin changes your role, and nobody can change an email yet. |
+| **Basic info** | Set your **name**, shown in the account menu and the Users list (empty shows your email). Your email, role and join date are shown read-only: only an admin changes your role, and an account's email can't be changed. |
 | **Password** | Change your password. |
 | **Two-factor authentication** | Turn [2FA](/access-control/authentication/#two-factor-authentication) on or off. |
 | **Sessions** | **Sign out on all devices**, this one included. |
 | **Preferences** | The admin's language and theme (light, dark or your system's), saved in this browser. |
+
+### Hand the site to someone else
+
+To give the site to a client or a new owner, don't change your account's email. Give them their own account instead, so they choose their own password and 2FA and the audit log stays accurate:
+
+1. On **Users**, click **Add user**, enter their email and choose **Admin**.
+2. They open the "Set your password" email (if email isn't set up, the link is copied for you to send) and sign in.
+3. They delete your account on the **Users** page.
+
+You can't delete your own account or the last admin, which is why the new admin removes yours. Content, media and settings don't belong to an account, so nothing else changes; the audit log keeps your past actions under your email.
 
 Forgot your current password? **Forgot it?** in the change-password panel emails you a reset link (valid 15 minutes). If email isn't set up, another admin can send you a new invite link, or run `npm run reset-password` on the server (on a Docker install, see [Reset the admin password on the server](/deployment/deploy-vps/#reset-the-admin-password-on-the-server)).
 
