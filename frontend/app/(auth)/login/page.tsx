@@ -13,6 +13,32 @@ import { useTranslations } from 'use-intl';
 import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
 import { PasswordInput } from '@/components/ui/password-input';
 
+/**
+ * The API isn't answering yet: no response at all, a gateway error, or a 5xx
+ * that isn't the API's own JSON (the admin's /api proxy answers 500 in plain
+ * text while the backend is still starting, e.g. right after `npm run dev`,
+ * or while a hosted app wakes from sleep).
+ */
+function isBackendStarting(err: any): boolean {
+  if (!err?.response) return true;
+  const { status, data } = err.response;
+  if (status === 502 || status === 503 || status === 504) return true;
+  return status >= 500 && (typeof data !== 'object' || data === null);
+}
+
+/** Poll GET /api/health until the API answers, for up to `timeoutMs`. */
+async function waitForBackend(timeoutMs = 45_000): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const res = await fetch('/api/health', { cache: 'no-store' });
+      if (res.ok) return true;
+    } catch { /* still starting */ }
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  return false;
+}
+
 function loginErrorMessage(err: any, t: ReturnType<typeof useTranslations>): string {
   if (!err.response) {
     return t('login.errors.unreachable');
@@ -53,6 +79,8 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // The API was still starting: waiting for it, then signing in again by itself
+  const [starting, setStarting] = useState(false);
   const [checking, setChecking] = useState(true);
 
   // 2FA state
@@ -93,18 +121,29 @@ function LoginForm() {
       return;
     }
     setLoading(true);
-    try {
-      const res = await api.post('/auth/login', { email: normalizedEmail, password });
-      if (res.data.requires2fa) {
-        setRequires2fa(true);
-        setTempToken(res.data.tempToken);
-        setTwoFactorCode('');
-      } else {
-        login(res.data.access_token, res.data.user);
-        window.location.href = '/';
+    const attempt = async (retried: boolean): Promise<void> => {
+      try {
+        const res = await api.post('/auth/login', { email: normalizedEmail, password });
+        if (res.data.requires2fa) {
+          setRequires2fa(true);
+          setTempToken(res.data.tempToken);
+          setTwoFactorCode('');
+        } else {
+          login(res.data.access_token, res.data.user);
+          window.location.href = '/';
+        }
+      } catch (err: any) {
+        if (!retried && isBackendStarting(err)) {
+          setStarting(true);
+          const up = await waitForBackend();
+          setStarting(false);
+          if (up) return attempt(true);
+        }
+        setError(loginErrorMessage(err, t));
       }
-    } catch (err: any) {
-      setError(loginErrorMessage(err, t));
+    };
+    try {
+      await attempt(false);
     } finally {
       setLoading(false);
     }
@@ -212,7 +251,7 @@ function LoginForm() {
               {error && <p className="text-sm text-red-400 text-center">{error}</p>}
 
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? t('login.signingIn') : t('login.signIn')}
+                {starting ? t('login.startingServer') : loading ? t('login.signingIn') : t('login.signIn')}
               </Button>
 
               {sso.enabled && (
