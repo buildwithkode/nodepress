@@ -34,7 +34,7 @@ const TOOLS = [
           description: 'Filters, e.g. {"featured":{"eq":true},"author":{"slug":{"eq":"jane"}}}. Operators: eq ne gt gte lt lte in notIn contains startsWith endsWith null notNull; OR/AND arrays.',
         },
         search: { type: 'string' },
-        sort: { type: 'string', description: '"createdAt:desc" (default), "updatedAt:asc", "slug:asc"…' },
+        sort: { type: 'string', description: '"createdAt:desc" (default), "updatedAt:asc", "slug:asc", "position:asc" (admin order)…' },
         page: { type: 'integer', minimum: 1 },
         limit: { type: 'integer', minimum: 1, maximum: 100 },
         locale: { type: 'string' },

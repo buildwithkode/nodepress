@@ -361,7 +361,7 @@ export function buildContentSchema(
           ...localeArgs,
           where: { type: JSONScalar, description: 'Same shape as ?where[...] — e.g. { "price": { "gte": 10 }, "author": { "slug": { "eq": "jane" } } }.' },
           search: { type: GraphQLString },
-          sort: { type: GraphQLString, description: '"createdAt:desc" (default), "updatedAt:asc", "slug:asc"…' },
+          sort: { type: GraphQLString, description: '"createdAt:desc" (default), "updatedAt:asc", "slug:asc", "position:asc" (admin order)…' },
           page: { type: GraphQLInt },
           limit: { type: GraphQLInt, description: '1–100, default 20.' },
           cursor: { type: GraphQLString, description: 'meta.nextCursor of the previous page (instead of page).' },

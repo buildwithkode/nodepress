@@ -4,9 +4,11 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
   Optional,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ModuleRef } from '@nestjs/core';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
@@ -75,8 +77,19 @@ export interface SiteEntryWrite {
   deletedAt?: string | null;
 }
 
+/**
+ * Put `moved` (in its new order) into the places its items hold in `all`;
+ * everything else stays where it is. Items of `moved` missing from `all` are ignored.
+ */
+export function reorderSlots<T>(all: T[], moved: T[]): T[] {
+  const set = new Set(moved.filter((m) => all.includes(m)));
+  const queue = moved.filter((m) => set.has(m));
+  return all.map((item) => (set.has(item) ? queue.shift()! : item));
+}
+
 @Injectable()
 export class EntriesService {
+  private readonly logger = new Logger(EntriesService.name);
   constructor(
     private prisma: PrismaService,
     private dataValidator: DataValidator,
@@ -85,7 +98,49 @@ export class EntriesService {
     private jwtService: JwtService,
     @Optional() private hookBus?: PluginHookBus,
     @Optional() private redirects?: RedirectsService,
+    @Optional() private moduleRef?: ModuleRef,
   ) {}
+
+  /**
+   * Save a dragged order. `ids` are entries of one content type (the rows the
+   * admin moved, e.g. one page of the list) in their new order. They take the
+   * places those pages already held, so pages not shown keep theirs, and every
+   * language of a page moves with it. Raw SQL on purpose: no `updatedAt`
+   * change, no versions or webhooks; the public cache is cleared directly.
+   */
+  async reorder(contentTypeId: number, ids: number[]) {
+    if (!Array.isArray(ids) || ids.length === 0 || ids.some((id) => !Number.isInteger(id)) || new Set(ids).size !== ids.length) {
+      throw new BadRequestException('ids must be a non-empty list of distinct entry ids');
+    }
+    const rows = await this.prisma.entry.findMany({
+      where: { id: { in: ids }, contentTypeId },
+      select: { id: true, slug: true },
+    });
+    if (rows.length !== ids.length) throw new BadRequestException('Every id must be an entry of this content type');
+    const slugOf = new Map(rows.map((r) => [r.id, r.slug]));
+    const moved = [...new Set(ids.map((id) => slugOf.get(id)!))];
+
+    // Every page of the type (trash included, so a restore keeps its place), in list order
+    const pages = await this.prisma.$queryRaw<{ slug: string }[]>`
+      SELECT slug FROM entries WHERE "contentTypeId" = ${contentTypeId}
+      GROUP BY slug ORDER BY MIN(position) ASC, MAX("createdAt") DESC, slug ASC`;
+    const order = reorderSlots(pages.map((p) => p.slug), moved);
+
+    const values = order.map((slug, i) => Prisma.sql`(${slug}, ${i + 1}::int)`);
+    const changed = await this.prisma.$executeRaw`
+      UPDATE entries e SET position = v.pos
+      FROM (VALUES ${Prisma.join(values)}) AS v(slug, pos)
+      WHERE e."contentTypeId" = ${contentTypeId} AND e.slug = v.slug AND e.position <> v.pos`;
+    if (changed > 0) {
+      try {
+        const { DynamicApiService } = await import('../dynamic-api/dynamic-api.service');
+        await this.moduleRef?.get(DynamicApiService, { strict: false })?.invalidateContentTypes([contentTypeId]);
+      } catch (err: any) {
+        this.logger.warn(`Public cache not cleared after reorder: ${err?.message}`);
+      }
+    }
+    return { updated: changed };
+  }
 
   /**
    * Emit a lifecycle event for each entry, in order. A PluginVetoError from a
@@ -233,11 +288,11 @@ export class EntriesService {
       if (!count) return { ids: [] as number[], count };
       const rows = await this.prisma.$queryRaw<{ id: number }[]>`
         SELECT id FROM (
-          SELECT DISTINCT ON ("contentTypeId", slug) id, "createdAt"
+          SELECT DISTINCT ON ("contentTypeId", slug) id, "createdAt", position
           FROM entries WHERE ${where}
           ORDER BY "contentTypeId", slug, (locale = ${defaultLocale}) DESC, id ASC
         ) r
-        ORDER BY "createdAt" DESC, id DESC
+        ORDER BY position ASC, "createdAt" DESC, id DESC
         LIMIT ${limit} OFFSET ${skip}`;
       return { ids: rows.map((r) => Number(r.id)), count };
     };
@@ -324,7 +379,7 @@ export class EntriesService {
             FROM entries
             WHERE search_vector @@ plainto_tsquery('english', ${term})
               ${Prisma.join(whereConditions, ' ')}
-            ORDER BY "createdAt" DESC
+            ORDER BY position ASC, "createdAt" DESC, id DESC
             LIMIT ${limit} OFFSET ${skip}
           `;
           const pageMatches = Array.isArray(res) ? res : (countResult[0]?.count != null ? countResult : []);
@@ -358,7 +413,7 @@ export class EntriesService {
             FROM entries
             WHERE (LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))
               ${Prisma.join(whereConditions, ' ')}
-            ORDER BY "createdAt" DESC
+            ORDER BY position ASC, "createdAt" DESC, id DESC
             LIMIT ${limit} OFFSET ${skip}
           `;
           const pageMatches = Array.isArray(res) ? res : (countResult[0]?.count != null ? countResult : []);
@@ -382,7 +437,8 @@ export class EntriesService {
         this.prisma.entry.count({ where }),
         this.prisma.entry.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          // The order dragged in the admin list (new pages start first)
+          orderBy: [{ position: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }],
           skip,
           take: limit,
           include: { contentType: true },

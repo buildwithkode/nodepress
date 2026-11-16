@@ -50,6 +50,9 @@ model Entry {
   contentTypeId Int
   seo           Json? // { title?, description?, image?, noIndex? }
   publishAt     DateTime? // if set and in the past → auto-published by cron
+  // Order in the admin list and ?sort=position:asc; shared by a page's languages.
+  // 0 on insert = filled by the entries_default_position trigger (page's languages, else first).
+  position      Int                      @default(0)
   createdAt     DateTime                 @default(now())
   updatedAt     DateTime                 @updatedAt
   deletedAt     DateTime? // null = active; set on soft delete
@@ -71,6 +74,7 @@ model Entry {
   @@index([createdAt])
   @@index([contentTypeId, status, deletedAt]) // public API: WHERE contentTypeId=? AND status='published' AND deletedAt IS NULL
   @@index([contentTypeId, createdAt, id]) // list order + keyset ?cursor= paging
+  @@index([contentTypeId, position, id]) // dragged order + ?sort=position
   @@index([searchVector], map: "entries_search_vector_idx", type: Gin)
   @@map("entries")
 }

@@ -99,7 +99,7 @@ export interface ReadOptions {
 
 export interface ListQuery<TData = Record<string, any>> extends ReadOptions {
   where?: Where<TData>;
-  /** "createdAt:desc" (default), "updatedAt:asc", "slug:asc"… */
+  /** "createdAt:desc" (default), "updatedAt:asc", "slug:asc", "position:asc" (admin order)… */
   sort?: `${'createdAt' | 'updatedAt' | 'slug'}:${'asc' | 'desc'}`;
   search?: string;
   page?: number;

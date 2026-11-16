@@ -79,7 +79,9 @@
     "localeAdd": "添加{language}翻译",
     "languages": "语言",
     "changeStatus": "更改 {slug} 的状态",
-    "statusCancelsSchedule": "选择状态将取消定时发布"
+    "statusCancelsSchedule": "选择状态将取消定时发布",
+    "number": "序号",
+    "dragToReorder": "拖动以重新排序"
   },
   "actions": {
     "restore": "恢复",
@@ -149,7 +151,8 @@
     "translationCreated": "已创建{language}翻译草稿",
     "translationFailed": "无法创建翻译",
     "statusChanged": "{slug} 现在为：{status}",
-    "undo": "撤销"
+    "undo": "撤销",
+    "reorderFailed": "无法保存新的顺序"
   },
   "statusConfirm": {
     "publishTitle": "将 {slug} 发布到网站？",

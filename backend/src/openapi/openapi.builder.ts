@@ -555,7 +555,7 @@ function listParameters() {
     { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1, default: 1 } },
     { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } },
     { name: 'cursor', in: 'query', schema: { type: 'string' }, description: 'Keyset cursor from meta.nextCursor — faster than page for deep pages; skips the total count.' },
-    { name: 'sort', in: 'query', schema: { type: 'string', default: 'createdAt:desc' }, description: 'field:direction — createdAt, updatedAt or slug; asc or desc.' },
+    { name: 'sort', in: 'query', schema: { type: 'string', default: 'createdAt:desc' }, description: 'field:direction — createdAt, updatedAt, slug or position (the order set in the admin); asc or desc.' },
     { name: 'fields', in: 'query', schema: { type: 'string' }, description: 'Comma-separated data fields to return.' },
     { name: 'populate', in: 'query', schema: { type: 'string' }, description: 'Comma-separated relation fields to inline; dot paths for nesting (author,author.company), up to 3 levels.' },
     { name: 'byKey', in: 'query', schema: { type: 'boolean' }, description: 'Add <field>_by_key beside each flexible field (sections by _key). Off by default.' },

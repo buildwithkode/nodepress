@@ -79,7 +79,9 @@
     "localeAdd": "Een {language} vertaling toevoegen",
     "languages": "Talen",
     "changeStatus": "Status van {slug} wijzigen",
-    "statusCancelsSchedule": "Een status kiezen annuleert de geplande publicatie"
+    "statusCancelsSchedule": "Een status kiezen annuleert de geplande publicatie",
+    "number": "Nr.",
+    "dragToReorder": "Sleep om te herschikken"
   },
   "actions": {
     "restore": "Terugzetten",
@@ -149,7 +151,8 @@
     "translationCreated": "{language} vertaling als concept aangemaakt",
     "translationFailed": "Vertaling kon niet worden aangemaakt",
     "statusChanged": "{slug} is nu: {status}",
-    "undo": "Ongedaan maken"
+    "undo": "Ongedaan maken",
+    "reorderFailed": "Kan de nieuwe volgorde niet opslaan"
   },
   "statusConfirm": {
     "publishTitle": "{slug} op de website publiceren?",

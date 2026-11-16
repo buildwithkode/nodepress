@@ -277,6 +277,18 @@ export class EntriesController {
     return result;
   }
 
+  // Declared before PUT :id so "order" isn't read as an id
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Put('order')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Save the order of entries dragged in the admin list (needs update)' })
+  async reorder(@Body() dto: { contentTypeId: number; ids: number[] }, @Request() req: any) {
+    const contentTypeId = Number(dto?.contentTypeId);
+    if (!Number.isInteger(contentTypeId)) throw new BadRequestException('contentTypeId is required');
+    await this.permissionsService.assertCanContentType(req.user, contentTypeId, 'update');
+    return this.entriesService.reorder(contentTypeId, dto.ids);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Put(':id')
   @ApiBearerAuth('JWT')

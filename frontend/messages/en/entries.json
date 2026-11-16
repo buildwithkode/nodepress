@@ -79,7 +79,9 @@
     "localeAdd": "Add a {language} translation",
     "languages": "Languages",
     "changeStatus": "Change the status of {slug}",
-    "statusCancelsSchedule": "Picking a status cancels the scheduled publish"
+    "statusCancelsSchedule": "Picking a status cancels the scheduled publish",
+    "number": "Sr. No.",
+    "dragToReorder": "Drag to reorder"
   },
   "actions": {
     "restore": "Restore",
@@ -149,7 +151,8 @@
     "translationCreated": "{language} translation created as a draft",
     "translationFailed": "Couldn't create the translation",
     "statusChanged": "{slug} is now {status}",
-    "undo": "Undo"
+    "undo": "Undo",
+    "reorderFailed": "Couldn't save the new order"
   },
   "statusConfirm": {
     "publishTitle": "Publish {slug} to the live site?",

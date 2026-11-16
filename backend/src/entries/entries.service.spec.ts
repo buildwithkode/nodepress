@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { EntriesService } from './entries.service';
+import { EntriesService, reorderSlots } from './entries.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { DataValidator } from '../fields/data.validator';
 import { WebhooksService } from '../webhooks/webhooks.service';
@@ -274,6 +274,41 @@ describe('EntriesService', () => {
       await expect(service.update(10, { slug: 'taken' } as any, 1)).rejects.toThrow(/locale "hi"/);
       expect(mockPrisma.entry.update).not.toHaveBeenCalled();
       expect(mockPrisma.entry.updateMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reorderSlots()', () => {
+    it('puts the moved items into the places they held, the rest stay put', () => {
+      expect(reorderSlots(['a', 'b', 'c', 'd', 'e'], ['d', 'b'])).toEqual(['a', 'd', 'c', 'b', 'e']);
+      expect(reorderSlots(['a', 'b', 'c'], ['c', 'b', 'a'])).toEqual(['c', 'b', 'a']);
+      expect(reorderSlots(['a', 'b'], ['x', 'b'])).toEqual(['a', 'b']);
+    });
+  });
+
+  describe('reorder()', () => {
+    beforeEach(() => {
+      (mockPrisma as any).$queryRaw = jest.fn();
+      (mockPrisma as any).$executeRaw = jest.fn();
+    });
+
+    it('renumbers the pages, the moved ones taking each other\'s places', async () => {
+      mockPrisma.entry.findMany.mockResolvedValue([{ id: 7, slug: 'contact' }, { id: 3, slug: 'about' }]);
+      (mockPrisma as any).$queryRaw.mockResolvedValue([{ slug: 'home' }, { slug: 'about' }, { slug: 'blog' }, { slug: 'contact' }]);
+      (mockPrisma as any).$executeRaw.mockResolvedValue(2);
+      await expect(service.reorder(1, [7, 3])).resolves.toEqual({ updated: 2 });
+      const sql = (mockPrisma as any).$executeRaw.mock.calls[0];
+      const values = sql.slice(1).flatMap((v: any) => (v?.values ?? [v]));
+      // home 1, contact 2, blog 3, about 4
+      expect(values).toEqual(expect.arrayContaining(['home', 1, 'contact', 2, 'blog', 3, 'about', 4]));
+      expect(values.indexOf('contact')).toBeLessThan(values.indexOf('about'));
+    });
+
+    it('refuses ids from another content type, duplicates or an empty list', async () => {
+      mockPrisma.entry.findMany.mockResolvedValue([{ id: 7, slug: 'contact' }]);
+      await expect(service.reorder(1, [7, 99])).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.reorder(1, [7, 7])).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.reorder(1, [])).rejects.toBeInstanceOf(BadRequestException);
+      expect((mockPrisma as any).$executeRaw).not.toHaveBeenCalled();
     });
   });
 

@@ -10,12 +10,16 @@ import { cn } from '@/lib/utils';
  * A table row with a Sr. No. cell and a drag handle, for a list inside DndContext + SortableContext.
  * Keep it from dragging (canDrag) when the rows on screen aren't the whole list, like search results.
  */
-export function SortableTableRow({ id, number, canDrag, handleLabel, numberCellClassName, children }: {
+export function SortableTableRow({ id, number, canDrag, handleLabel, numberCellClassName, className, leading, children }: {
   id: number;
   number: number;
   canDrag: boolean;
   handleLabel: string;
   numberCellClassName?: string;
+  /** Extra row classes, e.g. a selected row's background */
+  className?: string;
+  /** Cells before the Sr. No. cell, e.g. a selection checkbox */
+  leading?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: !canDrag });
@@ -23,10 +27,11 @@ export function SortableTableRow({ id, number, canDrag, handleLabel, numberCellC
     <tr
       ref={setNodeRef}
       data-slot="table-row"
-      className={`border-b border-border hover:bg-muted/20 transition-colors ${isDragging ? 'relative z-10 bg-muted' : ''}`}
+      className={cn('border-b border-border hover:bg-muted/20 transition-colors', className, isDragging && 'relative z-10 bg-muted')}
       // Up and down only, without stretching the row to the height of the one it passes.
       style={{ transform: CSS.Translate.toString(transform && { ...transform, x: 0 }), transition }}
     >
+      {leading}
       <TableCell className={cn('align-top py-3 whitespace-nowrap', numberCellClassName)}>
         <div className="flex items-center gap-1.5">
           {canDrag && (

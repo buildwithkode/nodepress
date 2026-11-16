@@ -79,7 +79,9 @@
     "localeAdd": "{language}-Übersetzung hinzufügen",
     "languages": "Sprachen",
     "changeStatus": "Status von {slug} ändern",
-    "statusCancelsSchedule": "Ein neuer Status hebt die geplante Veröffentlichung auf"
+    "statusCancelsSchedule": "Ein neuer Status hebt die geplante Veröffentlichung auf",
+    "number": "Nr.",
+    "dragToReorder": "Zum Sortieren ziehen"
   },
   "actions": {
     "restore": "Wiederherstellen",
@@ -149,7 +151,8 @@
     "translationCreated": "{language}-Übersetzung als Entwurf erstellt",
     "translationFailed": "Übersetzung konnte nicht erstellt werden",
     "statusChanged": "{slug} ist jetzt: {status}",
-    "undo": "Rückgängig"
+    "undo": "Rückgängig",
+    "reorderFailed": "Die neue Reihenfolge konnte nicht gespeichert werden"
   },
   "statusConfirm": {
     "publishTitle": "{slug} auf der Website veröffentlichen?",

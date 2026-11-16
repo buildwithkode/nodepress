@@ -37,7 +37,7 @@ import { contentTypeName } from '../common/content-type-name';
 type MethodKey = 'list' | 'read' | 'create' | 'update' | 'delete';
 
 type SortDirection = 'asc' | 'desc';
-type SortableField = 'createdAt' | 'updatedAt' | 'slug';
+type SortableField = 'createdAt' | 'updatedAt' | 'slug' | 'position';
 
 export interface PublicListQuery {
   page?: number;
@@ -89,6 +89,7 @@ const SORTABLE: Record<string, SortableField> = {
   updatedat: 'updatedAt',
   updatedAt: 'updatedAt',
   slug: 'slug',
+  position: 'position',
 };
 
 /** Cache TTL: 30 s for lists, 60 s for single entries, 5 min for content-type meta */
@@ -158,6 +159,7 @@ function decodeCursor(cursor: string, field: SortableField, direction: SortDirec
   if (payload.s !== `${field}:${direction}`) {
     throw new BadRequestException('Cursor was issued for a different sort order');
   }
+  if (field === 'position' && !/^-?\d+$/.test(payload.v)) throw new BadRequestException('Invalid cursor');
   return payload;
 }
 
@@ -170,7 +172,7 @@ function decodeCursor(cursor: string, field: SortableField, direction: SortDirec
  * filters every earlier row — measured at 88 ms vs 0.04 ms, 100k rows deep.
  */
 function cursorWhere(field: SortableField, direction: SortDirection, c: CursorPayload) {
-  const value = field === 'slug' ? c.v : new Date(c.v);
+  const value = field === 'slug' ? c.v : field === 'position' ? Number(c.v) : new Date(c.v);
   const strict = direction === 'desc' ? 'lt' : 'gt';
   const inclusive = direction === 'desc' ? 'lte' : 'gte';
   return {
@@ -300,6 +302,11 @@ export class DynamicApiService implements OnModuleInit {
   private toPublicEntry(e: any, data: Record<string, any>, schema?: FieldDef[], byKey = false) {
     const { id: _internal, publicId, deletedAt: _del, status: _st, ...rest } = e;
     return { id: publicId, ...rest, data: schema && byKey ? withSectionKeys(data, schema) : data };
+  }
+
+  /** For writes made with raw SQL, which the operation hook can't see (e.g. reordering entries). */
+  async invalidateContentTypes(contentTypeIds: number[]) {
+    await this.invalidateScope(contentTypeIds.length ? contentTypeIds : 'all');
   }
 
   /** Make the cached public responses of some (or all) content types stale. */
@@ -510,7 +517,7 @@ export class DynamicApiService implements OnModuleInit {
           select: {
             id: true, publicId: true, slug: true, locale: true,
             status: true, deletedAt: true, data: true, seo: true,
-            createdAt: true, updatedAt: true,
+            createdAt: true, updatedAt: true, position: true,
           },
         });
         const entryMap = new Map(rawEntries.map((e) => [e.id, e]));
@@ -527,7 +534,7 @@ export class DynamicApiService implements OnModuleInit {
         select: {
           id: true, publicId: true, slug: true, locale: true,
           status: true, deletedAt: true, data: true, seo: true,
-          createdAt: true, updatedAt: true,
+          createdAt: true, updatedAt: true, position: true,
         },
       });
       hasMore = rows.length > limit;
@@ -543,7 +550,7 @@ export class DynamicApiService implements OnModuleInit {
           select: {
             id: true, publicId: true, slug: true, locale: true,
             status: true, deletedAt: true, data: true, seo: true,
-            createdAt: true, updatedAt: true,
+            createdAt: true, updatedAt: true, position: true,
           },
         }),
       ]);
@@ -638,7 +645,7 @@ export class DynamicApiService implements OnModuleInit {
       select: {
         id: true, publicId: true, slug: true, locale: true,
         status: true, deletedAt: true, data: true, seo: true,
-        createdAt: true, updatedAt: true,
+        createdAt: true, updatedAt: true, position: true,
       },
     });
 
@@ -715,7 +722,7 @@ export class DynamicApiService implements OnModuleInit {
       select: {
         id: true, publicId: true, slug: true, locale: true,
         status: true, deletedAt: true, data: true, seo: true,
-        createdAt: true, updatedAt: true,
+        createdAt: true, updatedAt: true, position: true,
       },
     });
 
@@ -762,7 +769,7 @@ export class DynamicApiService implements OnModuleInit {
       select: {
         id: true, publicId: true, slug: true, locale: true,
         status: true, deletedAt: true, data: true, seo: true,
-        createdAt: true, updatedAt: true,
+        createdAt: true, updatedAt: true, position: true,
       },
     });
 
@@ -826,7 +833,7 @@ export class DynamicApiService implements OnModuleInit {
       select: {
         id: true, publicId: true, slug: true, locale: true,
         status: true, deletedAt: true, data: true, seo: true,
-        createdAt: true, updatedAt: true, contentTypeId: true,
+        createdAt: true, updatedAt: true, position: true, contentTypeId: true,
       },
     });
 

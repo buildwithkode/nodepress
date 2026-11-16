@@ -113,7 +113,9 @@ The API returns them in the entry's `seo` object (or `seo: null`). Your site ren
 
 ## The entries list
 
-The list shows the entries of one content type, newest first, 20 per page. You can filter by language and status, and search the slug and field values.
+The list shows the entries of one content type, 10 per page, numbered (**Sr. No.**). You can filter by language and status, and search the slug and field values.
+
+New entries start at the top. To change the order, drag a row by its handle next to the number. The order is saved at once, all languages of a page move together, and dragging on one page of the list leaves the other pages where they were. Your site can use the same order with `?sort=position:asc` (see [Querying](/apis/querying/#sorting)). Reordering doesn't change an entry's **Updated** date.
 
 The language column shows which translations exist for each entry, and which are missing.
 
@@ -123,7 +125,6 @@ Row actions:
 |---|---|
 | **Duplicate** | Creates a copy with the slug `<slug>-copy` (or `-copy-2` up to `-copy-10`) and opens it. |
 | **Copy API URL** | Copies the entry's public API address. |
-| **Promote to Staging (QA)** / **Publish to Production** | Changes the status in one click. |
 | Delete | Moves the entry to the trash. |
 
 :::note
@@ -180,6 +181,7 @@ The admin uses these endpoints. They all need a login token (`Authorization: Bea
 | `POST` | `/api/entries/:id/promote` | Contributors, editors, admins | Set `{ "status": "…" }`; contributors may only choose `draft` or `pending_review` |
 | `POST` | `/api/entries/bulk-publish`, `bulk-stage`, `bulk-archive`, `bulk-delete` | Editors, admins | Body `{ "ids": [1, 2, 3] }` |
 | `POST` | `/api/entries/bulk-pending-review` | Contributors, editors, admins | Body `{ "ids": [1, 2, 3] }` |
+| `PUT` | `/api/entries/order` | Anyone who may update the type | Body `{ "contentTypeId": 4, "ids": [9, 3, 7] }`: those entries in their new order, taking the places they held |
 | `GET` | `/api/entries/export` | Editors, admins | `?contentTypeId=` and `?format=json` or `csv` |
 | `POST` | `/api/entries/import` | Editors, admins | `?contentTypeId=`; body `{ entries, csvContent, dryRun, updateDuplicates }` |
 

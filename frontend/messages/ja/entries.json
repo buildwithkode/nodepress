@@ -79,7 +79,9 @@
     "localeAdd": "{language}の翻訳を追加",
     "languages": "言語",
     "changeStatus": "{slug} のステータスを変更",
-    "statusCancelsSchedule": "ステータスを選ぶと予約公開は取り消されます"
+    "statusCancelsSchedule": "ステータスを選ぶと予約公開は取り消されます",
+    "number": "番号",
+    "dragToReorder": "ドラッグして並べ替え"
   },
   "actions": {
     "restore": "復元",
@@ -149,7 +151,8 @@
     "translationCreated": "{language}の翻訳を下書きとして作成しました",
     "translationFailed": "翻訳を作成できませんでした",
     "statusChanged": "{slug} は「{status}」になりました",
-    "undo": "元に戻す"
+    "undo": "元に戻す",
+    "reorderFailed": "新しい順序を保存できませんでした"
   },
   "statusConfirm": {
     "publishTitle": "{slug} をサイトに公開しますか？",

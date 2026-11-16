@@ -3,6 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import {
+  DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableTableRow } from '@/components/SortableTableRow';
 import { useTranslations } from 'use-intl';
 import {
   Plus,
@@ -424,6 +431,10 @@ export default function EntriesPage() {
     ...(canPublish ? ['staging', 'published', 'archived'] : []),
   ];
   const [changingStatus, setChangingStatus] = useState<number | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
   // Moving onto or off the live site asks first; other moves are instant
   const [confirmStatus, setConfirmStatus] = useState<{ entry: Entry; value: string } | null>(null);
   const statusName = (value: string) => {
@@ -778,6 +789,27 @@ export default function EntriesPage() {
     e.slug.toLowerCase().includes(search.toLowerCase()),
   );
   const paginatedEntries = filteredEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  /* ── Drag to reorder (the rows on this page; their pages keep the places they held) ── */
+  const canReorder = canEdit && !showTrash;
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!selectedCT || !over || active.id === over.id) return;
+    const moved = arrayMove(
+      paginatedEntries,
+      paginatedEntries.findIndex((e) => e.id === active.id),
+      paginatedEntries.findIndex((e) => e.id === over.id),
+    );
+    // Show it at once: the moved rows take the slots this page's rows held
+    const onPage = new Set(moved.map((e) => e.id));
+    const queue = [...moved];
+    setEntries((prev) => prev.map((e) => (onPage.has(e.id) ? queue.shift()! : e)));
+    try {
+      await api.put('/entries/order', { contentTypeId: selectedCT.id, ids: moved.map((e) => e.id) });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t('toasts.reorderFailed'));
+      await refreshEntries(false);
+    }
+  };
   const allPageSelected = paginatedEntries.length > 0 && paginatedEntries.every((e) => selected.has(e.id));
 
   const toggleSelectAll = () => {
@@ -1094,6 +1126,7 @@ export default function EntriesPage() {
       )}
 
       {/* Table */}
+      <DndContext id="entries-order" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <Table>
         <TableHeader>
           <TableRow>
@@ -1108,6 +1141,7 @@ export default function EntriesPage() {
                 />
               </TableHead>
             )}
+            <TableHead className="w-16 whitespace-nowrap">{t('table.number')}</TableHead>
             <TableHead>{t('table.slug')}</TableHead>
             {multiLanguage && <TableHead className="hidden md:table-cell">{t('table.languages')}</TableHead>}
             <TableHead>{tc('status')}</TableHead>
@@ -1125,6 +1159,7 @@ export default function EntriesPage() {
             Array.from({ length: 4 }).map((_, i) => (
               <TableRow key={i}>
                 {canSelect && !showTrash && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
+                <TableCell><Skeleton className="h-4 w-6" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                 {multiLanguage && <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>}
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
@@ -1138,7 +1173,7 @@ export default function EntriesPage() {
           ) : paginatedEntries.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={schemaColumns.length + (canSelect && !showTrash ? 4 : 3) + (multiLanguage ? 1 : 0)}
+                colSpan={schemaColumns.length + (canSelect && !showTrash ? 5 : 4) + (multiLanguage ? 1 : 0)}
                 className="py-12 text-center text-muted-foreground"
               >
                 <div className="flex flex-col items-center justify-center gap-2">
@@ -1156,9 +1191,18 @@ export default function EntriesPage() {
                 </div>
               </TableCell>
             </TableRow>
-          ) : paginatedEntries.map((entry) => (
-            <TableRow key={entry.id} className={selected.has(entry.id) ? 'bg-muted/40' : ''}>
-              {canSelect && !showTrash && (
+          ) : (
+          <SortableContext items={paginatedEntries.map((e) => e.id)} strategy={verticalListSortingStrategy}>
+          {paginatedEntries.map((entry, index) => (
+            <SortableTableRow
+              key={entry.id}
+              id={entry.id}
+              number={(page - 1) * PAGE_SIZE + index + 1}
+              canDrag={canReorder}
+              handleLabel={t('table.dragToReorder')}
+              numberCellClassName="align-middle py-2"
+              className={selected.has(entry.id) ? 'bg-muted/40' : undefined}
+              leading={canSelect && !showTrash ? (
                 <TableCell>
                   <input
                     type="checkbox"
@@ -1167,7 +1211,8 @@ export default function EntriesPage() {
                     onChange={() => toggleSelect(entry.id)}
                   />
                 </TableCell>
-              )}
+              ) : null}
+            >
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium text-foreground break-words">{entry.slug}</p>
@@ -1404,10 +1449,13 @@ export default function EntriesPage() {
                   )}
                 </div>
               </TableCell>
-            </TableRow>
+            </SortableTableRow>
           ))}
+          </SortableContext>
+          )}
         </TableBody>
       </Table>
+      </DndContext>
 
       <Pagination
         total={filteredEntries.length}
