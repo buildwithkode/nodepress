@@ -340,13 +340,13 @@ export default function EntriesPage() {
                         const own = code === ownCode;
                         const target = own ? { id: entry.id } : entry.translationEntries?.find((tr) => tr.locale === code);
                         const exists = own || !!target || (entry.translations ?? []).includes(code);
-                        // Each language keeps its own status: a dot in its colour
+                        // Each language keeps its own status, shown on hover
                         const chipStatus = own ? entry.status : entry.translationEntries?.find((tr) => tr.locale === code)?.status;
                         // Existing language: open it. Missing one: create it from this entry.
                         const canOpen = exists && !!target && canEdit;
                         const canAdd = !exists && canCreate && !showTrash;
                         const chipClass = cn(
-                          'inline-flex min-w-[2.75rem] items-center justify-center gap-1 text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
+                          'inline-flex min-w-[2.25rem] items-center justify-center text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
                           own && 'bg-primary border-primary text-primary-foreground font-semibold',
                           !own && exists && 'border-emerald-500/40 text-emerald-500',
                           !exists && 'border-dashed border-border text-muted-foreground/60',
@@ -361,11 +361,8 @@ export default function EntriesPage() {
                             ? t('table.localeOpen', { language: label })
                             : t(own ? 'table.localeOwn' : exists ? 'table.localeTranslated' : 'table.localeMissing', { language: label });
                         const title = exists && chipStatus ? `${baseTitle} · ${statusName(chipStatus)}` : baseTitle;
-                        const dot = exists && chipStatus
-                          ? <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', STATUS_DOT[chipStatus] ?? STATUS_DOT.draft, own && 'ring-1 ring-primary-foreground/70')} aria-hidden="true" />
-                          : null;
                         if (!canOpen && !canAdd) {
-                          return <span key={code} title={title} className={chipClass}>{dot}{code}</span>;
+                          return <span key={code} title={title} className={chipClass}>{code}</span>;
                         }
                         return (
                           <button
@@ -377,7 +374,7 @@ export default function EntriesPage() {
                             className={chipClass}
                             onClick={() => (canOpen ? router.push(`/entries/${target!.id}/edit`) : handleAddLocale(entry, code))}
                           >
-                            {dot}{canAdd ? `+${code}` : code}
+                            {canAdd ? `+${code}` : code}
                           </button>
                         );
                       });
