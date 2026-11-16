@@ -379,6 +379,75 @@ export class MailService implements OnModuleInit {
   }
 
   /**
+   * Tell someone an admin changed their role. Branded like form emails; replies
+   * go to the admin who made the change. Never throws (see send()).
+   */
+  async sendRoleChanged(details: {
+    to: string;
+    recipientName: string;
+    changedByName: string;
+    changedByEmail: string;
+    previousRole: string;
+    newRole: string;
+  }): Promise<void> {
+    if (!this.transporter) {
+      this.logger.warn(`[RoleChanged] No SMTP configured — skipping email to ${details.to}`);
+      return;
+    }
+
+    const brand = await this.brand.get().catch(() => null);
+    const brandName = brand?.brandName || 'NodePress';
+    const brandColor = brand?.brandColor || '#4f46e5';
+    const appUrl = (env.APP_URL || '').replace(/\/$/, '');
+    // A relative logo (/uploads/...) must be absolute in an email — prefix APP_URL.
+    const rawLogo = brand?.brandLogoUrl || undefined;
+    const logoUrl = rawLogo && rawLogo.startsWith('/') ? `${appUrl}${rawLogo}` : rawLogo;
+    // The admin's own address: SITE_URL, or the API's when both are served together.
+    const adminUrl = (env.SITE_URL || env.APP_URL || '').replace(/\/$/, '');
+
+    const { to, recipientName, changedByName, changedByEmail, previousRole, newRole } = details;
+    const by = changedByName && changedByName !== changedByEmail ? `${changedByName} (${changedByEmail})` : changedByEmail;
+    const subject = `Your role on ${brandName} has changed`;
+
+    const header = logoUrl
+      ? `<img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brandName)}" style="max-height:40px;display:inline-block" />`
+      : `<span style="color: #e5e5e5;font-size:18px;font-weight:700;letter-spacing:0.2px">${escapeHtml(brandName)}</span>`;
+    const roleRow = (label: string, value: string, strong: boolean) =>
+      `<tr>
+        <td style="padding:10px 14px;color:#777;white-space:nowrap;border-bottom:1px solid #f0f0f0;width:1%">${label}</td>
+        <td style="padding:10px 14px;color:#1a1a1a;border-bottom:1px solid #f0f0f0;${strong ? 'font-weight:700' : ''}">${escapeHtml(value)}</td>
+       </tr>`;
+
+    const html = `
+      <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;background:#ffffff">
+        <div style="background:${escapeHtml(brandColor)};padding:20px 24px;text-align:center">${header}</div>
+        <div style="padding:24px;color:#333;font-size:15px;line-height:1.5">
+          <p style="margin:0 0 12px">Hi ${escapeHtml(recipientName)},</p>
+          <p style="margin:0 0 16px"><strong>${escapeHtml(by)}</strong> changed your role on <strong>${escapeHtml(brandName)}</strong>.</p>
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e5e5e5;border-radius:6px;overflow:hidden;margin:0 0 16px">
+            <tbody>${roleRow('Before', previousRole, false)}${roleRow('Now', newRole, true)}</tbody>
+          </table>
+          <p style="margin:0 0 20px;color:#555">The change already applies; you don't need to sign in again.</p>
+          ${adminUrl ? `<p style="margin:0 0 20px"><a href="${escapeHtml(adminUrl)}" style="background:${escapeHtml(brandColor)};color:#fff;padding:11px 22px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">Open the admin</a></p>` : ''}
+          <p style="margin:0;color:#888;font-size:13px">If you didn't expect this, reply to this email or contact ${escapeHtml(changedByName || changedByEmail)}.</p>
+        </div>
+        <div style="padding:14px 24px;background:#fafafa;border-top:1px solid #f0f0f0">
+          <p style="color:#999;font-size:12px;margin:0">Sent by ${escapeHtml(brandName)}</p>
+        </div>
+      </div>`;
+
+    const text =
+      `Hi ${recipientName},\n\n` +
+      `${by} changed your role on ${brandName}.\n\n` +
+      `Before: ${previousRole}\nNow: ${newRole}\n\n` +
+      `The change already applies; you don't need to sign in again.\n` +
+      (adminUrl ? `\nOpen the admin: ${adminUrl}\n` : '') +
+      `\nIf you didn't expect this, reply to this email or contact ${changedByName || changedByEmail}.`;
+
+    await this.send({ to, subject, text, html, replyTo: changedByEmail || undefined });
+  }
+
+  /**
    * Generic low-level send. All public methods funnel through here.
    * Never throws — logs errors only — unless `throwOnError` is set (queued
    * jobs use it so a failed send is retried).

@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ConflictException,
   BadRequestException,
@@ -18,6 +19,8 @@ const USER_SELECT = { id: true, email: true, name: true, role: true, twoFactorEn
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     private prisma: PrismaService,
     private mail: MailService,
@@ -119,11 +122,45 @@ export class UsersService {
       }
     }
 
-    return this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { id },
       data: { role: dto.role },
       select: USER_SELECT,
     });
+
+    // Tell them, in the background: a slow mail server must not hold up the Users page.
+    if (dto.role && dto.role !== user.role) {
+      void this.notifyRoleChanged(updated, user.role, dto.role, actorId).catch((err) =>
+        this.logger.warn(`Role change email to ${updated.email} failed: ${err?.message ?? err}`),
+      );
+    }
+    return updated;
+  }
+
+  /** Email the user whose role changed: who changed it, before and now. */
+  private async notifyRoleChanged(
+    user: { email: string; name?: string | null },
+    previousRole: string,
+    newRole: string,
+    actorId: number,
+  ) {
+    if (!this.mail.isConfigured) return;
+    const actor = await this.prisma.user.findUnique({ where: { id: actorId }, select: { email: true, name: true } });
+    await this.mail.sendRoleChanged({
+      to: user.email,
+      recipientName: user.name?.trim() || user.email.split('@')[0],
+      changedByName: actor?.name?.trim() || actor?.email || 'An admin',
+      changedByEmail: actor?.email ?? '',
+      previousRole: await this.roleLabel(previousRole),
+      newRole: await this.roleLabel(newRole),
+    });
+  }
+
+  /** "Admin" for a built-in role, the label for a custom one ("Reviewer"). */
+  private async roleLabel(role: string): Promise<string> {
+    if (isBuiltInRole(role)) return role.charAt(0).toUpperCase() + role.slice(1);
+    const custom = await this.prisma.role.findUnique({ where: { name: role }, select: { label: true } });
+    return custom?.label || role;
   }
 
   async remove(id: number, actorId: number, actorRole = 'admin') {

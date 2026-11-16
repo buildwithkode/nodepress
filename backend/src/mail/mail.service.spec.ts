@@ -96,6 +96,28 @@ describe('MailService', () => {
 
   // ── sendFormSubmission ────────────────────────────────────────────────────
 
+  describe('sendRoleChanged()', () => {
+    it('says who changed it and before → now, escapes names, and replies to the admin', async () => {
+      await service.sendRoleChanged({
+        to: 'utsav@example.com',
+        recipientName: 'Utsav',
+        changedByName: '<b>Karthik</b>',
+        changedByEmail: 'karthik@example.com',
+        previousRole: 'Editor',
+        newRole: 'Admin',
+      });
+
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.to).toBe('utsav@example.com');
+      expect(mail.subject).toBe('Your role on NodePress has changed');
+      expect(mail.replyTo).toBe('karthik@example.com');
+      expect(mail.text).toContain('Before: Editor\nNow: Admin');
+      expect(mail.text).toContain('<b>Karthik</b> (karthik@example.com) changed your role');
+      expect(mail.html).toContain('&lt;b&gt;Karthik&lt;/b&gt;');
+      expect(mail.html).not.toContain('<b>Karthik</b>');
+    });
+  });
+
   describe('sendFormSubmission()', () => {
     it('sends email with subject and field rows', async () => {
       await service.sendFormSubmission(

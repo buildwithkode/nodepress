@@ -35,6 +35,7 @@ const mockPrisma = {
 
 const mockMail = {
   sendInvitation: jest.fn().mockResolvedValue(undefined),
+  sendRoleChanged: jest.fn().mockResolvedValue(undefined),
   isConfigured: true,
 };
 
@@ -123,6 +124,65 @@ describe('UsersService', () => {
       const result = await service.updateRole(2, { role: 'reviewer' }, 1);
       expect(result.role).toBe('reviewer');
       expect(mockPrisma.role.findUnique).toHaveBeenCalledWith({ where: { name: 'reviewer' } });
+    });
+
+    // The email goes out in the background; let it run.
+    const settle = () => new Promise((resolve) => setImmediate(resolve));
+
+    it('emails the user who they were changed by, and before → now', async () => {
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce({ ...mockEditor, name: 'Utsav' }) // the target
+        .mockResolvedValueOnce({ email: 'admin@test.com', name: 'Karthik' }); // the admin
+      mockPrisma.user.update.mockResolvedValue({ ...mockEditor, name: 'Utsav', role: 'admin' });
+
+      await service.updateRole(2, { role: 'admin' }, 1);
+      await settle();
+
+      expect(mockMail.sendRoleChanged).toHaveBeenCalledWith({
+        to: 'editor@test.com',
+        recipientName: 'Utsav',
+        changedByName: 'Karthik',
+        changedByEmail: 'admin@test.com',
+        previousRole: 'Editor',
+        newRole: 'Admin',
+      });
+    });
+
+    it('names a custom role by its label', async () => {
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce(mockEditor)
+        .mockResolvedValueOnce({ email: 'admin@test.com', name: null });
+      mockPrisma.role.findUnique.mockResolvedValue({ name: 'reviewer', label: 'Reviewer', baseRole: 'contributor' });
+      mockPrisma.user.update.mockResolvedValue({ ...mockEditor, role: 'reviewer' });
+
+      await service.updateRole(2, { role: 'reviewer' }, 1);
+      await settle();
+
+      expect(mockMail.sendRoleChanged).toHaveBeenCalledWith(expect.objectContaining({
+        recipientName: 'editor',
+        changedByName: 'admin@test.com',
+        previousRole: 'Editor',
+        newRole: 'Reviewer',
+      }));
+    });
+
+    it('sends nothing when the role stays the same', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockEditor);
+      mockPrisma.user.update.mockResolvedValue(mockEditor);
+
+      await service.updateRole(2, { role: 'editor' }, 1);
+      await settle();
+
+      expect(mockMail.sendRoleChanged).not.toHaveBeenCalled();
+    });
+
+    it('still changes the role when the email fails', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce(mockEditor).mockResolvedValueOnce(mockAdmin);
+      mockPrisma.user.update.mockResolvedValue({ ...mockEditor, role: 'viewer' });
+      mockMail.sendRoleChanged.mockRejectedValueOnce(new Error('SMTP down'));
+
+      await expect(service.updateRole(2, { role: 'viewer' }, 1)).resolves.toMatchObject({ role: 'viewer' });
+      await settle();
     });
 
     it('rejects a role that does not exist', async () => {
