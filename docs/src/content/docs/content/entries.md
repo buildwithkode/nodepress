@@ -42,7 +42,7 @@ An entry in the trash still holds its slug. To reuse the slug, purge the trashed
 | **Published** (`published`) | Live | Visible to everyone |
 | **Archived** (`archived`) | Retired | Hidden |
 
-Pick the status in the editor's status selector and save, or click an entry's status badge in the entries list and pick one there: it changes straight away. The list shows published entries as **Production**. Its menu only offers the statuses your role may set. Putting an entry on Production, or taking it off, asks you to confirm first, since visitors see that straight away; the other moves are instant. The message that follows has an **Undo** button. The menu changes only the language shown in that row and lists the status of the others, and picking any status other than Draft cancels a scheduled publish.
+Pick the status in the editor's status selector and save, or click an entry's status badge in the entries list and pick one there: it changes straight away. The list shows published entries as **Production**. Its menu only offers the statuses your role may set. Putting an entry on Production, or taking it off, asks you to confirm first, since visitors see that straight away; the other moves are instant. The message that follows has an **Undo** button. With several languages the list shows one language at a time, so the menu changes that language only. Picking any status other than Draft cancels a scheduled publish.
 
 Unpublished stages can be read through the API with `?stage=draft`, `staging` or `all` and a login token or API key. See [REST API](/apis/rest/).
 

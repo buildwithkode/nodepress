@@ -26,10 +26,11 @@
     "permissions": "Permissions"
   },
   "filters": {
-    "allLanguages": "All languages",
     "allStatuses": "All statuses",
     "production": "Production (Published)",
-    "searchPlaceholder": "Search entries…"
+    "searchPlaceholder": "Search entries…",
+    "showing": "Showing",
+    "showingLanguage": "Language shown in the list"
   },
   "export": {
     "jsonTitle": "Export non-deleted entries as JSON",
@@ -59,8 +60,7 @@
       "staged": "{count, plural, one {# entry promoted to staging} other {# entries promoted to staging}}",
       "submitted": "{count, plural, one {# entry submitted for review} other {# entries submitted for review}}",
       "archived": "{count, plural, one {# entry archived} other {# entries archived}}"
-    },
-    "allLanguages": "actions apply to every language"
+    }
   },
   "table": {
     "selectAll": "Select all on this page",
@@ -80,9 +80,7 @@
     "localeAdd": "Add a {language} translation",
     "languages": "Languages",
     "changeStatus": "Change the status of {slug}",
-    "statusLanguageOnly": "Changes {language} only. Other languages keep their own status:",
-    "statusCancelsSchedule": "Picking a status cancels the scheduled publish",
-    "otherLanguageStatus": "{language}: {status}"
+    "statusCancelsSchedule": "Picking a status cancels the scheduled publish"
   },
   "actions": {
     "restore": "Restore",
@@ -97,7 +95,7 @@
     "copyApiUrl": "Copy API URL",
     "deleteConfirmTitle": "Delete this entry?",
     "deleteConfirmDescription": "<strong>{slug}</strong> will be moved to trash. You can restore it later.",
-    "deleteAllLanguagesDescription": "<strong>{slug}</strong> will be moved to trash in every language ({languages}). You can restore it later."
+    "deleteLanguageOnly": "Only the {language} version is deleted; other languages stay."
   },
   "import": {
     "button": "Import",

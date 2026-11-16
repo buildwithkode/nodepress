@@ -26,10 +26,11 @@
     "permissions": "权限"
   },
   "filters": {
-    "allLanguages": "所有语言",
     "allStatuses": "所有状态",
     "production": "生产环境（已发布）",
-    "searchPlaceholder": "搜索条目…"
+    "searchPlaceholder": "搜索条目…",
+    "showing": "显示",
+    "showingLanguage": "列表中显示的语言"
   },
   "export": {
     "jsonTitle": "将未删除的条目导出为 JSON",
@@ -59,8 +60,7 @@
       "staged": "{count, plural, other {已将 # 个条目推送到预发布环境}}",
       "submitted": "{count, plural, other {已提交 # 个条目进行审核}}",
       "archived": "{count, plural, other {已归档 # 个条目}}"
-    },
-    "allLanguages": "操作将应用于所有语言"
+    }
   },
   "table": {
     "selectAll": "全选本页",
@@ -80,9 +80,7 @@
     "localeAdd": "添加{language}翻译",
     "languages": "语言",
     "changeStatus": "更改 {slug} 的状态",
-    "statusLanguageOnly": "仅更改{language}。其他语言保持各自的状态：",
-    "statusCancelsSchedule": "选择状态将取消定时发布",
-    "otherLanguageStatus": "{language}：{status}"
+    "statusCancelsSchedule": "选择状态将取消定时发布"
   },
   "actions": {
     "restore": "恢复",
@@ -97,7 +95,7 @@
     "copyApiUrl": "复制 API URL",
     "deleteConfirmTitle": "删除此条目？",
     "deleteConfirmDescription": "<strong>{slug}</strong> 将被移至回收站。您之后可以恢复它。",
-    "deleteAllLanguagesDescription": "<strong>{slug}</strong> 将在所有语言（{languages}）中被移至回收站。您之后可以恢复它。"
+    "deleteLanguageOnly": "仅删除{language}版本，其他语言保留。"
   },
   "import": {
     "button": "导入",

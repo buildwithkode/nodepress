@@ -26,10 +26,11 @@
     "permissions": "Permessi"
   },
   "filters": {
-    "allLanguages": "Tutte le lingue",
     "allStatuses": "Tutti gli stati",
     "production": "Produzione (pubblicate)",
-    "searchPlaceholder": "Cerca voci…"
+    "searchPlaceholder": "Cerca voci…",
+    "showing": "Mostra",
+    "showingLanguage": "Lingua mostrata nell'elenco"
   },
   "export": {
     "jsonTitle": "Esporta le voci non eliminate in JSON",
@@ -59,8 +60,7 @@
       "staged": "{count, plural, one {# voce promossa in staging} other {# voci promosse in staging}}",
       "submitted": "{count, plural, one {# voce inviata in revisione} other {# voci inviate in revisione}}",
       "archived": "{count, plural, one {# voce archiviata} other {# voci archiviate}}"
-    },
-    "allLanguages": "le azioni valgono per tutte le lingue"
+    }
   },
   "table": {
     "selectAll": "Seleziona tutte in questa pagina",
@@ -80,9 +80,7 @@
     "localeAdd": "Aggiungi una traduzione in {language}",
     "languages": "Lingue",
     "changeStatus": "Cambia lo stato di {slug}",
-    "statusLanguageOnly": "Cambia solo {language}. Le altre lingue mantengono il loro stato:",
-    "statusCancelsSchedule": "Scegliere uno stato annulla la pubblicazione programmata",
-    "otherLanguageStatus": "{language}: {status}"
+    "statusCancelsSchedule": "Scegliere uno stato annulla la pubblicazione programmata"
   },
   "actions": {
     "restore": "Ripristina",
@@ -97,7 +95,7 @@
     "copyApiUrl": "Copia URL API",
     "deleteConfirmTitle": "Eliminare questa voce?",
     "deleteConfirmDescription": "<strong>{slug}</strong> verrà spostata nel cestino. Potrai ripristinarla in seguito.",
-    "deleteAllLanguagesDescription": "<strong>{slug}</strong> verrà spostata nel cestino in tutte le lingue ({languages}). Potrai ripristinarla in seguito."
+    "deleteLanguageOnly": "Viene eliminata solo la versione in {language}; le altre lingue restano."
   },
   "import": {
     "button": "Importa",

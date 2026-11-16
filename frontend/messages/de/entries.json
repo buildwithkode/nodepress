@@ -26,10 +26,11 @@
     "permissions": "Berechtigungen"
   },
   "filters": {
-    "allLanguages": "Alle Sprachen",
     "allStatuses": "Alle Status",
     "production": "Produktion (veröffentlicht)",
-    "searchPlaceholder": "Einträge suchen…"
+    "searchPlaceholder": "Einträge suchen…",
+    "showing": "Anzeige",
+    "showingLanguage": "In der Liste angezeigte Sprache"
   },
   "export": {
     "jsonTitle": "Nicht gelöschte Einträge als JSON exportieren",
@@ -59,8 +60,7 @@
       "staged": "{count, plural, one {# Eintrag nach Staging übernommen} other {# Einträge nach Staging übernommen}}",
       "submitted": "{count, plural, one {# Eintrag zur Prüfung eingereicht} other {# Einträge zur Prüfung eingereicht}}",
       "archived": "{count, plural, one {# Eintrag archiviert} other {# Einträge archiviert}}"
-    },
-    "allLanguages": "Aktionen gelten für alle Sprachen"
+    }
   },
   "table": {
     "selectAll": "Alle auf dieser Seite auswählen",
@@ -80,9 +80,7 @@
     "localeAdd": "{language}-Übersetzung hinzufügen",
     "languages": "Sprachen",
     "changeStatus": "Status von {slug} ändern",
-    "statusLanguageOnly": "Ändert nur {language}. Andere Sprachen behalten ihren Status:",
-    "statusCancelsSchedule": "Ein neuer Status hebt die geplante Veröffentlichung auf",
-    "otherLanguageStatus": "{language}: {status}"
+    "statusCancelsSchedule": "Ein neuer Status hebt die geplante Veröffentlichung auf"
   },
   "actions": {
     "restore": "Wiederherstellen",
@@ -97,7 +95,7 @@
     "copyApiUrl": "API-URL kopieren",
     "deleteConfirmTitle": "Diesen Eintrag löschen?",
     "deleteConfirmDescription": "<strong>{slug}</strong> wird in den Papierkorb verschoben. Sie können ihn später wiederherstellen.",
-    "deleteAllLanguagesDescription": "<strong>{slug}</strong> wird in allen Sprachen ({languages}) in den Papierkorb verschoben. Sie können ihn später wiederherstellen."
+    "deleteLanguageOnly": "Nur die {language}-Version wird gelöscht; andere Sprachen bleiben."
   },
   "import": {
     "button": "Importieren",

@@ -95,6 +95,9 @@ function truncate(val: any, itemsLabel: (count: number) => string, max = 60): st
 
 // labelKey is in the `entries` namespace; commonKey in `common`.
 /** Status colour in the list's status menu (same as the editor's language tabs). */
+/** The entries list remembers the language picked last (per browser). */
+const LIST_LOCALE_KEY = 'np_entries_locale';
+
 const STATUS_DOT: Record<string, string> = {
   published: 'bg-emerald-500',
   staging: 'bg-purple-500',
@@ -169,12 +172,24 @@ export default function EntriesPage() {
   const canDelete = access.canContent('delete', ctName);
   const canSelect = canEdit || canPublish || canDelete;
   const multiLanguage = (localesConfig?.locales.length ?? 0) > 1;
-  // One row per page (all its languages) unless a language is picked or the trash is open
-  const grouped = !showTrash && localeFilter === 'all' && (localesConfig?.locales.length ?? 0) > 1;
-  /** Every language's entry id behind the given rows (just the rows when not grouped). */
-  const expandIds = (ids: number[]) => grouped
-    ? [...new Set(ids.flatMap((id) => entries.find((e) => e.id === id)?.translationEntries?.map((tr) => tr.id) ?? [id]))]
-    : ids;
+  // One language at a time (like Strapi or WordPress with Polylang): every row and its status is
+  // that language. It opens in the language last picked here, else the default one.
+  useEffect(() => {
+    if (!localesConfig) return;
+    if (localesConfig.locales.length <= 1) { setLocaleFilter('all'); return; }
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(LIST_LOCALE_KEY); } catch { /* storage blocked */ }
+    setLocaleFilter((cur) => localesConfig.locales.includes(cur) ? cur
+      : saved && localesConfig.locales.includes(saved) ? saved
+      : localesConfig.defaultLocale);
+  }, [localesConfig]);
+  const pickLocale = (code: string) => {
+    setLocaleFilter(code);
+    setPage(1);
+    try { localStorage.setItem(LIST_LOCALE_KEY, code); } catch { /* storage blocked */ }
+  };
+  // Wait for the language before loading, so a multi-language site never shows a mixed list
+  const localeReady = !!localesConfig && (!multiLanguage || localeFilter !== 'all');
 
   const fetchDeletedCount = async () => {
     if (!selectedCT) { setDeletedCount(0); return; }
@@ -248,6 +263,7 @@ export default function EntriesPage() {
   /* ── Load entries when CT is selected ──────────────────────────────────── */
   useEffect(() => {
     if (!selectedCT) { setEntries([]); setDeletedCount(0); setSelectedCTPendingCount(0); return; }
+    if (!localeReady) return;
     setEntries([]);
     setLoadingEntries(true);
     setSelected(new Set());
@@ -259,13 +275,12 @@ export default function EntriesPage() {
     } else {
       if (statusFilter !== 'all') params.status = statusFilter;
       if (localeFilter !== 'all') params.locale = localeFilter;
-      else if (grouped) params.group = true;
     }
     api.get('/entries', { params })
       .then((res) => setEntries(res.data.data ?? res.data))
       .catch(() => toast.error(t('toasts.loadEntriesFailed')))
       .finally(() => setLoadingEntries(false));
-  }, [selectedCT?.id, statusFilter, localeFilter, showTrash, grouped]);
+  }, [selectedCT?.id, statusFilter, localeFilter, showTrash, localeReady]);
 
   useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter, localeFilter, showTrash]);
 
@@ -280,7 +295,6 @@ export default function EntriesPage() {
     } else {
       if (statusFilter !== 'all') params.status = statusFilter;
       if (localeFilter !== 'all') params.locale = localeFilter;
-      else if ((localesConfig?.locales.length ?? 0) > 1) params.group = true;
     }
     const res = await api.get('/entries', { params });
     const list = res.data.data ?? res.data;
@@ -303,10 +317,8 @@ export default function EntriesPage() {
 
   /* ── Delete ────────────────────────────────────────────────────────────── */
   const handleDelete = async (id: number) => {
-    const ids = expandIds([id]);
     try {
-      if (ids.length > 1) await api.post('/entries/bulk-delete', { ids });
-      else await api.delete(`/entries/${id}`);
+      await api.delete(`/entries/${id}`);
       toast.success(t('toasts.movedToTrash'));
       await refreshEntries(false);
     } catch (err: any) {
@@ -328,11 +340,13 @@ export default function EntriesPage() {
                         const own = code === ownCode;
                         const target = own ? { id: entry.id } : entry.translationEntries?.find((tr) => tr.locale === code);
                         const exists = own || !!target || (entry.translations ?? []).includes(code);
+                        // Each language keeps its own status: a dot in its colour
+                        const chipStatus = own ? entry.status : entry.translationEntries?.find((tr) => tr.locale === code)?.status;
                         // Existing language: open it. Missing one: create it from this entry.
                         const canOpen = exists && !!target && canEdit;
                         const canAdd = !exists && canCreate && !showTrash;
                         const chipClass = cn(
-                          'inline-flex min-w-[2.25rem] justify-center text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
+                          'inline-flex min-w-[2.75rem] items-center justify-center gap-1 text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
                           own && 'bg-primary border-primary text-primary-foreground font-semibold',
                           !own && exists && 'border-emerald-500/40 text-emerald-500',
                           !exists && 'border-dashed border-border text-muted-foreground/60',
@@ -341,13 +355,17 @@ export default function EntriesPage() {
                           canOpen && own && 'hover:opacity-85',
                           canAdd && 'hover:border-primary hover:text-foreground',
                         );
-                        const title = canAdd
+                        const baseTitle = canAdd
                           ? t('table.localeAdd', { language: label })
                           : canOpen
                             ? t('table.localeOpen', { language: label })
                             : t(own ? 'table.localeOwn' : exists ? 'table.localeTranslated' : 'table.localeMissing', { language: label });
+                        const title = exists && chipStatus ? `${baseTitle} · ${statusName(chipStatus)}` : baseTitle;
+                        const dot = exists && chipStatus
+                          ? <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', STATUS_DOT[chipStatus] ?? STATUS_DOT.draft, own && 'ring-1 ring-primary-foreground/70')} aria-hidden="true" />
+                          : null;
                         if (!canOpen && !canAdd) {
-                          return <span key={code} title={title} className={chipClass}>{code}</span>;
+                          return <span key={code} title={title} className={chipClass}>{dot}{code}</span>;
                         }
                         return (
                           <button
@@ -359,7 +377,7 @@ export default function EntriesPage() {
                             className={chipClass}
                             onClick={() => (canOpen ? router.push(`/entries/${target!.id}/edit`) : handleAddLocale(entry, code))}
                           >
-                            {canAdd ? `+${code}` : code}
+                            {dot}{canAdd ? `+${code}` : code}
                           </button>
                         );
                       });
@@ -587,7 +605,7 @@ export default function EntriesPage() {
     if (selected.size === 0) return;
     setBulkLoading(true);
     try {
-      const res = await api.post(`/entries/${action}`, { ids: expandIds(Array.from(selected)) });
+      const res = await api.post(`/entries/${action}`, { ids: Array.from(selected) });
       const key = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published' : action === 'bulk-stage' ? 'staged' : action === 'bulk-pending-review' ? 'submitted' : 'archived';
       toast.success(t(`bulk.done.${key}`, { count: res.data.affected }));
       await refreshEntries();
@@ -842,13 +860,14 @@ export default function EntriesPage() {
         <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end sm:ml-auto">
           {!showTrash && (
             <>
-              <Select value={localeFilter} onValueChange={(v) => { if (v) { setLocaleFilter(v); setPage(1); } }}>
-                <SelectTrigger className="h-8 w-36 text-xs">
-                  <Globe className="h-3.5 w-3.5 text-muted-foreground mr-1 shrink-0" />
-                  <SelectValue placeholder={t('filters.allLanguages')} />
+              {multiLanguage && (
+              <Select value={localeFilter} onValueChange={(v) => { if (v) pickLocale(v); }}>
+                <SelectTrigger className="h-8 w-auto min-w-40 gap-1 text-xs font-medium" aria-label={t('filters.showingLanguage')}>
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground mr-0.5 shrink-0" />
+                  <span className="text-muted-foreground font-normal">{t('filters.showing')}</span>
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('filters.allLanguages')}</SelectItem>
                   {SUPPORTED_LOCALES.map((l) => (
                     <SelectItem key={l.code} value={l.code}>
                       <div className="flex items-center gap-1.5">
@@ -859,6 +878,7 @@ export default function EntriesPage() {
                   ))}
                 </SelectContent>
               </Select>
+              )}
 
               <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setPage(1); } }}>
                 <SelectTrigger className="h-8 w-44 text-xs">
@@ -983,7 +1003,7 @@ export default function EntriesPage() {
       )}
 
       <AddToReleaseDialog
-        entryIds={expandIds([...selected])}
+        entryIds={[...selected]}
         open={releaseOpen}
         onOpenChange={setReleaseOpen}
         onAdded={() => setSelected(new Set())}
@@ -995,7 +1015,6 @@ export default function EntriesPage() {
           <CheckSquare className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">
             {t('bulk.selected', { count: selected.size })}
-            {grouped && <span className="ml-1 font-normal text-muted-foreground">· {t('bulk.allLanguages')}</span>}
           </span>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {canPublish && (
@@ -1155,7 +1174,7 @@ export default function EntriesPage() {
               )}
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium text-foreground break-all">{entry.slug}</p>
+                  <p className="font-medium text-foreground break-words">{entry.slug}</p>
                   {/* With several languages they get their own column from md up; below it, here */}
                   <div className={cn('flex flex-wrap gap-1 shrink-0', multiLanguage && 'md:hidden')}>
                     {renderLanguageChips(entry)}
@@ -1209,17 +1228,6 @@ export default function EntriesPage() {
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-60">
-                        {grouped && (entry.translationEntries?.length ?? 0) > 1 && (
-                          <DropdownMenuLabel className="space-y-1 text-[11px] font-normal text-muted-foreground">
-                            <p>{t('table.statusLanguageOnly', { language: localeLabel(entry.locale || localesConfig?.defaultLocale || 'en') })}</p>
-                            {entry.translationEntries!.filter((tr) => tr.id !== entry.id).map((tr) => (
-                              <p key={tr.id} className="flex items-center gap-1.5">
-                                <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', STATUS_DOT[tr.status] ?? STATUS_DOT.draft)} aria-hidden="true" />
-                                {t('table.otherLanguageStatus', { language: localeLabel(tr.locale), status: statusName(tr.status) })}
-                              </p>
-                            ))}
-                          </DropdownMenuLabel>
-                        )}
                         {entry.status === 'draft' && entry.publishAt && (
                           <DropdownMenuLabel className="text-[11px] font-normal text-blue-600 dark:text-blue-400">
                             {t('table.statusCancelsSchedule')}
@@ -1377,13 +1385,10 @@ export default function EntriesPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>{t('actions.deleteConfirmTitle')}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                {grouped && (entry.translationEntries?.length ?? 0) > 1
-                                  ? t.rich('actions.deleteAllLanguagesDescription', {
-                                      slug: entry.slug,
-                                      languages: entry.translationEntries!.map((tr) => localeLabel(tr.locale)).join(', '),
-                                      strong: (chunks) => <strong>{chunks}</strong>,
-                                    })
-                                  : t.rich('actions.deleteConfirmDescription', { slug: entry.slug, strong: (chunks) => <strong>{chunks}</strong> })}
+                                {t.rich('actions.deleteConfirmDescription', { slug: entry.slug, strong: (chunks) => <strong>{chunks}</strong> })}
+                                {(entry.translationEntries?.length ?? 0) > 1 && (
+                                  <> {t('actions.deleteLanguageOnly', { language: localeLabel(entry.locale || localesConfig?.defaultLocale || 'en') })}</>
+                                )}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

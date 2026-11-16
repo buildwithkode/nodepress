@@ -26,10 +26,11 @@
     "permissions": "権限"
   },
   "filters": {
-    "allLanguages": "すべての言語",
     "allStatuses": "すべてのステータス",
     "production": "本番 (公開済み)",
-    "searchPlaceholder": "エントリーを検索…"
+    "searchPlaceholder": "エントリーを検索…",
+    "showing": "表示中",
+    "showingLanguage": "一覧に表示する言語"
   },
   "export": {
     "jsonTitle": "削除されていないエントリーを JSON でエクスポート",
@@ -59,8 +60,7 @@
       "staged": "{count, plural, other {# 件のエントリーをステージングに昇格しました}}",
       "submitted": "{count, plural, other {# 件のエントリーをレビューに提出しました}}",
       "archived": "{count, plural, other {# 件のエントリーをアーカイブしました}}"
-    },
-    "allLanguages": "操作はすべての言語に適用されます"
+    }
   },
   "table": {
     "selectAll": "このページのすべてを選択",
@@ -80,9 +80,7 @@
     "localeAdd": "{language}の翻訳を追加",
     "languages": "言語",
     "changeStatus": "{slug} のステータスを変更",
-    "statusLanguageOnly": "{language}のみ変更されます。他の言語はそれぞれのステータスのままです：",
-    "statusCancelsSchedule": "ステータスを選ぶと予約公開は取り消されます",
-    "otherLanguageStatus": "{language}：{status}"
+    "statusCancelsSchedule": "ステータスを選ぶと予約公開は取り消されます"
   },
   "actions": {
     "restore": "復元",
@@ -97,7 +95,7 @@
     "copyApiUrl": "API の URL をコピー",
     "deleteConfirmTitle": "このエントリーを削除しますか?",
     "deleteConfirmDescription": "<strong>{slug}</strong> はごみ箱に移動されます。後から復元できます。",
-    "deleteAllLanguagesDescription": "<strong>{slug}</strong> はすべての言語（{languages}）でごみ箱に移動されます。後から復元できます。"
+    "deleteLanguageOnly": "{language}版のみ削除されます。他の言語は残ります。"
   },
   "import": {
     "button": "インポート",

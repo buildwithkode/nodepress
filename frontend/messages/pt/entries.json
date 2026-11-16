@@ -26,10 +26,11 @@
     "permissions": "Permissões"
   },
   "filters": {
-    "allLanguages": "Todos os idiomas",
     "allStatuses": "Todos os status",
     "production": "Produção (publicadas)",
-    "searchPlaceholder": "Pesquisar entradas…"
+    "searchPlaceholder": "Pesquisar entradas…",
+    "showing": "Mostrando",
+    "showingLanguage": "Idioma mostrado na lista"
   },
   "export": {
     "jsonTitle": "Exportar entradas não excluídas como JSON",
@@ -59,8 +60,7 @@
       "staged": "{count, plural, one {# entrada promovida para homologação} other {# entradas promovidas para homologação}}",
       "submitted": "{count, plural, one {# entrada enviada para revisão} other {# entradas enviadas para revisão}}",
       "archived": "{count, plural, one {# entrada arquivada} other {# entradas arquivadas}}"
-    },
-    "allLanguages": "as ações se aplicam a todos os idiomas"
+    }
   },
   "table": {
     "selectAll": "Selecionar tudo nesta página",
@@ -80,9 +80,7 @@
     "localeAdd": "Adicionar uma tradução em {language}",
     "languages": "Idiomas",
     "changeStatus": "Alterar o status de {slug}",
-    "statusLanguageOnly": "Altera apenas {language}. Os outros idiomas mantêm o próprio status:",
-    "statusCancelsSchedule": "Escolher um status cancela a publicação agendada",
-    "otherLanguageStatus": "{language}: {status}"
+    "statusCancelsSchedule": "Escolher um status cancela a publicação agendada"
   },
   "actions": {
     "restore": "Restaurar",
@@ -97,7 +95,7 @@
     "copyApiUrl": "Copiar URL da API",
     "deleteConfirmTitle": "Excluir esta entrada?",
     "deleteConfirmDescription": "<strong>{slug}</strong> será movida para a lixeira. Você pode restaurá-la depois.",
-    "deleteAllLanguagesDescription": "<strong>{slug}</strong> será movida para a lixeira em todos os idiomas ({languages}). Você pode restaurá-la depois."
+    "deleteLanguageOnly": "Só a versão em {language} é excluída; os outros idiomas permanecem."
   },
   "import": {
     "button": "Importar",

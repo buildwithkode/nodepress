@@ -26,10 +26,11 @@
     "permissions": "Rechten"
   },
   "filters": {
-    "allLanguages": "Alle talen",
     "allStatuses": "Alle statussen",
     "production": "Productie (gepubliceerd)",
-    "searchPlaceholder": "Items zoeken…"
+    "searchPlaceholder": "Items zoeken…",
+    "showing": "Toont",
+    "showingLanguage": "Taal in de lijst"
   },
   "export": {
     "jsonTitle": "Niet-verwijderde items exporteren als JSON",
@@ -59,8 +60,7 @@
       "staged": "{count, plural, one {# item naar staging gezet} other {# items naar staging gezet}}",
       "submitted": "{count, plural, one {# item ter beoordeling ingediend} other {# items ter beoordeling ingediend}}",
       "archived": "{count, plural, one {# item gearchiveerd} other {# items gearchiveerd}}"
-    },
-    "allLanguages": "acties gelden voor alle talen"
+    }
   },
   "table": {
     "selectAll": "Alles op deze pagina selecteren",
@@ -80,9 +80,7 @@
     "localeAdd": "Een {language} vertaling toevoegen",
     "languages": "Talen",
     "changeStatus": "Status van {slug} wijzigen",
-    "statusLanguageOnly": "Wijzigt alleen {language}. Andere talen houden hun eigen status:",
-    "statusCancelsSchedule": "Een status kiezen annuleert de geplande publicatie",
-    "otherLanguageStatus": "{language}: {status}"
+    "statusCancelsSchedule": "Een status kiezen annuleert de geplande publicatie"
   },
   "actions": {
     "restore": "Terugzetten",
@@ -97,7 +95,7 @@
     "copyApiUrl": "API-URL kopiëren",
     "deleteConfirmTitle": "Dit item verwijderen?",
     "deleteConfirmDescription": "<strong>{slug}</strong> wordt naar de prullenbak verplaatst. Je kunt het later terugzetten.",
-    "deleteAllLanguagesDescription": "<strong>{slug}</strong> wordt in alle talen ({languages}) naar de prullenbak verplaatst. Je kunt het later terugzetten."
+    "deleteLanguageOnly": "Alleen de {language} versie wordt verwijderd; andere talen blijven."
   },
   "import": {
     "button": "Importeren",

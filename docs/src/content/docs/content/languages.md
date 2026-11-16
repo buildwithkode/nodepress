@@ -31,13 +31,14 @@ When you create a new entry, pick its language in the language selector. It star
 
 ## The entries list
 
-With more than one language and the language filter on **All languages**, the list shows **one row per page** (content type + slug): the default-language entry, or the oldest translation when there is none. A **Languages** column shows a chip per language, each language in the same place on every row:
+With more than one language, the entries list shows **one language at a time**. Pick it with **Showing: English ▾** above the list; it opens in the default language, then in the last one you picked in that browser. Every row, its status and its actions belong to that language, so publishing or deleting from the list never touches another language.
 
-- **Filled chip**: this row's language. **Green outline**: a translation that exists — click it to open that translation.
-- **Dashed `+XX` chip**: a missing translation — click it to create it as a draft copy and open it.
-- Deleting a row, and bulk actions on selected rows, apply to **every language** of those pages; the confirmation lists them. To act on one language only, pick it in the language filter, which shows one row per entry again. The trash always lists entries one by one.
+A **Languages** column shows a chip per language, each in the same place on every row, with a dot in that language's status colour:
 
-`GET /api/entries?group=true` returns the same one-row-per-page list; each row's `translationEntries` gives every language's `id`, `locale` and `status`. `group` is ignored with `locale`.
+- **Filled chip**: the language you're viewing. **Green outline**: a translation that exists. Click it to open that translation.
+- **Dashed `+XX` chip**: a missing translation. Click it to create it as a draft copy and open it.
+
+`GET /api/entries` rows carry `translationEntries`: every language's `id`, `locale` and `status`. `GET /api/entries?group=true` returns one row per page instead (the default-language entry, or the oldest translation); `group` is ignored with `locale`.
 
 All languages of a page share its slug, since that's what links them. Changing the slug in any language renames every language of the page together (published ones get a redirect from the old URL), and a slug another page uses in any of those languages is refused with `409`.
 

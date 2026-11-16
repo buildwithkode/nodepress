@@ -26,10 +26,11 @@
     "permissions": "Autorisations"
   },
   "filters": {
-    "allLanguages": "Toutes les langues",
     "allStatuses": "Tous les statuts",
     "production": "Production (publiée)",
-    "searchPlaceholder": "Rechercher des entrées…"
+    "searchPlaceholder": "Rechercher des entrées…",
+    "showing": "Affichage",
+    "showingLanguage": "Langue affichée dans la liste"
   },
   "export": {
     "jsonTitle": "Exporter les entrées non supprimées en JSON",
@@ -59,8 +60,7 @@
       "staged": "{count, plural, one {# entrée passée en préproduction} other {# entrées passées en préproduction}}",
       "submitted": "{count, plural, one {# entrée soumise pour relecture} other {# entrées soumises pour relecture}}",
       "archived": "{count, plural, one {# entrée archivée} other {# entrées archivées}}"
-    },
-    "allLanguages": "les actions s'appliquent à toutes les langues"
+    }
   },
   "table": {
     "selectAll": "Tout sélectionner sur cette page",
@@ -80,9 +80,7 @@
     "localeAdd": "Ajouter une traduction en {language}",
     "languages": "Langues",
     "changeStatus": "Changer le statut de {slug}",
-    "statusLanguageOnly": "Ne modifie que la version {language}. Les autres langues gardent leur statut :",
-    "statusCancelsSchedule": "Choisir un statut annule la publication programmée",
-    "otherLanguageStatus": "{language} : {status}"
+    "statusCancelsSchedule": "Choisir un statut annule la publication programmée"
   },
   "actions": {
     "restore": "Restaurer",
@@ -97,7 +95,7 @@
     "copyApiUrl": "Copier l’URL de l’API",
     "deleteConfirmTitle": "Supprimer cette entrée ?",
     "deleteConfirmDescription": "<strong>{slug}</strong> sera placée dans la corbeille. Vous pourrez la restaurer plus tard.",
-    "deleteAllLanguagesDescription": "<strong>{slug}</strong> sera placée dans la corbeille dans toutes les langues ({languages}). Vous pourrez la restaurer plus tard."
+    "deleteLanguageOnly": "Seule la version {language} est supprimée ; les autres langues restent."
   },
   "import": {
     "button": "Importer",
