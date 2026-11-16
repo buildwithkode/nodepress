@@ -15,6 +15,11 @@ import { isBuiltInRole } from '../roles/roles.constants';
 import { assertAcceptablePassword, hashPassword, unusablePasswordHash, verifyPassword } from '../auth/password';
 import { hashToken } from '../auth/token-hash';
 
+/** The name to greet someone by: their name, else the email's local part. */
+function nameOf(user: { email: string; name?: string | null }): string {
+  return user.name?.trim() || user.email.split('@')[0];
+}
+
 const USER_SELECT = { id: true, email: true, name: true, role: true, twoFactorEnabled: true, createdAt: true, updatedAt: true } as const;
 
 @Injectable()
@@ -51,6 +56,13 @@ export class UsersService {
     this.mail.sendInvitation(user.email, setPasswordUrl, inviterEmail).catch((err: any) => {
       // Log warning in background
     });
+
+    if (user.role === 'admin') {
+      this.background(`New admin email for ${user.email}`, async () => {
+        const actor = await this.prisma.user.findUnique({ where: { email: inviterEmail }, select: { id: true } });
+        await this.notifyNewAdmin(user, 'invited', actor?.id);
+      });
+    }
 
     // In non-production or when SMTP is unconfigured, return the inviteUrl for instant manual onboarding
     const inviteUrl = (process.env.NODE_ENV !== 'production' || !this.mail.isConfigured) ? setPasswordUrl : undefined;
@@ -133,6 +145,10 @@ export class UsersService {
       void this.notifyRoleChanged(updated, user.role, dto.role, actorId).catch((err) =>
         this.logger.warn(`Role change email to ${updated.email} failed: ${err?.message ?? err}`),
       );
+      if (dto.role === 'admin') {
+        this.background(`New admin email for ${updated.email}`, async () =>
+          this.notifyNewAdmin(updated, 'promoted', actorId, await this.roleLabel(user.role)));
+      }
     }
     return updated;
   }
@@ -154,6 +170,44 @@ export class UsersService {
       previousRole: await this.roleLabel(previousRole),
       newRole: await this.roleLabel(newRole),
     });
+  }
+
+  /**
+   * Tell every admin (the one who did it included — their account may be the
+   * one misused) that someone became an admin. The new admin is left out.
+   */
+  private async notifyNewAdmin(
+    newAdmin: { id: number; email: string; name?: string | null },
+    how: 'invited' | 'promoted',
+    actorId: number | undefined,
+    previousRole?: string,
+  ) {
+    if (!this.mail.isConfigured) return;
+    const [admins, actor] = await Promise.all([
+      this.prisma.user.findMany({ where: { role: 'admin', id: { not: newAdmin.id } }, select: { email: true, name: true } }),
+      actorId ? this.prisma.user.findUnique({ where: { id: actorId }, select: { email: true, name: true } }) : null,
+    ]);
+    const when = new Date();
+    for (const admin of admins) {
+      await this.mail.sendNewAdmin({
+        to: admin.email,
+        recipientName: nameOf(admin),
+        newAdminName: newAdmin.name?.trim() || newAdmin.email,
+        newAdminEmail: newAdmin.email,
+        byName: actor?.name?.trim() || actor?.email || 'An admin',
+        byEmail: actor?.email ?? '',
+        how,
+        previousRole,
+        when,
+      });
+    }
+  }
+
+  /** Run a notice email without holding up the response; failures are only logged. */
+  private background(what: string, task: () => Promise<unknown>) {
+    void Promise.resolve()
+      .then(task)
+      .catch((err) => this.logger.warn(`${what} failed: ${err?.message ?? err}`));
   }
 
   /** "Admin" for a built-in role, the label for a custom one ("Reviewer"). */
@@ -180,6 +234,18 @@ export class UsersService {
     }
 
     await this.prisma.user.delete({ where: { id } });
+
+    this.background(`Account removed email to ${user.email}`, async () => {
+      if (!this.mail.isConfigured) return;
+      const actor = await this.prisma.user.findUnique({ where: { id: actorId }, select: { email: true, name: true } });
+      await this.mail.sendAccountRemoved({
+        to: user.email,
+        recipientName: nameOf(user),
+        removedByName: actor?.name?.trim() || actor?.email || 'An admin',
+        removedByEmail: actor?.email ?? '',
+        when: new Date(),
+      });
+    });
     return { message: `User "${user.email}" deleted` };
   }
 
@@ -245,6 +311,8 @@ export class UsersService {
       }),
       this.prisma.passwordResetToken.updateMany({ where: { userId, used: false }, data: { used: true } }),
     ]);
+    this.background(`Password changed email to ${user.email}`, () =>
+      this.mail.sendPasswordChanged({ to: user.email, recipientName: nameOf(user), via: 'profile', when: new Date() }));
     return { message: 'Password updated successfully' };
   }
 }

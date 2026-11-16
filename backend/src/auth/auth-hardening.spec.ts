@@ -31,7 +31,11 @@ function setup() {
     $transaction: jest.fn(async (ops: any[]) => Promise.all(ops)),
   };
   const jwt: any = { sign: jest.fn((payload: any) => `token:${JSON.stringify(payload)}`), verify: jest.fn() };
-  const mail: any = { sendPasswordReset: jest.fn().mockResolvedValue(undefined) };
+  const mail: any = {
+    sendPasswordReset: jest.fn().mockResolvedValue(undefined),
+    sendPasswordChanged: jest.fn().mockResolvedValue(undefined),
+    sendTwoFactorChanged: jest.fn().mockResolvedValue(undefined),
+  };
   const roles: any = { resolve: jest.fn(async (role: string) => ({ role })) };
   const res: any = { cookie: jest.fn(), clearCookie: jest.fn() };
   return { prisma, jwt, res, service: new AuthService(prisma, jwt, mail, roles), mail };
@@ -100,6 +104,33 @@ describe('AuthService sign-in hardening', () => {
     expect(update.data.sessionVersion).toEqual({ increment: 1 });
     expect(bcrypt.getRounds(update.data.password)).toBe(12);
     expect(prisma.refreshToken.deleteMany).toHaveBeenCalledWith({ where: { userId: 1 } });
+  });
+
+  it('a forgot-password reset emails the owner; an invitation link setting a first password does not', async () => {
+    const { prisma, mail, service } = setup();
+    prisma.user.findUnique.mockResolvedValue({ email: 'a@test.com', name: 'Asha' });
+    const now = Date.now();
+    prisma.passwordResetToken.findUnique.mockResolvedValue({ id: 9, userId: 1, used: false, createdAt: new Date(now), expiresAt: new Date(now + 15 * 60_000) });
+    await service.resetPassword('raw', 'Blue-Mango-Kite-42');
+    expect(mail.sendPasswordChanged).toHaveBeenCalledWith(expect.objectContaining({ to: 'a@test.com', recipientName: 'Asha', via: 'reset-link' }));
+
+    mail.sendPasswordChanged.mockClear();
+    prisma.passwordResetToken.findUnique.mockResolvedValue({ id: 10, userId: 1, used: false, createdAt: new Date(now), expiresAt: new Date(now + 7 * 24 * 3600_000) });
+    await service.resetPassword('raw2', 'Blue-Mango-Kite-42');
+    expect(mail.sendPasswordChanged).not.toHaveBeenCalled();
+  });
+
+  it('turning 2FA on or off emails the owner, and a mail failure does not fail it', async () => {
+    const { prisma, mail, service } = setup();
+    const secret = 'JBSWY3DPEHPK3PXP';
+    prisma.user.update.mockResolvedValue({ id: 1, email: 'a@test.com', name: null, sessionVersion: 4 });
+    mail.sendTwoFactorChanged.mockRejectedValueOnce(new Error('SMTP down'));
+    await expect(service.enable2fa(1, secret, generateTotp(secret), ['h1'])).resolves.toMatchObject({ success: true });
+    expect(mail.sendTwoFactorChanged).toHaveBeenCalledWith(expect.objectContaining({ to: 'a@test.com', recipientName: 'a', enabled: true }));
+
+    prisma.user.findUnique.mockResolvedValue({ id: 1, email: 'a@test.com', twoFactorEnabled: true, twoFactorSecret: sealTotpSecret(secret), twoFactorRecovery: [] });
+    await service.disable2fa(1, generateTotp(secret));
+    expect(mail.sendTwoFactorChanged).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
   });
 
   it('refuses a common password on reset without using up the link', async () => {

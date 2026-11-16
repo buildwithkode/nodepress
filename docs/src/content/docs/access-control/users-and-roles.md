@@ -57,7 +57,7 @@ curl -X POST https://cms.example.com/api/users \
 On the **Users** page you can change a user's role from the role dropdown on their row, or delete the user.
 
 - The change applies on the user's next request. Their existing login stays valid.
-- If email is set up, the user gets an email saying who changed their role, from what to what. Replies go to the admin who changed it. Choosing the same role again sends nothing.
+- If email is set up, the user gets an email saying who changed their role, from what to what. Replies go to the admin who changed it. Choosing the same role again sends nothing. Making someone an admin also emails every other admin, and removing an account emails the person removed (see [Security emails](/access-control/authentication/#security-emails)).
 - You can't delete your own account.
 - You can't delete or demote the **last admin**. Promote someone else first.
 - Deleting a user stops their login tokens from working right away.

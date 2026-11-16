@@ -36,6 +36,9 @@ const mockPrisma = {
 const mockMail = {
   sendInvitation: jest.fn().mockResolvedValue(undefined),
   sendRoleChanged: jest.fn().mockResolvedValue(undefined),
+  sendPasswordChanged: jest.fn().mockResolvedValue(undefined),
+  sendAccountRemoved: jest.fn().mockResolvedValue(undefined),
+  sendNewAdmin: jest.fn().mockResolvedValue(undefined),
   isConfigured: true,
 };
 
@@ -196,6 +199,56 @@ describe('UsersService', () => {
 
   // ── non-admins with Users → Edit ───────────────────────────────────────────
 
+  describe('new admin alerts', () => {
+    const settle = () => new Promise((resolve) => setImmediate(resolve));
+
+    it('promoting someone to admin tells every other admin, the one who did it included', async () => {
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce(mockEditor)                                   // findOne
+        .mockResolvedValueOnce({ email: 'admin@test.com', name: 'Karthik' }) // role email: actor
+        .mockResolvedValueOnce({ email: 'admin@test.com', name: 'Karthik' }); // new admin email: actor
+      mockPrisma.user.update.mockResolvedValue({ ...mockEditor, role: 'admin', name: 'Utsav' });
+      mockPrisma.user.findMany.mockResolvedValue([
+        { email: 'admin@test.com', name: 'Karthik' },
+        { email: 'other@test.com', name: null },
+      ]);
+
+      await service.updateRole(2, { role: 'admin' }, 1);
+      await settle(); await settle();
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { role: 'admin', id: { not: 2 } } }));
+      expect(mockMail.sendNewAdmin).toHaveBeenCalledTimes(2);
+      expect(mockMail.sendNewAdmin).toHaveBeenCalledWith(expect.objectContaining({
+        to: 'other@test.com', recipientName: 'other', newAdminEmail: 'editor@test.com', newAdminName: 'Utsav',
+        byEmail: 'admin@test.com', how: 'promoted', previousRole: 'Editor',
+      }));
+    });
+
+    it('a change to a non-admin role sends no new admin alert', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce(mockEditor).mockResolvedValue({ email: 'admin@test.com', name: null });
+      mockPrisma.user.update.mockResolvedValue({ ...mockEditor, role: 'viewer' });
+      await service.updateRole(2, { role: 'viewer' }, 1);
+      await settle(); await settle();
+      expect(mockMail.sendNewAdmin).not.toHaveBeenCalled();
+    });
+
+    it('inviting an admin tells the existing admins', async () => {
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce(null)                                  // no existing account
+        .mockResolvedValueOnce({ id: 1 })                             // inviter by email
+        .mockResolvedValueOnce({ email: 'admin@test.com', name: null }); // inviter details
+      mockPrisma.user.create.mockResolvedValue({ id: 5, email: 'new@test.com', name: null, role: 'admin' });
+      mockPrisma.user.findMany.mockResolvedValue([{ email: 'admin@test.com', name: null }]);
+
+      await service.create({ email: 'new@test.com', role: 'admin' } as any, 'admin@test.com');
+      await settle(); await settle(); await settle();
+
+      expect(mockMail.sendNewAdmin).toHaveBeenCalledWith(expect.objectContaining({
+        to: 'admin@test.com', newAdminEmail: 'new@test.com', how: 'invited',
+      }));
+    });
+  });
+
   describe('a non-admin managing users', () => {
     const viewer = { ...mockEditor, id: 3, email: 'v@test.com', role: 'viewer' };
 
@@ -230,6 +283,18 @@ describe('UsersService', () => {
 
       const result = await service.remove(2, 1);
       expect(result.message).toContain('deleted');
+    });
+
+    it('emails the removed person, saying which admin removed them', async () => {
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce({ ...mockEditor, name: 'Utsav' })
+        .mockResolvedValueOnce({ email: 'admin@test.com', name: 'Karthik' });
+      mockPrisma.user.delete.mockResolvedValue(mockEditor);
+      await service.remove(2, 1);
+      await new Promise((r) => setImmediate(r));
+      expect(mockMail.sendAccountRemoved).toHaveBeenCalledWith(expect.objectContaining({
+        to: 'editor@test.com', recipientName: 'Utsav', removedByName: 'Karthik', removedByEmail: 'admin@test.com',
+      }));
     });
 
     it('throws ForbiddenException when deleting self', async () => {
@@ -310,6 +375,14 @@ describe('UsersService', () => {
 
       await service.changePassword(1, { currentPassword: 'Password123!', newPassword: 'NewPassword456!' });
       expect(mockPrisma.refreshToken.deleteMany).toHaveBeenLastCalledWith({ where: { userId: 1 } });
+    });
+
+    it('emails the owner that the password changed', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockAdmin);
+      mockPrisma.user.update.mockResolvedValue(mockAdmin);
+      await service.changePassword(1, { currentPassword: 'Password123!', newPassword: 'NewPassword456!' });
+      await new Promise((r) => setImmediate(r));
+      expect(mockMail.sendPasswordChanged).toHaveBeenCalledWith(expect.objectContaining({ to: 'admin@test.com', recipientName: 'admin', via: 'profile' }));
     });
 
     it('throws BadRequestException when current password is wrong', async () => {

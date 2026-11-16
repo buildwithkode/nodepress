@@ -98,10 +98,25 @@ Outside production, `forgot-password` also returns the link as `devResetUrl`, an
 npm run reset-password -- you@example.com
 ```
 
-It prints a new random password once (or pass your own as a second argument), makes the account an admin, turns its 2FA off and signs it out everywhere.
+It prints a new random password once (or pass your own as a second argument), makes the account an admin, turns its 2FA off and signs it out everywhere. If email is set up, the account's owner gets an email about it, and so do the other admins when the account wasn't an admin before.
 :::
 
 Signed-in users change their own password with `PUT /api/users/me/password` (`{ currentPassword, newPassword }`). Every session of the user ends; the response carries a new `access_token` and sets a new refresh cookie, so the browser that made the change stays signed in.
+
+## Security emails
+
+When email is set up, NodePress tells people about changes to their account. Each email is in the site's brand, says when it happened, and says what to do if it wasn't them.
+
+| What happened | Who gets the email |
+|---|---|
+| Password changed from **Profile**, or with a forgot-password link | The account's owner, with a **Reset your password** button. Setting a first password from an invitation sends nothing. |
+| Two-step sign-in turned on or off | The account's owner. The "off" email has a button to turn it back on. |
+| `npm run reset-password` run on the server | The account's owner (what the tool changed), and every other admin when the account wasn't already an admin |
+| An admin removes an account | The removed person, saying which admin did it. Replies go to that admin. |
+| Someone becomes an admin (invited as admin, or promoted) | Every other admin, including the one who did it, in case their account is the one being misused. Replies go to that admin. |
+| An admin changes someone's role | The person whose role changed (see [Users and roles](/access-control/users-and-roles/)) |
+
+The emails are sent in the background: a slow or failing mail server never delays or undoes the change. Without email set up, nothing is sent.
 
 ## Password rules and storage
 

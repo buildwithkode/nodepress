@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { env } from '../config/env';
 import { MailService } from './mail.service';
 import { BrandService } from '../brand/brand.service';
 
@@ -115,6 +116,70 @@ describe('MailService', () => {
       expect(mail.text).toContain('<b>Karthik</b> (karthik@example.com) changed your role');
       expect(mail.html).toContain('&lt;b&gt;Karthik&lt;/b&gt;');
       expect(mail.html).not.toContain('<b>Karthik</b>');
+    });
+  });
+
+  describe('account notices', () => {
+    const when = new Date('2026-11-16T10:05:00Z');
+    const savedSiteUrl = env.SITE_URL;
+    beforeEach(() => { (env as any).SITE_URL = 'https://cms.example.com'; });
+    afterEach(() => { (env as any).SITE_URL = savedSiteUrl; });
+
+    it('password changed: how and when, a reset button, names escaped', async () => {
+      await service.sendPasswordChanged({ to: 'a@example.com', recipientName: '<i>Asha</i>', via: 'profile', when });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.subject).toBe('Your password on NodePress was changed');
+      expect(mail.text).toContain('How: From your profile');
+      expect(mail.text).toContain('When: Mon, 16 Nov 2026 10:05 UTC');
+      expect(mail.text).toContain("Wasn't you? Reset your password: https://cms.example.com/forgot-password");
+      expect(mail.html).toContain('&lt;i&gt;Asha&lt;/i&gt;');
+      expect(mail.html).not.toContain('<i>Asha</i>');
+    });
+
+    it('two-step sign-in off points to the profile to turn it back on', async () => {
+      await service.sendTwoFactorChanged({ to: 'a@example.com', recipientName: 'Asha', enabled: false, when });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.subject).toBe('Two-step sign-in was turned off on NodePress');
+      expect(mail.text).toContain('Turn it back on:');
+      expect(mail.text).toContain('https://cms.example.com/profile');
+    });
+
+    it('server reset lists what the tool did', async () => {
+      await service.sendServerReset({ to: 'a@example.com', recipientName: 'Asha', twoFactorWasOn: true, when });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.subject).toBe('Your NodePress account was reset from the server');
+      expect(mail.text).toContain('Two-step sign-in: Turned off');
+      expect(mail.text).toContain('Sessions: Signed out everywhere');
+    });
+
+    it('account removed says who did it and replies go to them', async () => {
+      await service.sendAccountRemoved({ to: 'u@example.com', recipientName: 'Utsav', removedByName: 'Karthik', removedByEmail: 'k@example.com', when });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.subject).toBe('Your account on NodePress was removed');
+      expect(mail.text).toContain('Karthik (k@example.com) removed your account on NodePress.');
+      expect(mail.replyTo).toBe('k@example.com');
+    });
+
+    it('new admin: who made whom an admin, with the role before', async () => {
+      await service.sendNewAdmin({
+        to: 'other@example.com', recipientName: 'Priya', newAdminName: 'Utsav', newAdminEmail: 'u@example.com',
+        byName: 'Karthik', byEmail: 'k@example.com', how: 'promoted', previousRole: 'Editor', when,
+      });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.subject).toBe('New admin on NodePress: u@example.com');
+      expect(mail.text).toContain('Karthik (k@example.com) made Utsav (u@example.com) an admin on NodePress.');
+      expect(mail.text).toContain('Role before: Editor');
+      expect(mail.replyTo).toBe('k@example.com');
+    });
+
+    it('new admin from the server tool has no reply-to', async () => {
+      await service.sendNewAdmin({
+        to: 'other@example.com', recipientName: 'Priya', newAdminName: 'x@example.com', newAdminEmail: 'x@example.com',
+        byName: '', byEmail: '', how: 'server', when,
+      });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.text).toContain('The emergency reset tool on the server made x@example.com an admin');
+      expect(mail.replyTo).toBeUndefined();
     });
   });
 

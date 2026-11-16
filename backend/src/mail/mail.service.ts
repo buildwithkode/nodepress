@@ -32,6 +32,11 @@ export function smtpFromSaved(saved: unknown): SmtpConfig | null {
   };
 }
 
+/** "Mon, 16 Nov 2026 10:05 UTC" — emails go to people in any time zone. */
+function formatWhen(when: Date): string {
+  return when.toUTCString().replace(/:\d\d GMT$/, ' UTC');
+}
+
 /** Escape HTML so user-submitted form values can't break or inject markup in the email. */
 function escapeHtml(value: string): string {
   return value
@@ -158,6 +163,11 @@ export class MailService implements OnModuleInit {
   }
 
   onModuleInit() {
+    void this.start();
+  }
+
+  /** Pick up SMTP settings (env, else saved). Scripts outside Nest await this before sending. */
+  async start(): Promise<void> {
     if (env.SMTP_HOST) {
       this.apply(
         { host: env.SMTP_HOST, port: env.SMTP_PORT, secure: env.SMTP_SECURE === 'true', user: env.SMTP_USER, pass: env.SMTP_PASS, from: env.SMTP_FROM },
@@ -165,7 +175,12 @@ export class MailService implements OnModuleInit {
       );
       return;
     }
-    void this.loadSaved();
+    await this.loadSaved();
+  }
+
+  /** Close pooled connections so a script can exit. */
+  close(): void {
+    this.transporter?.close();
   }
 
   /** Settings saved from the admin — used only when SMTP_HOST isn't set. */
@@ -445,6 +460,206 @@ export class MailService implements OnModuleInit {
       `\nIf you didn't expect this, reply to this email or contact ${changedByName || changedByEmail}.`;
 
     await this.send({ to, subject, text, html, replyTo: changedByEmail || undefined });
+  }
+
+  // ─── Account notices (password, two-step sign-in, removal, new admins) ──────
+
+  /** Brand name, colour, header markup and the admin's address, shared by account notices. */
+  private async brandParts() {
+    const brand = await this.brand.get().catch(() => null);
+    const brandName = brand?.brandName || 'NodePress';
+    const brandColor = brand?.brandColor || '#4f46e5';
+    const appUrl = (env.APP_URL || '').replace(/\/$/, '');
+    const rawLogo = brand?.brandLogoUrl || undefined;
+    const logoUrl = rawLogo && rawLogo.startsWith('/') ? `${appUrl}${rawLogo}` : rawLogo;
+    const adminUrl = (env.SITE_URL || env.APP_URL || '').replace(/\/$/, '');
+    const header = logoUrl
+      ? `<img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brandName)}" style="max-height:40px;display:inline-block" />`
+      : `<span style="color: #e5e5e5;font-size:18px;font-weight:700;letter-spacing:0.2px">${escapeHtml(brandName)}</span>`;
+    return { brandName, brandColor, adminUrl, header };
+  }
+
+  /**
+   * One branded account notice. Every string is plain text and escaped here;
+   * `lead` parts marked `bold` are shown in bold.
+   */
+  private async sendNotice(notice: {
+    to: string;
+    subject: (brandName: string) => string;
+    recipientName: string;
+    lead: (brandName: string) => Array<string | { bold: string }>;
+    rows?: Array<{ label: string; value: string; strong?: boolean }>;
+    paragraphs?: string[];
+    button?: { label: string; path: string };
+    footnote: string;
+    replyTo?: string;
+    warning?: boolean;
+  }): Promise<void> {
+    if (!this.transporter) {
+      this.logger.warn(`[AccountNotice] No SMTP configured — skipping email to ${notice.to}`);
+      return;
+    }
+    const { brandName, brandColor, adminUrl, header } = await this.brandParts();
+    const subject = notice.subject(brandName);
+    const lead = notice.lead(brandName);
+    const leadHtml = lead.map((p) => (typeof p === 'string' ? escapeHtml(p) : `<strong>${escapeHtml(p.bold)}</strong>`)).join('');
+    const leadText = lead.map((p) => (typeof p === 'string' ? p : p.bold)).join('');
+    const rows = notice.rows ?? [];
+    const rowsHtml = rows.length
+      ? `<table style="width:100%;border-collapse:collapse;border:1px solid #e5e5e5;border-radius:6px;overflow:hidden;margin:0 0 16px"><tbody>${rows
+          .map((r) => `<tr>
+        <td style="padding:10px 14px;color:#777;white-space:nowrap;border-bottom:1px solid #f0f0f0;width:1%">${escapeHtml(r.label)}</td>
+        <td style="padding:10px 14px;color:#1a1a1a;border-bottom:1px solid #f0f0f0;${r.strong ? 'font-weight:700' : ''}">${escapeHtml(r.value)}</td>
+       </tr>`)
+          .join('')}</tbody></table>`
+      : '';
+    const paragraphs = notice.paragraphs ?? [];
+    const buttonUrl = notice.button && adminUrl ? `${adminUrl}${notice.button.path}` : '';
+    const buttonColor = notice.warning ? '#dc2626' : brandColor;
+
+    const html = `
+      <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;background:#ffffff">
+        <div style="background:${escapeHtml(brandColor)};padding:20px 24px;text-align:center">${header}</div>
+        <div style="padding:24px;color:#333;font-size:15px;line-height:1.5">
+          <p style="margin:0 0 12px">Hi ${escapeHtml(notice.recipientName)},</p>
+          <p style="margin:0 0 16px">${leadHtml}</p>
+          ${rowsHtml}
+          ${paragraphs.map((p) => `<p style="margin:0 0 16px;color:#555">${escapeHtml(p)}</p>`).join('')}
+          ${buttonUrl ? `<p style="margin:4px 0 20px"><a href="${escapeHtml(buttonUrl)}" style="background:${escapeHtml(buttonColor)};color:#fff;padding:11px 22px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">${escapeHtml(notice.button!.label)}</a></p>` : ''}
+          <p style="margin:0;color:#888;font-size:13px">${escapeHtml(notice.footnote)}</p>
+        </div>
+        <div style="padding:14px 24px;background:#fafafa;border-top:1px solid #f0f0f0">
+          <p style="color:#999;font-size:12px;margin:0">Sent by ${escapeHtml(brandName)}</p>
+        </div>
+      </div>`;
+
+    const text =
+      `Hi ${notice.recipientName},\n\n${leadText}\n\n` +
+      (rows.length ? rows.map((r) => `${r.label}: ${r.value}`).join('\n') + '\n\n' : '') +
+      (paragraphs.length ? paragraphs.join('\n\n') + '\n\n' : '') +
+      (buttonUrl ? `${notice.button!.label}: ${buttonUrl}\n\n` : '') +
+      notice.footnote;
+
+    await this.send({ to: notice.to, subject, text, html, replyTo: notice.replyTo || undefined });
+  }
+
+  /** Your password was changed — from Profile or with a reset link. */
+  async sendPasswordChanged(d: { to: string; recipientName: string; via: 'profile' | 'reset-link'; when: Date }): Promise<void> {
+    await this.sendNotice({
+      to: d.to,
+      subject: (b) => `Your password on ${b} was changed`,
+      recipientName: d.recipientName,
+      lead: (b) => ['The password for your account on ', { bold: b }, ' was just changed.'],
+      rows: [
+        { label: 'Account', value: d.to },
+        { label: 'How', value: d.via === 'profile' ? 'From your profile' : 'With a password reset link' },
+        { label: 'When', value: formatWhen(d.when) },
+      ],
+      paragraphs: ['You were signed out on your other devices.'],
+      button: { label: "Wasn't you? Reset your password", path: '/forgot-password' },
+      footnote: "If you made this change, you don't need to do anything. If you didn't, reset your password now and tell an admin.",
+      warning: true,
+    });
+  }
+
+  /** Two-step sign-in was turned on or off for your account. */
+  async sendTwoFactorChanged(d: { to: string; recipientName: string; enabled: boolean; when: Date }): Promise<void> {
+    await this.sendNotice({
+      to: d.to,
+      subject: (b) => `Two-step sign-in was turned ${d.enabled ? 'on' : 'off'} on ${b}`,
+      recipientName: d.recipientName,
+      lead: (b) => ['Two-step sign-in was turned ', { bold: d.enabled ? 'on' : 'off' }, ' for your account on ', { bold: b }, '.'],
+      rows: [
+        { label: 'Account', value: d.to },
+        { label: 'When', value: formatWhen(d.when) },
+      ],
+      paragraphs: d.enabled
+        ? ['From now on you sign in with your password and a code from your authenticator app. Keep your recovery codes somewhere safe.']
+        : ['Your account is now protected by your password alone. We recommend turning two-step sign-in back on from your profile.'],
+      button: d.enabled
+        ? { label: "Wasn't you? Reset your password", path: '/forgot-password' }
+        : { label: 'Turn it back on', path: '/profile' },
+      footnote: d.enabled
+        ? "If you turned it on, you don't need to do anything. If you didn't, reset your password now and tell an admin."
+        : "If you turned it off, you don't need to do anything. If you didn't, reset your password now and tell an admin — someone may have your password.",
+      warning: !d.enabled,
+    });
+  }
+
+  /** The emergency reset tool (npm run reset-password) was run on the server for your account. */
+  async sendServerReset(d: { to: string; recipientName: string; twoFactorWasOn: boolean; when: Date }): Promise<void> {
+    await this.sendNotice({
+      to: d.to,
+      subject: (b) => `Your ${b} account was reset from the server`,
+      recipientName: d.recipientName,
+      lead: (b) => ["Someone with access to the server running ", { bold: b }, ' used the emergency reset tool on your account.'],
+      rows: [
+        { label: 'Account', value: d.to },
+        { label: 'Password', value: 'Replaced' },
+        { label: 'Two-step sign-in', value: d.twoFactorWasOn ? 'Turned off' : 'Was already off' },
+        { label: 'Role', value: 'Admin' },
+        { label: 'Sessions', value: 'Signed out everywhere' },
+        { label: 'When', value: formatWhen(d.when) },
+      ],
+      paragraphs: ['Sign in with the new password, change it from your profile and turn two-step sign-in back on.'],
+      button: { label: 'Open your profile', path: '/profile' },
+      footnote: "If you didn't ask for this, contact whoever runs the server — someone there can change any account.",
+      warning: true,
+    });
+  }
+
+  /** An admin removed your account. Replies go to that admin. */
+  async sendAccountRemoved(d: { to: string; recipientName: string; removedByName: string; removedByEmail: string; when: Date }): Promise<void> {
+    const by = d.removedByName && d.removedByName !== d.removedByEmail ? `${d.removedByName} (${d.removedByEmail})` : d.removedByEmail || 'An admin';
+    await this.sendNotice({
+      to: d.to,
+      subject: (b) => `Your account on ${b} was removed`,
+      recipientName: d.recipientName,
+      lead: (b) => [{ bold: by }, ' removed your account on ', { bold: b }, '.'],
+      rows: [
+        { label: 'Account', value: d.to },
+        { label: 'When', value: formatWhen(d.when) },
+      ],
+      paragraphs: ["You can no longer sign in. Content you created stays on the site."],
+      footnote: `If you think this is a mistake, reply to this email or contact ${d.removedByName || d.removedByEmail || 'an admin'}.`,
+      replyTo: d.removedByEmail,
+    });
+  }
+
+  /** Sent to every admin when someone becomes an admin. */
+  async sendNewAdmin(d: {
+    to: string;
+    recipientName: string;
+    newAdminName: string;
+    newAdminEmail: string;
+    byName: string;
+    byEmail: string;
+    how: 'invited' | 'promoted' | 'server';
+    previousRole?: string;
+    when: Date;
+  }): Promise<void> {
+    const by = d.how === 'server'
+      ? 'The emergency reset tool on the server'
+      : d.byName && d.byName !== d.byEmail ? `${d.byName} (${d.byEmail})` : d.byEmail || 'An admin';
+    const who = d.newAdminName && d.newAdminName !== d.newAdminEmail ? `${d.newAdminName} (${d.newAdminEmail})` : d.newAdminEmail;
+    const verb = d.how === 'invited' ? ' invited ' : ' made ';
+    const tail = d.how === 'invited' ? ' as an admin on ' : ' an admin on ';
+    await this.sendNotice({
+      to: d.to,
+      subject: (b) => `New admin on ${b}: ${d.newAdminEmail}`,
+      recipientName: d.recipientName,
+      lead: (b) => [{ bold: by }, verb, { bold: who }, tail, { bold: b }, '.'],
+      rows: [
+        { label: 'New admin', value: d.newAdminEmail },
+        ...(d.previousRole ? [{ label: 'Role before', value: d.previousRole }] : []),
+        { label: 'When', value: formatWhen(d.when) },
+      ],
+      paragraphs: ['Admins can change every setting, every user and every piece of content. Every admin gets this email.'],
+      button: { label: 'Review users', path: '/users' },
+      footnote: "If you expected this, you don't need to do anything. If not, check the Users page and the audit log now.",
+      replyTo: d.how === 'server' ? undefined : d.byEmail,
+      warning: true,
+    });
   }
 
   /**

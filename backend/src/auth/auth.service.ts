@@ -226,6 +226,7 @@ export class AuthService implements OnModuleInit {
       },
     });
     await this.endOtherRefreshSessions(userId, keepRefreshToken);
+    this.notifyTwoFactor(user, true);
 
     return {
       success: true,
@@ -260,12 +261,20 @@ export class AuthService implements OnModuleInit {
       },
     });
     await this.endOtherRefreshSessions(userId, keepRefreshToken);
+    this.notifyTwoFactor(updated, false);
 
     return {
       success: true,
       message: 'Two-Factor Authentication disabled successfully',
       access_token: await this.signAccessToken(updated),
     };
+  }
+
+  /** Email the account's owner that two-step sign-in changed, in the background. */
+  private notifyTwoFactor(user: { email: string; name?: string | null }, enabled: boolean) {
+    this.mail
+      .sendTwoFactorChanged({ to: user.email, recipientName: user.name?.trim() || user.email.split('@')[0], enabled, when: new Date() })
+      .catch((err: any) => this.logger.warn(`Two-step sign-in email to ${user.email} failed: ${err?.message ?? err}`));
   }
 
   async get2faStatus(userId: number) {
@@ -378,7 +387,7 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Invalid or expired reset token');
     }
 
-    const owner = await this.prisma.user.findUnique({ where: { id: record.userId }, select: { email: true } });
+    const owner = await this.prisma.user.findUnique({ where: { id: record.userId }, select: { email: true, name: true } });
     await assertAcceptablePassword(newPassword, owner?.email);
 
     const hashed = await hashPassword(newPassword);
@@ -392,6 +401,15 @@ export class AuthService implements OnModuleInit {
       this.prisma.passwordResetToken.update({ where: { id: record.id }, data: { used: true } }),
       this.prisma.refreshToken.deleteMany({ where: { userId: record.userId } }),
     ]);
+
+    // An invitation link (7 days) sets a first password — nothing to warn about.
+    // A forgot-password link (15 minutes) changes an existing one.
+    const isInvite = new Date(record.expiresAt).getTime() - new Date(record.createdAt).getTime() > 60 * 60 * 1000;
+    if (owner && !isInvite) {
+      this.mail
+        .sendPasswordChanged({ to: owner.email, recipientName: owner.name?.trim() || owner.email.split('@')[0], via: 'reset-link', when: new Date() })
+        .catch((err: any) => this.logger.warn(`Password changed email to ${owner.email} failed: ${err?.message ?? err}`));
+    }
 
     return { message: 'Password updated successfully' };
   }
