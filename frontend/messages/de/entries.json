@@ -80,8 +80,9 @@
     "localeAdd": "{language}-Übersetzung hinzufügen",
     "languages": "Sprachen",
     "changeStatus": "Status von {slug} ändern",
-    "statusLanguageOnly": "Ändert nur die {language}-Version",
-    "statusCancelsSchedule": "Ein neuer Status hebt die geplante Veröffentlichung auf"
+    "statusLanguageOnly": "Ändert nur {language}. Andere Sprachen behalten ihren Status:",
+    "statusCancelsSchedule": "Ein neuer Status hebt die geplante Veröffentlichung auf",
+    "otherLanguageStatus": "{language}: {status}"
   },
   "actions": {
     "restore": "Wiederherstellen",
@@ -150,6 +151,16 @@
     "copyUrlFailed": "URL konnte nicht kopiert werden",
     "translationCreated": "{language}-Übersetzung als Entwurf erstellt",
     "translationFailed": "Übersetzung konnte nicht erstellt werden",
-    "statusChanged": "{slug} ist jetzt: {status}"
+    "statusChanged": "{slug} ist jetzt: {status}",
+    "undo": "Rückgängig"
+  },
+  "statusConfirm": {
+    "publishTitle": "{slug} auf der Website veröffentlichen?",
+    "publishDescription": "Besucher sehen diese Version sofort.",
+    "unpublishTitle": "{slug} von der Website nehmen?",
+    "unpublishDescription": "Der Eintrag wechselt zu {status} und ist für Besucher nicht mehr sichtbar.",
+    "languageOnly": "Nur die {language}-Version ändert sich.",
+    "publish": "Veröffentlichen",
+    "unpublish": "Zu {status} wechseln"
   }
 }

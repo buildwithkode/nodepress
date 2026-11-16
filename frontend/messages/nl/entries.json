@@ -80,8 +80,9 @@
     "localeAdd": "Een {language} vertaling toevoegen",
     "languages": "Talen",
     "changeStatus": "Status van {slug} wijzigen",
-    "statusLanguageOnly": "Wijzigt alleen de {language} versie",
-    "statusCancelsSchedule": "Een status kiezen annuleert de geplande publicatie"
+    "statusLanguageOnly": "Wijzigt alleen {language}. Andere talen houden hun eigen status:",
+    "statusCancelsSchedule": "Een status kiezen annuleert de geplande publicatie",
+    "otherLanguageStatus": "{language}: {status}"
   },
   "actions": {
     "restore": "Terugzetten",
@@ -150,6 +151,16 @@
     "copyUrlFailed": "Kon URL niet kopiëren",
     "translationCreated": "{language} vertaling als concept aangemaakt",
     "translationFailed": "Vertaling kon niet worden aangemaakt",
-    "statusChanged": "{slug} is nu: {status}"
+    "statusChanged": "{slug} is nu: {status}",
+    "undo": "Ongedaan maken"
+  },
+  "statusConfirm": {
+    "publishTitle": "{slug} op de website publiceren?",
+    "publishDescription": "Bezoekers zien deze versie meteen.",
+    "unpublishTitle": "{slug} van de website halen?",
+    "unpublishDescription": "Het gaat naar {status} en bezoekers zien het niet meer.",
+    "languageOnly": "Alleen de {language} versie verandert.",
+    "publish": "Publiceren",
+    "unpublish": "Naar {status}"
   }
 }

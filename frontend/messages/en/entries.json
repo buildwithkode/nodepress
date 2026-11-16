@@ -80,8 +80,9 @@
     "localeAdd": "Add a {language} translation",
     "languages": "Languages",
     "changeStatus": "Change the status of {slug}",
-    "statusLanguageOnly": "Changes the {language} version only",
-    "statusCancelsSchedule": "Picking a status cancels the scheduled publish"
+    "statusLanguageOnly": "Changes {language} only. Other languages keep their own status:",
+    "statusCancelsSchedule": "Picking a status cancels the scheduled publish",
+    "otherLanguageStatus": "{language}: {status}"
   },
   "actions": {
     "restore": "Restore",
@@ -150,6 +151,16 @@
     "copyUrlFailed": "Could not copy URL",
     "translationCreated": "{language} translation created as a draft",
     "translationFailed": "Couldn't create the translation",
-    "statusChanged": "{slug} is now {status}"
+    "statusChanged": "{slug} is now {status}",
+    "undo": "Undo"
+  },
+  "statusConfirm": {
+    "publishTitle": "Publish {slug} to the live site?",
+    "publishDescription": "Visitors will see this version straight away.",
+    "unpublishTitle": "Take {slug} off the live site?",
+    "unpublishDescription": "It moves to {status} and visitors stop seeing it.",
+    "languageOnly": "Only the {language} version changes.",
+    "publish": "Publish",
+    "unpublish": "Move to {status}"
   }
 }

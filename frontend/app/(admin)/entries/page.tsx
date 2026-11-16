@@ -409,12 +409,32 @@ export default function EntriesPage() {
     ...(canPublish ? ['staging', 'published', 'archived'] : []),
   ];
   const [changingStatus, setChangingStatus] = useState<number | null>(null);
-  const handleStatusChange = async (entry: Entry, value: string) => {
+  // Moving onto or off the live site asks first; other moves are instant
+  const [confirmStatus, setConfirmStatus] = useState<{ entry: Entry; value: string } | null>(null);
+  const statusName = (value: string) => {
+    const meta = STATUS_LABELS[value] ?? STATUS_LABELS.published;
+    return meta.commonKey ? tc(meta.commonKey) : t(meta.labelKey!);
+  };
+  const pickStatus = (entry: Entry, value: string) => {
+    if (value !== entry.status && (value === 'published' || entry.status === 'published')) {
+      setConfirmStatus({ entry, value });
+    } else {
+      handleStatusChange(entry, value);
+    }
+  };
+  const handleStatusChange = async (entry: Entry, value: string, isUndo = false) => {
+    const previous = entry.status;
     setChangingStatus(entry.id);
     try {
       await api.post(`/entries/${entry.id}/promote`, { status: value });
-      const meta = STATUS_LABELS[value];
-      toast.success(t('toasts.statusChanged', { slug: entry.slug, status: meta.commonKey ? tc(meta.commonKey) : t(meta.labelKey!) }));
+      // Undo puts the old status back; a cancelled schedule can't be restored this way, so no undo then
+      const canUndo = !isUndo && previous !== value && !entry.publishAt;
+      toast.success(t('toasts.statusChanged', { slug: entry.slug, status: statusName(value) }), canUndo ? {
+        action: {
+          label: t('toasts.undo'),
+          onClick: () => handleStatusChange({ ...entry, status: value, publishAt: null }, previous, true),
+        },
+      } : undefined);
       await refreshEntries(false);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || t('toasts.promoteFailed'));
@@ -1188,10 +1208,16 @@ export default function EntriesPage() {
                             : <ChevronDown className="h-3 w-3 text-muted-foreground opacity-60 transition-opacity group-hover:opacity-100" />}
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-52">
+                      <DropdownMenuContent align="start" className="w-60">
                         {grouped && (entry.translationEntries?.length ?? 0) > 1 && (
-                          <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground">
-                            {t('table.statusLanguageOnly', { language: localeLabel(entry.locale || localesConfig?.defaultLocale || 'en') })}
+                          <DropdownMenuLabel className="space-y-1 text-[11px] font-normal text-muted-foreground">
+                            <p>{t('table.statusLanguageOnly', { language: localeLabel(entry.locale || localesConfig?.defaultLocale || 'en') })}</p>
+                            {entry.translationEntries!.filter((tr) => tr.id !== entry.id).map((tr) => (
+                              <p key={tr.id} className="flex items-center gap-1.5">
+                                <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', STATUS_DOT[tr.status] ?? STATUS_DOT.draft)} aria-hidden="true" />
+                                {t('table.otherLanguageStatus', { language: localeLabel(tr.locale), status: statusName(tr.status) })}
+                              </p>
+                            ))}
                           </DropdownMenuLabel>
                         )}
                         {entry.status === 'draft' && entry.publishAt && (
@@ -1206,7 +1232,7 @@ export default function EntriesPage() {
                             <DropdownMenuItem
                               key={value}
                               className="gap-2 text-sm"
-                              onSelect={() => { if (!current || entry.publishAt) handleStatusChange(entry, value); }}
+                              onSelect={() => { if (!current || entry.publishAt) pickStatus(entry, value); }}
                             >
                               <span className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT[value])} aria-hidden="true" />
                               <span className="flex-1">{meta.commonKey ? tc(meta.commonKey) : t(meta.labelKey!)}</span>
@@ -1574,6 +1600,38 @@ export default function EntriesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!confirmStatus} onOpenChange={(o) => { if (!o) setConfirmStatus(null); }}>
+        <AlertDialogContent>
+          {confirmStatus && (() => {
+            const goingLive = confirmStatus.value === 'published';
+            const language = (confirmStatus.entry.translationEntries?.length ?? 0) > 1
+              ? localeLabel(confirmStatus.entry.locale || localesConfig?.defaultLocale || 'en')
+              : null;
+            const vars = { slug: confirmStatus.entry.slug, status: statusName(confirmStatus.value) };
+            return (
+              <>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{goingLive ? t('statusConfirm.publishTitle', vars) : t('statusConfirm.unpublishTitle', vars)}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {goingLive ? t('statusConfirm.publishDescription', vars) : t('statusConfirm.unpublishDescription', vars)}
+                    {language && <> {t('statusConfirm.languageOnly', { language })}</>}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    variant={goingLive ? 'default' : 'destructive'}
+                    onClick={() => { const c = confirmStatus; setConfirmStatus(null); handleStatusChange(c.entry, c.value); }}
+                  >
+                    {goingLive ? t('statusConfirm.publish') : t('statusConfirm.unpublish', vars)}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </>
+            );
+          })()}
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

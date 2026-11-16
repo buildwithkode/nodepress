@@ -80,8 +80,9 @@
     "localeAdd": "添加{language}翻译",
     "languages": "语言",
     "changeStatus": "更改 {slug} 的状态",
-    "statusLanguageOnly": "仅更改{language}版本",
-    "statusCancelsSchedule": "选择状态将取消定时发布"
+    "statusLanguageOnly": "仅更改{language}。其他语言保持各自的状态：",
+    "statusCancelsSchedule": "选择状态将取消定时发布",
+    "otherLanguageStatus": "{language}：{status}"
   },
   "actions": {
     "restore": "恢复",
@@ -150,6 +151,16 @@
     "copyUrlFailed": "无法复制 URL",
     "translationCreated": "已创建{language}翻译草稿",
     "translationFailed": "无法创建翻译",
-    "statusChanged": "{slug} 现在为：{status}"
+    "statusChanged": "{slug} 现在为：{status}",
+    "undo": "撤销"
+  },
+  "statusConfirm": {
+    "publishTitle": "将 {slug} 发布到网站？",
+    "publishDescription": "访客会立即看到此版本。",
+    "unpublishTitle": "将 {slug} 从网站撤下？",
+    "unpublishDescription": "它将变为{status}，访客将无法再看到。",
+    "languageOnly": "仅更改{language}版本。",
+    "publish": "发布",
+    "unpublish": "改为{status}"
   }
 }

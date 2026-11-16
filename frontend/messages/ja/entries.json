@@ -80,8 +80,9 @@
     "localeAdd": "{language}の翻訳を追加",
     "languages": "言語",
     "changeStatus": "{slug} のステータスを変更",
-    "statusLanguageOnly": "{language}版のみ変更されます",
-    "statusCancelsSchedule": "ステータスを選ぶと予約公開は取り消されます"
+    "statusLanguageOnly": "{language}のみ変更されます。他の言語はそれぞれのステータスのままです：",
+    "statusCancelsSchedule": "ステータスを選ぶと予約公開は取り消されます",
+    "otherLanguageStatus": "{language}：{status}"
   },
   "actions": {
     "restore": "復元",
@@ -150,6 +151,16 @@
     "copyUrlFailed": "URL をコピーできませんでした",
     "translationCreated": "{language}の翻訳を下書きとして作成しました",
     "translationFailed": "翻訳を作成できませんでした",
-    "statusChanged": "{slug} は「{status}」になりました"
+    "statusChanged": "{slug} は「{status}」になりました",
+    "undo": "元に戻す"
+  },
+  "statusConfirm": {
+    "publishTitle": "{slug} をサイトに公開しますか？",
+    "publishDescription": "訪問者にすぐにこのバージョンが表示されます。",
+    "unpublishTitle": "{slug} をサイトから外しますか？",
+    "unpublishDescription": "「{status}」になり、訪問者には表示されなくなります。",
+    "languageOnly": "{language}版のみ変更されます。",
+    "publish": "公開",
+    "unpublish": "「{status}」にする"
   }
 }

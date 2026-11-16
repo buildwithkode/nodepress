@@ -80,8 +80,9 @@
     "localeAdd": "Añadir una traducción al {language}",
     "languages": "Idiomas",
     "changeStatus": "Cambiar el estado de {slug}",
-    "statusLanguageOnly": "Solo cambia la versión en {language}",
-    "statusCancelsSchedule": "Elegir un estado cancela la publicación programada"
+    "statusLanguageOnly": "Solo cambia {language}. Los demás idiomas mantienen su estado:",
+    "statusCancelsSchedule": "Elegir un estado cancela la publicación programada",
+    "otherLanguageStatus": "{language}: {status}"
   },
   "actions": {
     "restore": "Restaurar",
@@ -150,6 +151,16 @@
     "copyUrlFailed": "No se pudo copiar la URL",
     "translationCreated": "Traducción al {language} creada como borrador",
     "translationFailed": "No se pudo crear la traducción",
-    "statusChanged": "{slug} ahora está en: {status}"
+    "statusChanged": "{slug} ahora está en: {status}",
+    "undo": "Deshacer"
+  },
+  "statusConfirm": {
+    "publishTitle": "¿Publicar {slug} en el sitio?",
+    "publishDescription": "Los visitantes verán esta versión de inmediato.",
+    "unpublishTitle": "¿Quitar {slug} del sitio?",
+    "unpublishDescription": "Pasa a {status} y los visitantes dejan de verla.",
+    "languageOnly": "Solo cambia la versión en {language}.",
+    "publish": "Publicar",
+    "unpublish": "Pasar a {status}"
   }
 }
