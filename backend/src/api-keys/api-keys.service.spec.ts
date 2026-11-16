@@ -4,6 +4,7 @@ import { NotFoundException } from '@nestjs/common';
 import { ApiKeysService } from './api-keys.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
+import { MailService } from '../mail/mail.service';
 
 const mockPrisma = {
   apiKey: {
@@ -139,5 +140,50 @@ describe('ApiKeysService', () => {
     const select = mockPrisma.apiKey.findMany.mock.calls[0][0].select;
     expect(select.prefix).toBe(true);
     expect(select.key).toBeUndefined();
+  });
+});
+
+describe('ApiKeysService.announce()', () => {
+  const settle = () => new Promise((resolve) => setImmediate(resolve));
+  const prisma: any = {
+    user: {
+      findMany: jest.fn().mockResolvedValue([{ email: 'a@test.com', name: 'Asha' }, { email: 'b@test.com', name: null }]),
+      findUnique: jest.fn().mockResolvedValue({ email: 'a@test.com', name: 'Asha' }),
+    },
+  };
+  const mail: any = { isConfigured: true, sendApiKeyChanged: jest.fn().mockResolvedValue(undefined) };
+
+  beforeEach(() => jest.clearAllMocks());
+
+  it('emails every admin which key, what access and who did it', async () => {
+    const service = new ApiKeysService(prisma, mockCache as any, mail as MailService);
+    service.announce('created', { name: 'Website', prefix: 'np_1a2…9f0e', permissions: { access: 'all', contentTypes: ['blog', 'pages'] } }, { id: 1, email: 'a@test.com' });
+    await settle(); await settle();
+    expect(prisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { role: 'admin' } }));
+    expect(mail.sendApiKeyChanged).toHaveBeenCalledTimes(2);
+    expect(mail.sendApiKeyChanged).toHaveBeenCalledWith(expect.objectContaining({
+      to: 'b@test.com', recipientName: 'b', action: 'created', keyName: 'Website', keyPrefix: 'np_1a2…9f0e',
+      access: 'Read and write (all)', contentTypes: 'blog, pages', byName: 'Asha', byEmail: 'a@test.com',
+    }));
+  });
+
+  it('shows every content type as "All", and sends nothing without email', async () => {
+    const service = new ApiKeysService(prisma, mockCache as any, mail as MailService);
+    service.announce('deleted', { name: 'Old', prefix: null, permissions: { access: 'read', contentTypes: ['*'] } }, { id: 1 });
+    await settle(); await settle();
+    expect(mail.sendApiKeyChanged).toHaveBeenCalledWith(expect.objectContaining({ action: 'deleted', access: 'Read only', contentTypes: 'All', keyPrefix: '—' }));
+
+    mail.sendApiKeyChanged.mockClear();
+    const off = new ApiKeysService(prisma, mockCache as any, { ...mail, isConfigured: false } as MailService);
+    off.announce('created', { name: 'X', permissions: {} }, { id: 1 });
+    await settle(); await settle();
+    expect(mail.sendApiKeyChanged).not.toHaveBeenCalled();
+  });
+
+  it('a mail failure is only logged', async () => {
+    mail.sendApiKeyChanged.mockRejectedValueOnce(new Error('SMTP down'));
+    const service = new ApiKeysService(prisma, mockCache as any, mail as MailService);
+    expect(() => service.announce('created', { name: 'X', permissions: {} }, { id: 1 })).not.toThrow();
+    await settle(); await settle();
   });
 });

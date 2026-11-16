@@ -172,6 +172,36 @@ describe('MailService', () => {
       expect(mail.replyTo).toBe('k@example.com');
     });
 
+    it('signed out everywhere offers a password reset', async () => {
+      await service.sendSignedOutEverywhere({ to: 'a@example.com', recipientName: 'Asha', when });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.subject).toBe('You were signed out on all devices on NodePress');
+      expect(mail.text).toContain('https://cms.example.com/forgot-password');
+    });
+
+    it('invite accepted says who joined, with which role', async () => {
+      await service.sendInviteAccepted({
+        to: 'k@example.com', recipientName: 'Karthik', memberName: 'Utsav', memberEmail: 'u@example.com', role: 'Editor', sentByRecipient: true, when,
+      });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.subject).toBe('u@example.com can now sign in to NodePress');
+      expect(mail.text).toContain('Utsav (u@example.com) set a password with the invitation link you sent');
+      expect(mail.text).toContain('Role: Editor');
+    });
+
+    it('API key created lists the key, access and who did it, with names escaped', async () => {
+      await service.sendApiKeyChanged({
+        to: 'b@example.com', recipientName: 'Priya', action: 'created', keyName: '<script>x</script>', keyPrefix: 'np_1a2…9f0e',
+        access: 'Read only', contentTypes: 'All', byName: 'Karthik', byEmail: 'k@example.com', when,
+      });
+      const mail = mockSendMail.mock.calls[0][0];
+      expect(mail.subject).toBe('API key created on NodePress: <script>x</script>');
+      expect(mail.text).toContain('Karthik (k@example.com) created an API key on NodePress.');
+      expect(mail.text).toContain('Key: np_1a2…9f0e');
+      expect(mail.html).not.toContain('<script>');
+      expect(mail.replyTo).toBe('k@example.com');
+    });
+
     it('new admin from the server tool has no reply-to', async () => {
       await service.sendNewAdmin({
         to: 'other@example.com', recipientName: 'Priya', newAdminName: 'x@example.com', newAdminEmail: 'x@example.com',

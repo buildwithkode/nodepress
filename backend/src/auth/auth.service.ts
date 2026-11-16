@@ -17,6 +17,7 @@ import { LoginDto } from './dto/login.dto';
 import {
   assertAcceptablePassword, hashPassword, needsRehash, verifyAgainstDummy, verifyPassword,
 } from './password';
+import { isBuiltInRole } from '../roles/roles.constants';
 import { hashToken } from './token-hash';
 import { isSealedTotpSecret, readTotpSecret, sealTotpSecret } from './totp-secret';
 
@@ -270,6 +271,42 @@ export class AuthService implements OnModuleInit {
     };
   }
 
+  /**
+   * Someone set a password with an invitation link: tell whoever sent the
+   * latest invite (from the audit log), or every admin when that person is gone.
+   */
+  private async notifyInviteAccepted(userId: number, member: { email: string; name?: string | null; role: string }) {
+    if (!this.mail.isConfigured) return;
+    const sent = await this.prisma.auditLog.findFirst({
+      where: { resource: 'user', resourceId: String(userId), action: { in: ['created', 'invited'] }, userId: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      select: { userId: true },
+    });
+    const inviter = sent?.userId
+      ? await this.prisma.user.findUnique({ where: { id: sent.userId }, select: { id: true, email: true, name: true } })
+      : null;
+    const recipients = inviter && inviter.id !== userId
+      ? [inviter]
+      : await this.prisma.user.findMany({ where: { role: 'admin', id: { not: userId } }, select: { email: true, name: true } });
+
+    const custom = isBuiltInRole(member.role)
+      ? null
+      : await this.prisma.role.findUnique({ where: { name: member.role }, select: { label: true } });
+    const role = custom?.label || member.role.charAt(0).toUpperCase() + member.role.slice(1);
+    const when = new Date();
+    for (const r of recipients) {
+      await this.mail.sendInviteAccepted({
+        to: r.email,
+        recipientName: r.name?.trim() || r.email.split('@')[0],
+        memberName: member.name?.trim() || member.email,
+        memberEmail: member.email,
+        role,
+        sentByRecipient: !!inviter && r.email === inviter.email,
+        when,
+      });
+    }
+  }
+
   /** Email the account's owner that two-step sign-in changed, in the background. */
   private notifyTwoFactor(user: { email: string; name?: string | null }, enabled: boolean) {
     this.mail
@@ -329,6 +366,11 @@ export class AuthService implements OnModuleInit {
       this.prisma.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } }),
       this.prisma.refreshToken.deleteMany({ where: { userId } }),
     ]);
+    void (async () => {
+      const u = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+      if (u) await this.mail.sendSignedOutEverywhere({ to: u.email, recipientName: u.name?.trim() || u.email.split('@')[0], when: new Date() });
+    })()
+      .catch((err: any) => this.logger.warn(`Signed out everywhere email failed: ${err?.message ?? err}`));
     this.clearRefreshCookie(res);
     return { message: 'Signed out on all devices' };
   }
@@ -387,7 +429,7 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Invalid or expired reset token');
     }
 
-    const owner = await this.prisma.user.findUnique({ where: { id: record.userId }, select: { email: true, name: true } });
+    const owner = await this.prisma.user.findUnique({ where: { id: record.userId }, select: { email: true, name: true, role: true } });
     await assertAcceptablePassword(newPassword, owner?.email);
 
     const hashed = await hashPassword(newPassword);
@@ -409,6 +451,10 @@ export class AuthService implements OnModuleInit {
       this.mail
         .sendPasswordChanged({ to: owner.email, recipientName: owner.name?.trim() || owner.email.split('@')[0], via: 'reset-link', when: new Date() })
         .catch((err: any) => this.logger.warn(`Password changed email to ${owner.email} failed: ${err?.message ?? err}`));
+    }
+    if (owner && isInvite) {
+      void this.notifyInviteAccepted(record.userId, owner)
+        .catch((err: any) => this.logger.warn(`Invite accepted email for ${owner.email} failed: ${err?.message ?? err}`));
     }
 
     return { message: 'Password updated successfully' };

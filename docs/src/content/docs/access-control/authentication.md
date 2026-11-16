@@ -111,9 +111,12 @@ When email is set up, NodePress tells people about changes to their account. Eac
 |---|---|
 | Password changed from **Profile**, or with a forgot-password link | The account's owner, with a **Reset your password** button. Setting a first password from an invitation sends nothing. |
 | Two-step sign-in turned on or off | The account's owner. The "off" email has a button to turn it back on. |
+| **Sign out on all devices** used from Profile | The account's owner, with a **Reset your password** button in case it wasn't them |
 | `npm run reset-password` run on the server | The account's owner (what the tool changed), and every other admin when the account wasn't already an admin |
 | An admin removes an account | The removed person, saying which admin did it. Replies go to that admin. |
 | Someone becomes an admin (invited as admin, or promoted) | Every other admin, including the one who did it, in case their account is the one being misused. Replies go to that admin. |
+| Someone sets a password with an invitation link | Whoever sent the latest invitation for that account (from the audit log), or every admin if that person is gone |
+| An API key is created or deleted | Every admin: the key's name, its short prefix (never the key itself), access, content types and who did it |
 | An admin changes someone's role | The person whose role changed (see [Users and roles](/access-control/users-and-roles/)) |
 
 The emails are sent in the background: a slow or failing mail server never delays or undoes the change. Without email set up, nothing is sent.

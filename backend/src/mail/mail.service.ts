@@ -626,6 +626,92 @@ export class MailService implements OnModuleInit {
     });
   }
 
+  /** You signed out on every device from your profile. */
+  async sendSignedOutEverywhere(d: { to: string; recipientName: string; when: Date }): Promise<void> {
+    await this.sendNotice({
+      to: d.to,
+      subject: (b) => `You were signed out on all devices on ${b}`,
+      recipientName: d.recipientName,
+      lead: (b) => ['Your account on ', { bold: b }, ' was signed out on every device and browser.'],
+      rows: [
+        { label: 'Account', value: d.to },
+        { label: 'When', value: formatWhen(d.when) },
+      ],
+      paragraphs: ['Anyone who was signed in as you, you included, has to sign in again with your password.'],
+      button: { label: "Wasn't you? Reset your password", path: '/forgot-password' },
+      footnote: "If you did this, you don't need to do anything. If you didn't, someone signed in as you — reset your password now and tell an admin.",
+      warning: true,
+    });
+  }
+
+  /** Someone used an invitation link to set their password. Sent to whoever sent the link (or every admin). */
+  async sendInviteAccepted(d: {
+    to: string;
+    recipientName: string;
+    memberName: string;
+    memberEmail: string;
+    role: string;
+    sentByRecipient: boolean;
+    when: Date;
+  }): Promise<void> {
+    const who = d.memberName && d.memberName !== d.memberEmail ? `${d.memberName} (${d.memberEmail})` : d.memberEmail;
+    await this.sendNotice({
+      to: d.to,
+      subject: (b) => `${d.memberEmail} can now sign in to ${b}`,
+      recipientName: d.recipientName,
+      lead: (b) => [
+        { bold: who },
+        d.sentByRecipient ? ' set a password with the invitation link you sent and can now sign in to ' : ' set a password with an invitation link and can now sign in to ',
+        { bold: b },
+        '.',
+      ],
+      rows: [
+        { label: 'Email', value: d.memberEmail },
+        { label: 'Role', value: d.role },
+        { label: 'When', value: formatWhen(d.when) },
+      ],
+      button: { label: 'Open Users', path: '/users' },
+      footnote: "You don't need to do anything. If you didn't expect this person, remove them from the Users page.",
+    });
+  }
+
+  /** An API key was created or deleted. Sent to every admin. */
+  async sendApiKeyChanged(d: {
+    to: string;
+    recipientName: string;
+    action: 'created' | 'deleted';
+    keyName: string;
+    keyPrefix: string;
+    access: string;
+    contentTypes: string;
+    byName: string;
+    byEmail: string;
+    when: Date;
+  }): Promise<void> {
+    const by = d.byName && d.byName !== d.byEmail ? `${d.byName} (${d.byEmail})` : d.byEmail || 'An admin';
+    const created = d.action === 'created';
+    await this.sendNotice({
+      to: d.to,
+      subject: (b) => `API key ${created ? 'created' : 'deleted'} on ${b}: ${d.keyName}`,
+      recipientName: d.recipientName,
+      lead: (b) => [{ bold: by }, created ? ' created an API key on ' : ' deleted an API key on ', { bold: b }, '.'],
+      rows: [
+        { label: 'Name', value: d.keyName },
+        { label: 'Key', value: d.keyPrefix },
+        { label: 'Access', value: d.access },
+        { label: 'Content types', value: d.contentTypes },
+        { label: 'When', value: formatWhen(d.when) },
+      ],
+      paragraphs: created
+        ? ['Anyone with this key can use the API with this access until it is deleted. Every admin gets this email.']
+        : ['Apps using this key stop working with the API. Every admin gets this email.'],
+      button: { label: 'Review API keys', path: '/api-keys' },
+      footnote: "If you expected this, you don't need to do anything. If not, check API keys and the audit log now.",
+      replyTo: d.byEmail,
+      warning: created,
+    });
+  }
+
   /** Sent to every admin when someone becomes an admin. */
   async sendNewAdmin(d: {
     to: string;

@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppCacheService } from '../cache/app-cache.service';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
@@ -16,10 +17,50 @@ const INVALID_KEY_TTL = 30_000;
 
 @Injectable()
 export class ApiKeysService {
+  private readonly logger = new Logger(ApiKeysService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: AppCacheService,
+    @Optional() private readonly mail?: MailService,
   ) {}
+
+  /**
+   * Tell every admin a key was created or deleted (who, which key, what access).
+   * In the background; never throws.
+   */
+  announce(
+    action: 'created' | 'deleted',
+    key: { name: string; prefix?: string | null; permissions: unknown },
+    actor: { id?: number; email?: string },
+  ): void {
+    void (async () => {
+      if (!this.mail?.isConfigured) return;
+      const [admins, by] = await Promise.all([
+        this.prisma.user.findMany({ where: { role: 'admin' }, select: { email: true, name: true } }),
+        actor.id ? this.prisma.user.findUnique({ where: { id: actor.id }, select: { email: true, name: true } }) : null,
+      ]);
+      const perms = (key.permissions ?? {}) as { access?: string; contentTypes?: string[] | string };
+      const types = Array.isArray(perms.contentTypes) ? perms.contentTypes : perms.contentTypes ? [perms.contentTypes] : [];
+      const access = perms.access === 'all' ? 'Read and write (all)' : perms.access === 'write' ? 'Write' : 'Read only';
+      const contentTypes = !types.length || types.includes('*') ? 'All' : types.join(', ');
+      const when = new Date();
+      for (const admin of admins) {
+        await this.mail!.sendApiKeyChanged({
+          to: admin.email,
+          recipientName: admin.name?.trim() || admin.email.split('@')[0],
+          action,
+          keyName: key.name,
+          keyPrefix: key.prefix || '—',
+          access,
+          contentTypes,
+          byName: by?.name?.trim() || by?.email || actor.email || 'An admin',
+          byEmail: by?.email || actor.email || '',
+          when,
+        });
+      }
+    })().catch((err) => this.logger.warn(`API key ${action} email failed: ${err?.message ?? err}`));
+  }
 
   /**
    * Only the key's hash and a short prefix are stored. The full key is in this

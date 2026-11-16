@@ -22,6 +22,8 @@ function setup() {
       delete: jest.fn(),
       deleteMany: jest.fn(),
     },
+    auditLog: { findFirst: jest.fn().mockResolvedValue(null) },
+    role: { findUnique: jest.fn().mockResolvedValue(null) },
     passwordResetToken: {
       create: jest.fn(),
       findUnique: jest.fn(),
@@ -35,6 +37,9 @@ function setup() {
     sendPasswordReset: jest.fn().mockResolvedValue(undefined),
     sendPasswordChanged: jest.fn().mockResolvedValue(undefined),
     sendTwoFactorChanged: jest.fn().mockResolvedValue(undefined),
+    sendSignedOutEverywhere: jest.fn().mockResolvedValue(undefined),
+    sendInviteAccepted: jest.fn().mockResolvedValue(undefined),
+    isConfigured: true,
   };
   const roles: any = { resolve: jest.fn(async (role: string) => ({ role })) };
   const res: any = { cookie: jest.fn(), clearCookie: jest.fn() };
@@ -118,6 +123,51 @@ describe('AuthService sign-in hardening', () => {
     prisma.passwordResetToken.findUnique.mockResolvedValue({ id: 10, userId: 1, used: false, createdAt: new Date(now), expiresAt: new Date(now + 7 * 24 * 3600_000) });
     await service.resetPassword('raw2', 'Blue-Mango-Kite-42');
     expect(mail.sendPasswordChanged).not.toHaveBeenCalled();
+  });
+
+  it('sign out everywhere emails the owner', async () => {
+    const { prisma, mail, service, res } = setup();
+    prisma.user.findUnique.mockResolvedValue({ email: 'a@test.com', name: 'Asha' });
+    await service.logoutEverywhere(1, res);
+    await new Promise((r) => setImmediate(r));
+    expect(mail.sendSignedOutEverywhere).toHaveBeenCalledWith(expect.objectContaining({ to: 'a@test.com', recipientName: 'Asha' }));
+  });
+
+  it('an invitation link used tells whoever sent it, with the role', async () => {
+    const { prisma, mail, service } = setup();
+    const now = Date.now();
+    prisma.passwordResetToken.findUnique.mockResolvedValue({ id: 10, userId: 7, used: false, createdAt: new Date(now), expiresAt: new Date(now + 7 * 24 * 3600_000) });
+    prisma.user.findUnique
+      .mockResolvedValueOnce({ email: 'new@test.com', name: 'Utsav', role: 'editor' }) // the member
+      .mockResolvedValueOnce({ id: 1, email: 'k@test.com', name: 'Karthik' });          // the inviter
+    prisma.auditLog.findFirst.mockResolvedValue({ userId: 1 });
+
+    await service.resetPassword('raw', 'Blue-Mango-Kite-42');
+    for (let i = 0; i < 5; i++) await new Promise((r) => setImmediate(r));
+
+    expect(prisma.auditLog.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ resource: 'user', resourceId: '7', action: { in: ['created', 'invited'] } }),
+    }));
+    expect(mail.sendInviteAccepted).toHaveBeenCalledTimes(1);
+    expect(mail.sendInviteAccepted).toHaveBeenCalledWith(expect.objectContaining({
+      to: 'k@test.com', recipientName: 'Karthik', memberName: 'Utsav', memberEmail: 'new@test.com', role: 'Editor', sentByRecipient: true,
+    }));
+    expect(mail.sendPasswordChanged).not.toHaveBeenCalled();
+  });
+
+  it('with no inviter on record, every admin is told', async () => {
+    const { prisma, mail, service } = setup();
+    const now = Date.now();
+    prisma.passwordResetToken.findUnique.mockResolvedValue({ id: 10, userId: 7, used: false, createdAt: new Date(now), expiresAt: new Date(now + 7 * 24 * 3600_000) });
+    prisma.user.findUnique.mockResolvedValueOnce({ email: 'new@test.com', name: null, role: 'reviewer' });
+    prisma.role.findUnique.mockResolvedValue({ label: 'Reviewer' });
+    prisma.user.findMany.mockResolvedValue([{ email: 'a@test.com', name: null }, { email: 'b@test.com', name: null }]);
+
+    await service.resetPassword('raw', 'Blue-Mango-Kite-42');
+    for (let i = 0; i < 5; i++) await new Promise((r) => setImmediate(r));
+
+    expect(mail.sendInviteAccepted).toHaveBeenCalledTimes(2);
+    expect(mail.sendInviteAccepted).toHaveBeenCalledWith(expect.objectContaining({ to: 'b@test.com', role: 'Reviewer', sentByRecipient: false }));
   });
 
   it('turning 2FA on or off emails the owner, and a mail failure does not fail it', async () => {

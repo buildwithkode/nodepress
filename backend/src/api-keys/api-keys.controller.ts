@@ -33,6 +33,7 @@ export class ApiKeysController {
       'created', 'api_key', key.name,
       { access: dto.permissions?.access },
     );
+    this.apiKeysService.announce('created', key, req.user);
     return key;
   }
 
@@ -53,6 +54,7 @@ export class ApiKeysController {
       { id: req.user.id, email: req.user.email, ip: req.ip },
       'deleted', 'api_key', String(id),
     );
+    this.apiKeysService.announce('deleted', result, req.user);
     return result;
   }
 }
