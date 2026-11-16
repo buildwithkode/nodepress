@@ -55,9 +55,10 @@
     "add": "Aggiungi traduzione",
     "created": "Bozza di traduzione {locale} creata",
     "createFailed": "Impossibile creare la bozza di traduzione",
-    "tabsLabel": "Lingue",
+    "tabsLabel": "Lingua",
     "addTitle": "Aggiungi una traduzione in {language} (copia in bozza di questa voce)",
-    "tabTitle": "{language}: {status}"
+    "tabTitle": "{language}: {status}",
+    "editing": "Modifica: {language}"
   },
   "reference": {
     "toggle": "Riferimento",
@@ -78,7 +79,8 @@
     "invalid": "Solo lettere minuscole, numeri e trattini",
     "previewUrl": "URL di anteprima:",
     "helpNew": "Generato automaticamente dal primo campo di testo. Formattato in minuscolo con trattini.",
-    "changeWarning": "Cambiare lo slug interrompe i link esistenti e la SEO che puntano al vecchio URL."
+    "changeWarning": "Cambiare lo slug interrompe i link esistenti e la SEO che puntano al vecchio URL.",
+    "sharedByLanguages": "Condiviso da tutte le lingue di questa pagina ({languages}): modificarlo le rinomina tutte."
   },
   "schedule": {
     "title": "Pubblicazione programmata",

@@ -57,7 +57,8 @@
     "createFailed": "翻訳の下書きを作成できませんでした",
     "tabsLabel": "言語",
     "addTitle": "{language}の翻訳を追加（このエントリーの下書きコピー）",
-    "tabTitle": "{language}：{status}"
+    "tabTitle": "{language}：{status}",
+    "editing": "編集中：{language}"
   },
   "reference": {
     "toggle": "参照",
@@ -78,7 +79,8 @@
     "invalid": "小文字の英字、数字、ハイフンのみ使用できます",
     "previewUrl": "プレビュー URL:",
     "helpNew": "最初のテキストフィールドから自動生成され、小文字とハイフンで整形されます。",
-    "changeWarning": "スラッグを変更すると、古い URL を指している既存のリンクや SEO が無効になります。"
+    "changeWarning": "スラッグを変更すると、古い URL を指している既存のリンクや SEO が無効になります。",
+    "sharedByLanguages": "このページのすべての言語（{languages}）で共通です。変更するとすべて変わります。"
   },
   "schedule": {
     "title": "公開予約",

@@ -399,6 +399,8 @@ export default function EditEntryPage() {
     });
   })();
   const canCreateTranslation = access.canContent('create', contentType?.name);
+  // The languages this page exists in: they all share the slug
+  const sharedSlugLanguages = languageTabs.filter((tab) => tab.id).map((tab) => tab.label);
 
   /** Save what's typed (as autosave would), then open or create the other language. */
   const switchLanguage = async (code: string, targetId?: number) => {
@@ -718,7 +720,12 @@ export default function EditEntryPage() {
           </div>
           {languageTabs.length > 1 && (
             // One tab per language of this page: open one, or add a missing one (a draft copy of this entry).
-            <div role="tablist" aria-label={t('translations.tabsLabel')} className="-mb-2 mt-3 flex flex-wrap items-end gap-1 border-b border-border/70">
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+                {t('translations.tabsLabel')}
+              </span>
+            <div role="tablist" aria-label={t('translations.tabsLabel')} className="inline-flex flex-wrap items-center gap-1 rounded-lg border border-border/80 bg-muted/40 p-1">
               {languageTabs.map((tab) => {
                 const current = tab.id === entry?.id;
                 const tabStatus = current ? status : tab.status;
@@ -733,7 +740,7 @@ export default function EditEntryPage() {
                       disabled={creatingTranslation || !canCreateTranslation}
                       title={t('translations.addTitle', { language: tab.label })}
                       onClick={() => switchLanguage(tab.code)}
-                      className="mb-1 inline-flex items-center gap-1 rounded-md border border-dashed border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                      className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
                     >
                       <Plus className="h-3 w-3" />
                       {tab.label}
@@ -749,8 +756,10 @@ export default function EditEntryPage() {
                     title={t('translations.tabTitle', { language: tab.label, status: statusText })}
                     onClick={() => { if (!current) switchLanguage(tab.code, tab.id); }}
                     className={cn(
-                      '-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
-                      current ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
+                      'inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors',
+                      current
+                        ? 'bg-background font-semibold text-foreground shadow-xs ring-1 ring-border'
+                        : 'font-medium text-muted-foreground hover:bg-background/60 hover:text-foreground',
                     )}
                   >
                     <span className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT[tabStatus ?? ''] ?? 'bg-muted-foreground/50')} aria-hidden="true" />
@@ -759,6 +768,7 @@ export default function EditEntryPage() {
                   </button>
                 );
               })}
+            </div>
             </div>
           )}
         </CardHeader>
@@ -827,7 +837,14 @@ export default function EditEntryPage() {
               {errors.slug ? (
                 <p className="mt-1 text-xs text-destructive">{errors.slug.message as string}</p>
               ) : (
-                <p className="text-[11px] text-amber-500">{t('slug.changeWarning')}</p>
+                <>
+                  {sharedSlugLanguages.length > 1 && (
+                    <p className="text-[11px] text-muted-foreground">
+                      {t('slug.sharedByLanguages', { languages: sharedSlugLanguages.join(', ') })}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-amber-500">{t('slug.changeWarning')}</p>
+                </>
               )}
             </div>
 
@@ -881,6 +898,14 @@ export default function EditEntryPage() {
                     {contentType.displayName && (
                       <span className="text-xs text-muted-foreground font-normal">
                         ({contentType.displayName})
+                      </span>
+                    )}
+                    {languageTabs.length > 1 && (
+                      // Which language these fields belong to, right where you type
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-foreground">
+                        <Languages className="h-3 w-3" aria-hidden="true" />
+                        {t('translations.editing', { language: SUPPORTED_LOCALES.find((l) => l.code === locale)?.label || localeLabel(locale) })}
+                        <span className="font-mono uppercase text-muted-foreground">{locale}</span>
                       </span>
                     )}
                   </div>

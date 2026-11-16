@@ -55,9 +55,10 @@
     "add": "Vertaling toevoegen",
     "created": "Conceptvertaling {locale} aangemaakt",
     "createFailed": "Conceptvertaling aanmaken mislukt",
-    "tabsLabel": "Talen",
+    "tabsLabel": "Taal",
     "addTitle": "Een {language} vertaling toevoegen (conceptkopie van dit item)",
-    "tabTitle": "{language}: {status}"
+    "tabTitle": "{language}: {status}",
+    "editing": "Bewerken: {language}"
   },
   "reference": {
     "toggle": "Referentie",
@@ -78,7 +79,8 @@
     "invalid": "Alleen kleine letters, cijfers en koppeltekens",
     "previewUrl": "Voorbeeld-URL:",
     "helpNew": "Automatisch gemaakt uit het eerste tekstveld. Opgemaakt met kleine letters en koppeltekens.",
-    "changeWarning": "Als je de slug wijzigt, werken bestaande links en SEO die naar de oude URL wijzen niet meer."
+    "changeWarning": "Als je de slug wijzigt, werken bestaande links en SEO die naar de oude URL wijzen niet meer.",
+    "sharedByLanguages": "Gedeeld door alle talen van deze pagina ({languages}): wijzigen hernoemt ze allemaal."
   },
   "schedule": {
     "title": "Geplande publicatie",

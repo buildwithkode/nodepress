@@ -55,9 +55,10 @@
     "add": "Adicionar tradução",
     "created": "Rascunho da tradução em {locale} criado",
     "createFailed": "Falha ao criar o rascunho da tradução",
-    "tabsLabel": "Idiomas",
+    "tabsLabel": "Idioma",
     "addTitle": "Adicionar uma tradução em {language} (cópia em rascunho desta entrada)",
-    "tabTitle": "{language}: {status}"
+    "tabTitle": "{language}: {status}",
+    "editing": "Editando: {language}"
   },
   "reference": {
     "toggle": "Referência",
@@ -78,7 +79,8 @@
     "invalid": "Apenas letras minúsculas, números e hifens",
     "previewUrl": "URL de pré-visualização:",
     "helpNew": "Gerado automaticamente a partir do primeiro campo de texto. Formatado com letras minúsculas e hifens.",
-    "changeWarning": "Alterar o slug quebra os links e o SEO que apontam para a URL antiga."
+    "changeWarning": "Alterar o slug quebra os links e o SEO que apontam para a URL antiga.",
+    "sharedByLanguages": "Compartilhado por todos os idiomas desta página ({languages}): alterá-lo renomeia todos."
   },
   "schedule": {
     "title": "Publicação agendada",

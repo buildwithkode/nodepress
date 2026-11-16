@@ -238,6 +238,43 @@ describe('EntriesService', () => {
       await service.update(10, { status: 'draft' } as any, 1);
       expect(mockWebhooks.fire).toHaveBeenCalledWith('entry.updated', expect.any(Object));
     });
+
+    it('a new slug renames every language of the page with it', async () => {
+      (mockPrisma.entry as any).findFirst = jest.fn().mockResolvedValue(null);
+      mockPrisma.entry.findUnique.mockResolvedValue(mockEntry);
+      mockPrisma.entryVersion.create.mockResolvedValue({});
+      mockPrisma.entry.findMany
+        .mockResolvedValueOnce([])  // findOne: translations
+        .mockResolvedValueOnce([{ id: 11, slug: 'hello-world', status: 'draft', locale: 'hi' }]);
+      mockPrisma.entry.update.mockResolvedValue({ ...mockEntry, slug: 'hello-again' });
+      mockPrisma.entry.updateMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.update(10, { slug: 'hello-again' } as any, 1);
+
+      expect(result.slug).toBe('hello-again');
+      expect(mockPrisma.entry.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: { contentTypeId: 1, slug: 'hello-world', id: { not: 10 } },
+      }));
+      expect((mockPrisma.entry as any).findFirst).toHaveBeenCalledWith(expect.objectContaining({
+        where: { contentTypeId: 1, slug: 'hello-again', locale: { in: ['en', 'hi'] } },
+      }));
+      expect(mockPrisma.entry.updateMany).toHaveBeenCalledWith({ where: { id: { in: [11] } }, data: { slug: 'hello-again' } });
+    });
+
+    it('refuses a slug another page already uses in any of its languages', async () => {
+      (mockPrisma.entry as any).findFirst = jest.fn().mockResolvedValue({ locale: 'hi' });
+      mockPrisma.entry.findUnique.mockResolvedValue(mockEntry);
+      mockPrisma.entryVersion.create.mockResolvedValue({});
+      mockPrisma.entry.findMany
+        .mockResolvedValueOnce([])  // findOne: translations
+        .mockResolvedValueOnce([{ id: 11, slug: 'hello-world', status: 'draft', locale: 'hi' }]);
+      mockPrisma.entry.update.mockClear();
+      mockPrisma.entry.updateMany.mockClear();
+
+      await expect(service.update(10, { slug: 'taken' } as any, 1)).rejects.toThrow(/locale "hi"/);
+      expect(mockPrisma.entry.update).not.toHaveBeenCalled();
+      expect(mockPrisma.entry.updateMany).not.toHaveBeenCalled();
+    });
   });
 
   // ── remove ────────────────────────────────────────────────────────────────

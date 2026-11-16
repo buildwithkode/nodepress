@@ -55,9 +55,10 @@
     "add": "Übersetzung hinzufügen",
     "created": "Übersetzungsentwurf {locale} erstellt",
     "createFailed": "Übersetzungsentwurf konnte nicht erstellt werden",
-    "tabsLabel": "Sprachen",
+    "tabsLabel": "Sprache",
     "addTitle": "{language}-Übersetzung hinzufügen (Entwurfskopie dieses Eintrags)",
-    "tabTitle": "{language}: {status}"
+    "tabTitle": "{language}: {status}",
+    "editing": "Bearbeitung: {language}"
   },
   "reference": {
     "toggle": "Referenz",
@@ -78,7 +79,8 @@
     "invalid": "Nur Kleinbuchstaben, Zahlen und Bindestriche",
     "previewUrl": "Vorschau-URL:",
     "helpNew": "Wird automatisch aus dem ersten Textfeld erzeugt – in Kleinbuchstaben mit Bindestrichen.",
-    "changeWarning": "Eine Änderung des Slugs macht bestehende Links und SEO für die alte URL ungültig."
+    "changeWarning": "Eine Änderung des Slugs macht bestehende Links und SEO für die alte URL ungültig.",
+    "sharedByLanguages": "Gilt für alle Sprachen dieser Seite ({languages}): eine Änderung benennt alle um."
   },
   "schedule": {
     "title": "Geplante Veröffentlichung",

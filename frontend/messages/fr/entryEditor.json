@@ -55,9 +55,10 @@
     "add": "Ajouter une traduction",
     "created": "Brouillon de traduction {locale} créé",
     "createFailed": "Impossible de créer le brouillon de traduction",
-    "tabsLabel": "Langues",
+    "tabsLabel": "Langue",
     "addTitle": "Ajouter une traduction en {language} (copie brouillon de cette entrée)",
-    "tabTitle": "{language} : {status}"
+    "tabTitle": "{language} : {status}",
+    "editing": "Modification : {language}"
   },
   "reference": {
     "toggle": "Référence",
@@ -78,7 +79,8 @@
     "invalid": "Lettres minuscules, chiffres et tirets uniquement",
     "previewUrl": "URL d’aperçu :",
     "helpNew": "Généré automatiquement à partir du premier champ texte, en minuscules avec des tirets.",
-    "changeWarning": "Modifier le slug casse les liens existants et le référencement pointant vers l’ancienne URL."
+    "changeWarning": "Modifier le slug casse les liens existants et le référencement pointant vers l’ancienne URL.",
+    "sharedByLanguages": "Partagé par toutes les langues de cette page ({languages}) : le modifier les renomme toutes."
   },
   "schedule": {
     "title": "Publication programmée",

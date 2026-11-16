@@ -57,7 +57,8 @@
     "createFailed": "创建翻译草稿失败",
     "tabsLabel": "语言",
     "addTitle": "添加{language}翻译（此条目的草稿副本）",
-    "tabTitle": "{language}：{status}"
+    "tabTitle": "{language}：{status}",
+    "editing": "正在编辑：{language}"
   },
   "reference": {
     "toggle": "参考",
@@ -78,7 +79,8 @@
     "invalid": "只能包含小写字母、数字和连字符",
     "previewUrl": "预览 URL：",
     "helpNew": "根据第一个文本字段自动生成。格式为小写字母和连字符。",
-    "changeWarning": "更改别名会导致指向旧 URL 的现有链接和 SEO 失效。"
+    "changeWarning": "更改别名会导致指向旧 URL 的现有链接和 SEO 失效。",
+    "sharedByLanguages": "此页面的所有语言（{languages}）共用：修改后将全部更名。"
   },
   "schedule": {
     "title": "定时发布",

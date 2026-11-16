@@ -622,16 +622,25 @@ export class EntriesService {
     });
 
     const updateData: any = {};
+    // Translations are linked by slug, so every language of a page shares it:
+    // a new slug renames them all (trashed ones too, so a restore stays linked).
+    let siblings: Array<{ id: number; slug: string; status: string; locale: string }> = [];
 
     if (dto.slug !== undefined) {
       if (dto.slug !== entry.slug) {
         // Only a changed slug is checked, so older entries keep saving.
         assertValidSlug(dto.slug);
-        const conflict = await this.prisma.entry.findUnique({
-          where: { contentTypeId_slug_locale: { contentTypeId: entry.contentTypeId, slug: dto.slug, locale: entry.locale } },
+        siblings = await this.prisma.entry.findMany({
+          where: { contentTypeId: entry.contentTypeId, slug: entry.slug, id: { not: entry.id } },
+          select: { id: true, slug: true, status: true, locale: true },
+        });
+        const locales = [entry.locale, ...siblings.map((s) => s.locale)];
+        const conflict = await this.prisma.entry.findFirst({
+          where: { contentTypeId: entry.contentTypeId, slug: dto.slug, locale: { in: locales } },
+          select: { locale: true },
         });
         if (conflict) {
-          throw new ConflictException(`Slug "${dto.slug}" already exists for locale "${entry.locale}" in this content type`);
+          throw new ConflictException(`Slug "${dto.slug}" already exists for locale "${conflict.locale}" in this content type`);
         }
       }
       updateData.slug = dto.slug;
@@ -663,11 +672,24 @@ export class EntriesService {
       updateData.publishAt = dto.publishAt ? new Date(dto.publishAt) : null;
     }
 
-    const updated = await this.prisma.entry.update({
-      where: { id },
-      data: updateData,
-      include: { contentType: true },
-    });
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.entry.update({
+        where: { id },
+        data: updateData,
+        include: { contentType: true },
+      }),
+      ...(siblings.length
+        ? [this.prisma.entry.updateMany({ where: { id: { in: siblings.map((s) => s.id) } }, data: { slug: updateData.slug } })]
+        : []),
+    ]) as [any, ...unknown[]];
+
+    // Other languages renamed with it: their old public URLs redirect too.
+    for (const sib of siblings) {
+      await this.redirects?.entrySlugChanged(
+        { ...sib, contentType: entry.contentType } as any,
+        { slug: updateData.slug, status: sib.status },
+      );
+    }
 
     this.webhooks.fire('entry.updated', {
       id: updated.id,

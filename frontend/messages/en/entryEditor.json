@@ -55,9 +55,10 @@
     "add": "Add Translation",
     "created": "Created {locale} translation draft",
     "createFailed": "Failed to create translation draft",
-    "tabsLabel": "Languages",
+    "tabsLabel": "Language",
     "addTitle": "Add a {language} translation (a draft copy of this entry)",
-    "tabTitle": "{language}: {status}"
+    "tabTitle": "{language}: {status}",
+    "editing": "Editing {language}"
   },
   "reference": {
     "toggle": "Reference",
@@ -78,7 +79,8 @@
     "invalid": "Lowercase letters, numbers and hyphens only",
     "previewUrl": "Preview URL:",
     "helpNew": "Auto-generated from the first text field. Formatted with lowercase and hyphens.",
-    "changeWarning": "Changing the slug breaks existing links and SEO pointing to the old URL."
+    "changeWarning": "Changing the slug breaks existing links and SEO pointing to the old URL.",
+    "sharedByLanguages": "Shared by every language of this page ({languages}): changing it renames all of them."
   },
   "schedule": {
     "title": "Scheduled Publish",

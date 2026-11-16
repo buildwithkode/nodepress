@@ -21,7 +21,7 @@ A new install has one language, `en`.
 
 ## Translating in the editor
 
-In the entry editor, a row of language tabs sits under the toolbar: one tab per enabled language, each with a dot for its status (green published, purple staging, blue in review, amber draft).
+In the entry editor, the **Language** switcher sits under the toolbar and stays in view while you scroll: one tab per enabled language, each with a dot for its status (green published, purple staging, blue in review, amber draft). The **Fields** heading shows which language you're editing.
 
 - Click a tab to open that language. What you typed is saved first, the same way autosave does, so nothing is lost.
 - A dashed **+ Language** tab creates the entry in that language as a **draft**, with a copy of the current content to translate, and opens it. If the translation exists already, the editor opens it.
@@ -38,6 +38,8 @@ With more than one language and the language filter on **All languages**, the li
 - Deleting a row, and bulk actions on selected rows, apply to **every language** of those pages; the confirmation lists them. To act on one language only, pick it in the language filter, which shows one row per entry again. The trash always lists entries one by one.
 
 `GET /api/entries?group=true` returns the same one-row-per-page list; each row's `translationEntries` gives every language's `id`, `locale` and `status`. `group` is ignored with `locale`.
+
+All languages of a page share its slug, since that's what links them. Changing the slug in any language renames every language of the page together (published ones get a redirect from the old URL), and a slug another page uses in any of those languages is refused with `409`.
 
 Each translation is a separate entry with its own status, versions and SEO fields. Publishing the English version doesn't publish the French one.
 

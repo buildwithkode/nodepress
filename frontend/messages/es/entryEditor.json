@@ -55,9 +55,10 @@
     "add": "Añadir traducción",
     "created": "Borrador de traducción {locale} creado",
     "createFailed": "No se pudo crear el borrador de traducción",
-    "tabsLabel": "Idiomas",
+    "tabsLabel": "Idioma",
     "addTitle": "Añadir una traducción al {language} (copia en borrador de esta entrada)",
-    "tabTitle": "{language}: {status}"
+    "tabTitle": "{language}: {status}",
+    "editing": "Editando: {language}"
   },
   "reference": {
     "toggle": "Referencia",
@@ -78,7 +79,8 @@
     "invalid": "Solo minúsculas, números y guiones",
     "previewUrl": "URL de vista previa:",
     "helpNew": "Se genera automáticamente a partir del primer campo de texto, en minúsculas y con guiones.",
-    "changeWarning": "Cambiar el slug rompe los enlaces existentes y el SEO que apuntan a la URL anterior."
+    "changeWarning": "Cambiar el slug rompe los enlaces existentes y el SEO que apuntan a la URL anterior.",
+    "sharedByLanguages": "Compartido por todos los idiomas de esta página ({languages}): cambiarlo los renombra todos."
   },
   "schedule": {
     "title": "Publicación programada",
