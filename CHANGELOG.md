@@ -21,9 +21,9 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Added
 
-- **Account menu in the top bar.** Your initials at the top right open your name, email and role, with **Profile** and **Sign out**.
+- **Account menu in the top bar.** Your initials at the top right open your name, email and role, with **Profile** and **Sign out**. It replaces the user block at the bottom of the sidebar.
 - **2FA reminder and status.** Users without two-factor authentication see a dashboard reminder (**Set up** or **Not now**, which hides it for 30 days in that browser), and the Users page has a **2FA** column. `GET /api/auth/me` and `GET /api/users` include `twoFactorEnabled`.
-- **Profile page for every user.** Click your name at the bottom of the sidebar. Every role, not only those with access to the Users page, can now set a display name, change their password, turn two-factor authentication on or off, sign out on all devices and pick the admin's language and theme. 2FA and "sign out on all devices" moved there from the Users page. New `GET`/`PUT /api/users/me`; a migration adds the optional `users.name` column, which site exports carry.
+- **Profile page for every user.** Open it from the account menu at the top right. Every role, not only those with access to the Users page, can now set a display name, change their password, turn two-factor authentication on or off, sign out on all devices and pick the admin's language and theme. 2FA and "sign out on all devices" moved there from the Users page. New `GET`/`PUT /api/users/me`; a migration adds the optional `users.name` column, which site exports carry.
 - **Guides for AI coding assistants.** One `CLAUDE.md` / `AGENTS.md` file each for Next.js, React and React Native (`docs/public/ai/`), so Claude Code, Cursor or Codex can connect a project to NodePress from the file alone. See *Use with AI coding agents* in the docs.
 
 ### Changed

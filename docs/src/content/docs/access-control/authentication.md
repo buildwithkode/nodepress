@@ -134,7 +134,7 @@ Two-factor authentication (2FA) adds a 6-digit code from an authenticator app (G
 
 ### Turning it on
 
-In the admin, the **Two-Factor Authentication (2FA)** card is on your [Profile](/access-control/users-and-roles/#your-profile) page (click your name at the bottom of the sidebar). Every user can turn it on, whatever their role:
+In the admin, the **Two-Factor Authentication (2FA)** card is on your [Profile](/access-control/users-and-roles/#your-profile) page (click your initials at the top right, then **Profile**). Every user can turn it on, whatever their role:
 
 1. Click **Enable 2FA**.
 2. Scan the QR code with your authenticator app, or type the **Manual Entry Key**.

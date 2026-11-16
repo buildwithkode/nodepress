@@ -64,7 +64,7 @@ On the **Users** page you can change a user's role from the role dropdown on the
 
 ## Your profile
 
-Every signed-in user has a **Profile** page, whatever their role. Open it by clicking your name at the bottom of the sidebar (or the person icon on your own row on the **Users** page). It has:
+Every signed-in user has a **Profile** page, whatever their role. Open it from the menu under your initials at the top right of every page (or the person icon on your own row on the **Users** page). It has:
 
 | Section | What you can do |
 |---|---|

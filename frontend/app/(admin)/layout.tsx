@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
 import { UserMenu } from '@/components/UserMenu';
-import { displayName } from '@/lib/user-display';
 import { useTranslations } from 'use-intl';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -33,7 +32,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, ListOrdered, LogOut, ArrowLeftRight } from 'lucide-react';
+  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, ListOrdered, ArrowLeftRight } from 'lucide-react';
 
 interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
 interface NavGroup { label: string; items: NavLink[]; externalLinks?: NavLink[] }
@@ -117,7 +116,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = useTranslations('nav');
-  const tc = useTranslations('common');
 
   // Close mobile drawer automatically when route changes
   useEffect(() => {
@@ -261,45 +259,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           ))}
         </nav>
-
-        {/* User info + sign out */}
-        <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
-          <div className="flex items-start justify-between gap-2 px-1">
-            <Link
-              href="/profile"
-              title={t('profile')}
-              className="group min-w-0 flex-1 rounded-md -m-1 p-1 transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-            >
-              <p className="text-sm font-bold text-sidebar-foreground truncate group-hover:underline underline-offset-4">
-                {/* A person's name is data — shown as stored */}
-                {displayName(user) || t('user')}
-              </p>
-              <p className="text-xs text-muted-foreground truncate mt-0.5">
-                {user?.email ?? '—'}
-              </p>
-              <span className={`inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
-                user?.role === 'admin'
-                  ? 'border-yellow-500/60 text-yellow-400'
-                  : user?.role === 'editor'
-                  ? 'border-blue-500/60 text-blue-400'
-                  : 'border-muted-foreground/40 text-muted-foreground'
-              }`}>
-                {/* A custom role's name is data — shown as stored */}
-                {user?.customRole ?? tc(`roles.${user?.role ?? 'viewer'}`)}
-              </span>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleLogout}
-              title={t('signOut')}
-              aria-label={t('signOut')}
-              className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
       </aside>
 
       {/* ── Main content (Full width on mobile, offset on desktop) ── */}
