@@ -31,7 +31,7 @@ When you create a new entry, pick its language in the language selector. It star
 
 ## The entries list
 
-With more than one language, the entries list shows **one language at a time**. Pick it with **Showing: English ▾** above the list; it opens in the default language, then in the last one you picked in that browser. Every row, its status and its actions belong to that language, so publishing or deleting from the list never touches another language.
+With more than one language, the entries list shows **one language at a time**. Pick it with the language switcher above the list (**文A English ▾**); it opens in the default language, then in the last one you picked in that browser. Every row, its status and its actions belong to that language, so publishing or deleting from the list never touches another language.
 
 A **Languages** column shows a chip per language, each in the same place on every row; hover a chip to see that language's status:
 

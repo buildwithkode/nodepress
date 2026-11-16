@@ -26,7 +26,6 @@ import {
   AlertCircle,
   FileCode,
   Rocket,
-  Globe,
   Send,
   Shield,
   Settings,
@@ -36,6 +35,7 @@ import {
   Package,
   ChevronDown,
   Check,
+  Languages,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -859,9 +859,8 @@ export default function EntriesPage() {
             <>
               {multiLanguage && (
               <Select value={localeFilter} onValueChange={(v) => { if (v) pickLocale(v); }}>
-                <SelectTrigger className="h-8 w-auto min-w-40 gap-1 text-xs font-medium" aria-label={t('filters.showingLanguage')}>
-                  <Globe className="h-3.5 w-3.5 text-muted-foreground mr-0.5 shrink-0" />
-                  <span className="text-muted-foreground font-normal">{t('filters.showing')}</span>
+                <SelectTrigger className="h-8 w-auto min-w-32 gap-1 text-xs font-medium" aria-label={t('filters.showingLanguage')}>
+                  <Languages className="h-3.5 w-3.5 text-muted-foreground mr-0.5 shrink-0" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
