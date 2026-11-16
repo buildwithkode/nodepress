@@ -37,5 +37,6 @@
   "user": "User",
   "openMenu": "Open navigation menu",
   "closeMenu": "Close sidebar",
-  "profile": "Profile"
+  "profile": "Profile",
+  "accountMenu": "Account menu"
 }

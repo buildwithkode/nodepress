@@ -37,5 +37,6 @@
   "user": "Usuario",
   "openMenu": "Abrir menú de navegación",
   "closeMenu": "Cerrar barra lateral",
-  "profile": "Perfil"
+  "profile": "Perfil",
+  "accountMenu": "Menú de la cuenta"
 }

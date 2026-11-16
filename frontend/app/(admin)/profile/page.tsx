@@ -23,6 +23,7 @@ import { ChangePasswordSheet } from '@/components/ChangePasswordSheet';
 import { TwoFactorCard } from '@/components/TwoFactorCard';
 import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
 import { roleBadgeColor } from '@/lib/custom-roles';
+import { displayName as nameOf, initials as initialsOf } from '@/lib/user-display';
 
 interface Profile {
   id: number;
@@ -92,9 +93,8 @@ export default function ProfilePage() {
     }
   };
 
-  const displayName = profile?.name || profile?.email.split('@')[0] || '';
-  const initials = (profile?.name || profile?.email || '?')
-    .split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
+  const displayName = nameOf(profile);
+  const initials = initialsOf(profile);
   // A custom role's name is data — shown as stored
   const roleText = user?.customRole ?? tc(`roles.${user?.role ?? 'viewer'}`);
 

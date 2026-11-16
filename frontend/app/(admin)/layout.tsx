@@ -12,6 +12,8 @@ import { canView, moduleForPath } from '@/lib/access';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
+import { UserMenu } from '@/components/UserMenu';
+import { displayName } from '@/lib/user-display';
 import { useTranslations } from 'use-intl';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -270,7 +272,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <p className="text-sm font-bold text-sidebar-foreground truncate group-hover:underline underline-offset-4">
                 {/* A person's name is data — shown as stored */}
-                {user?.name || user?.email?.split('@')[0] || t('user')}
+                {displayName(user) || t('user')}
               </p>
               <p className="text-xs text-muted-foreground truncate mt-0.5">
                 {user?.email ?? '—'}
@@ -319,6 +321,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-2">
             <AdminLanguageSwitcher className="w-auto" />
             <ThemeToggle />
+            <UserMenu onSignOut={handleLogout} />
           </div>
         </div>
         {/* overflow-x-clip, not -auto: any other overflow makes this a scroll box, and side panes (position: sticky) would stick to it instead of the window. */}
