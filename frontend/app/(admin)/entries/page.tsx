@@ -1184,29 +1184,36 @@ export default function EntriesPage() {
               )}
               <TableCell>
                 {(() => {
-                  const badge = (entry.status === 'draft' && entry.publishAt ? (
+                  // With a menu, the arrow sits inside the pill in the badge's own colour
+                  const arrow = (menu: boolean) => !menu ? null : changingStatus === entry.id
+                    ? <Loader2 className="h-3 w-3 -mr-0.5 animate-spin" aria-hidden="true" />
+                    : <ChevronDown className="h-3 w-3 -mr-0.5 opacity-60 transition-opacity group-hover:opacity-100" aria-hidden="true" />;
+                  const badge = (menu: boolean) => (entry.status === 'draft' && entry.publishAt ? (
                   <span
                     className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/40"
                     title={t('table.scheduledTitle', { date: new Date(entry.publishAt).toLocaleString() })}
                   >
                     <Clock className="h-3 w-3" />
                     {t('table.scheduled', { date: new Date(entry.publishAt).toLocaleDateString([], { month: 'short', day: 'numeric' }), time: new Date(entry.publishAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) })}
+                    {arrow(menu)}
                   </span>
                 ) : entry.status === 'pending_review' ? (
                   <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40">
                     <Clock className="h-3 w-3" />
                     {t('stages.pendingReview')}
+                    {arrow(menu)}
                   </span>
                 ) : (() => {
                   const s = STATUS_LABELS[entry.status] ?? STATUS_LABELS.published;
                   return (
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.className}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${s.className}`}>
                       {s.commonKey ? tc(s.commonKey) : t(s.labelKey!)}
+                      {arrow(menu)}
                     </span>
                   );
                 })());
                   const options = statusOptions;
-                  if (options.length === 0 || showTrash) return badge;
+                  if (options.length === 0 || showTrash) return badge(false);
                   return (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -1215,12 +1222,9 @@ export default function EntriesPage() {
                           aria-label={t('table.changeStatus', { slug: entry.slug })}
                           title={t('table.changeStatus', { slug: entry.slug })}
                           disabled={changingStatus === entry.id}
-                          className="group inline-flex items-center gap-1 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+                          className="group inline-flex rounded-full transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
                         >
-                          {badge}
-                          {changingStatus === entry.id
-                            ? <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                            : <ChevronDown className="h-3 w-3 text-muted-foreground opacity-60 transition-opacity group-hover:opacity-100" />}
+                          {badge(true)}
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-60">
