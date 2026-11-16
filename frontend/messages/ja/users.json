@@ -41,7 +41,10 @@
     "viewPermissions": "{role} の権限マトリックスを表示",
     "sendInvite": "招待メールを送信",
     "deleteTitle": "{email} を削除しますか?",
-    "deleteDescription": "このユーザーのアクセス権を完全に削除します。この操作は元に戻せません。"
+    "deleteDescription": "このユーザーのアクセス権を完全に削除します。この操作は元に戻せません。",
+    "twoFactor": "2FA",
+    "twoFactorOn": "オン",
+    "twoFactorOff": "オフ"
   },
   "roleGuide": {
     "title": "ロールの権限",

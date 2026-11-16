@@ -430,9 +430,9 @@ export class AuthService implements OnModuleInit {
   // ── Private helpers ─────────────────────────────────────────────────────────
 
   /** The user object sent to the admin: role is the base role, customRole the custom one (if any). */
-  private async sessionUser(user: { id: number; email: string; name?: string | null; role: string }) {
+  private async sessionUser(user: { id: number; email: string; name?: string | null; role: string; twoFactorEnabled?: boolean | null }) {
     const { role, customRole } = await this.roles.resolve(user.role);
-    return { id: user.id, email: user.email, name: user.name ?? null, role, ...(customRole && { customRole }) };
+    return { id: user.id, email: user.email, name: user.name ?? null, role, ...(customRole && { customRole }), twoFactorEnabled: !!user.twoFactorEnabled };
   }
 
   /** Delete the user's refresh tokens except the caller's own (`keep`, the raw cookie value). */

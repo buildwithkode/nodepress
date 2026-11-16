@@ -41,7 +41,10 @@
     "viewPermissions": "Ver a matriz de permissões de {role}",
     "sendInvite": "Enviar e-mail de convite",
     "deleteTitle": "Excluir {email}?",
-    "deleteDescription": "Isso remove o acesso dessa pessoa permanentemente. Não pode ser desfeito."
+    "deleteDescription": "Isso remove o acesso dessa pessoa permanentemente. Não pode ser desfeito.",
+    "twoFactor": "2FA",
+    "twoFactorOn": "Ativada",
+    "twoFactorOff": "Desativada"
   },
   "roleGuide": {
     "title": "Permissões das funções",

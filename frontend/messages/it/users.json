@@ -41,7 +41,10 @@
     "viewPermissions": "Vedi la matrice dei permessi di {role}",
     "sendInvite": "Invia email di invito",
     "deleteTitle": "Eliminare {email}?",
-    "deleteDescription": "Il suo accesso verrà rimosso definitivamente. L'operazione non può essere annullata."
+    "deleteDescription": "Il suo accesso verrà rimosso definitivamente. L'operazione non può essere annullata.",
+    "twoFactor": "2FA",
+    "twoFactorOn": "Attiva",
+    "twoFactorOff": "Disattiva"
   },
   "roleGuide": {
     "title": "Permessi dei ruoli",

@@ -41,7 +41,10 @@
     "viewPermissions": "Rechtenmatrix van {role} bekijken",
     "sendInvite": "Uitnodigingsmail versturen",
     "deleteTitle": "{email} verwijderen?",
-    "deleteDescription": "Hiermee wordt de toegang definitief ingetrokken. Dit kan niet ongedaan worden gemaakt."
+    "deleteDescription": "Hiermee wordt de toegang definitief ingetrokken. Dit kan niet ongedaan worden gemaakt.",
+    "twoFactor": "2FA",
+    "twoFactorOn": "Aan",
+    "twoFactorOff": "Uit"
   },
   "roleGuide": {
     "title": "Rechten per rol",

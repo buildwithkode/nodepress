@@ -14,7 +14,7 @@ import { isBuiltInRole } from '../roles/roles.constants';
 import { assertAcceptablePassword, hashPassword, unusablePasswordHash, verifyPassword } from '../auth/password';
 import { hashToken } from '../auth/token-hash';
 
-const USER_SELECT = { id: true, email: true, name: true, role: true, createdAt: true, updatedAt: true } as const;
+const USER_SELECT = { id: true, email: true, name: true, role: true, twoFactorEnabled: true, createdAt: true, updatedAt: true } as const;
 
 @Injectable()
 export class UsersService {
@@ -176,7 +176,7 @@ export class UsersService {
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { ...USER_SELECT, twoFactorEnabled: true },
+      select: USER_SELECT,
     });
     if (!user) throw new NotFoundException('User not found');
     return user;

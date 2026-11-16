@@ -43,6 +43,7 @@ interface User {
   email: string;
   name?: string | null;
   role: string;
+  twoFactorEnabled?: boolean;
   createdAt: string;
 }
 
@@ -189,6 +190,7 @@ export default function UsersPage() {
               <TableRow>
                 <TableHead>{t('list.email')}</TableHead>
                 <TableHead>{t('list.role')}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t('list.twoFactor')}</TableHead>
                 <TableHead>{t('list.joined')}</TableHead>
                 <TableHead className="text-right">{tc('actions')}</TableHead>
               </TableRow>
@@ -199,12 +201,13 @@ export default function UsersPage() {
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-10" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : users.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">{t('list.empty')}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t('list.empty')}</TableCell></TableRow>
               ) : users.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell className="font-medium">
@@ -236,6 +239,17 @@ export default function UsersPage() {
                           {roleOptions()}
                         </SelectContent>
                       </Select>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    {u.twoFactorEnabled ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        <ShieldCheck className="h-3 w-3" aria-hidden="true" /> {t('list.twoFactorOn')}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                        {t('list.twoFactorOff')}
+                      </span>
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">

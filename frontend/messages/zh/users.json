@@ -41,7 +41,10 @@
     "viewPermissions": "查看 {role} 权限矩阵",
     "sendInvite": "发送邀请邮件",
     "deleteTitle": "删除 {email}？",
-    "deleteDescription": "这将永久移除其访问权限。此操作无法撤销。"
+    "deleteDescription": "这将永久移除其访问权限。此操作无法撤销。",
+    "twoFactor": "2FA",
+    "twoFactorOn": "已开启",
+    "twoFactorOff": "未开启"
   },
   "roleGuide": {
     "title": "角色权限",

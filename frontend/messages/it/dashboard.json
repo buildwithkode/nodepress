@@ -52,5 +52,11 @@
   },
   "recentMedia": {
     "title": "Media recenti"
+  },
+  "twoFactorReminder": {
+    "title": "Proteggi il tuo account con l'accesso in due passaggi",
+    "body": "L'accesso chiederà anche un codice di 6 cifre da un'app sul telefono, così una password trapelata da sola non basta.",
+    "setUp": "Configura",
+    "notNow": "Non ora"
   }
 }

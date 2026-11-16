@@ -52,5 +52,11 @@
   },
   "recentMedia": {
     "title": "最近的媒体"
+  },
+  "twoFactorReminder": {
+    "title": "使用两步验证保护你的账户",
+    "body": "登录时还需要输入手机应用中的 6 位验证码，即使密码泄露也无法登录。",
+    "setUp": "去设置",
+    "notNow": "以后再说"
   }
 }

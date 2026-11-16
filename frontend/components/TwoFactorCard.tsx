@@ -6,6 +6,7 @@ import { Shield, ShieldCheck, KeyRound, Copy, Check } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useTranslations } from 'use-intl';
 import api, { saveAccessToken } from '@/lib/axios';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +27,7 @@ interface TwoFactorSetupData {
 export function TwoFactorCard() {
   const t = useTranslations('users');
   const tc = useTranslations('common');
+  const { updateUser } = useAuth();
 
   // 2FA state
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -90,6 +92,7 @@ export function TwoFactorCard() {
       if (res.data?.access_token) saveAccessToken(res.data.access_token);
       toast.success(t('toasts.twoFactorActivated'));
       setTwoFactorEnabled(true);
+      updateUser({ twoFactorEnabled: true });
       setSetupModalOpen(false);
       setSetupData(null);
     } catch (err: any) {
@@ -108,6 +111,7 @@ export function TwoFactorCard() {
       if (res.data?.access_token) saveAccessToken(res.data.access_token);
       toast.success(t('toasts.twoFactorDisabled'));
       setTwoFactorEnabled(false);
+      updateUser({ twoFactorEnabled: false });
       setDisableModalOpen(false);
       setDisableCode('');
     } catch (err: any) {

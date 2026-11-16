@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TwoFactorReminder } from '@/components/TwoFactorReminder';
 
 interface ContentType { id: number; name: string; schema: any[]; allowedMethods: string[] | null }
 interface Entry       { id: number; slug: string; status?: string; contentTypeId: number; createdAt: string }
@@ -132,6 +133,8 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
+
+      <TwoFactorReminder />
 
       {/* ── Stat cards (6) ── */}
       <div>

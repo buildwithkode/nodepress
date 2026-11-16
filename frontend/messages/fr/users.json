@@ -41,7 +41,10 @@
     "viewPermissions": "Voir la matrice des permissions : {role}",
     "sendInvite": "Envoyer l’e-mail d’invitation",
     "deleteTitle": "Supprimer {email} ?",
-    "deleteDescription": "Son accès sera définitivement supprimé. Cette action est irréversible."
+    "deleteDescription": "Son accès sera définitivement supprimé. Cette action est irréversible.",
+    "twoFactor": "2FA",
+    "twoFactorOn": "Activée",
+    "twoFactorOff": "Désactivée"
   },
   "roleGuide": {
     "title": "Permissions des rôles",

@@ -52,5 +52,11 @@
   },
   "recentMedia": {
     "title": "Neueste Medien"
+  },
+  "twoFactorReminder": {
+    "title": "Schütze dein Konto mit der Anmeldung in zwei Schritten",
+    "body": "Bei der Anmeldung wird zusätzlich ein 6-stelliger Code aus einer App auf deinem Handy abgefragt – ein geleaktes Passwort allein reicht dann nicht.",
+    "setUp": "Einrichten",
+    "notNow": "Später"
   }
 }

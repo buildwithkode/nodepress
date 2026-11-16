@@ -41,7 +41,10 @@
     "viewPermissions": "Berechtigungsmatrix anzeigen: {role}",
     "sendInvite": "Einladungs-E-Mail senden",
     "deleteTitle": "{email} löschen?",
-    "deleteDescription": "Der Zugriff wird dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden."
+    "deleteDescription": "Der Zugriff wird dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.",
+    "twoFactor": "2FA",
+    "twoFactorOn": "An",
+    "twoFactorOff": "Aus"
   },
   "roleGuide": {
     "title": "Rollenberechtigungen",

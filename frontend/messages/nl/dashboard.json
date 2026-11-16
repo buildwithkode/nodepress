@@ -52,5 +52,11 @@
   },
   "recentMedia": {
     "title": "Recente media"
+  },
+  "twoFactorReminder": {
+    "title": "Beveilig je account met inloggen in twee stappen",
+    "body": "Bij het inloggen wordt ook een 6-cijferige code uit een app op je telefoon gevraagd, zodat een gelekt wachtwoord alleen niet genoeg is.",
+    "setUp": "Instellen",
+    "notNow": "Niet nu"
   }
 }

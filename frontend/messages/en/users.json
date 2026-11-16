@@ -41,7 +41,10 @@
     "viewPermissions": "View {role} permissions matrix",
     "sendInvite": "Send invitation email",
     "deleteTitle": "Delete {email}?",
-    "deleteDescription": "This will permanently remove their access. This cannot be undone."
+    "deleteDescription": "This will permanently remove their access. This cannot be undone.",
+    "twoFactor": "2FA",
+    "twoFactorOn": "On",
+    "twoFactorOff": "Off"
   },
   "roleGuide": {
     "title": "Role Permissions",

@@ -52,5 +52,11 @@
   },
   "recentMedia": {
     "title": "Multimedia reciente"
+  },
+  "twoFactorReminder": {
+    "title": "Protege tu cuenta con el inicio de sesión en dos pasos",
+    "body": "Al iniciar sesión también se pedirá un código de 6 dígitos de una app en tu teléfono, así una contraseña filtrada no basta para entrar.",
+    "setUp": "Configurar",
+    "notNow": "Ahora no"
   }
 }

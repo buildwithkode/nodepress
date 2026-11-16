@@ -52,5 +52,11 @@
   },
   "recentMedia": {
     "title": "Recent Media"
+  },
+  "twoFactorReminder": {
+    "title": "Protect your account with two-step sign-in",
+    "body": "Sign-in will also ask for a 6-digit code from an app on your phone, so a leaked password alone can't get in.",
+    "setUp": "Set up",
+    "notNow": "Not now"
   }
 }

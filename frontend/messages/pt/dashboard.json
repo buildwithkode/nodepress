@@ -52,5 +52,11 @@
   },
   "recentMedia": {
     "title": "Mídia recente"
+  },
+  "twoFactorReminder": {
+    "title": "Proteja sua conta com o login em duas etapas",
+    "body": "O login também pedirá um código de 6 dígitos de um app no seu celular, então uma senha vazada sozinha não basta.",
+    "setUp": "Configurar",
+    "notNow": "Agora não"
   }
 }

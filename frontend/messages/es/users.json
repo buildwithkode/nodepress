@@ -41,7 +41,10 @@
     "viewPermissions": "Ver matriz de permisos: {role}",
     "sendInvite": "Enviar correo de invitación",
     "deleteTitle": "¿Eliminar a {email}?",
-    "deleteDescription": "Se eliminará su acceso de forma permanente. Esta acción no se puede deshacer."
+    "deleteDescription": "Se eliminará su acceso de forma permanente. Esta acción no se puede deshacer.",
+    "twoFactor": "2FA",
+    "twoFactorOn": "Activada",
+    "twoFactorOff": "Desactivada"
   },
   "roleGuide": {
     "title": "Permisos de los roles",

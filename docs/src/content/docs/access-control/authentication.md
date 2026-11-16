@@ -145,6 +145,8 @@ In the admin, the **Two-Factor Authentication (2FA)** card is on your [Profile](
 
 To turn it off, click **Disable 2FA** and enter a code from the app or a recovery code.
 
+Until someone turns 2FA on, their dashboard shows a reminder with **Set up** (opens the Profile page) and **Not now** (hides it for 30 days in that browser). On the **Users** page, the **2FA** column shows who has it on. Passwords never expire: NodePress follows current guidance (NIST SP 800-63B) and asks for a new password only when there's a reason, such as a reset or a breached password.
+
 :::note
 The **Users** page is admin-only, so in the admin only admins can manage their own 2FA. Other roles can turn it on through the API below.
 :::

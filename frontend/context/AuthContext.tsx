@@ -14,6 +14,8 @@ interface User {
   role: string;
   /** Custom role name, when the user has one. */
   customRole?: string;
+  /** Two-step sign-in is on (from GET /auth/me); drives the dashboard reminder. */
+  twoFactorEnabled?: boolean;
   /** What the role can use in the admin (from GET /auth/me). */
   access?: UserAccess;
 }

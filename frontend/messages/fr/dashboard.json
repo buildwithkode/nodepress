@@ -52,5 +52,11 @@
   },
   "recentMedia": {
     "title": "Médias récents"
+  },
+  "twoFactorReminder": {
+    "title": "Protégez votre compte avec la connexion en deux étapes",
+    "body": "La connexion demandera aussi un code à 6 chiffres d'une application sur votre téléphone : un mot de passe divulgué ne suffira plus.",
+    "setUp": "Configurer",
+    "notNow": "Plus tard"
   }
 }

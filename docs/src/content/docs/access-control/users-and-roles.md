@@ -132,7 +132,7 @@ Admins can call every route; other roles need the level shown.
 
 | Method | Path | Who | What it does |
 |---|---|---|---|
-| `GET` | `/api/users` | Users → View | Lists users (`id`, `email`, `name`, `role`, `createdAt`, `updatedAt`) |
+| `GET` | `/api/users` | Users → View | Lists users (`id`, `email`, `name`, `role`, `twoFactorEnabled`, `createdAt`, `updatedAt`) |
 | `POST` | `/api/users` | Users → Edit | Invites a user: `{ email, role? }` |
 | `PUT` | `/api/users/:id/role` | Users → Edit | Changes a user's role: `{ role }` |
 | `POST` | `/api/users/:id/invite` | Users → Edit | Sends a new invite link |
