@@ -154,6 +154,7 @@ export default function EntriesPage() {
   const canPublish = access.canContent('publish', ctName);
   const canDelete = access.canContent('delete', ctName);
   const canSelect = canEdit || canPublish || canDelete;
+  const multiLanguage = (localesConfig?.locales.length ?? 0) > 1;
   // One row per page (all its languages) unless a language is picked or the trash is open
   const grouped = !showTrash && localeFilter === 'all' && (localesConfig?.locales.length ?? 0) > 1;
   /** Every language's entry id behind the given rows (just the rows when not grouped). */
@@ -297,6 +298,57 @@ export default function EntriesPage() {
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('toasts.deleteFailed'));
     }
+  };
+
+  /**
+   * One chip per enabled language: this row's own (filled), other existing
+   * translations (green, opens them) and missing ones (dashed, creates them).
+   * An entry in a language that's no longer enabled still shows its own.
+   */
+  const renderLanguageChips = (entry: Entry) => {
+                      const ownCode = entry.locale || localesConfig?.defaultLocale || 'en';
+                      const chips = SUPPORTED_LOCALES.some((l) => l.code === ownCode)
+                        ? SUPPORTED_LOCALES
+                        : [...SUPPORTED_LOCALES, { code: ownCode, label: localeLabel(ownCode) }];
+                      return chips.map(({ code, label }) => {
+                        const own = code === ownCode;
+                        const target = own ? { id: entry.id } : entry.translationEntries?.find((tr) => tr.locale === code);
+                        const exists = own || !!target || (entry.translations ?? []).includes(code);
+                        // Existing language: open it. Missing one: create it from this entry.
+                        const canOpen = exists && !!target && canEdit;
+                        const canAdd = !exists && canCreate && !showTrash;
+                        const chipClass = cn(
+                          'inline-flex min-w-[2.25rem] justify-center text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
+                          own && 'bg-primary border-primary text-primary-foreground font-semibold',
+                          !own && exists && 'border-emerald-500/40 text-emerald-500',
+                          !exists && 'border-dashed border-border text-muted-foreground/60',
+                          (canOpen || canAdd) && 'cursor-pointer transition-colors',
+                          canOpen && !own && 'hover:bg-emerald-500/15',
+                          canOpen && own && 'hover:opacity-85',
+                          canAdd && 'hover:border-primary hover:text-foreground',
+                        );
+                        const title = canAdd
+                          ? t('table.localeAdd', { language: label })
+                          : canOpen
+                            ? t('table.localeOpen', { language: label })
+                            : t(own ? 'table.localeOwn' : exists ? 'table.localeTranslated' : 'table.localeMissing', { language: label });
+                        if (!canOpen && !canAdd) {
+                          return <span key={code} title={title} className={chipClass}>{code}</span>;
+                        }
+                        return (
+                          <button
+                            key={code}
+                            type="button"
+                            title={title}
+                            aria-label={title}
+                            disabled={addingLocale === `${entry.id}:${code}`}
+                            className={chipClass}
+                            onClick={() => (canOpen ? router.push(`/entries/${target!.id}/edit`) : handleAddLocale(entry, code))}
+                          >
+                            {canAdd ? `+${code}` : code}
+                          </button>
+                        );
+                      });
   };
 
   /* ── Add a language to a page (from the list's dashed chip) ────────────── */
@@ -1000,6 +1052,7 @@ export default function EntriesPage() {
               </TableHead>
             )}
             <TableHead>{t('table.slug')}</TableHead>
+            {multiLanguage && <TableHead className="hidden md:table-cell">{t('table.languages')}</TableHead>}
             <TableHead>{tc('status')}</TableHead>
             {schemaColumns.map((col) => (
               <TableHead key={col.name} className="hidden md:table-cell">
@@ -1016,6 +1069,7 @@ export default function EntriesPage() {
               <TableRow key={i}>
                 {canSelect && !showTrash && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                {multiLanguage && <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>}
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 {schemaColumns.map((col) => (
                   <TableCell key={col.name} className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
@@ -1027,7 +1081,7 @@ export default function EntriesPage() {
           ) : paginatedEntries.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={schemaColumns.length + (canSelect && !showTrash ? 4 : 3)}
+                colSpan={schemaColumns.length + (canSelect && !showTrash ? 4 : 3) + (multiLanguage ? 1 : 0)}
                 className="py-12 text-center text-muted-foreground"
               >
                 <div className="flex flex-col items-center justify-center gap-2">
@@ -1060,59 +1114,17 @@ export default function EntriesPage() {
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium text-foreground break-all">{entry.slug}</p>
-                  {/* One chip per enabled language: this row's own (filled), other
-                      existing translations (outlined) and missing ones (dashed). With a
-                      single language it's just this row's own chip, highlighted. An entry
-                      in a language that's no longer enabled still shows its own. */}
-                  <div className="flex flex-wrap gap-1 shrink-0">
-                    {(() => {
-                      const ownCode = entry.locale || localesConfig?.defaultLocale || 'en';
-                      const chips = SUPPORTED_LOCALES.some((l) => l.code === ownCode)
-                        ? SUPPORTED_LOCALES
-                        : [...SUPPORTED_LOCALES, { code: ownCode, label: localeLabel(ownCode) }];
-                      return chips.map(({ code, label }) => {
-                        const own = code === ownCode;
-                        const target = own ? { id: entry.id } : entry.translationEntries?.find((tr) => tr.locale === code);
-                        const exists = own || !!target || (entry.translations ?? []).includes(code);
-                        // Existing language: open it. Missing one: create it from this entry.
-                        const canOpen = exists && !!target && canEdit;
-                        const canAdd = !exists && canCreate && !showTrash;
-                        const chipClass = cn(
-                          'text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
-                          own && 'bg-primary border-primary text-primary-foreground font-semibold',
-                          !own && exists && 'border-emerald-500/40 text-emerald-500',
-                          !exists && 'border-dashed border-border text-muted-foreground/60',
-                          (canOpen || canAdd) && 'cursor-pointer transition-colors',
-                          canOpen && !own && 'hover:bg-emerald-500/15',
-                          canOpen && own && 'hover:opacity-85',
-                          canAdd && 'hover:border-primary hover:text-foreground',
-                        );
-                        const title = canAdd
-                          ? t('table.localeAdd', { language: label })
-                          : canOpen
-                            ? t('table.localeOpen', { language: label })
-                            : t(own ? 'table.localeOwn' : exists ? 'table.localeTranslated' : 'table.localeMissing', { language: label });
-                        if (!canOpen && !canAdd) {
-                          return <span key={code} title={title} className={chipClass}>{code}</span>;
-                        }
-                        return (
-                          <button
-                            key={code}
-                            type="button"
-                            title={title}
-                            aria-label={title}
-                            disabled={addingLocale === `${entry.id}:${code}`}
-                            className={chipClass}
-                            onClick={() => (canOpen ? router.push(`/entries/${target!.id}/edit`) : handleAddLocale(entry, code))}
-                          >
-                            {canAdd ? `+${code}` : code}
-                          </button>
-                        );
-                      });
-                    })()}
+                  {/* With several languages they get their own column from md up; below it, here */}
+                  <div className={cn('flex flex-wrap gap-1 shrink-0', multiLanguage && 'md:hidden')}>
+                    {renderLanguageChips(entry)}
                   </div>
                 </div>
               </TableCell>
+              {multiLanguage && (
+                <TableCell className="hidden md:table-cell">
+                  <div className="flex items-center gap-1">{renderLanguageChips(entry)}</div>
+                </TableCell>
+              )}
               <TableCell>
                 {entry.status === 'draft' && entry.publishAt ? (
                   <span

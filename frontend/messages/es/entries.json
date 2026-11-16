@@ -77,7 +77,8 @@
     "items": "{count, plural, one {# elemento} other {# elementos}}",
     "richText": "Texto enriquecido",
     "localeOpen": "Abrir la versión en {language}",
-    "localeAdd": "Añadir una traducción al {language}"
+    "localeAdd": "Añadir una traducción al {language}",
+    "languages": "Idiomas"
   },
   "actions": {
     "restore": "Restaurar",

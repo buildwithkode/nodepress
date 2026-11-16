@@ -31,7 +31,7 @@ When you create a new entry, pick its language in the language selector. It star
 
 ## The entries list
 
-With more than one language and the language filter on **All languages**, the list shows **one row per page** (content type + slug): the default-language entry, or the oldest translation when there is none. Its chips show every language:
+With more than one language and the language filter on **All languages**, the list shows **one row per page** (content type + slug): the default-language entry, or the oldest translation when there is none. A **Languages** column shows a chip per language, each language in the same place on every row:
 
 - **Filled chip**: this row's language. **Green outline**: a translation that exists — click it to open that translation.
 - **Dashed `+XX` chip**: a missing translation — click it to create it as a draft copy and open it.

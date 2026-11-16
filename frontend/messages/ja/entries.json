@@ -77,7 +77,8 @@
     "items": "{count, plural, other {# 項目}}",
     "richText": "リッチテキスト",
     "localeOpen": "{language}版を開く",
-    "localeAdd": "{language}の翻訳を追加"
+    "localeAdd": "{language}の翻訳を追加",
+    "languages": "言語"
   },
   "actions": {
     "restore": "復元",

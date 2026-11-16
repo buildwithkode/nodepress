@@ -77,7 +77,8 @@
     "items": "{count, plural, other {# 项}}",
     "richText": "富文本",
     "localeOpen": "打开{language}版本",
-    "localeAdd": "添加{language}翻译"
+    "localeAdd": "添加{language}翻译",
+    "languages": "语言"
   },
   "actions": {
     "restore": "恢复",

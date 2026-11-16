@@ -77,7 +77,8 @@
     "items": "{count, plural, one {# element} other {# elementen}}",
     "richText": "Opgemaakte tekst",
     "localeOpen": "De {language} versie openen",
-    "localeAdd": "Een {language} vertaling toevoegen"
+    "localeAdd": "Een {language} vertaling toevoegen",
+    "languages": "Talen"
   },
   "actions": {
     "restore": "Terugzetten",
