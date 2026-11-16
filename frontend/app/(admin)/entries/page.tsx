@@ -1032,12 +1032,18 @@ export default function EntriesPage() {
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium text-foreground break-all">{entry.slug}</p>
-                  {SUPPORTED_LOCALES.length > 1 ? (
-                    // One chip per enabled language: this row's own (filled), other
-                    // existing translations (outlined) and missing ones (dashed).
-                    <div className="flex flex-wrap gap-1 shrink-0">
-                      {SUPPORTED_LOCALES.map(({ code, label }) => {
-                        const own = code === (entry.locale || localesConfig?.defaultLocale);
+                  {/* One chip per enabled language: this row's own (filled), other
+                      existing translations (outlined) and missing ones (dashed). With a
+                      single language it's just this row's own chip, highlighted. An entry
+                      in a language that's no longer enabled still shows its own. */}
+                  <div className="flex flex-wrap gap-1 shrink-0">
+                    {(() => {
+                      const ownCode = entry.locale || localesConfig?.defaultLocale || 'en';
+                      const chips = SUPPORTED_LOCALES.some((l) => l.code === ownCode)
+                        ? SUPPORTED_LOCALES
+                        : [...SUPPORTED_LOCALES, { code: ownCode, label: localeLabel(ownCode) }];
+                      return chips.map(({ code, label }) => {
+                        const own = code === ownCode;
                         const exists = own || (entry.translations ?? []).includes(code);
                         return (
                           <span
@@ -1045,7 +1051,7 @@ export default function EntriesPage() {
                             title={t(own ? 'table.localeOwn' : exists ? 'table.localeTranslated' : 'table.localeMissing', { language: label })}
                             className={cn(
                               'text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
-                              own && 'bg-primary/15 border-primary/40 text-primary font-semibold',
+                              own && 'bg-primary border-primary text-primary-foreground font-semibold',
                               !own && exists && 'border-emerald-500/40 text-emerald-500',
                               !exists && 'border-dashed border-border text-muted-foreground/60',
                             )}
@@ -1053,13 +1059,9 @@ export default function EntriesPage() {
                             {code}
                           </span>
                         );
-                      })}
-                    </div>
-                  ) : (
-                    <Badge variant="outline" className="text-[10px] font-mono uppercase px-1.5 py-0 text-muted-foreground border-border/80 shrink-0">
-                      {entry.locale || 'en'}
-                    </Badge>
-                  )}
+                      });
+                    })()}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>

@@ -14,6 +14,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Changed
 
+- **Entry language chip stands out.** In the entries list, an entry's own language (e.g. **EN**) is a solid chip in both themes, also when the site has only one language (it used to be a faint grey badge). Translations stay green outlines, missing ones dashed.
 - **Sign-in waits for a server that's still starting.** Instead of "Backend connection failed" right after `npm run dev` or while a hosted app wakes up, the sign-in button shows "Starting the server…", waits up to 45 seconds for the API to answer and then signs in.
 - **Password rules shown up front.** The reset page, the setup page and the change-password sheet list the rules under the new password field (length, no common or breached passwords, not your email), so people know them before they submit.
 - **Show password button.** Every password field in the admin (sign-in, setup, reset, change password, email and storage settings, plugin settings) has an eye button to show or hide what you typed.
