@@ -32,7 +32,7 @@ import {
   Loader2,
   Palette,
   Menu,
-  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, ListOrdered, ArrowLeftRight, Globe } from 'lucide-react';
+  X, ListChecks, Languages, Package, Mail, Signpost, Blocks, UserCog, ListOrdered, ArrowLeftRight } from 'lucide-react';
 
 interface NavLink { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
 interface NavGroup { label: string; items: NavLink[]; externalLinks?: NavLink[] }
@@ -102,7 +102,6 @@ const ALL_NAV_GROUPS: Array<{
     ],
     externalLinks: [
       { href: 'https://nodepress-docs.vercel.app', labelKey: 'docs', icon: BookOpen },
-      { href: 'https://nodepress.buildwithkode.com', labelKey: 'website', icon: Globe },
     ],
   },
 ];
