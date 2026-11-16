@@ -54,7 +54,10 @@
     "heading": "Traducciones ({count})",
     "add": "Añadir traducción",
     "created": "Borrador de traducción {locale} creado",
-    "createFailed": "No se pudo crear el borrador de traducción"
+    "createFailed": "No se pudo crear el borrador de traducción",
+    "tabsLabel": "Idiomas",
+    "addTitle": "Añadir una traducción al {language} (copia en borrador de esta entrada)",
+    "tabTitle": "{language}: {status}"
   },
   "reference": {
     "toggle": "Referencia",

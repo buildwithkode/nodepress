@@ -54,7 +54,10 @@
     "heading": "Übersetzungen ({count})",
     "add": "Übersetzung hinzufügen",
     "created": "Übersetzungsentwurf {locale} erstellt",
-    "createFailed": "Übersetzungsentwurf konnte nicht erstellt werden"
+    "createFailed": "Übersetzungsentwurf konnte nicht erstellt werden",
+    "tabsLabel": "Sprachen",
+    "addTitle": "{language}-Übersetzung hinzufügen (Entwurfskopie dieses Eintrags)",
+    "tabTitle": "{language}: {status}"
   },
   "reference": {
     "toggle": "Referenz",

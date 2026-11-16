@@ -59,7 +59,8 @@
       "staged": "{count, plural, one {# voce promossa in staging} other {# voci promosse in staging}}",
       "submitted": "{count, plural, one {# voce inviata in revisione} other {# voci inviate in revisione}}",
       "archived": "{count, plural, one {# voce archiviata} other {# voci archiviate}}"
-    }
+    },
+    "allLanguages": "le azioni valgono per tutte le lingue"
   },
   "table": {
     "selectAll": "Seleziona tutte in questa pagina",
@@ -74,7 +75,9 @@
     "scheduledTitle": "Pubblicazione programmata: {date}",
     "scheduled": "Programmata · {date} {time}",
     "items": "{count, plural, one {# elemento} other {# elementi}}",
-    "richText": "Testo formattato"
+    "richText": "Testo formattato",
+    "localeOpen": "Apri la versione in {language}",
+    "localeAdd": "Aggiungi una traduzione in {language}"
   },
   "actions": {
     "restore": "Ripristina",
@@ -88,7 +91,8 @@
     "viewLive": "Vedi il post pubblicato sul sito",
     "copyApiUrl": "Copia URL API",
     "deleteConfirmTitle": "Eliminare questa voce?",
-    "deleteConfirmDescription": "<strong>{slug}</strong> verrà spostata nel cestino. Potrai ripristinarla in seguito."
+    "deleteConfirmDescription": "<strong>{slug}</strong> verrà spostata nel cestino. Potrai ripristinarla in seguito.",
+    "deleteAllLanguagesDescription": "<strong>{slug}</strong> verrà spostata nel cestino in tutte le lingue ({languages}). Potrai ripristinarla in seguito."
   },
   "import": {
     "button": "Importa",
@@ -139,6 +143,8 @@
     "duplicateFailed": "Duplicazione non riuscita",
     "noUniqueSlug": "Impossibile trovare uno slug univoco per il duplicato",
     "urlCopied": "URL API copiato negli appunti",
-    "copyUrlFailed": "Impossibile copiare l'URL"
+    "copyUrlFailed": "Impossibile copiare l'URL",
+    "translationCreated": "Traduzione in {language} creata come bozza",
+    "translationFailed": "Impossibile creare la traduzione"
   }
 }

@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import {
   ArrowLeft,
-  ChevronDown,
   ChevronRight,
   Search,
   CloudIcon,
@@ -24,7 +23,6 @@ import {
   WrapText,
   ExternalLink,
   Rocket,
-  Globe,
   Sparkles,
   Shield,
   Settings,
@@ -70,14 +68,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { withCondition } from '@/components/ConditionalField';
 import { pruneEntryData } from '@/lib/prune-entry-data';
 import { autosaveSnapshot } from '@/lib/autosave-snapshot';
@@ -110,6 +100,15 @@ function toLocalDatetimeString(dateStr?: string | null): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+
+/** Status colour on the language tabs. */
+const STATUS_DOT: Record<string, string> = {
+  published: 'bg-emerald-500',
+  staging: 'bg-purple-500',
+  pending_review: 'bg-blue-500',
+  draft: 'bg-amber-500',
+  archived: 'bg-muted-foreground/50',
+};
 
 export default function EditEntryPage() {
   const t = useTranslations('entryEditor');
@@ -389,6 +388,25 @@ export default function EditEntryPage() {
     }
   };
 
+  // Language tabs: every enabled language plus any language this page already has.
+  const languageTabs = (() => {
+    const own = { id: entry?.id, locale };
+    const list = translations.length > 0 ? translations : (entry ? [{ id: entry.id, locale, status, updatedAt: '' }] : []);
+    const codes = [...SUPPORTED_LOCALES.map((l) => l.code), ...list.map((tr) => tr.locale)].filter((c, i, all) => all.indexOf(c) === i);
+    return codes.map((code) => {
+      const tr = code === own.locale ? { id: own.id, status } : list.find((x) => x.locale === code);
+      return { code, label: SUPPORTED_LOCALES.find((l) => l.code === code)?.label || localeLabel(code), id: tr?.id, status: tr?.status };
+    });
+  })();
+  const canCreateTranslation = access.canContent('create', contentType?.name);
+
+  /** Save what's typed (as autosave would), then open or create the other language. */
+  const switchLanguage = async (code: string, targetId?: number) => {
+    try { await autosaveFn(); } catch { /* autosave reports its own state */ }
+    if (targetId) router.push(`/entries/${targetId}/edit`);
+    else await handleAddTranslation(code);
+  };
+
   const handleAddTranslation = async (targetLocale: string) => {
     if (!entry) return;
     setCreatingTranslation(true);
@@ -587,90 +605,6 @@ export default function EditEntryPage() {
                 </span>
               )}
 
-              {/* Editorial Multilingual Locale Switcher */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 text-xs font-medium border-border/80 bg-background/80"
-                    disabled={creatingTranslation}
-                  >
-                    <Globe className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-                    <span className="font-semibold">
-                      {SUPPORTED_LOCALES.find((l) => l.code === locale)?.label || locale.toUpperCase()} ({locale.toUpperCase()})
-                    </span>
-                    <ChevronDown className="h-3 w-3 opacity-50 ml-0.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60">
-                  <DropdownMenuLabel className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
-                    {t('translations.heading', { count: translations.length || 1 })}
-                  </DropdownMenuLabel>
-                  {(translations.length > 0 ? translations : [{ id: entry?.id ?? 0, locale, status, updatedAt: '' }]).map((t) => {
-                    const isCurrent = (entry && t.id === entry.id) || t.locale === locale;
-                    const loc = SUPPORTED_LOCALES.find((l) => l.code === t.locale);
-                    return (
-                      <DropdownMenuItem
-                        key={t.id}
-                        className={cn(
-                          "flex items-center justify-between cursor-pointer text-xs py-1.5",
-                          isCurrent && "bg-accent/60 font-medium"
-                        )}
-                        onClick={() => {
-                          if (!isCurrent) router.push(`/entries/${t.id}/edit`);
-                        }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>{loc?.label || localeLabel(t.locale)}</span>
-                          <span className="text-[10px] text-muted-foreground font-mono uppercase">({t.locale})</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "text-[9px] px-1.5 py-0 capitalize",
-                              t.status === 'published' && "border-emerald-500/40 text-emerald-500 bg-emerald-500/10",
-                              t.status === 'draft' && "border-amber-500/40 text-amber-500 bg-amber-500/10",
-                              t.status === 'pending_review' && "border-blue-500/40 text-blue-500 bg-blue-500/10",
-                              t.status === 'staging' && "border-purple-500/40 text-purple-500 bg-purple-500/10",
-                            )}
-                          >
-                            {tc.has(`statuses.${t.status}`) ? tc(`statuses.${t.status}`) : t.status}
-                          </Badge>
-                          {isCurrent && <Check className="h-3.5 w-3.5 text-primary ml-0.5" />}
-                        </div>
-                      </DropdownMenuItem>
-                    );
-                  })}
-
-                  {(() => {
-                    const existingLocales = new Set((translations.length > 0 ? translations : [{ locale }]).map((t) => t.locale));
-                    const untranslated = SUPPORTED_LOCALES.filter((l) => !existingLocales.has(l.code));
-                    if (untranslated.length === 0) return null;
-                    return (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
-                          {t('translations.add')}
-                        </DropdownMenuLabel>
-                        {untranslated.map((loc) => (
-                          <DropdownMenuItem
-                            key={loc.code}
-                            className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground py-1.5"
-                            onClick={() => handleAddTranslation(loc.code)}
-                          >
-                            <Plus className="h-3.5 w-3.5 text-blue-400" />
-                            <span>{loc.label}</span>
-                            <span className="text-[10px] font-mono text-muted-foreground ml-auto uppercase">{loc.code}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      </>
-                    );
-                  })()}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               {/* Status Selector */}
               <Select value={status} onValueChange={(v) => { if (v) setStatus(v); }}>
                 <SelectTrigger className="h-8 w-36 text-xs font-medium border-border/80 bg-background/80">
@@ -782,6 +716,51 @@ export default function EditEntryPage() {
               </div>
             </div>
           </div>
+          {languageTabs.length > 1 && (
+            // One tab per language of this page: open one, or add a missing one (a draft copy of this entry).
+            <div role="tablist" aria-label={t('translations.tabsLabel')} className="-mb-2 mt-3 flex flex-wrap items-end gap-1 border-b border-border/70">
+              {languageTabs.map((tab) => {
+                const current = tab.id === entry?.id;
+                const tabStatus = current ? status : tab.status;
+                const statusText = tabStatus ? (tc.has(`statuses.${tabStatus}`) ? tc(`statuses.${tabStatus}`) : tabStatus) : '';
+                if (!tab.id) {
+                  return (
+                    <button
+                      key={tab.code}
+                      type="button"
+                      role="tab"
+                      aria-selected={false}
+                      disabled={creatingTranslation || !canCreateTranslation}
+                      title={t('translations.addTitle', { language: tab.label })}
+                      onClick={() => switchLanguage(tab.code)}
+                      className="mb-1 inline-flex items-center gap-1 rounded-md border border-dashed border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                    >
+                      <Plus className="h-3 w-3" />
+                      {tab.label}
+                    </button>
+                  );
+                }
+                return (
+                  <button
+                    key={tab.code}
+                    type="button"
+                    role="tab"
+                    aria-selected={current}
+                    title={t('translations.tabTitle', { language: tab.label, status: statusText })}
+                    onClick={() => { if (!current) switchLanguage(tab.code, tab.id); }}
+                    className={cn(
+                      '-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
+                      current ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT[tabStatus ?? ''] ?? 'bg-muted-foreground/50')} aria-hidden="true" />
+                    {tab.label}
+                    <span className="font-mono text-[10px] uppercase text-muted-foreground">{tab.code}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </CardHeader>
         </div>
 

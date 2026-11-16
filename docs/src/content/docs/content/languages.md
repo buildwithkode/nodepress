@@ -21,14 +21,23 @@ A new install has one language, `en`.
 
 ## Translating in the editor
 
-In the entry editor, the language menu in the toolbar lists the entry's translations with their status.
+In the entry editor, a row of language tabs sits under the toolbar: one tab per enabled language, each with a dot for its status (green published, purple staging, blue in review, amber draft).
 
-- **Add Translation** creates the entry in another enabled language as a **draft**, with a copy of the current content to translate. If the translation exists already, the editor opens it.
+- Click a tab to open that language. What you typed is saved first, the same way autosave does, so nothing is lost.
+- A dashed **+ Language** tab creates the entry in that language as a **draft**, with a copy of the current content to translate, and opens it. If the translation exists already, the editor opens it.
 - **Reference** shows another translation next to the form while you write. **Copy Empty Fields from …** fills the fields you haven't filled yet from that language.
 
 When you create a new entry, pick its language in the language selector. It starts on the default language.
 
-The entries list has a language filter, and its language column shows which translations exist for each entry and which are missing.
+## The entries list
+
+With more than one language and the language filter on **All languages**, the list shows **one row per page** (content type + slug): the default-language entry, or the oldest translation when there is none. Its chips show every language:
+
+- **Filled chip**: this row's language. **Green outline**: a translation that exists — click it to open that translation.
+- **Dashed `+XX` chip**: a missing translation — click it to create it as a draft copy and open it.
+- Deleting a row, and bulk actions on selected rows, apply to **every language** of those pages; the confirmation lists them. To act on one language only, pick it in the language filter, which shows one row per entry again. The trash always lists entries one by one.
+
+`GET /api/entries?group=true` returns the same one-row-per-page list; each row's `translationEntries` gives every language's `id`, `locale` and `status`. `group` is ignored with `locale`.
 
 Each translation is a separate entry with its own status, versions and SEO fields. Publishing the English version doesn't publish the French one.
 

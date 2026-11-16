@@ -33,6 +33,11 @@ export interface AdminListQuery {
   deleted?: boolean;        // true = show only soft-deleted entries
   search?: string;          // full-text search on slug + data
   locale?: string;          // filter by locale (e.g. 'en', 'fr')
+  /**
+   * One row per page (content type + slug) instead of one per language: the
+   * default-language entry, else the oldest translation. Ignored with `locale`.
+   */
+  group?: boolean;
   page?: number;
   limit?: number;
   role?: FieldAccessRole;   // requesting user (role or { role, customRole }) for field-level security
@@ -200,6 +205,61 @@ export class EntriesService {
     return entry;
   }
 
+  /**
+   * A page of the admin list with one row per content type + slug. Filters
+   * and search pick the matching entries first; each page then shows its
+   * default-language entry if that matched, else its oldest match.
+   */
+  private async groupedPage(query: AdminListQuery, limit: number, skip: number): Promise<{ entries: any[]; total: number }> {
+    const setting = await Promise.resolve()
+      .then(() => this.prisma.setting.findUnique({ where: { id: 1 }, select: { defaultLocale: true } }))
+      .catch(() => null);
+    const defaultLocale = setting?.defaultLocale || 'en';
+
+    const conds: Prisma.Sql[] = [query.deleted ? Prisma.sql`"deletedAt" IS NOT NULL` : Prisma.sql`"deletedAt" IS NULL`];
+    if (query.contentTypeId) conds.push(Prisma.sql`"contentTypeId" = ${query.contentTypeId}`);
+    if (query.contentTypeIds) {
+      conds.push(query.contentTypeIds.length ? Prisma.sql`"contentTypeId" IN (${Prisma.join(query.contentTypeIds)})` : Prisma.sql`false`);
+    }
+    if (query.status) conds.push(Prisma.sql`status = ${query.status}`);
+
+    const run = async (match: Prisma.Sql | null) => {
+      const where = Prisma.join(match ? [...conds, match] : conds, ' AND ');
+      const [countRow] = await this.prisma.$queryRaw<{ count: number }[]>`
+        SELECT count(*)::int AS count FROM (
+          SELECT DISTINCT "contentTypeId", slug FROM entries WHERE ${where}
+        ) g`;
+      const count = Number(countRow?.count ?? 0);
+      if (!count) return { ids: [] as number[], count };
+      const rows = await this.prisma.$queryRaw<{ id: number }[]>`
+        SELECT id FROM (
+          SELECT DISTINCT ON ("contentTypeId", slug) id, "createdAt"
+          FROM entries WHERE ${where}
+          ORDER BY "contentTypeId", slug, (locale = ${defaultLocale}) DESC, id ASC
+        ) r
+        ORDER BY "createdAt" DESC, id DESC
+        LIMIT ${limit} OFFSET ${skip}`;
+      return { ids: rows.map((r) => Number(r.id)), count };
+    };
+
+    const term = query.search?.trim();
+    let result: { ids: number[]; count: number };
+    if (!term) {
+      result = await run(null);
+    } else {
+      try {
+        result = await run(Prisma.sql`search_vector @@ plainto_tsquery('english', ${term})`);
+      } catch {
+        const like = `%${term.replace(/[%_]/g, '\\$&')}%`;
+        result = await run(Prisma.sql`(LOWER(slug) LIKE LOWER(${like}) OR LOWER(COALESCE(data::text, '')) LIKE LOWER(${like}))`);
+      }
+    }
+    if (!result.ids.length) return { entries: [], total: result.count };
+    const raw = await this.prisma.entry.findMany({ where: { id: { in: result.ids } }, include: { contentType: true } });
+    const byId = new Map(raw.map((e) => [e.id, e]));
+    return { entries: result.ids.map((id) => byId.get(id)).filter(Boolean), total: result.count };
+  }
+
   async findAll(query: AdminListQuery = {}): Promise<PaginatedResult<any>> {
     const page = Math.max(1, query.page ?? 1);
     const limit = Math.min(100, Math.max(1, query.limit ?? 20));
@@ -217,7 +277,9 @@ export class EntriesService {
     let entries: any[] = [];
     let total = 0;
 
-    if (query.search?.trim()) {
+    if (query.group && !query.locale) {
+      ({ entries, total } = await this.groupedPage(query, limit, skip));
+    } else if (query.search?.trim()) {
       const term = query.search.trim();
 
       // Escape special LIKE pattern characters (% and _)
@@ -354,15 +416,20 @@ export class EntriesService {
           deletedAt: null,
           OR: data.map((e) => ({ contentTypeId: e.contentTypeId, slug: e.slug })),
         },
-        select: { contentTypeId: true, slug: true, locale: true },
+        select: { id: true, contentTypeId: true, slug: true, locale: true, status: true },
       });
-      const byKey = new Map<string, Set<string>>();
+      const byKey = new Map<string, Array<{ id: number; locale: string; status: string }>>();
       for (const s of siblings) {
         const key = `${s.contentTypeId}:${s.slug}`;
-        if (!byKey.has(key)) byKey.set(key, new Set());
-        byKey.get(key)!.add(s.locale);
+        if (!byKey.has(key)) byKey.set(key, []);
+        byKey.get(key)!.push({ id: s.id, locale: s.locale, status: s.status });
       }
-      for (const e of data as any[]) e.translations = [...(byKey.get(`${e.contentTypeId}:${e.slug}`) ?? [e.locale])].sort();
+      for (const e of data as any[]) {
+        const list = (byKey.get(`${e.contentTypeId}:${e.slug}`) ?? []).sort((a, b) => a.locale.localeCompare(b.locale));
+        e.translations = list.length ? list.map((t) => t.locale) : [e.locale];
+        // Each language's entry, so the list can open or act on any of them
+        e.translationEntries = list.length ? list : [{ id: e.id, locale: e.locale, status: e.status }];
+      }
     }
 
     return {

@@ -54,7 +54,10 @@
     "heading": "翻訳 ({count})",
     "add": "翻訳を追加",
     "created": "{locale} の翻訳の下書きを作成しました",
-    "createFailed": "翻訳の下書きを作成できませんでした"
+    "createFailed": "翻訳の下書きを作成できませんでした",
+    "tabsLabel": "言語",
+    "addTitle": "{language}の翻訳を追加（このエントリーの下書きコピー）",
+    "tabTitle": "{language}：{status}"
   },
   "reference": {
     "toggle": "参照",

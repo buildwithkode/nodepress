@@ -54,7 +54,10 @@
     "heading": "Translations ({count})",
     "add": "Add Translation",
     "created": "Created {locale} translation draft",
-    "createFailed": "Failed to create translation draft"
+    "createFailed": "Failed to create translation draft",
+    "tabsLabel": "Languages",
+    "addTitle": "Add a {language} translation (a draft copy of this entry)",
+    "tabTitle": "{language}: {status}"
   },
   "reference": {
     "toggle": "Reference",

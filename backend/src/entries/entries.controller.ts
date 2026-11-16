@@ -74,6 +74,7 @@ export class EntriesController {
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   @ApiQuery({ name: 'locale', required: false, type: String, description: 'Filter by locale (e.g. en, fr, de)' })
+  @ApiQuery({ name: 'group', required: false, type: Boolean, description: 'One row per page (content type + slug) instead of one per language. Ignored with locale.' })
   findAll(
     @Query('contentTypeId') contentTypeId?: string,
     @Query('status') status?: string,
@@ -82,6 +83,7 @@ export class EntriesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('locale') locale?: string,
+    @Query('group') group?: string,
     @Request() req?: any,
   ) {
     const ctId = contentTypeId ? parseInt(contentTypeId, 10) : undefined;
@@ -93,6 +95,7 @@ export class EntriesController {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
       locale: locale?.trim() || undefined,
+      group: group === 'true',
       role: req?.user,
     });
   }

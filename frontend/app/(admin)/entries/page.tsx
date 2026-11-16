@@ -105,6 +105,8 @@ interface Entry {
   publishAt?: string | null;
   /** Locales this entry exists in (same content type + slug). */
   translations?: string[];
+  /** Each language's entry (same content type + slug). */
+  translationEntries?: Array<{ id: number; locale: string; status: string }>;
 }
 
 export default function EntriesPage() {
@@ -152,6 +154,12 @@ export default function EntriesPage() {
   const canPublish = access.canContent('publish', ctName);
   const canDelete = access.canContent('delete', ctName);
   const canSelect = canEdit || canPublish || canDelete;
+  // One row per page (all its languages) unless a language is picked or the trash is open
+  const grouped = !showTrash && localeFilter === 'all' && (localesConfig?.locales.length ?? 0) > 1;
+  /** Every language's entry id behind the given rows (just the rows when not grouped). */
+  const expandIds = (ids: number[]) => grouped
+    ? [...new Set(ids.flatMap((id) => entries.find((e) => e.id === id)?.translationEntries?.map((tr) => tr.id) ?? [id]))]
+    : ids;
 
   const fetchDeletedCount = async () => {
     if (!selectedCT) { setDeletedCount(0); return; }
@@ -236,12 +244,13 @@ export default function EntriesPage() {
     } else {
       if (statusFilter !== 'all') params.status = statusFilter;
       if (localeFilter !== 'all') params.locale = localeFilter;
+      else if (grouped) params.group = true;
     }
     api.get('/entries', { params })
       .then((res) => setEntries(res.data.data ?? res.data))
       .catch(() => toast.error(t('toasts.loadEntriesFailed')))
       .finally(() => setLoadingEntries(false));
-  }, [selectedCT?.id, statusFilter, localeFilter, showTrash]);
+  }, [selectedCT?.id, statusFilter, localeFilter, showTrash, grouped]);
 
   useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter, localeFilter, showTrash]);
 
@@ -256,6 +265,7 @@ export default function EntriesPage() {
     } else {
       if (statusFilter !== 'all') params.status = statusFilter;
       if (localeFilter !== 'all') params.locale = localeFilter;
+      else if ((localesConfig?.locales.length ?? 0) > 1) params.group = true;
     }
     const res = await api.get('/entries', { params });
     const list = res.data.data ?? res.data;
@@ -278,12 +288,29 @@ export default function EntriesPage() {
 
   /* ── Delete ────────────────────────────────────────────────────────────── */
   const handleDelete = async (id: number) => {
+    const ids = expandIds([id]);
     try {
-      await api.delete(`/entries/${id}`);
+      if (ids.length > 1) await api.post('/entries/bulk-delete', { ids });
+      else await api.delete(`/entries/${id}`);
       toast.success(t('toasts.movedToTrash'));
       await refreshEntries(false);
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('toasts.deleteFailed'));
+    }
+  };
+
+  /* ── Add a language to a page (from the list's dashed chip) ────────────── */
+  const [addingLocale, setAddingLocale] = useState<string | null>(null);
+  const handleAddLocale = async (entry: Entry, code: string) => {
+    setAddingLocale(`${entry.id}:${code}`);
+    try {
+      // A draft copy of this entry in the new language, then straight into the editor
+      const res = await api.post(`/entries/${entry.id}/translate`, { targetLocale: code });
+      toast.success(t('toasts.translationCreated', { language: localeLabel(code) }));
+      router.push(`/entries/${res.data.id}/edit`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('toasts.translationFailed'));
+      setAddingLocale(null);
     }
   };
 
@@ -466,7 +493,7 @@ export default function EntriesPage() {
     if (selected.size === 0) return;
     setBulkLoading(true);
     try {
-      const res = await api.post(`/entries/${action}`, { ids: Array.from(selected) });
+      const res = await api.post(`/entries/${action}`, { ids: expandIds(Array.from(selected)) });
       const key = action === 'bulk-delete' ? 'deleted' : action === 'bulk-publish' ? 'published' : action === 'bulk-stage' ? 'staged' : action === 'bulk-pending-review' ? 'submitted' : 'archived';
       toast.success(t(`bulk.done.${key}`, { count: res.data.affected }));
       await refreshEntries();
@@ -862,7 +889,7 @@ export default function EntriesPage() {
       )}
 
       <AddToReleaseDialog
-        entryIds={[...selected]}
+        entryIds={expandIds([...selected])}
         open={releaseOpen}
         onOpenChange={setReleaseOpen}
         onAdded={() => setSelected(new Set())}
@@ -874,6 +901,7 @@ export default function EntriesPage() {
           <CheckSquare className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">
             {t('bulk.selected', { count: selected.size })}
+            {grouped && <span className="ml-1 font-normal text-muted-foreground">· {t('bulk.allLanguages')}</span>}
           </span>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {canPublish && (
@@ -1044,20 +1072,41 @@ export default function EntriesPage() {
                         : [...SUPPORTED_LOCALES, { code: ownCode, label: localeLabel(ownCode) }];
                       return chips.map(({ code, label }) => {
                         const own = code === ownCode;
-                        const exists = own || (entry.translations ?? []).includes(code);
+                        const target = own ? { id: entry.id } : entry.translationEntries?.find((tr) => tr.locale === code);
+                        const exists = own || !!target || (entry.translations ?? []).includes(code);
+                        // Existing language: open it. Missing one: create it from this entry.
+                        const canOpen = exists && !!target && canEdit;
+                        const canAdd = !exists && canCreate && !showTrash;
+                        const chipClass = cn(
+                          'text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
+                          own && 'bg-primary border-primary text-primary-foreground font-semibold',
+                          !own && exists && 'border-emerald-500/40 text-emerald-500',
+                          !exists && 'border-dashed border-border text-muted-foreground/60',
+                          (canOpen || canAdd) && 'cursor-pointer transition-colors',
+                          canOpen && !own && 'hover:bg-emerald-500/15',
+                          canOpen && own && 'hover:opacity-85',
+                          canAdd && 'hover:border-primary hover:text-foreground',
+                        );
+                        const title = canAdd
+                          ? t('table.localeAdd', { language: label })
+                          : canOpen
+                            ? t('table.localeOpen', { language: label })
+                            : t(own ? 'table.localeOwn' : exists ? 'table.localeTranslated' : 'table.localeMissing', { language: label });
+                        if (!canOpen && !canAdd) {
+                          return <span key={code} title={title} className={chipClass}>{code}</span>;
+                        }
                         return (
-                          <span
+                          <button
                             key={code}
-                            title={t(own ? 'table.localeOwn' : exists ? 'table.localeTranslated' : 'table.localeMissing', { language: label })}
-                            className={cn(
-                              'text-[10px] font-mono uppercase px-1.5 rounded border leading-4',
-                              own && 'bg-primary border-primary text-primary-foreground font-semibold',
-                              !own && exists && 'border-emerald-500/40 text-emerald-500',
-                              !exists && 'border-dashed border-border text-muted-foreground/60',
-                            )}
+                            type="button"
+                            title={title}
+                            aria-label={title}
+                            disabled={addingLocale === `${entry.id}:${code}`}
+                            className={chipClass}
+                            onClick={() => (canOpen ? router.push(`/entries/${target!.id}/edit`) : handleAddLocale(entry, code))}
                           >
-                            {code}
-                          </span>
+                            {canAdd ? `+${code}` : code}
+                          </button>
                         );
                       });
                     })()}
@@ -1241,7 +1290,13 @@ export default function EntriesPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>{t('actions.deleteConfirmTitle')}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                {t.rich('actions.deleteConfirmDescription', { slug: entry.slug, strong: (chunks) => <strong>{chunks}</strong> })}
+                                {grouped && (entry.translationEntries?.length ?? 0) > 1
+                                  ? t.rich('actions.deleteAllLanguagesDescription', {
+                                      slug: entry.slug,
+                                      languages: entry.translationEntries!.map((tr) => localeLabel(tr.locale)).join(', '),
+                                      strong: (chunks) => <strong>{chunks}</strong>,
+                                    })
+                                  : t.rich('actions.deleteConfirmDescription', { slug: entry.slug, strong: (chunks) => <strong>{chunks}</strong> })}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

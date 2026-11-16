@@ -54,7 +54,10 @@
     "heading": "Vertalingen ({count})",
     "add": "Vertaling toevoegen",
     "created": "Conceptvertaling {locale} aangemaakt",
-    "createFailed": "Conceptvertaling aanmaken mislukt"
+    "createFailed": "Conceptvertaling aanmaken mislukt",
+    "tabsLabel": "Talen",
+    "addTitle": "Een {language} vertaling toevoegen (conceptkopie van dit item)",
+    "tabTitle": "{language}: {status}"
   },
   "reference": {
     "toggle": "Referentie",

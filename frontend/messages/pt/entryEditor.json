@@ -54,7 +54,10 @@
     "heading": "Traduções ({count})",
     "add": "Adicionar tradução",
     "created": "Rascunho da tradução em {locale} criado",
-    "createFailed": "Falha ao criar o rascunho da tradução"
+    "createFailed": "Falha ao criar o rascunho da tradução",
+    "tabsLabel": "Idiomas",
+    "addTitle": "Adicionar uma tradução em {language} (cópia em rascunho desta entrada)",
+    "tabTitle": "{language}: {status}"
   },
   "reference": {
     "toggle": "Referência",

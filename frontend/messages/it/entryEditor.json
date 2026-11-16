@@ -54,7 +54,10 @@
     "heading": "Traduzioni ({count})",
     "add": "Aggiungi traduzione",
     "created": "Bozza di traduzione {locale} creata",
-    "createFailed": "Impossibile creare la bozza di traduzione"
+    "createFailed": "Impossibile creare la bozza di traduzione",
+    "tabsLabel": "Lingue",
+    "addTitle": "Aggiungi una traduzione in {language} (copia in bozza di questa voce)",
+    "tabTitle": "{language}: {status}"
   },
   "reference": {
     "toggle": "Riferimento",

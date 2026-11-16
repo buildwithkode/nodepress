@@ -128,6 +128,42 @@ describe('EntriesService', () => {
   // ── findAll ────────────────────────────────────────────────────────────────
 
   describe('findAll()', () => {
+    it('group: one row per page, with every language\'s entry attached', async () => {
+      (mockPrisma as any).setting = { findUnique: jest.fn().mockResolvedValue({ defaultLocale: 'en' }) };
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce([{ count: 1 }])  // pages
+        .mockResolvedValueOnce([{ id: 10 }]);   // the representative of each page
+      mockPrisma.entry.findMany
+        .mockResolvedValueOnce([mockEntry])     // the rows
+        .mockResolvedValueOnce([                // every language of those pages
+          { id: 11, contentTypeId: 1, slug: 'hello-world', locale: 'hi', status: 'draft' },
+          { id: 10, contentTypeId: 1, slug: 'hello-world', locale: 'en', status: 'published' },
+        ]);
+
+      const result = await service.findAll({ contentTypeId: 1, group: true });
+
+      expect(result.meta.total).toBe(1);
+      expect(mockPrisma.entry.count).not.toHaveBeenCalled();
+      const row: any = result.data[0];
+      expect(row.id).toBe(10);
+      expect(row.translations).toEqual(['en', 'hi']);
+      expect(row.translationEntries).toEqual([
+        { id: 10, locale: 'en', status: 'published' },
+        { id: 11, locale: 'hi', status: 'draft' },
+      ]);
+      // The default language wins the row
+      const sql = mockPrisma.$queryRaw.mock.calls[1];
+      expect(sql.slice(1)).toContain('en');
+    });
+
+    it('group is ignored when a language is picked', async () => {
+      mockPrisma.entry.count.mockResolvedValue(1);
+      mockPrisma.entry.findMany.mockResolvedValue([mockEntry]);
+      await service.findAll({ contentTypeId: 1, group: true, locale: 'en' });
+      expect(mockPrisma.$queryRaw).not.toHaveBeenCalled();
+      expect(mockPrisma.entry.count).toHaveBeenCalled();
+    });
+
     it('returns paginated result', async () => {
       mockPrisma.$queryRaw.mockResolvedValue([]);
       mockPrisma.entry.count.mockResolvedValue(1);

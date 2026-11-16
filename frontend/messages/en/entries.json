@@ -59,7 +59,8 @@
       "staged": "{count, plural, one {# entry promoted to staging} other {# entries promoted to staging}}",
       "submitted": "{count, plural, one {# entry submitted for review} other {# entries submitted for review}}",
       "archived": "{count, plural, one {# entry archived} other {# entries archived}}"
-    }
+    },
+    "allLanguages": "actions apply to every language"
   },
   "table": {
     "selectAll": "Select all on this page",
@@ -74,7 +75,9 @@
     "scheduledTitle": "Scheduled to publish: {date}",
     "scheduled": "Scheduled · {date} {time}",
     "items": "{count, plural, one {# item} other {# items}}",
-    "richText": "Rich text"
+    "richText": "Rich text",
+    "localeOpen": "Open the {language} version",
+    "localeAdd": "Add a {language} translation"
   },
   "actions": {
     "restore": "Restore",
@@ -88,7 +91,8 @@
     "viewLive": "View Live Post on Website",
     "copyApiUrl": "Copy API URL",
     "deleteConfirmTitle": "Delete this entry?",
-    "deleteConfirmDescription": "<strong>{slug}</strong> will be moved to trash. You can restore it later."
+    "deleteConfirmDescription": "<strong>{slug}</strong> will be moved to trash. You can restore it later.",
+    "deleteAllLanguagesDescription": "<strong>{slug}</strong> will be moved to trash in every language ({languages}). You can restore it later."
   },
   "import": {
     "button": "Import",
@@ -139,6 +143,8 @@
     "duplicateFailed": "Duplicate failed",
     "noUniqueSlug": "Could not find a unique slug for the duplicate",
     "urlCopied": "API URL copied to clipboard",
-    "copyUrlFailed": "Could not copy URL"
+    "copyUrlFailed": "Could not copy URL",
+    "translationCreated": "{language} translation created as a draft",
+    "translationFailed": "Couldn't create the translation"
   }
 }

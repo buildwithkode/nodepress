@@ -54,7 +54,10 @@
     "heading": "Traductions ({count})",
     "add": "Ajouter une traduction",
     "created": "Brouillon de traduction {locale} créé",
-    "createFailed": "Impossible de créer le brouillon de traduction"
+    "createFailed": "Impossible de créer le brouillon de traduction",
+    "tabsLabel": "Langues",
+    "addTitle": "Ajouter une traduction en {language} (copie brouillon de cette entrée)",
+    "tabTitle": "{language} : {status}"
   },
   "reference": {
     "toggle": "Référence",

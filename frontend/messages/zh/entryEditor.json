@@ -54,7 +54,10 @@
     "heading": "翻译（{count}）",
     "add": "添加翻译",
     "created": "已创建 {locale} 翻译草稿",
-    "createFailed": "创建翻译草稿失败"
+    "createFailed": "创建翻译草稿失败",
+    "tabsLabel": "语言",
+    "addTitle": "添加{language}翻译（此条目的草稿副本）",
+    "tabTitle": "{language}：{status}"
   },
   "reference": {
     "toggle": "参考",

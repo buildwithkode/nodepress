@@ -59,7 +59,8 @@
       "staged": "{count, plural, one {# item naar staging gezet} other {# items naar staging gezet}}",
       "submitted": "{count, plural, one {# item ter beoordeling ingediend} other {# items ter beoordeling ingediend}}",
       "archived": "{count, plural, one {# item gearchiveerd} other {# items gearchiveerd}}"
-    }
+    },
+    "allLanguages": "acties gelden voor alle talen"
   },
   "table": {
     "selectAll": "Alles op deze pagina selecteren",
@@ -74,7 +75,9 @@
     "scheduledTitle": "Ingepland voor publicatie: {date}",
     "scheduled": "Ingepland · {date} {time}",
     "items": "{count, plural, one {# element} other {# elementen}}",
-    "richText": "Opgemaakte tekst"
+    "richText": "Opgemaakte tekst",
+    "localeOpen": "De {language} versie openen",
+    "localeAdd": "Een {language} vertaling toevoegen"
   },
   "actions": {
     "restore": "Terugzetten",
@@ -88,7 +91,8 @@
     "viewLive": "Live bericht op website bekijken",
     "copyApiUrl": "API-URL kopiëren",
     "deleteConfirmTitle": "Dit item verwijderen?",
-    "deleteConfirmDescription": "<strong>{slug}</strong> wordt naar de prullenbak verplaatst. Je kunt het later terugzetten."
+    "deleteConfirmDescription": "<strong>{slug}</strong> wordt naar de prullenbak verplaatst. Je kunt het later terugzetten.",
+    "deleteAllLanguagesDescription": "<strong>{slug}</strong> wordt in alle talen ({languages}) naar de prullenbak verplaatst. Je kunt het later terugzetten."
   },
   "import": {
     "button": "Importeren",
@@ -139,6 +143,8 @@
     "duplicateFailed": "Dupliceren mislukt",
     "noUniqueSlug": "Kon geen unieke slug voor het duplicaat vinden",
     "urlCopied": "API-URL naar klembord gekopieerd",
-    "copyUrlFailed": "Kon URL niet kopiëren"
+    "copyUrlFailed": "Kon URL niet kopiëren",
+    "translationCreated": "{language} vertaling als concept aangemaakt",
+    "translationFailed": "Vertaling kon niet worden aangemaakt"
   }
 }

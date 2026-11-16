@@ -59,7 +59,8 @@
       "staged": "{count, plural, one {# entrada pasada a preproducción} other {# entradas pasadas a preproducción}}",
       "submitted": "{count, plural, one {# entrada enviada a revisión} other {# entradas enviadas a revisión}}",
       "archived": "{count, plural, one {# entrada archivada} other {# entradas archivadas}}"
-    }
+    },
+    "allLanguages": "las acciones se aplican a todos los idiomas"
   },
   "table": {
     "selectAll": "Seleccionar todo en esta página",
@@ -74,7 +75,9 @@
     "scheduledTitle": "Publicación programada: {date}",
     "scheduled": "Programada · {date} {time}",
     "items": "{count, plural, one {# elemento} other {# elementos}}",
-    "richText": "Texto enriquecido"
+    "richText": "Texto enriquecido",
+    "localeOpen": "Abrir la versión en {language}",
+    "localeAdd": "Añadir una traducción al {language}"
   },
   "actions": {
     "restore": "Restaurar",
@@ -88,7 +91,8 @@
     "viewLive": "Ver la publicación en el sitio web",
     "copyApiUrl": "Copiar URL de la API",
     "deleteConfirmTitle": "¿Eliminar esta entrada?",
-    "deleteConfirmDescription": "<strong>{slug}</strong> se moverá a la papelera. Podrás restaurarla más tarde."
+    "deleteConfirmDescription": "<strong>{slug}</strong> se moverá a la papelera. Podrás restaurarla más tarde.",
+    "deleteAllLanguagesDescription": "<strong>{slug}</strong> se moverá a la papelera en todos los idiomas ({languages}). Podrás restaurarla más tarde."
   },
   "import": {
     "button": "Importar",
@@ -139,6 +143,8 @@
     "duplicateFailed": "Error al duplicar",
     "noUniqueSlug": "No se encontró un slug único para el duplicado",
     "urlCopied": "URL de la API copiada al portapapeles",
-    "copyUrlFailed": "No se pudo copiar la URL"
+    "copyUrlFailed": "No se pudo copiar la URL",
+    "translationCreated": "Traducción al {language} creada como borrador",
+    "translationFailed": "No se pudo crear la traducción"
   }
 }

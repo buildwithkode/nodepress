@@ -59,7 +59,8 @@
       "staged": "{count, plural, one {# entrée passée en préproduction} other {# entrées passées en préproduction}}",
       "submitted": "{count, plural, one {# entrée soumise pour relecture} other {# entrées soumises pour relecture}}",
       "archived": "{count, plural, one {# entrée archivée} other {# entrées archivées}}"
-    }
+    },
+    "allLanguages": "les actions s'appliquent à toutes les langues"
   },
   "table": {
     "selectAll": "Tout sélectionner sur cette page",
@@ -74,7 +75,9 @@
     "scheduledTitle": "Publication programmée : {date}",
     "scheduled": "Programmée · {date} {time}",
     "items": "{count, plural, one {# élément} other {# éléments}}",
-    "richText": "Texte enrichi"
+    "richText": "Texte enrichi",
+    "localeOpen": "Ouvrir la version {language}",
+    "localeAdd": "Ajouter une traduction en {language}"
   },
   "actions": {
     "restore": "Restaurer",
@@ -88,7 +91,8 @@
     "viewLive": "Voir la publication en ligne sur le site",
     "copyApiUrl": "Copier l’URL de l’API",
     "deleteConfirmTitle": "Supprimer cette entrée ?",
-    "deleteConfirmDescription": "<strong>{slug}</strong> sera placée dans la corbeille. Vous pourrez la restaurer plus tard."
+    "deleteConfirmDescription": "<strong>{slug}</strong> sera placée dans la corbeille. Vous pourrez la restaurer plus tard.",
+    "deleteAllLanguagesDescription": "<strong>{slug}</strong> sera placée dans la corbeille dans toutes les langues ({languages}). Vous pourrez la restaurer plus tard."
   },
   "import": {
     "button": "Importer",
@@ -139,6 +143,8 @@
     "duplicateFailed": "Échec de la duplication",
     "noUniqueSlug": "Impossible de trouver un slug unique pour le doublon",
     "urlCopied": "URL de l’API copiée dans le presse-papiers",
-    "copyUrlFailed": "Impossible de copier l’URL"
+    "copyUrlFailed": "Impossible de copier l’URL",
+    "translationCreated": "Traduction en {language} créée comme brouillon",
+    "translationFailed": "Impossible de créer la traduction"
   }
 }
