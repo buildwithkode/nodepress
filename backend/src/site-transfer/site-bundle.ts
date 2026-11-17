@@ -18,6 +18,8 @@ export interface SiteEntryRow {
   data?: Record<string, unknown>;
   seo?: unknown;
   publishAt?: string | null;
+  /** Order in the admin list (shared by a page's languages). Older files have none. */
+  position?: number;
   createdAt?: string;
   /** Set on an entry in the trash. */
   deletedAt?: string | null;
@@ -132,6 +134,10 @@ export function planEntries(
         plan.errors.push(`${label}: createdAt and deletedAt must be dates`);
         return;
       }
+      if (row.position !== undefined && !Number.isInteger(row.position)) {
+        plan.errors.push(`${label}: position must be a whole number`);
+        return;
+      }
       if (row.publicId !== undefined && (typeof row.publicId !== 'string' || !UUID.test(row.publicId))) {
         plan.errors.push(`${label}: publicId must be a UUID`);
         return;
@@ -204,6 +210,7 @@ function toWrite(row: SiteEntryRow, locale: string, status: string, publicId: st
     data: (row.data ?? {}) as Record<string, any>,
     seo: row.seo ?? null,
     publishAt: row.publishAt ?? null,
+    position: row.position,
     createdAt: row.createdAt,
     deletedAt: row.deletedAt ?? null,
   };

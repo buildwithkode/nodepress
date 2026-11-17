@@ -155,6 +155,14 @@ export default function EntriesPage() {
   const [loadingEntries, setLoadingEntries] = useState(false);
   const [duplicating, setDuplicating] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  // The server searches; wait for a pause in typing before asking it
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+  // Entries matching the filters on the server (the list loads one page at a time)
+  const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>(statusParam || 'all');
   const [localeFilter, setLocaleFilter] = useState<string>('all');
   const localesConfig = useLocales();
@@ -268,47 +276,55 @@ export default function EntriesPage() {
     return () => { mounted = false; };
   }, [user]);
 
-  /* ── Load entries when CT is selected ──────────────────────────────────── */
-  useEffect(() => {
-    if (!selectedCT) { setEntries([]); setDeletedCount(0); setSelectedCTPendingCount(0); return; }
-    if (!localeReady) return;
-    setEntries([]);
-    setLoadingEntries(true);
-    setSelected(new Set());
-    fetchDeletedCount();
-    fetchPendingCount();
-    const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
-    if (showTrash) {
-      params.deleted = true;
-    } else {
-      if (statusFilter !== 'all') params.status = statusFilter;
-      if (localeFilter !== 'all') params.locale = localeFilter;
-    }
-    api.get('/entries', { params })
-      .then((res) => setEntries(res.data.data ?? res.data))
-      .catch(() => toast.error(t('toasts.loadEntriesFailed')))
-      .finally(() => setLoadingEntries(false));
-  }, [selectedCT?.id, statusFilter, localeFilter, showTrash, localeReady]);
-
-  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, ctParam, statusFilter, localeFilter, showTrash]);
-
-  /* ── Refresh helpers ────────────────────────────────────────────────────── */
-  const refreshEntries = async (trashState = showTrash) => {
-    if (!selectedCT) return;
-    fetchDeletedCount();
-    fetchPendingCount();
-    const params: Record<string, any> = { contentTypeId: selectedCT.id, limit: 100 };
+  /** One page of the list, filtered and searched on the server. */
+  const listParams = (trashState: boolean) => {
+    const params: Record<string, any> = { contentTypeId: selectedCT!.id, page, limit: PAGE_SIZE };
+    if (debouncedSearch) params.search = debouncedSearch;
     if (trashState) {
       params.deleted = true;
     } else {
       if (statusFilter !== 'all') params.status = statusFilter;
       if (localeFilter !== 'all') params.locale = localeFilter;
     }
-    const res = await api.get('/entries', { params });
+    return params;
+  };
+
+  /* ── Load entries when CT is selected ──────────────────────────────────── */
+  useEffect(() => {
+    if (!selectedCT) { setEntries([]); setDeletedCount(0); setSelectedCTPendingCount(0); return; }
+    if (!localeReady) return;
+    let alive = true;
+    setLoadingEntries(true);
+    setSelected(new Set());
+    fetchDeletedCount();
+    fetchPendingCount();
+    api.get('/entries', { params: listParams(showTrash) })
+      .then((res) => {
+        if (!alive) return;
+        setEntries(res.data.data ?? res.data);
+        setTotal(res.data.meta?.total ?? (res.data.data ?? res.data).length);
+      })
+      .catch(() => alive && toast.error(t('toasts.loadEntriesFailed')))
+      .finally(() => alive && setLoadingEntries(false));
+    return () => { alive = false; };
+  }, [selectedCT?.id, statusFilter, localeFilter, showTrash, localeReady, page, debouncedSearch]);
+
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [debouncedSearch, ctParam, statusFilter, localeFilter, showTrash]);
+
+  /* ── Refresh helpers ────────────────────────────────────────────────────── */
+  const refreshEntries = async (trashState = showTrash) => {
+    if (!selectedCT) return;
+    fetchDeletedCount();
+    fetchPendingCount();
+    const res = await api.get('/entries', { params: listParams(trashState) });
     const list = res.data.data ?? res.data;
+    const count = res.data.meta?.total ?? list.length;
+    // The last row of a page went (deleted, or filtered out): step back a page
+    if (list.length === 0 && page > 1) { setPage(page - 1); return; }
     setEntries(list);
-    if (!trashState) {
-      setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: res.data.meta?.total ?? list.length }));
+    setTotal(count);
+    if (!trashState && statusFilter === 'all' && !debouncedSearch) {
+      setEntryCounts((prev) => ({ ...prev, [selectedCT.id]: count }));
     }
     setSelected(new Set());
   };
@@ -449,17 +465,19 @@ export default function EntriesPage() {
       handleStatusChange(entry, value);
     }
   };
-  const handleStatusChange = async (entry: Entry, value: string, isUndo = false) => {
+  const handleStatusChange = async (entry: Entry, value: string, isUndo = false, restoreSchedule?: string | null) => {
     const previous = entry.status;
+    const previousSchedule = entry.publishAt ?? null;
     setChangingStatus(entry.id);
     try {
       await api.post(`/entries/${entry.id}/promote`, { status: value });
-      // Undo puts the old status back; a cancelled schedule can't be restored this way, so no undo then
-      const canUndo = !isUndo && previous !== value && !entry.publishAt;
+      // Undo also puts back a scheduled publish the change cancelled
+      if (restoreSchedule) await api.put(`/entries/${entry.id}`, { publishAt: restoreSchedule });
+      const canUndo = !isUndo && (previous !== value || !!previousSchedule);
       toast.success(t('toasts.statusChanged', { slug: entry.slug, status: statusName(value) }), canUndo ? {
         action: {
           label: t('toasts.undo'),
-          onClick: () => handleStatusChange({ ...entry, status: value, publishAt: null }, previous, true),
+          onClick: () => handleStatusChange({ ...entry, status: value, publishAt: null }, previous, true, previousSchedule),
         },
       } : undefined);
       await refreshEntries(false);
@@ -786,10 +804,8 @@ export default function EntriesPage() {
 
   /* ── Entries table view ─────────────────────────────────────────────────── */
   const schemaColumns = selectedCT?.schema.slice(0, 3) ?? [];
-  const filteredEntries = entries.filter((e) =>
-    e.slug.toLowerCase().includes(search.toLowerCase()),
-  );
-  const paginatedEntries = filteredEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // The server returns just this page, already searched and filtered
+  const paginatedEntries = entries;
 
   /* ── Drag to reorder (the rows on this page; their pages keep the places they held) ── */
   const canReorder = canEdit && !showTrash;
@@ -1436,7 +1452,7 @@ export default function EntriesPage() {
       </DndContext>
 
       <Pagination
-        total={filteredEntries.length}
+        total={total}
         page={page}
         pageSize={PAGE_SIZE}
         onPage={setPage}

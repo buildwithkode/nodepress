@@ -303,6 +303,20 @@ describe('EntriesService', () => {
       expect(values.indexOf('contact')).toBeLessThan(values.indexOf('about'));
     });
 
+    it('tells other open admin lists to reload, but not when nothing moved', async () => {
+      mockPrisma.contentType.findUnique.mockResolvedValue({ name: 'page' });
+      mockPrisma.entry.findMany.mockResolvedValue([{ id: 7, slug: 'contact' }, { id: 3, slug: 'about' }]);
+      (mockPrisma as any).$queryRaw.mockResolvedValue([{ slug: 'about' }, { slug: 'contact' }]);
+      (mockPrisma as any).$executeRaw.mockResolvedValue(2);
+      mockRealtime.notifyEntryUpdated.mockClear();
+      await service.reorder(1, [7, 3]);
+      expect(mockRealtime.notifyEntryUpdated).toHaveBeenCalledWith(expect.objectContaining({ contentType: 'page', slug: 'contact' }));
+      mockRealtime.notifyEntryUpdated.mockClear();
+      (mockPrisma as any).$executeRaw.mockResolvedValue(0);
+      await service.reorder(1, [7, 3]);
+      expect(mockRealtime.notifyEntryUpdated).not.toHaveBeenCalled();
+    });
+
     it('refuses ids from another content type, duplicates or an empty list', async () => {
       mockPrisma.entry.findMany.mockResolvedValue([{ id: 7, slug: 'contact' }]);
       await expect(service.reorder(1, [7, 99])).rejects.toBeInstanceOf(BadRequestException);

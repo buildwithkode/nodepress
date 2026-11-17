@@ -72,6 +72,8 @@ export interface SiteEntryWrite {
   data: Record<string, any>;
   seo?: any;
   publishAt?: string | null;
+  /** Order in the admin list; left alone when the file has none (new ones then go first). */
+  position?: number;
   createdAt?: string;
   /** Stay in the trash: only for a new entry. */
   deletedAt?: string | null;
@@ -132,6 +134,9 @@ export class EntriesService {
       FROM (VALUES ${Prisma.join(values)}) AS v(slug, pos)
       WHERE e."contentTypeId" = ${contentTypeId} AND e.slug = v.slug AND e.position <> v.pos`;
     if (changed > 0) {
+      // Other admins with this list open reload it
+      const type = await this.prisma.contentType.findUnique({ where: { id: contentTypeId }, select: { name: true } });
+      if (type) this.realtime.notifyEntryUpdated({ id: ids[0], slug: slugOf.get(ids[0])!, contentType: type.name });
       try {
         const { DynamicApiService } = await import('../dynamic-api/dynamic-api.service');
         await this.moduleRef?.get(DynamicApiService, { strict: false })?.invalidateContentTypes([contentTypeId]);
@@ -336,6 +341,7 @@ export class EntriesService {
       ({ entries, total } = await this.groupedPage(query, limit, skip));
     } else if (query.search?.trim()) {
       const term = query.search.trim();
+      // Whole words in the slug and data, or any part of the slug (so typing "serv" finds "services")
 
       // Escape special LIKE pattern characters (% and _)
       const escapedTerm = term.replace(/[%_]/g, '\\$&');
@@ -368,7 +374,7 @@ export class EntriesService {
         const countResult = await this.prisma.$queryRaw<{ count: number }[]>`
           SELECT count(*)::int as count
           FROM entries
-          WHERE search_vector @@ plainto_tsquery('english', ${term})
+          WHERE (search_vector @@ plainto_tsquery('english', ${term}) OR LOWER(slug) LIKE LOWER(${like}))
             ${Prisma.join(whereConditions, ' ')}
         `;
         total = countResult[0]?.count != null ? Number(countResult[0].count) : 0;
@@ -377,7 +383,7 @@ export class EntriesService {
           const res = await this.prisma.$queryRaw<{ id: number }[]>`
             SELECT id
             FROM entries
-            WHERE search_vector @@ plainto_tsquery('english', ${term})
+            WHERE (search_vector @@ plainto_tsquery('english', ${term}) OR LOWER(slug) LIKE LOWER(${like}))
               ${Prisma.join(whereConditions, ' ')}
             ORDER BY position ASC, "createdAt" DESC, id DESC
             LIMIT ${limit} OFFSET ${skip}
@@ -1064,6 +1070,7 @@ export class EntriesService {
         data,
         seo: row.seo ?? Prisma.DbNull,
         publishAt: row.publishAt ? new Date(row.publishAt) : null,
+        ...(Number.isInteger(row.position) && row.position !== 0 ? { position: row.position } : {}),
       };
       try {
         if (row.existingId) {

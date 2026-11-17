@@ -56,6 +56,14 @@ describe('planEntries', () => {
     expect(plan.writes.get('post')![0].data).toEqual({ author: C });
   });
 
+  it('carries the admin list order, and refuses one that is not a whole number', () => {
+    const ok = planEntries({ post: [{ slug: 'first', locale: 'en', status: 'draft', position: 3 }, { slug: 'second', locale: 'en', status: 'draft' }] }, known, existing, true);
+    expect(ok.errors).toEqual([]);
+    expect(ok.writes.get('post')!.map((w) => w.position)).toEqual([3, undefined]);
+    const bad = planEntries({ post: [{ slug: 'third', locale: 'en', status: 'draft', position: 1.5 as any }] }, known, existing, true);
+    expect(bad.errors.join()).toMatch(/position must be a whole number/);
+  });
+
   it('reports problems without writing', () => {
     const plan = planEntries({
       nope: [],
