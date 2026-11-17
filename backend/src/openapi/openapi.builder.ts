@@ -336,6 +336,7 @@ export function buildOpenApiDocument(contentTypes: OpenApiContentType[], opts: O
         locale: { type: 'string' },
         data: ref(dataName),
         seo: ref('NodePressSeo'),
+        position: { type: 'integer', description: 'Order set by dragging entries in the admin; shared by a page\'s languages. Sort with `sort=position:asc`.' },
         createdAt: { type: 'string', format: 'date-time' },
         updatedAt: { type: 'string', format: 'date-time' },
       },

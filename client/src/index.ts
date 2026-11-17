@@ -25,6 +25,8 @@ export interface Entry<TData = Record<string, any>> {
   id: string;
   slug: string;
   locale: string;
+  /** Order set in the admin; sort with `sort: 'position:asc'` */
+  position?: number;
   createdAt: string;
   updatedAt: string;
   seo?: SEO | null;

@@ -7,6 +7,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
 import { parseQueryString } from '../src/common/query-parser';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { MailService } from '../src/mail/mail.service';
 import { reloadPluginHost } from '../src/plugin/plugin-loader';
 import { keepRawBody } from '../src/common/raw-body';
 import { siteImportBodyParser } from '../src/site-transfer/site-import-body';
@@ -59,6 +60,10 @@ export async function createTestApp(opts: { reloadPlugins?: boolean } = {}): Pro
 /** Wipe all tables that integration tests touch, in safe dependency order. */
 export async function cleanDatabase(app: INestApplication) {
   const prisma = app.get(PrismaService);
+  // Email settings saved by an earlier test (e.g. a site import) would switch email
+  // on for the next one, and the app reads them at boot, before this runs.
+  await prisma.setting.updateMany({ data: { mail: null as any } });
+  app.get(MailService, { strict: false })?.configure(null);
   // Delete in dependency order (child → parent)
   await prisma.$executeRawUnsafe(`DELETE FROM "releases"`); // cascades to release_items
   await prisma.$executeRawUnsafe(`DELETE FROM "entry_versions"`);

@@ -106,6 +106,8 @@ export function generateTypeScriptDefinitions(contentTypes: ContentTypeSchemaInp
     '  slug: string;',
     '  locale: string;',
     '  status: "draft" | "published" | "archived";',
+    '  /** Order set in the admin (sort=position:asc) */',
+    '  position?: number;',
     '  createdAt: string;',
     '  updatedAt: string;',
     '  seo?: NodePressSEO;',
