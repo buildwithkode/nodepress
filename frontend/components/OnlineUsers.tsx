@@ -36,14 +36,16 @@ const SHOWN = 3;
 
 function Avatar({ user, className }: { user: OnlineUser; className?: string }) {
   return (
-    <span
-      className={cn(
-        'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ring-2 ring-background',
-        colorOf(user.id),
-        className,
-      )}
-    >
-      {initials({ name: user.name })}
+    // Solid backing under the tinted colour, so an overlapping face never shows the one beneath it
+    <span className={cn('flex h-7 w-7 shrink-0 rounded-full bg-background ring-2 ring-background', className)}>
+      <span
+        className={cn(
+          'flex h-full w-full items-center justify-center rounded-full text-[11px] font-semibold',
+          colorOf(user.id),
+        )}
+      >
+        {initials({ name: user.name })}
+      </span>
     </span>
   );
 }
@@ -97,7 +99,7 @@ export function OnlineUsers({ pageLabel }: { pageLabel: (path: string) => string
           title={t('onlineButton', { count: others.length })}
           className="flex items-center rounded-full pr-0.5 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <span className="flex -space-x-2">
+          <span className="flex -space-x-1">
             {others.slice(0, SHOWN).map((u, i) => (
               // On phones only the first face, then the count
               <Avatar key={u.id} user={u} className={i > 0 ? 'hidden sm:flex' : undefined} />

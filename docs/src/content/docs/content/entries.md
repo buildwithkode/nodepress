@@ -44,6 +44,8 @@ An entry in the trash still holds its slug. To reuse the slug, purge the trashed
 
 Pick the status in the editor's status selector and save, or click an entry's status badge in the entries list and pick one there: it changes straight away. The list shows published entries as **Production**. Its menu only offers the statuses your role may set. Putting an entry on Production, or taking it off, asks you to confirm first, since visitors see that straight away; the other moves are instant. The message that follows has an **Undo** button. With several languages the list shows one language at a time, so the menu changes that language only. Picking any status other than Draft cancels a scheduled publish.
 
+![The status menu open on a draft entry in the entries list, with Draft, Pending Review, Staging (QA), Production and Archived](../../../assets/screenshots/entries-status-menu.png)
+
 Unpublished stages can be read through the API with `?stage=draft`, `staging` or `all` and a login token or API key. See [REST API](/apis/rest/).
 
 :::caution[Published entries change live]
@@ -83,6 +85,8 @@ Every save, autosaves included, keeps a [version](/content/versions/) of the ent
 
 The top bar shows the faces (initials) of the other people who have the admin open, beside your own. Click them to see who is where, for example **Entries › Pages › contact (EN)**, and click a person to open that page. When you're the only one signed in, nothing is shown.
 
+![The Online now menu in the top bar: one person on Media, another editing an entry of Guides](../../../assets/screenshots/online-users.png)
+
 When several people open the same entry, the editor shows who else is there and how many people are online. The first person holds a soft lock. Others see a banner saying who is editing, because saving at the same time can overwrite each other's changes.
 
 - The lock is released when the holder leaves the entry, and expires a minute after their browser stops renewing it.
@@ -116,6 +120,8 @@ The API returns them in the entry's `seo` object (or `seo: null`). Your site ren
 ## The entries list
 
 The list shows the entries of one content type, 10 per page, numbered (**Sr. No.**), loading each page from the server, so a content type can hold any number of entries. The bar above it searches the slug (any part of it, so `serv` finds `services`) and whole words in field values, and filters by language and status; occasional tasks (export, import, schema, permissions) are in the tools menu beside **New Entry**. On a narrow screen the table keeps every column and scrolls sideways.
+
+![The entries list of a Guides content type: toolbar, Sr. No. with drag handles, language chips, status badges and paging](../../../assets/screenshots/entries-list.png)
 
 New entries start at the top. To change the order, drag a row by its handle next to the number. The order is saved at once, all languages of a page move together, and dragging on one page of the list leaves the other pages where they were. Your site can use the same order with `?sort=position:asc` (see [Querying](/apis/querying/#sorting)). Reordering doesn't change an entry's **Updated** date. Anyone else with the list open sees the new order straight away.
 
