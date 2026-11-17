@@ -60,7 +60,7 @@ When the import finishes, the page shows what was created, updated and kept, and
 How the import matches things:
 
 - **Content types, components and option lists** are matched by name, exactly like a [schema push](/cli/schema/).
-- **Entries** are matched by content type, slug and language. A match is updated, or restored if it's in the trash. Anything else is created.
+- **Entries** are matched by content type, slug and language. A match is updated, or restored if it's in the trash. Anything else is created. Entries keep the order they had in the old site's entries list; files exported before NodePress saved that order put new entries at the top.
 - **Forms** are matched by slug. A match is updated in place, so it keeps its submissions. Anything else is created. Actions are imported as they are, so a staging site built from production emails the same recipients and calls the same webhooks until you change them.
 - **Webhooks** are matched by name and URL, so a webhook with a new address is a new webhook. They start sending as soon as the import finishes, and the preview lists the addresses. On a test copy of a live site, change or switch them off right after importing.
 - **Redirects** are matched by source path, with the same loop and chain checks as a CSV import. An updated redirect keeps its hit count.

@@ -38,5 +38,8 @@
   "openMenu": "Open navigation menu",
   "closeMenu": "Close sidebar",
   "profile": "Profile",
-  "accountMenu": "Account menu"
+  "accountMenu": "Account menu",
+  "onlineNow": "Online now",
+  "onlineButton": "{count, plural, one {# other person online} other {# other people online}}",
+  "onlineHint": "Click someone to open the page they're on."
 }

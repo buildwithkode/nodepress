@@ -81,6 +81,8 @@ Every save, autosaves included, keeps a [version](/content/versions/) of the ent
 
 ## Editing together
 
+The top bar shows the faces (initials) of the other people who have the admin open, beside your own. Click them to see who is where, for example **Entries › Pages › contact (EN)**, and click a person to open that page. When you're the only one signed in, nothing is shown.
+
 When several people open the same entry, the editor shows who else is there and how many people are online. The first person holds a soft lock. Others see a banner saying who is editing, because saving at the same time can overwrite each other's changes.
 
 - The lock is released when the holder leaves the entry, and expires a minute after their browser stops renewing it.
@@ -113,9 +115,9 @@ The API returns them in the entry's `seo` object (or `seo: null`). Your site ren
 
 ## The entries list
 
-The list shows the entries of one content type, 10 per page, numbered (**Sr. No.**). The bar above it searches the slug and field values and filters by language and status; occasional tasks (export, import, schema, permissions) are in the tools menu beside **New Entry**. On a narrow screen the table keeps every column and scrolls sideways.
+The list shows the entries of one content type, 10 per page, numbered (**Sr. No.**), loading each page from the server, so a content type can hold any number of entries. The bar above it searches the slug (any part of it, so `serv` finds `services`) and whole words in field values, and filters by language and status; occasional tasks (export, import, schema, permissions) are in the tools menu beside **New Entry**. On a narrow screen the table keeps every column and scrolls sideways.
 
-New entries start at the top. To change the order, drag a row by its handle next to the number. The order is saved at once, all languages of a page move together, and dragging on one page of the list leaves the other pages where they were. Your site can use the same order with `?sort=position:asc` (see [Querying](/apis/querying/#sorting)). Reordering doesn't change an entry's **Updated** date.
+New entries start at the top. To change the order, drag a row by its handle next to the number. The order is saved at once, all languages of a page move together, and dragging on one page of the list leaves the other pages where they were. Your site can use the same order with `?sort=position:asc` (see [Querying](/apis/querying/#sorting)). Reordering doesn't change an entry's **Updated** date. Anyone else with the list open sees the new order straight away.
 
 The language column shows which translations exist for each entry, and which are missing.
 

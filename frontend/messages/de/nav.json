@@ -38,5 +38,8 @@
   "openMenu": "Navigation öffnen",
   "closeMenu": "Seitenleiste schließen",
   "profile": "Profil",
-  "accountMenu": "Kontomenü"
+  "accountMenu": "Kontomenü",
+  "onlineNow": "Gerade online",
+  "onlineButton": "{count, plural, one {# weitere Person online} other {# weitere Personen online}}",
+  "onlineHint": "Klicken Sie auf eine Person, um die Seite zu öffnen, auf der sie gerade ist."
 }

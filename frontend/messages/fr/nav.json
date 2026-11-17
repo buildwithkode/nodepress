@@ -38,5 +38,8 @@
   "openMenu": "Ouvrir le menu",
   "closeMenu": "Fermer le menu",
   "profile": "Profil",
-  "accountMenu": "Menu du compte"
+  "accountMenu": "Menu du compte",
+  "onlineNow": "En ligne",
+  "onlineButton": "{count, plural, one {# autre personne en ligne} other {# autres personnes en ligne}}",
+  "onlineHint": "Cliquez sur une personne pour ouvrir la page où elle se trouve."
 }

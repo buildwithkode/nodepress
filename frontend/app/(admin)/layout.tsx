@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AdminLanguageSwitcher } from '@/components/AdminLanguageSwitcher';
 import { UserMenu } from '@/components/UserMenu';
+import { OnlineUsers } from '@/components/OnlineUsers';
 import { useTranslations } from 'use-intl';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -166,11 +167,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const allNavItems = allNavGroups.flatMap((g) => g.items);
-  const pageTitle = allNavItems
-    .slice()
-    .sort((a, b) => b.href.length - a.href.length)
-    .find((item) => pathname === item.href || (pathname?.startsWith(item.href + '/') ?? false))
-    ?.label ?? (pathname === '/profile' ? t('profile') : t('items.dashboard'));
+  // The page's name in the top bar; also names the page someone else is on (Online now)
+  const titleFor = (fullPath: string | null) => {
+    const path = (fullPath ?? '/').split('?')[0];
+    return allNavItems
+      .slice()
+      .sort((a, b) => b.href.length - a.href.length)
+      .find((item) => path === item.href || path.startsWith(item.href + '/'))
+      ?.label ?? (path === '/profile' ? t('profile') : t('items.dashboard'));
+  };
+  const pageTitle = titleFor(pathname);
 
   return (
     <div className="flex min-h-screen bg-background relative">
@@ -277,6 +283,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <h1 className="text-base font-semibold text-foreground truncate">{pageTitle}</h1>
           </div>
           <div className="flex items-center gap-2">
+            <OnlineUsers pageLabel={titleFor} />
             <AdminLanguageSwitcher className="w-auto" />
             <ThemeToggle />
             <UserMenu onSignOut={handleLogout} />

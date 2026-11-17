@@ -38,5 +38,8 @@
   "openMenu": "ナビゲーションメニューを開く",
   "closeMenu": "サイドバーを閉じる",
   "profile": "プロフィール",
-  "accountMenu": "アカウントメニュー"
+  "accountMenu": "アカウントメニュー",
+  "onlineNow": "オンライン中",
+  "onlineButton": "{count, plural, other {ほかに#人がオンライン}}",
+  "onlineHint": "名前をクリックすると、その人が開いているページを開きます。"
 }

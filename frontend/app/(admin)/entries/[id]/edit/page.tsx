@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { useAutosave } from '@/lib/useAutosave';
 import { useEntryPresence } from '@/lib/useEntryPresence';
+import { setPresenceDetail } from '@/lib/presence-detail';
 import { useLocales, loadLocales, localeLabel } from '@/lib/locales';
 import api from '@/lib/axios';
 import { highlightCode } from '@/lib/highlight';
@@ -149,6 +150,14 @@ export default function EditEntryPage() {
   const [sidePanel, setSidePanel] = useState<'none' | 'reference' | 'json' | 'live'>('json');
   // Phones start with the side pane closed: the form comes first.
   useEffect(() => { if (isNarrowScreen()) setSidePanel('none'); }, []);
+
+  // Others see which entry this tab is editing (top bar, Online now)
+  useEffect(() => {
+    setPresenceDetail(entry && contentType
+      ? { type: contentType.displayName || contentType.name, slug: entry.slug, locale: entry.locale }
+      : null);
+  }, [entry?.slug, entry?.locale, contentType?.name, contentType?.displayName]);
+  useEffect(() => () => setPresenceDetail(null), []);
   const tp = useTranslations('preview');
   const focusField = useCallback((field: string) => { focusEntryField(containerRef.current, field); }, []);
   const [baseLocale, setBaseLocale] = useState('en');

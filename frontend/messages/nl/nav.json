@@ -38,5 +38,8 @@
   "openMenu": "Navigatiemenu openen",
   "closeMenu": "Zijbalk sluiten",
   "profile": "Profiel",
-  "accountMenu": "Accountmenu"
+  "accountMenu": "Accountmenu",
+  "onlineNow": "Nu online",
+  "onlineButton": "{count, plural, one {# andere persoon online} other {# andere mensen online}}",
+  "onlineHint": "Klik op iemand om de pagina te openen waar diegene is."
 }

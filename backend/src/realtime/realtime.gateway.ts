@@ -16,6 +16,7 @@ import { RolesService } from '../roles/roles.service';
 import { corsOrigin } from '../common/cors-origin';
 import { isAccessTokenPayload, isCurrentSession } from '../auth/access-token';
 import { hashToken } from '../auth/token-hash';
+import { AdminPresence } from './admin-presence';
 
 /**
  * NodePress Real-time Gateway
@@ -28,6 +29,10 @@ import { hashToken } from '../auth/token-hash';
  *   entry:restored { id, slug }
  *   media:uploaded { id, filename, url }
  *   media:deleted  { filename }
+ *   presence:list  { users: [{ id, name, role, path, detail }] } — who has the admin open
+ *
+ * Admin tabs report where they are:
+ *   presence:here  { path, detail? }  → joins room "presence", everyone there gets presence:list
  *
  * Clients can subscribe to specific content type rooms:
  *   subscribe { contentType: 'article' }  → joins room "ct:article"
@@ -76,6 +81,8 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   private readonly entryPresences = new Map<number, Map<string, UserPresence>>();
   // Map of entryId -> EntryLock
   private readonly entryLocks = new Map<number, EntryLock>();
+  // Who has the admin open (top-bar avatars)
+  private readonly presence = new AdminPresence();
 
   constructor(
     private readonly jwtService: JwtService,
@@ -85,7 +92,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
   // Extracts and verifies JWT or API key from the socket handshake.
   // Returns the authenticated user/key payload, or null if invalid.
-  private async authenticate(client: Socket): Promise<{ id: number; email: string; role: string } | null> {
+  private async authenticate(client: Socket): Promise<{ id: number; email: string; role: string; name?: string | null } | null> {
     try {
       // 1 — Bearer token in Authorization header (browser WebSocket via auth option)
       const authHeader = client.handshake.headers?.authorization as string | undefined;
@@ -109,7 +116,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         if (!user || !isCurrentSession(payload, user)) return null;
         // Custom roles run as their base role, as in JwtStrategy
         const { role } = await this.roles.resolve(user.role);
-        return { id: user.id, email: user.email, role };
+        return { id: user.id, email: user.email, role, name: user.name };
       }
 
       if (apiKey) {
@@ -158,7 +165,11 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   }
 
   async handleConnection(client: Socket) {
-    const user = await this.authenticate(client);
+    // Messages can arrive before the check below finishes (a tab says where it is
+    // as soon as it connects); handlers wait for it through this promise.
+    const auth = this.authenticate(client);
+    (client as any).auth = auth;
+    const user = await auth;
     if (!user) {
       client.emit('error', { message: 'Unauthorized — provide a valid JWT or API key' });
       client.disconnect(true);
@@ -174,6 +185,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     this.logger.debug(`Client disconnected: ${client.id}`);
     const user = (client as any).user;
     if (!user) return;
+    if (this.presence.remove(client.id)) this.broadcastPresence();
 
     // Sweep all entry rooms client was part of
     for (const [entryId, presences] of this.entryPresences.entries()) {
@@ -220,6 +232,19 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       byUser.set(p.id, { id: p.id, email: p.email, role: p.role, joinedAt: p.joinedAt });
     }
     return Array.from(byUser.values());
+  }
+
+  /** An admin tab says which page it shows; everyone with the admin open gets the new list. */
+  @SubscribeMessage('presence:here')
+  async handlePresenceHere(@ConnectedSocket() client: Socket, @MessageBody() body: unknown) {
+    const user = (client as any).user ?? (await (client as any).auth);
+    if (!user || client.disconnected || !this.presence.update(client.id, user, body)) return;
+    client.join('presence');
+    this.broadcastPresence();
+  }
+
+  private broadcastPresence() {
+    this.server?.to('presence').emit('presence:list', { users: this.presence.list() });
   }
 
   @SubscribeMessage('subscribe')

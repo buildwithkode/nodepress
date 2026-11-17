@@ -108,8 +108,25 @@ A `lock` is `{ userId, email, role, lockedAt, expiresAt }`.
 - `entry:takeoverLock` is for admins and editors. It replaces the current holder's lock.
 - Locks are advisory. They tell editors someone else is working; the API doesn't refuse saves from others.
 
+## Who is online
+
+The admin's top bar shows the other people who have the admin open. Each signed-in tab says which page it shows, and everyone who has done so gets the list whenever it changes.
+
+| Send | Data |
+|---|---|
+| `presence:here` | `{ path, detail? }`: `path` is an admin path such as `/entries?ct=pages` (anything else counts as `/`); `detail` is `{ type, slug, locale? }` for the entry being edited |
+
+| Event | Payload |
+|---|---|
+| `presence:list` | `{ users: [{ id, name, role, path, detail }] }` |
+
+- One row per person; with several tabs open, the page of the tab they used last.
+- `name` is the person's name, or the part of their email before the `@`. Emails aren't sent.
+- API key connections are never listed.
+- A person drops off the list when their last tab disconnects (closing it, signing out, or losing the connection for about half a minute).
+
 ## Multiple instances
 
 With `REDIS_URL` set, events are shared between backend instances through Redis, so a client connected to one instance hears about changes made on another. Polling transport across several instances needs sticky sessions; the bundled nginx config uses `ip_hash` for `/api/realtime`. See [Scaling](/deployment/scaling/).
 
-Presence and locks are kept in each instance's memory. Two editors connected to different instances don't see each other's presence or locks.
+Presence, locks and the online list are kept in each instance's memory. Two editors connected to different instances don't see each other's presence or locks, or each other in the top bar.
