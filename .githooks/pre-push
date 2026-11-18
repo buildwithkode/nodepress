@@ -47,7 +47,8 @@ echo "[pre-push] production dependency audit (all workspaces)…"
 # Runtime deps only. A critical tar RCE and 17 highs sat on main for months
 # because nothing checked, and auditing only the backend let two critical
 # Next.js RCEs through; dev-only advisories are noise for a self-hosted CMS.
-( cd "$ROOT" && npm audit --omit=dev --audit-level=high )
+# High/critical block, except advisories reviewed in scripts/check-audit.js.
+node "$ROOT/scripts/check-audit.js"
 
 echo "[pre-push] Docker lockfiles…"
 # The Docker images install from backend/ and frontend/package-lock.json, not

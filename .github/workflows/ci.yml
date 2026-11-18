@@ -189,7 +189,7 @@ jobs:
           node-version: 22
 
       - name: Production dependency audit (all workspaces)
-        run: npm audit --omit=dev --audit-level=high
+        run: node scripts/check-audit.js
 
       - name: Docker lockfiles install and are clean
         run: scripts/check-docker-lockfiles.sh
