@@ -63,9 +63,6 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Card, CardHeader, CardTitle, CardDescription, CardFooter,
-} from '@/components/ui/card';
-import {
   AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
   AlertDialogFooter, AlertDialogTitle, AlertDialogDescription,
   AlertDialogAction, AlertDialogCancel,
@@ -718,23 +715,35 @@ export default function EntriesPage() {
     }
   };
 
-  /* ── Cards view ─────────────────────────────────────────────────────────── */
+  /* ── Content types table ─────────────────────────────────────────────── */
   if (!ctParam) {
+    const typesHead = (
+      <TableHeader>
+        <TableRow>
+          <TableHead>{tc('name')}</TableHead>
+          <TableHead className="hidden md:table-cell">{t('cards.columnFields')}</TableHead>
+          <TableHead className="w-px whitespace-nowrap">{t('cards.columnPages')}</TableHead>
+          <TableHead className="w-px text-right"><span className="sr-only">{tc('actions')}</span></TableHead>
+        </TableRow>
+      </TableHeader>
+    );
+
     if (loadingCTs) {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-5 w-28" />
-                <Skeleton className="h-4 w-48 mt-1" />
-              </CardHeader>
-              <CardFooter className="gap-2">
-                <Skeleton className="h-8 w-20" />
-                <Skeleton className="h-8 w-28" />
-              </CardFooter>
-            </Card>
-          ))}
+        <div className="rounded-md border">
+          <Table>
+            {typesHead}
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                  <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-48" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                  <TableCell><div className="flex justify-end gap-2"><Skeleton className="h-8 w-24" /><Skeleton className="h-8 w-28" /></div></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       );
     }
@@ -755,23 +764,23 @@ export default function EntriesPage() {
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {contentTypes.map((ct) => {
-          const count = entryCounts[ct.id];
-          const pendingCount = pendingCounts[ct.id] ?? 0;
-          const fields = ct.schema.slice(0, 3).map((f) => f.name);
-          return (
-            <Card
-              key={ct.id}
-              className={cn(
-                'flex flex-col transition-all duration-200 hover:shadow-md',
-                pendingCount > 0 && 'border-amber-500/40 bg-amber-500/[0.02] shadow-[0_0_12px_-3px_rgba(245,158,11,0.12)]',
-              )}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1">
-                    <CardTitle className="text-base flex items-center gap-2">
+      <div className="rounded-md border">
+        <Table>
+          {typesHead}
+          <TableBody>
+            {contentTypes.map((ct) => {
+              const count = entryCounts[ct.id];
+              const pendingCount = pendingCounts[ct.id] ?? 0;
+              const fields = ct.schema.slice(0, 3).map((f) => f.name);
+              const view = () => router.push(`/pages?ct=${ct.name}`);
+              return (
+                <TableRow
+                  key={ct.id}
+                  className={cn('cursor-pointer', pendingCount > 0 && 'bg-amber-500/[0.04]')}
+                  onClick={view}
+                >
+                  <TableCell className="font-medium">
+                    <span className="flex items-center gap-2">
                       {ctLabel(ct)}
                       {pendingCount > 0 && (
                         <span className="relative flex h-2 w-2" title={t('cards.pendingTitle', { count: pendingCount })}>
@@ -779,47 +788,51 @@ export default function EntriesPage() {
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                         </span>
                       )}
-                    </CardTitle>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                    {pendingCount > 0 && (
-                      <Badge
-                        variant="outline"
-                        className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 gap-1 text-[11px] font-semibold py-0.5 px-2 cursor-pointer hover:bg-amber-500/25 transition-colors"
-                        onClick={() => router.push(`/pages?ct=${ct.name}&status=pending_review`)}
-                        title={t('cards.pendingBadgeTitle')}
-                      >
-                        <Clock className="h-3 w-3" />
-                        {t('cards.pendingBadge', { count: pendingCount })}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell max-w-0 w-full">
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {fields.length > 0
+                        ? fields.join(', ') + (ct.schema.length > 3 ? ` ${t('cards.moreFields', { count: ct.schema.length - 3 })}` : '')
+                        : t('cards.noFields')}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="secondary" className="tabular-nums">
+                        {count === undefined ? '…' : t('cards.entryCount', { count })}
                       </Badge>
-                    )}
-                    <Badge variant="secondary" className="shrink-0 tabular-nums">
-                      {count === undefined ? '…' : t('cards.entryCount', { count })}
-                    </Badge>
-                  </div>
-                </div>
-                <CardDescription className="text-xs truncate">
-                  {fields.length > 0
-                    ? fields.join(', ') + (ct.schema.length > 3 ? ` ${t('cards.moreFields', { count: ct.schema.length - 3 })}` : '')
-                    : t('cards.noFields')}
-                </CardDescription>
-              </CardHeader>
-              <CardFooter className="mt-auto gap-2">
-                {access.canContent('create', ct.name) && (
-                  <Button onClick={() => router.push(`/pages/new?ct=${ct.id}`)}>
-                    <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() => router.push(`/pages?ct=${ct.name}`)}
-                >
-                  {t('cards.viewEntries')} <ArrowRight className="h-4 w-4 ml-1" />
-                </Button>
-              </CardFooter>
-            </Card>
-          );
-        })}
+                      {pendingCount > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 gap-1 text-[11px] font-semibold py-0.5 px-2 cursor-pointer hover:bg-amber-500/25 transition-colors"
+                          onClick={(e) => { e.stopPropagation(); router.push(`/pages?ct=${ct.name}&status=pending_review`); }}
+                          title={t('cards.pendingBadgeTitle')}
+                        >
+                          <Clock className="h-3 w-3" />
+                          {t('cards.pendingBadge', { count: pendingCount })}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                      {access.canContent('create', ct.name) && (
+                        <Button size="sm" onClick={() => router.push(`/pages/new?ct=${ct.id}`)}>
+                          <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
+                        </Button>
+                      )}
+                      {/* On a phone the row itself opens the list */}
+                      <Button size="sm" variant="outline" className="hidden sm:inline-flex" onClick={view}>
+                        {t('cards.viewEntries')} <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
     );
   }

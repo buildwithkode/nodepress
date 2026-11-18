@@ -15,7 +15,9 @@
     "entryCount": "{count, plural, one {# pagina} other {# pagina's}}",
     "moreFields": "+{count} meer",
     "noFields": "Geen velden gedefinieerd",
-    "viewEntries": "Pagina's bekijken"
+    "viewEntries": "Pagina's bekijken",
+    "columnFields": "Velden",
+    "columnPages": "Pagina's"
   },
   "toolbar": {
     "backToEntries": "Terug naar pagina's",

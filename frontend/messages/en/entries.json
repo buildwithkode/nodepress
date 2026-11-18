@@ -15,7 +15,9 @@
     "entryCount": "{count, plural, one {# page} other {# pages}}",
     "moreFields": "+{count} more",
     "noFields": "No fields defined",
-    "viewEntries": "View Pages"
+    "viewEntries": "View Pages",
+    "columnFields": "Fields",
+    "columnPages": "Pages"
   },
   "toolbar": {
     "backToEntries": "Back to Pages",

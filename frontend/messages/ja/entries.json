@@ -15,7 +15,9 @@
     "entryCount": "{count, plural, other {# 件のページ}}",
     "moreFields": "他 {count} 個",
     "noFields": "フィールドが定義されていません",
-    "viewEntries": "ページを表示"
+    "viewEntries": "ページを表示",
+    "columnFields": "フィールド",
+    "columnPages": "ページ"
   },
   "toolbar": {
     "backToEntries": "ページに戻る",

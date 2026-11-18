@@ -15,7 +15,9 @@
     "entryCount": "{count, plural, other {# 个页面}}",
     "moreFields": "另有 {count} 个",
     "noFields": "未定义字段",
-    "viewEntries": "查看页面"
+    "viewEntries": "查看页面",
+    "columnFields": "字段",
+    "columnPages": "页面"
   },
   "toolbar": {
     "backToEntries": "返回页面",

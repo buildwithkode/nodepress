@@ -15,7 +15,9 @@
     "entryCount": "{count, plural, one {# pagina} other {# pagine}}",
     "moreFields": "+{count} altri",
     "noFields": "Nessun campo definito",
-    "viewEntries": "Vedi pagine"
+    "viewEntries": "Vedi pagine",
+    "columnFields": "Campi",
+    "columnPages": "Pagine"
   },
   "toolbar": {
     "backToEntries": "Torna alle pagine",

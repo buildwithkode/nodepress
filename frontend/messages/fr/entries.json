@@ -15,7 +15,9 @@
     "entryCount": "{count, plural, one {# page} other {# pages}}",
     "moreFields": "+{count} de plus",
     "noFields": "Aucun champ défini",
-    "viewEntries": "Voir les pages"
+    "viewEntries": "Voir les pages",
+    "columnFields": "Champs",
+    "columnPages": "Pages"
   },
   "toolbar": {
     "backToEntries": "Retour aux pages",

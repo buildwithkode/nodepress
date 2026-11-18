@@ -17,6 +17,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Changed
 
+- The Pages screen lists content types in a table (name, fields, page count, New Page / View Pages) instead of cards. Click a row to open its pages; on a phone the fields column and the View Pages button are hidden.
 - **Entries are called Pages in the admin.** The sidebar, lists, editor, dashboard, releases, importer, settings and their messages say Pages in all nine admin languages ("New Page", "3 pages"). Only the wording changes: the API (`/api/entries`, `/api/:type`), webhooks (`entry.updated`), plugin hooks and the database keep their names, so sites, scripts and plugins need no change.
 - **The admin's page screens moved to `/pages`** (`/pages`, `/pages/new`, `/pages/12/edit`). Old `/entries/...` links and bookmarks redirect to the same screen, query string included. A content type named `pages` keeps its API at `/api/pages`, but the admin's built-in public view at `/pages/<slug>` now opens the admin instead.
 - **Review notes.** Reviewers can send an entry back with a note saying what to change: **Return to Draft** in the editor's review banner and **Draft** on a row waiting for review in the entries list both ask for one. The note shows at the top of the writer's editor until they mark it done or send the entry back to review, and the entries list shows a badge with the number of open requests. A **Review notes** panel in the editor keeps the history; anyone who may edit or publish can add notes. New `entry_notes` table and `/api/entries/:id/notes` endpoints.
