@@ -71,6 +71,14 @@ const nextConfig = {
           process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? '' : BACKEND_URL),
       }
     : {},
+  // Entries are called Pages in the admin: old /entries links and bookmarks
+  // land on the same screen (the query string is kept).
+  async redirects() {
+    return [
+      { source: '/entries', destination: '/pages', permanent: true },
+      { source: '/entries/:path*', destination: '/pages/:path*', permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       {

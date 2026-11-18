@@ -53,7 +53,7 @@ const ALL_NAV_GROUPS: Array<{
       { href: '/',              labelKey: 'dashboard',     icon: LayoutDashboard },
       { href: '/content-types', labelKey: 'contentTypes', icon: Layers },
       { href: '/components',    labelKey: 'components',   icon: Blocks },
-      { href: '/entries',       labelKey: 'entries',        icon: FileText },
+      { href: '/pages',       labelKey: 'entries',        icon: FileText },
       { href: '/choice-lists',  labelKey: 'choiceLists',    icon: ListOrdered },
       { href: '/releases',      labelKey: 'releases',       icon: Package },
       { href: '/forms',         labelKey: 'forms',          icon: ClipboardList },

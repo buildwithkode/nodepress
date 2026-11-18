@@ -403,7 +403,7 @@ export default function EntriesPage() {
                             aria-label={title}
                             disabled={addingLocale === `${entry.id}:${code}`}
                             className={chipClass}
-                            onClick={() => (canOpen ? router.push(`/entries/${target!.id}/edit`) : handleAddLocale(entry, code))}
+                            onClick={() => (canOpen ? router.push(`/pages/${target!.id}/edit`) : handleAddLocale(entry, code))}
                           >
                             {canAdd ? `+${code}` : code}
                           </button>
@@ -419,7 +419,7 @@ export default function EntriesPage() {
       // A draft copy of this entry in the new language, then straight into the editor
       const res = await api.post(`/entries/${entry.id}/translate`, { targetLocale: code });
       toast.success(t('toasts.translationCreated', { language: localeLabel(code) }));
-      router.push(`/entries/${res.data.id}/edit`);
+      router.push(`/pages/${res.data.id}/edit`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('toasts.translationFailed'));
       setAddingLocale(null);
@@ -689,7 +689,7 @@ export default function EntriesPage() {
           contentTypeId: entry.contentTypeId,
         });
         toast.success(t('toasts.duplicated', { slug }));
-        router.push(`/entries/${res.data.id}/edit`);
+        router.push(`/pages/${res.data.id}/edit`);
         return;
       } catch (err: any) {
         if (err.response?.status !== 409) {
@@ -786,7 +786,7 @@ export default function EntriesPage() {
                       <Badge
                         variant="outline"
                         className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 gap-1 text-[11px] font-semibold py-0.5 px-2 cursor-pointer hover:bg-amber-500/25 transition-colors"
-                        onClick={() => router.push(`/entries?ct=${ct.name}&status=pending_review`)}
+                        onClick={() => router.push(`/pages?ct=${ct.name}&status=pending_review`)}
                         title={t('cards.pendingBadgeTitle')}
                       >
                         <Clock className="h-3 w-3" />
@@ -806,13 +806,13 @@ export default function EntriesPage() {
               </CardHeader>
               <CardFooter className="mt-auto gap-2">
                 {access.canContent('create', ct.name) && (
-                  <Button onClick={() => router.push(`/entries/new?ct=${ct.id}`)}>
+                  <Button onClick={() => router.push(`/pages/new?ct=${ct.id}`)}>
                     <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
                   </Button>
                 )}
                 <Button
                   variant="outline"
-                  onClick={() => router.push(`/entries?ct=${ct.name}`)}
+                  onClick={() => router.push(`/pages?ct=${ct.name}`)}
                 >
                   {t('cards.viewEntries')} <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -887,7 +887,7 @@ export default function EntriesPage() {
             variant="ghost"
             size="sm"
             className="gap-1.5 text-muted-foreground"
-            onClick={() => router.push('/entries')}
+            onClick={() => router.push('/pages')}
           >
             <ArrowLeft className="h-4 w-4" /> {t('toolbar.allTypes')}
           </Button>
@@ -949,7 +949,7 @@ export default function EntriesPage() {
             </DropdownMenu>
           )}
           {canCreate && !showTrash && (
-            <Button onClick={() => router.push(`/entries/new?ct=${selectedCT?.id ?? ''}`)}>
+            <Button onClick={() => router.push(`/pages/new?ct=${selectedCT?.id ?? ''}`)}>
               <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
             </Button>
           )}
@@ -1412,7 +1412,7 @@ export default function EntriesPage() {
                           variant="ghost"
                           size="icon-sm"
                           title={tc('edit')}
-                          onClick={() => router.push(`/entries/${entry.id}/edit`)}
+                          onClick={() => router.push(`/pages/${entry.id}/edit`)}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>

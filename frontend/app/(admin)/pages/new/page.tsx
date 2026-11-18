@@ -154,7 +154,7 @@ export default function NewEntryPage() {
         publishAt: saveStatus === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
       });
       toast.success(t('toast.created'));
-      router.push(`/entries/${res.data.id}/edit${preview ? '?live=1' : ''}`);
+      router.push(`/pages/${res.data.id}/edit${preview ? '?live=1' : ''}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || tc('somethingWentWrong'));
     } finally {
@@ -177,7 +177,7 @@ export default function NewEntryPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(selectedCT ? `/entries?ct=${selectedCT.name}` : '/entries')}>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(selectedCT ? `/pages?ct=${selectedCT.name}` : '/pages')}>
           <ArrowLeft className="h-4 w-4" /> {t('header.backTo', { name: selectedCT ? ctLabel(selectedCT) : t('header.entries') })}
         </Button>
         {selectedCT && canEditModel && (
@@ -644,7 +644,7 @@ export default function NewEntryPage() {
         </div>
 
         <CardFooter className="justify-end gap-2">
-          <Button variant="outline" onClick={() => router.push('/entries')}>{tc('cancel')}</Button>
+          <Button variant="outline" onClick={() => router.push('/pages')}>{tc('cancel')}</Button>
           <Button type="submit" form="entry-form" disabled={submitting || !selectedCT}>
             {submitting ? t('header.creating') : t('new.submit')}
           </Button>

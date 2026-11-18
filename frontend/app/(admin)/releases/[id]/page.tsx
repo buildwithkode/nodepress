@@ -144,7 +144,7 @@ export default function ReleasePage() {
           <CardTitle className="text-base">{t('detail.entriesTitle', { count: release.items.length })}</CardTitle>
           <CardDescription>
             {t.rich('detail.entriesDescription', {
-              link: (chunks) => <Link href="/entries" className="underline">{chunks}</Link>,
+              link: (chunks) => <Link href="/pages" className="underline">{chunks}</Link>,
             })}
           </CardDescription>
         </CardHeader>
@@ -157,7 +157,7 @@ export default function ReleasePage() {
                 <div key={item.id} className="flex flex-wrap items-center gap-3 px-6 py-3">
                   <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-muted w-20 text-center">{t(`actions.${item.action}`)}</span>
                   <div className="min-w-0 flex-1">
-                    <Link href={`/entries/${item.entry.id}/edit`} className={cn('font-medium hover:underline', item.entry.deletedAt && 'line-through text-muted-foreground')}>
+                    <Link href={`/pages/${item.entry.id}/edit`} className={cn('font-medium hover:underline', item.entry.deletedAt && 'line-through text-muted-foreground')}>
                       {firstTextField(item.entry.data ?? {}) || item.entry.slug}
                     </Link>
                     <div className="text-xs text-muted-foreground">

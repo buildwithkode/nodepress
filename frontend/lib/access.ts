@@ -23,7 +23,7 @@ export const ADMIN_ONLY = 'admin';
 
 /** Admin pages → the module they belong to. Longest prefix wins. */
 const PATH_MODULES: Array<[string, string]> = [
-  ['/entries', 'content'],
+  ['/pages', 'content'],
   ['/content-types', 'content_model'],
   ['/components', 'content_model'],
   ['/choice-lists', 'option_lists'],
@@ -48,8 +48,8 @@ const PATH_MODULES: Array<[string, string]> = [
 
 /** Pages that change things — they need edit, not just view. */
 const EDIT_PATTERNS = [
-  /^\/entries\/new$/,
-  /^\/entries\/[^/]+\/edit$/,
+  /^\/pages\/new$/,
+  /^\/pages\/[^/]+\/edit$/,
   /^\/content-types\/new$/,
   /^\/content-types\/[^/]+\/edit$/,
   /^\/forms\/new$/,

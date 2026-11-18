@@ -65,7 +65,7 @@ export function ReverseRelationList({
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {linked.map((e) => (
-            <Link key={e.id} href={`/entries/${e.id}/edit`}>
+            <Link key={e.id} href={`/pages/${e.id}/edit`}>
               <Badge variant="secondary" className="gap-1 text-xs hover:bg-secondary/70">
                 <Link2 className="h-3 w-3 text-muted-foreground" />
                 {e.slug}

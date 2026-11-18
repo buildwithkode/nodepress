@@ -128,7 +128,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => router.push('/entries/new')}>
+          <Button size="sm" onClick={() => router.push('/pages/new')}>
             <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
           </Button>
         </div>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">{t('overview')}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <StatCard label={t('stats.contentTypes')} sub={t('stats.contentTypesSub')}      value={contentTypes.length} icon={Layers}        loading={loading} href="/content-types" />
-          <StatCard label={t('stats.totalEntries')} sub={t('stats.totalEntriesSub')}   value={totalEntriesCount}   icon={FileText}      loading={loading} href="/entries" />
+          <StatCard label={t('stats.totalEntries')} sub={t('stats.totalEntriesSub')}   value={totalEntriesCount}   icon={FileText}      loading={loading} href="/pages" />
           <StatCard label={t('stats.mediaFiles')} sub={t('stats.mediaFilesSub')}     value={media.length}        icon={Image}         loading={loading} href="/media" />
           <StatCard label={t('stats.apiKeys')} sub={t('stats.apiKeysSub')}        value={apiKeyCount}         icon={Key}           loading={loading} href="/api-keys" />
           <StatCard label={t('stats.forms')} sub={t('stats.formsSub')}       value={activeForms}         icon={ClipboardList} loading={loading} href="/forms" />
@@ -153,7 +153,7 @@ export default function DashboardPage() {
       {pendingReviewCount > 0 && (
         <div
           className="flex items-center justify-between gap-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 cursor-pointer hover:bg-amber-500/15 transition-colors dark:border-amber-500/40 dark:bg-amber-500/10 dark:hover:bg-amber-500/20"
-          onClick={() => router.push('/entries?status=pending_review')}
+          onClick={() => router.push('/pages?status=pending_review')}
         >
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-2.5 w-2.5">
@@ -197,7 +197,7 @@ export default function DashboardPage() {
                   <div
                     key={ct.id}
                     className="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => router.push(`/entries?ct=${ct.name}`)}
+                    onClick={() => router.push(`/pages?ct=${ct.name}`)}
                   >
                     <div className="flex items-center gap-2.5">
                       <div className="size-2 rounded-full bg-primary/60" />
@@ -230,7 +230,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" /> {t('recentEntries.title')}
             </CardTitle>
-            <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/entries')}>
+            <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => router.push('/pages')}>
               {t('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
             ) : entries.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
                 {t('recentEntries.empty')}{' '}
-                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/entries/new')}>{t('createOne')}</button>
+                <button className="text-primary underline underline-offset-2" onClick={() => router.push('/pages/new')}>{t('createOne')}</button>
               </div>
             ) : (
               <div className="space-y-1">
@@ -251,7 +251,7 @@ export default function DashboardPage() {
                     <div
                       key={entry.id}
                       className="flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/entries/${entry.id}/edit`)}
+                      onClick={() => router.push(`/pages/${entry.id}/edit`)}
                     >
                       <div className="flex items-center gap-2.5">
                         <div className="size-2 rounded-full bg-blue-400/70" />

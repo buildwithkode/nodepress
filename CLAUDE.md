@@ -279,7 +279,7 @@ Plugins talk to the core through a scoped **`PluginContext`** (`plugin/plugin-co
 
 Four route groups:
 - `(auth)` — `/login`, `/setup` — no layout wrapper
-- `(admin)` — protected by middleware + sidebar layout: `/` (dashboard), `/content-types`, `/components`, `/entries`, `/releases`, `/redirects`, `/media`, `/api-keys`, `/forms` (+ `/[id]/submissions`), `/webhooks` (+ `/deliveries`), `/jobs`, `/plugins` (Installed / Browse), `/users` (+ `/permissions`, `/roles`), `/audit-log`, `/import`, `/site-transfer` (admin-only), `/server-settings`, `/brand` (admin-only)
+- `(admin)` — protected by middleware + sidebar layout: `/` (dashboard), `/content-types`, `/components`, `/pages` (entries; old `/entries/*` addresses redirect there in `next.config.js`), `/releases`, `/redirects`, `/media`, `/api-keys`, `/forms` (+ `/[id]/submissions`), `/webhooks` (+ `/deliveries`), `/jobs`, `/plugins` (Installed / Browse), `/users` (+ `/permissions`, `/roles`), `/audit-log`, `/import`, `/site-transfer` (admin-only), `/server-settings`, `/brand` (admin-only)
 - `(docs)` — `/docs` — the in-app documentation page
 - `(public)` — `/[type]`, `/[type]/[slug]` — server components, fetch from `BACKEND_URL` directly
 

@@ -8,7 +8,7 @@ sidebar:
 A page is one piece of content of a content type: one post, one product, one team member. You write pages in the admin under **Pages**, and your site reads them from the API.
 
 :::note[Pages and entries]
-The admin calls them **pages**. The API, webhooks, plugins and data keep the name **entries**: `/api/entries`, `entry.updated`, `entry.beforeCreate`, `entryId`. Both words mean the same thing, so code written for earlier versions keeps working. The rest of these docs often say *entry*.
+The admin calls them **pages**, and its screens live at `/pages` (old `/entries` links redirect there). The API, webhooks, plugins and data keep the name **entries**: `/api/entries`, `entry.updated`, `entry.beforeCreate`, `entryId`. Both words mean the same thing, so code written for earlier versions keeps working. The rest of these docs often say *entry*.
 :::
 
 This page covers the editor and everything around it: slugs, statuses, review, scheduling, the trash and bulk actions.

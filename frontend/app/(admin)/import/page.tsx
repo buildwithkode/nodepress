@@ -400,7 +400,7 @@ export default function ImportPage() {
                     </ul>
                   </div>
                 )}
-                <Link href="/entries" className="text-sm text-primary hover:underline">{t('viewEntries')}</Link>
+                <Link href="/pages" className="text-sm text-primary hover:underline">{t('viewEntries')}</Link>
               </>
             )}
           </section>

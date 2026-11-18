@@ -401,7 +401,7 @@ export default function ContentTypesPage() {
               <TableCell className="md:w-64 md:min-w-[220px] align-top py-4">
                 <button
                   type="button"
-                  onClick={() => router.push(`/entries?ct=${ct.name}`)}
+                  onClick={() => router.push(`/pages?ct=${ct.name}`)}
                   className="font-semibold text-foreground text-sm flex items-center gap-1.5 hover:text-primary transition-colors text-left"
                   title={t('list.viewEntriesOf', { name: ctLabel(ct) })}
                 >
@@ -455,7 +455,7 @@ export default function ContentTypesPage() {
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    onClick={() => router.push(`/entries?ct=${ct.name}`)}
+                    onClick={() => router.push(`/pages?ct=${ct.name}`)}
                     title={t('list.viewEntries')}
                   >
                     <FileText className="h-3.5 w-3.5 text-blue-400" />

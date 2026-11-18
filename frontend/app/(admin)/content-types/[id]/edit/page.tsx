@@ -357,7 +357,7 @@ export default function EditContentTypePage() {
                     variant="outline"
                     size="sm"
                     className="gap-1.5"
-                    onClick={() => router.push(`/entries?ct=${computedName}`)}
+                    onClick={() => router.push(`/pages?ct=${computedName}`)}
                     title={t('editor.viewEntriesTitle')}
                   >
                     <FileText className="h-4 w-4 text-blue-400" />

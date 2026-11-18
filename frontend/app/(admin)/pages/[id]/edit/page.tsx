@@ -293,7 +293,7 @@ export default function EditEntryPage() {
           unpublishAt: e.status !== 'archived' && e.unpublishAt ? new Date(toLocalDatetimeString(e.unpublishAt)).toISOString() : null,
         });
       })
-      .catch(() => { toast.error(t('toast.loadEntryFailed')); router.push('/entries'); })
+      .catch(() => { toast.error(t('toast.loadEntryFailed')); router.push('/pages'); })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -430,7 +430,7 @@ export default function EditEntryPage() {
   /** Save what's typed (as autosave would), then open or create the other language. */
   const switchLanguage = async (code: string, targetId?: number) => {
     try { await autosaveFn(); } catch { /* autosave reports its own state */ }
-    if (targetId) router.push(`/entries/${targetId}/edit`);
+    if (targetId) router.push(`/pages/${targetId}/edit`);
     else await handleAddTranslation(code);
   };
 
@@ -443,7 +443,7 @@ export default function EditEntryPage() {
         copyData: true,
       });
       toast.success(t('translations.created', { locale: targetLocale.toUpperCase() }));
-      router.push(`/entries/${res.data.id}/edit`);
+      router.push(`/pages/${res.data.id}/edit`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('translations.createFailed'));
     } finally {
@@ -515,7 +515,7 @@ export default function EditEntryPage() {
     <div className="space-y-4">
       {/* Top breadcrumbs and active user presence */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(contentType ? `/entries?ct=${contentType.name}` : '/entries')}>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push(contentType ? `/pages?ct=${contentType.name}` : '/pages')}>
           <ArrowLeft className="h-4 w-4" /> {t('header.backTo', { name: contentType ? ctLabel(contentType) : t('header.entries') })}
         </Button>
 
@@ -1412,7 +1412,7 @@ export default function EditEntryPage() {
               <Eye className="h-3.5 w-3.5" />
               {t('preview.live')}
             </Button>
-            <Button variant="outline" onClick={() => router.push('/entries')}>{tc('cancel')}</Button>
+            <Button variant="outline" onClick={() => router.push('/pages')}>{tc('cancel')}</Button>
             <Button type="submit" form="entry-form" disabled={submitting}>
               {submitting ? tc('saving') : t('edit.submit')}
             </Button>
