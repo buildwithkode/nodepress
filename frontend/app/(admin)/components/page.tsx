@@ -462,7 +462,7 @@ export default function ComponentsPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDraft(null)}>{t('cancel')}</Button>
-            <Button onClick={save} disabled={saving}>
+            <Button data-save-shortcut onClick={save} disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
               {draft?.id ? t('editor.save') : t('editor.create')}
             </Button>

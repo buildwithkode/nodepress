@@ -17,6 +17,7 @@ import { OnlineUsers } from '@/components/OnlineUsers';
 import { useTranslations } from 'use-intl';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { SaveShortcut } from '@/components/SaveShortcut';
 import {
   LayoutDashboard,
   Layers,
@@ -267,6 +268,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* ── Main content (Full width on mobile, offset on desktop) ── */}
+      <SaveShortcut />
       <main className="flex-1 md:ml-64 flex flex-col min-h-screen w-full min-w-0">
         {/* Top bar with Mobile Hamburger Button */}
         <div className="sticky top-0 z-30 h-14 bg-background/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-4 md:px-6">

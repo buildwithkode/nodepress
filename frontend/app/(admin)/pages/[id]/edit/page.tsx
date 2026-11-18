@@ -685,7 +685,7 @@ export default function EditEntryPage() {
               {canUpdate && <ShareEntryDialog entryId={Number(id)} />}
 
               {/* Top Quick Save / Update Button */}
-              <Button type="submit" form="entry-form" size="sm" className="h-8 text-xs font-medium gap-1.5" disabled={submitting}>
+              <Button data-save-shortcut type="submit" form="entry-form" size="sm" className="h-8 text-xs font-medium gap-1.5" disabled={submitting}>
                 {submitting ? tc('saving') : status === 'published' ? t('edit.update') : tc('save')}
               </Button>
 
@@ -1413,7 +1413,7 @@ export default function EditEntryPage() {
               {t('preview.live')}
             </Button>
             <Button variant="outline" onClick={() => router.push('/pages')}>{tc('cancel')}</Button>
-            <Button type="submit" form="entry-form" disabled={submitting}>
+            <Button data-save-shortcut type="submit" form="entry-form" disabled={submitting}>
               {submitting ? tc('saving') : t('edit.submit')}
             </Button>
           </div>

@@ -19,6 +19,10 @@ Open **Pages**, pick a content type and click **New Page**. The form shows one i
 
 ![The New Entry form with the language and status selectors, the slug field and the content type fields](../../../assets/screenshots/entry-new.png)
 
+:::tip[Save from the keyboard]
+**Cmd+S** (Mac) or **Ctrl+S** (Windows, Linux) does the same as the screen's main save button, in the page editor and on the other admin screens that have one: content types, components, option lists, forms, languages, brand, email and storage settings, field permissions and your profile. While a dialog is open it saves only that dialog, if it has a save button.
+:::
+
 Required fields must have a value before the entry saves. The server checks every value against the schema, so the same rules apply when entries are written through the API.
 
 If the content type has a [Preview URL](/content-modeling/content-types/#preview-url), **Save draft & preview** saves the entry as a draft and opens it with the [live preview](/content/live-preview/) pane.

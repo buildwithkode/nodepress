@@ -145,7 +145,7 @@ export default function LanguagesPage() {
                 )}
 
                 <div className="flex justify-end">
-                  <Button type="button" onClick={save} disabled={!dirty || saving}>
+                  <Button data-save-shortcut type="button" onClick={save} disabled={!dirty || saving}>
                     {saving && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
                     {t('saveChanges')}
                   </Button>

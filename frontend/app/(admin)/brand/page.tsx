@@ -254,7 +254,7 @@ export default function BrandPage() {
           </div>
 
           <AlertDialog>
-            <AlertDialogTrigger render={<Button disabled={saving || !dirty} />}>
+            <AlertDialogTrigger render={<Button data-save-shortcut disabled={saving || !dirty} />}>
               {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> {tc('saving')}</> : (dirty ? t('saveChanges') : t('noChanges'))}
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -266,7 +266,7 @@ export default function BrandPage() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
-                <AlertDialogAction onClick={save}>{t('saveChanges')}</AlertDialogAction>
+                <AlertDialogAction data-save-shortcut onClick={save}>{t('saveChanges')}</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

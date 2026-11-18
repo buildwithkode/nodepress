@@ -205,7 +205,7 @@ export function EmailSettingsForm({
       )}
       {!readOnly && (
         <div className="flex justify-end">
-          <Button type="button" onClick={save} disabled={!!busy || (enabled && !host.trim())} className={cn(compact && 'w-full')}>
+          <Button data-save-shortcut type="button" onClick={save} disabled={!!busy || (enabled && !host.trim())} className={cn(compact && 'w-full')}>
             {busy === 'save' && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
             {t('server.save')}
           </Button>

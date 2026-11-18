@@ -485,7 +485,7 @@ export default function FormBuilder({
                 <Button type="button" variant="outline" onClick={() => router.push('/forms')}>
                   {tc('cancel')}
                 </Button>
-                <Button type="submit" disabled={submitting}>
+                <Button data-save-shortcut type="submit" disabled={submitting}>
                   {submitting
                     ? (mode === 'new' ? t('builder.creating') : tc('saving'))
                     : (mode === 'new' ? t('builder.create') : t('builder.saveChanges'))}

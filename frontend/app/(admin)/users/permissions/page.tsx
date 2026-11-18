@@ -275,6 +275,7 @@ function PermissionsPageContent() {
 
                     <Button
                       size="sm"
+                      data-save-shortcut
                       onClick={handleSaveFieldPermissions}
                       disabled={!hasFieldChanges || savingFields}
                       className="gap-1.5"

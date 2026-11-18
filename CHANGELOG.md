@@ -12,6 +12,9 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Added
+- **Cmd+S / Ctrl+S saves** in the admin: the page editor, content types, components, option lists, forms, languages, brand, email and storage settings, field permissions and the profile. It presses the screen's main save button, so validation and confirm dialogs work as with the mouse; with a dialog open it only saves that dialog. The browser's own "Save page as" no longer opens in the admin.
+
 ### Changed
 
 - **Entries are called Pages in the admin.** The sidebar, lists, editor, dashboard, releases, importer, settings and their messages say Pages in all nine admin languages ("New Page", "3 pages"). Only the wording changes: the API (`/api/entries`, `/api/:type`), webhooks (`entry.updated`), plugin hooks and the database keep their names, so sites, scripts and plugins need no change.

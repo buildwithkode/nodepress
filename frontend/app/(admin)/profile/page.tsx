@@ -183,7 +183,7 @@ export default function ProfilePage() {
               </dl>
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={!dirty || saving}>
+                <Button data-save-shortcut type="submit" disabled={!dirty || saving}>
                   {saving ? tc('saving') : tc('save')}
                 </Button>
               </div>

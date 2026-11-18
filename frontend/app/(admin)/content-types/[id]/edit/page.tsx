@@ -422,7 +422,7 @@ export default function EditContentTypePage() {
               <PanelRight className="h-3.5 w-3.5" />
               {jsonOpen ? t('editor.hideJson') : t('editor.showJson')}
             </Button>
-            <Button type="submit" form="ct-form" size="sm" className="h-7 text-xs shrink-0 mt-1" disabled={submitting || dupes.size > 0}>
+            <Button data-save-shortcut type="submit" form="ct-form" size="sm" className="h-7 text-xs shrink-0 mt-1" disabled={submitting || dupes.size > 0}>
               {submitting ? tc('saving') : t('editor.saveChanges')}
             </Button>
             </div>
@@ -761,7 +761,7 @@ export default function EditContentTypePage() {
         {schemaCheck.dialog}
         <CardFooter className="justify-end gap-2">
           <Button variant="outline" onClick={() => router.push('/content-types')}>{tc('cancel')}</Button>
-          <Button type="submit" form="ct-form" disabled={submitting || dupes.size > 0}>
+          <Button data-save-shortcut type="submit" form="ct-form" disabled={submitting || dupes.size > 0}>
             {submitting ? tc('saving') : t('editor.saveChanges')}
           </Button>
         </CardFooter>

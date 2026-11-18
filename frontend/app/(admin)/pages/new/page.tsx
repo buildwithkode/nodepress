@@ -293,7 +293,7 @@ export default function NewEntryPage() {
                 )}
 
                 {/* Top Quick Create / Publish Button */}
-                <Button type="submit" form="entry-form" size="sm" className="h-8 text-xs font-medium gap-1.5" disabled={submitting}>
+                <Button data-save-shortcut type="submit" form="entry-form" size="sm" className="h-8 text-xs font-medium gap-1.5" disabled={submitting}>
                   {submitting ? t('header.creating') : status === 'published' ? t('header.publish') : tc('create')}
                 </Button>
 
@@ -645,7 +645,7 @@ export default function NewEntryPage() {
 
         <CardFooter className="justify-end gap-2">
           <Button variant="outline" onClick={() => router.push('/pages')}>{tc('cancel')}</Button>
-          <Button type="submit" form="entry-form" disabled={submitting || !selectedCT}>
+          <Button data-save-shortcut type="submit" form="entry-form" disabled={submitting || !selectedCT}>
             {submitting ? t('header.creating') : t('new.submit')}
           </Button>
         </CardFooter>
