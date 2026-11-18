@@ -6,7 +6,9 @@
  * any high or critical advisory, except the reviewed ones below. Moderate and
  * low advisories are reported by npm but don't block.
  *
- * Usage: node scripts/check-audit.js   (exit 1 on a problem)
+ * Usage: node scripts/check-audit.js [dir]   (exit 1 on a problem)
+ *   dir: audit that folder's package-lock.json instead of the repo root
+ *        (scripts/check-docker-lockfiles.sh uses it for each image's lockfile)
  */
 
 const { spawnSync } = require('child_process');
@@ -28,7 +30,8 @@ const REVIEWED = {
   'GHSA-fc5q-39xc-vjpf': 'picomatch ReDoS: patterns come from code, never user input',
 };
 
-const run = spawnSync('npm', ['audit', '--omit=dev', '--json'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+const DIR = process.argv[2] ? path.resolve(process.argv[2]) : ROOT;
+const run = spawnSync('npm', ['audit', '--omit=dev', '--json'], { cwd: DIR, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 let report;
 try {
   report = JSON.parse(run.stdout);
@@ -59,7 +62,7 @@ for (const a of advisories.values()) {
   if (REVIEWED[a.id]) console.log(`[audit] allowed ${a.id} (${a.severity}, ${[...a.packages].join(', ')}): ${REVIEWED[a.id]}`);
 }
 for (const id of Object.keys(REVIEWED)) {
-  if (!advisories.has(id)) console.log(`[audit] note: ${id} no longer reported — remove it from REVIEWED in scripts/check-audit.js`);
+  if (!advisories.has(id) && DIR === ROOT) console.log(`[audit] note: ${id} no longer reported — remove it from REVIEWED in scripts/check-audit.js`);
 }
 if (blocked.length) {
   console.error('[audit] high/critical advisories in production dependencies:');

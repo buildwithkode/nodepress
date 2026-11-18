@@ -12,7 +12,7 @@
 # For each workspace this copies package.json + package-lock.json into a temp
 # directory (outside the workspace, exactly like a Docker build context) and:
 #   1. `npm ci --dry-run`   — the lockfile matches package.json and installs
-#   2. `npm audit --omit=dev --audit-level=high` — no high/critical runtime advisories
+#   2. `scripts/check-audit.js <dir>` — no unreviewed high/critical runtime advisories
 #
 # Usage:
 #   scripts/check-docker-lockfiles.sh          # check (exit 1 on any problem)
@@ -53,11 +53,12 @@ for ws in backend frontend; do
     continue
   fi
 
-  if ( cd "$dir" && npm audit --omit=dev --audit-level=high >/dev/null 2>&1 ); then
-    echo "[lockfiles] $ws: no high/critical runtime advisories"
+  # Same rules as the root audit, including its reviewed advisories.
+  if audit_out="$(node "$ROOT/scripts/check-audit.js" "$dir" 2>&1)"; then
+    echo "[lockfiles] $ws: no unreviewed high/critical runtime advisories"
   else
     echo "[lockfiles] $ws: high/critical runtime advisories in the Docker image:"
-    ( cd "$dir" && npm audit --omit=dev --audit-level=high 2>/dev/null | grep -E "^[a-z@][^ ]*  |Severity: (high|critical)" | head -10 | sed 's/^/    /' )
+    echo "$audit_out" | sed 's/^/    /'
     status=1
   fi
 done
