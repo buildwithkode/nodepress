@@ -150,6 +150,8 @@ export default function EntriesPage() {
 
 
   const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
+  // Every type's id in order, including ones this page hides: saving an order must name them all
+  const [allTypeIds, setAllTypeIds] = useState<number[]>([]);
   const [entryCounts, setEntryCounts] = useState<Record<number, number>>({});
   const [pendingCounts, setPendingCounts] = useState<Record<number, number>>({});
   const [selectedCTPendingCount, setSelectedCTPendingCount] = useState<number>(0);
@@ -246,6 +248,7 @@ export default function EntriesPage() {
 
         const cts: ContentType[] = ctRes.data || [];
         setContentTypes(cts);
+        setAllTypeIds(cts.map((ct) => ct.id));
 
         if (countsRes?.data?.totals) {
           setEntryCounts(countsRes.data.totals);
@@ -720,7 +723,8 @@ export default function EntriesPage() {
     const typesHead = (
       <TableHeader>
         <TableRow>
-          <TableHead>{tc('name')}</TableHead>
+          <TableHead className="w-12 sm:w-20 whitespace-nowrap">{t('table.number')}</TableHead>
+          <TableHead className="md:min-w-[12rem] md:w-64">{tc('name')}</TableHead>
           <TableHead className="hidden md:table-cell">{t('cards.columnFields')}</TableHead>
           <TableHead className="w-px whitespace-nowrap">{t('cards.columnPages')}</TableHead>
           <TableHead className="w-px text-right"><span className="sr-only">{tc('actions')}</span></TableHead>
@@ -736,6 +740,7 @@ export default function EntriesPage() {
             <TableBody>
               {Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
+                  <TableCell><Skeleton className="h-5 w-8" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                   <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-48" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-16" /></TableCell>
@@ -763,19 +768,49 @@ export default function EntriesPage() {
       );
     }
 
+    // Same order as the Content Types page; only roles that may edit the content model can drag
+    const canReorderTypes = access.canEdit('content_model');
+    const handleTypeDragEnd = async ({ active, over }: DragEndEvent) => {
+      if (!over || active.id === over.id) return;
+      const moved = arrayMove(
+        contentTypes,
+        contentTypes.findIndex((c) => c.id === active.id),
+        contentTypes.findIndex((c) => c.id === over.id),
+      );
+      setContentTypes(moved);
+      // Hidden types keep their places; the shown ones fill the other places in their new order
+      const shown = new Set(moved.map((c) => c.id));
+      const queue = moved.map((c) => c.id);
+      const ids = allTypeIds.map((id) => (shown.has(id) ? queue.shift()! : id));
+      try {
+        await api.put('/content-types/order', { ids });
+        setAllTypeIds(ids);
+      } catch (err: any) {
+        setContentTypes(contentTypes);
+        toast.error(err.response?.data?.message || t('toasts.reorderFailed'));
+      }
+    };
+
     return (
       <div className="rounded-md border">
+        <DndContext id="pages-types-order" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTypeDragEnd}>
         <Table>
           {typesHead}
           <TableBody>
-            {contentTypes.map((ct) => {
+            <SortableContext items={contentTypes.map((ct) => ct.id)} strategy={verticalListSortingStrategy}>
+            {contentTypes.map((ct, index) => {
               const count = entryCounts[ct.id];
               const pendingCount = pendingCounts[ct.id] ?? 0;
               const fields = ct.schema.slice(0, 3).map((f) => f.name);
               const view = () => router.push(`/pages?ct=${ct.name}`);
               return (
-                <TableRow
+                <SortableTableRow
                   key={ct.id}
+                  id={ct.id}
+                  number={index + 1}
+                  canDrag={canReorderTypes}
+                  handleLabel={t('table.dragToReorder')}
+                  numberCellClassName="align-middle py-2"
                   className={cn('cursor-pointer', pendingCount > 0 && 'bg-amber-500/[0.04]')}
                   onClick={view}
                 >
@@ -818,8 +853,9 @@ export default function EntriesPage() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                       {access.canContent('create', ct.name) && (
-                        <Button size="sm" onClick={() => router.push(`/pages/new?ct=${ct.id}`)}>
-                          <Plus className="h-4 w-4 mr-1.5" /> {t('newEntry')}
+                        <Button size="sm" aria-label={t('newEntry')} title={t('newEntry')} onClick={() => router.push(`/pages/new?ct=${ct.id}`)}>
+                          {/* Icon only on a phone, so the row fits */}
+                          <Plus className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">{t('newEntry')}</span>
                         </Button>
                       )}
                       {/* On a phone the row itself opens the list */}
@@ -828,11 +864,13 @@ export default function EntriesPage() {
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
+                </SortableTableRow>
               );
             })}
+            </SortableContext>
           </TableBody>
         </Table>
+        </DndContext>
       </div>
     );
   }
