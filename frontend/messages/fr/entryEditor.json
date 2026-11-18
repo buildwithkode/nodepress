@@ -317,5 +317,12 @@
     "drafting": "Rédaction…",
     "placeholder": "Que doit dire cette entrée ? par ex. « Un article chaleureux de 300 mots annonçant nos nouveaux horaires »",
     "drafted": "{count, plural, one {# champ rempli} other {# champs remplis}} — relisez avant d’enregistrer"
+  },
+  "unpublish": {
+    "title": "Dépublier le",
+    "placeholder": "Choisir une date et une heure",
+    "help": "Retire l'entrée du site à ce moment-là (elle repasse en brouillon). Laissez vide pour la garder en ligne.",
+    "willUnpublish": "Retirée du site le <b>{date}</b> à <b>{time}</b>.",
+    "beforePublish": "C'est avant l'heure de publication prévue : l'entrée serait retirée du site dès sa mise en ligne."
   }
 }

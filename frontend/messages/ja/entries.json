@@ -80,7 +80,10 @@
     "changeStatus": "{slug} のステータスを変更",
     "statusCancelsSchedule": "ステータスを選ぶと予約公開は取り消されます",
     "number": "番号",
-    "dragToReorder": "ドラッグして並べ替え"
+    "dragToReorder": "ドラッグして並べ替え",
+    "openNotes": "{count, plural, other {未対応の修正依頼 # 件}}",
+    "ends": "{date} 終了",
+    "endsTitle": "{date} にサイトから外れます"
   },
   "actions": {
     "restore": "復元",
@@ -160,5 +163,66 @@
     "languageOnly": "{language}版のみ変更されます。",
     "publish": "公開",
     "unpublish": "「{status}」にする"
+  },
+  "notes": {
+    "title": "レビューメモ",
+    "someone": "不明なユーザー",
+    "sentBack": "メモを付けて下書きに戻しました",
+    "added": "メモを追加しました",
+    "requestedTitle": "{count, plural, other {修正依頼 # 件}}",
+    "byOn": "{name} · {date}",
+    "markDone": "対応済みにする",
+    "waitingReview": "レビュー待ち",
+    "empty": "メモはまだありません。",
+    "done": "対応済み",
+    "changesBadge": "修正依頼",
+    "reopen": "再開",
+    "placeholderReview": "何を修正すべきですか？差し戻すと作成者に表示されます。",
+    "placeholder": "チームへのメモを追加…",
+    "add": "メモを追加",
+    "sendBack": "メモを付けて差し戻す"
+  },
+  "share": {
+    "button": "共有",
+    "buttonTitle": "ログインできない相手にプレビューリンクを共有",
+    "title": "プレビューを共有",
+    "description": "リンクを知っている人は、公開前でもこのエントリーの現在の内容を見られます。ログインは不要です。",
+    "expiresIn": "リンクの有効期間",
+    "days": "{count, plural, other {# 日}}",
+    "create": "リンクを作成",
+    "created": "リンクを作成しました",
+    "copied": "リンクを作成してコピーしました",
+    "copyFailed": "コピーできませんでした。リンクを選択してコピーしてください。",
+    "copy": "リンクをコピー",
+    "linkLabel": "共有リンク",
+    "onlyNow": "今すぐコピーしてください。リンクは一度だけ表示されます。下からいつでも無効にできます。",
+    "active": "{count, plural, other {有効なリンク # 件}}",
+    "expires": "{date} に期限切れ",
+    "revoke": "無効にする",
+    "revoked": "リンクを無効にしました"
+  },
+  "sendBack": {
+    "title": "{slug} を下書きに戻しますか？",
+    "description": "修正点を作成者に伝えてください。対応が済むまで、メモはエディターとこの一覧に表示されます。",
+    "placeholder": "例：2 段落目の価格を修正",
+    "noteLabel": "作成者へのメモ",
+    "withNote": "メモを付けて差し戻す",
+    "withoutNote": "メモなしで差し戻す"
+  },
+  "sharePage": {
+    "empty": "空",
+    "yes": "はい",
+    "no": "いいえ",
+    "linked": "{count, plural, other {# 件のエントリーにリンク}}",
+    "goneTitle": "このリンクは使えなくなりました",
+    "goneText": "期限切れか削除されています。送信者に新しいリンクを依頼してください。",
+    "preview": "プレビュー",
+    "live": "サイトで公開中",
+    "notLive": "未公開",
+    "viewLabel": "表示",
+    "asPage": "ページ",
+    "asFields": "内容",
+    "expires": "リンクの有効期限：{date}",
+    "updated": "最終更新：{date}"
   }
 }

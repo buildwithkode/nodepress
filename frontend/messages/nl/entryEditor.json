@@ -317,5 +317,12 @@
     "drafting": "Schrijven…",
     "placeholder": "Wat moet er in dit item staan? bijv. “Een vriendelijk bericht van 300 woorden over onze nieuwe openingstijden”",
     "drafted": "{count, plural, one {# veld} other {# velden}} ingevuld — controleer voordat je opslaat"
+  },
+  "unpublish": {
+    "title": "Depubliceren op",
+    "placeholder": "Kies een datum en tijd",
+    "help": "Haalt het item op dit moment van de site (het wordt weer concept). Laat leeg om het live te houden.",
+    "willUnpublish": "Gaat van de site op <b>{date}</b> om <b>{time}</b>.",
+    "beforePublish": "Dit is vóór de geplande publicatie: het item gaat dan direct na livegang weer van de site."
   }
 }

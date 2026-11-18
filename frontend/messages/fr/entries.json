@@ -80,7 +80,10 @@
     "changeStatus": "Changer le statut de {slug}",
     "statusCancelsSchedule": "Choisir un statut annule la publication programmée",
     "number": "N°",
-    "dragToReorder": "Glisser pour réordonner"
+    "dragToReorder": "Glisser pour réordonner",
+    "openNotes": "{count, plural, one {# demande de modification ouverte} other {# demandes de modification ouvertes}}",
+    "ends": "Fin le {date}",
+    "endsTitle": "Retiré du site le {date}"
   },
   "actions": {
     "restore": "Restaurer",
@@ -160,5 +163,66 @@
     "languageOnly": "Seule la version {language} change.",
     "publish": "Publier",
     "unpublish": "Passer en {status}"
+  },
+  "notes": {
+    "title": "Notes de relecture",
+    "someone": "Quelqu'un",
+    "sentBack": "Renvoyé en brouillon avec votre note",
+    "added": "Note ajoutée",
+    "requestedTitle": "{count, plural, one {Modification demandée} other {# modifications demandées}}",
+    "byOn": "{name} · {date}",
+    "markDone": "Marquer comme fait",
+    "waitingReview": "En attente de relecture",
+    "empty": "Aucune note pour le moment.",
+    "done": "Fait",
+    "changesBadge": "Demande de modification",
+    "reopen": "Rouvrir",
+    "placeholderReview": "Que faut-il changer ? L'auteur le verra quand vous renverrez l'entrée.",
+    "placeholder": "Ajouter une note pour votre équipe…",
+    "add": "Ajouter la note",
+    "sendBack": "Renvoyer avec la note"
+  },
+  "share": {
+    "button": "Partager",
+    "buttonTitle": "Partager un lien d'aperçu avec une personne sans compte",
+    "title": "Partager un aperçu",
+    "description": "Toute personne ayant le lien voit cette entrée telle qu'elle est, même avant sa publication. Aucune connexion requise.",
+    "expiresIn": "Le lien fonctionne pendant",
+    "days": "{count, plural, one {# jour} other {# jours}}",
+    "create": "Créer le lien",
+    "created": "Lien créé",
+    "copied": "Lien créé et copié",
+    "copyFailed": "Copie impossible. Sélectionnez le lien et copiez-le.",
+    "copy": "Copier le lien",
+    "linkLabel": "Lien de partage",
+    "onlyNow": "Copiez-le maintenant : le lien n'est affiché qu'une fois. Vous pouvez le révoquer ci-dessous à tout moment.",
+    "active": "{count, plural, one {# lien actif} other {# liens actifs}}",
+    "expires": "Expire le {date}",
+    "revoke": "Révoquer",
+    "revoked": "Lien révoqué"
+  },
+  "sendBack": {
+    "title": "Renvoyer {slug} en brouillon ?",
+    "description": "Dites à l'auteur ce qu'il faut changer. Il verra votre note dans l'éditeur et dans cette liste jusqu'à ce que ce soit fait.",
+    "placeholder": "ex. Corriger le prix dans le deuxième paragraphe",
+    "noteLabel": "Note pour l'auteur",
+    "withNote": "Renvoyer avec la note",
+    "withoutNote": "Renvoyer sans note"
+  },
+  "sharePage": {
+    "empty": "Vide",
+    "yes": "Oui",
+    "no": "Non",
+    "linked": "{count, plural, one {Lié à # entrée} other {Lié à # entrées}}",
+    "goneTitle": "Ce lien ne fonctionne plus",
+    "goneText": "Il a expiré ou a été supprimé. Demandez-en un nouveau à la personne qui vous l'a envoyé.",
+    "preview": "Aperçu",
+    "live": "En ligne sur le site",
+    "notLive": "Pas encore publié",
+    "viewLabel": "Affichage",
+    "asPage": "Page",
+    "asFields": "Contenu",
+    "expires": "Lien valable jusqu'au {date}",
+    "updated": "Dernière modification le {date}"
   }
 }

@@ -1,6 +1,6 @@
 ---
 title: Entries
-description: Create and edit entries in the admin, work with slugs and statuses, schedule publishing, review contributors' work, and use the trash.
+description: Create and edit entries in the admin, work with slugs and statuses, schedule publishing and unpublishing, review contributors' work with notes, share previews, and use the trash.
 sidebar:
   order: 1
 ---
@@ -58,7 +58,20 @@ Contributors can create and edit entries but not publish them (this is the defau
 
 1. A contributor writes the entry and sets it to **Pending review**, or selects entries in the list and clicks **Submit for Review**.
 2. The entries list shows how many entries are waiting, per content type. **Show Pending Reviews** filters to them.
-3. An editor or admin opens the entry. A banner offers **Approve & Publish** or **Return to Draft**.
+3. An editor or admin opens the entry. A banner offers **Approve & Publish** or **Return to Draft**. **Return to Draft** asks for an optional note saying what to change. Picking **Draft** on a row waiting for review in the entries list asks for the same note.
+
+### Review notes
+
+Notes are how a reviewer and a writer talk about an entry without leaving the admin.
+
+![A change request at the top of the entry editor with Mark as done, above the Review notes panel with the note's history and a box for a new note](../../../assets/screenshots/review-notes.png)
+
+- **A note sent back with the entry is a change request.** The writer sees it at the top of the editor, in an amber box, and the entries list shows a speech-bubble badge with the number of open requests next to the slug.
+- **Closing a request.** The writer clicks **Mark as done**, or sends the entry back to Pending review, which closes every open request on it. Publishing the entry closes them too.
+- **The Review notes panel** under the editor's toolbar keeps every note with its author and time. Anyone who may edit or publish the entry can add a note; while the entry is waiting for review, **Send back with note** sends it back to Draft in one step. A closed request can be reopened. Notes can be deleted by their author or an admin.
+- Viewers can read notes but not write them. Notes are not part of the entry's data, its versions or the public API.
+
+![The entries list with an open change request badge on one row and an "Ends 23 Nov" line under a Production status](../../../assets/screenshots/entries-review-badges.png)
 
 A contributor who tries to save an entry as Published gets an error. New entries default to Published in the editor, so contributors should pick Draft or Pending review before creating one.
 
@@ -74,6 +87,37 @@ NodePress checks every minute and publishes drafts whose time has passed. The en
 Through the API, send `publishAt` (an ISO date-time) with `status: "draft"` to `POST /api/entries` or `PUT /api/entries/:id`, and `publishAt: null` to clear it.
 
 To publish several entries together at one moment, use a [release](/content/releases/) instead.
+
+## Scheduled unpublishing
+
+An entry can take itself off the site at a set time, for an offer, an event or a notice that should end on a date.
+
+1. Open the entry and pick a date and time in **Unpublish on**.
+2. Save.
+
+NodePress checks every minute. When the time passes, a published entry goes back to **Draft**, the date is cleared, and the `entry.updated` webhook fires with `scheduledUnpublish: true`. The entries list shows **Ends** and the date under the status of a published entry that has one. To cancel, clear the field and save. An entry that isn't published when the time comes is left alone.
+
+Through the API, send `unpublishAt` (an ISO date-time) to `POST /api/entries` or `PUT /api/entries/:id`, and `unpublishAt: null` to clear it. It works together with `publishAt`: a draft can publish on Monday and unpublish on Friday.
+
+## Sharing a preview
+
+Send a link to someone without an admin login, such as a client, so they can see an entry before it's published.
+
+1. In the editor, click **Share**.
+2. Choose how long the link works: 1 day, 7 days or 30 days.
+3. Click **Create link**. It's copied for you; copy it from the box again if you need to. The link is shown only once.
+
+![The Share a preview dialog with 1, 7 and 30 days, the new link with a copy button, and the list of links that work now with Revoke](../../../assets/screenshots/share-dialog.png)
+
+The person who opens the link sees the entry as it is at that moment: the fields the public may read (fields limited to some roles are left out), its status, and when the link stops working. If the content type has a [live preview](/content/live-preview/) URL, they see the page from your site, with a toggle to the plain content.
+
+![A shared preview of a draft opened without a login: the brand, the content type and slug, Not published yet, the expiry date and the entry's fields](../../../assets/screenshots/share-page.png)
+
+- The dialog lists the links that work now, with who made them and when they expire. **Revoke** stops a link at once.
+- A link stops working when it expires, when it's revoked or when the entry is moved to the trash. Expired links are deleted from the database weekly.
+- Only people who may edit the entry can make and revoke links. Making and revoking links is recorded in the audit log.
+- The database keeps only a hash of each link, so a lost link can't be shown again: make a new one.
+- Shared pages are not indexed by search engines and are never cached.
 
 ## Autosave
 
@@ -181,8 +225,8 @@ The admin uses these endpoints. They all need a login token (`Authorization: Bea
 |---|---|---|---|
 | `GET` | `/api/entries` | Any signed-in user | List entries. `?contentTypeId=`, `?status=`, `?locale=`, `?search=`, `?deleted=true`, `?page=`, `?limit=` (default 20, max 100) |
 | `GET` | `/api/entries/:id` | Any signed-in user | One entry, with its `translations` |
-| `POST` | `/api/entries` | Contributors, editors, admins | Create: `contentTypeId`, `slug`, `data`, optional `locale`, `status` (default `published`), `seo`, `publishAt` |
-| `PUT` | `/api/entries/:id` | Contributors, editors, admins | Update any of `slug`, `status`, `data`, `seo`, `publishAt` |
+| `POST` | `/api/entries` | Contributors, editors, admins | Create: `contentTypeId`, `slug`, `data`, optional `locale`, `status` (default `published`), `seo`, `publishAt`, `unpublishAt` |
+| `PUT` | `/api/entries/:id` | Contributors, editors, admins | Update any of `slug`, `status`, `data`, `seo`, `publishAt`, `unpublishAt` |
 | `DELETE` | `/api/entries/:id` | Editors, admins | Move to the trash |
 | `POST` | `/api/entries/:id/restore` | Editors, admins | Restore from the trash |
 | `DELETE` | `/api/entries/:id/purge` | Admins | Delete for good |
@@ -190,6 +234,14 @@ The admin uses these endpoints. They all need a login token (`Authorization: Bea
 | `POST` | `/api/entries/bulk-publish`, `bulk-stage`, `bulk-archive`, `bulk-delete` | Editors, admins | Body `{ "ids": [1, 2, 3] }` |
 | `POST` | `/api/entries/bulk-pending-review` | Contributors, editors, admins | Body `{ "ids": [1, 2, 3] }` |
 | `PUT` | `/api/entries/order` | Anyone who may update the type | Body `{ "contentTypeId": 4, "ids": [9, 3, 7] }`: those entries in their new order, taking the places they held |
+| `GET` | `/api/entries/:id/notes` | Anyone who may read the type | The entry's review notes, oldest first |
+| `POST` | `/api/entries/:id/notes` | Anyone who may update or publish the type | `{ "body": "…", "kind": "comment" \| "changes" }` (up to 2000 characters) |
+| `PATCH` | `/api/entries/:id/notes/:noteId` | Anyone who may update or publish the type | `{ "resolved": true \| false }` |
+| `DELETE` | `/api/entries/:id/notes/:noteId` | The note's author, admins | Delete a note |
+| `GET` | `/api/entries/:id/share-links` | Anyone who may update the type | Links that work now (without their tokens) |
+| `POST` | `/api/entries/:id/share-links` | Anyone who may update the type | `{ "days": 1 \| 7 \| 30 }`; the response has the `token` once |
+| `DELETE` | `/api/entries/:id/share-links/:linkId` | Anyone who may update the type | Revoke a link |
+| `GET` | `/api/share/:token` | Anyone, no login | The shared entry (public fields only) and its content type |
 | `GET` | `/api/entries/export` | Editors, admins | `?contentTypeId=` and `?format=json` or `csv` |
 | `POST` | `/api/entries/import` | Editors, admins | `?contentTypeId=`; body `{ entries, csvContent, dryRun, updateDuplicates }` |
 

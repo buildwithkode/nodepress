@@ -80,6 +80,48 @@ export class SchedulerService {
     }
   }
 
+  /**
+   * Scheduled unpublish, every minute on every instance: a published entry whose
+   * `unpublishAt` has passed goes back to draft (as a release's "unpublish" does).
+   * Same conditional-update pattern as publishing, so each entry moves once.
+   */
+  @Cron(CronExpression.EVERY_MINUTE)
+  async unpublishScheduledEntries() {
+    const now = new Date();
+    const due = await this.prisma.entry.findMany({
+      where: { status: 'published', deletedAt: null, unpublishAt: { lte: now } },
+      select: { id: true, slug: true, contentTypeId: true, locale: true, data: true, contentType: { select: { name: true } } },
+      orderBy: { unpublishAt: 'asc' },
+      take: PUBLISH_BATCH,
+    });
+    if (due.length === 0) return;
+
+    let unpublished = 0;
+    for (const entry of due) {
+      const { count } = await this.prisma.entry.updateMany({
+        where: { id: entry.id, contentTypeId: entry.contentTypeId, status: 'published', deletedAt: null, unpublishAt: { lte: now } },
+        data: { status: 'draft', unpublishAt: null },
+      });
+      if (count === 0) continue;
+
+      unpublished++;
+      this.webhooks.fire('entry.updated', {
+        id: entry.id,
+        slug: entry.slug,
+        status: 'draft',
+        scheduledUnpublish: true,
+      });
+      await this.hookBus?.emit(PluginEvents.ENTRY_AFTER_UPDATE, {
+        id: entry.id, slug: entry.slug, status: 'draft', contentType: entry.contentType?.name ?? '',
+        locale: entry.locale, data: entry.data as Record<string, any>, source: 'scheduler' as const,
+      });
+    }
+
+    if (unpublished > 0) {
+      this.logger.log(`Scheduler(unpublish): took ${unpublished} entr${unpublished === 1 ? 'y' : 'ies'} off the site`);
+    }
+  }
+
   // ── Weekly maintenance ────────────────────────────────────────────────────────
 
   /**
@@ -105,6 +147,11 @@ export class SchedulerService {
     });
     if (tokensPruned > 0) {
       this.logger.log(`Maintenance: deleted ${tokensPruned} expired refresh tokens`);
+    }
+
+    const { count: linksPruned } = await this.prisma.entryShareLink.deleteMany({ where: { expiresAt: { lte: new Date() } } });
+    if (linksPruned > 0) {
+      this.logger.log(`Maintenance: deleted ${linksPruned} expired share links`);
     }
 
     const day = 24 * 60 * 60 * 1000;

@@ -317,5 +317,12 @@
     "drafting": "Redactando…",
     "placeholder": "¿Qué debe decir esta entrada? p. ej. «Una publicación cercana de 300 palabras anunciando nuestro nuevo horario»",
     "drafted": "{count, plural, one {# campo completado} other {# campos completados}} — revisa antes de guardar"
+  },
+  "unpublish": {
+    "title": "Despublicar el",
+    "placeholder": "Elige fecha y hora",
+    "help": "Retira la entrada del sitio en ese momento (vuelve a borrador). Déjalo vacío para mantenerla publicada.",
+    "willUnpublish": "Sale del sitio el <b>{date}</b> a las <b>{time}</b>.",
+    "beforePublish": "Es anterior a la publicación programada: la entrada saldría del sitio en cuanto se publique."
   }
 }

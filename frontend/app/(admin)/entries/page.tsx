@@ -44,6 +44,8 @@ import {
   Check,
   Languages,
   Settings2,
+  MessageSquare,
+  CalendarOff,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -78,6 +80,7 @@ import api from '@/lib/axios';
 import { cn, ctLabel } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { AddToReleaseDialog } from '@/components/AddToReleaseDialog';
+import { SendBackDialog } from '@/components/SendBackDialog';
 import { useAccess } from '@/lib/use-access';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
 
@@ -128,6 +131,10 @@ interface Entry {
   id: number; slug: string; status: string; locale?: string; contentTypeId: number;
   data: Record<string, any>; createdAt: string; updatedAt: string;
   publishAt?: string | null;
+  /** When a published entry comes off the site by itself. */
+  unpublishAt?: string | null;
+  /** Open change requests (review notes). */
+  openNotes?: number;
   /** Locales this entry exists in (same content type + slug). */
   translations?: string[];
   /** Each language's entry (same content type + slug). */
@@ -458,8 +465,23 @@ export default function EntriesPage() {
     const meta = STATUS_LABELS[value] ?? STATUS_LABELS.published;
     return meta.commonKey ? tc(meta.commonKey) : t(meta.labelKey!);
   };
+  // Sending work back from review asks for an optional note (a change request)
+  const [sendBack, setSendBack] = useState<Entry | null>(null);
+  const confirmSendBack = async (entry: Entry, note: string) => {
+    if (note) {
+      try {
+        await api.post(`/entries/${entry.id}/notes`, { body: note, kind: 'changes' });
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || tc('somethingWentWrong'));
+        return;
+      }
+    }
+    await handleStatusChange(entry, 'draft');
+  };
   const pickStatus = (entry: Entry, value: string) => {
-    if (value !== entry.status && (value === 'published' || entry.status === 'published')) {
+    if (entry.status === 'pending_review' && value === 'draft') {
+      setSendBack(entry);
+    } else if (value !== entry.status && (value === 'published' || entry.status === 'published')) {
       setConfirmStatus({ entry, value });
     } else {
       handleStatusChange(entry, value);
@@ -1210,6 +1232,16 @@ export default function EntriesPage() {
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium text-foreground whitespace-nowrap">{entry.slug}</p>
+                  {!!entry.openNotes && (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300"
+                      title={t('table.openNotes', { count: entry.openNotes })}
+                      aria-label={t('table.openNotes', { count: entry.openNotes })}
+                    >
+                      <MessageSquare className="h-3 w-3" aria-hidden="true" />
+                      {entry.openNotes}
+                    </span>
+                  )}
                   {/* With several languages they have their own column; with one, its chip sits here */}
                   {!multiLanguage && (
                     <div className="flex gap-1 shrink-0">{renderLanguageChips(entry)}</div>
@@ -1291,6 +1323,15 @@ export default function EntriesPage() {
                     </DropdownMenu>
                   );
                 })()}
+                {entry.status === 'published' && entry.unpublishAt && (
+                  <p
+                    className="mt-1 flex items-center gap-1 whitespace-nowrap text-[11px] text-amber-600 dark:text-amber-400"
+                    title={t('table.endsTitle', { date: new Date(entry.unpublishAt).toLocaleString() })}
+                  >
+                    <CalendarOff className="h-3 w-3" aria-hidden="true" />
+                    {t('table.ends', { date: new Date(entry.unpublishAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) })}
+                  </p>
+                )}
               </TableCell>
               {schemaColumns.map((col) => {
                 const val = entry.data[col.name];
@@ -1647,6 +1688,13 @@ export default function EntriesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <SendBackDialog
+        slug={sendBack?.slug ?? ''}
+        open={!!sendBack}
+        onOpenChange={(o) => { if (!o) setSendBack(null); }}
+        onConfirm={(note) => { if (sendBack) void confirmSendBack(sendBack, note); }}
+      />
 
       <AlertDialog open={!!confirmStatus} onOpenChange={(o) => { if (!o) setConfirmStatus(null); }}>
         <AlertDialogContent>

@@ -35,6 +35,7 @@ import {
   Plus,
   X,
   Clock,
+  CalendarOff,
   Package,
   MonitorPlay,
 } from 'lucide-react';
@@ -73,6 +74,9 @@ import { withCondition } from '@/components/ConditionalField';
 import { pruneEntryData } from '@/lib/prune-entry-data';
 import { autosaveSnapshot } from '@/lib/autosave-snapshot';
 import { FoldPanel } from '@/components/FoldPanel';
+import { EntryReviewNotes } from '@/components/EntryReviewNotes';
+import { ShareEntryDialog } from '@/components/ShareEntryDialog';
+import { SendBackDialog } from '@/components/SendBackDialog';
 
 interface Field { name: string; type: string; options?: any; label?: string }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[]; previewUrl?: string | null }
@@ -91,6 +95,7 @@ interface Entry {
   data: Record<string, any>;
   seo?: { title?: string; description?: string; image?: string; noIndex?: boolean } | null;
   publishAt?: string | null;
+  unpublishAt?: string | null;
   translations?: TranslationItem[];
 }
 
@@ -199,6 +204,7 @@ export default function EditEntryPage() {
   const [seoImage, setSeoImage] = useState('');
   const [seoNoIndex, setSeoNoIndex] = useState(false);
   const [publishAt, setPublishAt] = useState('');
+  const [unpublishAt, setUnpublishAt] = useState('');
 
   const { register, control, handleSubmit, reset, setValue, watch, getValues, formState: { errors } } = useForm<Record<string, any>>();
 
@@ -227,6 +233,7 @@ export default function EditEntryPage() {
       data: rest,
       seo: hasSeo ? seo : null,
       publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
+      unpublishAt: status !== 'archived' && unpublishAt ? new Date(unpublishAt).toISOString() : null,
     };
     const snapshot = autosaveSnapshot(payload);
     if (snapshot === savedSnapshot.current) return;
@@ -239,10 +246,10 @@ export default function EditEntryPage() {
     } catch {
       setAutosaveStatus('idle');
     }
-  }, [entry, getValues, status, seoTitle, seoDescription, seoImage, seoNoIndex, publishAt]);
+  }, [entry, getValues, status, seoTitle, seoDescription, seoImage, seoNoIndex, publishAt, unpublishAt]);
 
   useAutosave(
-    JSON.stringify({ watchedValues, status, seoTitle, seoDescription, seoImage, seoNoIndex, publishAt }),
+    JSON.stringify({ watchedValues, status, seoTitle, seoDescription, seoImage, seoNoIndex, publishAt, unpublishAt }),
     autosaveFn,
     3000,      // 3-second debounce
     !loading,  // only autosave after entry is fully loaded
@@ -270,6 +277,7 @@ export default function EditEntryPage() {
         setSeoImage(e.seo?.image ?? '');
         setSeoNoIndex(e.seo?.noIndex ?? false);
         setPublishAt(toLocalDatetimeString(e.publishAt));
+        setUnpublishAt(toLocalDatetimeString(e.unpublishAt));
         const ctRes = await api.get(`/content-types/${e.contentTypeId}`);
         setContentType(ctRes.data);
         // Arriving from "Save draft & preview" on the new-entry page.
@@ -282,6 +290,7 @@ export default function EditEntryPage() {
           data: e.data,
           seo: e.seo ?? null,
           publishAt: e.status === 'draft' && loadedPublishAt ? new Date(loadedPublishAt).toISOString() : null,
+          unpublishAt: e.status !== 'archived' && e.unpublishAt ? new Date(toLocalDatetimeString(e.unpublishAt)).toISOString() : null,
         });
       })
       .catch(() => { toast.error(t('toast.loadEntryFailed')); router.push('/entries'); })
@@ -304,12 +313,14 @@ export default function EditEntryPage() {
       const hasSeo = Object.values(seo).some((v) => v !== undefined);
 
       const publishAtIso = status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null;
+      const unpublishAtIso = status !== 'archived' && unpublishAt ? new Date(unpublishAt).toISOString() : null;
       const res = await api.put(`/entries/${entry.id}`, {
         slug: cleanFinalSlug,
         status,
         data: pruneEntryData(rest, contentType?.schema ?? []),
         seo: hasSeo ? seo : null,
         publishAt: publishAtIso,
+        unpublishAt: unpublishAtIso,
       });
       // Stay on the page. The form keeps its values, so nothing remounts and the scroll position
       // holds; the snapshot is built the way autosaveFn builds it, so autosave doesn't save again.
@@ -321,6 +332,7 @@ export default function EditEntryPage() {
         data: rest,
         seo: hasSeo ? seo : null,
         publishAt: publishAtIso,
+        unpublishAt: unpublishAtIso,
       });
       setTranslations((list) => list.map((item) => item.id === entry.id ? { ...item, status } : item));
       if (versionsOpen) void loadVersions();
@@ -334,6 +346,7 @@ export default function EditEntryPage() {
 
   // Publishing (and approving reviews) is the content type's "Can publish" permission
   const canApprove = access.canContent('publish', contentType?.name);
+  const canUpdate = access.canContent('update', contentType?.name);
   const [releaseOpen, setReleaseOpen] = useState(false);
 
   const handleApprove = async () => {
@@ -351,10 +364,13 @@ export default function EditEntryPage() {
     }
   };
 
-  const handleReturnToDraft = async () => {
+  // "Return to Draft" asks for an optional note first (saved as a change request)
+  const [sendBackOpen, setSendBackOpen] = useState(false);
+  const handleReturnToDraft = async (note: string) => {
     if (!entry) return;
     setSubmitting(true);
     try {
+      if (note) await api.post(`/entries/${entry.id}/notes`, { body: note, kind: 'changes' });
       await api.put(`/entries/${entry.id}`, { status: 'draft' });
       setStatus('draft');
       setEntry((e) => e ? { ...e, status: 'draft' } : e);
@@ -586,7 +602,7 @@ export default function EditEntryPage() {
             <span>{t('review.banner')}</span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" variant="outline" disabled={submitting} onClick={handleReturnToDraft}>
+            <Button size="sm" variant="outline" disabled={submitting} onClick={() => setSendBackOpen(true)}>
               <Undo2 className="h-3.5 w-3.5 mr-1.5" />
               {t('review.returnToDraft')}
             </Button>
@@ -595,6 +611,7 @@ export default function EditEntryPage() {
               {t('review.approve')}
             </Button>
           </div>
+          <SendBackDialog slug={entry?.slug ?? ''} open={sendBackOpen} onOpenChange={setSendBackOpen} onConfirm={(note) => void handleReturnToDraft(note)} />
         </div>
       )}
 
@@ -618,7 +635,7 @@ export default function EditEntryPage() {
 
               {/* Status Selector */}
               <Select value={status} onValueChange={(v) => { if (v) setStatus(v); }}>
-                <SelectTrigger className="h-8 w-36 text-xs font-medium border-border/80 bg-background/80">
+                <SelectTrigger className="h-8 w-auto min-w-36 text-xs font-medium border-border/80 bg-background/80">
                   <div className="flex items-center gap-2 truncate">
                     {/* The selected item's label (colour dot + name) shows here. */}
                     <SelectValue />
@@ -665,6 +682,7 @@ export default function EditEntryPage() {
                 </Button>
               )}
               <AddToReleaseDialog entryIds={[Number(id)]} open={releaseOpen} onOpenChange={setReleaseOpen} />
+              {canUpdate && <ShareEntryDialog entryId={Number(id)} />}
 
               {/* Top Quick Save / Update Button */}
               <Button type="submit" form="entry-form" size="sm" className="h-8 text-xs font-medium gap-1.5" disabled={submitting}>
@@ -793,6 +811,19 @@ export default function EditEntryPage() {
           <div style={paneWidth(sidePanel !== 'none' ? leftPct : 100)} className={MAIN_PANE}>
           <form id="entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
+            {/* Review notes first: an open change request is the first thing a writer sees */}
+            {entry && (
+              <EntryReviewNotes
+                entryId={entry.id}
+                status={status}
+                canReview={canUpdate || canApprove}
+                onSentBack={() => {
+                  setStatus('draft');
+                  setTranslations((list) => list.map((item) => item.id === entry.id ? { ...item, status: 'draft' } : item));
+                }}
+              />
+            )}
+
             {/* Slug (editable — changing it breaks existing links/SEO) */}
             <div className="space-y-1.5 mb-4.5">
               <Label htmlFor="slug" className="text-xs font-semibold text-foreground/90 block">{t('slug.label')}</Label>
@@ -896,6 +927,44 @@ export default function EditEntryPage() {
                     t('schedule.help')
                   )}
                 </p>
+              </div>
+            )}
+
+            {/* Scheduled unpublish: takes a live entry off the site (back to Draft) */}
+            {status !== 'archived' && (
+              <div className="mb-4 p-3.5 rounded-xl border border-border/80 bg-muted/20 backdrop-blur-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <CalendarOff className="h-3.5 w-3.5 text-primary" />
+                    {t('unpublish.title')}
+                  </Label>
+                  {unpublishAt && (
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium">
+                      {t('schedule.active')}
+                    </span>
+                  )}
+                </div>
+                <DateTimePicker
+                  value={unpublishAt}
+                  onChange={setUnpublishAt}
+                  placeholder={t('unpublish.placeholder')}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {unpublishAt ? (
+                    <span className="text-foreground/90 font-medium">
+                      {t.rich('unpublish.willUnpublish', {
+                        date: new Date(unpublishAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
+                        time: new Date(unpublishAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+                        b: (chunks) => <span className="text-primary font-semibold">{chunks}</span>,
+                      })}
+                    </span>
+                  ) : (
+                    t('unpublish.help')
+                  )}
+                </p>
+                {unpublishAt && status === 'draft' && publishAt && new Date(unpublishAt) <= new Date(publishAt) && (
+                  <p className="mt-1 text-xs text-destructive">{t('unpublish.beforePublish')}</p>
+                )}
               </div>
             )}
 
@@ -1177,6 +1246,7 @@ export default function EditEntryPage() {
               data: pruneEntryData(fieldData, contentType?.schema ?? []),
               seo: hasSeo ? seo : null,
               publishAt: status === 'draft' && publishAt ? new Date(publishAt).toISOString() : null,
+              unpublishAt: status !== 'archived' && unpublishAt ? new Date(unpublishAt).toISOString() : null,
             };
             const jsonStr = JSON.stringify(liveJson, null, 2);
             return (

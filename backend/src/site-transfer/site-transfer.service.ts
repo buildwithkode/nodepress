@@ -58,7 +58,7 @@ export class SiteTransferService {
     const types = await this.prisma.contentType.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } });
     const rows = await this.prisma.entry.findMany({
       orderBy: [{ contentTypeId: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
-      select: { contentTypeId: true, publicId: true, slug: true, locale: true, status: true, data: true, seo: true, publishAt: true, position: true, createdAt: true, deletedAt: true },
+      select: { contentTypeId: true, publicId: true, slug: true, locale: true, status: true, data: true, seo: true, publishAt: true, unpublishAt: true, position: true, createdAt: true, deletedAt: true },
     });
     const entries: Record<string, unknown[]> = {};
     for (const t of types) entries[t.name] = [];

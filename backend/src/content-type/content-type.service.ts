@@ -39,7 +39,7 @@ const CT_ALL_CACHE_KEY = 'ct:meta:all_content_types';
 const RESERVED_NAMES = [
   'ai', 'api-keys', 'audit-log', 'auth', 'brand', 'components', 'content-types', 'entries',
   'forms', 'graphql', 'health', 'import', 'jobs', 'locales', 'media', 'metrics', 'option-lists', 'permissions', 'plugins',
-  'redirects', 'releases', 'roles', 'search', 'server-settings', 'site', 'submit', 'templates', 'uploads', 'users', 'webhooks',
+  'redirects', 'releases', 'roles', 'search', 'server-settings', 'share', 'site', 'submit', 'templates', 'uploads', 'users', 'webhooks',
 ].map(contentTypeName);
 
 const normalizeName = contentTypeName;

@@ -80,7 +80,10 @@
     "changeStatus": "Cambia lo stato di {slug}",
     "statusCancelsSchedule": "Scegliere uno stato annulla la pubblicazione programmata",
     "number": "N.",
-    "dragToReorder": "Trascina per riordinare"
+    "dragToReorder": "Trascina per riordinare",
+    "openNotes": "{count, plural, one {# richiesta di modifica aperta} other {# richieste di modifica aperte}}",
+    "ends": "Termina il {date}",
+    "endsTitle": "Esce dal sito il {date}"
   },
   "actions": {
     "restore": "Ripristina",
@@ -160,5 +163,66 @@
     "languageOnly": "Cambia solo la versione in {language}.",
     "publish": "Pubblica",
     "unpublish": "Passa a {status}"
+  },
+  "notes": {
+    "title": "Note di revisione",
+    "someone": "Qualcuno",
+    "sentBack": "Rimandato in bozza con la tua nota",
+    "added": "Nota aggiunta",
+    "requestedTitle": "{count, plural, one {Modifica richiesta} other {# modifiche richieste}}",
+    "byOn": "{name} · {date}",
+    "markDone": "Segna come fatto",
+    "waitingReview": "In attesa di revisione",
+    "empty": "Ancora nessuna nota.",
+    "done": "Fatto",
+    "changesBadge": "Richiesta di modifica",
+    "reopen": "Riapri",
+    "placeholderReview": "Cosa va cambiato? Chi ha scritto lo vedrà quando rimandi indietro la voce.",
+    "placeholder": "Aggiungi una nota per il team…",
+    "add": "Aggiungi nota",
+    "sendBack": "Rimanda con la nota"
+  },
+  "share": {
+    "button": "Condividi",
+    "buttonTitle": "Condividi un link di anteprima con chi non ha un accesso",
+    "title": "Condividi un'anteprima",
+    "description": "Chiunque abbia il link vede questa voce com'è ora, anche prima della pubblicazione. Nessun accesso richiesto.",
+    "expiresIn": "Il link funziona per",
+    "days": "{count, plural, one {# giorno} other {# giorni}}",
+    "create": "Crea link",
+    "created": "Link creato",
+    "copied": "Link creato e copiato",
+    "copyFailed": "Copia non riuscita. Seleziona il link e copialo.",
+    "copy": "Copia link",
+    "linkLabel": "Link di condivisione",
+    "onlyNow": "Copialo ora: il link viene mostrato una sola volta. Puoi revocarlo qui sotto in qualsiasi momento.",
+    "active": "{count, plural, one {# link attivo} other {# link attivi}}",
+    "expires": "Scade il {date}",
+    "revoke": "Revoca",
+    "revoked": "Link revocato"
+  },
+  "sendBack": {
+    "title": "Rimandare {slug} in bozza?",
+    "description": "Di' cosa va cambiato. La tua nota resta visibile nell'editor e in questo elenco finché non è fatto.",
+    "placeholder": "es. Correggi il prezzo nel secondo paragrafo",
+    "noteLabel": "Nota per chi ha scritto",
+    "withNote": "Rimanda con la nota",
+    "withoutNote": "Rimanda senza nota"
+  },
+  "sharePage": {
+    "empty": "Vuoto",
+    "yes": "Sì",
+    "no": "No",
+    "linked": "{count, plural, one {Collegato a # voce} other {Collegato a # voci}}",
+    "goneTitle": "Questo link non funziona più",
+    "goneText": "È scaduto o è stato rimosso. Chiedine uno nuovo a chi te l'ha inviato.",
+    "preview": "Anteprima",
+    "live": "Online sul sito",
+    "notLive": "Non ancora pubblicato",
+    "viewLabel": "Vista",
+    "asPage": "Pagina",
+    "asFields": "Contenuto",
+    "expires": "Link valido fino al {date}",
+    "updated": "Ultima modifica: {date}"
   }
 }

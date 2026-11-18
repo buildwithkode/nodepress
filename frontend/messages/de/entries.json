@@ -80,7 +80,10 @@
     "changeStatus": "Status von {slug} ändern",
     "statusCancelsSchedule": "Ein neuer Status hebt die geplante Veröffentlichung auf",
     "number": "Nr.",
-    "dragToReorder": "Zum Sortieren ziehen"
+    "dragToReorder": "Zum Sortieren ziehen",
+    "openNotes": "{count, plural, one {# offener Änderungswunsch} other {# offene Änderungswünsche}}",
+    "ends": "Endet am {date}",
+    "endsTitle": "Wird am {date} von der Website genommen"
   },
   "actions": {
     "restore": "Wiederherstellen",
@@ -160,5 +163,66 @@
     "languageOnly": "Nur die {language}-Version ändert sich.",
     "publish": "Veröffentlichen",
     "unpublish": "Zu {status} wechseln"
+  },
+  "notes": {
+    "title": "Prüfnotizen",
+    "someone": "Jemand",
+    "sentBack": "Mit Ihrer Notiz zurück in den Entwurf geschickt",
+    "added": "Notiz hinzugefügt",
+    "requestedTitle": "{count, plural, one {Änderung angefordert} other {# Änderungen angefordert}}",
+    "byOn": "{name} · {date}",
+    "markDone": "Als erledigt markieren",
+    "waitingReview": "Wartet auf Prüfung",
+    "empty": "Noch keine Notizen.",
+    "done": "Erledigt",
+    "changesBadge": "Änderungswunsch",
+    "reopen": "Wieder öffnen",
+    "placeholderReview": "Was muss geändert werden? Die verfassende Person sieht das, wenn Sie den Eintrag zurückschicken.",
+    "placeholder": "Notiz für Ihr Team hinzufügen…",
+    "add": "Notiz hinzufügen",
+    "sendBack": "Mit Notiz zurückschicken"
+  },
+  "share": {
+    "button": "Teilen",
+    "buttonTitle": "Vorschaulink mit jemandem ohne Anmeldung teilen",
+    "title": "Vorschau teilen",
+    "description": "Jeder mit dem Link sieht diesen Eintrag im aktuellen Stand, auch vor der Veröffentlichung. Keine Anmeldung nötig.",
+    "expiresIn": "Link gilt für",
+    "days": "{count, plural, one {# Tag} other {# Tage}}",
+    "create": "Link erstellen",
+    "created": "Link erstellt",
+    "copied": "Link erstellt und kopiert",
+    "copyFailed": "Kopieren fehlgeschlagen. Markieren Sie den Link und kopieren Sie ihn.",
+    "copy": "Link kopieren",
+    "linkLabel": "Freigabelink",
+    "onlyNow": "Jetzt kopieren: Der Link wird nur einmal angezeigt. Unten können Sie ihn jederzeit widerrufen.",
+    "active": "{count, plural, one {# Link aktiv} other {# Links aktiv}}",
+    "expires": "Läuft ab am {date}",
+    "revoke": "Widerrufen",
+    "revoked": "Link widerrufen"
+  },
+  "sendBack": {
+    "title": "{slug} zurück in den Entwurf schicken?",
+    "description": "Sagen Sie der verfassenden Person, was zu ändern ist. Ihre Notiz ist im Editor und in dieser Liste sichtbar, bis sie erledigt ist.",
+    "placeholder": "z. B. Preis im zweiten Absatz korrigieren",
+    "noteLabel": "Notiz für die verfassende Person",
+    "withNote": "Mit Notiz zurückschicken",
+    "withoutNote": "Ohne Notiz zurückschicken"
+  },
+  "sharePage": {
+    "empty": "Leer",
+    "yes": "Ja",
+    "no": "Nein",
+    "linked": "{count, plural, one {Mit # Eintrag verknüpft} other {Mit # Einträgen verknüpft}}",
+    "goneTitle": "Dieser Link funktioniert nicht mehr",
+    "goneText": "Er ist abgelaufen oder wurde entfernt. Bitten Sie die Person, die ihn gesendet hat, um einen neuen.",
+    "preview": "Vorschau",
+    "live": "Live auf der Website",
+    "notLive": "Noch nicht veröffentlicht",
+    "viewLabel": "Ansicht",
+    "asPage": "Seite",
+    "asFields": "Inhalt",
+    "expires": "Link gültig bis {date}",
+    "updated": "Zuletzt geändert am {date}"
   }
 }

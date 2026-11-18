@@ -18,6 +18,7 @@ export interface SiteEntryRow {
   data?: Record<string, unknown>;
   seo?: unknown;
   publishAt?: string | null;
+  unpublishAt?: string | null;
   /** Order in the admin list (shared by a page's languages). Older files have none. */
   position?: number;
   createdAt?: string;
@@ -130,6 +131,10 @@ export function planEntries(
         plan.errors.push(`${label}: publishAt is not a date`);
         return;
       }
+      if (row.unpublishAt && Number.isNaN(Date.parse(row.unpublishAt))) {
+        plan.errors.push(`${label}: unpublishAt is not a date`);
+        return;
+      }
       if ((row.createdAt && Number.isNaN(Date.parse(row.createdAt))) || (row.deletedAt && Number.isNaN(Date.parse(row.deletedAt)))) {
         plan.errors.push(`${label}: createdAt and deletedAt must be dates`);
         return;
@@ -210,6 +215,7 @@ function toWrite(row: SiteEntryRow, locale: string, status: string, publicId: st
     data: (row.data ?? {}) as Record<string, any>,
     seo: row.seo ?? null,
     publishAt: row.publishAt ?? null,
+    unpublishAt: row.unpublishAt ?? null,
     position: row.position,
     createdAt: row.createdAt,
     deletedAt: row.deletedAt ?? null,

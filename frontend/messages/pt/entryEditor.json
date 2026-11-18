@@ -317,5 +317,12 @@
     "drafting": "Escrevendo…",
     "placeholder": "O que esta entrada deve dizer? ex.: “Um post simpático de 300 palavras anunciando nosso novo horário de funcionamento”",
     "drafted": "{count, plural, one {# campo preenchido} other {# campos preenchidos}} — revise antes de salvar"
+  },
+  "unpublish": {
+    "title": "Despublicar em",
+    "placeholder": "Escolha data e hora",
+    "help": "Retira a entrada do site nesse momento (volta a rascunho). Deixe vazio para a manter publicada.",
+    "willUnpublish": "Sai do site a <b>{date}</b> às <b>{time}</b>.",
+    "beforePublish": "É antes da publicação agendada: a entrada sairia do site assim que fosse publicada."
   }
 }

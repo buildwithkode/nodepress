@@ -317,5 +317,12 @@
     "drafting": "Writing…",
     "placeholder": "What should this entry say? e.g. “A friendly 300-word post announcing our new opening hours”",
     "drafted": "Filled {count, plural, one {# field} other {# fields}} — review before saving"
+  },
+  "unpublish": {
+    "title": "Unpublish on",
+    "placeholder": "Pick a date and time",
+    "help": "Takes the entry off the site at this time (it goes back to Draft). Leave empty to keep it live.",
+    "willUnpublish": "Comes off the site on <b>{date}</b> at <b>{time}</b>.",
+    "beforePublish": "This is before the scheduled publish time, so the entry would come off the site as soon as it goes live."
   }
 }

@@ -51,6 +51,9 @@ const mockPrisma = {
     delete:      jest.fn(),
     groupBy:     jest.fn(),
   },
+  entryNote: {
+    groupBy:     jest.fn().mockResolvedValue([]),
+  },
   entryVersion: {
     create:      jest.fn(),
     findMany:    jest.fn(),

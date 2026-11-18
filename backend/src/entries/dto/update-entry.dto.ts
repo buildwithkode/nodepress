@@ -34,4 +34,12 @@ export class UpdateEntryDto {
   @IsOptional()
   @IsDateString()
   publishAt?: string | null;
+
+  @ApiPropertyOptional({
+    example: '2026-05-01T09:00:00.000Z',
+    description: 'ISO datetime — a published entry goes back to draft when this time passes; null clears it',
+  })
+  @IsOptional()
+  @IsDateString()
+  unpublishAt?: string | null;
 }

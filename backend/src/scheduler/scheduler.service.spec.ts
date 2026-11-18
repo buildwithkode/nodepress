@@ -16,6 +16,7 @@ const mockPrisma = {
   auditLog:     { deleteMany: jest.fn() },
   refreshToken: { deleteMany: jest.fn() },
   job:          { deleteMany: jest.fn() },
+  entryShareLink: { deleteMany: jest.fn().mockResolvedValue({ count: 0 }) },
 };
 
 const mockWebhooks = { fire: jest.fn() };
@@ -90,6 +91,36 @@ describe('SchedulerService', () => {
       mockPrisma.entry.findMany.mockResolvedValueOnce([]);
       await service.publishScheduledEntries();
       expect(mockPrisma.$queryRaw).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── unpublishScheduledEntries ──────────────────────────────────────────────
+
+  describe('unpublishScheduledEntries()', () => {
+    it('moves due published entries back to draft once and tells webhooks and plugins', async () => {
+      mockPrisma.entry.findMany.mockResolvedValueOnce([
+        { id: 7, slug: 'offer', contentTypeId: 2, locale: 'en', data: { title: 'Offer' }, contentType: { name: 'offers' } },
+      ]);
+      mockPrisma.entry.updateMany.mockResolvedValue({ count: 1 });
+
+      await service.unpublishScheduledEntries();
+
+      expect(mockPrisma.entry.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({ status: 'published', deletedAt: null, unpublishAt: expect.any(Object) }),
+      }));
+      expect(mockPrisma.entry.updateMany).toHaveBeenCalledWith({
+        where: expect.objectContaining({ id: 7, contentTypeId: 2, status: 'published', deletedAt: null }),
+        data: { status: 'draft', unpublishAt: null },
+      });
+      expect(mockWebhooks.fire).toHaveBeenCalledWith('entry.updated', expect.objectContaining({ id: 7, status: 'draft', scheduledUnpublish: true }));
+      expect(mockHookBus.emit).toHaveBeenCalledWith(PluginEvents.ENTRY_AFTER_UPDATE, expect.objectContaining({ id: 7, status: 'draft', source: 'scheduler' }));
+    });
+
+    it('does nothing more when another instance got there first', async () => {
+      mockPrisma.entry.findMany.mockResolvedValueOnce([{ id: 7, slug: 'offer', contentTypeId: 2 }]);
+      mockPrisma.entry.updateMany.mockResolvedValue({ count: 0 });
+      await service.unpublishScheduledEntries();
+      expect(mockWebhooks.fire).not.toHaveBeenCalled();
     });
   });
 

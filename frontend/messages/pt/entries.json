@@ -80,7 +80,10 @@
     "changeStatus": "Alterar o status de {slug}",
     "statusCancelsSchedule": "Escolher um status cancela a publicação agendada",
     "number": "Nº",
-    "dragToReorder": "Arraste para reordenar"
+    "dragToReorder": "Arraste para reordenar",
+    "openNotes": "{count, plural, one {# pedido de alteração aberto} other {# pedidos de alteração abertos}}",
+    "ends": "Termina a {date}",
+    "endsTitle": "Sai do site a {date}"
   },
   "actions": {
     "restore": "Restaurar",
@@ -160,5 +163,66 @@
     "languageOnly": "Só a versão em {language} muda.",
     "publish": "Publicar",
     "unpublish": "Mudar para {status}"
+  },
+  "notes": {
+    "title": "Notas de revisão",
+    "someone": "Alguém",
+    "sentBack": "Devolvido para rascunho com a sua nota",
+    "added": "Nota adicionada",
+    "requestedTitle": "{count, plural, one {Alteração pedida} other {# alterações pedidas}}",
+    "byOn": "{name} · {date}",
+    "markDone": "Marcar como feito",
+    "waitingReview": "A aguardar revisão",
+    "empty": "Ainda não há notas.",
+    "done": "Feito",
+    "changesBadge": "Pedido de alteração",
+    "reopen": "Reabrir",
+    "placeholderReview": "O que precisa de mudar? Quem escreveu verá isto quando devolver a entrada.",
+    "placeholder": "Adicione uma nota para a equipa…",
+    "add": "Adicionar nota",
+    "sendBack": "Devolver com nota"
+  },
+  "share": {
+    "button": "Partilhar",
+    "buttonTitle": "Partilhar um link de pré-visualização com alguém sem conta",
+    "title": "Partilhar uma pré-visualização",
+    "description": "Quem tiver o link vê esta entrada como está agora, mesmo antes de ser publicada. Não é preciso iniciar sessão.",
+    "expiresIn": "O link funciona durante",
+    "days": "{count, plural, one {# dia} other {# dias}}",
+    "create": "Criar link",
+    "created": "Link criado",
+    "copied": "Link criado e copiado",
+    "copyFailed": "Não foi possível copiar. Selecione o link e copie-o.",
+    "copy": "Copiar link",
+    "linkLabel": "Link de partilha",
+    "onlyNow": "Copie agora: o link só é mostrado uma vez. Pode revogá-lo abaixo a qualquer momento.",
+    "active": "{count, plural, one {# link ativo} other {# links ativos}}",
+    "expires": "Expira a {date}",
+    "revoke": "Revogar",
+    "revoked": "Link revogado"
+  },
+  "sendBack": {
+    "title": "Devolver {slug} para rascunho?",
+    "description": "Diga o que é preciso mudar. A sua nota aparece no editor e nesta lista até estar feito.",
+    "placeholder": "ex.: Corrigir o preço no segundo parágrafo",
+    "noteLabel": "Nota para quem escreveu",
+    "withNote": "Devolver com nota",
+    "withoutNote": "Devolver sem nota"
+  },
+  "sharePage": {
+    "empty": "Vazio",
+    "yes": "Sim",
+    "no": "Não",
+    "linked": "{count, plural, one {Ligado a # entrada} other {Ligado a # entradas}}",
+    "goneTitle": "Este link já não funciona",
+    "goneText": "Expirou ou foi removido. Peça um novo a quem o enviou.",
+    "preview": "Pré-visualização",
+    "live": "Publicado no site",
+    "notLive": "Ainda não publicado",
+    "viewLabel": "Vista",
+    "asPage": "Página",
+    "asFields": "Conteúdo",
+    "expires": "Link válido até {date}",
+    "updated": "Última alteração: {date}"
   }
 }

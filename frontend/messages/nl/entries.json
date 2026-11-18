@@ -80,7 +80,10 @@
     "changeStatus": "Status van {slug} wijzigen",
     "statusCancelsSchedule": "Een status kiezen annuleert de geplande publicatie",
     "number": "Nr.",
-    "dragToReorder": "Sleep om te herschikken"
+    "dragToReorder": "Sleep om te herschikken",
+    "openNotes": "{count, plural, one {# open wijzigingsverzoek} other {# open wijzigingsverzoeken}}",
+    "ends": "Eindigt {date}",
+    "endsTitle": "Gaat van de site op {date}"
   },
   "actions": {
     "restore": "Terugzetten",
@@ -160,5 +163,66 @@
     "languageOnly": "Alleen de {language} versie verandert.",
     "publish": "Publiceren",
     "unpublish": "Naar {status}"
+  },
+  "notes": {
+    "title": "Reviewnotities",
+    "someone": "Iemand",
+    "sentBack": "Met je notitie teruggezet naar concept",
+    "added": "Notitie toegevoegd",
+    "requestedTitle": "{count, plural, one {Wijziging gevraagd} other {# wijzigingen gevraagd}}",
+    "byOn": "{name} · {date}",
+    "markDone": "Markeren als klaar",
+    "waitingReview": "Wacht op review",
+    "empty": "Nog geen notities.",
+    "done": "Klaar",
+    "changesBadge": "Wijzigingsverzoek",
+    "reopen": "Heropenen",
+    "placeholderReview": "Wat moet er anders? De schrijver ziet dit als je het item terugstuurt.",
+    "placeholder": "Voeg een notitie toe voor je team…",
+    "add": "Notitie toevoegen",
+    "sendBack": "Terugsturen met notitie"
+  },
+  "share": {
+    "button": "Delen",
+    "buttonTitle": "Deel een voorbeeldlink met iemand zonder account",
+    "title": "Voorbeeld delen",
+    "description": "Iedereen met de link ziet dit item zoals het nu is, ook vóór publicatie. Inloggen is niet nodig.",
+    "expiresIn": "Link werkt",
+    "days": "{count, plural, one {# dag} other {# dagen}}",
+    "create": "Link maken",
+    "created": "Link gemaakt",
+    "copied": "Link gemaakt en gekopieerd",
+    "copyFailed": "Kopiëren mislukt. Selecteer de link en kopieer hem.",
+    "copy": "Link kopiëren",
+    "linkLabel": "Deellink",
+    "onlyNow": "Kopieer hem nu: de link wordt maar één keer getoond. Je kunt hem hieronder altijd intrekken.",
+    "active": "{count, plural, one {# link actief} other {# links actief}}",
+    "expires": "Verloopt op {date}",
+    "revoke": "Intrekken",
+    "revoked": "Link ingetrokken"
+  },
+  "sendBack": {
+    "title": "{slug} terugzetten naar concept?",
+    "description": "Vertel de schrijver wat er moet veranderen. Je notitie staat in de editor en in deze lijst tot het klaar is.",
+    "placeholder": "bijv. Prijs in de tweede alinea aanpassen",
+    "noteLabel": "Notitie voor de schrijver",
+    "withNote": "Terugsturen met notitie",
+    "withoutNote": "Terugsturen zonder notitie"
+  },
+  "sharePage": {
+    "empty": "Leeg",
+    "yes": "Ja",
+    "no": "Nee",
+    "linked": "{count, plural, one {Gekoppeld aan # item} other {Gekoppeld aan # items}}",
+    "goneTitle": "Deze link werkt niet meer",
+    "goneText": "Hij is verlopen of verwijderd. Vraag de afzender om een nieuwe.",
+    "preview": "Voorbeeld",
+    "live": "Live op de site",
+    "notLive": "Nog niet gepubliceerd",
+    "viewLabel": "Weergave",
+    "asPage": "Pagina",
+    "asFields": "Inhoud",
+    "expires": "Link geldig tot {date}",
+    "updated": "Laatst gewijzigd op {date}"
   }
 }

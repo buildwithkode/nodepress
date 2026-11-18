@@ -50,6 +50,7 @@ model Entry {
   contentTypeId Int
   seo           Json? // { title?, description?, image?, noIndex? }
   publishAt     DateTime? // if set and in the past → auto-published by cron
+  unpublishAt   DateTime? // if set and in the past → a published entry goes back to draft (cron)
   // Order in the admin list and ?sort=position:asc; shared by a page's languages.
   // 0 on insert = filled by the entries_default_position trigger (page's languages, else first).
   position      Int                      @default(0)
@@ -61,6 +62,8 @@ model Entry {
   searchVector  Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english'::regconfig, ((COALESCE(slug, ''::text) || ' '::text) || COALESCE((data)::text, ''::text)))")) @map("search_vector")
   versions      EntryVersion[]
   releaseItems  ReleaseItem[]
+  notes         EntryNote[]
+  shareLinks    EntryShareLink[]
   // The entry's translation group (same content type + slug). Lets a query ask
   // whether an entry has a translation, e.g. the list ?fallback=true.
   slugGroup     EntrySlug                @relation(fields: [contentTypeId, slug], references: [contentTypeId, slug], onDelete: NoAction)
@@ -71,12 +74,45 @@ model Entry {
   @@index([status])
   @@index([deletedAt])
   @@index([publishAt])
+  @@index([unpublishAt])
   @@index([createdAt])
   @@index([contentTypeId, status, deletedAt]) // public API: WHERE contentTypeId=? AND status='published' AND deletedAt IS NULL
   @@index([contentTypeId, createdAt, id]) // list order + keyset ?cursor= paging
   @@index([contentTypeId, position, id]) // dragged order + ?sort=position
   @@index([searchVector], map: "entries_search_vector_idx", type: Gin)
   @@map("entries")
+}
+
+/// Review notes on an entry. A "changes" note is a change request: open until resolved,
+/// and resolved by itself when the entry goes back to review or is published.
+model EntryNote {
+  id         Int       @id @default(autoincrement())
+  entry      Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entryId    Int
+  userId     Int? // author; kept as a number so deleting a user keeps their notes
+  kind       String    @default("comment") // comment | changes
+  body       String
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  resolvedBy Int?
+
+  @@index([entryId, createdAt])
+  @@map("entry_notes")
+}
+
+/// A link that shows one entry, published or not, to someone without an admin login.
+/// Only the hash of the token is stored; the link is shown once when it is made.
+model EntryShareLink {
+  id        Int      @id @default(autoincrement())
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entryId   Int
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdBy Int?
+  createdAt DateTime @default(now())
+
+  @@index([entryId])
+  @@map("entry_share_links")
 }
 
 /// One row per content type + slug: the translations of an entry share it.

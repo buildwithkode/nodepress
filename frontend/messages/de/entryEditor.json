@@ -317,5 +317,12 @@
     "drafting": "Wird geschrieben…",
     "placeholder": "Was soll dieser Eintrag sagen? z. B. „Ein freundlicher Beitrag mit 300 Wörtern über unsere neuen Öffnungszeiten“",
     "drafted": "{count, plural, one {# Feld} other {# Felder}} ausgefüllt — vor dem Speichern prüfen"
+  },
+  "unpublish": {
+    "title": "Veröffentlichung beenden am",
+    "placeholder": "Datum und Uhrzeit wählen",
+    "help": "Nimmt den Eintrag zu diesem Zeitpunkt von der Website (er wird wieder Entwurf). Leer lassen, damit er online bleibt.",
+    "willUnpublish": "Wird am <b>{date}</b> um <b>{time}</b> von der Website genommen.",
+    "beforePublish": "Das liegt vor der geplanten Veröffentlichung: Der Eintrag würde gleich nach dem Livegang wieder entfernt."
   }
 }

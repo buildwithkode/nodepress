@@ -72,6 +72,7 @@ export interface SiteEntryWrite {
   data: Record<string, any>;
   seo?: any;
   publishAt?: string | null;
+  unpublishAt?: string | null;
   /** Order in the admin list; left alone when the file has none (new ones then go first). */
   position?: number;
   createdAt?: string;
@@ -233,6 +234,7 @@ export class EntriesService {
         contentTypeId: dto.contentTypeId,
         seo: dto.seo ? { ...dto.seo } : null,
         publishAt: dto.publishAt ? new Date(dto.publishAt) : null,
+        unpublishAt: dto.unpublishAt ? new Date(dto.unpublishAt) : null,
       },
       include: { contentType: true },
     });
@@ -492,6 +494,15 @@ export class EntriesService {
         // Each language's entry, so the list can open or act on any of them
         e.translationEntries = list.length ? list : [{ id: e.id, locale: e.locale, status: e.status }];
       }
+
+      // Open change requests (review notes) per entry, for the list's note badge
+      const open = await this.prisma.entryNote.groupBy({
+        by: ['entryId'],
+        where: { entryId: { in: data.map((e: any) => e.id) }, kind: 'changes', resolvedAt: null },
+        _count: { _all: true },
+      });
+      const openBy = new Map(open.map((r) => [r.entryId, r._count._all]));
+      for (const e of data as any[]) e.openNotes = openBy.get(e.id) ?? 0;
     }
 
     return {
@@ -732,6 +743,9 @@ export class EntriesService {
 
     if (dto.publishAt !== undefined) {
       updateData.publishAt = dto.publishAt ? new Date(dto.publishAt) : null;
+    }
+    if (dto.unpublishAt !== undefined) {
+      updateData.unpublishAt = dto.unpublishAt ? new Date(dto.unpublishAt) : null;
     }
 
     const [updated] = await this.prisma.$transaction([
@@ -1070,6 +1084,7 @@ export class EntriesService {
         data,
         seo: row.seo ?? Prisma.DbNull,
         publishAt: row.publishAt ? new Date(row.publishAt) : null,
+        unpublishAt: row.unpublishAt ? new Date(row.unpublishAt) : null,
         ...(Number.isInteger(row.position) && row.position !== 0 ? { position: row.position } : {}),
       };
       try {

@@ -14,7 +14,7 @@ Admins open **Settings → Export & import**. The [CLI](#from-the-command-line) 
 | Included | Not included |
 |---|---|
 | Option lists, components and content types, as in a [schema export](/cli/schema/), and the order of their pages | **Media files:** copy the `uploads` folder by hand |
-| Every entry, in every language and status, including the trash, with its version history | **Passwords** and two-factor secrets |
+| Every entry, in every language and status, including the trash, with its version history and scheduled publish and unpublish times | **Passwords** and two-factor secrets |
 | The site's languages, brand and theme | **API keys** |
 | [Forms](/content/forms/), their submissions and uploaded form files | **Webhook signing secrets** and form webhook headers |
 | [Webhooks](/apis/webhooks/): name, URL, events | Passwords in email, storage and plugin settings |
@@ -22,7 +22,7 @@ Admins open **Settings → Export & import**. The [CLI](#from-the-command-line) 
 | Users' emails and roles, custom roles, permissions and module access | Login sessions and password reset links |
 | Media records and folders, so the Media library fills once the files are there | Queued jobs and webhook delivery history |
 | Email and storage settings, plugin on/off state and settings, uploaded plugins | |
-| Releases, content type history and the audit log | |
+| Releases, content type history and the audit log | Review notes and [shared preview links](/content/entries/#sharing-a-preview) |
 
 The file holds no credentials, but it does hold user emails, drafts, form submissions with visitors' personal details, and every field, including ones hidden from the public API. Keep it private.
 

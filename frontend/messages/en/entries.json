@@ -80,7 +80,10 @@
     "changeStatus": "Change the status of {slug}",
     "statusCancelsSchedule": "Picking a status cancels the scheduled publish",
     "number": "Sr. No.",
-    "dragToReorder": "Drag to reorder"
+    "dragToReorder": "Drag to reorder",
+    "openNotes": "{count, plural, one {# change request open} other {# change requests open}}",
+    "ends": "Ends {date}",
+    "endsTitle": "Comes off the site on {date}"
   },
   "actions": {
     "restore": "Restore",
@@ -160,5 +163,66 @@
     "languageOnly": "Only the {language} version changes.",
     "publish": "Publish",
     "unpublish": "Move to {status}"
+  },
+  "notes": {
+    "title": "Review notes",
+    "someone": "Someone",
+    "sentBack": "Sent back to Draft with your note",
+    "added": "Note added",
+    "requestedTitle": "{count, plural, one {Change requested} other {# changes requested}}",
+    "byOn": "{name} · {date}",
+    "markDone": "Mark as done",
+    "waitingReview": "Waiting for review",
+    "empty": "No notes yet.",
+    "done": "Done",
+    "changesBadge": "Change request",
+    "reopen": "Reopen",
+    "placeholderReview": "What needs changing? The writer sees this when you send it back.",
+    "placeholder": "Add a note for your team…",
+    "add": "Add note",
+    "sendBack": "Send back with note"
+  },
+  "share": {
+    "button": "Share",
+    "buttonTitle": "Share a preview link with someone who has no login",
+    "title": "Share a preview",
+    "description": "Anyone with the link can see this entry as it is now, even before it's published. No login needed.",
+    "expiresIn": "Link works for",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "create": "Create link",
+    "created": "Link created",
+    "copied": "Link created and copied",
+    "copyFailed": "Couldn't copy. Select the link and copy it.",
+    "copy": "Copy link",
+    "linkLabel": "Share link",
+    "onlyNow": "Copy it now: the link is shown only once. You can revoke it below at any time.",
+    "active": "{count, plural, one {# link works now} other {# links work now}}",
+    "expires": "Expires {date}",
+    "revoke": "Revoke",
+    "revoked": "Link revoked"
+  },
+  "sendBack": {
+    "title": "Send {slug} back to Draft?",
+    "description": "Tell the writer what to change. They'll see your note in the editor and on this list until it's done.",
+    "placeholder": "e.g. Fix the price in the second paragraph",
+    "noteLabel": "Note for the writer",
+    "withNote": "Send back with note",
+    "withoutNote": "Send back without note"
+  },
+  "sharePage": {
+    "empty": "Empty",
+    "yes": "Yes",
+    "no": "No",
+    "linked": "{count, plural, one {Linked to # entry} other {Linked to # entries}}",
+    "goneTitle": "This link no longer works",
+    "goneText": "It has expired or was removed. Ask the person who sent it for a new one.",
+    "preview": "Preview",
+    "live": "Live on the site",
+    "notLive": "Not published yet",
+    "viewLabel": "View",
+    "asPage": "Page",
+    "asFields": "Content",
+    "expires": "Link works until {date}",
+    "updated": "Last changed {date}"
   }
 }

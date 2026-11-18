@@ -317,5 +317,12 @@
     "drafting": "正在撰写…",
     "placeholder": "这个条目应该写些什么？例如“一篇约 300 字、语气友好的文章，宣布我们新的营业时间”",
     "drafted": "已填写 {count, plural, other {# 个字段}}——保存前请检查"
+  },
+  "unpublish": {
+    "title": "下线时间",
+    "placeholder": "选择日期和时间",
+    "help": "到此时间将条目从网站下线（回到草稿）。留空则保持上线。",
+    "willUnpublish": "将于 <b>{date}</b> <b>{time}</b> 从网站下线。",
+    "beforePublish": "这早于预定发布时间，条目一上线就会被下线。"
   }
 }

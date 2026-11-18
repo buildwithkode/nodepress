@@ -317,5 +317,12 @@
     "drafting": "Scrittura in corso…",
     "placeholder": "Cosa deve dire questa voce? es. “Un post cordiale di 300 parole che annuncia i nuovi orari di apertura”",
     "drafted": "{count, plural, one {Compilato # campo} other {Compilati # campi}}: controlla prima di salvare"
+  },
+  "unpublish": {
+    "title": "Annulla pubblicazione il",
+    "placeholder": "Scegli data e ora",
+    "help": "Toglie la voce dal sito a quest’ora (torna in bozza). Lascia vuoto per mantenerla online.",
+    "willUnpublish": "Esce dal sito il <b>{date}</b> alle <b>{time}</b>.",
+    "beforePublish": "È prima della pubblicazione programmata: la voce uscirebbe dal sito appena pubblicata."
   }
 }
