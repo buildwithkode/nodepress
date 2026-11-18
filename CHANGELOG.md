@@ -96,6 +96,7 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ### Fixed
 
+- Invitation and password reset emails use the site's brand (Settings → Brand): its name, colour and logo, instead of "NodePress". The invitation also gives the link's real lifetime (7 days, not 15 minutes), and authenticator apps list the account under the brand name.
 - **Content Types page import brings its Option Lists.** It sent only content types and components, so a file with fields using a list failed on a site that didn't have that list.
 - **Saving an entry stays on the page.** Update no longer sends you back to the entries list.
 - **New projects keep their security pins.** The generated root `package.json` now carries the release's `overrides` and `allowScripts`, and `npm run dev` checks the database first. Three unit test files that need `backend/test` fixtures are no longer copied, so `tsc` and `npm test` pass in a new project.

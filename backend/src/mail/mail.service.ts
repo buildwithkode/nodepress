@@ -254,7 +254,7 @@ export class MailService implements OnModuleInit {
   }
 
   /**
-   * Send a password-reset email.
+   * Send a password-reset email, in the install's brand.
    * Called by AuthService.forgotPassword(). Silently no-ops if SMTP is not configured.
    */
   async sendPasswordReset(to: string, resetUrl: string): Promise<void> {
@@ -262,66 +262,34 @@ export class MailService implements OnModuleInit {
       this.logger.warn(`[PasswordReset] No SMTP configured — reset URL for ${to}: ${resetUrl}`);
       return;
     }
-
-    await this.send({
+    await this.sendNotice({
       to,
-      subject: 'Reset your NodePress password',
-      text: `Reset link (expires in 15 minutes):\n\n${resetUrl}\n\nIf you did not request this, ignore this email.`,
-      html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-          <h2 style="color:#1a1a1a">Reset your password</h2>
-          <p style="color:#555">This link expires in 15 minutes.</p>
-          <p style="margin:24px 0">
-            <a href="${resetUrl}" style="background:#111;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600">
-              Reset Password
-            </a>
-          </p>
-          <p style="color:#999;font-size:13px">
-            If you did not request this, you can safely ignore this email.
-            <br>Link: <a href="${resetUrl}" style="color:#999">${resetUrl}</a>
-          </p>
-        </div>`,
+      subject: (b) => `Reset your ${b} password`,
+      lead: (b) => ['Someone asked to reset the password for your account on ', { bold: b }, '.'],
+      paragraphs: ['This link expires in 15 minutes.'],
+      button: { label: 'Reset password', url: resetUrl },
+      footnote: "If you didn't ask for this, you can ignore this email. Your password stays the same.",
     });
   }
 
   /**
-   * Send a team invitation email.
+   * Send a team invitation email, in the install's brand.
    * Called by UsersService.sendInvitation(). Uses the same password-reset flow
-   * under the hood — the link lets the invitee set their own password.
-   * Silently no-ops if SMTP is not configured.
+   * under the hood — the link lets the invitee set their own password (valid
+   * 7 days, see UsersService.issueInviteToken). Silently no-ops if SMTP is not configured.
    */
   async sendInvitation(to: string, setPasswordUrl: string, invitedByEmail: string): Promise<void> {
     if (!this.transporter) {
       this.logger.warn(`[Invitation] No SMTP configured — invite URL for ${to}: ${setPasswordUrl}`);
       return;
     }
-
-    await this.send({
+    await this.sendNotice({
       to,
-      subject: `You've been invited to NodePress`,
-      text:
-        `${invitedByEmail} has invited you to join NodePress as a team member.\n\n` +
-        `Set your password here (link expires in 15 minutes):\n\n${setPasswordUrl}\n\n` +
-        `If you were not expecting this, you can ignore this email.`,
-      html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-          <h2 style="color:#1a1a1a">You've been invited to NodePress</h2>
-          <p style="color:#555">
-            <strong>${invitedByEmail}</strong> has added you as a team member.
-            Click the button below to set your password and get started.
-          </p>
-          <p style="color:#888;font-size:13px">This link expires in 15 minutes.</p>
-          <p style="margin:24px 0">
-            <a href="${setPasswordUrl}"
-               style="background:#111;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600">
-              Set Your Password
-            </a>
-          </p>
-          <p style="color:#999;font-size:13px">
-            If you were not expecting this invitation you can safely ignore this email.
-            <br>Link: <a href="${setPasswordUrl}" style="color:#999">${setPasswordUrl}</a>
-          </p>
-        </div>`,
+      subject: (b) => `You've been invited to ${b}`,
+      lead: (b) => [{ bold: invitedByEmail }, ' has added you as a team member on ', { bold: b }, '. Set your password to get started.'],
+      paragraphs: ['This link expires in 7 days.'],
+      button: { label: 'Set your password', url: setPasswordUrl },
+      footnote: 'If you were not expecting this invitation, you can ignore this email.',
     });
   }
 
@@ -479,6 +447,11 @@ export class MailService implements OnModuleInit {
     return { brandName, brandColor, adminUrl, header };
   }
 
+  /** The install's brand name (Settings → Brand), for anything that names the site to a person. */
+  async brandName(): Promise<string> {
+    return (await this.brand.get().catch(() => null))?.brandName || 'NodePress';
+  }
+
   /**
    * One branded account notice. Every string is plain text and escaped here;
    * `lead` parts marked `bold` are shown in bold.
@@ -486,11 +459,13 @@ export class MailService implements OnModuleInit {
   private async sendNotice(notice: {
     to: string;
     subject: (brandName: string) => string;
-    recipientName: string;
+    /** Left out when the email goes to someone without a name yet (invites, resets). */
+    recipientName?: string;
     lead: (brandName: string) => Array<string | { bold: string }>;
     rows?: Array<{ label: string; value: string; strong?: boolean }>;
     paragraphs?: string[];
-    button?: { label: string; path: string };
+    /** `path` is inside the admin; `url` is a full link (and is also shown as text). */
+    button?: { label: string; path?: string; url?: string };
     footnote: string;
     replyTo?: string;
     warning?: boolean;
@@ -514,19 +489,21 @@ export class MailService implements OnModuleInit {
           .join('')}</tbody></table>`
       : '';
     const paragraphs = notice.paragraphs ?? [];
-    const buttonUrl = notice.button && adminUrl ? `${adminUrl}${notice.button.path}` : '';
+    const buttonUrl = notice.button?.url ?? (notice.button?.path && adminUrl ? `${adminUrl}${notice.button.path}` : '');
+    const greeting = notice.recipientName ? `Hi ${notice.recipientName},` : 'Hello,';
     const buttonColor = notice.warning ? '#dc2626' : brandColor;
 
     const html = `
       <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;background:#ffffff">
         <div style="background:${escapeHtml(brandColor)};padding:20px 24px;text-align:center">${header}</div>
         <div style="padding:24px;color:#333;font-size:15px;line-height:1.5">
-          <p style="margin:0 0 12px">Hi ${escapeHtml(notice.recipientName)},</p>
+          <p style="margin:0 0 12px">${escapeHtml(greeting)}</p>
           <p style="margin:0 0 16px">${leadHtml}</p>
           ${rowsHtml}
           ${paragraphs.map((p) => `<p style="margin:0 0 16px;color:#555">${escapeHtml(p)}</p>`).join('')}
           ${buttonUrl ? `<p style="margin:4px 0 20px"><a href="${escapeHtml(buttonUrl)}" style="background:${escapeHtml(buttonColor)};color:#fff;padding:11px 22px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">${escapeHtml(notice.button!.label)}</a></p>` : ''}
           <p style="margin:0;color:#888;font-size:13px">${escapeHtml(notice.footnote)}</p>
+          ${notice.button?.url ? `<p style="margin:12px 0 0;color:#999;font-size:12px;word-break:break-all">Link: <a href="${escapeHtml(buttonUrl)}" style="color:#999">${escapeHtml(buttonUrl)}</a></p>` : ''}
         </div>
         <div style="padding:14px 24px;background:#fafafa;border-top:1px solid #f0f0f0">
           <p style="color:#999;font-size:12px;margin:0">Sent by ${escapeHtml(brandName)}</p>
@@ -534,7 +511,7 @@ export class MailService implements OnModuleInit {
       </div>`;
 
     const text =
-      `Hi ${notice.recipientName},\n\n${leadText}\n\n` +
+      `${greeting}\n\n${leadText}\n\n` +
       (rows.length ? rows.map((r) => `${r.label}: ${r.value}`).join('\n') + '\n\n' : '') +
       (paragraphs.length ? paragraphs.join('\n\n') + '\n\n' : '') +
       (buttonUrl ? `${notice.button!.label}: ${buttonUrl}\n\n` : '') +
@@ -764,7 +741,7 @@ export class MailService implements OnModuleInit {
 
     const cfg = this.config!;
     const from = cfg.from || (cfg.user?.includes('@')
-      ? `NodePress <${cfg.user}>`
+      ? `"${(await this.brandName()).replace(/["\\]/g, '')}" <${cfg.user}>`
       : `noreply@${cfg.host}`);
 
     try {

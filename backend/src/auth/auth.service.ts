@@ -193,7 +193,8 @@ export class AuthService implements OnModuleInit {
     if (!user) throw new UnauthorizedException('User not found');
 
     const { generateSecret, generateRecoveryCodes } = require('./totp.util');
-    const { secret, otpauthUrl } = generateSecret(user.email, 'NodePress');
+    // The authenticator app lists the account under the site's own name
+    const { secret, otpauthUrl } = generateSecret(user.email, await this.mail.brandName());
     const { codes, hashedCodes } = generateRecoveryCodes(8);
 
     return {

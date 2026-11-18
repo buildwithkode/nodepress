@@ -95,6 +95,36 @@ describe('MailService', () => {
     });
   });
 
+  describe('invite and reset emails use the brand', () => {
+    beforeEach(() => {
+      (service as any).brand.get = jest.fn().mockResolvedValue({ brandName: 'Wellness', brandLogoUrl: null, brandColor: '#0f766e' });
+    });
+
+    it('names the brand, not NodePress, and gives the invite its real 7-day expiry', async () => {
+      await service.sendInvitation('new@example.com', 'https://cms.local/reset-password?token=t', 'admin@example.com');
+      const call = mockSendMail.mock.calls[0][0];
+      expect(call.subject).toBe(`You've been invited to Wellness`);
+      expect(call.html).toContain('Wellness');
+      expect(call.html).toContain('#0f766e');
+      expect(call.html).not.toContain('NodePress');
+      expect(call.text).toContain('7 days');
+      expect(call.text).not.toContain('NodePress');
+    });
+
+    it('brands the password reset email', async () => {
+      await service.sendPasswordReset('user@example.com', 'https://cms.local/reset-password?token=r');
+      const call = mockSendMail.mock.calls[0][0];
+      expect(call.subject).toBe('Reset your Wellness password');
+      expect(call.html).not.toContain('NodePress');
+      expect(call.text).toContain('15 minutes');
+    });
+
+    it('escapes the inviter in the html', async () => {
+      await service.sendInvitation('new@example.com', 'https://cms.local/r?token=t', '<b>x</b>@example.com');
+      expect(mockSendMail.mock.calls[0][0].html).not.toContain('<b>x</b>');
+    });
+  });
+
   // ── sendFormSubmission ────────────────────────────────────────────────────
 
   describe('sendRoleChanged()', () => {

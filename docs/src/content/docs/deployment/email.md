@@ -16,7 +16,7 @@ NodePress sends email through any SMTP server: your provider's, a transactional 
 | Form notification | A form with an email action gets a submission. See [Forms](/content/forms/). | |
 | Test email | An admin clicks **Send test** | |
 
-Reset and invitation links point at `SITE_URL`, so set it to the admin panel's public URL. Form notifications use the name, logo and color from **Settings → Brand**.
+Reset and invitation links point at `SITE_URL`, so set it to the admin panel's public URL. Every email uses the name, logo and color from **Settings → Brand**, so people see your site's name, not NodePress. When `SMTP_FROM` (or **From** in the Email card) is empty, the sender name is the brand name too.
 
 ## Set it up in the admin
 
