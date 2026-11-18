@@ -1,16 +1,16 @@
 {
   "title": "Tableau de bord",
   "subtitle": "Voici ce qui se passe avec votre contenu.",
-  "newEntry": "Nouvelle entrée",
+  "newEntry": "Nouvelle page",
   "overview": "Vue d’ensemble",
   "viewAll": "Tout voir",
   "createOne": "En créer un",
   "fieldCount": "{count, plural, one {# champ} other {# champs}}",
-  "entryCount": "{count, plural, one {# entrée} other {# entrées}}",
+  "entryCount": "{count, plural, one {# page} other {# pages}}",
   "stats": {
     "contentTypes": "Types de contenu",
     "contentTypesSub": "schémas au total",
-    "totalEntries": "Entrées au total",
+    "totalEntries": "Pages au total",
     "totalEntriesSub": "tous types confondus",
     "mediaFiles": "Fichiers médias",
     "mediaFilesSub": "fichiers importés",
@@ -22,7 +22,7 @@
     "submissionsSub": "réponses au total"
   },
   "pendingReview": {
-    "message": "{count, plural, one {<b>#</b> entrée en attente de relecture} other {<b>#</b> entrées en attente de relecture}}",
+    "message": "{count, plural, one {<b>#</b> page en attente de relecture} other {<b>#</b> pages en attente de relecture}}",
     "action": "Relire maintenant →"
   },
   "contentTypes": {
@@ -32,8 +32,8 @@
     "pendingBadge": "{count} en attente"
   },
   "recentEntries": {
-    "title": "Entrées récentes",
-    "empty": "Aucune entrée pour l’instant."
+    "title": "Pages récentes",
+    "empty": "Aucune page pour l’instant."
   },
   "forms": {
     "title": "Formulaires",

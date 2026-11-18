@@ -1,5 +1,5 @@
 {
-  "entryCount": "{count, plural, one {# entrée} other {# entrées}}",
+  "entryCount": "{count, plural, one {# page} other {# pages}}",
   "statuses": {
     "open": "Ouverte",
     "scheduled": "Planifiée",
@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "Publications groupées",
-    "description": "Regroupez des modifications d’entrées — publier, dépublier, archiver — et mettez-les en ligne ensemble, maintenant ou à une heure précise. Ajoutez des entrées depuis la liste des entrées ou l’éditeur d’une entrée.",
+    "description": "Regroupez des modifications de pages — publier, dépublier, archiver — et mettez-les en ligne ensemble, maintenant ou à une heure précise. Ajoutez des pages depuis la liste des pages ou l’éditeur d’une page.",
     "namePlaceholder": "Nom de la nouvelle publication, ex. Lancement du printemps",
     "empty": "Aucune publication groupée pour l’instant.",
     "upcoming": "À venir",
@@ -38,9 +38,9 @@
     "scheduledToast": "Publication groupée planifiée",
     "unschedule": "Annuler la planification",
     "unscheduledToast": "Planification supprimée",
-    "entriesTitle": "Entrées ({count})",
-    "entriesDescription": "Chaque entrée est publiée telle qu’elle est au moment de la publication — vous pouvez la modifier d’ici là. Ajoutez des entrées depuis la liste des <link>entrées</link>.",
-    "noEntries": "Aucune entrée pour l’instant.",
+    "entriesTitle": "Pages ({count})",
+    "entriesDescription": "Chaque page est publiée telle qu’elle est au moment de la publication — vous pouvez la modifier d’ici là. Ajoutez des pages depuis la liste des <link>pages</link>.",
+    "noEntries": "Aucune page pour l’instant.",
     "currentStatus": "actuellement {status}",
     "deletedSkipped": "supprimée — sera ignorée",
     "conflicts": "Figure aussi dans {releases} — la dernière publiée l’emporte.",
@@ -48,7 +48,7 @@
     "removeItem": "Retirer de la publication groupée",
     "deleteRelease": "Supprimer la publication groupée",
     "deleteConfirmTitle": "Supprimer « {name} » ?",
-    "deleteConfirmDescription": "La publication groupée est supprimée. Ses entrées restent telles quelles.",
+    "deleteConfirmDescription": "La publication groupée est supprimée. Ses pages restent telles quelles.",
     "deleteFailed": "Suppression impossible"
   },
   "addDialog": {
@@ -60,11 +60,11 @@
     "nameRequired": "Donnez un nom à la publication groupée",
     "whenGoesOut": "Lors de la mise en ligne",
     "actionOption": {
-      "publish": "{count, plural, one {Publier cette entrée} other {Publier ces entrées}}",
-      "unpublish": "{count, plural, one {Dépublier cette entrée} other {Dépublier ces entrées}}",
-      "archive": "{count, plural, one {Archiver cette entrée} other {Archiver ces entrées}}"
+      "publish": "{count, plural, one {Publier cette page} other {Publier ces pages}}",
+      "unpublish": "{count, plural, one {Dépublier cette page} other {Dépublier ces pages}}",
+      "archive": "{count, plural, one {Archiver cette page} other {Archiver ces pages}}"
     },
-    "added": "{count, plural, one {# entrée ajoutée} other {# entrées ajoutées}} — <link>ouvrir la publication groupée</link>",
+    "added": "{count, plural, one {# page ajoutée} other {# pages ajoutées}} — <link>ouvrir la publication groupée</link>",
     "addFailed": "Impossible d’ajouter à la publication groupée"
   }
 }

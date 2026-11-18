@@ -1,6 +1,6 @@
 {
   "title": "Importa da WordPress",
-  "intro": "Carica un file di esportazione di WordPress (<strong>Strumenti → Esporta → Tutti i contenuti</strong> in WordPress). Articoli, pagine e tipi di post personalizzati diventano voci: controlla prima il riepilogo, poi avvia l'importazione in background.",
+  "intro": "Carica un file di esportazione di WordPress (<strong>Strumenti → Esporta → Tutti i contenuti</strong> in WordPress). Articoli, pagine e tipi di post personalizzati vengono importati come pagine: controlla prima il riepilogo, poi avvia l'importazione in background.",
   "step1": "1. Scegli il file di esportazione",
   "chooseFile": "Scegli file",
   "changeFile": "Scegli un altro file",
@@ -13,7 +13,7 @@
   "wxrVersion": "WXR {version}",
   "totals": "{total, plural, one {# elemento} other {# elementi}} da importare · {attachments, plural, one {# allegato} other {# allegati}} · {skipped} saltati",
   "colContentType": "Tipo di contenuto",
-  "colEntries": "Voci",
+  "colEntries": "Pagine",
   "colStatuses": "Stati",
   "colExisting": "Già presenti",
   "typeExists": "esiste",
@@ -22,8 +22,8 @@
   "sample": "Primi elementi",
   "importMedia": "Importa media",
   "importMediaHint": "Scarica gli allegati (immagini, SVG, PDF, MP4 fino a {size} MB ciascuno) nella libreria media e fa puntare immagini in evidenza e contenuti alle nuove copie.",
-  "overwrite": "Sovrascrivi le voci esistenti",
-  "overwriteHint": "Le voci il cui slug esiste già vengono aggiornate (la versione precedente resta nella cronologia). Altrimenti vengono saltate.",
+  "overwrite": "Sovrascrivi le pagine esistenti",
+  "overwriteHint": "Le pagine il cui slug esiste già vengono aggiornate (la versione precedente resta nella cronologia). Altrimenti vengono saltate.",
   "run": "Avvia importazione ({total, plural, one {# elemento} other {# elementi}})",
   "queued": "Importazione in coda come job #{id}",
   "step3": "3. Importazione #{id}",
@@ -35,7 +35,7 @@
   },
   "phase": {
     "media": "Media {done} di {total}",
-    "entries": "Voci {done} di {total}"
+    "entries": "Pagine {done} di {total}"
   },
   "finished": "Importazione completata",
   "failed": "Importazione non riuscita",
@@ -46,18 +46,18 @@
   "colFailed": "Non riusciti",
   "mediaResult": "Media: {imported} importati, {reused} già importati, {failed} non riusciti",
   "errors": "{count, plural, one {# problema} other {# problemi}}",
-  "viewEntries": "Vedi voci →",
+  "viewEntries": "Vedi pagine →",
   "extras": "Importa anche",
   "categoryPaths": "Mantieni la gerarchia delle categorie",
   "categoryPathsHint": "Aggiunge un campo category_paths con i percorsi completi, ad esempio “Genitore/Figlio”, accanto ai nomi delle categorie. {count, plural, =0 {Questo file non ha categorie annidate.} one {# categoria annidata in questo file.} other {# categorie annidate in questo file.}}",
   "taxonomies": "Importa le tassonomie personalizzate",
-  "taxonomiesHint": "Aggiunge un campo taxonomies — i termini raggruppati per tassonomia — alle voci che le usano.",
+  "taxonomiesHint": "Aggiunge un campo taxonomies — i termini raggruppati per tassonomia — alle pagine che le usano.",
   "taxonomiesFound": "In questo file: {list}.",
   "taxonomiesNone": "Questo file non ha tassonomie personalizzate.",
   "authors": "Importa gli autori come contenuti",
-  "authorsHint": "{count, plural, one {# autore diventa una voce wp_author} other {# autori diventano voci wp_author}} (login, nome visualizzato, nome e cognome), e ogni articolo è collegato al suo autore tramite un campo author_ref. Sono voci di contenuto, non account: nessuno può accedere con esse. Gli indirizzi email non vengono copiati.",
+  "authorsHint": "{count, plural, one {# autore diventa una pagina wp_author} other {# autori diventano pagine wp_author}} (login, nome visualizzato, nome e cognome), e ogni articolo è collegato al suo autore tramite un campo author_ref. Sono pagine di contenuto, non account: nessuno può accedere con esse. Gli indirizzi email non vengono copiati.",
   "comments": "Importa i commenti",
-  "commentsHint": "I commenti approvati diventano voci wp_comment: nome, testo senza HTML, data, il commento a cui rispondono e l’articolo a cui appartengono. Email e IP di chi commenta non vengono copiati; spam e commenti nel cestino non vengono mai importati. In questo file: {approved} approvati, {pending} in attesa, {spam} spam o cestino.",
+  "commentsHint": "I commenti approvati diventano pagine wp_comment: nome, testo senza HTML, data, il commento a cui rispondono e l’articolo a cui appartengono. Email e IP di chi commenta non vengono copiati; spam e commenti nel cestino non vengono mai importati. In questo file: {approved} approvati, {pending} in attesa, {spam} spam o cestino.",
   "pendingComments": "Includi i commenti in attesa",
-  "pendingCommentsHint": "Importati come voci in attesa di revisione."
+  "pendingCommentsHint": "Importati come pagine in attesa di revisione."
 }

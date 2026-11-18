@@ -71,11 +71,11 @@
     "signingSecretHint": "(任意 — {header} に HMAC-SHA256 署名を付与します)",
     "triggerEvents": "トリガーイベント",
     "events": {
-      "entryCreated": "エントリー作成",
-      "entryUpdated": "エントリー更新",
-      "entryDeleted": "エントリー削除",
-      "entryRestored": "エントリー復元",
-      "entryPurged": "エントリー完全削除",
+      "entryCreated": "ページ作成",
+      "entryUpdated": "ページ更新",
+      "entryDeleted": "ページ削除",
+      "entryRestored": "ページ復元",
+      "entryPurged": "ページ完全削除",
       "mediaUploaded": "メディアのアップロード",
       "mediaDeleted": "メディアの削除"
     },
@@ -177,7 +177,7 @@
     "description": "すべての作成、更新、削除の操作を、実行者とタイムスタンプとともに記録します。",
     "allResources": "すべてのリソース",
     "resources": {
-      "entry": "エントリー",
+      "entry": "ページ",
       "content_type": "コンテンツタイプ",
       "user": "ユーザー",
       "api_key": "API キー",

@@ -1,7 +1,7 @@
 {
   "header": {
     "backTo": "Voltar para {name}",
-    "entries": "Entradas",
+    "entries": "Páginas",
     "editSchema": "Editar esquema",
     "editSchemaTitle": "Editar o esquema do tipo de conteúdo",
     "fieldPermissions": "Permissões de campos",
@@ -10,20 +10,20 @@
     "publish": "Publicar"
   },
   "new": {
-    "title": "Nova entrada",
-    "titleWithType": "Nova entrada — {type}",
-    "description": "Preencha os campos abaixo para criar uma nova entrada.",
+    "title": "Nova página",
+    "titleWithType": "Nova página — {type}",
+    "description": "Preencha os campos abaixo para criar uma nova página.",
     "contentType": "Tipo de conteúdo",
     "selectContentType": "Selecione um tipo de conteúdo…",
     "selectToBegin": "Selecione um tipo de conteúdo para começar.",
-    "submit": "Criar entrada",
+    "submit": "Criar página",
     "saveAndPreview": "Salvar rascunho e visualizar",
     "saveAndPreviewHint": "Salvar como rascunho e abrir a pré-visualização ao vivo"
   },
   "edit": {
-    "title": "Editar entrada",
-    "titleWithType": "Editar entrada — {type}",
-    "description": "Editar o slug altera a URL pública da entrada. Altere o status para controlar a visibilidade.",
+    "title": "Editar página",
+    "titleWithType": "Editar página — {type}",
+    "description": "Editar o slug altera a URL pública da página. Altere o status para controlar a visibilidade.",
     "autosaved": "Salvo",
     "update": "Atualizar",
     "release": "Lançamento",
@@ -32,21 +32,21 @@
   },
   "toast": {
     "loadTypesFailed": "Falha ao carregar os tipos de conteúdo",
-    "loadEntryFailed": "Falha ao carregar a entrada",
-    "created": "Entrada criada",
-    "updated": "Entrada atualizada",
-    "approved": "Entrada aprovada e publicada",
-    "approveFailed": "Falha ao aprovar a entrada",
-    "returnedToDraft": "Entrada devolvida para rascunho",
-    "returnToDraftFailed": "Falha ao devolver a entrada para rascunho"
+    "loadEntryFailed": "Falha ao carregar a página",
+    "created": "Página criada",
+    "updated": "Página atualizada",
+    "approved": "Página aprovada e publicada",
+    "approveFailed": "Falha ao aprovar a página",
+    "returnedToDraft": "Página devolvida para rascunho",
+    "returnToDraftFailed": "Falha ao devolver a página para rascunho"
   },
   "presence": {
     "online": "{count} online",
-    "lockedBy": "<b>{email}</b> está editando esta entrada agora. Salvamentos simultâneos podem entrar em conflito.",
+    "lockedBy": "<b>{email}</b> está editando esta página agora. Salvamentos simultâneos podem entrar em conflito.",
     "takeOver": "Assumir a edição"
   },
   "review": {
-    "banner": "Esta entrada está aguardando revisão. Aprove para publicá-la ou devolva para rascunho.",
+    "banner": "Esta página está aguardando revisão. Aprove para publicá-la ou devolva para rascunho.",
     "returnToDraft": "Devolver para rascunho",
     "approve": "Aprovar e publicar"
   },
@@ -56,7 +56,7 @@
     "created": "Rascunho da tradução em {locale} criado",
     "createFailed": "Falha ao criar o rascunho da tradução",
     "tabsLabel": "Idioma",
-    "addTitle": "Adicionar uma tradução em {language} (cópia em rascunho desta entrada)",
+    "addTitle": "Adicionar uma tradução em {language} (cópia em rascunho desta página)",
     "tabTitle": "{language}: {status}",
     "editing": "Editando: {language}"
   },
@@ -151,14 +151,14 @@
     "pick": "Escolher {type}…",
     "selectTypeFirst": "Selecione o tipo de conteúdo primeiro",
     "search": "Pesquisar {type}…",
-    "noEntries": "Nenhuma entrada encontrada",
+    "noEntries": "Nenhuma página encontrada",
     "done": "Concluído",
     "remove": "Remover",
     "configureFirst": "Configure primeiro um tipo de conteúdo relacionado no esquema."
   },
   "reverseRelation": {
-    "hint": "Somente leitura — defina <code>{field}</code> em uma entrada de {type} para adicioná-la aqui.",
-    "saveFirst": "Salve esta entrada para ver o que aponta para ela.",
+    "hint": "Somente leitura — defina <code>{field}</code> em uma página de {type} para adicioná-la aqui.",
+    "saveFirst": "Salve esta página para ver o que aponta para ela.",
     "empty": "Nada aponta para cá ainda."
   },
   "repeater": {
@@ -315,14 +315,14 @@
   "ai": {
     "draft": "Rascunho com IA",
     "drafting": "Escrevendo…",
-    "placeholder": "O que esta entrada deve dizer? ex.: “Um post simpático de 300 palavras anunciando nosso novo horário de funcionamento”",
+    "placeholder": "O que esta página deve dizer? ex.: “Um post simpático de 300 palavras anunciando nosso novo horário de funcionamento”",
     "drafted": "{count, plural, one {# campo preenchido} other {# campos preenchidos}} — revise antes de salvar"
   },
   "unpublish": {
     "title": "Despublicar em",
     "placeholder": "Escolha data e hora",
-    "help": "Retira a entrada do site nesse momento (volta a rascunho). Deixe vazio para a manter publicada.",
+    "help": "Retira a página do site nesse momento (volta a rascunho). Deixe vazio para a manter publicada.",
     "willUnpublish": "Sai do site a <b>{date}</b> às <b>{time}</b>.",
-    "beforePublish": "É antes da publicação agendada: a entrada sairia do site assim que fosse publicada."
+    "beforePublish": "É antes da publicação agendada: a página sairia do site assim que fosse publicada."
   }
 }

@@ -138,7 +138,7 @@ export default function AuditLogPage() {
                     </span>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {log.resource.replace(/_/g, ' ')}
+                    {t.has(`auditLog.resources.${log.resource}`) ? t(`auditLog.resources.${log.resource}`) : log.resource.replace(/_/g, ' ')}
                   </TableCell>
                   <TableCell className="text-sm font-mono max-w-[160px] truncate">
                     {log.resourceId}

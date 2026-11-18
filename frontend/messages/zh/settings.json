@@ -45,16 +45,16 @@
   },
   "languages": {
     "title": "语言",
-    "subtitle": "编辑者可以用来撰写内容的语言。每个条目在每种语言下可以有一个翻译；当 API 请求未指定语言时使用默认语言，并在使用 <code></code> 时作为回退语言。",
+    "subtitle": "编辑者可以用来撰写内容的语言。每个页面在每种语言下可以有一个翻译；当 API 请求未指定语言时使用默认语言，并在使用 <code></code> 时作为回退语言。",
     "enabled": {
       "title": "已启用的语言",
-      "description": "移除语言会保留其条目，只是不再在编辑器中提供该语言。",
-      "entryCount": "{count, plural, other {# 个条目}}",
+      "description": "移除语言会保留其页面，只是不再在编辑器中提供该语言。",
+      "entryCount": "{count, plural, other {# 个页面}}",
       "default": "默认",
       "makeDefault": "设为默认",
-      "removeWithEntries": "{count, plural, other {# 个条目}}将保留，但不再提供该语言",
+      "removeWithEntries": "{count, plural, other {# 个页面}}将保留，但不再提供该语言",
       "removeLabel": "移除 {language}",
-      "orphaned": "以下未启用的语言中存在条目：",
+      "orphaned": "以下未启用的语言中存在页面：",
       "orphanedHint": "。点击某个语言即可启用。"
     },
     "saveChanges": "保存更改",

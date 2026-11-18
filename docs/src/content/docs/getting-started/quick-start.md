@@ -31,14 +31,14 @@ The name you type is kept as the label editors see. The **field key** used in th
 **Start from a template** on the New Content Type page creates a ready-made blog, agency or docs site, with sample entries if you like.
 :::
 
-## 2. Write an entry
+## 2. Write a page
 
-1. Open **Entries**, pick **Blog** and click **New Entry**.
+1. Open **Pages**, pick **Blog** and click **New Page**.
 2. Fill in the title, choose a cover image (upload one or pick from the media library) and write something in the body.
 3. The **slug**, the entry's address, is filled in from the title: `hello-world`. You can change it.
 4. Leave the status on **Published** and click **Publish**.
 
-![The entry editor for a blog post with the slug, title, cover image and rich text body](../../../assets/screenshots/entry-editor.png)
+![The page editor for a blog post with the slug, title, cover image and rich text body](../../../assets/screenshots/entry-editor.png)
 
 ## 3. Read it from the API
 

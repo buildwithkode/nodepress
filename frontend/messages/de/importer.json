@@ -1,6 +1,6 @@
 {
   "title": "Aus WordPress importieren",
-  "intro": "Laden Sie eine WordPress-Exportdatei hoch (<strong>Werkzeuge → Daten exportieren → Alle Inhalte</strong> in WordPress). Beiträge, Seiten und eigene Inhaltstypen werden zu Einträgen — prüfen Sie zuerst die Übersicht und starten Sie dann den Import im Hintergrund.",
+  "intro": "Laden Sie eine WordPress-Exportdatei hoch (<strong>Werkzeuge → Daten exportieren → Alle Inhalte</strong> in WordPress). Beiträge, Seiten und eigene Inhaltstypen werden als Seiten importiert — prüfen Sie zuerst die Übersicht und starten Sie dann den Import im Hintergrund.",
   "step1": "1. Exportdatei auswählen",
   "chooseFile": "Datei auswählen",
   "changeFile": "Andere Datei auswählen",
@@ -13,7 +13,7 @@
   "wxrVersion": "WXR {version}",
   "totals": "{total, plural, one {# Element} other {# Elemente}} zu importieren · {attachments, plural, one {# Anhang} other {# Anhänge}} · {skipped} übersprungen",
   "colContentType": "Inhaltstyp",
-  "colEntries": "Einträge",
+  "colEntries": "Seiten",
   "colStatuses": "Status",
   "colExisting": "Bereits vorhanden",
   "typeExists": "vorhanden",
@@ -22,8 +22,8 @@
   "sample": "Erste Elemente",
   "importMedia": "Medien importieren",
   "importMediaHint": "Anhänge (Bilder, SVG, PDF, MP4 bis je {size} MB) in die Mediathek herunterladen und Beitragsbilder sowie Inhalte auf die neuen Kopien verweisen lassen.",
-  "overwrite": "Vorhandene Einträge überschreiben",
-  "overwriteHint": "Einträge, deren Slug bereits existiert, werden aktualisiert (die alte Version bleibt in ihrem Verlauf). Andernfalls werden sie übersprungen.",
+  "overwrite": "Vorhandene Seiten überschreiben",
+  "overwriteHint": "Seiten, deren Slug bereits existiert, werden aktualisiert (die alte Version bleibt in ihrem Verlauf). Andernfalls werden sie übersprungen.",
   "run": "Import starten ({total, plural, one {# Element} other {# Elemente}})",
   "queued": "Import als Job #{id} eingereiht",
   "step3": "3. Import #{id}",
@@ -35,7 +35,7 @@
   },
   "phase": {
     "media": "Medien {done} von {total}",
-    "entries": "Einträge {done} von {total}"
+    "entries": "Seiten {done} von {total}"
   },
   "finished": "Import abgeschlossen",
   "failed": "Import fehlgeschlagen",
@@ -46,18 +46,18 @@
   "colFailed": "Fehlgeschlagen",
   "mediaResult": "Medien: {imported} importiert, {reused} bereits importiert, {failed} fehlgeschlagen",
   "errors": "{count, plural, one {# Problem} other {# Probleme}}",
-  "viewEntries": "Einträge ansehen →",
+  "viewEntries": "Seiten ansehen →",
   "extras": "Zusätzlich importieren",
   "categoryPaths": "Kategorie-Hierarchie beibehalten",
   "categoryPathsHint": "Fügt neben den Kategorienamen ein Feld category_paths mit vollständigen Pfaden wie „Eltern/Kind“ hinzu. {count, plural, =0 {Diese Datei hat keine verschachtelten Kategorien.} one {# verschachtelte Kategorie in dieser Datei.} other {# verschachtelte Kategorien in dieser Datei.}}",
   "taxonomies": "Eigene Taxonomien importieren",
-  "taxonomiesHint": "Fügt den Einträgen, die sie verwenden, ein Feld taxonomies hinzu — die Begriffe nach Taxonomie gruppiert.",
+  "taxonomiesHint": "Fügt den Seiten, die sie verwenden, ein Feld taxonomies hinzu — die Begriffe nach Taxonomie gruppiert.",
   "taxonomiesFound": "In dieser Datei: {list}.",
   "taxonomiesNone": "Diese Datei hat keine eigenen Taxonomien.",
   "authors": "Autoren als Inhalt importieren",
-  "authorsHint": "{count, plural, one {# Autor wird ein wp_author-Eintrag} other {# Autoren werden wp_author-Einträge}} (Login, Anzeigename, Vor- und Nachname), und jeder Beitrag wird über ein Feld author_ref mit seinem Autor verknüpft. Das sind Inhaltseinträge, keine Benutzerkonten — niemand kann sich damit anmelden. E-Mail-Adressen werden nicht übernommen.",
+  "authorsHint": "{count, plural, one {# Autor wird eine wp_author-Seite} other {# Autoren werden wp_author-Seiten}} (Login, Anzeigename, Vor- und Nachname), und jeder Beitrag wird über ein Feld author_ref mit seinem Autor verknüpft. Das sind Inhaltsseiten, keine Benutzerkonten — niemand kann sich damit anmelden. E-Mail-Adressen werden nicht übernommen.",
   "comments": "Kommentare importieren",
-  "commentsHint": "Freigegebene Kommentare werden wp_comment-Einträge: Name, Text ohne HTML, Datum, der beantwortete Kommentar und der zugehörige Beitrag. E-Mail- und IP-Adressen der Kommentierenden werden nicht übernommen; Spam und Kommentare im Papierkorb werden nie importiert. In dieser Datei: {approved} freigegeben, {pending} ausstehend, {spam} Spam oder Papierkorb.",
+  "commentsHint": "Freigegebene Kommentare werden wp_comment-Seiten: Name, Text ohne HTML, Datum, der beantwortete Kommentar und der zugehörige Beitrag. E-Mail- und IP-Adressen der Kommentierenden werden nicht übernommen; Spam und Kommentare im Papierkorb werden nie importiert. In dieser Datei: {approved} freigegeben, {pending} ausstehend, {spam} Spam oder Papierkorb.",
   "pendingComments": "Ausstehende Kommentare einschließen",
-  "pendingCommentsHint": "Werden als Einträge importiert, die auf Prüfung warten."
+  "pendingCommentsHint": "Werden als Seiten importiert, die auf Prüfung warten."
 }

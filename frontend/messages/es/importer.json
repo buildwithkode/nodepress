@@ -1,6 +1,6 @@
 {
   "title": "Importar desde WordPress",
-  "intro": "Sube un archivo de exportación de WordPress (<strong>Herramientas → Exportar → Todo el contenido</strong> en WordPress). Las entradas, páginas y tipos de contenido personalizados se convierten en entradas — revisa primero el resumen y luego ejecuta la importación en segundo plano.",
+  "intro": "Sube un archivo de exportación de WordPress (<strong>Herramientas → Exportar → Todo el contenido</strong> en WordPress). Las entradas, páginas y tipos de contenido personalizados se importan como páginas — revisa primero el resumen y luego ejecuta la importación en segundo plano.",
   "step1": "1. Elige el archivo de exportación",
   "chooseFile": "Elegir archivo",
   "changeFile": "Elegir otro archivo",
@@ -13,7 +13,7 @@
   "wxrVersion": "WXR {version}",
   "totals": "{total, plural, one {# elemento} other {# elementos}} para importar · {attachments, plural, one {# adjunto} other {# adjuntos}} · {skipped} omitidos",
   "colContentType": "Tipo de contenido",
-  "colEntries": "Entradas",
+  "colEntries": "Páginas",
   "colStatuses": "Estados",
   "colExisting": "Ya existen",
   "typeExists": "existe",
@@ -22,8 +22,8 @@
   "sample": "Primeros elementos",
   "importMedia": "Importar medios",
   "importMediaHint": "Descargar los adjuntos (imágenes, SVG, PDF, MP4 de hasta {size} MB cada uno) a la biblioteca de medios y hacer que las imágenes destacadas y el contenido apunten a las nuevas copias.",
-  "overwrite": "Sobrescribir entradas existentes",
-  "overwriteHint": "Las entradas cuyo slug ya existe se actualizan (la versión anterior queda en su historial). Si no, se omiten.",
+  "overwrite": "Sobrescribir páginas existentes",
+  "overwriteHint": "Las páginas cuyo slug ya existe se actualizan (la versión anterior queda en su historial). Si no, se omiten.",
   "run": "Iniciar importación ({total, plural, one {# elemento} other {# elementos}})",
   "queued": "Importación en cola como tarea n.º {id}",
   "step3": "3. Importación n.º {id}",
@@ -35,7 +35,7 @@
   },
   "phase": {
     "media": "Medios {done} de {total}",
-    "entries": "Entradas {done} de {total}"
+    "entries": "Páginas {done} de {total}"
   },
   "finished": "Importación terminada",
   "failed": "La importación falló",
@@ -46,18 +46,18 @@
   "colFailed": "Fallidas",
   "mediaResult": "Medios: {imported} importados, {reused} ya importados, {failed} fallidos",
   "errors": "{count, plural, one {# problema} other {# problemas}}",
-  "viewEntries": "Ver entradas →",
+  "viewEntries": "Ver páginas →",
   "extras": "Importar también",
   "categoryPaths": "Conservar la jerarquía de categorías",
   "categoryPathsHint": "Añade un campo category_paths con rutas completas como «Padre/Hijo» junto a los nombres de las categorías. {count, plural, =0 {Este archivo no tiene categorías anidadas.} one {# categoría anidada en este archivo.} other {# categorías anidadas en este archivo.}}",
   "taxonomies": "Importar taxonomías personalizadas",
-  "taxonomiesHint": "Añade un campo taxonomies — los términos agrupados por taxonomía — a las entradas que las usan.",
+  "taxonomiesHint": "Añade un campo taxonomies — los términos agrupados por taxonomía — a las páginas que las usan.",
   "taxonomiesFound": "En este archivo: {list}.",
   "taxonomiesNone": "Este archivo no tiene taxonomías personalizadas.",
   "authors": "Importar autores como contenido",
-  "authorsHint": "{count, plural, one {# autor se convierte en una entrada wp_author} other {# autores se convierten en entradas wp_author}} (usuario, nombre visible, nombre y apellido), y cada entrada se enlaza con su autor mediante un campo author_ref. Son entradas de contenido, no cuentas de acceso: nadie puede iniciar sesión con ellas. Las direcciones de correo no se copian.",
+  "authorsHint": "{count, plural, one {# autor se convierte en una página wp_author} other {# autores se convierten en páginas wp_author}} (usuario, nombre visible, nombre y apellido), y cada entrada se enlaza con su autor mediante un campo author_ref. Son páginas de contenido, no cuentas de acceso: nadie puede iniciar sesión con ellas. Las direcciones de correo no se copian.",
   "comments": "Importar comentarios",
-  "commentsHint": "Los comentarios aprobados se convierten en entradas wp_comment: nombre, texto sin HTML, fecha, el comentario al que responden y la entrada a la que pertenecen. El correo y la IP de quien comenta no se copian; el spam y los comentarios en la papelera nunca se importan. En este archivo: {approved} aprobados, {pending} pendientes, {spam} spam o papelera.",
+  "commentsHint": "Los comentarios aprobados se convierten en páginas wp_comment: nombre, texto sin HTML, fecha, el comentario al que responden y la entrada a la que pertenecen. El correo y la IP de quien comenta no se copian; el spam y los comentarios en la papelera nunca se importan. En este archivo: {approved} aprobados, {pending} pendientes, {spam} spam o papelera.",
   "pendingComments": "Incluir comentarios pendientes",
-  "pendingCommentsHint": "Se importan como entradas pendientes de revisión."
+  "pendingCommentsHint": "Se importan como páginas pendientes de revisión."
 }

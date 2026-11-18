@@ -71,11 +71,11 @@
     "signingSecretHint": "(optional — erzeugt eine HMAC-SHA256-Signatur in {header})",
     "triggerEvents": "Auslösende Ereignisse",
     "events": {
-      "entryCreated": "Eintrag erstellt",
-      "entryUpdated": "Eintrag aktualisiert",
-      "entryDeleted": "Eintrag gelöscht",
-      "entryRestored": "Eintrag wiederhergestellt",
-      "entryPurged": "Eintrag endgültig gelöscht",
+      "entryCreated": "Seite erstellt",
+      "entryUpdated": "Seite aktualisiert",
+      "entryDeleted": "Seite gelöscht",
+      "entryRestored": "Seite wiederhergestellt",
+      "entryPurged": "Seite endgültig gelöscht",
       "mediaUploaded": "Medium hochgeladen",
       "mediaDeleted": "Medium gelöscht"
     },
@@ -177,7 +177,7 @@
     "description": "Jedes Erstellen, Aktualisieren und Löschen wird mit Akteur und Zeitstempel protokolliert.",
     "allResources": "Alle Ressourcen",
     "resources": {
-      "entry": "Einträge",
+      "entry": "Seiten",
       "content_type": "Inhaltstypen",
       "user": "Benutzer",
       "api_key": "API-Schlüssel",

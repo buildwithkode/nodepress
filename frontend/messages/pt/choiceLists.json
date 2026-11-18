@@ -26,7 +26,7 @@
   "editor": {
     "newTitle": "Nova lista de opções",
     "editTitle": "Editar lista de opções",
-    "hint": "As entradas guardam o valor; o editor e os sites mostram a etiqueta. Se mudar um valor mais tarde, as entradas mantêm o antigo.",
+    "hint": "As páginas guardam o valor; o editor e os sites mostram a etiqueta. Se mudar um valor mais tarde, as páginas mantêm o antigo.",
     "label": "Etiqueta",
     "labelPlaceholder": "ex.: País",
     "name": "Nome",
@@ -56,7 +56,7 @@
     "duplicates": "Cada valor só pode aparecer uma vez",
     "created": "Lista de opções criada",
     "updated": "{count, plural, =0 {Lista de opções guardada} one {Lista de opções guardada — # tipo de conteúdo atualizado} other {Lista de opções guardada — # tipos de conteúdo atualizados}}",
-    "removedInUse": "{count, plural, one {# entrada ainda tem} other {# entradas ainda têm}} um valor removido e vão falhar a validação ao guardar de novo: {where}"
+    "removedInUse": "{count, plural, one {# página ainda tem} other {# páginas ainda têm}} um valor removido e vão falhar a validação ao guardar de novo: {where}"
   },
   "picker": {
     "source": "Origem das opções",
@@ -72,7 +72,7 @@
     "subFieldHint": "As opções deste subcampo vêm de uma lista de opções",
     "typedChoices": "{count, plural, one {# opção própria} other {# opções próprias}}",
     "multiple": "Seleção múltipla",
-    "multipleHint": "As entradas podem marcar várias opções. Ative isto antes de as entradas usarem o campo: as já guardadas terão de escolher novamente o valor."
+    "multipleHint": "As páginas podem marcar várias opções. Ative isto antes de as páginas usarem o campo: as já guardadas terão de escolher novamente o valor."
   },
   "adminOnlyDelete": "Só os administradores podem eliminar uma lista"
 }

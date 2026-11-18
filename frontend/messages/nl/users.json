@@ -53,8 +53,8 @@
     "edits": "Bewerken: {modules}",
     "views": "Bekijken: {modules}",
     "nothing": "Geen toegang tot modules",
-    "noPublish": "Kan geen items publiceren",
-    "noDelete": "Kan geen items verwijderen",
+    "noPublish": "Kan geen pagina's publiceren",
+    "noDelete": "Kan geen pagina's verwijderen",
     "loadFailed": "Roltoegang kon niet worden geladen."
   },
   "add": {
@@ -175,7 +175,7 @@
       "items": {
         "content": {
           "label": "Inhoud",
-          "description": "Items van elk contenttype"
+          "description": "Pagina's van elk contenttype"
         },
         "option_lists": {
           "label": "Optielijsten",
@@ -250,7 +250,7 @@
       "asDefault": "Zelfde als standaard",
       "fromPlugin": "Van {plugin}",
       "powerful": "Bewerken is hier bijna beheerderstoegang — geef het alleen aan mensen die je vertrouwt.",
-      "adminOnlyNote": "Rollen en rechten, plug-ins installeren en items definitief verwijderen blijven voorbehouden aan beheerders. Beheerders hebben altijd volledige toegang."
+      "adminOnlyNote": "Rollen en rechten, plug-ins installeren en pagina's definitief verwijderen blijven voorbehouden aan beheerders. Beheerders hebben altijd volledige toegang."
     }
   },
   "profile": {

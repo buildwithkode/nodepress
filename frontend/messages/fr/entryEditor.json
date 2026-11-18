@@ -1,7 +1,7 @@
 {
   "header": {
     "backTo": "Retour à {name}",
-    "entries": "Entrées",
+    "entries": "Pages",
     "editSchema": "Modifier le schéma",
     "editSchemaTitle": "Modifier le schéma du type de contenu",
     "fieldPermissions": "Permissions des champs",
@@ -10,20 +10,20 @@
     "publish": "Publier"
   },
   "new": {
-    "title": "Nouvelle entrée",
-    "titleWithType": "Nouvelle entrée — {type}",
-    "description": "Remplissez les champs ci-dessous pour créer une entrée.",
+    "title": "Nouvelle page",
+    "titleWithType": "Nouvelle page — {type}",
+    "description": "Remplissez les champs ci-dessous pour créer une page.",
     "contentType": "Type de contenu",
     "selectContentType": "Sélectionnez un type de contenu…",
     "selectToBegin": "Sélectionnez un type de contenu pour commencer.",
-    "submit": "Créer l’entrée",
+    "submit": "Créer la page",
     "saveAndPreview": "Enregistrer le brouillon et prévisualiser",
     "saveAndPreviewHint": "Enregistrer comme brouillon et ouvrir l’aperçu en direct"
   },
   "edit": {
-    "title": "Modifier l’entrée",
-    "titleWithType": "Modifier l’entrée — {type}",
-    "description": "Modifier le slug change l’URL publique de l’entrée. Changez le statut pour contrôler sa visibilité.",
+    "title": "Modifier la page",
+    "titleWithType": "Modifier la page — {type}",
+    "description": "Modifier le slug change l’URL publique de la page. Changez le statut pour contrôler sa visibilité.",
     "autosaved": "Enregistré",
     "update": "Mettre à jour",
     "release": "Publication groupée",
@@ -32,21 +32,21 @@
   },
   "toast": {
     "loadTypesFailed": "Impossible de charger les types de contenu",
-    "loadEntryFailed": "Impossible de charger l’entrée",
-    "created": "Entrée créée",
-    "updated": "Entrée mise à jour",
-    "approved": "Entrée approuvée et publiée",
-    "approveFailed": "Impossible d’approuver l’entrée",
-    "returnedToDraft": "Entrée repassée en brouillon",
-    "returnToDraftFailed": "Impossible de repasser l’entrée en brouillon"
+    "loadEntryFailed": "Impossible de charger la page",
+    "created": "Page créée",
+    "updated": "Page mise à jour",
+    "approved": "Page approuvée et publiée",
+    "approveFailed": "Impossible d’approuver la page",
+    "returnedToDraft": "Page repassée en brouillon",
+    "returnToDraftFailed": "Impossible de repasser la page en brouillon"
   },
   "presence": {
     "online": "{count} en ligne",
-    "lockedBy": "<b>{email}</b> modifie actuellement cette entrée. Des enregistrements simultanés peuvent entrer en conflit.",
+    "lockedBy": "<b>{email}</b> modifie actuellement cette page. Des enregistrements simultanés peuvent entrer en conflit.",
     "takeOver": "Prendre le verrou"
   },
   "review": {
-    "banner": "Cette entrée attend une relecture. Approuvez-la pour la publier ou repassez-la en brouillon.",
+    "banner": "Cette page attend une relecture. Approuvez-la pour la publier ou repassez-la en brouillon.",
     "returnToDraft": "Repasser en brouillon",
     "approve": "Approuver et publier"
   },
@@ -56,7 +56,7 @@
     "created": "Brouillon de traduction {locale} créé",
     "createFailed": "Impossible de créer le brouillon de traduction",
     "tabsLabel": "Langue",
-    "addTitle": "Ajouter une traduction en {language} (copie brouillon de cette entrée)",
+    "addTitle": "Ajouter une traduction en {language} (copie brouillon de cette page)",
     "tabTitle": "{language} : {status}",
     "editing": "Modification : {language}"
   },
@@ -151,14 +151,14 @@
     "pick": "Choisir : {type}…",
     "selectTypeFirst": "Sélectionnez d’abord un type de contenu",
     "search": "Rechercher dans {type}…",
-    "noEntries": "Aucune entrée trouvée",
+    "noEntries": "Aucune page trouvée",
     "done": "Terminé",
     "remove": "Retirer",
     "configureFirst": "Configurez d’abord un type de contenu lié dans le schéma."
   },
   "reverseRelation": {
-    "hint": "Lecture seule — renseignez <code>{field}</code> sur une entrée {type} pour l’ajouter ici.",
-    "saveFirst": "Enregistrez cette entrée pour voir ce qui y renvoie.",
+    "hint": "Lecture seule — renseignez <code>{field}</code> sur une page {type} pour l’ajouter ici.",
+    "saveFirst": "Enregistrez cette page pour voir ce qui y renvoie.",
     "empty": "Rien ne renvoie ici pour l’instant."
   },
   "repeater": {
@@ -315,14 +315,14 @@
   "ai": {
     "draft": "Rédiger avec l’IA",
     "drafting": "Rédaction…",
-    "placeholder": "Que doit dire cette entrée ? par ex. « Un article chaleureux de 300 mots annonçant nos nouveaux horaires »",
+    "placeholder": "Que doit dire cette page ? par ex. « Un article chaleureux de 300 mots annonçant nos nouveaux horaires »",
     "drafted": "{count, plural, one {# champ rempli} other {# champs remplis}} — relisez avant d’enregistrer"
   },
   "unpublish": {
     "title": "Dépublier le",
     "placeholder": "Choisir une date et une heure",
-    "help": "Retire l'entrée du site à ce moment-là (elle repasse en brouillon). Laissez vide pour la garder en ligne.",
+    "help": "Retire la page du site à ce moment-là (elle repasse en brouillon). Laissez vide pour la garder en ligne.",
     "willUnpublish": "Retirée du site le <b>{date}</b> à <b>{time}</b>.",
-    "beforePublish": "C'est avant l'heure de publication prévue : l'entrée serait retirée du site dès sa mise en ligne."
+    "beforePublish": "C'est avant l'heure de publication prévue : la page serait retirée du site dès sa mise en ligne."
   }
 }

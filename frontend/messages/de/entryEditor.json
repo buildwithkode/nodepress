@@ -1,7 +1,7 @@
 {
   "header": {
     "backTo": "Zurück zu {name}",
-    "entries": "Einträge",
+    "entries": "Seiten",
     "editSchema": "Schema bearbeiten",
     "editSchemaTitle": "Schema des Inhaltstyps bearbeiten",
     "fieldPermissions": "Feldberechtigungen",
@@ -10,20 +10,20 @@
     "publish": "Veröffentlichen"
   },
   "new": {
-    "title": "Neuer Eintrag",
-    "titleWithType": "Neuer Eintrag — {type}",
-    "description": "Füllen Sie die folgenden Felder aus, um einen neuen Eintrag zu erstellen.",
+    "title": "Neue Seite",
+    "titleWithType": "Neue Seite — {type}",
+    "description": "Füllen Sie die folgenden Felder aus, um eine neue Seite zu erstellen.",
     "contentType": "Inhaltstyp",
     "selectContentType": "Inhaltstyp auswählen…",
     "selectToBegin": "Wählen Sie einen Inhaltstyp, um zu beginnen.",
-    "submit": "Eintrag erstellen",
+    "submit": "Seite erstellen",
     "saveAndPreview": "Entwurf speichern & Vorschau",
     "saveAndPreviewHint": "Als Entwurf speichern und die Live-Vorschau öffnen"
   },
   "edit": {
-    "title": "Eintrag bearbeiten",
-    "titleWithType": "Eintrag bearbeiten — {type}",
-    "description": "Eine Änderung des Slugs ändert die öffentliche URL des Eintrags. Über den Status steuern Sie die Sichtbarkeit.",
+    "title": "Seite bearbeiten",
+    "titleWithType": "Seite bearbeiten — {type}",
+    "description": "Eine Änderung des Slugs ändert die öffentliche URL der Seite. Über den Status steuern Sie die Sichtbarkeit.",
     "autosaved": "Gespeichert",
     "update": "Aktualisieren",
     "release": "Release",
@@ -32,21 +32,21 @@
   },
   "toast": {
     "loadTypesFailed": "Inhaltstypen konnten nicht geladen werden",
-    "loadEntryFailed": "Eintrag konnte nicht geladen werden",
-    "created": "Eintrag erstellt",
-    "updated": "Eintrag aktualisiert",
-    "approved": "Eintrag genehmigt und veröffentlicht",
-    "approveFailed": "Eintrag konnte nicht genehmigt werden",
-    "returnedToDraft": "Eintrag zurück auf Entwurf gesetzt",
-    "returnToDraftFailed": "Eintrag konnte nicht auf Entwurf zurückgesetzt werden"
+    "loadEntryFailed": "Seite konnte nicht geladen werden",
+    "created": "Seite erstellt",
+    "updated": "Seite aktualisiert",
+    "approved": "Seite genehmigt und veröffentlicht",
+    "approveFailed": "Seite konnte nicht genehmigt werden",
+    "returnedToDraft": "Seite zurück auf Entwurf gesetzt",
+    "returnToDraftFailed": "Seite konnte nicht auf Entwurf zurückgesetzt werden"
   },
   "presence": {
     "online": "{count} online",
-    "lockedBy": "<b>{email}</b> bearbeitet diesen Eintrag gerade. Gleichzeitiges Speichern kann zu Konflikten führen.",
+    "lockedBy": "<b>{email}</b> bearbeitet diese Seite gerade. Gleichzeitiges Speichern kann zu Konflikten führen.",
     "takeOver": "Sperre übernehmen"
   },
   "review": {
-    "banner": "Dieser Eintrag wartet auf Prüfung. Genehmigen Sie ihn zur Veröffentlichung oder setzen Sie ihn auf Entwurf zurück.",
+    "banner": "Diese Seite wartet auf Prüfung. Genehmigen Sie sie zur Veröffentlichung oder setzen Sie sie auf Entwurf zurück.",
     "returnToDraft": "Zurück auf Entwurf",
     "approve": "Genehmigen & veröffentlichen"
   },
@@ -56,7 +56,7 @@
     "created": "Übersetzungsentwurf {locale} erstellt",
     "createFailed": "Übersetzungsentwurf konnte nicht erstellt werden",
     "tabsLabel": "Sprache",
-    "addTitle": "{language}-Übersetzung hinzufügen (Entwurfskopie dieses Eintrags)",
+    "addTitle": "{language}-Übersetzung hinzufügen (Entwurfskopie dieser Seite)",
     "tabTitle": "{language}: {status}",
     "editing": "Bearbeitung: {language}"
   },
@@ -151,14 +151,14 @@
     "pick": "{type} auswählen…",
     "selectTypeFirst": "Zuerst einen Inhaltstyp auswählen",
     "search": "{type} durchsuchen…",
-    "noEntries": "Keine Einträge gefunden",
+    "noEntries": "Keine Seiten gefunden",
     "done": "Fertig",
     "remove": "Entfernen",
     "configureFirst": "Konfigurieren Sie zuerst einen verknüpften Inhaltstyp im Schema."
   },
   "reverseRelation": {
-    "hint": "Schreibgeschützt – setzen Sie <code>{field}</code> in einem {type}-Eintrag, um ihn hier hinzuzufügen.",
-    "saveFirst": "Speichern Sie diesen Eintrag, um zu sehen, was darauf verweist.",
+    "hint": "Schreibgeschützt – setzen Sie <code>{field}</code> in einer {type}-Seite, um sie hier hinzuzufügen.",
+    "saveFirst": "Speichern Sie diese Seite, um zu sehen, was darauf verweist.",
     "empty": "Noch keine Verweise hierher."
   },
   "repeater": {
@@ -315,14 +315,14 @@
   "ai": {
     "draft": "Mit KI entwerfen",
     "drafting": "Wird geschrieben…",
-    "placeholder": "Was soll dieser Eintrag sagen? z. B. „Ein freundlicher Beitrag mit 300 Wörtern über unsere neuen Öffnungszeiten“",
+    "placeholder": "Was soll diese Seite sagen? z. B. „Ein freundlicher Beitrag mit 300 Wörtern über unsere neuen Öffnungszeiten“",
     "drafted": "{count, plural, one {# Feld} other {# Felder}} ausgefüllt — vor dem Speichern prüfen"
   },
   "unpublish": {
     "title": "Veröffentlichung beenden am",
     "placeholder": "Datum und Uhrzeit wählen",
-    "help": "Nimmt den Eintrag zu diesem Zeitpunkt von der Website (er wird wieder Entwurf). Leer lassen, damit er online bleibt.",
+    "help": "Nimmt die Seite zu diesem Zeitpunkt von der Website (sie wird wieder Entwurf). Leer lassen, damit sie online bleibt.",
     "willUnpublish": "Wird am <b>{date}</b> um <b>{time}</b> von der Website genommen.",
-    "beforePublish": "Das liegt vor der geplanten Veröffentlichung: Der Eintrag würde gleich nach dem Livegang wieder entfernt."
+    "beforePublish": "Das liegt vor der geplanten Veröffentlichung: Die Seite würde gleich nach dem Livegang wieder entfernt."
   }
 }

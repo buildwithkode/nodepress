@@ -1,7 +1,7 @@
 {
   "header": {
     "backTo": "{name} に戻る",
-    "entries": "エントリー",
+    "entries": "ページ",
     "editSchema": "スキーマを編集",
     "editSchemaTitle": "コンテンツタイプのスキーマを編集",
     "fieldPermissions": "フィールド権限",
@@ -10,20 +10,20 @@
     "publish": "公開"
   },
   "new": {
-    "title": "新規エントリー",
-    "titleWithType": "新規エントリー — {type}",
-    "description": "以下のフィールドを入力して、新しいエントリーを作成します。",
+    "title": "新規ページ",
+    "titleWithType": "新規ページ — {type}",
+    "description": "以下のフィールドを入力して、新しいページを作成します。",
     "contentType": "コンテンツタイプ",
     "selectContentType": "コンテンツタイプを選択…",
     "selectToBegin": "始めるにはコンテンツタイプを選択してください。",
-    "submit": "エントリーを作成",
+    "submit": "ページを作成",
     "saveAndPreview": "下書き保存してプレビュー",
     "saveAndPreviewHint": "下書きとして保存し、ライブプレビューを開きます"
   },
   "edit": {
-    "title": "エントリーを編集",
-    "titleWithType": "エントリーを編集 — {type}",
-    "description": "スラッグを編集すると、エントリーの公開 URL が変わります。表示状態はステータスで切り替えます。",
+    "title": "ページを編集",
+    "titleWithType": "ページを編集 — {type}",
+    "description": "スラッグを編集すると、ページの公開 URL が変わります。表示状態はステータスで切り替えます。",
     "autosaved": "保存済み",
     "update": "更新",
     "release": "リリース",
@@ -32,21 +32,21 @@
   },
   "toast": {
     "loadTypesFailed": "コンテンツタイプを読み込めませんでした",
-    "loadEntryFailed": "エントリーを読み込めませんでした",
-    "created": "エントリーを作成しました",
-    "updated": "エントリーを更新しました",
-    "approved": "エントリーを承認して公開しました",
-    "approveFailed": "エントリーを承認できませんでした",
-    "returnedToDraft": "エントリーを下書きに戻しました",
-    "returnToDraftFailed": "エントリーを下書きに戻せませんでした"
+    "loadEntryFailed": "ページを読み込めませんでした",
+    "created": "ページを作成しました",
+    "updated": "ページを更新しました",
+    "approved": "ページを承認して公開しました",
+    "approveFailed": "ページを承認できませんでした",
+    "returnedToDraft": "ページを下書きに戻しました",
+    "returnToDraftFailed": "ページを下書きに戻せませんでした"
   },
   "presence": {
     "online": "{count} 人がオンライン",
-    "lockedBy": "<b>{email}</b> がこのエントリーを編集中です。同時に保存すると競合する可能性があります。",
+    "lockedBy": "<b>{email}</b> がこのページを編集中です。同時に保存すると競合する可能性があります。",
     "takeOver": "ロックを引き継ぐ"
   },
   "review": {
-    "banner": "このエントリーはレビュー待ちです。承認して公開するか、下書きに戻してください。",
+    "banner": "このページはレビュー待ちです。承認して公開するか、下書きに戻してください。",
     "returnToDraft": "下書きに戻す",
     "approve": "承認して公開"
   },
@@ -56,7 +56,7 @@
     "created": "{locale} の翻訳の下書きを作成しました",
     "createFailed": "翻訳の下書きを作成できませんでした",
     "tabsLabel": "言語",
-    "addTitle": "{language}の翻訳を追加（このエントリーの下書きコピー）",
+    "addTitle": "{language}の翻訳を追加（このページの下書きコピー）",
     "tabTitle": "{language}：{status}",
     "editing": "編集中：{language}"
   },
@@ -151,14 +151,14 @@
     "pick": "{type} を選択…",
     "selectTypeFirst": "先にコンテンツタイプを選択してください",
     "search": "{type} を検索…",
-    "noEntries": "エントリーが見つかりません",
+    "noEntries": "ページが見つかりません",
     "done": "完了",
     "remove": "削除",
     "configureFirst": "先にスキーマで関連コンテンツタイプを設定してください。"
   },
   "reverseRelation": {
-    "hint": "読み取り専用 — {type} のエントリーで <code>{field}</code> を設定すると、ここに追加されます。",
-    "saveFirst": "このエントリーにリンクしているものを表示するには、保存してください。",
+    "hint": "読み取り専用 — {type} のページで <code>{field}</code> を設定すると、ここに追加されます。",
+    "saveFirst": "このページにリンクしているものを表示するには、保存してください。",
     "empty": "まだここにリンクしているものはありません。"
   },
   "repeater": {
@@ -315,13 +315,13 @@
   "ai": {
     "draft": "AI で下書き",
     "drafting": "作成中…",
-    "placeholder": "このエントリーの内容を入力してください。例:「新しい営業時間をお知らせする、300 語程度の親しみやすい投稿」",
+    "placeholder": "このページの内容を入力してください。例:「新しい営業時間をお知らせする、300 語程度の親しみやすい投稿」",
     "drafted": "{count, plural, other {# 個のフィールド}}を入力しました。保存前に確認してください"
   },
   "unpublish": {
     "title": "公開終了日時",
     "placeholder": "日時を選択",
-    "help": "この日時にエントリーをサイトから外します（下書きに戻ります）。公開を続ける場合は空のままにします。",
+    "help": "この日時にページをサイトから外します（下書きに戻ります）。公開を続ける場合は空のままにします。",
     "willUnpublish": "<b>{date}</b> <b>{time}</b> にサイトから外れます。",
     "beforePublish": "予約公開の日時より前です。公開と同時にサイトから外れてしまいます。"
   }

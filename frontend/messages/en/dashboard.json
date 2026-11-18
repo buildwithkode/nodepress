@@ -1,16 +1,16 @@
 {
   "title": "Dashboard",
   "subtitle": "Here’s what’s happening with your content.",
-  "newEntry": "New Entry",
+  "newEntry": "New Page",
   "overview": "Overview",
   "viewAll": "View all",
   "createOne": "Create one",
   "fieldCount": "{count, plural, one {# field} other {# fields}}",
-  "entryCount": "{count, plural, one {# entry} other {# entries}}",
+  "entryCount": "{count, plural, one {# page} other {# pages}}",
   "stats": {
     "contentTypes": "Content Types",
     "contentTypesSub": "total schemas",
-    "totalEntries": "Total Entries",
+    "totalEntries": "Total Pages",
     "totalEntriesSub": "across all types",
     "mediaFiles": "Media Files",
     "mediaFilesSub": "uploaded files",
@@ -22,7 +22,7 @@
     "submissionsSub": "total responses"
   },
   "pendingReview": {
-    "message": "{count, plural, one {<b>#</b> entry is awaiting review} other {<b>#</b> entries are awaiting review}}",
+    "message": "{count, plural, one {<b>#</b> page is awaiting review} other {<b>#</b> pages are awaiting review}}",
     "action": "Review now →"
   },
   "contentTypes": {
@@ -32,8 +32,8 @@
     "pendingBadge": "{count} Pending"
   },
   "recentEntries": {
-    "title": "Recent Entries",
-    "empty": "No entries yet."
+    "title": "Recent Pages",
+    "empty": "No pages yet."
   },
   "forms": {
     "title": "Forms",

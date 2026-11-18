@@ -13,7 +13,7 @@
   "inUse": "In Verwendung — zuerst aus diesen Inhaltstypen entfernen",
   "cancel": "Abbrechen",
   "deleteTitle": "„{name}“ löschen?",
-  "deleteDescription": "Die Komponente wird endgültig entfernt. Kein Inhaltstyp verwendet sie, daher sind keine Einträge betroffen.",
+  "deleteDescription": "Die Komponente wird endgültig entfernt. Kein Inhaltstyp verwendet sie, daher sind keine Seiten betroffen.",
   "columns": {
     "number": "Nr.",
     "name": "Name",
@@ -70,7 +70,7 @@
     "confirm": "Hinzufügen",
     "inline": "Eingebettet",
     "inlineHint": "Ihre Felder, direkt eingefügt",
-    "inlineNote": "Die Felder werden direkt zu diesem Inhaltstyp hinzugefügt, Einträge speichern sie also flach. Sie bleiben mit der Komponente synchron.",
+    "inlineNote": "Die Felder werden direkt zu diesem Inhaltstyp hinzugefügt, Seiten speichern sie also flach. Sie bleiben mit der Komponente synchron.",
     "keyTaken": "Dieser Inhaltstyp hat bereits ein Feld mit dem Schlüssel {key}.",
     "inlineKeysTaken": "Diese Felder kollidieren mit vorhandenen Schlüsseln: {keys}",
     "fieldKey": "Feldschlüssel:"

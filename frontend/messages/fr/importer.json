@@ -1,6 +1,6 @@
 {
   "title": "Importer depuis WordPress",
-  "intro": "Envoyez un fichier d’export WordPress (<strong>Outils → Exporter → Tout le contenu</strong> dans WordPress). Les articles, pages et types de contenu personnalisés deviennent des entrées — vérifiez d’abord le résumé, puis lancez l’import en arrière-plan.",
+  "intro": "Envoyez un fichier d’export WordPress (<strong>Outils → Exporter → Tout le contenu</strong> dans WordPress). Les articles, pages et types de contenu personnalisés sont importés en tant que pages — vérifiez d’abord le résumé, puis lancez l’import en arrière-plan.",
   "step1": "1. Choisir le fichier d’export",
   "chooseFile": "Choisir un fichier",
   "changeFile": "Choisir un autre fichier",
@@ -13,7 +13,7 @@
   "wxrVersion": "WXR {version}",
   "totals": "{total, plural, one {# élément} other {# éléments}} à importer · {attachments, plural, one {# fichier joint} other {# fichiers joints}} · {skipped} ignorés",
   "colContentType": "Type de contenu",
-  "colEntries": "Entrées",
+  "colEntries": "Pages",
   "colStatuses": "Statuts",
   "colExisting": "Déjà présentes",
   "typeExists": "existe",
@@ -22,8 +22,8 @@
   "sample": "Premiers éléments",
   "importMedia": "Importer les médias",
   "importMediaHint": "Télécharger les fichiers joints (images, SVG, PDF, MP4 jusqu’à {size} Mo chacun) dans la médiathèque et faire pointer les images mises en avant et le contenu vers les nouvelles copies.",
-  "overwrite": "Écraser les entrées existantes",
-  "overwriteHint": "Les entrées dont le slug existe déjà sont mises à jour (l’ancienne version reste dans leur historique). Sinon, elles sont ignorées.",
+  "overwrite": "Écraser les pages existantes",
+  "overwriteHint": "Les pages dont le slug existe déjà sont mises à jour (l’ancienne version reste dans leur historique). Sinon, elles sont ignorées.",
   "run": "Lancer l’import ({total, plural, one {# élément} other {# éléments}})",
   "queued": "Import mis en file d’attente (tâche n° {id})",
   "step3": "3. Import n° {id}",
@@ -35,7 +35,7 @@
   },
   "phase": {
     "media": "Médias {done} sur {total}",
-    "entries": "Entrées {done} sur {total}"
+    "entries": "Pages {done} sur {total}"
   },
   "finished": "Import terminé",
   "failed": "L’import a échoué",
@@ -46,18 +46,18 @@
   "colFailed": "En échec",
   "mediaResult": "Médias : {imported} importés, {reused} déjà importés, {failed} en échec",
   "errors": "{count, plural, one {# problème} other {# problèmes}}",
-  "viewEntries": "Voir les entrées →",
+  "viewEntries": "Voir les pages →",
   "extras": "Importer aussi",
   "categoryPaths": "Conserver la hiérarchie des catégories",
   "categoryPathsHint": "Ajoute un champ category_paths avec les chemins complets, par exemple « Parent/Enfant », à côté des noms de catégories. {count, plural, =0 {Ce fichier n’a pas de catégories imbriquées.} one {# catégorie imbriquée dans ce fichier.} other {# catégories imbriquées dans ce fichier.}}",
   "taxonomies": "Importer les taxonomies personnalisées",
-  "taxonomiesHint": "Ajoute un champ taxonomies — les termes regroupés par taxonomie — aux entrées qui les utilisent.",
+  "taxonomiesHint": "Ajoute un champ taxonomies — les termes regroupés par taxonomie — aux pages qui les utilisent.",
   "taxonomiesFound": "Dans ce fichier : {list}.",
   "taxonomiesNone": "Ce fichier n’a pas de taxonomies personnalisées.",
   "authors": "Importer les auteurs comme contenu",
-  "authorsHint": "{count, plural, one {# auteur devient une entrée wp_author} other {# auteurs deviennent des entrées wp_author}} (identifiant, nom affiché, prénom et nom), et chaque article est relié à son auteur par un champ author_ref. Ce sont des entrées de contenu, pas des comptes : personne ne peut se connecter avec. Les adresses e-mail ne sont pas copiées.",
+  "authorsHint": "{count, plural, one {# auteur devient une page wp_author} other {# auteurs deviennent des pages wp_author}} (identifiant, nom affiché, prénom et nom), et chaque article est relié à son auteur par un champ author_ref. Ce sont des pages de contenu, pas des comptes : personne ne peut se connecter avec. Les adresses e-mail ne sont pas copiées.",
   "comments": "Importer les commentaires",
-  "commentsHint": "Les commentaires approuvés deviennent des entrées wp_comment : nom, texte sans HTML, date, le commentaire auquel ils répondent et l’article auquel ils appartiennent. Les adresses e-mail et IP des auteurs ne sont pas copiées ; les commentaires indésirables ou mis à la corbeille ne sont jamais importés. Dans ce fichier : {approved} approuvés, {pending} en attente, {spam} indésirables ou à la corbeille.",
+  "commentsHint": "Les commentaires approuvés deviennent des pages wp_comment : nom, texte sans HTML, date, le commentaire auquel ils répondent et l’article auquel ils appartiennent. Les adresses e-mail et IP des auteurs ne sont pas copiées ; les commentaires indésirables ou mis à la corbeille ne sont jamais importés. Dans ce fichier : {approved} approuvés, {pending} en attente, {spam} indésirables ou à la corbeille.",
   "pendingComments": "Inclure les commentaires en attente",
-  "pendingCommentsHint": "Importés comme entrées en attente de relecture."
+  "pendingCommentsHint": "Importés comme pages en attente de relecture."
 }

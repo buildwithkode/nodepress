@@ -53,8 +53,8 @@
     "edits": "编辑：{modules}",
     "views": "查看：{modules}",
     "nothing": "无任何模块访问权限",
-    "noPublish": "不能发布条目",
-    "noDelete": "不能删除条目",
+    "noPublish": "不能发布页面",
+    "noDelete": "不能删除页面",
     "loadFailed": "无法加载角色访问权限。"
   },
   "add": {
@@ -175,7 +175,7 @@
       "items": {
         "content": {
           "label": "内容",
-          "description": "所有内容类型的条目"
+          "description": "所有内容类型的页面"
         },
         "option_lists": {
           "label": "选项列表",
@@ -250,7 +250,7 @@
       "asDefault": "与默认相同",
       "fromPlugin": "来自 {plugin}",
       "powerful": "此处的编辑权限接近管理员权限——只授予你信任的人。",
-      "adminOnlyNote": "角色与权限、安装插件以及永久删除条目仍仅限管理员。管理员始终拥有全部权限。"
+      "adminOnlyNote": "角色与权限、安装插件以及永久删除页面仍仅限管理员。管理员始终拥有全部权限。"
     }
   },
   "profile": {

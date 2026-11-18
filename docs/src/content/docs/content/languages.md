@@ -21,7 +21,7 @@ A new install has one language, `en`.
 
 ## Translating in the editor
 
-In the entry editor, the **Language** switcher sits under the toolbar and stays in view while you scroll: one tab per enabled language, each with a dot for its status (green published, purple staging, blue in review, amber draft). The **Fields** heading shows which language you're editing.
+In the page editor, the **Language** switcher sits under the toolbar and stays in view while you scroll: one tab per enabled language, each with a dot for its status (green published, purple staging, blue in review, amber draft). The **Fields** heading shows which language you're editing.
 
 - Click a tab to open that language. What you typed is saved first, the same way autosave does, so nothing is lost.
 - A dashed **+ Language** tab creates the entry in that language as a **draft**, with a copy of the current content to translate, and opens it. If the translation exists already, the editor opens it.
@@ -29,9 +29,9 @@ In the entry editor, the **Language** switcher sits under the toolbar and stays 
 
 When you create a new entry, pick its language in the language selector. It starts on the default language.
 
-## The entries list
+## The pages list
 
-With more than one language, the entries list shows **one language at a time**. Pick it with the language switcher above the list (**文A English ▾**); it opens in the default language, then in the last one you picked in that browser. Every row, its status and its actions belong to that language, so publishing or deleting from the list never touches another language.
+With more than one language, the pages list shows **one language at a time**. Pick it with the language switcher above the list (**文A English ▾**); it opens in the default language, then in the last one you picked in that browser. Every row, its status and its actions belong to that language, so publishing or deleting from the list never touches another language.
 
 A **Languages** column shows a chip per language, each in the same place on every row; hover a chip to see that language's status:
 

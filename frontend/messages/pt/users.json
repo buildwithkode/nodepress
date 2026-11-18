@@ -53,8 +53,8 @@
     "edits": "Editar: {modules}",
     "views": "Ver: {modules}",
     "nothing": "Sem acesso a nenhum módulo",
-    "noPublish": "Não pode publicar entradas",
-    "noDelete": "Não pode excluir entradas",
+    "noPublish": "Não pode publicar páginas",
+    "noDelete": "Não pode excluir páginas",
     "loadFailed": "Não foi possível carregar o acesso dos papéis."
   },
   "add": {
@@ -175,7 +175,7 @@
       "items": {
         "content": {
           "label": "Conteúdo",
-          "description": "Entradas de todos os tipos de conteúdo"
+          "description": "Páginas de todos os tipos de conteúdo"
         },
         "option_lists": {
           "label": "Listas de opções",
@@ -250,7 +250,7 @@
       "asDefault": "Igual ao padrão",
       "fromPlugin": "De {plugin}",
       "powerful": "Editar aqui é quase um acesso de administrador — dê apenas a pessoas de confiança.",
-      "adminOnlyNote": "Papéis e permissões, instalação de plugins e exclusão definitiva de entradas continuam restritos a administradores. Administradores sempre têm acesso total."
+      "adminOnlyNote": "Papéis e permissões, instalação de plugins e exclusão definitiva de páginas continuam restritos a administradores. Administradores sempre têm acesso total."
     }
   },
   "profile": {

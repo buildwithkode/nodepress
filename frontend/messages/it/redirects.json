@@ -32,7 +32,7 @@
   "deleteTitle": "Eliminare questo reindirizzamento?",
   "deleteDescription": "I visitatori di {from} riceveranno invece un 404.",
   "count": "{count, plural, one {# reindirizzamento} other {# reindirizzamenti}}",
-  "autoHint": "Quando lo slug di una voce pubblicata cambia, NodePress aggiunge automaticamente un 301 dal vecchio percorso (disattivalo con <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). I percorsi vengono confrontati senza distinzione tra maiuscole e minuscole; una query string corrisponde solo se fa parte dell'origine.",
+  "autoHint": "Quando lo slug di una pagina pubblicata cambia, NodePress aggiunge automaticamente un 301 dal vecchio percorso (disattivalo con <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). I percorsi vengono confrontati senza distinzione tra maiuscole e minuscole; una query string corrisponde solo se fa parte dell'origine.",
   "dialog": {
     "addTitle": "Aggiungi reindirizzamento",
     "editTitle": "Modifica reindirizzamento",

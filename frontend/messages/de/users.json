@@ -53,8 +53,8 @@
     "edits": "Bearbeiten: {modules}",
     "views": "Ansehen: {modules}",
     "nothing": "Kein Zugriff auf Module",
-    "noPublish": "Kann keine Einträge veröffentlichen",
-    "noDelete": "Kann keine Einträge löschen",
+    "noPublish": "Kann keine Seiten veröffentlichen",
+    "noDelete": "Kann keine Seiten löschen",
     "loadFailed": "Rollenzugriffe konnten nicht geladen werden."
   },
   "add": {
@@ -175,7 +175,7 @@
       "items": {
         "content": {
           "label": "Inhalte",
-          "description": "Einträge aller Inhaltstypen"
+          "description": "Seiten aller Inhaltstypen"
         },
         "option_lists": {
           "label": "Optionslisten",
@@ -250,7 +250,7 @@
       "asDefault": "Wie der Standard",
       "fromPlugin": "Von {plugin}",
       "powerful": "Bearbeiten ist hier fast ein Admin-Zugriff — nur für vertrauenswürdige Personen.",
-      "adminOnlyNote": "Rollen und Berechtigungen, das Installieren von Plugins und das endgültige Löschen von Einträgen bleiben Admins vorbehalten. Admins haben immer vollen Zugriff."
+      "adminOnlyNote": "Rollen und Berechtigungen, das Installieren von Plugins und das endgültige Löschen von Seiten bleiben Admins vorbehalten. Admins haben immer vollen Zugriff."
     }
   },
   "profile": {

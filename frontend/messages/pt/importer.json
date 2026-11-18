@@ -1,6 +1,6 @@
 {
   "title": "Importar do WordPress",
-  "intro": "Envie um arquivo de exportação do WordPress (<strong>Ferramentas → Exportar → Todo o conteúdo</strong> no WordPress). Posts, páginas e tipos de post personalizados viram entradas — confira o resumo primeiro e depois execute a importação em segundo plano.",
+  "intro": "Envie um arquivo de exportação do WordPress (<strong>Ferramentas → Exportar → Todo o conteúdo</strong> no WordPress). Posts, páginas e tipos de post personalizados são importados como páginas — confira o resumo primeiro e depois execute a importação em segundo plano.",
   "step1": "1. Escolha o arquivo de exportação",
   "chooseFile": "Escolher arquivo",
   "changeFile": "Escolher outro arquivo",
@@ -13,7 +13,7 @@
   "wxrVersion": "WXR {version}",
   "totals": "{total, plural, one {# item} other {# itens}} para importar · {attachments, plural, one {# anexo} other {# anexos}} · {skipped} ignorados",
   "colContentType": "Tipo de conteúdo",
-  "colEntries": "Entradas",
+  "colEntries": "Páginas",
   "colStatuses": "Status",
   "colExisting": "Já existentes",
   "typeExists": "existe",
@@ -22,8 +22,8 @@
   "sample": "Primeiros itens",
   "importMedia": "Importar mídia",
   "importMediaHint": "Baixa os anexos (imagens, SVG, PDF, MP4 de até {size} MB cada) para a biblioteca de mídia e aponta as imagens destacadas e o conteúdo para as novas cópias.",
-  "overwrite": "Sobrescrever entradas existentes",
-  "overwriteHint": "Entradas cujo slug já existe são atualizadas (a versão antiga fica no histórico). Caso contrário, são ignoradas.",
+  "overwrite": "Sobrescrever páginas existentes",
+  "overwriteHint": "Páginas cujo slug já existe são atualizadas (a versão antiga fica no histórico). Caso contrário, são ignoradas.",
   "run": "Iniciar importação ({total, plural, one {# item} other {# itens}})",
   "queued": "Importação enfileirada como tarefa #{id}",
   "step3": "3. Importação #{id}",
@@ -35,7 +35,7 @@
   },
   "phase": {
     "media": "Mídia {done} de {total}",
-    "entries": "Entradas {done} de {total}"
+    "entries": "Páginas {done} de {total}"
   },
   "finished": "Importação concluída",
   "failed": "A importação falhou",
@@ -46,18 +46,18 @@
   "colFailed": "Com falha",
   "mediaResult": "Mídia: {imported} importados, {reused} já importados, {failed} com falha",
   "errors": "{count, plural, one {# problema} other {# problemas}}",
-  "viewEntries": "Ver entradas →",
+  "viewEntries": "Ver páginas →",
   "extras": "Importar também",
   "categoryPaths": "Manter a hierarquia de categorias",
   "categoryPathsHint": "Adiciona um campo category_paths com caminhos completos como “Pai/Filho” ao lado dos nomes das categorias. {count, plural, =0 {Este arquivo não tem categorias aninhadas.} one {# categoria aninhada neste arquivo.} other {# categorias aninhadas neste arquivo.}}",
   "taxonomies": "Importar taxonomias personalizadas",
-  "taxonomiesHint": "Adiciona um campo taxonomies — os termos agrupados por taxonomia — às entradas que as usam.",
+  "taxonomiesHint": "Adiciona um campo taxonomies — os termos agrupados por taxonomia — às páginas que as usam.",
   "taxonomiesFound": "Neste arquivo: {list}.",
   "taxonomiesNone": "Este arquivo não tem taxonomias personalizadas.",
   "authors": "Importar autores como conteúdo",
-  "authorsHint": "{count, plural, one {# autor se torna uma entrada wp_author} other {# autores se tornam entradas wp_author}} (login, nome de exibição, nome e sobrenome), e cada post é ligado ao seu autor por um campo author_ref. São entradas de conteúdo, não contas de acesso — ninguém pode entrar com elas. Endereços de e-mail não são copiados.",
+  "authorsHint": "{count, plural, one {# autor se torna uma página wp_author} other {# autores se tornam páginas wp_author}} (login, nome de exibição, nome e sobrenome), e cada post é ligado ao seu autor por um campo author_ref. São páginas de conteúdo, não contas de acesso — ninguém pode entrar com elas. Endereços de e-mail não são copiados.",
   "comments": "Importar comentários",
-  "commentsHint": "Comentários aprovados se tornam entradas wp_comment: nome, texto sem HTML, data, o comentário a que respondem e o post a que pertencem. E-mail e IP de quem comenta não são copiados; spam e comentários na lixeira nunca são importados. Neste arquivo: {approved} aprovados, {pending} pendentes, {spam} spam ou lixeira.",
+  "commentsHint": "Comentários aprovados se tornam páginas wp_comment: nome, texto sem HTML, data, o comentário a que respondem e o post a que pertencem. E-mail e IP de quem comenta não são copiados; spam e comentários na lixeira nunca são importados. Neste arquivo: {approved} aprovados, {pending} pendentes, {spam} spam ou lixeira.",
   "pendingComments": "Incluir comentários pendentes",
-  "pendingCommentsHint": "Importados como entradas aguardando revisão."
+  "pendingCommentsHint": "Importados como páginas aguardando revisão."
 }

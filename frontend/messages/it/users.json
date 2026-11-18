@@ -53,8 +53,8 @@
     "edits": "Modifica: {modules}",
     "views": "Visualizza: {modules}",
     "nothing": "Nessun accesso ai moduli",
-    "noPublish": "Non può pubblicare voci",
-    "noDelete": "Non può eliminare voci",
+    "noPublish": "Non può pubblicare pagine",
+    "noDelete": "Non può eliminare pagine",
     "loadFailed": "Impossibile caricare gli accessi dei ruoli."
   },
   "add": {
@@ -175,7 +175,7 @@
       "items": {
         "content": {
           "label": "Contenuti",
-          "description": "Le voci di tutti i tipi di contenuto"
+          "description": "Le pagine di tutti i tipi di contenuto"
         },
         "option_lists": {
           "label": "Elenchi di opzioni",
@@ -250,7 +250,7 @@
       "asDefault": "Come il predefinito",
       "fromPlugin": "Da {plugin}",
       "powerful": "Modifica qui equivale quasi a un accesso da amministratore: concedila solo a persone fidate.",
-      "adminOnlyNote": "Ruoli e permessi, l'installazione di plugin e l'eliminazione definitiva delle voci restano riservati agli amministratori. Gli amministratori hanno sempre accesso completo."
+      "adminOnlyNote": "Ruoli e permessi, l'installazione di plugin e l'eliminazione definitiva delle pagine restano riservati agli amministratori. Gli amministratori hanno sempre accesso completo."
     }
   },
   "profile": {

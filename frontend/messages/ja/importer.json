@@ -1,6 +1,6 @@
 {
   "title": "WordPress からインポート",
-  "intro": "WordPress のエクスポートファイル (WordPress の <strong>ツール → エクスポート → すべてのコンテンツ</strong>) をアップロードしてください。投稿、固定ページ、カスタム投稿タイプはエントリーになります。まず概要を確認してから、バックグラウンドでインポートを実行します。",
+  "intro": "WordPress のエクスポートファイル (WordPress の <strong>ツール → エクスポート → すべてのコンテンツ</strong>) をアップロードしてください。投稿、固定ページ、カスタム投稿タイプはページとしてインポートされます。まず概要を確認してから、バックグラウンドでインポートを実行します。",
   "step1": "1. エクスポートファイルを選択",
   "chooseFile": "ファイルを選択",
   "changeFile": "別のファイルを選択",
@@ -13,7 +13,7 @@
   "wxrVersion": "WXR {version}",
   "totals": "インポート対象 {total, plural, other {# 件}} · 添付ファイル {attachments, plural, other {# 件}} · スキップ {skipped} 件",
   "colContentType": "コンテンツタイプ",
-  "colEntries": "エントリー",
+  "colEntries": "ページ",
   "colStatuses": "ステータス",
   "colExisting": "既存",
   "typeExists": "既存",
@@ -22,8 +22,8 @@
   "sample": "先頭の項目",
   "importMedia": "メディアをインポート",
   "importMediaHint": "添付ファイル (画像、SVG、PDF、MP4、各 {size} MB まで) をメディアライブラリにダウンロードし、アイキャッチ画像と本文の参照を新しいコピーに置き換えます。",
-  "overwrite": "既存のエントリーを上書き",
-  "overwriteHint": "スラッグが既に存在するエントリーは更新されます (古いバージョンは履歴に残ります)。オフの場合はスキップされます。",
+  "overwrite": "既存のページを上書き",
+  "overwriteHint": "スラッグが既に存在するページは更新されます (古いバージョンは履歴に残ります)。オフの場合はスキップされます。",
   "run": "インポートを開始 ({total, plural, other {# 件}})",
   "queued": "インポートをジョブ #{id} としてキューに追加しました",
   "step3": "3. インポート #{id}",
@@ -35,7 +35,7 @@
   },
   "phase": {
     "media": "メディア {done} / {total}",
-    "entries": "エントリー {done} / {total}"
+    "entries": "ページ {done} / {total}"
   },
   "finished": "インポートが完了しました",
   "failed": "インポートに失敗しました",
@@ -46,18 +46,18 @@
   "colFailed": "失敗",
   "mediaResult": "メディア: {imported} 件インポート、{reused} 件はインポート済み、{failed} 件失敗",
   "errors": "{count, plural, other {# 件の問題}}",
-  "viewEntries": "エントリーを表示 →",
+  "viewEntries": "ページを表示 →",
   "extras": "追加でインポート",
   "categoryPaths": "カテゴリーの階層を保持する",
   "categoryPathsHint": "カテゴリー名に加えて、「親/子」のような完全なパスを持つ category_paths フィールドを追加します。{count, plural, =0 {このファイルには入れ子のカテゴリーはありません。} other {このファイルには入れ子のカテゴリーが # 件あります。}}",
   "taxonomies": "カスタムタクソノミーをインポート",
-  "taxonomiesHint": "タクソノミーごとにまとめたタームを taxonomies フィールドとして、それを使うエントリーに追加します。",
+  "taxonomiesHint": "タクソノミーごとにまとめたタームを taxonomies フィールドとして、それを使うページに追加します。",
   "taxonomiesFound": "このファイル内: {list}。",
   "taxonomiesNone": "このファイルにはカスタムタクソノミーはありません。",
   "authors": "投稿者をコンテンツとしてインポート",
-  "authorsHint": "{count, plural, other {# 人の投稿者が wp_author エントリーになり}}(ログイン名、表示名、名、姓)、各投稿は author_ref フィールドで投稿者にリンクされます。これはコンテンツのエントリーであり、ログインアカウントではありません — 誰もこれでサインインできません。メールアドレスはコピーされません。",
+  "authorsHint": "{count, plural, other {# 人の投稿者が wp_author ページになり}}(ログイン名、表示名、名、姓)、各投稿は author_ref フィールドで投稿者にリンクされます。これはコンテンツのページであり、ログインアカウントではありません — 誰もこれでサインインできません。メールアドレスはコピーされません。",
   "comments": "コメントをインポート",
-  "commentsHint": "承認済みのコメントは wp_comment エントリーになります: 名前、HTML を除いた本文、日付、返信先のコメント、属する投稿。コメント投稿者のメールアドレスと IP アドレスはコピーされず、スパムやゴミ箱のコメントはインポートされません。このファイル内: 承認済み {approved} 件、保留中 {pending} 件、スパム/ゴミ箱 {spam} 件。",
+  "commentsHint": "承認済みのコメントは wp_comment ページになります: 名前、HTML を除いた本文、日付、返信先のコメント、属する投稿。コメント投稿者のメールアドレスと IP アドレスはコピーされず、スパムやゴミ箱のコメントはインポートされません。このファイル内: 承認済み {approved} 件、保留中 {pending} 件、スパム/ゴミ箱 {spam} 件。",
   "pendingComments": "保留中のコメントも含める",
-  "pendingCommentsHint": "レビュー待ちのエントリーとしてインポートされます。"
+  "pendingCommentsHint": "レビュー待ちのページとしてインポートされます。"
 }

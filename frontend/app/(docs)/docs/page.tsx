@@ -97,7 +97,7 @@ const TOPICS: { title: string; pages: [string, string][] }[] = [
     ['Conditional fields', 'content-modeling/conditional-fields'], ['Schema changes', 'content-modeling/schema-changes'],
   ] },
   { title: 'Managing content', pages: [
-    ['Entries', 'content/entries'], ['Versions', 'content/versions'], ['Releases', 'content/releases'],
+    ['Pages', 'content/entries'], ['Versions', 'content/versions'], ['Releases', 'content/releases'],
     ['Languages', 'content/languages'], ['Media', 'content/media'], ['Live preview', 'content/live-preview'],
     ['SEO', 'content/seo'], ['Redirects', 'content/redirects'], ['Forms', 'content/forms'],
     ['Starter templates', 'content/templates'], ['Site export and import', 'content/site-export'], ['AI assistance', 'content/ai'],

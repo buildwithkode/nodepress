@@ -1,16 +1,16 @@
 {
   "title": "Painel",
   "subtitle": "Veja o que está acontecendo com o seu conteúdo.",
-  "newEntry": "Nova entrada",
+  "newEntry": "Nova página",
   "overview": "Visão geral",
   "viewAll": "Ver tudo",
   "createOne": "Criar um",
   "fieldCount": "{count, plural, one {# campo} other {# campos}}",
-  "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+  "entryCount": "{count, plural, one {# página} other {# páginas}}",
   "stats": {
     "contentTypes": "Tipos de conteúdo",
     "contentTypesSub": "esquemas no total",
-    "totalEntries": "Total de entradas",
+    "totalEntries": "Total de páginas",
     "totalEntriesSub": "em todos os tipos",
     "mediaFiles": "Arquivos de mídia",
     "mediaFilesSub": "arquivos enviados",
@@ -22,7 +22,7 @@
     "submissionsSub": "respostas no total"
   },
   "pendingReview": {
-    "message": "{count, plural, one {<b>#</b> entrada aguardando revisão} other {<b>#</b> entradas aguardando revisão}}",
+    "message": "{count, plural, one {<b>#</b> página aguardando revisão} other {<b>#</b> páginas aguardando revisão}}",
     "action": "Revisar agora →"
   },
   "contentTypes": {
@@ -32,8 +32,8 @@
     "pendingBadge": "Pendentes: {count}"
   },
   "recentEntries": {
-    "title": "Entradas recentes",
-    "empty": "Nenhuma entrada ainda."
+    "title": "Páginas recentes",
+    "empty": "Nenhuma página ainda."
   },
   "forms": {
     "title": "Formulários",

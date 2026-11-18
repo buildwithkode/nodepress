@@ -53,8 +53,8 @@
     "edits": "Modification : {modules}",
     "views": "Lecture : {modules}",
     "nothing": "Aucun accès à un module",
-    "noPublish": "Ne peut pas publier d'entrées",
-    "noDelete": "Ne peut pas supprimer d'entrées",
+    "noPublish": "Ne peut pas publier de pages",
+    "noDelete": "Ne peut pas supprimer de pages",
     "loadFailed": "Impossible de charger les accès des rôles."
   },
   "add": {
@@ -175,7 +175,7 @@
       "items": {
         "content": {
           "label": "Contenu",
-          "description": "Les entrées de tous les types de contenu"
+          "description": "Les pages de tous les types de contenu"
         },
         "option_lists": {
           "label": "Listes d’options",
@@ -250,7 +250,7 @@
       "asDefault": "Comme le défaut",
       "fromPlugin": "De {plugin}",
       "powerful": "La modification ici équivaut presque à un accès administrateur — réservez-la aux personnes de confiance.",
-      "adminOnlyNote": "Les rôles et permissions, l'installation d'extensions et la suppression définitive d'entrées restent réservés aux administrateurs. Les administrateurs ont toujours un accès complet."
+      "adminOnlyNote": "Les rôles et permissions, l'installation d'extensions et la suppression définitive de pages restent réservés aux administrateurs. Les administrateurs ont toujours un accès complet."
     }
   },
   "profile": {

@@ -71,11 +71,11 @@
     "signingSecretHint": "(optioneel — maakt een HMAC-SHA256-handtekening in {header})",
     "triggerEvents": "Triggergebeurtenissen",
     "events": {
-      "entryCreated": "Item aangemaakt",
-      "entryUpdated": "Item bijgewerkt",
-      "entryDeleted": "Item verwijderd",
-      "entryRestored": "Item teruggezet",
-      "entryPurged": "Item gewist",
+      "entryCreated": "Pagina aangemaakt",
+      "entryUpdated": "Pagina bijgewerkt",
+      "entryDeleted": "Pagina verwijderd",
+      "entryRestored": "Pagina teruggezet",
+      "entryPurged": "Pagina gewist",
       "mediaUploaded": "Media geüpload",
       "mediaDeleted": "Media verwijderd"
     },
@@ -177,7 +177,7 @@
     "description": "Elke aanmaak-, wijzig- en verwijderactie, vastgelegd met uitvoerder en tijdstip.",
     "allResources": "Alle resources",
     "resources": {
-      "entry": "Items",
+      "entry": "Pagina's",
       "content_type": "Contenttypes",
       "user": "Gebruikers",
       "api_key": "API-sleutels",

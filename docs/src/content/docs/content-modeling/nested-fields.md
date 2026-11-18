@@ -114,7 +114,7 @@ A flexible field is a page builder: a list of blocks where each block picks a **
 
 Flexible fields also take `minItems` and `maxItems`.
 
-When a block's layout is changed in the entry editor, the values of the old layout's fields are dropped on save — a block only ever holds its own layout's fields (plus `_id`, `_layout` and `_key`).
+When a block's layout is changed in the page editor, the values of the old layout's fields are dropped on save — a block only ever holds its own layout's fields (plus `_id`, `_layout` and `_key`).
 
 ### Section keys
 
@@ -139,7 +139,7 @@ page.data.sections_by_key.closing_quote.text;
 ```
 
 - A layout used **once** in the field is listed under its layout name — no key needed.
-- A layout used **more than once** needs a **section key** on each of its sections. The entry editor marks the **Section key** box as required and won't save without it; the API refuses the entry with `422`.
+- A layout used **more than once** needs a **section key** on each of its sections. The page editor marks the **Section key** box as required and won't save without it; the API refuses the entry with `422`.
 - Keys use lowercase letters, digits and underscores, start with a letter, and are unique within the field. They're stored as `_key` and stay with their section when sections are reordered.
 - A key wins over a layout name of the same spelling. `sections` itself keeps the editor's order, for rendering the page.
 - `<field>_by_key` is only added by REST reads with `?byKey=true` (`{ byKey: true }` in `@nodepress-cms/client`), and never when the content type has a real field of that name. GraphQL exposes `_key` on each section; OpenAPI and [generated types](/cli/generate-types/) describe both.
@@ -186,10 +186,10 @@ Containers can hold containers. This flexible layout holds a repeater of buttons
 
 ## In the admin
 
-The content type editor builds nested fields in place: open a container's settings to add its sub-fields or layouts. In the entry editor, repeater rows and flexible blocks can be added, collapsed, reordered by dragging and removed.
+The content type editor builds nested fields in place: open a container's settings to add its sub-fields or layouts. In the page editor, repeater rows and flexible blocks can be added, collapsed, reordered by dragging and removed.
 
 In an entry, drag a flexible section or a repeater row by its handle to move it. The array in the API follows that order once the entry is saved.
 
 Drag a layout by its handle to change its place in the list. The entry form's **Add Block** menu uses the same order, and saved content doesn't change.
 
-![A flexible Blocks field in the entry editor: a Hero block with a Buttons repeater whose items hold a Link group](../../../assets/screenshots/flexible-field.png)
+![A flexible Blocks field in the page editor: a Hero block with a Buttons repeater whose items hold a Link group](../../../assets/screenshots/flexible-field.png)

@@ -32,7 +32,7 @@
   "deleteTitle": "Diese Weiterleitung löschen?",
   "deleteDescription": "Besucher von {from} erhalten dann einen 404-Fehler.",
   "count": "{count, plural, one {# Weiterleitung} other {# Weiterleitungen}}",
-  "autoHint": "Ändert sich der Slug eines veröffentlichten Eintrags, legt NodePress automatisch eine 301 von seinem alten Pfad an (abschaltbar mit <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Groß- und Kleinschreibung von Pfaden wird ignoriert; ein Query-String passt nur, wenn er Teil der Quelle ist.",
+  "autoHint": "Ändert sich der Slug einer veröffentlichten Seite, legt NodePress automatisch eine 301 von ihrem alten Pfad an (abschaltbar mit <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Groß- und Kleinschreibung von Pfaden wird ignoriert; ein Query-String passt nur, wenn er Teil der Quelle ist.",
   "dialog": {
     "addTitle": "Weiterleitung hinzufügen",
     "editTitle": "Weiterleitung bearbeiten",

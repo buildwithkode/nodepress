@@ -45,16 +45,16 @@
   },
   "languages": {
     "title": "Languages",
-    "subtitle": "The languages editors can write content in. Each entry can have one translation per language; the default language is used when an API request doesn't ask for one, and as the fallback with <code></code>.",
+    "subtitle": "The languages editors can write content in. Each page can have one translation per language; the default language is used when an API request doesn't ask for one, and as the fallback with <code></code>.",
     "enabled": {
       "title": "Enabled languages",
-      "description": "Removing a language keeps its entries; it just stops being offered in the editor.",
-      "entryCount": "{count, plural, one {# entry} other {# entries}}",
+      "description": "Removing a language keeps its pages; it just stops being offered in the editor.",
+      "entryCount": "{count, plural, one {# page} other {# pages}}",
       "default": "Default",
       "makeDefault": "Make default",
-      "removeWithEntries": "{count, plural, one {# entry stays} other {# entries stay}}, but the language is no longer offered",
+      "removeWithEntries": "{count, plural, one {# page stays} other {# pages stay}}, but the language is no longer offered",
       "removeLabel": "Remove {language}",
-      "orphaned": "Entries exist in languages that aren't enabled:",
+      "orphaned": "Pages exist in languages that aren't enabled:",
       "orphanedHint": ". Click one to enable it."
     },
     "saveChanges": "Save changes",

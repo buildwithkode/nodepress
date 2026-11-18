@@ -26,7 +26,7 @@
   "editor": {
     "newTitle": "Nieuwe optielijst",
     "editTitle": "Optielijst bewerken",
-    "hint": "Items slaan de waarde op; de editor en websites tonen het label. Als je een waarde later wijzigt, houden items de oude.",
+    "hint": "Pagina's slaan de waarde op; de editor en websites tonen het label. Als je een waarde later wijzigt, houden pagina's de oude.",
     "label": "Label",
     "labelPlaceholder": "bijv. Land",
     "name": "Naam",
@@ -56,7 +56,7 @@
     "duplicates": "Elke waarde mag maar één keer voorkomen",
     "created": "Optielijst gemaakt",
     "updated": "{count, plural, =0 {Optielijst opgeslagen} one {Optielijst opgeslagen — # contenttype bijgewerkt} other {Optielijst opgeslagen — # contenttypes bijgewerkt}}",
-    "removedInUse": "{count, plural, one {# item bevat nog} other {# items bevatten nog}} een verwijderde waarde en faalt bij de volgende keer opslaan op de validatie: {where}"
+    "removedInUse": "{count, plural, one {# pagina bevat nog} other {# pagina's bevatten nog}} een verwijderde waarde en faalt bij de volgende keer opslaan op de validatie: {where}"
   },
   "picker": {
     "source": "Herkomst van de keuzes",
@@ -72,7 +72,7 @@
     "subFieldHint": "De keuzes van dit subveld komen uit een optielijst",
     "typedChoices": "{count, plural, one {# eigen keuze} other {# eigen keuzes}}",
     "multiple": "Meerdere selecteren",
-    "multipleHint": "Items kunnen meerdere opties aanvinken. Zet dit aan voordat items het veld gebruiken: al opgeslagen items moeten hun waarde opnieuw kiezen."
+    "multipleHint": "Pagina's kunnen meerdere opties aanvinken. Zet dit aan voordat pagina's het veld gebruiken: al opgeslagen pagina's moeten hun waarde opnieuw kiezen."
   },
   "adminOnlyDelete": "Alleen beheerders kunnen een lijst verwijderen"
 }

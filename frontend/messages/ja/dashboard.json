@@ -1,16 +1,16 @@
 {
   "title": "ダッシュボード",
   "subtitle": "コンテンツの最新状況です。",
-  "newEntry": "新規エントリー",
+  "newEntry": "新規ページ",
   "overview": "概要",
   "viewAll": "すべて表示",
   "createOne": "作成する",
   "fieldCount": "{count, plural, other {# 個のフィールド}}",
-  "entryCount": "{count, plural, other {# 件のエントリー}}",
+  "entryCount": "{count, plural, other {# 件のページ}}",
   "stats": {
     "contentTypes": "コンテンツタイプ",
     "contentTypesSub": "スキーマ合計",
-    "totalEntries": "エントリー合計",
+    "totalEntries": "ページ合計",
     "totalEntriesSub": "全タイプ合計",
     "mediaFiles": "メディアファイル",
     "mediaFilesSub": "アップロード済みファイル",
@@ -22,7 +22,7 @@
     "submissionsSub": "回答合計"
   },
   "pendingReview": {
-    "message": "{count, plural, other {<b>#</b> 件のエントリーがレビュー待ちです}}",
+    "message": "{count, plural, other {<b>#</b> 件のページがレビュー待ちです}}",
     "action": "今すぐレビュー →"
   },
   "contentTypes": {
@@ -32,8 +32,8 @@
     "pendingBadge": "{count} 件保留中"
   },
   "recentEntries": {
-    "title": "最近のエントリー",
-    "empty": "エントリーはまだありません。"
+    "title": "最近のページ",
+    "empty": "ページはまだありません。"
   },
   "forms": {
     "title": "フォーム",

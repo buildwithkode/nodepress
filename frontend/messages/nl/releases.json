@@ -1,5 +1,5 @@
 {
-  "entryCount": "{count, plural, one {# item} other {# items}}",
+  "entryCount": "{count, plural, one {# pagina} other {# pagina's}}",
   "statuses": {
     "open": "Open",
     "scheduled": "Ingepland",
@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "Releases",
-    "description": "Bundel wijzigingen aan items — publiceren, depubliceren, archiveren — en zet ze samen live, nu of op een vast tijdstip. Voeg items toe vanuit de itemlijst of de editor van een item.",
+    "description": "Bundel wijzigingen aan pagina's — publiceren, depubliceren, archiveren — en zet ze samen live, nu of op een vast tijdstip. Voeg pagina's toe vanuit de paginalijst of de editor van een pagina.",
     "namePlaceholder": "Naam van nieuwe release, bijv. Lentelancering",
     "empty": "Nog geen releases.",
     "upcoming": "Gepland",
@@ -38,9 +38,9 @@
     "scheduledToast": "Release ingepland",
     "unschedule": "Planning opheffen",
     "unscheduledToast": "Planning verwijderd",
-    "entriesTitle": "Items ({count})",
-    "entriesDescription": "Elk item gaat live zoals het is op het moment van publiceren — je kunt tot dan blijven bewerken. Voeg items toe vanuit de lijst <link>Items</link>.",
-    "noEntries": "Nog geen items.",
+    "entriesTitle": "Pagina's ({count})",
+    "entriesDescription": "Elke pagina gaat live zoals ze is op het moment van publiceren — je kunt tot dan blijven bewerken. Voeg pagina's toe vanuit de lijst <link>Pagina's</link>.",
+    "noEntries": "Nog geen pagina's.",
     "currentStatus": "nu {status}",
     "deletedSkipped": "verwijderd — wordt overgeslagen",
     "conflicts": "Ook in {releases} — de release die als laatste live gaat, wint.",
@@ -48,7 +48,7 @@
     "removeItem": "Uit release verwijderen",
     "deleteRelease": "Release verwijderen",
     "deleteConfirmTitle": "“{name}” verwijderen?",
-    "deleteConfirmDescription": "De release wordt verwijderd. De items blijven precies zoals ze zijn.",
+    "deleteConfirmDescription": "De release wordt verwijderd. De pagina's blijven precies zoals ze zijn.",
     "deleteFailed": "Kon niet verwijderen"
   },
   "addDialog": {
@@ -60,11 +60,11 @@
     "nameRequired": "Geef de release een naam",
     "whenGoesOut": "Wanneer de release live gaat",
     "actionOption": {
-      "publish": "{count, plural, one {Dit item publiceren} other {Deze items publiceren}}",
-      "unpublish": "{count, plural, one {Dit item depubliceren} other {Deze items depubliceren}}",
-      "archive": "{count, plural, one {Dit item archiveren} other {Deze items archiveren}}"
+      "publish": "{count, plural, one {Deze pagina publiceren} other {Deze pagina's publiceren}}",
+      "unpublish": "{count, plural, one {Deze pagina depubliceren} other {Deze pagina's depubliceren}}",
+      "archive": "{count, plural, one {Deze pagina archiveren} other {Deze pagina's archiveren}}"
     },
-    "added": "{count, plural, one {# item toegevoegd} other {# items toegevoegd}} — <link>release openen</link>",
+    "added": "{count, plural, one {# pagina toegevoegd} other {# pagina's toegevoegd}} — <link>release openen</link>",
     "addFailed": "Kon niet aan de release toevoegen"
   }
 }

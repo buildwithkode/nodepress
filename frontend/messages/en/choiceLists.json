@@ -26,7 +26,7 @@
   "editor": {
     "newTitle": "New option list",
     "editTitle": "Edit option list",
-    "hint": "Entries store the value; editors and websites show the label. Changing a value later leaves entries holding the old one.",
+    "hint": "Pages store the value; editors and websites show the label. Changing a value later leaves pages holding the old one.",
     "label": "Label",
     "labelPlaceholder": "e.g. Country",
     "name": "Name",
@@ -56,7 +56,7 @@
     "duplicates": "Each value can appear only once",
     "created": "Option list created",
     "updated": "{count, plural, =0 {Option list saved} one {Option list saved — # content type updated} other {Option list saved — # content types updated}}",
-    "removedInUse": "{count, plural, one {# entry still holds} other {# entries still hold}} a removed value and will fail validation on the next save: {where}"
+    "removedInUse": "{count, plural, one {# page still holds} other {# pages still hold}} a removed value and will fail validation on the next save: {where}"
   },
   "picker": {
     "source": "Where the options come from",
@@ -72,7 +72,7 @@
     "subFieldHint": "Options for this sub-field come from an option list",
     "typedChoices": "{count, plural, one {# typed option} other {# typed options}}",
     "multiple": "Select several",
-    "multipleHint": "Entries can tick more than one option. Turn this on before entries use the field: ones already saved need their value picked again."
+    "multipleHint": "Pages can tick more than one option. Turn this on before pages use the field: ones already saved need their value picked again."
   },
   "adminOnlyDelete": "Only admins can delete a list"
 }

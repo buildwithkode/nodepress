@@ -1,5 +1,5 @@
 {
-  "entryCount": "{count, plural, one {# Eintrag} other {# Einträge}}",
+  "entryCount": "{count, plural, one {# Seite} other {# Seiten}}",
   "statuses": {
     "open": "Offen",
     "scheduled": "Geplant",
@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "Releases",
-    "description": "Bündeln Sie Änderungen an Einträgen — veröffentlichen, zurückziehen, archivieren — und schalten Sie sie gemeinsam live, sofort oder zu einem festen Zeitpunkt. Einträge fügen Sie über die Eintragsliste oder den Editor eines Eintrags hinzu.",
+    "description": "Bündeln Sie Änderungen an Seiten — veröffentlichen, zurückziehen, archivieren — und schalten Sie sie gemeinsam live, sofort oder zu einem festen Zeitpunkt. Seiten fügen Sie über die Seitenliste oder den Editor einer Seite hinzu.",
     "namePlaceholder": "Name des neuen Release, z. B. Frühjahrsstart",
     "empty": "Noch keine Releases.",
     "upcoming": "Anstehend",
@@ -38,9 +38,9 @@
     "scheduledToast": "Release geplant",
     "unschedule": "Planung aufheben",
     "unscheduledToast": "Planung entfernt",
-    "entriesTitle": "Einträge ({count})",
-    "entriesDescription": "Jeder Eintrag geht so live, wie er zum Veröffentlichungszeitpunkt ist — bis dahin können Sie weiter bearbeiten. Einträge fügen Sie über die <link>Eintragsliste</link> hinzu.",
-    "noEntries": "Noch keine Einträge.",
+    "entriesTitle": "Seiten ({count})",
+    "entriesDescription": "Jede Seite geht so live, wie sie zum Veröffentlichungszeitpunkt ist — bis dahin können Sie weiter bearbeiten. Seiten fügen Sie über die <link>Seitenliste</link> hinzu.",
+    "noEntries": "Noch keine Seiten.",
     "currentStatus": "derzeit {status}",
     "deletedSkipped": "gelöscht — wird übersprungen",
     "conflicts": "Auch in {releases} — was zuletzt live geht, gewinnt.",
@@ -48,7 +48,7 @@
     "removeItem": "Aus dem Release entfernen",
     "deleteRelease": "Release löschen",
     "deleteConfirmTitle": "„{name}“ löschen?",
-    "deleteConfirmDescription": "Das Release wird entfernt. Seine Einträge bleiben unverändert.",
+    "deleteConfirmDescription": "Das Release wird entfernt. Seine Seiten bleiben unverändert.",
     "deleteFailed": "Löschen fehlgeschlagen"
   },
   "addDialog": {
@@ -60,11 +60,11 @@
     "nameRequired": "Geben Sie dem Release einen Namen",
     "whenGoesOut": "Wenn das Release live geht",
     "actionOption": {
-      "publish": "{count, plural, one {Diesen Eintrag veröffentlichen} other {Diese Einträge veröffentlichen}}",
-      "unpublish": "{count, plural, one {Diesen Eintrag zurückziehen} other {Diese Einträge zurückziehen}}",
-      "archive": "{count, plural, one {Diesen Eintrag archivieren} other {Diese Einträge archivieren}}"
+      "publish": "{count, plural, one {Diese Seite veröffentlichen} other {Diese Seiten veröffentlichen}}",
+      "unpublish": "{count, plural, one {Diese Seite zurückziehen} other {Diese Seiten zurückziehen}}",
+      "archive": "{count, plural, one {Diese Seite archivieren} other {Diese Seiten archivieren}}"
     },
-    "added": "{count, plural, one {# Eintrag hinzugefügt} other {# Einträge hinzugefügt}} — <link>Release öffnen</link>",
+    "added": "{count, plural, one {# Seite hinzugefügt} other {# Seiten hinzugefügt}} — <link>Release öffnen</link>",
     "addFailed": "Konnte nicht zum Release hinzugefügt werden"
   }
 }

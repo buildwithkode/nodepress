@@ -1,16 +1,16 @@
 {
   "title": "Dashboard",
   "subtitle": "Das passiert gerade mit Ihren Inhalten.",
-  "newEntry": "Neuer Eintrag",
+  "newEntry": "Neue Seite",
   "overview": "Übersicht",
   "viewAll": "Alle anzeigen",
   "createOne": "Jetzt erstellen",
   "fieldCount": "{count, plural, one {# Feld} other {# Felder}}",
-  "entryCount": "{count, plural, one {# Eintrag} other {# Einträge}}",
+  "entryCount": "{count, plural, one {# Seite} other {# Seiten}}",
   "stats": {
     "contentTypes": "Inhaltstypen",
     "contentTypesSub": "Schemas insgesamt",
-    "totalEntries": "Einträge gesamt",
+    "totalEntries": "Seiten gesamt",
     "totalEntriesSub": "über alle Typen",
     "mediaFiles": "Mediendateien",
     "mediaFilesSub": "hochgeladene Dateien",
@@ -22,7 +22,7 @@
     "submissionsSub": "Antworten insgesamt"
   },
   "pendingReview": {
-    "message": "{count, plural, one {<b>#</b> Eintrag wartet auf Prüfung} other {<b>#</b> Einträge warten auf Prüfung}}",
+    "message": "{count, plural, one {<b>#</b> Seite wartet auf Prüfung} other {<b>#</b> Seiten warten auf Prüfung}}",
     "action": "Jetzt prüfen →"
   },
   "contentTypes": {
@@ -32,8 +32,8 @@
     "pendingBadge": "{count} ausstehend"
   },
   "recentEntries": {
-    "title": "Neueste Einträge",
-    "empty": "Noch keine Einträge."
+    "title": "Neueste Seiten",
+    "empty": "Noch keine Seiten."
   },
   "forms": {
     "title": "Formulare",

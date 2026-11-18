@@ -26,7 +26,7 @@
   "editor": {
     "newTitle": "Neue Optionsliste",
     "editTitle": "Optionsliste bearbeiten",
-    "hint": "Einträge speichern den Wert; Editor und Websites zeigen die Bezeichnung. Wird ein Wert später geändert, behalten Einträge den alten.",
+    "hint": "Seiten speichern den Wert; Editor und Websites zeigen die Bezeichnung. Wird ein Wert später geändert, behalten Seiten den alten.",
     "label": "Bezeichnung",
     "labelPlaceholder": "z. B. Land",
     "name": "Name",
@@ -56,7 +56,7 @@
     "duplicates": "Jeder Wert darf nur einmal vorkommen",
     "created": "Optionsliste angelegt",
     "updated": "{count, plural, =0 {Optionsliste gespeichert} one {Optionsliste gespeichert — # Inhaltstyp aktualisiert} other {Optionsliste gespeichert — # Inhaltstypen aktualisiert}}",
-    "removedInUse": "{count, plural, one {# Eintrag enthält noch} other {# Einträge enthalten noch}} einen entfernten Wert und schlagen beim nächsten Speichern bei der Validierung fehl: {where}"
+    "removedInUse": "{count, plural, one {# Seite enthält noch} other {# Seiten enthalten noch}} einen entfernten Wert und schlagen beim nächsten Speichern bei der Validierung fehl: {where}"
   },
   "picker": {
     "source": "Herkunft der Optionen",
@@ -72,7 +72,7 @@
     "subFieldHint": "Die Optionen dieses Unterfelds stammen aus einer Optionsliste",
     "typedChoices": "{count, plural, one {# eigene Option} other {# eigene Optionen}}",
     "multiple": "Mehrfachauswahl",
-    "multipleHint": "Einträge können mehrere Optionen ankreuzen. Schalten Sie dies ein, bevor Einträge das Feld nutzen: Bereits gespeicherte müssen ihren Wert neu wählen."
+    "multipleHint": "Seiten können mehrere Optionen ankreuzen. Schalten Sie dies ein, bevor Seiten das Feld nutzen: Bereits gespeicherte müssen ihren Wert neu wählen."
   },
   "adminOnlyDelete": "Nur Administratoren können eine Liste löschen"
 }

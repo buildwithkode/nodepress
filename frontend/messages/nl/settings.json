@@ -45,16 +45,16 @@
   },
   "languages": {
     "title": "Talen",
-    "subtitle": "De talen waarin redacteuren content kunnen schrijven. Elk item kan één vertaling per taal hebben; de standaardtaal wordt gebruikt als een API-verzoek er niet om vraagt, en als terugvaloptie met <code></code>.",
+    "subtitle": "De talen waarin redacteuren content kunnen schrijven. Elke pagina kan één vertaling per taal hebben; de standaardtaal wordt gebruikt als een API-verzoek er niet om vraagt, en als terugvaloptie met <code></code>.",
     "enabled": {
       "title": "Ingeschakelde talen",
-      "description": "Als je een taal verwijdert, blijven de items ervan bestaan; de taal wordt alleen niet meer aangeboden in de editor.",
-      "entryCount": "{count, plural, one {# item} other {# items}}",
+      "description": "Als je een taal verwijdert, blijven de pagina's ervan bestaan; de taal wordt alleen niet meer aangeboden in de editor.",
+      "entryCount": "{count, plural, one {# pagina} other {# pagina's}}",
       "default": "Standaard",
       "makeDefault": "Als standaard instellen",
-      "removeWithEntries": "{count, plural, one {# item blijft bestaan} other {# items blijven bestaan}}, maar de taal wordt niet meer aangeboden",
+      "removeWithEntries": "{count, plural, one {# pagina blijft bestaan} other {# pagina's blijven bestaan}}, maar de taal wordt niet meer aangeboden",
       "removeLabel": "{language} verwijderen",
-      "orphaned": "Er zijn items in talen die niet zijn ingeschakeld:",
+      "orphaned": "Er zijn pagina's in talen die niet zijn ingeschakeld:",
       "orphanedHint": ". Klik op een taal om die in te schakelen."
     },
     "saveChanges": "Wijzigingen opslaan",

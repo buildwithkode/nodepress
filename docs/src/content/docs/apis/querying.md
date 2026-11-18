@@ -126,7 +126,7 @@ Prefer `where`, which has operators and exact matching.
 | `createdAt:asc` | oldest first |
 | `updatedAt:desc` / `updatedAt:asc` | by last change |
 | `slug:asc` / `slug:desc` | alphabetical by slug |
-| `position:asc` | the order set by dragging rows in the admin's entries list (all languages of a page share it) |
+| `position:asc` | the order set by dragging rows in the admin's pages list (all languages of a page share it) |
 
 Only `createdAt`, `updatedAt` and `slug` can be sorted on. Any other field falls back to `createdAt`, and any direction other than `asc` means `desc`.
 

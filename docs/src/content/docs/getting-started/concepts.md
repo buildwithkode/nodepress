@@ -26,9 +26,9 @@ Fields can contain fields: a **group** holds one fixed set, a **repeater** holds
 
 Sets of fields you use in several content types can be defined once as a [component](/content-modeling/components/). Option lists you reuse (countries, departments) can be defined once as a [option list](/content-modeling/choice-lists/).
 
-## Entries
+## Pages (entries)
 
-An **entry** is one piece of content of a content type: one post, one product. All of an entry's field values are stored together as JSON under `data`:
+A **page**, called an **entry** in the API, is one piece of content of a content type: one post, one product. The admin lists them under **Pages**; the API, webhooks and plugins use the name *entry* (`/api/entries`, `entry.updated`). All of an entry's field values are stored together as JSON under `data`:
 
 ```json
 {

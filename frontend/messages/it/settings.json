@@ -45,16 +45,16 @@
   },
   "languages": {
     "title": "Lingue",
-    "subtitle": "Le lingue in cui gli editor possono scrivere i contenuti. Ogni voce può avere una traduzione per lingua; la lingua predefinita viene usata quando una richiesta API non ne specifica una, e come fallback con <code></code>.",
+    "subtitle": "Le lingue in cui gli editor possono scrivere i contenuti. Ogni pagina può avere una traduzione per lingua; la lingua predefinita viene usata quando una richiesta API non ne specifica una, e come fallback con <code></code>.",
     "enabled": {
       "title": "Lingue attive",
-      "description": "Rimuovere una lingua mantiene le sue voci; semplicemente non viene più proposta nell'editor.",
-      "entryCount": "{count, plural, one {# voce} other {# voci}}",
+      "description": "Rimuovere una lingua mantiene le sue pagine; semplicemente non viene più proposta nell'editor.",
+      "entryCount": "{count, plural, one {# pagina} other {# pagine}}",
       "default": "Predefinita",
       "makeDefault": "Imposta come predefinita",
-      "removeWithEntries": "{count, plural, one {# voce resta} other {# voci restano}}, ma la lingua non viene più proposta",
+      "removeWithEntries": "{count, plural, one {# pagina resta} other {# pagine restano}}, ma la lingua non viene più proposta",
       "removeLabel": "Rimuovi {language}",
-      "orphaned": "Esistono voci in lingue non attive:",
+      "orphaned": "Esistono pagine in lingue non attive:",
       "orphanedHint": ". Fai clic su una per attivarla."
     },
     "saveChanges": "Salva modifiche",

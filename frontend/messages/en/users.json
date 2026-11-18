@@ -53,8 +53,8 @@
     "edits": "Edit: {modules}",
     "views": "View: {modules}",
     "nothing": "No access to any module",
-    "noPublish": "Can't publish entries",
-    "noDelete": "Can't delete entries",
+    "noPublish": "Can't publish pages",
+    "noDelete": "Can't delete pages",
     "loadFailed": "Couldn't load role access."
   },
   "add": {
@@ -175,7 +175,7 @@
       "items": {
         "content": {
           "label": "Content",
-          "description": "Entries of every content type"
+          "description": "Pages of every content type"
         },
         "option_lists": {
           "label": "Option lists",
@@ -250,7 +250,7 @@
       "asDefault": "Same as the default",
       "fromPlugin": "From {plugin}",
       "powerful": "Edit here is close to admin access — give it only to people you trust.",
-      "adminOnlyNote": "Roles and permissions, installing plugins and permanently deleting entries stay admin-only. Admins always have full access."
+      "adminOnlyNote": "Roles and permissions, installing plugins and permanently deleting pages stay admin-only. Admins always have full access."
     }
   },
   "profile": {

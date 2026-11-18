@@ -32,7 +32,7 @@
   "deleteTitle": "Deze doorverwijzing verwijderen?",
   "deleteDescription": "Bezoekers van {from} krijgen dan een 404.",
   "count": "{count, plural, one {# doorverwijzing} other {# doorverwijzingen}}",
-  "autoHint": "Als de slug van een gepubliceerd item verandert, voegt NodePress automatisch een 301 toe vanaf het oude pad (uitschakelen met <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Paden worden hoofdletterongevoelig vergeleken; een querystring komt alleen overeen als die deel uitmaakt van de bron.",
+  "autoHint": "Als de slug van een gepubliceerde pagina verandert, voegt NodePress automatisch een 301 toe vanaf het oude pad (uitschakelen met <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Paden worden hoofdletterongevoelig vergeleken; een querystring komt alleen overeen als die deel uitmaakt van de bron.",
   "dialog": {
     "addTitle": "Doorverwijzing toevoegen",
     "editTitle": "Doorverwijzing bewerken",

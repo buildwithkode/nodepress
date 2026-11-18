@@ -13,7 +13,7 @@
   "inUse": "Utilisé — retirez-le d'abord de ces types de contenu",
   "cancel": "Annuler",
   "deleteTitle": "Supprimer « {name} » ?",
-  "deleteDescription": "Le composant est définitivement supprimé. Aucun type de contenu ne l'utilise, donc aucune entrée n'est affectée.",
+  "deleteDescription": "Le composant est définitivement supprimé. Aucun type de contenu ne l'utilise, donc aucune page n'est affectée.",
   "columns": {
     "number": "N°",
     "name": "Nom",
@@ -70,7 +70,7 @@
     "confirm": "Ajouter",
     "inline": "Intégré",
     "inlineHint": "Ses champs, ajoutés directement",
-    "inlineNote": "Les champs sont ajoutés directement à ce type de contenu : les entrées les stockent à plat. Ils restent synchronisés avec le composant.",
+    "inlineNote": "Les champs sont ajoutés directement à ce type de contenu : les pages les stockent à plat. Ils restent synchronisés avec le composant.",
     "keyTaken": "Ce type de contenu a déjà un champ avec la clé {key}.",
     "inlineKeysTaken": "Ces champs entrent en conflit avec des clés existantes : {keys}",
     "fieldKey": "Clé du champ :"

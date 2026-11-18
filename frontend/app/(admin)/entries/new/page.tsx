@@ -366,7 +366,7 @@ export default function NewEntryPage() {
                     return (
                       <Input
                         id="slug"
-                        placeholder="my-entry-slug"
+                        placeholder="my-page-slug"
                         {...slugReg}
                         onChange={(e) => {
                           slugManualRef.current = true;

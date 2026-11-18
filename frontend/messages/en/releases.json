@@ -1,5 +1,5 @@
 {
-  "entryCount": "{count, plural, one {# entry} other {# entries}}",
+  "entryCount": "{count, plural, one {# page} other {# pages}}",
   "statuses": {
     "open": "Open",
     "scheduled": "Scheduled",
@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "Releases",
-    "description": "Group entry changes — publish, unpublish, archive — and put them live together, now or at a set time. Add entries from the Entries list or an entry’s editor.",
+    "description": "Group page changes — publish, unpublish, archive — and put them live together, now or at a set time. Add pages from the Pages list or a page’s editor.",
     "namePlaceholder": "New release name, e.g. Spring launch",
     "empty": "No releases yet.",
     "upcoming": "Upcoming",
@@ -38,9 +38,9 @@
     "scheduledToast": "Release scheduled",
     "unschedule": "Unschedule",
     "unscheduledToast": "Schedule removed",
-    "entriesTitle": "Entries ({count})",
-    "entriesDescription": "Each entry goes out as it is at publish time — keep editing until then. Add entries from the <link>Entries</link> list.",
-    "noEntries": "No entries yet.",
+    "entriesTitle": "Pages ({count})",
+    "entriesDescription": "Each page goes out as it is at publish time — keep editing until then. Add pages from the <link>Pages</link> list.",
+    "noEntries": "No pages yet.",
     "currentStatus": "now {status}",
     "deletedSkipped": "deleted — will be skipped",
     "conflicts": "Also in {releases} — whichever goes out last wins.",
@@ -48,7 +48,7 @@
     "removeItem": "Remove from release",
     "deleteRelease": "Delete release",
     "deleteConfirmTitle": "Delete “{name}”?",
-    "deleteConfirmDescription": "The release is removed. Its entries stay exactly as they are.",
+    "deleteConfirmDescription": "The release is removed. Its pages stay exactly as they are.",
     "deleteFailed": "Could not delete"
   },
   "addDialog": {
@@ -60,11 +60,11 @@
     "nameRequired": "Name the release",
     "whenGoesOut": "When the release goes out",
     "actionOption": {
-      "publish": "{count, plural, one {Publish this entry} other {Publish these entries}}",
-      "unpublish": "{count, plural, one {Unpublish this entry} other {Unpublish these entries}}",
-      "archive": "{count, plural, one {Archive this entry} other {Archive these entries}}"
+      "publish": "{count, plural, one {Publish this page} other {Publish these pages}}",
+      "unpublish": "{count, plural, one {Unpublish this page} other {Unpublish these pages}}",
+      "archive": "{count, plural, one {Archive this page} other {Archive these pages}}"
     },
-    "added": "{count, plural, one {Added # entry} other {Added # entries}} — <link>open release</link>",
+    "added": "{count, plural, one {Added # page} other {Added # pages}} — <link>open release</link>",
     "addFailed": "Could not add to the release"
   }
 }

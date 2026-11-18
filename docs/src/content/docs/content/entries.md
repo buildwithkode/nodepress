@@ -1,15 +1,21 @@
 ---
-title: Entries
-description: Create and edit entries in the admin, work with slugs and statuses, schedule publishing and unpublishing, review contributors' work with notes, share previews, and use the trash.
+title: Pages
+description: Create and edit pages (entries) in the admin, work with slugs and statuses, schedule publishing and unpublishing, review contributors' work with notes, share previews, and use the trash.
 sidebar:
   order: 1
 ---
 
-An entry is one piece of content of a content type: one post, one product, one page. You write entries in the admin under **Entries**, and your site reads them from the API. This page covers the editor and everything around it: slugs, statuses, review, scheduling, the trash and bulk actions.
+A page is one piece of content of a content type: one post, one product, one team member. You write pages in the admin under **Pages**, and your site reads them from the API.
+
+:::note[Pages and entries]
+The admin calls them **pages**. The API, webhooks, plugins and data keep the name **entries**: `/api/entries`, `entry.updated`, `entry.beforeCreate`, `entryId`. Both words mean the same thing, so code written for earlier versions keeps working. The rest of these docs often say *entry*.
+:::
+
+This page covers the editor and everything around it: slugs, statuses, review, scheduling, the trash and bulk actions.
 
 ## Creating an entry
 
-Open **Entries**, pick a content type and click **New Entry**. The form shows one input per field of the content type's schema (see [Fields](/content-modeling/fields/)). Choose a status and a language at the top, then click **Create Entry** (or **Publish** when the status is Published).
+Open **Pages**, pick a content type and click **New Page**. The form shows one input per field of the content type's schema (see [Fields](/content-modeling/fields/)). Choose a status and a language at the top, then click **Create Page** (or **Publish** when the status is Published).
 
 ![The New Entry form with the language and status selectors, the slug field and the content type fields](../../../assets/screenshots/entry-new.png)
 
@@ -42,9 +48,9 @@ An entry in the trash still holds its slug. To reuse the slug, purge the trashed
 | **Published** (`published`) | Live | Visible to everyone |
 | **Archived** (`archived`) | Retired | Hidden |
 
-Pick the status in the editor's status selector and save, or click an entry's status badge in the entries list and pick one there: it changes straight away. The list shows published entries as **Production**. Its menu only offers the statuses your role may set. Putting an entry on Production, or taking it off, asks you to confirm first, since visitors see that straight away; the other moves are instant. The message that follows has an **Undo** button. With several languages the list shows one language at a time, so the menu changes that language only. Picking any status other than Draft cancels a scheduled publish.
+Pick the status in the editor's status selector and save, or click an entry's status badge in the pages list and pick one there: it changes straight away. The list shows published entries as **Production**. Its menu only offers the statuses your role may set. Putting an entry on Production, or taking it off, asks you to confirm first, since visitors see that straight away; the other moves are instant. The message that follows has an **Undo** button. With several languages the list shows one language at a time, so the menu changes that language only. Picking any status other than Draft cancels a scheduled publish.
 
-![The status menu open on a draft entry in the entries list, with Draft, Pending Review, Staging (QA), Production and Archived](../../../assets/screenshots/entries-status-menu.png)
+![The status menu open on a draft entry in the pages list, with Draft, Pending Review, Staging (QA), Production and Archived](../../../assets/screenshots/entries-status-menu.png)
 
 Unpublished stages can be read through the API with `?stage=draft`, `staging` or `all` and a login token or API key. See [REST API](/apis/rest/).
 
@@ -57,21 +63,21 @@ A published entry has no separate draft copy. Saving it, including an autosave, 
 Contributors can create and edit entries but not publish them (this is the default; admins can change it under **Users → Permissions**, see [Permissions](/access-control/permissions/)).
 
 1. A contributor writes the entry and sets it to **Pending review**, or selects entries in the list and clicks **Submit for Review**.
-2. The entries list shows how many entries are waiting, per content type. **Show Pending Reviews** filters to them.
-3. An editor or admin opens the entry. A banner offers **Approve & Publish** or **Return to Draft**. **Return to Draft** asks for an optional note saying what to change. Picking **Draft** on a row waiting for review in the entries list asks for the same note.
+2. The pages list shows how many entries are waiting, per content type. **Show Pending Reviews** filters to them.
+3. An editor or admin opens the entry. A banner offers **Approve & Publish** or **Return to Draft**. **Return to Draft** asks for an optional note saying what to change. Picking **Draft** on a row waiting for review in the pages list asks for the same note.
 
 ### Review notes
 
 Notes are how a reviewer and a writer talk about an entry without leaving the admin.
 
-![A change request at the top of the entry editor with Mark as done, above the Review notes panel with the note's history and a box for a new note](../../../assets/screenshots/review-notes.png)
+![A change request at the top of the page editor with Mark as done, above the Review notes panel with the note's history and a box for a new note](../../../assets/screenshots/review-notes.png)
 
-- **A note sent back with the entry is a change request.** The writer sees it at the top of the editor, in an amber box, and the entries list shows a speech-bubble badge with the number of open requests next to the slug.
+- **A note sent back with the entry is a change request.** The writer sees it at the top of the editor, in an amber box, and the pages list shows a speech-bubble badge with the number of open requests next to the slug.
 - **Closing a request.** The writer clicks **Mark as done**, or sends the entry back to Pending review, which closes every open request on it. Publishing the entry closes them too.
 - **The Review notes panel** under the editor's toolbar keeps every note with its author and time. Anyone who may edit or publish the entry can add a note; while the entry is waiting for review, **Send back with note** sends it back to Draft in one step. A closed request can be reopened. Notes can be deleted by their author or an admin.
 - Viewers can read notes but not write them. Notes are not part of the entry's data, its versions or the public API.
 
-![The entries list with an open change request badge on one row and an "Ends 23 Nov" line under a Production status](../../../assets/screenshots/entries-review-badges.png)
+![The pages list with an open change request badge on one row and an "Ends 23 Nov" line under a Production status](../../../assets/screenshots/entries-review-badges.png)
 
 A contributor who tries to save an entry as Published gets an error. New entries default to Published in the editor, so contributors should pick Draft or Pending review before creating one.
 
@@ -82,7 +88,7 @@ A draft can publish itself at a set time.
 1. Set the status to **Draft**. The **Scheduled Publish** field appears.
 2. Pick a date and time, and save.
 
-NodePress checks every minute and publishes drafts whose time has passed. The entries list marks scheduled entries with **Scheduled** and the date. To cancel, clear the field and save. Publishing the entry by hand also clears the schedule.
+NodePress checks every minute and publishes drafts whose time has passed. The pages list marks scheduled entries with **Scheduled** and the date. To cancel, clear the field and save. Publishing the entry by hand also clears the schedule.
 
 Through the API, send `publishAt` (an ISO date-time) with `status: "draft"` to `POST /api/entries` or `PUT /api/entries/:id`, and `publishAt: null` to clear it.
 
@@ -95,7 +101,7 @@ An entry can take itself off the site at a set time, for an offer, an event or a
 1. Open the entry and pick a date and time in **Unpublish on**.
 2. Save.
 
-NodePress checks every minute. When the time passes, a published entry goes back to **Draft**, the date is cleared, and the `entry.updated` webhook fires with `scheduledUnpublish: true`. The entries list shows **Ends** and the date under the status of a published entry that has one. To cancel, clear the field and save. An entry that isn't published when the time comes is left alone.
+NodePress checks every minute. When the time passes, a published entry goes back to **Draft**, the date is cleared, and the `entry.updated` webhook fires with `scheduledUnpublish: true`. The pages list shows **Ends** and the date under the status of a published entry that has one. To cancel, clear the field and save. An entry that isn't published when the time comes is left alone.
 
 Through the API, send `unpublishAt` (an ISO date-time) to `POST /api/entries` or `PUT /api/entries/:id`, and `unpublishAt: null` to clear it. It works together with `publishAt`: a draft can publish on Monday and unpublish on Friday.
 
@@ -127,7 +133,7 @@ Every save, autosaves included, keeps a [version](/content/versions/) of the ent
 
 ## Editing together
 
-The top bar shows the faces (initials) of the other people who have the admin open, beside your own. Click them to see who is where, for example **Entries › Pages › contact (EN)**, and click a person to open that page. When you're the only one signed in, nothing is shown.
+The top bar shows the faces (initials) of the other people who have the admin open, beside your own. Click them to see who is where, for example **Pages › Guides › getting-started (EN)**, and click a person to open that page. When you're the only one signed in, nothing is shown.
 
 ![The Online now menu in the top bar: one person on Media, another editing an entry of Guides](../../../assets/screenshots/online-users.png)
 
@@ -161,11 +167,11 @@ The API returns them in the entry's `seo` object (or `seo: null`). Your site ren
 - **Draft with AI** fills the fields from a description, when [AI help](/content/ai/) is turned on.
 - **Version History** lists earlier versions. See [Versions](/content/versions/).
 
-## The entries list
+## The pages list
 
 The list shows the entries of one content type, 10 per page, numbered (**Sr. No.**), loading each page from the server, so a content type can hold any number of entries. The bar above it searches the slug (any part of it, so `serv` finds `services`) and whole words in field values, and filters by language and status; occasional tasks (export, import, schema, permissions) are in the tools menu beside **New Entry**. On a narrow screen the table keeps every column and scrolls sideways.
 
-![The entries list of a Guides content type: toolbar, Sr. No. with drag handles, language chips, status badges and paging](../../../assets/screenshots/entries-list.png)
+![The pages list of a Guides content type: toolbar, Sr. No. with drag handles, language chips, status badges and paging](../../../assets/screenshots/entries-list.png)
 
 New entries start at the top. To change the order, drag a row by its handle next to the number. The order is saved at once, all languages of a page move together, and dragging on one page of the list leaves the other pages where they were. Your site can use the same order with `?sort=position:asc` (see [Querying](/apis/querying/#sorting)). Reordering doesn't change an entry's **Updated** date. Anyone else with the list open sees the new order straight away.
 
@@ -200,7 +206,7 @@ A bulk action checks the user's permission for every content type involved, and 
 
 ## Trash
 
-Deleting an entry moves it to the **Recycle Bin**. Trashed entries are hidden from the API and from the entries list, and they stay there until someone acts on them:
+Deleting an entry moves it to the **Recycle Bin**. Trashed entries are hidden from the API and from the pages list, and they stay there until someone acts on them:
 
 - **Restore** brings the entry back with its status and data (admins and editors).
 - **Purge** deletes it and all its versions for good (admins only).
@@ -209,10 +215,10 @@ Through the API: `DELETE /api/entries/:id` moves an entry to the trash, `POST /a
 
 ## Import and export
 
-Editors and admins can export a content type's entries (everything except the trash) as JSON or CSV, and import entries from a JSON or CSV file. Both are in the tools menu next to **New Entry**, with **Edit schema** and **Permissions**:
+Editors and admins can export a content type's entries (everything except the trash) as JSON or CSV, and import entries from a JSON or CSV file. Both are in the tools menu next to **New Page**, with **Edit schema** and **Permissions**:
 
 - **Import…** runs a dry run first and shows each row as **Create** or **Update**, with any problems.
-- Rows are matched to existing entries by slug and language. With **Update duplicate entries** on (the default), matching entries are updated; otherwise they're skipped.
+- Rows are matched to existing entries by slug and language. With **Update duplicate pages** on (the default), matching entries are updated; otherwise they're skipped.
 - Imported rows without a status become drafts.
 
 To move every content type and entry to another NodePress site at once, use a [site export](/content/site-export/).

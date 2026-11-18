@@ -30,7 +30,7 @@ Choose the file and click **Check file**. Nothing is imported yet. The review sh
 | Option | What it does |
 |---|---|
 | **Import media** | Downloads attachments (JPEG, PNG, GIF, WebP, SVG, PDF and MP4, up to [`MEDIA_MAX_MB`](/reference/environment-variables/) each — 10 MB unless you raise it) into the media library, in a folder named "WordPress import". Featured images, ACF image fields and every link to a file — in the content and in custom fields, including WordPress's resized copies such as `photo-300x200.jpg` — then point at the new copies. Without it, entries keep pointing at the files on your WordPress site. |
-| **Overwrite existing entries** | Updates entries whose slug already exists (their previous content is kept in their [version history](/content/versions/)). Without it they're skipped. |
+| **Overwrite existing pages** | Updates entries whose slug already exists (their previous content is kept in their [version history](/content/versions/)). Without it they're skipped. |
 | **Keep the category hierarchy** | Adds a `category_paths` field with full paths such as `Parent/Child`, next to the plain category names. |
 | **Import custom taxonomies** | Adds a `taxonomies` field, `{ "taxonomy": ["term", …] }`, to entries that use custom taxonomies. |
 | **Import authors as content** | Creates a `wp_author` entry per author (login, display name, first and last name) and links each post to it through an `author_ref` field. These are content entries, not login accounts. Email addresses aren't copied. |

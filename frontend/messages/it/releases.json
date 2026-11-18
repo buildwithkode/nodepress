@@ -1,5 +1,5 @@
 {
-  "entryCount": "{count, plural, one {# voce} other {# voci}}",
+  "entryCount": "{count, plural, one {# pagina} other {# pagine}}",
   "statuses": {
     "open": "Aperta",
     "scheduled": "Programmata",
@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "Release",
-    "description": "Raggruppa le modifiche alle voci (pubblica, annulla pubblicazione, archivia) e mettile online insieme, subito o a un'ora stabilita. Aggiungi voci dall'elenco Voci o dall'editor di una voce.",
+    "description": "Raggruppa le modifiche alle pagine (pubblica, annulla pubblicazione, archivia) e mettile online insieme, subito o a un'ora stabilita. Aggiungi pagine dall'elenco Pagine o dall'editor di una pagina.",
     "namePlaceholder": "Nome della nuova release, es. Lancio di primavera",
     "empty": "Ancora nessuna release.",
     "upcoming": "In arrivo",
@@ -38,9 +38,9 @@
     "scheduledToast": "Release programmata",
     "unschedule": "Annulla programmazione",
     "unscheduledToast": "Programmazione rimossa",
-    "entriesTitle": "Voci ({count})",
-    "entriesDescription": "Ogni voce viene pubblicata così com'è al momento della pubblicazione: puoi continuare a modificarla fino ad allora. Aggiungi voci dall'elenco <link>Voci</link>.",
-    "noEntries": "Ancora nessuna voce.",
+    "entriesTitle": "Pagine ({count})",
+    "entriesDescription": "Ogni pagina viene pubblicata così com'è al momento della pubblicazione: puoi continuare a modificarla fino ad allora. Aggiungi pagine dall'elenco <link>Pagine</link>.",
+    "noEntries": "Ancora nessuna pagina.",
     "currentStatus": "ora {status}",
     "deletedSkipped": "eliminata: verrà saltata",
     "conflicts": "Presente anche in {releases}: prevale quella pubblicata per ultima.",
@@ -48,7 +48,7 @@
     "removeItem": "Rimuovi dalla release",
     "deleteRelease": "Elimina release",
     "deleteConfirmTitle": "Eliminare “{name}”?",
-    "deleteConfirmDescription": "La release viene rimossa. Le sue voci restano esattamente come sono.",
+    "deleteConfirmDescription": "La release viene rimossa. Le sue pagine restano esattamente come sono.",
     "deleteFailed": "Impossibile eliminare"
   },
   "addDialog": {
@@ -60,11 +60,11 @@
     "nameRequired": "Assegna un nome alla release",
     "whenGoesOut": "Quando la release viene pubblicata",
     "actionOption": {
-      "publish": "{count, plural, one {Pubblica questa voce} other {Pubblica queste voci}}",
-      "unpublish": "{count, plural, one {Annulla la pubblicazione di questa voce} other {Annulla la pubblicazione di queste voci}}",
-      "archive": "{count, plural, one {Archivia questa voce} other {Archivia queste voci}}"
+      "publish": "{count, plural, one {Pubblica questa pagina} other {Pubblica queste pagine}}",
+      "unpublish": "{count, plural, one {Annulla la pubblicazione di questa pagina} other {Annulla la pubblicazione di queste pagine}}",
+      "archive": "{count, plural, one {Archivia questa pagina} other {Archivia queste pagine}}"
     },
-    "added": "{count, plural, one {Aggiunta # voce} other {Aggiunte # voci}}: <link>apri release</link>",
+    "added": "{count, plural, one {Aggiunta # pagina} other {Aggiunte # pagine}}: <link>apri release</link>",
     "addFailed": "Impossibile aggiungere alla release"
   }
 }

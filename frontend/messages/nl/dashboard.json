@@ -1,16 +1,16 @@
 {
   "title": "Dashboard",
   "subtitle": "Dit gebeurt er met je content.",
-  "newEntry": "Nieuw item",
+  "newEntry": "Nieuwe pagina",
   "overview": "Overzicht",
   "viewAll": "Alles bekijken",
   "createOne": "Maak er een",
   "fieldCount": "{count, plural, one {# veld} other {# velden}}",
-  "entryCount": "{count, plural, one {# item} other {# items}}",
+  "entryCount": "{count, plural, one {# pagina} other {# pagina's}}",
   "stats": {
     "contentTypes": "Contenttypes",
     "contentTypesSub": "schema's in totaal",
-    "totalEntries": "Items totaal",
+    "totalEntries": "Pagina's totaal",
     "totalEntriesSub": "over alle types",
     "mediaFiles": "Mediabestanden",
     "mediaFilesSub": "geüploade bestanden",
@@ -22,7 +22,7 @@
     "submissionsSub": "reacties in totaal"
   },
   "pendingReview": {
-    "message": "{count, plural, one {<b>#</b> item wacht op beoordeling} other {<b>#</b> items wachten op beoordeling}}",
+    "message": "{count, plural, one {<b>#</b> pagina wacht op beoordeling} other {<b>#</b> pagina's wachten op beoordeling}}",
     "action": "Nu beoordelen →"
   },
   "contentTypes": {
@@ -32,8 +32,8 @@
     "pendingBadge": "{count} in afwachting"
   },
   "recentEntries": {
-    "title": "Recente items",
-    "empty": "Nog geen items."
+    "title": "Recente pagina's",
+    "empty": "Nog geen pagina's."
   },
   "forms": {
     "title": "Formulieren",

@@ -71,11 +71,11 @@
     "signingSecretHint": "(opcional — crea una firma HMAC-SHA256 en {header})",
     "triggerEvents": "Eventos desencadenantes",
     "events": {
-      "entryCreated": "Entrada creada",
-      "entryUpdated": "Entrada actualizada",
-      "entryDeleted": "Entrada eliminada",
-      "entryRestored": "Entrada restaurada",
-      "entryPurged": "Entrada purgada",
+      "entryCreated": "Página creada",
+      "entryUpdated": "Página actualizada",
+      "entryDeleted": "Página eliminada",
+      "entryRestored": "Página restaurada",
+      "entryPurged": "Página purgada",
       "mediaUploaded": "Medio subido",
       "mediaDeleted": "Medio eliminado"
     },
@@ -177,7 +177,7 @@
     "description": "Cada operación de creación, actualización y eliminación queda registrada con su autor y la fecha.",
     "allResources": "Todos los recursos",
     "resources": {
-      "entry": "Entradas",
+      "entry": "Páginas",
       "content_type": "Tipos de contenido",
       "user": "Usuarios",
       "api_key": "Claves de API",

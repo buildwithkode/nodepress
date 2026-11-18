@@ -1,5 +1,5 @@
 {
-  "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+  "entryCount": "{count, plural, one {# página} other {# páginas}}",
   "statuses": {
     "open": "Abierto",
     "scheduled": "Programado",
@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "Lanzamientos",
-    "description": "Agrupa cambios de entradas — publicar, despublicar, archivar — y ponlos en línea a la vez, ahora o en un momento concreto. Añade entradas desde la lista de entradas o el editor de una entrada.",
+    "description": "Agrupa cambios de páginas — publicar, despublicar, archivar — y ponlos en línea a la vez, ahora o en un momento concreto. Añade páginas desde la lista de páginas o el editor de una página.",
     "namePlaceholder": "Nombre del nuevo lanzamiento, p. ej. Lanzamiento de primavera",
     "empty": "Aún no hay lanzamientos.",
     "upcoming": "Próximos",
@@ -38,9 +38,9 @@
     "scheduledToast": "Lanzamiento programado",
     "unschedule": "Desprogramar",
     "unscheduledToast": "Programación eliminada",
-    "entriesTitle": "Entradas ({count})",
-    "entriesDescription": "Cada entrada se publica tal como esté en el momento de la publicación — puedes seguir editándola hasta entonces. Añade entradas desde la lista de <link>entradas</link>.",
-    "noEntries": "Aún no hay entradas.",
+    "entriesTitle": "Páginas ({count})",
+    "entriesDescription": "Cada página se publica tal como esté en el momento de la publicación — puedes seguir editándola hasta entonces. Añade páginas desde la lista de <link>páginas</link>.",
+    "noEntries": "Aún no hay páginas.",
     "currentStatus": "ahora {status}",
     "deletedSkipped": "eliminada — se omitirá",
     "conflicts": "También en {releases} — prevalece el que se publique último.",
@@ -48,7 +48,7 @@
     "removeItem": "Quitar del lanzamiento",
     "deleteRelease": "Eliminar lanzamiento",
     "deleteConfirmTitle": "¿Eliminar «{name}»?",
-    "deleteConfirmDescription": "Se elimina el lanzamiento. Sus entradas quedan exactamente como están.",
+    "deleteConfirmDescription": "Se elimina el lanzamiento. Sus páginas quedan exactamente como están.",
     "deleteFailed": "No se pudo eliminar"
   },
   "addDialog": {
@@ -60,11 +60,11 @@
     "nameRequired": "Ponle un nombre al lanzamiento",
     "whenGoesOut": "Cuando se publique el lanzamiento",
     "actionOption": {
-      "publish": "{count, plural, one {Publicar esta entrada} other {Publicar estas entradas}}",
-      "unpublish": "{count, plural, one {Despublicar esta entrada} other {Despublicar estas entradas}}",
-      "archive": "{count, plural, one {Archivar esta entrada} other {Archivar estas entradas}}"
+      "publish": "{count, plural, one {Publicar esta página} other {Publicar estas páginas}}",
+      "unpublish": "{count, plural, one {Despublicar esta página} other {Despublicar estas páginas}}",
+      "archive": "{count, plural, one {Archivar esta página} other {Archivar estas páginas}}"
     },
-    "added": "{count, plural, one {# entrada añadida} other {# entradas añadidas}} — <link>abrir lanzamiento</link>",
+    "added": "{count, plural, one {# página añadida} other {# páginas añadidas}} — <link>abrir lanzamiento</link>",
     "addFailed": "No se pudo añadir al lanzamiento"
   }
 }

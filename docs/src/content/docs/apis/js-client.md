@@ -192,7 +192,7 @@ For a complete Next.js, Astro or Nuxt site built on the client, start from a [fr
 
 ## Live preview
 
-The client also ships the helpers your site needs to show live edits in the entry editor's preview pane:
+The client also ships the helpers your site needs to show live edits in the page editor's preview pane:
 
 ```ts
 import { onPreviewUpdate, enableClickToEdit } from '@nodepress-cms/client/preview';

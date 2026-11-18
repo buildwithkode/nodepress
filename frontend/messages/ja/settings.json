@@ -45,16 +45,16 @@
   },
   "languages": {
     "title": "言語",
-    "subtitle": "編集者がコンテンツを書ける言語です。各エントリーは言語ごとに 1 つの翻訳を持てます。デフォルト言語は、API リクエストで言語が指定されていない場合や、<code></code> でのフォールバックとして使用されます。",
+    "subtitle": "編集者がコンテンツを書ける言語です。各ページは言語ごとに 1 つの翻訳を持てます。デフォルト言語は、API リクエストで言語が指定されていない場合や、<code></code> でのフォールバックとして使用されます。",
     "enabled": {
       "title": "有効な言語",
-      "description": "言語を削除してもエントリーは残ります。エディターで選択できなくなるだけです。",
-      "entryCount": "{count, plural, other {# 件のエントリー}}",
+      "description": "言語を削除してもページは残ります。エディターで選択できなくなるだけです。",
+      "entryCount": "{count, plural, other {# 件のページ}}",
       "default": "デフォルト",
       "makeDefault": "デフォルトに設定",
-      "removeWithEntries": "{count, plural, other {# 件のエントリーは残りますが}}、この言語は選択できなくなります",
+      "removeWithEntries": "{count, plural, other {# 件のページは残りますが}}、この言語は選択できなくなります",
       "removeLabel": "{language} を削除",
-      "orphaned": "有効になっていない言語のエントリーがあります:",
+      "orphaned": "有効になっていない言語のページがあります:",
       "orphanedHint": "。クリックすると有効になります。"
     },
     "saveChanges": "変更を保存",

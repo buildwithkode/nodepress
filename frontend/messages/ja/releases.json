@@ -1,5 +1,5 @@
 {
-  "entryCount": "{count, plural, other {# 件のエントリー}}",
+  "entryCount": "{count, plural, other {# 件のページ}}",
   "statuses": {
     "open": "未公開",
     "scheduled": "予約済み",
@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "リリース",
-    "description": "エントリーの変更 (公開、非公開、アーカイブ) をまとめ、今すぐまたは指定した日時に一括で反映します。エントリーは、エントリー一覧またはエントリーのエディターから追加できます。",
+    "description": "ページの変更 (公開、非公開、アーカイブ) をまとめ、今すぐまたは指定した日時に一括で反映します。ページは、ページ一覧またはページのエディターから追加できます。",
     "namePlaceholder": "新しいリリース名 (例: 春のローンチ)",
     "empty": "リリースはまだありません。",
     "upcoming": "予定",
@@ -38,9 +38,9 @@
     "scheduledToast": "リリースを予約しました",
     "unschedule": "予約を解除",
     "unscheduledToast": "予約を解除しました",
-    "entriesTitle": "エントリー ({count})",
-    "entriesDescription": "各エントリーは公開時点の内容で反映されます。それまでは編集を続けられます。エントリーは<link>エントリー</link>一覧から追加してください。",
-    "noEntries": "エントリーはまだありません。",
+    "entriesTitle": "ページ ({count})",
+    "entriesDescription": "各ページは公開時点の内容で反映されます。それまでは編集を続けられます。ページは<link>ページ</link>一覧から追加してください。",
+    "noEntries": "ページはまだありません。",
     "currentStatus": "現在: {status}",
     "deletedSkipped": "削除済み — スキップされます",
     "conflicts": "{releases} にも含まれています。最後に反映されたものが優先されます。",
@@ -48,7 +48,7 @@
     "removeItem": "リリースから除外",
     "deleteRelease": "リリースを削除",
     "deleteConfirmTitle": "「{name}」を削除しますか?",
-    "deleteConfirmDescription": "リリースは削除されます。エントリーはそのまま残ります。",
+    "deleteConfirmDescription": "リリースは削除されます。ページはそのまま残ります。",
     "deleteFailed": "削除できませんでした"
   },
   "addDialog": {
@@ -60,11 +60,11 @@
     "nameRequired": "リリース名を入力してください",
     "whenGoesOut": "リリースの反映時",
     "actionOption": {
-      "publish": "{count, plural, other {このエントリーを公開}}",
-      "unpublish": "{count, plural, other {このエントリーを非公開}}",
-      "archive": "{count, plural, other {このエントリーをアーカイブ}}"
+      "publish": "{count, plural, other {このページを公開}}",
+      "unpublish": "{count, plural, other {このページを非公開}}",
+      "archive": "{count, plural, other {このページをアーカイブ}}"
     },
-    "added": "{count, plural, other {# 件のエントリーを追加しました}} — <link>リリースを開く</link>",
+    "added": "{count, plural, other {# 件のページを追加しました}} — <link>リリースを開く</link>",
     "addFailed": "リリースに追加できませんでした"
   }
 }

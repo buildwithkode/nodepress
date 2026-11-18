@@ -13,7 +13,7 @@
   "inUse": "使用中——请先将其从这些内容类型中移除",
   "cancel": "取消",
   "deleteTitle": "删除“{name}”？",
-  "deleteDescription": "这将永久删除该组件。已没有内容类型使用它，因此不会影响任何条目。",
+  "deleteDescription": "这将永久删除该组件。已没有内容类型使用它，因此不会影响任何页面。",
   "columns": {
     "number": "序号",
     "name": "名称",
@@ -70,7 +70,7 @@
     "confirm": "添加",
     "inline": "内联",
     "inlineHint": "直接添加其字段",
-    "inlineNote": "这些字段会直接添加到此内容类型，因此条目以扁平方式存储它们。它们与组件保持同步。",
+    "inlineNote": "这些字段会直接添加到此内容类型，因此页面以扁平方式存储它们。它们与组件保持同步。",
     "keyTaken": "此内容类型已有键为 {key} 的字段。",
     "inlineKeysTaken": "这些字段与已有的键冲突：{keys}",
     "fieldKey": "字段键："

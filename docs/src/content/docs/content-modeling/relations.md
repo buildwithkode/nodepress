@@ -22,7 +22,7 @@ A `relation` field links an entry to entries of another (or the same) content ty
 | `relatedContentType` | a content type name | what the field links to |
 | `cardinality` | `one` or `many` | one linked entry, or a list |
 
-In the entry editor, a relation field is a searchable picker of the related type's entries.
+In the page editor, a relation field is a searchable picker of the related type's entries.
 
 ## What gets stored
 

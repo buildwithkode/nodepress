@@ -32,7 +32,7 @@
   "deleteTitle": "删除此重定向？",
   "deleteDescription": "访问 {from} 的访客将得到 404。",
   "count": "{count, plural, other {# 个重定向}}",
-  "autoHint": "当已发布条目的别名更改时，NodePress 会自动从其旧路径添加 301 重定向（可通过 <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono> 关闭）。路径匹配不区分大小写；查询字符串只有在属于源路径的一部分时才会匹配。",
+  "autoHint": "当已发布页面的别名更改时，NodePress 会自动从其旧路径添加 301 重定向（可通过 <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono> 关闭）。路径匹配不区分大小写；查询字符串只有在属于源路径的一部分时才会匹配。",
   "dialog": {
     "addTitle": "添加重定向",
     "editTitle": "编辑重定向",

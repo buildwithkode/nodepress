@@ -1,6 +1,6 @@
 {
   "title": "Import from WordPress",
-  "intro": "Upload a WordPress export file (<strong>Tools → Export → All content</strong> in WordPress). Posts, pages and custom post types become entries — check the summary first, then run the import in the background.",
+  "intro": "Upload a WordPress export file (<strong>Tools → Export → All content</strong> in WordPress). Posts, pages and custom post types are imported as pages — check the summary first, then run the import in the background.",
   "step1": "1. Choose the export file",
   "chooseFile": "Choose file",
   "changeFile": "Choose another file",
@@ -13,7 +13,7 @@
   "wxrVersion": "WXR {version}",
   "totals": "{total, plural, one {# item} other {# items}} to import · {attachments, plural, one {# attachment} other {# attachments}} · {skipped} skipped",
   "colContentType": "Content type",
-  "colEntries": "Entries",
+  "colEntries": "Pages",
   "colStatuses": "Statuses",
   "colExisting": "Already here",
   "typeExists": "exists",
@@ -22,8 +22,8 @@
   "sample": "First items",
   "importMedia": "Import media",
   "importMediaHint": "Download attachments (images, SVG, PDF, MP4 up to {size} MB each) into the media library and point featured images and content at the new copies.",
-  "overwrite": "Overwrite existing entries",
-  "overwriteHint": "Entries whose slug already exists are updated (the old version is kept in their history). Otherwise they are skipped.",
+  "overwrite": "Overwrite existing pages",
+  "overwriteHint": "Pages whose slug already exists are updated (the old version is kept in their history). Otherwise they are skipped.",
   "run": "Start import ({total, plural, one {# item} other {# items}})",
   "queued": "Import queued as job #{id}",
   "step3": "3. Import #{id}",
@@ -35,7 +35,7 @@
   },
   "phase": {
     "media": "Media {done} of {total}",
-    "entries": "Entries {done} of {total}"
+    "entries": "Pages {done} of {total}"
   },
   "finished": "Import finished",
   "failed": "Import failed",
@@ -46,18 +46,18 @@
   "colFailed": "Failed",
   "mediaResult": "Media: {imported} imported, {reused} already imported, {failed} failed",
   "errors": "{count, plural, one {# problem} other {# problems}}",
-  "viewEntries": "View entries →",
+  "viewEntries": "View pages →",
   "extras": "Also import",
   "categoryPaths": "Keep the category hierarchy",
   "categoryPathsHint": "Adds a category_paths field with full paths such as “Parent/Child” next to the plain category names. {count, plural, =0 {This file has no nested categories.} one {# nested category in this file.} other {# nested categories in this file.}}",
   "taxonomies": "Import custom taxonomies",
-  "taxonomiesHint": "Adds a taxonomies field — terms grouped by taxonomy — to the entries that use them.",
+  "taxonomiesHint": "Adds a taxonomies field — terms grouped by taxonomy — to the pages that use them.",
   "taxonomiesFound": "In this file: {list}.",
   "taxonomiesNone": "This file has no custom taxonomies.",
   "authors": "Import authors as content",
-  "authorsHint": "{count, plural, one {# author becomes a wp_author entry} other {# authors become wp_author entries}} (login, display name, first and last name), and each post links to its author through an author_ref field. These are content entries, not login accounts — nobody can sign in with them. Email addresses are not copied.",
+  "authorsHint": "{count, plural, one {# author becomes a wp_author page} other {# authors become wp_author pages}} (login, display name, first and last name), and each post links to its author through an author_ref field. These are content pages, not login accounts — nobody can sign in with them. Email addresses are not copied.",
   "comments": "Import comments",
-  "commentsHint": "Approved comments become wp_comment entries: name, text without HTML, date, the comment they reply to and the post they belong to. Commenters’ email and IP addresses are not copied; spam and trashed comments are never imported. In this file: {approved} approved, {pending} pending, {spam} spam or trash.",
+  "commentsHint": "Approved comments become wp_comment pages: name, text without HTML, date, the comment they reply to and the post they belong to. Commenters’ email and IP addresses are not copied; spam and trashed comments are never imported. In this file: {approved} approved, {pending} pending, {spam} spam or trash.",
   "pendingComments": "Include pending comments",
-  "pendingCommentsHint": "Imported as entries waiting for review."
+  "pendingCommentsHint": "Imported as pages waiting for review."
 }

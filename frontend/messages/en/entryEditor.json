@@ -1,7 +1,7 @@
 {
   "header": {
     "backTo": "Back to {name}",
-    "entries": "Entries",
+    "entries": "Pages",
     "editSchema": "Edit Schema",
     "editSchemaTitle": "Edit content type schema",
     "fieldPermissions": "Field Permissions",
@@ -10,20 +10,20 @@
     "publish": "Publish"
   },
   "new": {
-    "title": "New Entry",
-    "titleWithType": "New Entry — {type}",
-    "description": "Fill in the fields below to create a new entry.",
+    "title": "New Page",
+    "titleWithType": "New Page — {type}",
+    "description": "Fill in the fields below to create a new page.",
     "contentType": "Content Type",
     "selectContentType": "Select a content type…",
     "selectToBegin": "Select a content type to begin.",
-    "submit": "Create Entry",
+    "submit": "Create Page",
     "saveAndPreview": "Save draft & preview",
     "saveAndPreviewHint": "Save as a draft and open the live preview"
   },
   "edit": {
-    "title": "Edit Entry",
-    "titleWithType": "Edit Entry — {type}",
-    "description": "Editing the slug changes the entry's public URL. Change status to control visibility.",
+    "title": "Edit Page",
+    "titleWithType": "Edit Page — {type}",
+    "description": "Editing the slug changes the page's public URL. Change status to control visibility.",
     "autosaved": "Saved",
     "update": "Update",
     "release": "Release",
@@ -32,21 +32,21 @@
   },
   "toast": {
     "loadTypesFailed": "Failed to load content types",
-    "loadEntryFailed": "Failed to load entry",
-    "created": "Entry created",
-    "updated": "Entry updated",
-    "approved": "Entry approved and published",
-    "approveFailed": "Failed to approve entry",
-    "returnedToDraft": "Entry returned to draft",
-    "returnToDraftFailed": "Failed to return entry to draft"
+    "loadEntryFailed": "Failed to load page",
+    "created": "Page created",
+    "updated": "Page updated",
+    "approved": "Page approved and published",
+    "approveFailed": "Failed to approve page",
+    "returnedToDraft": "Page returned to draft",
+    "returnToDraftFailed": "Failed to return page to draft"
   },
   "presence": {
     "online": "{count} online",
-    "lockedBy": "<b>{email}</b> is actively editing this entry. Simultaneous saves may conflict.",
+    "lockedBy": "<b>{email}</b> is actively editing this page. Simultaneous saves may conflict.",
     "takeOver": "Take Over Lock"
   },
   "review": {
-    "banner": "This entry is awaiting review. Approve to publish it, or return to draft.",
+    "banner": "This page is awaiting review. Approve to publish it, or return to draft.",
     "returnToDraft": "Return to Draft",
     "approve": "Approve & Publish"
   },
@@ -56,7 +56,7 @@
     "created": "Created {locale} translation draft",
     "createFailed": "Failed to create translation draft",
     "tabsLabel": "Language",
-    "addTitle": "Add a {language} translation (a draft copy of this entry)",
+    "addTitle": "Add a {language} translation (a draft copy of this page)",
     "tabTitle": "{language}: {status}",
     "editing": "Editing {language}"
   },
@@ -151,14 +151,14 @@
     "pick": "Pick {type}…",
     "selectTypeFirst": "Select content type first",
     "search": "Search {type}…",
-    "noEntries": "No entries found",
+    "noEntries": "No pages found",
     "done": "Done",
     "remove": "Remove",
     "configureFirst": "Configure a related content type in the schema first."
   },
   "reverseRelation": {
-    "hint": "Read-only — set <code>{field}</code> on a {type} entry to add it here.",
-    "saveFirst": "Save this entry to see what links to it.",
+    "hint": "Read-only — set <code>{field}</code> on a {type} page to add it here.",
+    "saveFirst": "Save this page to see what links to it.",
     "empty": "Nothing links here yet."
   },
   "repeater": {
@@ -315,14 +315,14 @@
   "ai": {
     "draft": "Draft with AI",
     "drafting": "Writing…",
-    "placeholder": "What should this entry say? e.g. “A friendly 300-word post announcing our new opening hours”",
+    "placeholder": "What should this page say? e.g. “A friendly 300-word post announcing our new opening hours”",
     "drafted": "Filled {count, plural, one {# field} other {# fields}} — review before saving"
   },
   "unpublish": {
     "title": "Unpublish on",
     "placeholder": "Pick a date and time",
-    "help": "Takes the entry off the site at this time (it goes back to Draft). Leave empty to keep it live.",
+    "help": "Takes the page off the site at this time (it goes back to Draft). Leave empty to keep it live.",
     "willUnpublish": "Comes off the site on <b>{date}</b> at <b>{time}</b>.",
-    "beforePublish": "This is before the scheduled publish time, so the entry would come off the site as soon as it goes live."
+    "beforePublish": "This is before the scheduled publish time, so the page would come off the site as soon as it goes live."
   }
 }

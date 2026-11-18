@@ -13,7 +13,7 @@
   "inUse": "In uso: rimuovilo prima da quei tipi di contenuto",
   "cancel": "Annulla",
   "deleteTitle": "Eliminare \"{name}\"?",
-  "deleteDescription": "Il componente verrà rimosso definitivamente. Nessun tipo di contenuto lo usa più, quindi nessuna voce viene modificata.",
+  "deleteDescription": "Il componente verrà rimosso definitivamente. Nessun tipo di contenuto lo usa più, quindi nessuna pagina viene modificata.",
   "columns": {
     "number": "N.",
     "name": "Nome",
@@ -70,7 +70,7 @@
     "confirm": "Aggiungi",
     "inline": "Integrato",
     "inlineHint": "I suoi campi, aggiunti direttamente",
-    "inlineNote": "I campi vengono aggiunti direttamente a questo tipo di contenuto, quindi le voci li salvano senza annidamento. Restano sincronizzati con il componente.",
+    "inlineNote": "I campi vengono aggiunti direttamente a questo tipo di contenuto, quindi le pagine li salvano senza annidamento. Restano sincronizzati con il componente.",
     "keyTaken": "Questo tipo di contenuto ha già un campo con la chiave {key}.",
     "inlineKeysTaken": "Questi campi sono in conflitto con chiavi esistenti: {keys}",
     "fieldKey": "Chiave del campo:"

@@ -39,7 +39,7 @@ All five are on by default. Turn them all off to make the content type **private
 
 ## Preview URL
 
-The **Preview URL** is the page on your site that shows one entry. It powers the entry editor's live preview pane, and it's used when a slug change creates a redirect. It's an `http(s)` address with up to three placeholders:
+The **Preview URL** is the page on your site that shows one entry. It powers the page editor's live preview pane, and it's used when a slug change creates a redirect. It's an `http(s)` address with up to three placeholders:
 
 - `{slug}`: the entry's slug
 - `{locale}`: its language

@@ -13,8 +13,8 @@ Use releases for anything that must change at one moment: a product launch, a ca
 
 1. Open **Releases** in the sidebar, type a name (for example "Spring launch") and create it.
 2. Add entries to it:
-   - from the **Entries** list: select entries, click **Add to release**;
-   - from an entry's editor: click **Release** in the toolbar.
+   - from the **Pages** list: select pages, click **Add to release**;
+   - from an page's editor: click **Release** in the toolbar.
 3. In the dialog, pick the release (or **New release…**) and what happens to the entries **When the release goes out**: publish, unpublish or archive them.
 
 ![The Add to release dialog with the release picker and the action to apply](../../../assets/screenshots/add-to-release.png)

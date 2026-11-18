@@ -32,7 +32,7 @@
   "deleteTitle": "Supprimer cette redirection ?",
   "deleteDescription": "Les visiteurs de {from} obtiendront une erreur 404.",
   "count": "{count, plural, one {# redirection} other {# redirections}}",
-  "autoHint": "Quand le slug d’une entrée publiée change, NodePress ajoute automatiquement une 301 depuis son ancien chemin (désactivable avec <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). La casse des chemins est ignorée ; une chaîne de requête ne correspond que si elle fait partie de la source.",
+  "autoHint": "Quand le slug d’une page publiée change, NodePress ajoute automatiquement une 301 depuis son ancien chemin (désactivable avec <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). La casse des chemins est ignorée ; une chaîne de requête ne correspond que si elle fait partie de la source.",
   "dialog": {
     "addTitle": "Ajouter une redirection",
     "editTitle": "Modifier la redirection",

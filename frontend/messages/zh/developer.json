@@ -71,11 +71,11 @@
     "signingSecretHint": "（可选——在 {header} 中生成 HMAC-SHA256 签名）",
     "triggerEvents": "触发事件",
     "events": {
-      "entryCreated": "条目已创建",
-      "entryUpdated": "条目已更新",
-      "entryDeleted": "条目已删除",
-      "entryRestored": "条目已恢复",
-      "entryPurged": "条目已清除",
+      "entryCreated": "页面已创建",
+      "entryUpdated": "页面已更新",
+      "entryDeleted": "页面已删除",
+      "entryRestored": "页面已恢复",
+      "entryPurged": "页面已清除",
       "mediaUploaded": "媒体已上传",
       "mediaDeleted": "媒体已删除"
     },
@@ -177,7 +177,7 @@
     "description": "记录每一次创建、更新和删除操作，包括操作者和时间戳。",
     "allResources": "所有资源",
     "resources": {
-      "entry": "条目",
+      "entry": "页面",
       "content_type": "内容类型",
       "user": "用户",
       "api_key": "API 密钥",

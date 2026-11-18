@@ -39,7 +39,7 @@ Only admins can create content types, so only admins see this button. It can be 
 
 ## Drafting an entry
 
-In the entry editor, click **Draft with AI** and say what the entry should contain:
+In the page editor, click **Draft with AI** and say what the entry should contain:
 
 > A friendly 300-word post announcing our new opening hours
 

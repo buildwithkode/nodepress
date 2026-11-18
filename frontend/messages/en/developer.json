@@ -71,11 +71,11 @@
     "signingSecretHint": "(optional — creates HMAC-SHA256 signature in {header})",
     "triggerEvents": "Trigger Events",
     "events": {
-      "entryCreated": "Entry Created",
-      "entryUpdated": "Entry Updated",
-      "entryDeleted": "Entry Deleted",
-      "entryRestored": "Entry Restored",
-      "entryPurged": "Entry Purged",
+      "entryCreated": "Page Created",
+      "entryUpdated": "Page Updated",
+      "entryDeleted": "Page Deleted",
+      "entryRestored": "Page Restored",
+      "entryPurged": "Page Purged",
       "mediaUploaded": "Media Uploaded",
       "mediaDeleted": "Media Deleted"
     },
@@ -177,7 +177,7 @@
     "description": "Every create, update, and delete operation recorded with actor and timestamp.",
     "allResources": "All resources",
     "resources": {
-      "entry": "Entries",
+      "entry": "Pages",
       "content_type": "Content Types",
       "user": "Users",
       "api_key": "API Keys",

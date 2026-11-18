@@ -45,16 +45,16 @@
   },
   "languages": {
     "title": "Inhaltssprachen",
-    "subtitle": "Die Sprachen, in denen Redakteure Inhalte verfassen können. Jeder Eintrag kann eine Übersetzung pro Sprache haben; die Standardsprache wird verwendet, wenn eine API-Anfrage keine Sprache angibt, und als Fallback mit <code></code>.",
+    "subtitle": "Die Sprachen, in denen Redakteure Inhalte verfassen können. Jede Seite kann eine Übersetzung pro Sprache haben; die Standardsprache wird verwendet, wenn eine API-Anfrage keine Sprache angibt, und als Fallback mit <code></code>.",
     "enabled": {
       "title": "Aktivierte Sprachen",
-      "description": "Beim Entfernen einer Sprache bleiben ihre Einträge erhalten; sie wird im Editor nur nicht mehr angeboten.",
-      "entryCount": "{count, plural, one {# Eintrag} other {# Einträge}}",
+      "description": "Beim Entfernen einer Sprache bleiben ihre Seiten erhalten; sie wird im Editor nur nicht mehr angeboten.",
+      "entryCount": "{count, plural, one {# Seite} other {# Seiten}}",
       "default": "Standard",
       "makeDefault": "Als Standard festlegen",
-      "removeWithEntries": "{count, plural, one {# Eintrag bleibt erhalten} other {# Einträge bleiben erhalten}}, aber die Sprache wird nicht mehr angeboten",
+      "removeWithEntries": "{count, plural, one {# Seite bleibt erhalten} other {# Seiten bleiben erhalten}}, aber die Sprache wird nicht mehr angeboten",
       "removeLabel": "{language} entfernen",
-      "orphaned": "Es gibt Einträge in nicht aktivierten Sprachen:",
+      "orphaned": "Es gibt Seiten in nicht aktivierten Sprachen:",
       "orphanedHint": ". Klicken Sie auf eine, um sie zu aktivieren."
     },
     "saveChanges": "Änderungen speichern",

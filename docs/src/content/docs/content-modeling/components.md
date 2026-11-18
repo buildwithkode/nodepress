@@ -115,7 +115,7 @@ This includes uses inside flexible layouts: a rename in the Review component abo
 
 ## The Components section
 
-The content type editor lists the component fields (group, repeater and inline uses) in their own **Components** section below the ordinary fields. The entry editor shows each one as a titled box you can fold away.
+The content type editor lists the component fields (group, repeater and inline uses) in their own **Components** section below the ordinary fields. The page editor shows each one as a titled box you can fold away.
 
 This only affects the display. The schema order and the entry JSON don't change: each component is still a top-level key like `"testimonial": { … }`.
 

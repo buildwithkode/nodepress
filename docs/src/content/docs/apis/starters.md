@@ -11,7 +11,7 @@ They live in the `starters/` folder of the [NodePress repository](https://github
 
 | Starter | Framework | Rendering | Extras |
 |---|---|---|---|
-| `starters/nextjs` | Next.js 15 (App Router) | Server components, published reads cached for 60 s | Draft mode and [live preview](/content/live-preview/) in the entry editor |
+| `starters/nextjs` | Next.js 15 (App Router) | Server components, published reads cached for 60 s | Draft mode and [live preview](/content/live-preview/) in the page editor |
 | `starters/astro` | Astro 7 | Static build: every page is built at build time | |
 | `starters/nuxt` | Nuxt 4 | Server-rendered; NodePress is called from `server/api` | The API key never reaches the browser |
 

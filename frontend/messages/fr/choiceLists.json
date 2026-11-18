@@ -26,7 +26,7 @@
   "editor": {
     "newTitle": "Nouvelle liste d’options",
     "editTitle": "Modifier la liste d’options",
-    "hint": "Les entrées stockent la valeur ; l’éditeur et les sites affichent le libellé. Modifier une valeur plus tard laisse l’ancienne dans les entrées.",
+    "hint": "Les pages stockent la valeur ; l’éditeur et les sites affichent le libellé. Modifier une valeur plus tard laisse l’ancienne dans les pages.",
     "label": "Libellé",
     "labelPlaceholder": "ex. Pays",
     "name": "Nom",
@@ -56,7 +56,7 @@
     "duplicates": "Chaque valeur ne peut apparaître qu’une fois",
     "created": "Liste d’options créée",
     "updated": "{count, plural, =0 {Liste d’options enregistrée} one {Liste d’options enregistrée — # type de contenu mis à jour} other {Liste d’options enregistrée — # types de contenu mis à jour}}",
-    "removedInUse": "{count, plural, one {# entrée contient encore} other {# entrées contiennent encore}} une valeur retirée et échoueront à la validation au prochain enregistrement : {where}"
+    "removedInUse": "{count, plural, one {# page contient encore} other {# pages contiennent encore}} une valeur retirée et échoueront à la validation au prochain enregistrement : {where}"
   },
   "picker": {
     "source": "Origine des choix",
@@ -72,7 +72,7 @@
     "subFieldHint": "Les choix de ce sous-champ viennent d’une liste d’options",
     "typedChoices": "{count, plural, one {# choix saisi} other {# choix saisis}}",
     "multiple": "Sélection multiple",
-    "multipleHint": "Les entrées peuvent cocher plusieurs options. Activez ceci avant que des entrées utilisent le champ : celles déjà enregistrées devront choisir à nouveau leur valeur."
+    "multipleHint": "Les pages peuvent cocher plusieurs options. Activez ceci avant que des pages utilisent le champ : celles déjà enregistrées devront choisir à nouveau leur valeur."
   },
   "adminOnlyDelete": "Seuls les administrateurs peuvent supprimer une liste"
 }

@@ -45,16 +45,16 @@
   },
   "languages": {
     "title": "Langues du contenu",
-    "subtitle": "Les langues dans lesquelles les éditeurs peuvent rédiger du contenu. Chaque entrée peut avoir une traduction par langue ; la langue par défaut est utilisée quand une requête API n’en demande aucune, et comme langue de repli avec <code></code>.",
+    "subtitle": "Les langues dans lesquelles les éditeurs peuvent rédiger du contenu. Chaque page peut avoir une traduction par langue ; la langue par défaut est utilisée quand une requête API n’en demande aucune, et comme langue de repli avec <code></code>.",
     "enabled": {
       "title": "Langues activées",
-      "description": "Retirer une langue conserve ses entrées ; elle n’est simplement plus proposée dans l’éditeur.",
-      "entryCount": "{count, plural, one {# entrée} other {# entrées}}",
+      "description": "Retirer une langue conserve ses pages ; elle n’est simplement plus proposée dans l’éditeur.",
+      "entryCount": "{count, plural, one {# page} other {# pages}}",
       "default": "Par défaut",
       "makeDefault": "Définir par défaut",
-      "removeWithEntries": "{count, plural, one {# entrée est conservée} other {# entrées sont conservées}}, mais la langue n’est plus proposée",
+      "removeWithEntries": "{count, plural, one {# page est conservée} other {# pages sont conservées}}, mais la langue n’est plus proposée",
       "removeLabel": "Retirer {language}",
-      "orphaned": "Des entrées existent dans des langues non activées :",
+      "orphaned": "Des pages existent dans des langues non activées :",
       "orphanedHint": ". Cliquez sur l’une d’elles pour l’activer."
     },
     "saveChanges": "Enregistrer les modifications",

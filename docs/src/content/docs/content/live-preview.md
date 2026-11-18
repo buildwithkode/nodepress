@@ -9,7 +9,7 @@ Live preview shows the entry you're editing on your real site, in a pane next to
 
 It takes two things: a **Preview URL** on the content type, and a few lines on your site.
 
-![The entry editor with the Live preview pane showing the page on the right](../../../assets/screenshots/live-preview.png)
+![The page editor with the Live preview pane showing the page on the right](../../../assets/screenshots/live-preview.png)
 
 ## 1. Set the Preview URL
 
@@ -19,7 +19,7 @@ Edit the content type and set its **Preview URL**: the page of your site that sh
 https://www.example.com/api/draft?token={token}&slug={slug}&locale={locale}
 ```
 
-Once it's set, the entry editor has a **Live** button in its toolbar. On a new entry, **Save draft & preview** saves a draft and opens the pane, because the preview needs a saved entry.
+Once it's set, the page editor has a **Live** button in its toolbar. On a new entry, **Save draft & preview** saves a draft and opens the pane, because the preview needs a saved entry.
 
 ## 2. Show drafts on your site
 

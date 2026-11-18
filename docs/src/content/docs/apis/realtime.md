@@ -80,7 +80,7 @@ Every connection already receives every entry event. Joining a room makes that t
 
 ## Presence and edit locks
 
-The entry editor uses the gateway to show who has an entry open, and to give one person at a time the edit lock. You can use the same messages. They take the entry's numeric `id`.
+The page editor uses the gateway to show who has an entry open, and to give one person at a time the edit lock. You can use the same messages. They take the entry's numeric `id`.
 
 | Send | Data | Reply (acknowledgement) |
 |---|---|---|

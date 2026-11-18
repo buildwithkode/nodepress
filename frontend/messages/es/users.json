@@ -53,8 +53,8 @@
     "edits": "Editar: {modules}",
     "views": "Ver: {modules}",
     "nothing": "Sin acceso a ningún módulo",
-    "noPublish": "No puede publicar entradas",
-    "noDelete": "No puede eliminar entradas",
+    "noPublish": "No puede publicar páginas",
+    "noDelete": "No puede eliminar páginas",
     "loadFailed": "No se pudo cargar el acceso de los roles."
   },
   "add": {
@@ -175,7 +175,7 @@
       "items": {
         "content": {
           "label": "Contenido",
-          "description": "Entradas de todos los tipos de contenido"
+          "description": "Páginas de todos los tipos de contenido"
         },
         "option_lists": {
           "label": "Listas de opciones",
@@ -250,7 +250,7 @@
       "asDefault": "Igual que el predeterminado",
       "fromPlugin": "De {plugin}",
       "powerful": "Editar aquí es casi un acceso de administrador: dalo solo a personas de confianza.",
-      "adminOnlyNote": "Los roles y permisos, la instalación de plugins y la eliminación definitiva de entradas siguen siendo solo para administradores. Los administradores siempre tienen acceso total."
+      "adminOnlyNote": "Los roles y permisos, la instalación de plugins y la eliminación definitiva de páginas siguen siendo solo para administradores. Los administradores siempre tienen acceso total."
     }
   },
   "profile": {

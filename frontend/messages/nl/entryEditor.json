@@ -1,7 +1,7 @@
 {
   "header": {
     "backTo": "Terug naar {name}",
-    "entries": "Items",
+    "entries": "Pagina's",
     "editSchema": "Schema bewerken",
     "editSchemaTitle": "Schema van contenttype bewerken",
     "fieldPermissions": "Veldrechten",
@@ -10,20 +10,20 @@
     "publish": "Publiceren"
   },
   "new": {
-    "title": "Nieuw item",
-    "titleWithType": "Nieuw item — {type}",
-    "description": "Vul de velden hieronder in om een nieuw item aan te maken.",
+    "title": "Nieuwe pagina",
+    "titleWithType": "Nieuwe pagina — {type}",
+    "description": "Vul de velden hieronder in om een nieuwe pagina aan te maken.",
     "contentType": "Contenttype",
     "selectContentType": "Kies een contenttype…",
     "selectToBegin": "Kies een contenttype om te beginnen.",
-    "submit": "Item aanmaken",
+    "submit": "Pagina aanmaken",
     "saveAndPreview": "Concept opslaan & voorbeeld",
     "saveAndPreviewHint": "Opslaan als concept en het live voorbeeld openen"
   },
   "edit": {
-    "title": "Item bewerken",
-    "titleWithType": "Item bewerken — {type}",
-    "description": "Als je de slug wijzigt, verandert de publieke URL van het item. Wijzig de status om de zichtbaarheid te bepalen.",
+    "title": "Pagina bewerken",
+    "titleWithType": "Pagina bewerken — {type}",
+    "description": "Als je de slug wijzigt, verandert de publieke URL van de pagina. Wijzig de status om de zichtbaarheid te bepalen.",
     "autosaved": "Opgeslagen",
     "update": "Bijwerken",
     "release": "Release",
@@ -32,21 +32,21 @@
   },
   "toast": {
     "loadTypesFailed": "Contenttypes laden mislukt",
-    "loadEntryFailed": "Item laden mislukt",
-    "created": "Item aangemaakt",
-    "updated": "Item bijgewerkt",
-    "approved": "Item goedgekeurd en gepubliceerd",
-    "approveFailed": "Item goedkeuren mislukt",
-    "returnedToDraft": "Item teruggezet naar concept",
-    "returnToDraftFailed": "Item terugzetten naar concept mislukt"
+    "loadEntryFailed": "Pagina laden mislukt",
+    "created": "Pagina aangemaakt",
+    "updated": "Pagina bijgewerkt",
+    "approved": "Pagina goedgekeurd en gepubliceerd",
+    "approveFailed": "Pagina goedkeuren mislukt",
+    "returnedToDraft": "Pagina teruggezet naar concept",
+    "returnToDraftFailed": "Pagina terugzetten naar concept mislukt"
   },
   "presence": {
     "online": "{count} online",
-    "lockedBy": "<b>{email}</b> bewerkt dit item op dit moment. Gelijktijdig opslaan kan conflicten geven.",
+    "lockedBy": "<b>{email}</b> bewerkt deze pagina op dit moment. Gelijktijdig opslaan kan conflicten geven.",
     "takeOver": "Vergrendeling overnemen"
   },
   "review": {
-    "banner": "Dit item wacht op beoordeling. Keur het goed om het te publiceren, of zet het terug naar concept.",
+    "banner": "Deze pagina wacht op beoordeling. Keur ze goed om ze te publiceren, of zet ze terug naar concept.",
     "returnToDraft": "Terug naar concept",
     "approve": "Goedkeuren & publiceren"
   },
@@ -56,7 +56,7 @@
     "created": "Conceptvertaling {locale} aangemaakt",
     "createFailed": "Conceptvertaling aanmaken mislukt",
     "tabsLabel": "Taal",
-    "addTitle": "Een {language} vertaling toevoegen (conceptkopie van dit item)",
+    "addTitle": "Een {language} vertaling toevoegen (conceptkopie van deze pagina)",
     "tabTitle": "{language}: {status}",
     "editing": "Bewerken: {language}"
   },
@@ -151,14 +151,14 @@
     "pick": "Kies {type}…",
     "selectTypeFirst": "Kies eerst een contenttype",
     "search": "{type} zoeken…",
-    "noEntries": "Geen items gevonden",
+    "noEntries": "Geen pagina's gevonden",
     "done": "Klaar",
     "remove": "Verwijderen",
     "configureFirst": "Stel eerst een gerelateerd contenttype in het schema in."
   },
   "reverseRelation": {
-    "hint": "Alleen-lezen — stel <code>{field}</code> in op een {type}-item om het hier toe te voegen.",
-    "saveFirst": "Sla dit item op om te zien wat ernaar linkt.",
+    "hint": "Alleen-lezen — stel <code>{field}</code> in op een {type}-pagina om het hier toe te voegen.",
+    "saveFirst": "Sla deze pagina op om te zien wat ernaar linkt.",
     "empty": "Er linkt nog niets hiernaartoe."
   },
   "repeater": {
@@ -315,14 +315,14 @@
   "ai": {
     "draft": "Schrijven met AI",
     "drafting": "Schrijven…",
-    "placeholder": "Wat moet er in dit item staan? bijv. “Een vriendelijk bericht van 300 woorden over onze nieuwe openingstijden”",
+    "placeholder": "Wat moet er op deze pagina staan? bijv. “Een vriendelijk bericht van 300 woorden over onze nieuwe openingstijden”",
     "drafted": "{count, plural, one {# veld} other {# velden}} ingevuld — controleer voordat je opslaat"
   },
   "unpublish": {
     "title": "Depubliceren op",
     "placeholder": "Kies een datum en tijd",
-    "help": "Haalt het item op dit moment van de site (het wordt weer concept). Laat leeg om het live te houden.",
+    "help": "Haalt de pagina op dit moment van de site (ze wordt weer concept). Laat leeg om ze live te houden.",
     "willUnpublish": "Gaat van de site op <b>{date}</b> om <b>{time}</b>.",
-    "beforePublish": "Dit is vóór de geplande publicatie: het item gaat dan direct na livegang weer van de site."
+    "beforePublish": "Dit is vóór de geplande publicatie: de pagina gaat dan direct na livegang weer van de site."
   }
 }

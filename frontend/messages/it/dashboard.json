@@ -1,16 +1,16 @@
 {
   "title": "Dashboard",
   "subtitle": "Ecco cosa succede ai tuoi contenuti.",
-  "newEntry": "Nuova voce",
+  "newEntry": "Nuova pagina",
   "overview": "Panoramica",
   "viewAll": "Vedi tutto",
   "createOne": "Creane uno",
   "fieldCount": "{count, plural, one {# campo} other {# campi}}",
-  "entryCount": "{count, plural, one {# voce} other {# voci}}",
+  "entryCount": "{count, plural, one {# pagina} other {# pagine}}",
   "stats": {
     "contentTypes": "Tipi di contenuto",
     "contentTypesSub": "schemi totali",
-    "totalEntries": "Voci totali",
+    "totalEntries": "Pagine totali",
     "totalEntriesSub": "in tutti i tipi",
     "mediaFiles": "File multimediali",
     "mediaFilesSub": "file caricati",
@@ -22,7 +22,7 @@
     "submissionsSub": "risposte totali"
   },
   "pendingReview": {
-    "message": "{count, plural, one {<b>#</b> voce è in attesa di revisione} other {<b>#</b> voci sono in attesa di revisione}}",
+    "message": "{count, plural, one {<b>#</b> pagina è in attesa di revisione} other {<b>#</b> pagine sono in attesa di revisione}}",
     "action": "Rivedi ora →"
   },
   "contentTypes": {
@@ -32,8 +32,8 @@
     "pendingBadge": "{count} in attesa"
   },
   "recentEntries": {
-    "title": "Voci recenti",
-    "empty": "Ancora nessuna voce."
+    "title": "Pagine recenti",
+    "empty": "Ancora nessuna pagina."
   },
   "forms": {
     "title": "Moduli",

@@ -1,16 +1,16 @@
 {
   "title": "Panel",
   "subtitle": "Esto es lo que está pasando con tu contenido.",
-  "newEntry": "Nueva entrada",
+  "newEntry": "Nueva página",
   "overview": "Resumen",
   "viewAll": "Ver todo",
   "createOne": "Crear uno",
   "fieldCount": "{count, plural, one {# campo} other {# campos}}",
-  "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+  "entryCount": "{count, plural, one {# página} other {# páginas}}",
   "stats": {
     "contentTypes": "Tipos de contenido",
     "contentTypesSub": "esquemas en total",
-    "totalEntries": "Entradas totales",
+    "totalEntries": "Páginas totales",
     "totalEntriesSub": "de todos los tipos",
     "mediaFiles": "Archivos multimedia",
     "mediaFilesSub": "archivos subidos",
@@ -22,7 +22,7 @@
     "submissionsSub": "respuestas en total"
   },
   "pendingReview": {
-    "message": "{count, plural, one {<b>#</b> entrada pendiente de revisión} other {<b>#</b> entradas pendientes de revisión}}",
+    "message": "{count, plural, one {<b>#</b> página pendiente de revisión} other {<b>#</b> páginas pendientes de revisión}}",
     "action": "Revisar ahora →"
   },
   "contentTypes": {
@@ -32,8 +32,8 @@
     "pendingBadge": "{count} pendientes"
   },
   "recentEntries": {
-    "title": "Entradas recientes",
-    "empty": "Aún no hay entradas."
+    "title": "Páginas recientes",
+    "empty": "Aún no hay páginas."
   },
   "forms": {
     "title": "Formularios",

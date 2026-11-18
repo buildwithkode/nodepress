@@ -32,7 +32,7 @@
   "deleteTitle": "このリダイレクトを削除しますか?",
   "deleteDescription": "{from} へのアクセスは 404 になります。",
   "count": "{count, plural, other {# 件のリダイレクト}}",
-  "autoHint": "公開済みエントリーのスラッグが変更されると、NodePress は古いパスからの 301 を自動的に追加します (<mono>REDIRECTS_ON_SLUG_CHANGE=false</mono> で無効化)。パスは大文字と小文字を区別せずに照合されます。クエリ文字列は転送元に含まれている場合のみ照合されます。",
+  "autoHint": "公開済みページのスラッグが変更されると、NodePress は古いパスからの 301 を自動的に追加します (<mono>REDIRECTS_ON_SLUG_CHANGE=false</mono> で無効化)。パスは大文字と小文字を区別せずに照合されます。クエリ文字列は転送元に含まれている場合のみ照合されます。",
   "dialog": {
     "addTitle": "リダイレクトを追加",
     "editTitle": "リダイレクトを編集",

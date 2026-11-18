@@ -32,7 +32,7 @@
   "deleteTitle": "Delete this redirect?",
   "deleteDescription": "Visitors to {from} will get a 404 instead.",
   "count": "{count, plural, one {# redirect} other {# redirects}}",
-  "autoHint": "When a published entry’s slug changes, NodePress adds a 301 from its old path automatically (turn off with <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Paths are matched without case; a query string only matches when it is part of the source.",
+  "autoHint": "When a published page’s slug changes, NodePress adds a 301 from its old path automatically (turn off with <mono>REDIRECTS_ON_SLUG_CHANGE=false</mono>). Paths are matched without case; a query string only matches when it is part of the source.",
   "dialog": {
     "addTitle": "Add redirect",
     "editTitle": "Edit redirect",

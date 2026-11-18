@@ -45,16 +45,16 @@
   },
   "languages": {
     "title": "Idiomas del contenido",
-    "subtitle": "Los idiomas en los que los editores pueden escribir contenido. Cada entrada puede tener una traducción por idioma; el idioma predeterminado se usa cuando una solicitud a la API no indica ninguno, y como respaldo con <code></code>.",
+    "subtitle": "Los idiomas en los que los editores pueden escribir contenido. Cada página puede tener una traducción por idioma; el idioma predeterminado se usa cuando una solicitud a la API no indica ninguno, y como respaldo con <code></code>.",
     "enabled": {
       "title": "Idiomas activados",
-      "description": "Al quitar un idioma se conservan sus entradas; simplemente deja de ofrecerse en el editor.",
-      "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+      "description": "Al quitar un idioma se conservan sus páginas; simplemente deja de ofrecerse en el editor.",
+      "entryCount": "{count, plural, one {# página} other {# páginas}}",
       "default": "Predeterminado",
       "makeDefault": "Establecer como predeterminado",
-      "removeWithEntries": "{count, plural, one {# entrada se conserva} other {# entradas se conservan}}, pero el idioma deja de ofrecerse",
+      "removeWithEntries": "{count, plural, one {# página se conserva} other {# páginas se conservan}}, pero el idioma deja de ofrecerse",
       "removeLabel": "Quitar {language}",
-      "orphaned": "Hay entradas en idiomas que no están activados:",
+      "orphaned": "Hay páginas en idiomas que no están activados:",
       "orphanedHint": ". Haz clic en uno para activarlo."
     },
     "saveChanges": "Guardar cambios",
