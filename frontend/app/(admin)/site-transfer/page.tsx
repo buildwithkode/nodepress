@@ -7,6 +7,7 @@ import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { downloadBlob, EXPORT_REQUEST } from '@/lib/download';
 
 type TypePlan = { name: string; total: number; toCreate: number; toUpdate: number; toRestore: number; toSkip: number };
 type Counts = { total: number; toCreate: number; toUpdate: number; toSkip: number };
@@ -64,14 +65,9 @@ export default function SiteTransferPage() {
   const download = async () => {
     setExporting(true);
     try {
-      const res = await api.get('/site/export');
+      const res = await api.get('/site/export', EXPORT_REQUEST);
       const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `nodepress-site-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `nodepress-site-${new Date().toISOString().slice(0, 10)}.json`);
       toast.success(t('exported'));
     } catch (err) {
       toast.error(message(err, t('exportFailed')));

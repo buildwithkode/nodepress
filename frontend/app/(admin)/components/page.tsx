@@ -25,6 +25,7 @@ import type { ReusableComponent } from '@/components/ComponentFieldControls';
 import { Button } from '@/components/ui/button';
 import { FIELD_TYPE_BADGE } from '@/lib/field-type-badge';
 import { Input } from '@/components/ui/input';
+import { SearchInput } from '@/components/ui/search-input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
@@ -91,6 +92,16 @@ export default function ComponentsPage() {
   const [nameTouched, setNameTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<Component | null>(null);
+  const [search, setSearch] = useState('');
+
+  // Matches the name, label, description or a field name. Rows keep their number in the
+  // whole list, and dragging waits until the search is cleared (it orders the whole list).
+  const query = search.trim().toLowerCase();
+  const searching = query !== '';
+  const shown = searching
+    ? components.filter((c) => [c.name, c.displayName ?? '', c.description ?? '', ...c.fields.map((f) => f.name)]
+        .some((text) => text.toLowerCase().includes(query)))
+    : components;
 
   const load = async () => {
     try {
@@ -219,6 +230,9 @@ export default function ComponentsPage() {
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
+          <div className="mb-4 w-full sm:max-w-xs">
+            <SearchInput placeholder={t('searchPlaceholder')} value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
           <DndContext id="components-order" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           {/* Fixed layout: Name, Fields and Used by share the width equally. Small screens keep the name and the actions. */}
           <Table className="table-fixed">
@@ -242,14 +256,14 @@ export default function ComponentsPage() {
                     {canEditModel && <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>}
                   </TableRow>
                 ))
-              ) : components.length === 0 ? (
+              ) : shown.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canEditModel ? 5 : 4} className="py-12 text-center text-muted-foreground">{t('empty')}</TableCell>
+                  <TableCell colSpan={canEditModel ? 5 : 4} className="py-12 text-center text-muted-foreground">{searching ? t('noMatch') : t('empty')}</TableCell>
                 </TableRow>
               ) : (
-                <SortableContext items={components.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-                {components.map((c, index) => (
-                <SortableTableRow key={c.id} id={c.id} number={index + 1} canDrag={canEditModel} handleLabel={t('dragToReorder')}>
+                <SortableContext items={shown.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                {shown.map((c) => (
+                <SortableTableRow key={c.id} id={c.id} number={components.indexOf(c) + 1} canDrag={canEditModel && !searching} handleLabel={t('dragToReorder')}>
                   <TableCell className="align-top py-3">
                     <div className="font-medium">{c.displayName || humanizeName(c.name)}</div>
                     <code className="block text-xs text-muted-foreground font-mono break-all">{c.name}</code>

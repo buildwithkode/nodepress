@@ -66,6 +66,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { SearchInput } from '@/components/ui/search-input';
 import { Textarea } from '@/components/ui/textarea';
+import { downloadBlob, EXPORT_REQUEST } from '@/lib/download';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -98,12 +99,7 @@ function exportContentType(ct: ContentType) {
     contentType: { name: ct.name, displayName: ct.displayName ?? null, schema: ct.schema, allowedMethods: ct.allowedMethods ?? null },
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${ct.name}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, `${ct.name}.json`);
 }
 
 export default function ContentTypesPage() {
@@ -170,14 +166,9 @@ export default function ContentTypesPage() {
   const handleExportAll = async () => {
     setExportingAll(true);
     try {
-      const res = await api.get('/content-types/export');
+      const res = await api.get('/content-types/export', EXPORT_REQUEST);
       const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `nodepress-schemas-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `nodepress-schemas-${new Date().toISOString().slice(0, 10)}.json`);
       toast.success(t('list.exportedAll'));
     } catch {
       toast.error(t('list.exportFailed'));

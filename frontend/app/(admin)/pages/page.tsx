@@ -80,6 +80,7 @@ import { AddToReleaseDialog } from '@/components/AddToReleaseDialog';
 import { SendBackDialog } from '@/components/SendBackDialog';
 import { useAccess } from '@/lib/use-access';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
+import { downloadBlob, EXPORT_REQUEST } from '@/lib/download';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString();
@@ -525,6 +526,7 @@ export default function EntriesPage() {
     setExportingFormat(format);
     try {
       const res = await api.get('/entries/export', {
+        ...EXPORT_REQUEST,
         params: { contentTypeId: selectedCT.id, format },
       });
 
@@ -539,12 +541,7 @@ export default function EntriesPage() {
         blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
       }
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, filename);
       toast.success(t('toasts.exportDownloaded', { format: format.toUpperCase() }));
     } catch {
       toast.error(t('toasts.exportFailed'));

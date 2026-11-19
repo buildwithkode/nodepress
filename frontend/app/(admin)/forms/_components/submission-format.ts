@@ -1,3 +1,5 @@
+import { downloadBlob } from '@/lib/download';
+
 // Shared helpers for rendering + exporting form submissions that may contain
 // nested objects / arrays (Phase 3). Used by the submissions viewer + CSV export.
 
@@ -95,10 +97,5 @@ export function toCsv(
 /** Trigger a browser download of CSV text. */
 export function downloadCsv(filename: string, csv: string): void {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, filename);
 }

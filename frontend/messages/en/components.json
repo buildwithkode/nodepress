@@ -2,6 +2,8 @@
   "title": "Components",
   "description": "Reusable sets of fields. Add one to a content type as a single group, a repeatable list, fields inline, or a flexible content layout; editing the component updates every content type that uses it.",
   "new": "New component",
+  "searchPlaceholder": "Search components...",
+  "noMatch": "No components match your search.",
   "loadFailed": "Failed to load components",
   "saveFailed": "Failed to save the component",
   "deleted": "Component deleted",

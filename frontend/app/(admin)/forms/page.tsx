@@ -25,6 +25,7 @@ import {
   AlertDialogAction, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import { useTranslations } from 'use-intl';
+import { downloadBlob, EXPORT_REQUEST } from '@/lib/download';
 
 interface FormRow {
   id: number;
@@ -87,13 +88,8 @@ export default function FormsPage() {
   const exportForms = async () => {
     setExporting(true);
     try {
-      const res = await api.get('/forms/export');
-      const url = URL.createObjectURL(new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `nodepress-forms-${res.data.exportedAt.slice(0, 10)}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
+      const res = await api.get('/forms/export', EXPORT_REQUEST);
+      downloadBlob(new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' }), `nodepress-forms-${res.data.exportedAt.slice(0, 10)}.json`);
       toast.success(t('list.exported'));
     } catch (err) {
       toast.error(apiError(err, t('list.exportFailed')));

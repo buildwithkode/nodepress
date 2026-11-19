@@ -53,6 +53,7 @@ import type { FieldCondition } from '@/lib/field-condition';
 import { nestedRenames, withLoadedKeys, withoutLoadedKeys } from '@/lib/schema-editor-keys';
 import { NestedFields, NestedLayouts, defaultOptionsFor } from '@/components/NestedFieldsEditor';
 import { FieldWidthSelect, type FieldWidth } from '@/components/FieldWidth';
+import { downloadBlob } from '@/lib/download';
 
 // Labels come from contentTypes.fieldTypes.<value>.
 const FIELD_TYPES = [
@@ -386,12 +387,7 @@ export default function EditContentTypePage() {
                     contentType: { name, displayName: name.trim(), schema: fields.filter((f) => f.name.trim()).map(buildSchemaField), allowedMethods, previewUrl: previewUrl.trim() || null },
                   };
                   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${name}.json`;
-                  a.click();
-                  URL.revokeObjectURL(url);
+                  downloadBlob(blob, `${name}.json`);
                 }}
               >
                 <Download className="h-4 w-4" /> {t('editor.exportJson')}

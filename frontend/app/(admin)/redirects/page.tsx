@@ -21,6 +21,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { downloadBlob, EXPORT_REQUEST } from '@/lib/download';
 
 interface Redirect {
   id: number;
@@ -135,13 +136,8 @@ export default function RedirectsPage() {
 
   const exportCsv = async () => {
     try {
-      const res = await api.get('/redirects/export', { responseType: 'blob' });
-      const url = URL.createObjectURL(res.data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'redirects.csv';
-      a.click();
-      URL.revokeObjectURL(url);
+      const res = await api.get('/redirects/export', { ...EXPORT_REQUEST, responseType: 'blob' });
+      downloadBlob(res.data, 'redirects.csv');
     } catch (err: any) {
       toast.error(apiError(err, t('exportFailed')));
     }

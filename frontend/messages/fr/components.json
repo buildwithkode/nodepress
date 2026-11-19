@@ -2,6 +2,8 @@
   "title": "Composants",
   "description": "Ensembles de champs réutilisables. Ajoutez-en un à un type de contenu comme groupe unique, liste répétable, champs intégrés ou disposition de contenu flexible ; modifier le composant met à jour tous les types de contenu qui l’utilisent.",
   "new": "Nouveau composant",
+  "searchPlaceholder": "Rechercher des composants...",
+  "noMatch": "Aucun composant ne correspond à votre recherche.",
   "loadFailed": "Impossible de charger les composants",
   "saveFailed": "Impossible d'enregistrer le composant",
   "deleted": "Composant supprimé",

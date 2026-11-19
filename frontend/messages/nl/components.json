@@ -2,6 +2,8 @@
   "title": "Componenten",
   "description": "Herbruikbare sets velden. Voeg er een toe aan een contenttype als één groep, een herhaalbare lijst, ingevoegde velden of een layout voor flexibele content; als je het component bewerkt, worden alle contenttypes die het gebruiken bijgewerkt.",
   "new": "Nieuw component",
+  "searchPlaceholder": "Componenten zoeken...",
+  "noMatch": "Geen componenten komen overeen met je zoekopdracht.",
   "loadFailed": "Componenten laden mislukt",
   "saveFailed": "Component opslaan mislukt",
   "deleted": "Component verwijderd",

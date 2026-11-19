@@ -2,6 +2,8 @@
   "title": "Komponenten",
   "description": "Wiederverwendbare Feldgruppen. Fügen Sie eine einem Inhaltstyp als einzelne Gruppe, wiederholbare Liste, direkt eingefügte Felder oder Layout für flexible Inhalte hinzu; Änderungen an der Komponente aktualisieren alle Inhaltstypen, die sie verwenden.",
   "new": "Neue Komponente",
+  "searchPlaceholder": "Komponenten suchen...",
+  "noMatch": "Keine Komponenten entsprechen Ihrer Suche.",
   "loadFailed": "Komponenten konnten nicht geladen werden",
   "saveFailed": "Komponente konnte nicht gespeichert werden",
   "deleted": "Komponente gelöscht",

@@ -14,6 +14,7 @@ import { isSubmittedFile, summarize, toCsv, downloadCsv, CsvField, SubmittedFile
 import { useTranslations } from 'use-intl';
 import { FoldPanel } from '@/components/FoldPanel';
 import { cn } from '@/lib/utils';
+import { downloadBlob } from '@/lib/download';
 
 interface Submission {
   id: number;
@@ -80,12 +81,7 @@ function FileDownload({ formId, submissionId, file }: { formId: string; submissi
   const download = async () => {
     try {
       const res = await api.get(`/forms/${formId}/submissions/${submissionId}/files/${file.fileId}`, { responseType: 'blob' });
-      const url = URL.createObjectURL(res.data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(res.data, file.filename);
     } catch {
       toast.error(t('submissions.fileDownloadFailed'));
     }

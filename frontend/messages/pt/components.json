@@ -2,6 +2,8 @@
   "title": "Componentes",
   "description": "Conjuntos de campos reutilizáveis. Adicione um a um tipo de conteúdo como grupo único, lista repetível, campos integrados ou layout de conteúdo flexível; editar o componente atualiza todos os tipos de conteúdo que o usam.",
   "new": "Novo componente",
+  "searchPlaceholder": "Pesquisar componentes...",
+  "noMatch": "Nenhum componente corresponde à sua pesquisa.",
   "loadFailed": "Falha ao carregar os componentes",
   "saveFailed": "Falha ao salvar o componente",
   "deleted": "Componente excluído",
