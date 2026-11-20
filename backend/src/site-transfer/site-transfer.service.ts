@@ -54,32 +54,40 @@ export class SiteTransferService {
   ) {}
 
   async export(opts: { admin?: boolean } = {}) {
-    const schemas = await this.contentTypes.exportSchemas();
-    const types = await this.prisma.contentType.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } });
-    const rows = await this.prisma.entry.findMany({
-      orderBy: [{ contentTypeId: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
-      select: { contentTypeId: true, publicId: true, slug: true, locale: true, status: true, data: true, seo: true, publishAt: true, unpublishAt: true, position: true, createdAt: true, deletedAt: true },
-    });
+    // Independent reads run side by side: against a distant database (a pooler
+    // a few hundred ms away) one after another they add up past a host's
+    // request time limit. The pool caps how many actually run at once.
+    const [schemas, types, rows, formRows, webhooks, redirects, locales, extras] = await Promise.all([
+      this.contentTypes.exportSchemas(),
+      this.prisma.contentType.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+      this.prisma.entry.findMany({
+        orderBy: [{ contentTypeId: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+        select: { contentTypeId: true, publicId: true, slug: true, locale: true, status: true, data: true, seo: true, publishAt: true, unpublishAt: true, position: true, createdAt: true, deletedAt: true },
+      }),
+      this.forms.exportRows(),
+      this.prisma.webhook.findMany({
+        orderBy: { id: 'asc' },
+        select: { name: true, url: true, events: true, enabled: true },
+      }),
+      this.prisma.redirect.findMany({
+        orderBy: { from: 'asc' },
+        select: { from: true, to: true, statusCode: true },
+      }),
+      this.locales.get(),
+      opts.admin ? this.extras.export() : Promise.resolve({ partial: true as const }),
+    ]);
     const entries: Record<string, unknown[]> = {};
     for (const t of types) entries[t.name] = [];
     const nameOf = new Map(types.map((t) => [t.id, t.name]));
     for (const { contentTypeId, deletedAt, ...row } of rows) entries[nameOf.get(contentTypeId)!].push(deletedAt ? { ...row, deletedAt } : row);
-    const forms = (await this.forms.exportRows()).map((f) => ({ ...f, actions: withoutHeaders(f.actions) }));
-    const webhooks = await this.prisma.webhook.findMany({
-      orderBy: { id: 'asc' },
-      select: { name: true, url: true, events: true, enabled: true },
-    });
-    const redirects = await this.prisma.redirect.findMany({
-      orderBy: { from: 'asc' },
-      select: { from: true, to: true, statusCode: true },
-    });
+    const forms = formRows.map((f) => ({ ...f, actions: withoutHeaders(f.actions) }));
 
     return {
       format: SITE_BUNDLE_FORMAT,
       version: SITE_BUNDLE_VERSION,
       nodepressVersion: NODEPRESS_VERSION,
       exportedAt: new Date().toISOString(),
-      locales: await this.locales.get(),
+      locales,
       choiceLists: schemas.choiceLists,
       components: schemas.components,
       contentTypes: schemas.contentTypes,
@@ -87,7 +95,7 @@ export class SiteTransferService {
       forms,
       webhooks,
       redirects,
-      ...(opts.admin ? await this.extras.export() : { partial: true }),
+      ...extras,
     };
   }
 

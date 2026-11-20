@@ -7,7 +7,7 @@ import { useTranslations } from 'use-intl';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { downloadBlob, EXPORT_REQUEST } from '@/lib/download';
+import { downloadBlob, EXPORT_REQUEST, failureDetail } from '@/lib/download';
 
 type TypePlan = { name: string; total: number; toCreate: number; toUpdate: number; toRestore: number; toSkip: number };
 type Counts = { total: number; toCreate: number; toUpdate: number; toSkip: number };
@@ -47,7 +47,9 @@ const fileSize = (bytes: number) =>
 
 const message = (err: any, fallback: string) => {
   const m = err?.response?.data?.message;
-  return Array.isArray(m) ? m.join('; ') : m || fallback;
+  if (m) return Array.isArray(m) ? m.join('; ') : m;
+  const detail = failureDetail(err);
+  return detail ? `${fallback} (${detail})` : fallback;
 };
 
 /** Whole-site export / import (admin only): GET /api/site/export, POST /api/site/import. */

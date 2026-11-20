@@ -81,44 +81,51 @@ export class SiteExtrasService {
   ) {}
 
   async export() {
-    const users = await this.prisma.user.findMany({ orderBy: { id: 'asc' }, select: { id: true, email: true, name: true, role: true, createdAt: true } });
+    // Independent reads run side by side (see SiteTransferService.export).
+    const [users, b, folders, media, packages, installed, releases, forms, submissions, versions, types, schemaVersions, components, audit, settings, roles, permissions, roleAccess] = await Promise.all([
+      this.prisma.user.findMany({ orderBy: { id: 'asc' }, select: { id: true, email: true, name: true, role: true, createdAt: true } }),
+      this.brand.get(),
+      this.prisma.mediaFolder.findMany({ select: { id: true, name: true, parentId: true } }),
+      this.prisma.media.findMany({ orderBy: { id: 'asc' } }),
+      this.prisma.pluginPackage.findMany({ orderBy: { id: 'asc' }, select: { id: true, manifest: true, archive: true } }),
+      this.prisma.installedPlugin.findMany({ orderBy: { id: 'asc' } }),
+      this.prisma.release.findMany({
+        orderBy: { id: 'asc' },
+        include: { items: { select: { action: true, entry: { select: { publicId: true } } } } },
+      }),
+      this.prisma.form.findMany({ select: { id: true, slug: true } }),
+      this.prisma.formSubmission.findMany({ orderBy: { id: 'asc' }, include: { files: true } }),
+      this.prisma.entryVersion.findMany({ orderBy: { id: 'asc' }, include: { entry: { select: { publicId: true } } } }),
+      this.prisma.contentType.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { id: true, name: true } }),
+      this.prisma.contentTypeSchemaVersion.findMany({ orderBy: { id: 'asc' } }),
+      this.prisma.component.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { name: true } }),
+      this.prisma.auditLog.findMany({ orderBy: { id: 'asc' } }),
+      this.settings.exportSettings(),
+      this.prisma.role.findMany({ orderBy: { name: 'asc' }, select: { name: true, label: true, description: true, baseRole: true } }),
+      this.prisma.permission.findMany({ orderBy: [{ role: 'asc' }, { contentType: 'asc' }], select: { role: true, contentType: true, actions: true } }),
+      this.prisma.roleAccess.findMany({ orderBy: [{ role: 'asc' }, { module: 'asc' }], select: { role: true, module: true, level: true } }),
+    ]);
     const emailOf = new Map(users.map((u) => [u.id, u.email]));
     const by = (id: number | null) => (id == null ? null : emailOf.get(id) ?? null);
 
-    const b = await this.brand.get();
-    const folders = await this.prisma.mediaFolder.findMany({ select: { id: true, name: true, parentId: true } });
     const byId = new Map(folders.map((f) => [f.id, f]));
     const pathOf = (id: number | null): string[] => {
       const out: string[] = [];
       for (let f = id == null ? undefined : byId.get(id); f; f = f.parentId == null ? undefined : byId.get(f.parentId)) out.unshift(f.name);
       return out;
     };
-    const media = await this.prisma.media.findMany({ orderBy: { id: 'asc' } });
-    const packages = await this.prisma.pluginPackage.findMany({ orderBy: { id: 'asc' }, select: { id: true, manifest: true, archive: true } });
     const pkgManifest = new Map(packages.map((p) => [p.id, p.manifest as any]));
-    const installed = await this.prisma.installedPlugin.findMany({ orderBy: { id: 'asc' } });
-    const releases = await this.prisma.release.findMany({
-      orderBy: { id: 'asc' },
-      include: { items: { select: { action: true, entry: { select: { publicId: true } } } } },
-    });
-    const forms = await this.prisma.form.findMany({ select: { id: true, slug: true } });
     const slugOf = new Map(forms.map((f) => [f.id, f.slug]));
-    const submissions = await this.prisma.formSubmission.findMany({ orderBy: { id: 'asc' }, include: { files: true } });
-    const versions = await this.prisma.entryVersion.findMany({ orderBy: { id: 'asc' }, include: { entry: { select: { publicId: true } } } });
-    const types = await this.prisma.contentType.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { id: true, name: true } });
     const typeOf = new Map(types.map((t) => [t.id, t.name]));
-    const schemaVersions = await this.prisma.contentTypeSchemaVersion.findMany({ orderBy: { id: 'asc' } });
-    const components = await this.prisma.component.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { name: true } });
-    const audit = await this.prisma.auditLog.findMany({ orderBy: { id: 'asc' } });
 
     return {
       siteUrl: env.APP_URL ?? null,
       order: { contentTypes: types.map((t) => t.name), components: components.map((c) => c.name) },
       brand: { brandName: b.brandName, brandLogoUrl: b.brandLogoUrl, brandColor: b.brandColor, buttonColor: b.buttonColor, inputColor: b.inputColor },
-      settings: await this.settings.exportSettings(),
-      roles: await this.prisma.role.findMany({ orderBy: { name: 'asc' }, select: { name: true, label: true, description: true, baseRole: true } }),
-      permissions: await this.prisma.permission.findMany({ orderBy: [{ role: 'asc' }, { contentType: 'asc' }], select: { role: true, contentType: true, actions: true } }),
-      roleAccess: await this.prisma.roleAccess.findMany({ orderBy: [{ role: 'asc' }, { module: 'asc' }], select: { role: true, module: true, level: true } }),
+      settings,
+      roles,
+      permissions,
+      roleAccess,
       users: users.map((u) => ({ email: u.email, ...(u.name && { name: u.name }), role: u.role, createdAt: u.createdAt })),
       mediaFolders: folders.map((f) => pathOf(f.id)).sort((x, y) => x.length - y.length || folderKey(x).localeCompare(folderKey(y))),
       media: media.map(({ id, folderId, uploadedBy, ...row }) => ({ ...row, folder: pathOf(folderId), uploadedBy: by(uploadedBy) })),

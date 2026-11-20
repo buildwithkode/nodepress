@@ -57,6 +57,10 @@ const nextConfig = {
   // endpoint entirely — it is attack surface with nothing to gain (it was the
   // vector for an unauthenticated RCE fixed in Next 15.5.24).
   images: { unoptimized: true },
+  // The /api rewrite below is a proxy that gives up after 30 s by default, so a
+  // long export (whole site, all entries) failed on a slow database even though
+  // the browser would wait 5 minutes (lib/download.ts EXPORT_REQUEST).
+  experimental: { proxyTimeout: 300_000 },
   // Don't advertise the framework (the API's Express header is already off via Helmet).
   poweredByHeader: false,
   env: isLocalBackend

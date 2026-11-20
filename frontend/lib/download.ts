@@ -23,3 +23,15 @@ export function downloadJson(data: unknown, filename: string) {
 
 /** Request options for exports: they can take longer than the usual 30 s limit on a slow server. */
 export const EXPORT_REQUEST = { timeout: 300_000 } as const;
+
+/**
+ * Why a request failed, for the end of an error toast when the server sent no
+ * message of its own: "HTTP 504", "timed out", or "no connection". A blob
+ * response's JSON error isn't readable here, so the status is what we show.
+ */
+export function failureDetail(err: any): string | null {
+  if (err?.response?.status) return `HTTP ${err.response.status}`;
+  if (err?.code === 'ECONNABORTED' || err?.code === 'ETIMEDOUT') return 'timed out';
+  if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') return 'no connection';
+  return null;
+}
