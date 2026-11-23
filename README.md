@@ -5,6 +5,8 @@
 <p><strong>The self-hosted headless CMS that's actually easy to run.</strong><br/>
 Open source · Free forever · Production ready in 10 minutes</p>
 
+<p>Anyone on your team can create a content API in minutes — no backend code needed.</p>
+
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/create-nodepress-app)](https://www.npmjs.com/package/create-nodepress-app)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
