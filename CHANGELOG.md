@@ -91,6 +91,8 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **Backups** now read the storage saved in the admin, not only `STORAGE_DRIVER`. A site on S3, R2 or ImageKit set up in the admin had leftover local files copied and the wrong storage in its manifest. Local files are still copied while media rows point at them, so a backup taken after switching storage doesn't lose older files.
 - **Login cookies stay out of the logs.** Request logs recorded `Cookie` and `Set-Cookie` headers, including the refresh token.
 - **Exports download reliably.** Safari (and sometimes Firefox) cancelled downloads because the file link was removed straight after the click; every download in the admin now keeps it for a minute. Exports (site, schemas, pages, forms, redirects) wait up to 5 minutes instead of 30 s, the admin's `/api` proxy waits as long (`experimental.proxyTimeout`), and the whole-site export reads in parallel, so it finishes on a database far from the server (28 s → 8 s against a 200 ms link). A failed export now says why: the HTTP status, "timed out" or "no connection".
+- **Failed uploads say why.** The media picker, the editor's image dialog and the Media page showed only "upload failed"; they now show the API's reason and the HTTP status, or "no connection".
+- **Uploaded file names keep their characters.** Names with accents, other scripts or a Mac screenshot's narrow space before "PM" were saved garbled (`CafÃ©.png`, `2.38.15â¯PM.png`) in the media library and form uploads.
 
 ### Security
 

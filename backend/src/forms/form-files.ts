@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { extname } from 'path';
 import { FormField } from './types/form-field.types';
 import { ValidationError } from './submission-validator';
+import { uploadName } from '../common/upload-name';
 
 export const MAX_FILES_PER_SUBMISSION = 5;
 
@@ -87,7 +88,7 @@ export function attachUploads(
       continue;
     }
     const allowed = allowedExtensions(field);
-    const extension = extname(cleanFilename(upload.originalname)).slice(1).toLowerCase();
+    const extension = extname(cleanFilename(uploadName(upload.originalname))).slice(1).toLowerCase();
     if (!allowed.includes(extension)) {
       error('fileType', `"${label(field)}" must be one of: ${allowed.join(', ')}`);
       continue;
@@ -106,7 +107,7 @@ export function attachUploads(
     const id = randomUUID();
     const value: StoredFileValue = {
       fileId: id,
-      filename: cleanFilename(upload.originalname),
+      filename: cleanFilename(uploadName(upload.originalname)),
       mimetype: kind.mimetype,
       size: upload.size,
     };

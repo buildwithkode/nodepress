@@ -8,7 +8,6 @@ import {
 import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import { useUploadLimitMb } from '@/lib/use-upload-limit';
-import Cookies from 'js-cookie';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { uploadMedia } from '@/lib/upload-media';
 
 interface MediaFile {
   id?: number;
@@ -111,24 +111,15 @@ export function EditorMediaModal({ open, onClose, onInsert }: Props) {
     }
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const token = Cookies.get('np_token') || '';
-      const res = await fetch('/api/media/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Upload failed');
-      const uploaded = await res.json();
+      const uploaded = await uploadMedia(file);
       toast.success(t('mediaModal.uploaded', { name: file.name }));
       await fetchFiles();
       const targetUrl = uploaded.url || uploaded.webpUrl;
       setSelectedUrl(targetUrl);
       setAlt(file.name.replace(/\.[^/.]+$/, ''));
       setTab('library');
-    } catch {
-      toast.error(t('mediaModal.uploadFailed', { name: file.name }));
+    } catch (err) {
+      toast.error(t('mediaModal.uploadFailed', { name: file.name }), { description: err instanceof Error ? err.message : undefined });
     } finally {
       setUploading(false);
     }

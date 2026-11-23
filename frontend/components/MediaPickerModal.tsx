@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Upload, ImageIcon, Check, Loader2, Crop, X } from 'lucide-react';
 import { toast } from 'sonner';
-import Cookies from 'js-cookie';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { ImageCropModal } from '@/components/ImageCropModal';
 import { useTranslations } from 'use-intl';
 import { useUploadLimitMb } from '@/lib/use-upload-limit';
+import { uploadMedia } from '@/lib/upload-media';
 
 interface MediaFile {
   filename: string;
@@ -109,24 +109,15 @@ export function MediaPickerModal({ value, onChange }: Props) {
   const uploadFile = async (file: File) => {
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const token = Cookies.get('np_token') || '';
-      const res = await fetch('/api/media/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Upload failed');
-      const uploaded = await res.json();
+      const uploaded = await uploadMedia(file);
       toast.success(t('toasts.uploaded', { name: file.name }));
       await fetchFiles();
       const targetUrl = uploaded.url || uploaded.webpUrl;
       setSelectedUrl(targetUrl);
       setAlt('');
       setTab('browse');
-    } catch {
-      toast.error(t('toasts.uploadFailed', { name: file.name }));
+    } catch (err) {
+      toast.error(t('toasts.uploadFailed', { name: file.name }), { description: err instanceof Error ? err.message : undefined });
     } finally {
       setUploading(false);
     }

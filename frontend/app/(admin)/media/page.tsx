@@ -17,7 +17,6 @@ import {
   Crosshair,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import Cookies from 'js-cookie';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -57,6 +56,7 @@ import { transformUrl } from '@/lib/media-url';
 import { FocalPointDialog } from './_components/FocalPointDialog';
 import { useTranslations } from 'use-intl';
 import { useUploadLimitMb } from '@/lib/use-upload-limit';
+import { uploadMedia } from '@/lib/upload-media';
 
 interface MediaFile {
   filename: string;
@@ -232,24 +232,15 @@ export default function MediaPage() {
   const uploadFile = async (file: File) => {
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const token = Cookies.get('np_token') || '';
-      const res = await fetch('/api/media/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Upload failed');
-      const uploaded = await res.json();
+      const uploaded = await uploadMedia(file);
       // Auto-assign to current folder if one is selected
       if (typeof activeFolderId === 'number') {
         await api.put(`/media/${uploaded.filename}/folder`, { folderId: activeFolderId }).catch(() => {});
       }
       toast.success(t('toasts.uploaded', { name: file.name }));
       fetchFiles(activeFolderId);
-    } catch {
-      toast.error(t('toasts.uploadFailed', { name: file.name }));
+    } catch (err) {
+      toast.error(t('toasts.uploadFailed', { name: file.name }), { description: err instanceof Error ? err.message : undefined });
     } finally {
       setUploading(false);
     }

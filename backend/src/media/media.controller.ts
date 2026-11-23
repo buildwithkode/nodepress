@@ -20,9 +20,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Access } from '../auth/decorators/access.decorator';
 
+import { uploadName } from '../common/upload-name';
 const storage = diskStorage({
   destination: join(process.cwd(), 'uploads'),
   filename: (_req, file, cb) => {
+    file.originalname = uploadName(file.originalname);
     const uniqueSuffix = randomBytes(8).toString('hex');
     const ext = extname(file.originalname).toLowerCase();
     cb(null, `${Date.now()}-${uniqueSuffix}${ext}`);
