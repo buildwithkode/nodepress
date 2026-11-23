@@ -16,6 +16,8 @@ Open source · Free forever · Production ready in 10 minutes</p>
 
 </div>
 
+https://github.com/user-attachments/assets/cea52ad2-a569-42ba-8f10-1180f1018bfc
+
 ---
 
 ## The problem with every other CMS
