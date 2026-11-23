@@ -16,7 +16,7 @@ Open source · Free forever · Production ready in 10 minutes</p>
 
 </div>
 
-https://github.com/user-attachments/assets/cea52ad2-a569-42ba-8f10-1180f1018bfc
+https://github.com/user-attachments/assets/fdaefcff-d976-428b-8f0c-f41925cdf000
 
 ---
 
