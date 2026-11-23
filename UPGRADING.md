@@ -68,14 +68,27 @@ before npm. If you add a dependency with an install script, decide it with
 `allowScripts`) — the pre-push check fails until you do. Keep the list in the
 root `package.json`; npm ignores it in `backend/` and `frontend/`.
 
-## Unreleased (sign-in hardening)
+## 1.10.0 (from 1.9.2)
 
-One database migration (`20261112090000_auth_hardening`). It hashes the stored
-API keys, refresh tokens and reset links in place, so nobody is signed out and
-keys keep working. 2FA secrets are encrypted by the server on its first start.
+Seven database migrations, all additive: form files, component and content
+type order, sign-in hardening, user names, entry order, and review notes /
+share links / scheduled unpublish. `npx prisma migrate deploy` (or the Docker
+backend on start) applies them. The sign-in migration hashes the stored API
+keys, refresh tokens and reset links in place, so nobody is signed out and
+keys keep working; 2FA secrets are encrypted by the server on its first start.
+Two new admin dependencies (`motion`, `@tiptap/extension-table`), so run
+`npm install` after the new code.
 
 **Action required**
 
+- **Sites reading Option Lists.** `/api/choice-lists` is now
+  `/api/option-lists`, with no alias. Change the address in your site's code.
+- **Content types named `option_lists` or `share`.** Both are now reserved
+  API names (`/api/option-lists`, `/api/share/:token`). Rename such a type
+  before upgrading.
+- **Site export files are format version 2.** 1.10.0 reads files from older
+  installs, but an older install can't read a file exported by 1.10.0.
+  Upgrade both sides before moving a site.
 - **Copy your API keys before relying on the list.** The admin can't show a
   full key any more, only `np_1a2b…9f0e`. Keys already in use keep working; if
   one is lost, revoke it and create a new one, which is shown once.
@@ -85,6 +98,9 @@ keys keep working. 2FA secrets are encrypted by the server on its first start.
   (`npm run reset-password -- you@example.com [password]`).
 - **Keep `SETTINGS_SECRET` / `JWT_SECRET` with your backups.** 2FA secrets are
   now encrypted with it, like the saved email and storage passwords.
+- **Links to admin page screens.** They moved from `/entries/...` to
+  `/pages/...`. Old links redirect, so nothing breaks, but update bookmarks or
+  docs that point at them.
 
 ## 1.9.2 (from 1.9.1)
 

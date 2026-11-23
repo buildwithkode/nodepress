@@ -12,8 +12,42 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+---
+
+## [1.10.0] — 2026-11-23
+
 ### Added
+
 - **Cmd+S / Ctrl+S saves** in the admin: the page editor, content types, components, option lists, forms, languages, brand, email and storage settings, field permissions and the profile. It presses the screen's main save button, so validation and confirm dialogs work as with the mouse; with a dialog open it only saves that dialog. The browser's own "Save page as" no longer opens in the admin.
+- **API reference in Help.** The in-app page with this install's endpoints is listed as **API reference** in the sidebar (was Documentation); it still links to every page of the docs site.
+- **Account menu in the top bar.** Your initials at the top right open your name, email and role, with **Profile** and **Sign out**. It replaces the user block at the bottom of the sidebar.
+- **Security emails.** When email is set up, people get an email when their password is changed (from Profile or a reset link), when two-step sign-in is turned on or off, when they sign out on all devices, when `npm run reset-password` is run on their account, and when an admin removes their account. Whoever sent an invitation is told when the person sets a password with it. Every admin gets an email when someone becomes an admin (invited or promoted, or through the reset tool) and when an API key is created or deleted. Each says when it happened and what to do if it wasn't them, and is sent in the background, so a mail problem never blocks or undoes the change.
+- **Role change email.** When an admin changes someone's role, that person gets an email with who changed it and the role before and now, in the site's brand; replies go to that admin. Sent only when email is set up and the role really changed.
+- **2FA reminder and status.** Users without two-factor authentication see a dashboard reminder (**Set up** or **Not now**, which hides it for 30 days in that browser), and the Users page has a **2FA** column. `GET /api/auth/me` and `GET /api/users` include `twoFactorEnabled`.
+- **Profile page for every user.** Open it from the account menu at the top right. Every role, not only those with access to the Users page, can now set a display name, change their password, turn two-factor authentication on or off, sign out on all devices and pick the admin's language and theme. 2FA and "sign out on all devices" moved there from the Users page. New `GET`/`PUT /api/users/me`; a migration adds the optional `users.name` column, which site exports carry.
+- **Guides for AI coding assistants.** One `CLAUDE.md` / `AGENTS.md` file each for Next.js, React and React Native (`docs/public/ai/`), so Claude Code, Cursor or Codex can connect a project to NodePress from the file alone. See *Use with AI coding agents* in the docs.
+- **Sticky entry header.** The Edit Entry header, with its language, status, **Release** and **Update** controls, stays in view while you scroll, on screens 1024px and wider.
+- **Fold sections and repeater rows.** In the entry form they start closed, each showing its type and a preview of its text, with **Expand all** / **Collapse all** above the list. New rows open, a failed save opens the rows with errors, and closed rows are still validated and saved.
+- **No duplicates on form fields.** A top-level text, email, phone, URL or number field can be set to keep one submission per value, ignoring case. A repeat gets the normal success reply, isn't saved and fires no actions.
+- **Tables in the rich text editor.** A toolbar button inserts a table with a header row; while the cursor is in one, you can add or delete columns and rows.
+- **Smooth folding.** Sections, repeater rows, component boxes, content type field cards and layouts, the SEO and Versions panels, form submission rows and the per-type access list slide open and shut instead of snapping (instant when the system asks for reduced motion). A closed row can no longer be tabbed into.
+- **Option Lists.** Choice lists are now called Option Lists and sit in the Content menu. Editors can add and change them; renaming or deleting a list stays with admins (new `option_lists` access module). A **Select several** tick box on select fields lets entries pick more than one option. Stored data keeps the `choiceList` name. **The API moves too:** `/api/choice-lists` is now `/api/option-lists`, so a site reading the old address must change it. The list table shows each endpoint with a copy button.
+- **Rows slide in and out.** Repeater rows, flexible sections, content type field cards and layouts slide in when added and out when deleted (instant when the system asks for reduced motion). Uses the MIT-licensed `motion` package.
+- **Fold fields in the content type editors.** Each field folds down to its name, key and type, with **Expand all** / **Collapse all** next to **Add Field**. Saved fields start closed; a new field opens.
+- **Sticky header on every editor.** New Entry, New Content Type and Edit Content Type keep their header in view too. The content type editors now have **Create** / **Save Changes** in the header as well as at the bottom.
+- **Field width.** Each field can be Full, 2/3, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.
+- **Drag fields directly in the content type editors.** Every field and component has a handle on both the new and edit pages, so the **Reorder** button is gone.
+- **Reorder sections and repeater rows in entries.** Drag a flexible section or a repeater row by its handle. The new order goes live when you save the entry.
+- **Reorder flexible layouts.** Drag a layout by its handle in the content type and component editors. The entry form's **Add Block** menu follows the order, and saved content isn't affected.
+- **Reorder content types.** The **Content Types** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/content-types/order`. The Entries page and `GET /api/content-types` follow the same order. New content types now go last instead of first, and the page lists every type without pages unless you search. Run `npx prisma migrate deploy` (adds `content_types.position`).
+- **Coloured field chips on the Components page**, matching the Content Types page.
+- **Reorder components.** The **Components** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/components/order`. New components go last. *Used by* now lists just the content type names. Run `npx prisma migrate deploy` (adds `components.position`).
+- **Cloudflare R2 and ImageKit storage.** Both are new options next to local disk and S3-compatible storage, set under **Settings → Email & storage** or with `STORAGE_DRIVER=r2|imagekit`. See [File storage](https://nodepress-docs.vercel.app/deployment/storage/).
+- **File upload fields in forms.** A `file` field takes one uploaded file (PDF, Word or image; allowed extensions set per field). Files are private: they're kept in the database and downloaded from the submissions page; emails show the file's name. Needs the new `form_files` table (`npx prisma migrate deploy`).
+- **Export and import forms** from the **Forms** page, or `GET /api/forms/export` / `POST /api/forms/import`: one JSON file, a preview before anything is written, forms matched by slug and updated in place, so they keep their submissions.
+- **Site export and import.** One JSON file with choice lists, components, content types, every entry (all languages and statuses), forms, webhooks and redirects, from **Settings → Export & import**, `GET /api/site/export` / `POST /api/site/import`, or `nodepress site:export` / `site:import`. The import previews first, matches entries by content type, slug and language, keeps public ids and rewrites relations when an entry has another id on the target, so relations keep working. Forms are matched by slug and updated in place, so they keep their submissions, which aren't exported. Webhooks are matched by name and URL, and the preview lists where they'll send; redirects are matched by source path. Entries the import changes get a version first, so they can be restored. Media files aren't included. See [Site export and import](https://nodepress-docs.vercel.app/content/site-export/).
+- **Link tab in the media picker.** Image fields can point at an image hosted elsewhere, such as on ImageKit, by pasting its address. The picker previews it and warns if it can't load.
+- **Search on the Components page.** A search box matches a component's name, label, description or field names. Rows keep their number in the whole list, and dragging waits until the search is cleared.
 
 ### Changed
 
@@ -39,61 +73,13 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **Password rules shown up front.** The reset page, the setup page and the change-password sheet list the rules under the new password field (length, no common or breached passwords, not your email), so people know them before they submit.
 - **Show password button.** Every password field in the admin (sign-in, setup, reset, change password, email and storage settings, plugin settings) has an eye button to show or hide what you typed.
 - **Faster admin in development.** `npm run dev` starts the admin with Turbopack: the first visit to each page compiles about a third faster (0.4–0.7 s instead of 0.5–1.7 s). Production builds are unchanged.
-
-### Added
-
-- **API reference in Help.** The in-app page with this install's endpoints is listed as **API reference** in the sidebar (was Documentation); it still links to every page of the docs site.
-- **Account menu in the top bar.** Your initials at the top right open your name, email and role, with **Profile** and **Sign out**. It replaces the user block at the bottom of the sidebar.
-- **Security emails.** When email is set up, people get an email when their password is changed (from Profile or a reset link), when two-step sign-in is turned on or off, when they sign out on all devices, when `npm run reset-password` is run on their account, and when an admin removes their account. Whoever sent an invitation is told when the person sets a password with it. Every admin gets an email when someone becomes an admin (invited or promoted, or through the reset tool) and when an API key is created or deleted. Each says when it happened and what to do if it wasn't them, and is sent in the background, so a mail problem never blocks or undoes the change.
-- **Role change email.** When an admin changes someone's role, that person gets an email with who changed it and the role before and now, in the site's brand; replies go to that admin. Sent only when email is set up and the role really changed.
-- **2FA reminder and status.** Users without two-factor authentication see a dashboard reminder (**Set up** or **Not now**, which hides it for 30 days in that browser), and the Users page has a **2FA** column. `GET /api/auth/me` and `GET /api/users` include `twoFactorEnabled`.
-- **Profile page for every user.** Open it from the account menu at the top right. Every role, not only those with access to the Users page, can now set a display name, change their password, turn two-factor authentication on or off, sign out on all devices and pick the admin's language and theme. 2FA and "sign out on all devices" moved there from the Users page. New `GET`/`PUT /api/users/me`; a migration adds the optional `users.name` column, which site exports carry.
-- **Guides for AI coding assistants.** One `CLAUDE.md` / `AGENTS.md` file each for Next.js, React and React Native (`docs/public/ai/`), so Claude Code, Cursor or Codex can connect a project to NodePress from the file alone. See *Use with AI coding agents* in the docs.
-
-### Changed
-
 - **`server.js` takes its settings from environment variables.** When `DATABASE_URL` and `JWT_SECRET` are set (as on Hostinger's Node.js Web App and similar panels), the first-run setup page is skipped.
-
-### Security
-
-- **Stronger password storage.** Passwords are hashed with bcrypt cost 12 (was 10); older hashes are upgraded when each user next signs in.
-- **Password rules.** New passwords must be 8–128 characters (the first admin's minimum was 6), not a very common password or the user's email, and not in a known data breach. The breach check sends only the first 5 characters of the password's SHA-1 hash to Have I Been Pwned and allows the password if the service can't be reached; `PASSWORD_BREACH_CHECK=false` turns it off.
-- **No usable secrets in the database.** Refresh tokens, password reset and invite links and API keys are stored as SHA-256 hashes, and 2FA secrets are encrypted. A migration converts existing ones, so nobody is signed out and keys keep working. **A new API key is shown in full only once**; the list shows `np_1a2b…9f0e`.
-- **Sessions can be ended at once.** Changing or resetting a password, turning 2FA on or off and the new **Sign out on all devices** button (`POST /api/auth/logout-all`) cancel every access token already issued, not only refresh tokens. Changing your password keeps the browser you changed it in signed in.
-- **Safer emergency reset.** `npm run reset-password` now needs an email, prints a random password when none is given, refuses weak ones and signs the account out everywhere. It no longer falls back to a built-in email and `admin123`.
-
-### Changed
-
 - **Export & import now moves everything except media files.** The file also carries brand, email and storage settings, roles, permissions, users, media records and folders, plugins, releases, form submissions, the trash and all history. Image links change to the new site's address on import. A signed-in admin is needed for these parts; an API key gets content only.
 - **Site exports no longer hold any credentials.** Passwords, API keys, webhook secrets and form webhook headers stay behind. Imported users set a new password through an invite or "Forgot password", and a new webhook stays off until it has a signing secret. **This changes the file format to version 2**, which older installs can't read; they still export files this version reads.
 - **Import previews count Option Lists and components.** Export & import now shows how many of each will be created, updated or kept, before and after the import.
 - **Editors stay open after saving.** A new entry or content type opens its edit page once created, and saving a content type keeps you on the page. A second save doesn't repeat the renames or removals of the first.
 - **WordPress import hidden for now.** It's gone from the admin and the docs; the API routes still work.
 - **New projects are smaller.** `create-nodepress-app` no longer copies `client/`, `starters/`, `SECURITY.md` or the zip release scripts, and only `--docker` projects get `caddy/`, the HTTPS and search compose files and the root `.env.example`. Starters are copied from the NodePress repo.
-
-### Added
-
-- **Sticky entry header.** The Edit Entry header, with its language, status, **Release** and **Update** controls, stays in view while you scroll, on screens 1024px and wider.
-- **Fold sections and repeater rows.** In the entry form they start closed, each showing its type and a preview of its text, with **Expand all** / **Collapse all** above the list. New rows open, a failed save opens the rows with errors, and closed rows are still validated and saved.
-- **No duplicates on form fields.** A top-level text, email, phone, URL or number field can be set to keep one submission per value, ignoring case. A repeat gets the normal success reply, isn't saved and fires no actions.
-- **Tables in the rich text editor.** A toolbar button inserts a table with a header row; while the cursor is in one, you can add or delete columns and rows.
-- **Smooth folding.** Sections, repeater rows, component boxes, content type field cards and layouts, the SEO and Versions panels, form submission rows and the per-type access list slide open and shut instead of snapping (instant when the system asks for reduced motion). A closed row can no longer be tabbed into.
-- **Option Lists.** Choice lists are now called Option Lists and sit in the Content menu. Editors can add and change them; renaming or deleting a list stays with admins (new `option_lists` access module). A **Select several** tick box on select fields lets entries pick more than one option. Stored data keeps the `choiceList` name. **The API moves too:** `/api/choice-lists` is now `/api/option-lists`, so a site reading the old address must change it. The list table shows each endpoint with a copy button.
-- **Rows slide in and out.** Repeater rows, flexible sections, content type field cards and layouts slide in when added and out when deleted (instant when the system asks for reduced motion). Uses the MIT-licensed `motion` package.
-- **Fold fields in the content type editors.** Each field folds down to its name, key and type, with **Expand all** / **Collapse all** next to **Add Field**. Saved fields start closed; a new field opens.
-- **Sticky header on every editor.** New Entry, New Content Type and Edit Content Type keep their header in view too. The content type editors now have **Create** / **Save Changes** in the header as well as at the bottom.
-- **Field width.** Each field can be Full, 2/3, 1/2 or 1/3 wide in the entry form, set in the content type and component editors at any nesting level. Fields share a row until it is full and stack on small screens. Existing fields stay full width, and saved content and the API responses for entries don't change.
-- **Drag fields directly in the content type editors.** Every field and component has a handle on both the new and edit pages, so the **Reorder** button is gone.
-- **Reorder sections and repeater rows in entries.** Drag a flexible section or a repeater row by its handle. The new order goes live when you save the entry.
-- **Reorder flexible layouts.** Drag a layout by its handle in the content type and component editors. The entry form's **Add Block** menu follows the order, and saved content isn't affected.
-- **Reorder content types.** The **Content Types** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/content-types/order`. The Entries page and `GET /api/content-types` follow the same order. New content types now go last instead of first, and the page lists every type without pages unless you search. Run `npx prisma migrate deploy` (adds `content_types.position`).
-- **Coloured field chips on the Components page**, matching the Content Types page.
-- **Reorder components.** The **Components** page has a Sr. No. column: drag a row to move it up or down, or use `PUT /api/components/order`. New components go last. *Used by* now lists just the content type names. Run `npx prisma migrate deploy` (adds `components.position`).
-- **Cloudflare R2 and ImageKit storage.** Both are new options next to local disk and S3-compatible storage, set under **Settings → Email & storage** or with `STORAGE_DRIVER=r2|imagekit`. See [File storage](https://nodepress-docs.vercel.app/deployment/storage/).
-- **File upload fields in forms.** A `file` field takes one uploaded file (PDF, Word or image; allowed extensions set per field). Files are private: they're kept in the database and downloaded from the submissions page; emails show the file's name. Needs the new `form_files` table (`npx prisma migrate deploy`).
-- **Export and import forms** from the **Forms** page, or `GET /api/forms/export` / `POST /api/forms/import`: one JSON file, a preview before anything is written, forms matched by slug and updated in place, so they keep their submissions.
-- **Site export and import.** One JSON file with choice lists, components, content types, every entry (all languages and statuses), forms, webhooks and redirects, from **Settings → Export & import**, `GET /api/site/export` / `POST /api/site/import`, or `nodepress site:export` / `site:import`. The import previews first, matches entries by content type, slug and language, keeps public ids and rewrites relations when an entry has another id on the target, so relations keep working. Forms are matched by slug and updated in place, so they keep their submissions, which aren't exported. Webhooks are matched by name and URL, and the preview lists where they'll send; redirects are matched by source path. Entries the import changes get a version first, so they can be restored. Media files aren't included. See [Site export and import](https://nodepress-docs.vercel.app/content/site-export/).
-- **Link tab in the media picker.** Image fields can point at an image hosted elsewhere, such as on ImageKit, by pasting its address. The picker previews it and warns if it can't load.
 
 ### Fixed
 
@@ -104,7 +90,18 @@ NodePress uses [Semantic Versioning](https://semver.org/):
 - **Content type, component and entry pages on phones and tablets.** The form no longer shares a phone's width with the JSON panel: below 1024px the panel starts closed and opens above the form. Field rows and header buttons wrap instead of running off the screen, and the Content Types, Entries and Components tables show their main columns on small screens.
 - **Backups** now read the storage saved in the admin, not only `STORAGE_DRIVER`. A site on S3, R2 or ImageKit set up in the admin had leftover local files copied and the wrong storage in its manifest. Local files are still copied while media rows point at them, so a backup taken after switching storage doesn't lose older files.
 - **Login cookies stay out of the logs.** Request logs recorded `Cookie` and `Set-Cookie` headers, including the refresh token.
-- **Security:** `follow-redirects` patched to 1.16.2 (GHSA-mrwp-f3q8-3g9p).
+- **Exports download reliably.** Safari (and sometimes Firefox) cancelled downloads because the file link was removed straight after the click; every download in the admin now keeps it for a minute. Exports (site, schemas, pages, forms, redirects) wait up to 5 minutes instead of 30 s, the admin's `/api` proxy waits as long (`experimental.proxyTimeout`), and the whole-site export reads in parallel, so it finishes on a database far from the server (28 s → 8 s against a 200 ms link). A failed export now says why: the HTTP status, "timed out" or "no connection".
+
+### Security
+
+- **Stronger password storage.** Passwords are hashed with bcrypt cost 12 (was 10); older hashes are upgraded when each user next signs in.
+- **Password rules.** New passwords must be 8–128 characters (the first admin's minimum was 6), not a very common password or the user's email, and not in a known data breach. The breach check sends only the first 5 characters of the password's SHA-1 hash to Have I Been Pwned and allows the password if the service can't be reached; `PASSWORD_BREACH_CHECK=false` turns it off.
+- **No usable secrets in the database.** Refresh tokens, password reset and invite links and API keys are stored as SHA-256 hashes, and 2FA secrets are encrypted. A migration converts existing ones, so nobody is signed out and keys keep working. **A new API key is shown in full only once**; the list shows `np_1a2b…9f0e`.
+- **Sessions can be ended at once.** Changing or resetting a password, turning 2FA on or off and the new **Sign out on all devices** button (`POST /api/auth/logout-all`) cancel every access token already issued, not only refresh tokens. Changing your password keeps the browser you changed it in signed in.
+- **Safer emergency reset.** `npm run reset-password` now needs an email, prints a random password when none is given, refuses weak ones and signs the account out everywhere. It no longer falls back to a built-in email and `admin123`.
+- `follow-redirects` patched to 1.16.2 (GHSA-mrwp-f3q8-3g9p).
+
+---
 
 ## [1.9.2] — 2026-10-30
 

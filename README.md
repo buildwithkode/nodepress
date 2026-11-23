@@ -591,7 +591,7 @@ cd backend && npx prisma migrate deploy && cd ..
 # restart, check the admin, commit
 ```
 
-The upgrade applies the changes between your release and the new one to your code, keeping your own edits; where you and NodePress changed the same lines it leaves conflict markers. It skips files your project doesn't have (tests, the CLI, files you deleted) and lists them. Your project's root `package.json` is its own, so when NodePress's changes, the command shows how to compare them. Back up the database before `migrate deploy`. Prisma applies only the new migrations, so skipping releases is fine, e.g. 1.7.0 straight to 1.9.2.
+The upgrade applies the changes between your release and the new one to your code, keeping your own edits; where you and NodePress changed the same lines it leaves conflict markers. It skips files your project doesn't have (tests, the CLI, files you deleted) and lists them. Your project's root `package.json` is its own, so when NodePress's changes, the command shows how to compare them. Back up the database before `migrate deploy`. Prisma applies only the new migrations, so skipping releases is fine, e.g. 1.7.0 straight to 1.10.0.
 
 **Projects created before `nodepress.json` existed** say once which release they started from: `npx create-nodepress-app upgrade --from 1.7.0` (`backend/package.json` has the version). If you started from an unreleased `main`, use the release before it; the extra changes show up as conflicts you can resolve.
 
