@@ -28,6 +28,10 @@ const REVIEWED = {
   // patterns written in code or config, never text a visitor or editor
   // supplies, so the slow pattern can't be fed from outside.
   'GHSA-fc5q-39xc-vjpf': 'picomatch ReDoS: patterns come from code, never user input',
+  // effect ReDoS in Schema.TemplateLiteral. Only @prisma/config uses it, pinned
+  // to 3.21.0, to read prisma.config.ts when the Prisma CLI runs; the server
+  // never loads it, so no request can reach the regex.
+  'GHSA-7589-6fvf-x4pw': 'effect ReDoS: only the Prisma CLI config loader, never at runtime',
 };
 
 const DIR = process.argv[2] ? path.resolve(process.argv[2]) : ROOT;
