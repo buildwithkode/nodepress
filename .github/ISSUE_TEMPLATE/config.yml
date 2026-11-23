@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: ❓ Ask a question
+    url: https://github.com/buildwithkode/nodepress/discussions/categories/q-a
+    about: Setup help, "how do I…" questions and anything that isn't a bug.
+  - name: 💡 Share an idea or feedback
+    url: https://github.com/buildwithkode/nodepress/discussions/categories/ideas
+    about: Suggestions and feedback, to talk through before they become a feature request.
+  - name: 📚 Documentation
+    url: https://nodepress-docs.vercel.app
+    about: Guides for installing, modelling content, the API and deploying.
