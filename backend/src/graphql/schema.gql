@@ -174,12 +174,12 @@ type Query {
   contentTypes: [ContentTypeModel!]!
 
   """
-  List entries. Authenticated: all statuses. Public: published entries of public content types only.
+  List entries. Authenticated: all statuses of the content types your role may read. Public: published entries of public content types only.
   """
   entries(contentTypeId: Int, limit: Int = 20, locale: String, page: Int = 1, search: String, status: String): EntryPage!
 
   """
-  Fetch a single entry by ID. Public: published entries of public content types only.
+  Fetch a single entry by ID (null when your role may not read its content type). Public: published entries of public content types only.
   """
   entry(id: Int!, populate: [String!]): EntryModel
 

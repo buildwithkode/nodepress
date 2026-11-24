@@ -67,6 +67,73 @@ export class PermissionsService {
     await this.assertCanTypes(user, rows.map((r) => r.contentType?.name).filter((n): n is string => !!n), action);
   }
 
+  /**
+   * The content types whose entries this user may `action` — null for an admin
+   * (every type). Used to narrow the admin entry list, counts and `?populate=`
+   * to what the role may read. Same rules as `can()`, in two queries.
+   */
+  async allowedContentTypes(
+    user: { role: string; customRole?: string }, action: string,
+  ): Promise<{ id: number; name: string }[] | null> {
+    if (user.role === 'admin') return null;
+    const types = await this.prisma.contentType.findMany({ select: { id: true, name: true } });
+    const allowed = await this.allowedNames(user.customRole ?? user.role, types.map((t) => t.name), action);
+    return types.filter((t) => allowed.has(t.name));
+  }
+
+  /**
+   * The `?populate=` paths whose every relation points at a content type the
+   * user may read. The others are dropped, so those values stay plain ids
+   * instead of showing entries (drafts included) the role can't open.
+   */
+  async readablePopulate(user: { role: string; customRole?: string } | undefined, entryId: number, paths: string[]): Promise<string[]> {
+    if (!paths.length || !user) return paths;
+    const readable = await this.allowedContentTypes(user, 'read');
+    if (!readable) return paths;
+    const allowed = new Set(readable.map((t) => t.name));
+    const [entry, types] = await Promise.all([
+      this.prisma.entry.findUnique({ where: { id: entryId }, select: { contentType: { select: { schema: true } } } }),
+      this.prisma.contentType.findMany({ select: { name: true, schema: true } }),
+    ]);
+    const schemas = new Map(types.map((t) => [t.name, t.schema as any[]]));
+    const ok = (path: string) => {
+      let schema = entry?.contentType?.schema as any[] | undefined;
+      for (const segment of path.split('.')) {
+        const field = Array.isArray(schema) ? schema.find((f) => f?.name === segment && f?.type === 'relation') : undefined;
+        const target = field?.options?.relatedContentType;
+        if (!target) return true; // not a relation: populate leaves it alone
+        if (!allowed.has(target)) return false;
+        schema = schemas.get(target);
+      }
+      return true;
+    };
+    return paths.filter(ok);
+  }
+
+  /** `can()` for many content types at once. */
+  private async allowedNames(role: string, types: string[], action: string): Promise<Set<string>> {
+    if (role === 'admin') return new Set(types);
+    const rows = await this.prisma.permission.findMany({ where: { role } });
+    const byType = new Map(rows.map((r) => [r.contentType, r.actions]));
+    const wildcard = byType.get('*');
+    const allowed = new Set<string>();
+    const undecided: string[] = [];
+    for (const type of types) {
+      const actions = byType.get(type) ?? wildcard;
+      if (!actions) undecided.push(type);
+      else if (actions.includes(action)) allowed.add(type);
+    }
+    if (undecided.length) {
+      if (!isBuiltInRole(role)) {
+        const { role: baseRole } = await this.roles.resolve(role);
+        for (const type of await this.allowedNames(baseRole, undecided, action)) allowed.add(type);
+      } else if (DEFAULT_PERMISSIONS[role]?.includes(action)) {
+        for (const type of undecided) allowed.add(type);
+      }
+    }
+    return allowed;
+  }
+
   /** assertCanTypes for a content type given by id. */
   async assertCanContentType(user: { role: string; customRole?: string }, contentTypeId: number, action: string) {
     if (user.role === 'admin') return;

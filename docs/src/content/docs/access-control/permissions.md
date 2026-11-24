@@ -71,7 +71,7 @@ Underneath, content access is stored as actions: `read` (view), `create` + `upda
 
 | Action | Checked when a user… |
 |---|---|
-| `read` | exports entries |
+| `read` | lists entries, opens one, sees its versions, review notes and counts, or exports them, in the admin or through GraphQL. Without it the content type's entries are left out of lists and counts, opening one returns `403` (`null` in GraphQL), and a relation pointing at them stays an id instead of being filled in by `?populate=` |
 | `create` | creates an entry or a translation, in the admin, through GraphQL or the public write API, or imports new rows |
 | `update` | saves an entry, restores a version, gets a preview link, or imports over existing rows |
 | `delete` | moves an entry to the trash or restores it, one at a time or in bulk |
@@ -79,8 +79,8 @@ Underneath, content access is stored as actions: `read` (view), `create` + `upda
 
 A release checks `publish` on the role's default (`*`), because one release can touch many content types.
 
-:::caution[No access doesn't hide data]
-Taking away a content type stops a role from changing its entries, but it doesn't make the data secret: other entries can still link to them, and the public API serves published entries to everyone. To keep data away from a role, restrict the fields with [field access rules](/access-control/field-access/).
+:::caution[No access in the admin isn't private on the site]
+Taking away a content type keeps a role from seeing or changing its entries in the admin, drafts included. Published entries are still served to everyone by the public API, unless the content type is closed to it. To hide single fields everywhere, use [field access rules](/access-control/field-access/).
 :::
 
 ### How a content check is resolved

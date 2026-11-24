@@ -60,7 +60,7 @@ export class EntriesController {
     return entry;
   }
 
-  // ─── Read — any authenticated user (viewer+) ──────────────────────────────
+  // ─── Read — any signed-in user, limited to the content types their role may read ─
 
   @UseGuards(JwtAuthGuard)
   @SkipThrottle()
@@ -75,7 +75,7 @@ export class EntriesController {
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   @ApiQuery({ name: 'locale', required: false, type: String, description: 'Filter by locale (e.g. en, fr, de)' })
   @ApiQuery({ name: 'group', required: false, type: Boolean, description: 'One row per page (content type + slug) instead of one per language. Ignored with locale.' })
-  findAll(
+  async findAll(
     @Query('contentTypeId') contentTypeId?: string,
     @Query('status') status?: string,
     @Query('deleted') deleted?: string,
@@ -87,8 +87,14 @@ export class EntriesController {
     @Request() req?: any,
   ) {
     const ctId = contentTypeId ? parseInt(contentTypeId, 10) : undefined;
+    const oneType = ctId && !isNaN(ctId) ? ctId : undefined;
+    // One type: 403 unless the role may read it. Every type: only the readable ones.
+    let readable: number[] | undefined;
+    if (oneType) await this.permissionsService.assertCanContentType(req.user, oneType, 'read');
+    else readable = (await this.permissionsService.allowedContentTypes(req.user, 'read'))?.map((t) => t.id);
     return this.entriesService.findAll({
-      contentTypeId: ctId && !isNaN(ctId) ? ctId : undefined,
+      contentTypeId: oneType,
+      contentTypeIds: readable,
       status,
       deleted: deleted === 'true',
       search: search?.trim() || undefined,
@@ -105,8 +111,14 @@ export class EntriesController {
   @Get('counts')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get entry counts and pending counts grouped by content type' })
-  getCounts() {
-    return this.entriesService.getCounts();
+  async getCounts(@Request() req: any) {
+    const counts = await this.entriesService.getCounts();
+    const readable = await this.permissionsService.allowedContentTypes(req.user, 'read');
+    if (!readable) return counts;
+    const ids = new Set(readable.map((t) => String(t.id)));
+    const only = (byType: Record<number, number>) =>
+      Object.fromEntries(Object.entries(byType).filter(([id]) => ids.has(id)));
+    return { totals: only(counts.totals), pending: only(counts.pending) };
   }
 
   // ─── Import / Export — MUST be before @Get(':id') to avoid route shadowing ─
@@ -241,13 +253,14 @@ export class EntriesController {
   @ApiOperation({ summary: 'Get a single entry by ID — optionally populate relation fields' })
   @ApiParam({ name: 'id', type: Number })
   @ApiQuery({ name: 'populate', required: false, type: String, description: 'Comma-separated relation field names to inline-populate' })
-  findOne(
+  async findOne(
     @Param('id', ParseIntPipe) id: number,
     @Query('populate') populate?: string,
     @Request() req?: any,
   ) {
+    await this.permissionsService.assertCanEntries(req.user, [id], 'read');
     const fields = populate ? populate.split(',').map((f) => f.trim()).filter(Boolean) : [];
-    return this.entriesService.findOne(id, fields, req?.user);
+    return this.entriesService.findOne(id, await this.permissionsService.readablePopulate(req.user, id, fields), req?.user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -409,7 +422,8 @@ export class EntriesController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'List version history for an entry (up to 50 most recent)' })
   @ApiParam({ name: 'id', type: Number })
-  listVersions(@Param('id', ParseIntPipe) id: number) {
+  async listVersions(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    await this.permissionsService.assertCanEntries(req.user, [id], 'read');
     return this.entriesService.listVersions(id);
   }
 

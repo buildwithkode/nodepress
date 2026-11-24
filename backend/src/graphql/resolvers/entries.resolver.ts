@@ -21,7 +21,7 @@ export class EntriesResolver {
   // ─── Queries ─────────────────────────────────────────────────────────────────
 
   @UseGuards(GqlJwtOptionalGuard)
-  @Query(() => EntryPage, { name: 'entries', description: 'List entries. Authenticated: all statuses. Public: published entries of public content types only.' })
+  @Query(() => EntryPage, { name: 'entries', description: 'List entries. Authenticated: all statuses of the content types your role may read. Public: published entries of public content types only.' })
   async findAll(
     @Args('contentTypeId', { type: () => Int, nullable: true }) contentTypeId?: number,
     @Args('status', { nullable: true }) status?: string,
@@ -32,9 +32,10 @@ export class EntriesResolver {
     @Context() ctx?: any,
   ) {
     const isAuthenticated = !!ctx?.req?.user;
-    // Anonymous callers get what the public REST API would list
+    // Anonymous callers get what the public REST API would list; signed-in
+    // users the content types their role may read (an admin, every type).
     const contentTypeIds = isAuthenticated
-      ? undefined
+      ? (await this.permissions.allowedContentTypes(ctx.req.user, 'read'))?.map((ct) => ct.id)
       : (await this.contentTypes.findAll()).filter((ct) => isPublicContentType(ct, 'list')).map((ct) => ct.id);
     return this.entriesService.findAll({
       contentTypeId,
@@ -49,14 +50,17 @@ export class EntriesResolver {
   }
 
   @UseGuards(GqlJwtOptionalGuard)
-  @Query(() => EntryModel, { name: 'entry', nullable: true, description: 'Fetch a single entry by ID. Public: published entries of public content types only.' })
+  @Query(() => EntryModel, { name: 'entry', nullable: true, description: 'Fetch a single entry by ID (null when your role may not read its content type). Public: published entries of public content types only.' })
   async findOne(
     @Args('id', { type: () => Int }) id: number,
     @Args('populate', { type: () => [String], nullable: true }) populate?: string[],
     @Context() ctx?: any,
   ) {
     try {
-      const entry = await this.entriesService.findOne(id, populate ?? [], ctx?.req?.user);
+      const user = ctx?.req?.user;
+      if (user) await this.permissions.assertCanEntries(user, [id], 'read');
+      const paths = await this.permissions.readablePopulate(user, id, populate ?? []);
+      const entry = await this.entriesService.findOne(id, paths, user);
       if (!ctx?.req?.user && (entry.status !== 'published' || !isPublicContentType(entry.contentType ?? {}, 'read'))) {
         return null;
       }
