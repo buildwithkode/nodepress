@@ -70,7 +70,7 @@ export function Pagination({ total, page, pageSize, onPage }: PaginationProps) {
           size="sm"
           onClick={() => onPage(page - 1)}
           disabled={page <= 1}
-          className="rounded-none border-r border-border h-8 px-3 text-muted-foreground hover:text-foreground disabled:opacity-40"
+          className="rounded-none border-r border-border h-8 px-3 text-foreground hover:bg-muted disabled:text-muted-foreground disabled:opacity-40"
         >
           {tc('previous')}
         </Button>
@@ -82,7 +82,7 @@ export function Pagination({ total, page, pageSize, onPage }: PaginationProps) {
           size="sm"
           onClick={() => onPage(page + 1)}
           disabled={page >= totalPages}
-          className="rounded-none h-8 px-3 text-muted-foreground hover:text-foreground disabled:opacity-40"
+          className="rounded-none h-8 px-3 text-foreground hover:bg-muted disabled:text-muted-foreground disabled:opacity-40"
         >
           {tc('next')}
         </Button>
