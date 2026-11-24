@@ -13,7 +13,7 @@
   "copyUrl": "Copier l’URL",
   "edit": "Modifier",
   "delete": "Supprimer",
-  "inUse": "Utilisée — passez d’abord ces champs à leurs propres choix",
+  "inUse": "Suppression impossible — utilisée par {where}. Passez d’abord ces champs à leurs propres choix.",
   "cancel": "Annuler",
   "deleteTitle": "Supprimer « {name} » ?",
   "deleteDescription": "Aucun champ n’utilise cette liste. Les sites qui la lisent depuis l’API publique recevront une erreur 404.",

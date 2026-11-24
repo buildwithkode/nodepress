@@ -13,7 +13,7 @@
   "copyUrl": "复制 URL",
   "edit": "编辑",
   "delete": "删除",
-  "inUse": "使用中 — 请先将这些字段改为自定义选项",
+  "inUse": "无法删除 — 正被 {where} 使用。请先将这些字段改为自定义选项。",
   "cancel": "取消",
   "deleteTitle": "删除“{name}”？",
   "deleteDescription": "没有字段使用此列表。通过公开 API 读取它的网站将收到 404。",

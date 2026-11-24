@@ -12,7 +12,7 @@
   "unused": "Non usato",
   "edit": "Modifica",
   "delete": "Elimina",
-  "inUse": "In uso: rimuovilo prima da quei tipi di contenuto",
+  "inUse": "Impossibile eliminare: usato da {where}. Rimuovilo prima da quei tipi di contenuto.",
   "cancel": "Annulla",
   "deleteTitle": "Eliminare \"{name}\"?",
   "deleteDescription": "Il componente verrà rimosso definitivamente. Nessun tipo di contenuto lo usa più, quindi nessuna pagina viene modificata.",

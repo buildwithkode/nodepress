@@ -12,7 +12,7 @@
   "unused": "Nicht verwendet",
   "edit": "Bearbeiten",
   "delete": "Löschen",
-  "inUse": "In Verwendung — zuerst aus diesen Inhaltstypen entfernen",
+  "inUse": "Löschen nicht möglich — verwendet von {where}. Zuerst aus diesen Inhaltstypen entfernen.",
   "cancel": "Abbrechen",
   "deleteTitle": "„{name}“ löschen?",
   "deleteDescription": "Die Komponente wird endgültig entfernt. Kein Inhaltstyp verwendet sie, daher sind keine Seiten betroffen.",

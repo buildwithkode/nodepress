@@ -12,7 +12,7 @@
   "unused": "Non utilisé",
   "edit": "Modifier",
   "delete": "Supprimer",
-  "inUse": "Utilisé — retirez-le d'abord de ces types de contenu",
+  "inUse": "Suppression impossible — utilisé par {where}. Retirez-le d'abord de ces types de contenu.",
   "cancel": "Annuler",
   "deleteTitle": "Supprimer « {name} » ?",
   "deleteDescription": "Le composant est définitivement supprimé. Aucun type de contenu ne l'utilise, donc aucune page n'est affectée.",

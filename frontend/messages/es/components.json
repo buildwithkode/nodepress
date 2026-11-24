@@ -12,7 +12,7 @@
   "unused": "Sin usar",
   "edit": "Editar",
   "delete": "Eliminar",
-  "inUse": "En uso — quítalo primero de esos tipos de contenido",
+  "inUse": "No se puede eliminar: lo usa {where}. Quítalo primero de esos tipos de contenido.",
   "cancel": "Cancelar",
   "deleteTitle": "¿Eliminar «{name}»?",
   "deleteDescription": "El componente se elimina definitivamente. Ningún tipo de contenido lo usa, así que no afecta a ninguna página.",

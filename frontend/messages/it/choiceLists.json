@@ -13,7 +13,7 @@
   "copyUrl": "Copia URL",
   "edit": "Modifica",
   "delete": "Elimina",
-  "inUse": "In uso — passa prima quei campi a scelte proprie",
+  "inUse": "Impossibile eliminare: usata da {where}. Passa prima quei campi a scelte proprie.",
   "cancel": "Annulla",
   "deleteTitle": "Eliminare “{name}”?",
   "deleteDescription": "Nessun campo usa questo elenco. I siti che lo leggono dall’API pubblica riceveranno un 404.",

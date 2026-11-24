@@ -56,6 +56,13 @@ const toDraft = (l: ChoiceList): Draft => ({
 });
 
 const usageCount = (u: Usage) => u.contentTypes.length + u.components.length;
+/** Who uses a list, once each: content types by their label, then components. */
+const usedByNames = (u: Usage, component: (name: string) => string) => [
+  ...new Set([
+    ...u.contentTypes.map((c) => ctLabel({ name: c.contentType, displayName: c.displayName })),
+    ...u.components.map((c) => component(c.component)),
+  ]),
+];
 
 /** A list's public address. Names keep underscores; URLs use hyphens, like content types. */
 const endpointPath = (name: string) => `/api/option-lists/${name.replace(/_/g, '-')}`;
@@ -299,15 +306,28 @@ export default function ChoiceListsPage() {
                     <Button variant="ghost" size="icon-sm" onClick={() => openEdit(l)} title={t('edit')} disabled={!editable}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                    <Button
-                      variant="ghost" size="icon-sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      disabled={!isAdmin || usageCount(l.usage) > 0}
-                      title={!isAdmin ? t('adminOnlyDelete') : usageCount(l.usage) > 0 ? t('inUse') : t('delete')}
-                      onClick={() => setDeleting(l)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    {(() => {
+                      // A disabled button gets no hover, so the reason sits on a wrapper.
+                      const blocked = !isAdmin
+                        ? t('adminOnlyDelete')
+                        : usageCount(l.usage) > 0
+                          ? t('inUse', { where: usedByNames(l.usage, (name) => t('componentUsage', { name })).join(', ') })
+                          : null;
+                      return (
+                        <span className="inline-flex" title={blocked ?? undefined}>
+                          <Button
+                            variant="ghost" size="icon-sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            disabled={!!blocked}
+                            title={blocked ? undefined : t('delete')}
+                            aria-label={blocked ?? t('delete')}
+                            onClick={() => setDeleting(l)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </span>
+                      );
+                    })()}
                   </TableCell>
                 </TableRow>
               ))}

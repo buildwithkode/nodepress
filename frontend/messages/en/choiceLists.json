@@ -13,7 +13,7 @@
   "copyUrl": "Copy URL",
   "edit": "Edit",
   "delete": "Delete",
-  "inUse": "In use — switch those fields to their own options first",
+  "inUse": "Can't delete — used by {where}. Switch those fields to their own options first.",
   "cancel": "Cancel",
   "deleteTitle": "Delete “{name}”?",
   "deleteDescription": "No field uses this list. Websites reading it from the public API will get a 404.",

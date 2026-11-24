@@ -12,7 +12,7 @@
   "unused": "Not used",
   "edit": "Edit",
   "delete": "Delete",
-  "inUse": "In use — remove it from those content types first",
+  "inUse": "Can't delete — used by {where}. Remove it from those content types first.",
   "cancel": "Cancel",
   "deleteTitle": "Delete \"{name}\"?",
   "deleteDescription": "This permanently removes the component. Content types no longer use it, so no pages are affected.",

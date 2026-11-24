@@ -13,7 +13,7 @@
   "copyUrl": "URL kopiëren",
   "edit": "Bewerken",
   "delete": "Verwijderen",
-  "inUse": "In gebruik — zet die velden eerst op eigen keuzes",
+  "inUse": "Verwijderen kan niet — gebruikt door {where}. Zet die velden eerst op eigen keuzes.",
   "cancel": "Annuleren",
   "deleteTitle": "“{name}” verwijderen?",
   "deleteDescription": "Geen enkel veld gebruikt deze lijst. Websites die hem via de openbare API lezen, krijgen een 404.",

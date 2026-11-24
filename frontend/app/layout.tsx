@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <AuthProvider>{children}</AuthProvider>
                 </BrandProvider>
               </PluginProvider>
-              <Toaster richColors position="top-right" />
+              <Toaster richColors position="top-right" toastOptions={{ classNames: { title: "whitespace-pre-line break-words" } }} />
             </TooltipProvider>
           </AdminIntlProvider>
         </ThemeProvider>

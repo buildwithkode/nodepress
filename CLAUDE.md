@@ -367,6 +367,7 @@ The in-app page `frontend/app/(docs)/docs/page.tsx` (`/docs`) only shows the ins
 
 ## Key conventions
 
+- **API errors in toasts**: use `apiErrorMessage(err, fallback, schema?, data?)` (`lib/api-error.ts`), not `err.response.data.message` alone — a `422` from `DataValidator` carries the real reasons in `errors`, and with the content type's schema their paths read as field labels (`Sections #2 (Faq) › Items #4 › Category: …`). A disabled button gets no hover (`disabled:pointer-events-none`), so put its reason on a wrapping `<span title>`.
 - **Selects** (`components/ui/select.tsx`): the `Select` wrapper builds Base UI's `items` map from the `<SelectItem>` children it renders, so `<SelectValue />` shows labels. Items rendered inside another component aren't visible to it — pass `items` explicitly there. Don't draw your own label next to `<SelectValue />`; it already renders the item's content.
 - **Content type names** are always stored lowercased and snake_cased. The dynamic API normalizes `typeName.toLowerCase()` so `/api/Blog` resolves to content type `blog`.
 - **Prisma `^6.19`** — not v7+. The v7 datasource `url` field syntax breaks this project. Prisma 6 removed `$use`: `PrismaService`'s constructor returns a `$extends` client whose query extension runs the hooks added with `onOperation()` (the extended client's prototype chain reaches the service, so its methods work, but `instanceof PrismaService` is false). `Bytes` fields are `Uint8Array`, not `Buffer` — wrap reads in `Buffer.from()`.

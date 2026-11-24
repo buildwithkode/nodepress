@@ -77,6 +77,7 @@ import { FoldPanel } from '@/components/FoldPanel';
 import { EntryReviewNotes } from '@/components/EntryReviewNotes';
 import { ShareEntryDialog } from '@/components/ShareEntryDialog';
 import { SendBackDialog } from '@/components/SendBackDialog';
+import { apiErrorMessage } from '@/lib/api-error';
 
 interface Field { name: string; type: string; options?: any; label?: string }
 interface ContentType { id: number; name: string; displayName?: string | null; schema: Field[]; previewUrl?: string | null }
@@ -338,7 +339,7 @@ export default function EditEntryPage() {
       if (versionsOpen) void loadVersions();
       toast.success(t('toast.updated'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || tc('somethingWentWrong'));
+      toast.error(apiErrorMessage(err, tc('somethingWentWrong'), contentType?.schema, values));
     } finally {
       setSubmitting(false);
     }
@@ -358,7 +359,7 @@ export default function EditEntryPage() {
       setEntry((e) => e ? { ...e, status: 'published' } : e);
       toast.success(t('toast.approved'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toast.approveFailed'));
+      toast.error(apiErrorMessage(err, t('toast.approveFailed')));
     } finally {
       setSubmitting(false);
     }
@@ -376,7 +377,7 @@ export default function EditEntryPage() {
       setEntry((e) => e ? { ...e, status: 'draft' } : e);
       toast.success(t('toast.returnedToDraft'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toast.returnToDraftFailed'));
+      toast.error(apiErrorMessage(err, t('toast.returnToDraftFailed')));
     } finally {
       setSubmitting(false);
     }
@@ -407,7 +408,7 @@ export default function EditEntryPage() {
       toast.success(t('versions.restored'));
       await loadVersions();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('versions.restoreFailed'));
+      toast.error(apiErrorMessage(err, t('versions.restoreFailed')));
     } finally {
       setRestoringVersion(null);
     }
@@ -445,7 +446,7 @@ export default function EditEntryPage() {
       toast.success(t('translations.created', { locale: targetLocale.toUpperCase() }));
       router.push(`/pages/${res.data.id}/edit`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('translations.createFailed'));
+      toast.error(apiErrorMessage(err, t('translations.createFailed')));
     } finally {
       setCreatingTranslation(false);
     }

@@ -12,7 +12,7 @@
   "unused": "未使用",
   "edit": "编辑",
   "delete": "删除",
-  "inUse": "使用中——请先将其从这些内容类型中移除",
+  "inUse": "无法删除——正被 {where} 使用。请先将其从这些内容类型中移除。",
   "cancel": "取消",
   "deleteTitle": "删除“{name}”？",
   "deleteDescription": "这将永久删除该组件。已没有内容类型使用它，因此不会影响任何页面。",

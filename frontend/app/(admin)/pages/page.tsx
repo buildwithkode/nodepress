@@ -81,6 +81,7 @@ import { SendBackDialog } from '@/components/SendBackDialog';
 import { useAccess } from '@/lib/use-access';
 import { useRealtimeEvents } from '@/lib/useRealtimeEvents';
 import { downloadBlob, EXPORT_REQUEST } from '@/lib/download';
+import { apiErrorMessage } from '@/lib/api-error';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString();
@@ -354,7 +355,7 @@ export default function EntriesPage() {
       toast.success(t('toasts.movedToTrash'));
       await refreshEntries(false);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toasts.deleteFailed'));
+      toast.error(apiErrorMessage(err, t('toasts.deleteFailed')));
     }
   };
 
@@ -422,7 +423,7 @@ export default function EntriesPage() {
       toast.success(t('toasts.translationCreated', { language: localeLabel(code) }));
       router.push(`/pages/${res.data.id}/edit`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toasts.translationFailed'));
+      toast.error(apiErrorMessage(err, t('toasts.translationFailed')));
       setAddingLocale(null);
     }
   };
@@ -434,7 +435,7 @@ export default function EntriesPage() {
       toast.success(t('toasts.restored'));
       await refreshEntries(true);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toasts.restoreFailed'));
+      toast.error(apiErrorMessage(err, t('toasts.restoreFailed')));
     }
   };
 
@@ -444,7 +445,7 @@ export default function EntriesPage() {
       toast.success(t('toasts.purged'));
       await refreshEntries(true);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toasts.purgeFailed'));
+      toast.error(apiErrorMessage(err, t('toasts.purgeFailed')));
     }
   };
 
@@ -473,7 +474,7 @@ export default function EntriesPage() {
       try {
         await api.post(`/entries/${entry.id}/notes`, { body: note, kind: 'changes' });
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || tc('somethingWentWrong'));
+        toast.error(apiErrorMessage(err, tc('somethingWentWrong')));
         return;
       }
     }
@@ -505,7 +506,7 @@ export default function EntriesPage() {
       } : undefined);
       await refreshEntries(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || t('toasts.promoteFailed'));
+      toast.error(apiErrorMessage(err, t('toasts.promoteFailed')));
     } finally {
       setChangingStatus(null);
     }
@@ -640,7 +641,7 @@ export default function EntriesPage() {
       setImportPreflight(null);
       await refreshEntries();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toasts.importFailed'));
+      toast.error(apiErrorMessage(err, t('toasts.importFailed')));
     } finally {
       setImportExecuting(false);
     }
@@ -656,7 +657,7 @@ export default function EntriesPage() {
       toast.success(t(`bulk.done.${key}`, { count: res.data.affected }));
       await refreshEntries();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('toasts.bulkFailed'));
+      toast.error(apiErrorMessage(err, t('toasts.bulkFailed')));
     } finally {
       setBulkLoading(false);
     }
@@ -690,7 +691,7 @@ export default function EntriesPage() {
         return;
       } catch (err: any) {
         if (err.response?.status !== 409) {
-          toast.error(err.response?.data?.message || t('toasts.duplicateFailed'));
+          toast.error(apiErrorMessage(err, t('toasts.duplicateFailed')));
           setDuplicating(null);
           return;
         }
@@ -784,7 +785,7 @@ export default function EntriesPage() {
         setAllTypeIds(ids);
       } catch (err: any) {
         setContentTypes(contentTypes);
-        toast.error(err.response?.data?.message || t('toasts.reorderFailed'));
+        toast.error(apiErrorMessage(err, t('toasts.reorderFailed')));
       }
     };
 
@@ -893,7 +894,7 @@ export default function EntriesPage() {
     try {
       await api.put('/entries/order', { contentTypeId: selectedCT.id, ids: moved.map((e) => e.id) });
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || t('toasts.reorderFailed'));
+      toast.error(apiErrorMessage(err, t('toasts.reorderFailed')));
       await refreshEntries(false);
     }
   };

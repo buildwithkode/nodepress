@@ -13,7 +13,7 @@
   "copyUrl": "URL kopieren",
   "edit": "Bearbeiten",
   "delete": "Löschen",
-  "inUse": "In Verwendung — stellen Sie diese Felder zuerst auf eigene Optionen um",
+  "inUse": "Löschen nicht möglich — verwendet von {where}. Stellen Sie diese Felder zuerst auf eigene Optionen um.",
   "cancel": "Abbrechen",
   "deleteTitle": "„{name}“ löschen?",
   "deleteDescription": "Kein Feld nutzt diese Liste. Websites, die sie über die öffentliche API lesen, erhalten einen 404-Fehler.",

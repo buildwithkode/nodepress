@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { withCondition } from '@/components/ConditionalField';
 import { pruneEntryData } from '@/lib/prune-entry-data';
+import { apiErrorMessage } from '@/lib/api-error';
 import { FoldPanel } from '@/components/FoldPanel';
 
 interface Field { name: string; type: string; options?: any }
@@ -156,7 +157,7 @@ export default function NewEntryPage() {
       toast.success(t('toast.created'));
       router.push(`/pages/${res.data.id}/edit${preview ? '?live=1' : ''}`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || tc('somethingWentWrong'));
+      toast.error(apiErrorMessage(err, tc('somethingWentWrong'), selectedCT?.schema, values));
     } finally {
       setSubmitting(false);
     }

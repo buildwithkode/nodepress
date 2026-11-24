@@ -12,7 +12,7 @@
   "unused": "Niet gebruikt",
   "edit": "Bewerken",
   "delete": "Verwijderen",
-  "inUse": "In gebruik — verwijder het eerst uit die contenttypes",
+  "inUse": "Verwijderen kan niet — gebruikt door {where}. Verwijder het eerst uit die contenttypes.",
   "cancel": "Annuleren",
   "deleteTitle": "\"{name}\" verwijderen?",
   "deleteDescription": "Hiermee wordt het component definitief verwijderd. Geen enkel contenttype gebruikt het nog, dus er worden geen pagina's geraakt.",
