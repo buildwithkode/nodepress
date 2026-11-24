@@ -1022,7 +1022,15 @@ export class EntriesService {
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
-    return versions;
+    // `createdBy` is the user's id; `author` is who the admin shows ("by Maya").
+    const ids = [...new Set(versions.map((v) => v.createdBy).filter((n): n is number => n != null))];
+    const users = ids.length
+      ? await this.prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, email: true } })
+      : [];
+    return versions.map((v) => {
+      const u = users.find((x) => x.id === v.createdBy);
+      return { ...v, author: u ? u.name?.trim() || u.email.split('@')[0] : null };
+    });
   }
 
   // ── Import / Export ─────────────────────────────────────────────────────────

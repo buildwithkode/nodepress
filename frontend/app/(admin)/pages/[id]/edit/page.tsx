@@ -1335,8 +1335,8 @@ export default function EditEntryPage() {
                     <span className="font-medium text-foreground">
                       {new Date(v.createdAt).toLocaleString()}
                     </span>
-                    {v.createdBy && (
-                      <span className="text-muted-foreground truncate">{t('versions.by', { email: v.createdBy.email })}</span>
+                    {v.author && (
+                      <span className="text-muted-foreground truncate">{t('versions.by', { email: v.author })}</span>
                     )}
                   </div>
                   <Button

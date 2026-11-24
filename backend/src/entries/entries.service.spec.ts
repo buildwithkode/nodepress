@@ -59,6 +59,9 @@ const mockPrisma = {
     findMany:    jest.fn(),
     findUnique:  jest.fn(),
   },
+  user: {
+    findMany:    jest.fn().mockResolvedValue([]),
+  },
   $queryRaw:   jest.fn(),
   $transaction: jest.fn((ops: any[]) => Promise.all(ops)),
 };
@@ -416,6 +419,21 @@ describe('EntriesService', () => {
       mockPrisma.entryVersion.findMany.mockResolvedValue([{ id: 1, entryId: 10 }]);
       const result = await service.listVersions(10);
       expect(result).toHaveLength(1);
+    });
+
+    it('names who saved each version: the name, else the email before the @', async () => {
+      mockPrisma.entry.findUnique.mockResolvedValue(mockEntry);
+      mockPrisma.entryVersion.findMany.mockResolvedValue([
+        { id: 3, entryId: 10, createdBy: 1 },
+        { id: 2, entryId: 10, createdBy: 2 },
+        { id: 1, entryId: 10, createdBy: null },
+      ]);
+      mockPrisma.user.findMany.mockResolvedValueOnce([
+        { id: 1, name: 'Maya Chen', email: 'maya@example.com' },
+        { id: 2, name: null, email: 'jon@example.com' },
+      ]);
+      const result: any[] = await service.listVersions(10);
+      expect(result.map((v) => [v.createdBy, v.author])).toEqual([[1, 'Maya Chen'], [2, 'jon'], [null, null]]);
     });
   });
 
