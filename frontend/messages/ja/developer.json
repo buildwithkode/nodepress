@@ -90,6 +90,7 @@
     "disableWebhook": "Webhook を無効化",
     "enableWebhook": "Webhook を有効化",
     "sendPing": "テスト Ping を送信",
+    "deleteWebhook": "Webhook を削除",
     "deleteTitle": "Webhook を削除しますか?",
     "deleteDescription": "<b>「{name}」</b>はイベントを受信しなくなります。この操作は元に戻せません。",
     "statusFilter": {

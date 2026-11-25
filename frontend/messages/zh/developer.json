@@ -90,6 +90,7 @@
     "disableWebhook": "禁用 Webhook",
     "enableWebhook": "启用 Webhook",
     "sendPing": "发送测试 Ping",
+    "deleteWebhook": "删除 Webhook",
     "deleteTitle": "删除 Webhook？",
     "deleteDescription": "<b>“{name}”</b>将停止接收事件。此操作无法撤销。",
     "statusFilter": {

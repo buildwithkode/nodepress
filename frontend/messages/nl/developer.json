@@ -90,6 +90,7 @@
     "disableWebhook": "Webhook uitschakelen",
     "enableWebhook": "Webhook inschakelen",
     "sendPing": "Testping versturen",
+    "deleteWebhook": "Webhook verwijderen",
     "deleteTitle": "Webhook verwijderen?",
     "deleteDescription": "<b>\"{name}\"</b> ontvangt geen gebeurtenissen meer. Dit kan niet ongedaan worden gemaakt.",
     "statusFilter": {

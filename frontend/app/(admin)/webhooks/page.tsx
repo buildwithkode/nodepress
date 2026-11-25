@@ -40,6 +40,7 @@ import {
 import { cn } from '@/lib/utils';
 import api from '../../../lib/axios';
 import { useTranslations } from 'use-intl';
+import { IconTooltip } from '@/components/ui/tooltip';
 import { useAccess } from '@/lib/use-access';
 
 interface Webhook {
@@ -477,55 +478,65 @@ export default function WebhooksPage() {
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => {
-                          setSelectedWebhookFilter(hook.id);
-                          setActiveTab('deliveries');
-                          fetchDeliveries(deliveryStatusFilter, hook.id);
-                        }}
-                        title={t('webhooks.viewDeliveries')}
-                      >
-                        <FileCode2 className="h-3.5 w-3.5 text-indigo-400" />
-                      </Button>
+                      <IconTooltip label={t('webhooks.viewDeliveries')}>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => {
+                            setSelectedWebhookFilter(hook.id);
+                            setActiveTab('deliveries');
+                            fetchDeliveries(deliveryStatusFilter, hook.id);
+                          }}
+                          aria-label={t('webhooks.viewDeliveries')}
+                        >
+                          <FileCode2 className="h-3.5 w-3.5 text-indigo-400" />
+                        </Button>
+                      </IconTooltip>
 
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleToggle(hook)}
-                        disabled={!editable}
-                        title={hook.enabled ? t('webhooks.disableWebhook') : t('webhooks.enableWebhook')}
-                      >
-                        {hook.enabled ? <ToggleRight className="h-4 w-4 text-emerald-400" /> : <ToggleLeft className="h-4 w-4" />}
-                      </Button>
+                      <IconTooltip label={hook.enabled ? t('webhooks.disableWebhook') : t('webhooks.enableWebhook')}>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => handleToggle(hook)}
+                          disabled={!editable}
+                          aria-label={hook.enabled ? t('webhooks.disableWebhook') : t('webhooks.enableWebhook')}
+                        >
+                          {hook.enabled ? <ToggleRight className="h-4 w-4 text-emerald-400" /> : <ToggleLeft className="h-4 w-4" />}
+                        </Button>
+                      </IconTooltip>
 
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openEdit(hook)}
-                        disabled={!editable}
-                        title={t('webhooks.editTitle')}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
+                      <IconTooltip label={t('webhooks.editTitle')}>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => openEdit(hook)}
+                          disabled={!editable}
+                          aria-label={t('webhooks.editTitle')}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      </IconTooltip>
 
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handlePing(hook)}
-                        disabled={!editable || pinging === hook.id}
-                        title={t('webhooks.sendPing')}
-                      >
-                        {pinging === hook.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-                      </Button>
+                      <IconTooltip label={t('webhooks.sendPing')}>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => handlePing(hook)}
+                          disabled={!editable || pinging === hook.id}
+                          aria-label={t('webhooks.sendPing')}
+                        >
+                          {pinging === hook.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+                        </Button>
+                      </IconTooltip>
 
                       <AlertDialog>
-                        <AlertDialogTrigger render={
-                          <Button variant="ghost" size="icon-sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" disabled={!editable} />
-                        }>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </AlertDialogTrigger>
+                        <IconTooltip label={t('webhooks.deleteWebhook')}>
+                          <AlertDialogTrigger render={
+                            <Button variant="ghost" size="icon-sm" aria-label={t('webhooks.deleteWebhook')} className="text-destructive hover:text-destructive hover:bg-destructive/10" disabled={!editable} />
+                          }>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </AlertDialogTrigger>
+                        </IconTooltip>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>{t('webhooks.deleteTitle')}</AlertDialogTitle>

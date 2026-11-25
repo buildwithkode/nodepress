@@ -1,3 +1,4 @@
+import type * as React from "react"
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
 
 import { cn } from "@/lib/utils"
@@ -61,4 +62,18 @@ function TooltipContent({
   )
 }
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+/**
+ * An icon button's label, shown straight away on hover. The trigger is a
+ * wrapping span, so the label still shows when the button is disabled
+ * (a disabled button gets no hover events).
+ */
+function IconTooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger render={<span className="inline-flex" />}>{children}</TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  )
+}
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, IconTooltip }

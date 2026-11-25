@@ -90,6 +90,7 @@
     "disableWebhook": "Desactivar webhook",
     "enableWebhook": "Activar webhook",
     "sendPing": "Enviar ping de prueba",
+    "deleteWebhook": "Eliminar webhook",
     "deleteTitle": "¿Eliminar el webhook?",
     "deleteDescription": "<b>«{name}»</b> dejará de recibir eventos. Esta acción no se puede deshacer.",
     "statusFilter": {
