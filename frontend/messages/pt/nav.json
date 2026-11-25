@@ -41,5 +41,8 @@
   "accountMenu": "Menu da conta",
   "onlineNow": "Online agora",
   "onlineButton": "{count, plural, one {# outra pessoa online} other {# outras pessoas online}}",
-  "onlineHint": "Clique em alguém para abrir a página em que está."
+  "onlineHint": "Clique em alguém para abrir a página em que está.",
+  "twoFactorOff": "O login em duas etapas está desativado",
+  "twoFactorTurnOn": "Ativar o login em duas etapas",
+  "accountMenuTwoFactorOff": "Menu da conta (login em duas etapas desativado)"
 }

@@ -41,5 +41,8 @@
   "accountMenu": "Accountmenu",
   "onlineNow": "Nu online",
   "onlineButton": "{count, plural, one {# andere persoon online} other {# andere mensen online}}",
-  "onlineHint": "Klik op iemand om de pagina te openen waar diegene is."
+  "onlineHint": "Klik op iemand om de pagina te openen waar diegene is.",
+  "twoFactorOff": "Inloggen in twee stappen staat uit",
+  "twoFactorTurnOn": "Inloggen in twee stappen aanzetten",
+  "accountMenuTwoFactorOff": "Accountmenu (inloggen in twee stappen staat uit)"
 }

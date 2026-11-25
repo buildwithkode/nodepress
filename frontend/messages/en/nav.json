@@ -41,5 +41,8 @@
   "accountMenu": "Account menu",
   "onlineNow": "Online now",
   "onlineButton": "{count, plural, one {# other person online} other {# other people online}}",
-  "onlineHint": "Click someone to open the page they're on."
+  "onlineHint": "Click someone to open the page they're on.",
+  "twoFactorOff": "Two-step sign-in is off",
+  "twoFactorTurnOn": "Turn on two-step sign-in",
+  "accountMenuTwoFactorOff": "Account menu (two-step sign-in is off)"
 }

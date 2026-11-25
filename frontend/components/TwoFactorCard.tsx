@@ -148,7 +148,8 @@ export function TwoFactorCard() {
   return (
     <>
       {/* ── Two-Factor Authentication (2FA) ────────────────────────────────── */}
-      <Card className="border-border">
+      {/* id: the account menu links here while 2FA is off */}
+      <Card id="two-factor" className="scroll-mt-20 border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="space-y-1">

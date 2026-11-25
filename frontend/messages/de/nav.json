@@ -41,5 +41,8 @@
   "accountMenu": "Kontomenü",
   "onlineNow": "Gerade online",
   "onlineButton": "{count, plural, one {# weitere Person online} other {# weitere Personen online}}",
-  "onlineHint": "Klicken Sie auf eine Person, um die Seite zu öffnen, auf der sie gerade ist."
+  "onlineHint": "Klicken Sie auf eine Person, um die Seite zu öffnen, auf der sie gerade ist.",
+  "twoFactorOff": "Die Anmeldung in zwei Schritten ist aus",
+  "twoFactorTurnOn": "Anmeldung in zwei Schritten einschalten",
+  "accountMenuTwoFactorOff": "Kontomenü (Anmeldung in zwei Schritten ist aus)"
 }

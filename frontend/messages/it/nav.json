@@ -41,5 +41,8 @@
   "accountMenu": "Menu dell'account",
   "onlineNow": "Online ora",
   "onlineButton": "{count, plural, one {# altra persona online} other {# altre persone online}}",
-  "onlineHint": "Fai clic su una persona per aprire la pagina in cui si trova."
+  "onlineHint": "Fai clic su una persona per aprire la pagina in cui si trova.",
+  "twoFactorOff": "L'accesso in due passaggi è disattivato",
+  "twoFactorTurnOn": "Attiva l'accesso in due passaggi",
+  "accountMenuTwoFactorOff": "Menu dell'account (accesso in due passaggi disattivato)"
 }

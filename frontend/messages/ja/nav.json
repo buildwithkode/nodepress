@@ -41,5 +41,8 @@
   "accountMenu": "アカウントメニュー",
   "onlineNow": "オンライン中",
   "onlineButton": "{count, plural, other {ほかに#人がオンライン}}",
-  "onlineHint": "名前をクリックすると、その人が開いているページを開きます。"
+  "onlineHint": "名前をクリックすると、その人が開いているページを開きます。",
+  "twoFactorOff": "2段階認証がオフです",
+  "twoFactorTurnOn": "2段階認証をオンにする",
+  "accountMenuTwoFactorOff": "アカウントメニュー（2段階認証がオフ）"
 }

@@ -41,5 +41,8 @@
   "accountMenu": "Menu du compte",
   "onlineNow": "En ligne",
   "onlineButton": "{count, plural, one {# autre personne en ligne} other {# autres personnes en ligne}}",
-  "onlineHint": "Cliquez sur une personne pour ouvrir la page où elle se trouve."
+  "onlineHint": "Cliquez sur une personne pour ouvrir la page où elle se trouve.",
+  "twoFactorOff": "La connexion en deux étapes est désactivée",
+  "twoFactorTurnOn": "Activer la connexion en deux étapes",
+  "accountMenuTwoFactorOff": "Menu du compte (connexion en deux étapes désactivée)"
 }

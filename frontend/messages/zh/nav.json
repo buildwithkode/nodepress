@@ -41,5 +41,8 @@
   "accountMenu": "账户菜单",
   "onlineNow": "当前在线",
   "onlineButton": "{count, plural, other {另有 # 人在线}}",
-  "onlineHint": "点击某人即可打开其所在的页面。"
+  "onlineHint": "点击某人即可打开其所在的页面。",
+  "twoFactorOff": "两步验证未开启",
+  "twoFactorTurnOn": "开启两步验证",
+  "accountMenuTwoFactorOff": "账户菜单（两步验证未开启）"
 }
