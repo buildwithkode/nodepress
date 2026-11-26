@@ -93,10 +93,15 @@ function truncate(val: any, itemsLabel: (count: number) => string, max = 60): st
   if (typeof val === 'object') {
     // ImageValue: { url, alt }
     if (typeof val.url === 'string') return val.url;
+    // A group: its text values only. Images and other nested objects would read as
+    // "[object Object]", and empty values as stray commas.
+    const isText = (v: unknown) => ['string', 'number', 'boolean'].includes(typeof v) && String(v).trim() !== '';
     const str = Object.entries(val)
-      .filter(([k]) => k !== '_layout')
-      .map(([, v]) => String(v))
+      .filter(([k]) => !k.startsWith('_'))
+      .flatMap(([, v]) => (Array.isArray(v) ? v.filter(isText) : isText(v) ? [v] : []))
+      .map(String)
       .join(', ');
+    if (!str) return '—';
     return str.length > max ? str.slice(0, max) + '…' : str;
   }
   const str = String(val);
