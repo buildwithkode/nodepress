@@ -96,7 +96,6 @@
     "promoteStaging": "Promote to Staging (QA)",
     "publishProduction": "Publish to Production",
     "duplicate": "Duplicate",
-    "viewLive": "View Live Post on Website",
     "copyApiUrl": "Copy API URL",
     "deleteConfirmTitle": "Delete this page?",
     "deleteConfirmDescription": "<strong>{slug}</strong> will be moved to trash. You can restore it later.",

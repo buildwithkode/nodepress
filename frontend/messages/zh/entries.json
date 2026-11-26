@@ -96,7 +96,6 @@
     "promoteStaging": "推送到预发布（QA）",
     "publishProduction": "发布到生产环境",
     "duplicate": "复制",
-    "viewLive": "在网站上查看线上内容",
     "copyApiUrl": "复制 API URL",
     "deleteConfirmTitle": "删除此页面？",
     "deleteConfirmDescription": "<strong>{slug}</strong> 将被移至回收站。您之后可以恢复它。",

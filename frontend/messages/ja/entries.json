@@ -96,7 +96,6 @@
     "promoteStaging": "ステージング (QA) に昇格",
     "publishProduction": "本番に公開",
     "duplicate": "複製",
-    "viewLive": "公開中の投稿をサイトで表示",
     "copyApiUrl": "API の URL をコピー",
     "deleteConfirmTitle": "このページを削除しますか?",
     "deleteConfirmDescription": "<strong>{slug}</strong> はごみ箱に移動されます。後から復元できます。",

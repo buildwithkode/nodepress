@@ -96,7 +96,6 @@
     "promoteStaging": "Promuovi in staging (QA)",
     "publishProduction": "Pubblica in produzione",
     "duplicate": "Duplica",
-    "viewLive": "Vedi il post pubblicato sul sito",
     "copyApiUrl": "Copia URL API",
     "deleteConfirmTitle": "Eliminare questa pagina?",
     "deleteConfirmDescription": "<strong>{slug}</strong> verrà spostata nel cestino. Potrai ripristinarla in seguito.",

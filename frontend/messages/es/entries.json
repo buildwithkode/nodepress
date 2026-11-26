@@ -96,7 +96,6 @@
     "promoteStaging": "Pasar a preproducción (QA)",
     "publishProduction": "Publicar en producción",
     "duplicate": "Duplicar",
-    "viewLive": "Ver la publicación en el sitio web",
     "copyApiUrl": "Copiar URL de la API",
     "deleteConfirmTitle": "¿Eliminar esta página?",
     "deleteConfirmDescription": "<strong>{slug}</strong> se moverá a la papelera. Podrás restaurarla más tarde.",

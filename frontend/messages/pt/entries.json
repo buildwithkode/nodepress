@@ -96,7 +96,6 @@
     "promoteStaging": "Promover para homologação (QA)",
     "publishProduction": "Publicar em produção",
     "duplicate": "Duplicar",
-    "viewLive": "Ver o post publicado no site",
     "copyApiUrl": "Copiar URL da API",
     "deleteConfirmTitle": "Excluir esta página?",
     "deleteConfirmDescription": "<strong>{slug}</strong> será movida para a lixeira. Você pode restaurá-la depois.",

@@ -96,7 +96,6 @@
     "promoteStaging": "Naar staging zetten (QA)",
     "publishProduction": "Publiceren naar productie",
     "duplicate": "Dupliceren",
-    "viewLive": "Live bericht op website bekijken",
     "copyApiUrl": "API-URL kopiëren",
     "deleteConfirmTitle": "Deze pagina verwijderen?",
     "deleteConfirmDescription": "<strong>{slug}</strong> wordt naar de prullenbak verplaatst. Je kunt het later terugzetten.",

@@ -37,7 +37,6 @@ import {
   Shield,
   Settings,
   Clock,
-  ExternalLink,
   FileText,
   Package,
   ChevronDown,
@@ -1482,17 +1481,6 @@ export default function EntriesPage() {
                           {duplicating === entry.id
                             ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             : <Copy className="h-3.5 w-3.5" />}
-                        </Button>
-                      )}
-                      {entry.status === 'published' && selectedCT && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          title={t('actions.viewLive')}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30"
-                          onClick={() => window.open(`/${selectedCT.name}/${entry.slug}`, '_blank')}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
                         </Button>
                       )}
                       <Button

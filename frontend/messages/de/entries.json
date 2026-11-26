@@ -96,7 +96,6 @@
     "promoteStaging": "Nach Staging (QA) übernehmen",
     "publishProduction": "In Produktion veröffentlichen",
     "duplicate": "Duplizieren",
-    "viewLive": "Live-Beitrag auf der Website ansehen",
     "copyApiUrl": "API-URL kopieren",
     "deleteConfirmTitle": "Diese Seite löschen?",
     "deleteConfirmDescription": "<strong>{slug}</strong> wird in den Papierkorb verschoben. Sie können ihn später wiederherstellen.",
