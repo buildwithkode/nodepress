@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, one {# Problem} other {# Probleme}}: Es wird nichts importiert, bis die Datei korrigiert ist",
     "importConfirm": "Importieren",
     "columns": {
+      "number": "Nr.",
       "slug": "Slug",
       "fields": "Felder",
       "submissions": "Einsendungen"
@@ -30,7 +31,9 @@
     "toggleActive": "Aktiv umschalten",
     "viewSubmissions": "Einsendungen anzeigen",
     "deleteConfirmTitle": "„{name}“ löschen?",
-    "deleteConfirmDescription": "{count, plural, one {Die <strong>#</strong> Einsendung wird ebenfalls endgültig gelöscht.} other {Alle <strong>#</strong> Einsendungen werden ebenfalls endgültig gelöscht.}}"
+    "deleteConfirmDescription": "{count, plural, one {Die <strong>#</strong> Einsendung wird ebenfalls endgültig gelöscht.} other {Alle <strong>#</strong> Einsendungen werden ebenfalls endgültig gelöscht.}}",
+    "dragToReorder": "Zum Sortieren ziehen",
+    "reorderFailed": "Reihenfolge konnte nicht gespeichert werden"
   },
   "edit": {
     "notFound": "Formular nicht gefunden."

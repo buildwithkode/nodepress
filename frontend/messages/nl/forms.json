@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, one {# probleem} other {# problemen}}: er wordt niets geïmporteerd totdat het bestand is hersteld",
     "importConfirm": "Importeren",
     "columns": {
+      "number": "Nr.",
       "slug": "Slug",
       "fields": "Velden",
       "submissions": "Inzendingen"
@@ -30,7 +31,9 @@
     "toggleActive": "Actief aan/uit",
     "viewSubmissions": "Inzendingen bekijken",
     "deleteConfirmTitle": "\"{name}\" verwijderen?",
-    "deleteConfirmDescription": "{count, plural, one {De <strong>#</strong> inzending wordt ook definitief verwijderd.} other {Alle <strong>#</strong> inzendingen worden ook definitief verwijderd.}}"
+    "deleteConfirmDescription": "{count, plural, one {De <strong>#</strong> inzending wordt ook definitief verwijderd.} other {Alle <strong>#</strong> inzendingen worden ook definitief verwijderd.}}",
+    "dragToReorder": "Sleep om de volgorde te wijzigen",
+    "reorderFailed": "De volgorde kon niet worden opgeslagen"
   },
   "edit": {
     "notFound": "Formulier niet gevonden."

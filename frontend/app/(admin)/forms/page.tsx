@@ -2,6 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableTableRow } from '@/components/SortableTableRow';
 import { Download, Loader2, Plus, Pencil, Trash2, Inbox, ToggleLeft, ToggleRight, Upload, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
@@ -73,8 +80,14 @@ export default function FormsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/forms');
-      setForms(res.data.data);
+      // Every form: the page numbers and orders the whole list.
+      const all: FormRow[] = [];
+      for (let p = 1, pages = 1; p <= pages; p++) {
+        const res = await api.get('/forms', { params: { page: p, limit: 100 } });
+        all.push(...res.data.data);
+        pages = res.data.meta.totalPages;
+      }
+      setForms(all);
     } catch {
       toast.error(t('list.loadFailed'));
     } finally {
@@ -169,11 +182,36 @@ export default function FormsPage() {
     }
   };
 
+  // The whole list shows at once so it can be dragged; search results are paged, keep
+  // their number in the whole list and can't be dragged (the order is of the whole list).
+  const query = search.trim().toLowerCase();
+  const searching = query !== '';
   const filtered  = forms.filter((f) =>
-    f.name.toLowerCase().includes(search.toLowerCase()) ||
-    f.slug.toLowerCase().includes(search.toLowerCase()),
+    f.name.toLowerCase().includes(query) ||
+    f.slug.toLowerCase().includes(query),
   );
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginated = searching ? filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : forms;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const moved = arrayMove(
+      forms,
+      forms.findIndex((f) => f.id === active.id),
+      forms.findIndex((f) => f.id === over.id),
+    );
+    setForms(moved);
+    try {
+      await api.put('/forms/order', { ids: moved.map((f) => f.id) });
+    } catch (err) {
+      toast.error(apiError(err, t('list.reorderFailed')));
+      await load();
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -215,9 +253,11 @@ export default function FormsPage() {
       </div>
 
       {/* Table */}
+      <DndContext id="forms-order" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-20 whitespace-nowrap">{t('list.columns.number')}</TableHead>
             <TableHead>{tc('name')}</TableHead>
             <TableHead>{t('list.columns.slug')}</TableHead>
             <TableHead className="w-20 text-center">{t('list.columns.fields')}</TableHead>
@@ -230,21 +270,30 @@ export default function FormsPage() {
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
               <TableRow key={i}>
-                {Array.from({ length: 6 }).map((__, j) => (
+                {Array.from({ length: 7 }).map((__, j) => (
                   <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                 ))}
               </TableRow>
             ))
           ) : paginated.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-16 text-center text-muted-foreground">
-                {search
+              <TableCell colSpan={7} className="py-16 text-center text-muted-foreground">
+                {searching
                   ? t('list.noMatches')
                   : t('list.empty')}
               </TableCell>
             </TableRow>
-          ) : paginated.map((form) => (
-            <TableRow key={form.id}>
+          ) : (
+            <SortableContext items={paginated.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+            {paginated.map((form) => (
+            <SortableTableRow
+              key={form.id}
+              id={form.id}
+              number={forms.indexOf(form) + 1}
+              canDrag={canEdit && !searching}
+              handleLabel={t('list.dragToReorder')}
+              numberCellClassName="align-middle"
+            >
               <TableCell className="font-medium">{form.name}</TableCell>
               <TableCell>
                 <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">
@@ -333,12 +382,15 @@ export default function FormsPage() {
                   )}
                 </div>
               </TableCell>
-            </TableRow>
-          ))}
+            </SortableTableRow>
+            ))}
+            </SortableContext>
+          )}
         </TableBody>
       </Table>
+      </DndContext>
 
-      <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
+      {searching && <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />}
 
       <Dialog open={!!importFile} onOpenChange={(open) => { if (!open && !importing) setImportFile(null); }}>
         <DialogContent>

@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, one {# problema} other {# problemas}}: nada é importado até o arquivo ser corrigido",
     "importConfirm": "Importar",
     "columns": {
+      "number": "N.º",
       "slug": "Slug",
       "fields": "Campos",
       "submissions": "Envios"
@@ -30,7 +31,9 @@
     "toggleActive": "Ativar/desativar",
     "viewSubmissions": "Ver envios",
     "deleteConfirmTitle": "Excluir \"{name}\"?",
-    "deleteConfirmDescription": "{count, plural, one {O <strong>#</strong> envio também será excluído permanentemente.} other {Todos os <strong>#</strong> envios também serão excluídos permanentemente.}}"
+    "deleteConfirmDescription": "{count, plural, one {O <strong>#</strong> envio também será excluído permanentemente.} other {Todos os <strong>#</strong> envios também serão excluídos permanentemente.}}",
+    "dragToReorder": "Arraste para reordenar",
+    "reorderFailed": "Não foi possível guardar a ordem"
   },
   "edit": {
     "notFound": "Formulário não encontrado."

@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, one {# problème} other {# problèmes}} : rien n'est importé tant que le fichier n'est pas corrigé",
     "importConfirm": "Importer",
     "columns": {
+      "number": "N°",
       "slug": "Slug",
       "fields": "Champs",
       "submissions": "Soumissions"
@@ -30,7 +31,9 @@
     "toggleActive": "Activer / désactiver",
     "viewSubmissions": "Voir les soumissions",
     "deleteConfirmTitle": "Supprimer « {name} » ?",
-    "deleteConfirmDescription": "{count, plural, one {La <strong>#</strong> soumission sera également supprimée définitivement.} other {Les <strong>#</strong> soumissions seront également supprimées définitivement.}}"
+    "deleteConfirmDescription": "{count, plural, one {La <strong>#</strong> soumission sera également supprimée définitivement.} other {Les <strong>#</strong> soumissions seront également supprimées définitivement.}}",
+    "dragToReorder": "Faire glisser pour réorganiser",
+    "reorderFailed": "Impossible d’enregistrer l’ordre"
   },
   "edit": {
     "notFound": "Formulaire introuvable."

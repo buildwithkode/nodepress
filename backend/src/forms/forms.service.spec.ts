@@ -23,7 +23,9 @@ const mockPrisma = {
     findUnique: jest.fn(),
     update:     jest.fn(),
     delete:     jest.fn(),
+    aggregate:  jest.fn(),
   },
+  $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
   formSubmission: {
     count:    jest.fn(),
     findMany: jest.fn(),
@@ -35,6 +37,7 @@ describe('FormsService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockPrisma.form.aggregate.mockResolvedValue({ _max: { position: 2 } });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -56,6 +59,7 @@ describe('FormsService', () => {
 
       const callData = mockPrisma.form.create.mock.calls[0][0].data;
       expect(callData.slug).toBe('contact-us'); // normalized
+      expect(callData.position).toBe(3); // after the last form
     });
 
     it('throws ConflictException on duplicate slug (P2002)', async () => {
@@ -82,6 +86,22 @@ describe('FormsService', () => {
       const result = await service.findAll(1, 50);
       expect(result.data).toHaveLength(1);
       expect(result.meta.total).toBe(1);
+    });
+  });
+
+  // ── reorder ─────────────────────────────────────────────────────────────────
+
+  describe('reorder()', () => {
+    beforeEach(() => mockPrisma.form.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]));
+
+    it('saves each form at its place in the list', async () => {
+      await service.reorder([3, 1, 2]);
+      expect(mockPrisma.form.update.mock.calls.map((c) => [c[0].where.id, c[0].data.position])).toEqual([[3, 0], [1, 1], [2, 2]]);
+    });
+
+    it.each([[[3, 1]], [[3, 1, 1]], [[3, 1, 2, 9]], [[3, 1, 9]]])('refuses %j, which is not every form exactly once', async (ids) => {
+      await expect(service.reorder(ids)).rejects.toThrow(BadRequestException);
+      expect(mockPrisma.form.update).not.toHaveBeenCalled();
     });
   });
 

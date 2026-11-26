@@ -93,7 +93,7 @@ export class SiteExtrasService {
         orderBy: { id: 'asc' },
         include: { items: { select: { action: true, entry: { select: { publicId: true } } } } },
       }),
-      this.prisma.form.findMany({ select: { id: true, slug: true } }),
+      this.prisma.form.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { id: true, slug: true } }),
       this.prisma.formSubmission.findMany({ orderBy: { id: 'asc' }, include: { files: true } }),
       this.prisma.entryVersion.findMany({ orderBy: { id: 'asc' }, include: { entry: { select: { publicId: true } } } }),
       this.prisma.contentType.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { id: true, name: true } }),
@@ -120,7 +120,7 @@ export class SiteExtrasService {
 
     return {
       siteUrl: env.APP_URL ?? null,
-      order: { contentTypes: types.map((t) => t.name), components: components.map((c) => c.name) },
+      order: { contentTypes: types.map((t) => t.name), components: components.map((c) => c.name), forms: forms.map((f) => f.slug) },
       brand: { brandName: b.brandName, brandLogoUrl: b.brandLogoUrl, brandColor: b.brandColor, buttonColor: b.buttonColor, inputColor: b.inputColor },
       settings,
       roles,
@@ -577,7 +577,7 @@ export class SiteExtrasService {
       for (let i = 0; i < rows.length; i += BATCH) await this.prisma.auditLog.createMany({ data: rows.slice(i, i + BATCH) });
     }]);
 
-    // ── Order of the Content Types and Components pages ──
+    // ── Order of the Content Types, Components and Forms pages ──
     const order = bundle.order;
     if (overwrite && isObject(order)) {
       after.push(async () => {
@@ -587,6 +587,12 @@ export class SiteExtrasService {
         };
         await this.contentTypes.reorder(sorted(await this.prisma.contentType.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { id: true, name: true } }), order.contentTypes));
         await this.components.reorder(sorted(await this.prisma.component.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { id: true, name: true } }), order.components));
+        // Files from before forms had an order leave the Forms page as it is.
+        if (Array.isArray(order.forms)) {
+          const forms = await this.prisma.form.findMany({ orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { id: true, slug: true } });
+          const ids = sorted(forms.map((f) => ({ id: f.id, name: f.slug })), order.forms);
+          await this.prisma.$transaction(ids.map((id, position) => this.prisma.form.update({ where: { id }, data: { position } })));
+        }
       });
     }
 

@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, other {問題が # 件あります}}: ファイルを修正するまでインポートされません",
     "importConfirm": "インポート",
     "columns": {
+      "number": "番号",
       "slug": "スラッグ",
       "fields": "フィールド",
       "submissions": "送信"
@@ -30,7 +31,9 @@
     "toggleActive": "有効/無効を切り替え",
     "viewSubmissions": "送信を表示",
     "deleteConfirmTitle": "「{name}」を削除しますか?",
-    "deleteConfirmDescription": "{count, plural, other {<strong>#</strong> 件の送信もすべて完全に削除されます。}}"
+    "deleteConfirmDescription": "{count, plural, other {<strong>#</strong> 件の送信もすべて完全に削除されます。}}",
+    "dragToReorder": "ドラッグして並べ替え",
+    "reorderFailed": "順序を保存できませんでした"
   },
   "edit": {
     "notFound": "フォームが見つかりません。"

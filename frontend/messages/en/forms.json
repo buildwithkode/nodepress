@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, one {# problem} other {# problems}}: nothing is imported until the file is fixed",
     "importConfirm": "Import",
     "columns": {
+      "number": "Sr. No.",
       "slug": "Slug",
       "fields": "Fields",
       "submissions": "Submissions"
@@ -30,7 +31,9 @@
     "toggleActive": "Toggle active",
     "viewSubmissions": "View submissions",
     "deleteConfirmTitle": "Delete \"{name}\"?",
-    "deleteConfirmDescription": "{count, plural, one {The <strong>#</strong> submission will also be deleted permanently.} other {All <strong>#</strong> submissions will also be deleted permanently.}}"
+    "deleteConfirmDescription": "{count, plural, one {The <strong>#</strong> submission will also be deleted permanently.} other {All <strong>#</strong> submissions will also be deleted permanently.}}",
+    "dragToReorder": "Drag to reorder",
+    "reorderFailed": "Failed to save the order"
   },
   "edit": {
     "notFound": "Form not found."

@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import {
-  ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags,
+  ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -14,6 +14,7 @@ import { SubmissionService } from './submission.service';
 import { contentDisposition } from './form-files';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
+import { ReorderFormsDto } from './dto/reorder-forms.dto';
 
 // Forms hold submitters' personal data and email/webhook actions, so the
 // whole admin API is for admins and editors. Public submit: SubmitController.
@@ -78,6 +79,16 @@ export class FormsController {
       page  ? Math.max(1, parseInt(page, 10))            : 1,
       limit ? Math.min(100, Math.max(1, parseInt(limit, 10))) : 50,
     );
+  }
+
+  // Before PUT :id, which would read "order" as an id.
+  @Access('forms', 'edit')
+  @Put('order')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Save the order of the Forms page' })
+  @ApiResponse({ status: 400, description: 'The list must name every form exactly once' })
+  reorder(@Body() dto: ReorderFormsDto) {
+    return this.forms.reorder(dto.ids);
   }
 
   @Get(':id')

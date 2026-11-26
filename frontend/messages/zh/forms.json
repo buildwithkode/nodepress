@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, other {# 个问题}}：修复文件之前不会导入任何内容",
     "importConfirm": "导入",
     "columns": {
+      "number": "序号",
       "slug": "别名",
       "fields": "字段",
       "submissions": "提交"
@@ -30,7 +31,9 @@
     "toggleActive": "切换启用状态",
     "viewSubmissions": "查看提交",
     "deleteConfirmTitle": "删除“{name}”？",
-    "deleteConfirmDescription": "{count, plural, =1 {该 <strong>#</strong> 条提交也将被永久删除。} other {全部 <strong>#</strong> 条提交也将被永久删除。}}"
+    "deleteConfirmDescription": "{count, plural, =1 {该 <strong>#</strong> 条提交也将被永久删除。} other {全部 <strong>#</strong> 条提交也将被永久删除。}}",
+    "dragToReorder": "拖动以重新排序",
+    "reorderFailed": "无法保存顺序"
   },
   "edit": {
     "notFound": "未找到表单。"

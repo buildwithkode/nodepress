@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, one {# problema} other {# problemi}}: non viene importato nulla finché il file non è corretto",
     "importConfirm": "Importa",
     "columns": {
+      "number": "N.",
       "slug": "Slug",
       "fields": "Campi",
       "submissions": "Invii"
@@ -30,7 +31,9 @@
     "toggleActive": "Attiva/disattiva",
     "viewSubmissions": "Vedi invii",
     "deleteConfirmTitle": "Eliminare \"{name}\"?",
-    "deleteConfirmDescription": "{count, plural, one {Anche l’<strong>#</strong> invio verrà eliminato definitivamente.} other {Anche tutti i <strong>#</strong> invii verranno eliminati definitivamente.}}"
+    "deleteConfirmDescription": "{count, plural, one {Anche l’<strong>#</strong> invio verrà eliminato definitivamente.} other {Anche tutti i <strong>#</strong> invii verranno eliminati definitivamente.}}",
+    "dragToReorder": "Trascina per riordinare",
+    "reorderFailed": "Impossibile salvare l'ordine"
   },
   "edit": {
     "notFound": "Modulo non trovato."

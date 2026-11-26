@@ -22,6 +22,7 @@ export class FormsService {
     try {
       return await this.prisma.form.create({
         data: {
+          position:       await this.nextPosition(),
           name:           dto.name,
           slug,
           fields:         (dto.fields  ?? []) as Prisma.InputJsonValue,
@@ -43,7 +44,7 @@ export class FormsService {
     const [total, data] = await Promise.all([
       this.prisma.form.count(),
       this.prisma.form.findMany({
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ position: 'asc' }, { id: 'asc' }],
         skip,
         take: limit,
         include: { _count: { select: { submissions: true } } },
@@ -83,6 +84,25 @@ export class FormsService {
       }
       throw err;
     }
+  }
+
+  /** New and imported forms go to the end of the Forms page. */
+  private async nextPosition() {
+    const { _max } = await this.prisma.form.aggregate({ _max: { position: true } });
+    return (_max.position ?? -1) + 1;
+  }
+
+  /** Save the order of the Forms page. `ids` must list every form exactly once. */
+  async reorder(ids: number[]) {
+    const current = await this.prisma.form.findMany({ select: { id: true } });
+    const known = new Set(current.map((f) => f.id));
+    if (ids.length !== known.size || new Set(ids).size !== ids.length || ids.some((id) => !known.has(id))) {
+      throw new BadRequestException('The order must list every form exactly once. Reload the page and try again.');
+    }
+    await this.prisma.$transaction(
+      ids.map((id, position) => this.prisma.form.update({ where: { id }, data: { position } })),
+    );
+    return { ok: true };
   }
 
   async remove(id: number) {
@@ -133,7 +153,7 @@ export class FormsService {
       const { slug, ...values } = form;
       const data = { ...values, fields: values.fields as Prisma.InputJsonValue, actions: values.actions as Prisma.InputJsonValue };
       try {
-        if (isNew) await this.prisma.form.create({ data: { slug, ...data } });
+        if (isNew) await this.prisma.form.create({ data: { slug, ...data, position: await this.nextPosition() } });
         else await this.prisma.form.update({ where: { slug }, data });
         counts[isNew ? 'created' : 'updated']++;
       } catch (err: any) {

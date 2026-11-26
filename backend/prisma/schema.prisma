@@ -341,6 +341,7 @@ model Form {
   actions        Json             @default("[]") // ActionDef[] — email | webhook
   isActive       Boolean          @default(true)
   captchaEnabled Boolean          @default(false) // require captcha token on submit (needs CAPTCHA_PROVIDER env)
+  position       Int              @default(0) // order of the Forms page, chosen by dragging rows
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   submissions    FormSubmission[]

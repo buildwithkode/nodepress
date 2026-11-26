@@ -21,6 +21,7 @@
     "importProblems": "{count, plural, one {# problema} other {# problemas}}: no se importa nada hasta corregir el archivo",
     "importConfirm": "Importar",
     "columns": {
+      "number": "N.º",
       "slug": "Slug",
       "fields": "Campos",
       "submissions": "Envíos"
@@ -30,7 +31,9 @@
     "toggleActive": "Activar / desactivar",
     "viewSubmissions": "Ver envíos",
     "deleteConfirmTitle": "¿Eliminar «{name}»?",
-    "deleteConfirmDescription": "{count, plural, one {El <strong>#</strong> envío también se eliminará de forma permanente.} other {Los <strong>#</strong> envíos también se eliminarán de forma permanente.}}"
+    "deleteConfirmDescription": "{count, plural, one {El <strong>#</strong> envío también se eliminará de forma permanente.} other {Los <strong>#</strong> envíos también se eliminarán de forma permanente.}}",
+    "dragToReorder": "Arrastra para reordenar",
+    "reorderFailed": "No se pudo guardar el orden"
   },
   "edit": {
     "notFound": "Formulario no encontrado."

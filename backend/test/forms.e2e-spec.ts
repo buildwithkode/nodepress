@@ -254,6 +254,35 @@ describe('Forms (e2e)', () => {
       .expect(401);
   });
 
+  it('PUT /api/forms/order → saves the order of the Forms page; new forms go last', async () => {
+    const auth = { Authorization: `Bearer ${token}` };
+    const list = async () => (await request(app.getHttpServer()).get('/api/forms').set(auth).expect(200)).body.data.map((f: any) => f.id);
+    const extra: number[] = [];
+    for (const slug of ['order-a', 'order-b']) {
+      extra.push((await request(app.getHttpServer()).post('/api/forms').set(auth)
+        .send({ name: slug, slug, fields: [], actions: [] }).expect(201)).body.id);
+    }
+    const ids: number[] = await list();
+    expect(ids.slice(-2)).toEqual(extra); // created last, listed last
+
+    const reversed = [...ids].reverse();
+    await request(app.getHttpServer()).put('/api/forms/order').set(auth).send({ ids: reversed }).expect(200);
+    expect(await list()).toEqual(reversed);
+
+    // Every form exactly once
+    await request(app.getHttpServer()).put('/api/forms/order').set(auth).send({ ids: reversed.slice(1) }).expect(400);
+    await request(app.getHttpServer()).put('/api/forms/order').set(auth).send({ ids: [...reversed, reversed[0]] }).expect(400);
+
+    const created = await request(app.getHttpServer())
+      .post('/api/forms').set(auth)
+      .send({ name: 'Ordered last', slug: 'ordered-last', fields: [], actions: [] })
+      .expect(201);
+    expect((await list()).at(-1)).toBe(created.body.id);
+    for (const id of [...extra, created.body.id]) {
+      await request(app.getHttpServer()).delete(`/api/forms/${id}`).set(auth).expect(200);
+    }
+  });
+
   it('DELETE /api/forms/:id → deletes the form and its submissions', async () => {
     await request(app.getHttpServer())
       .delete(`/api/forms/${formId}`)
