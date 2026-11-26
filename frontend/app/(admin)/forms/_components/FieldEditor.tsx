@@ -106,7 +106,7 @@ export default function FieldEditor({ field, depth, canRemove, onChange, onRemov
 
         {/* Type */}
         <Select value={field.type} onValueChange={(v) => onType(v as FieldType)}>
-          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-44 shrink-0"><SelectValue /></SelectTrigger>
           <SelectContent>
             {typeOptions.map((ft) => (
               <SelectItem key={ft.value} value={ft.value}>{t(`fieldTypes.${ft.value}`)}</SelectItem>
